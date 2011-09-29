@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-24 00:02+0200\n"
+"POT-Creation-Date: 2011-09-30 00:02+0200\n"
 "PO-Revision-Date: 2010-12-10 11:25+0200\n"
 "Last-Translator: Ronny <ronny@kcl.no>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,7 +228,7 @@ msgstr "Til"
 #: php-webclient-ajax/client/core/properties.js:23
 #: php-webclient-ajax/client/core/properties.js:95
 #: php-webclient-ajax/client/layout/js/restoreitems.js:130
-#: php-webclient-ajax/client/layout/js/rule.js:230
+#: php-webclient-ajax/client/layout/js/rule.js:241
 msgid "Subject"
 msgstr "Emne"
 
@@ -1135,7 +1135,7 @@ msgstr "Les epost"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2481
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2484
 #: php-webclient-ajax/client/layout/js/restoreitems.js:129
-#: php-webclient-ajax/client/layout/js/rule.js:228
+#: php-webclient-ajax/client/layout/js/rule.js:239
 msgid "From"
 msgstr "Fra"
 
@@ -1676,7 +1676,7 @@ msgid "No Information"
 msgstr "Ingen informasjon"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
-#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:177
+#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 msgid "Reminders"
 msgstr "Påminnelser"
 
@@ -2074,7 +2074,7 @@ msgid "Subject contains"
 msgstr "Emnet inneholder"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:56
-#: php-webclient-ajax/client/layout/js/rule.js:240
+#: php-webclient-ajax/client/layout/js/rule.js:251
 msgid "Sent to"
 msgstr "Sendt til"
 
@@ -2083,7 +2083,7 @@ msgid "Contact or Distribution List"
 msgstr "Kontakt eller Distribusjons liste"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:59
-#: php-webclient-ajax/client/layout/js/rule.js:242
+#: php-webclient-ajax/client/layout/js/rule.js:253
 msgid "Sent only to me"
 msgstr "Sendt kun til meg"
 
@@ -3446,7 +3446,7 @@ msgstr "Bruker ble ikke funnet"
 msgid "Multi-user calendar is not available with your license"
 msgstr "Multibrukerkalender er ikke tilgjengelig med din lisens"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:155
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:158
 #: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:228
 msgid ""
 "Cannot set a reminder to appear before the previous occurence. Reset "
@@ -3455,57 +3455,57 @@ msgstr ""
 "Kan ikke sette en påminnelse til å dukke opp før forrige hendelse. Nullstill "
 "påminnelsen for å lagre endringen"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:160
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:163
 msgid "Two occurrences cannot occur on the same day"
 msgstr "To hendelser kan ikke skje på samme dag"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:133
-#: php-webclient-ajax/server/modules/class.itemmodule.php:71
+#: php-webclient-ajax/server/modules/class.listmodule.php:135
+#: php-webclient-ajax/server/modules/class.itemmodule.php:72
 msgid "You have insufficient privileges to save items in this folder"
 msgstr "Du har ikke nok rettigheter til å lagre i denne mappen"
 
 # 92%
-#: php-webclient-ajax/server/modules/class.listmodule.php:155
-#: php-webclient-ajax/server/modules/class.itemmodule.php:153
+#: php-webclient-ajax/server/modules/class.listmodule.php:157
+#: php-webclient-ajax/server/modules/class.itemmodule.php:154
 #, fuzzy
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr "Du har ikke nok rettigheter til å lagre i denne mappen"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "I Mappe"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "Sorter mappe"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:281
-#: php-webclient-ajax/server/modules/class.listmodule.php:292
-#: php-webclient-ajax/server/modules/class.listmodule.php:320
+#: php-webclient-ajax/server/modules/class.listmodule.php:283
+#: php-webclient-ajax/server/modules/class.listmodule.php:294
+#: php-webclient-ajax/server/modules/class.listmodule.php:322
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "Feil i søk, vennligst prøv igjen"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:416
+#: php-webclient-ajax/server/modules/class.listmodule.php:418
 msgid "Error in search"
 msgstr "Feil i søk"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1085
+#: php-webclient-ajax/server/modules/class.listmodule.php:1087
 msgid "Private Appointment"
 msgstr "Privat avtale"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:141
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:140
 msgid "Could not handle this type of object."
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:149
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:148
 msgid "Could not open this object."
 msgstr ""
 
@@ -3544,12 +3544,12 @@ msgstr "Ukjent bruker/gruppe"
 msgid "unknown"
 msgstr "ukjent"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:221
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
 #, php-format
 msgid "%s's Birthday"
 msgstr "%s's Fødselsdag"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:245
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
 #, php-format
 msgid "%s's Anniversary"
 msgstr "%s's Merkedag"
@@ -3579,12 +3579,12 @@ msgstr ""
 "JSON tillegget for PHP er påkrevd for å bruke denne funksjonen. Vennligst "
 "informer din system administrator."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:38
+#: php-webclient-ajax/server/modules/class.itemmodule.php:39
 msgid "The message store has exceeded its hard quota limit."
 msgstr "Meldingen har oversteget sin maksimale kvote."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:39
-#: php-webclient-ajax/server/modules/class.itemmodule.php:42
+#: php-webclient-ajax/server/modules/class.itemmodule.php:40
+#: php-webclient-ajax/server/modules/class.itemmodule.php:43
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
@@ -3592,26 +3592,26 @@ msgstr ""
 "For å redusere mengden data på denne meldings boksen, velg noen elementer du "
 "ikke trenger, og slett (SHIFT + DEL) dem permanent."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:41
+#: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
 msgstr "Denne meldings boksen har oversteget størrelses kvote."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:191
+#: php-webclient-ajax/server/modules/class.itemmodule.php:192
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "Oppgave Akseptert:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:193
+#: php-webclient-ajax/server/modules/class.itemmodule.php:194
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "Oppgave Avvist:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:471
+#: php-webclient-ajax/server/modules/class.itemmodule.php:472
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "Konflikt med en annen avtale i din Kalender."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:473
+#: php-webclient-ajax/server/modules/class.itemmodule.php:474
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
@@ -3620,7 +3620,7 @@ msgstr ""
 "%s forekomster av denne gjentagende avtalen er i konflikt med andre avtaler "
 "i din Kalender."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:475
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -4535,8 +4535,8 @@ msgstr "Det er %s uleste meldinger i innboksen"
 msgid "Do you want to update the location '%s' with new location '%s'"
 msgstr ""
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:335
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:383
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:343
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:391
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:484
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:1761
 #: php-webclient-ajax/client/views/calendar.day.view.js:2047
@@ -4550,11 +4550,11 @@ msgstr ""
 "Ønsker du å sende en oppdatering til deltakerne vedrørende endringene til "
 "dette møtet ?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:529
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:537
 msgid "Resources have been planned."
 msgstr "Ressurser har blitt reservert"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:551
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:559
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:535
 #, c-format
 msgid ""
@@ -4568,7 +4568,7 @@ msgstr ""
 "som trengs eller snakk med din administrator for å gi deg tilgang til å "
 "benytte \"%s\"."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:554
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:562
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:538
 #, c-format
 msgid ""
@@ -4578,7 +4578,7 @@ msgstr ""
 "\"%s\" har avslått møtet siden \"%s\" ikke benyttet automatisk akseptering av "
 "møteforespørsler."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:557
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:541
 #, c-format
 msgid ""
@@ -4588,7 +4588,7 @@ msgstr ""
 "\"%s\" har avslått møtet siden det er av typen gjentakende møte. Du er nødt "
 "til å legge inn hvert møte seperat."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:560
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4598,7 +4598,7 @@ msgstr ""
 "\"%s\" er allerde oppdatt på dette tidspunktet. Du er nødt til å velge et "
 "annet tidspunkt eller en annen ressurs."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:563
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 msgid "Meeting was not scheduled."
 msgstr "Møtet ble ikke opprettet"
@@ -4801,17 +4801,17 @@ msgstr "Måned"
 msgid "List"
 msgstr "Liste"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:211
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:217
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:212
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:218
 msgid "RE"
 msgstr "SV"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:221
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:222
 msgid "FW"
 msgstr "VS"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:467
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:478
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:468
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:479
 msgid "Original message"
 msgstr "Opprinnelig melding"
 
@@ -5231,7 +5231,7 @@ msgstr "har avslått"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
 #: php-webclient-ajax/client/core/utils.js:1612
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
-#: php-webclient-ajax/client/layout/js/rule.js:244
+#: php-webclient-ajax/client/layout/js/rule.js:255
 msgid "and"
 msgstr "og"
 
@@ -5616,7 +5616,8 @@ msgstr "%.1f uker"
 #: php-webclient-ajax/client/core/utils.js:599
 #: php-webclient-ajax/client/layout/js/emailaddress.js:5
 #: php-webclient-ajax/client/layout/js/dialog.js:198
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:221
+#: php-webclient-ajax/client/layout/js/rule.js:231
 msgid "Please input a valid email address!"
 msgstr "Vennligst oppgi en gyldig epost adresse!"
 
@@ -6953,32 +6954,37 @@ msgstr "Klarer ikke å vise en regel med mer enn en handling"
 msgid "Unable to show the rule action"
 msgstr "Klarte ikke å vise regelens handling"
 
-#: php-webclient-ajax/client/layout/js/rule.js:200
+#: php-webclient-ajax/client/layout/js/rule.js:201
 msgid "Please select an appropriate action for this rule"
 msgstr "Vennligst velg en handling for denne regelen"
 
-#: php-webclient-ajax/client/layout/js/rule.js:205
+#: php-webclient-ajax/client/layout/js/rule.js:206
 msgid "Please select a folder to move the item to"
 msgstr "Vennligst velg en mappe som elementet skal flyttes til"
 
-#: php-webclient-ajax/client/layout/js/rule.js:210
+#: php-webclient-ajax/client/layout/js/rule.js:211
 msgid "Please select a folder to copy the item to"
 msgstr "Vennligst velg en mappe som elementet skal kopieres til"
 
-#: php-webclient-ajax/client/layout/js/rule.js:215
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:217
+#: php-webclient-ajax/client/layout/js/rule.js:221
 msgid "Please specify a forwarding address"
 msgstr "Vennligst angi en videresendingsadresse"
 
-#: php-webclient-ajax/client/layout/js/rule.js:234
+#: php-webclient-ajax/client/layout/js/rule.js:227
+#: php-webclient-ajax/client/layout/js/rule.js:231
+msgid "Please specify a redirecting address"
+msgstr ""
+
+#: php-webclient-ajax/client/layout/js/rule.js:245
 msgid "Low priority"
 msgstr "Lav prioritet"
 
-#: php-webclient-ajax/client/layout/js/rule.js:235
+#: php-webclient-ajax/client/layout/js/rule.js:246
 msgid "Normal priority"
 msgstr "Middels prioritet"
 
-#: php-webclient-ajax/client/layout/js/rule.js:236
+#: php-webclient-ajax/client/layout/js/rule.js:247
 msgid "High priority"
 msgstr "Høy prioritet"
 

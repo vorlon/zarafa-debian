@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-24 00:02+0200\n"
+"POT-Creation-Date: 2011-09-30 00:02+0200\n"
 "PO-Revision-Date: 2011-01-11 11:20+0200\n"
 "Last-Translator: Verkkotaito <zarafa@verkkotaito.fi>\n"
 "Language-Team: fi_FI <fi@li.org>\n"
@@ -225,7 +225,7 @@ msgstr "Vastaanottaja"
 #: php-webclient-ajax/client/core/properties.js:23
 #: php-webclient-ajax/client/core/properties.js:95
 #: php-webclient-ajax/client/layout/js/restoreitems.js:130
-#: php-webclient-ajax/client/layout/js/rule.js:230
+#: php-webclient-ajax/client/layout/js/rule.js:241
 msgid "Subject"
 msgstr "Aihe"
 
@@ -1130,7 +1130,7 @@ msgstr "Lue viesti"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2481
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2484
 #: php-webclient-ajax/client/layout/js/restoreitems.js:129
-#: php-webclient-ajax/client/layout/js/rule.js:228
+#: php-webclient-ajax/client/layout/js/rule.js:239
 msgid "From"
 msgstr "Lähettäjä"
 
@@ -1671,7 +1671,7 @@ msgid "No Information"
 msgstr "Ei tietoja"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
-#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:177
+#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 msgid "Reminders"
 msgstr "Muistutukset"
 
@@ -2071,7 +2071,7 @@ msgid "Subject contains"
 msgstr "Aihe sisältää"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:56
-#: php-webclient-ajax/client/layout/js/rule.js:240
+#: php-webclient-ajax/client/layout/js/rule.js:251
 msgid "Sent to"
 msgstr "Lähetetty"
 
@@ -2080,7 +2080,7 @@ msgid "Contact or Distribution List"
 msgstr "Yhteystieto- tai jakelulista"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:59
-#: php-webclient-ajax/client/layout/js/rule.js:242
+#: php-webclient-ajax/client/layout/js/rule.js:253
 msgid "Sent only to me"
 msgstr "Lähetetty vain minulle"
 
@@ -3439,7 +3439,7 @@ msgstr "Käyttäjää ei voitu selvittää."
 msgid "Multi-user calendar is not available with your license"
 msgstr "Ryhmäkalenteri ei ole käytettävissä tällä lisenssillä"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:155
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:158
 #: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:228
 msgid ""
 "Cannot set a reminder to appear before the previous occurence. Reset "
@@ -3448,59 +3448,59 @@ msgstr ""
 "Muistutusta ei voida ajastaa näkymään ennen edellistä tapahtumaa. Ajasta "
 "muistutus uudelleen tallentaaksesi muutokset."
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:160
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:163
 msgid "Two occurrences cannot occur on the same day"
 msgstr "Kaksi tapahtumaa eivät voi olla samana päivänä."
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:133
-#: php-webclient-ajax/server/modules/class.itemmodule.php:71
+#: php-webclient-ajax/server/modules/class.listmodule.php:135
+#: php-webclient-ajax/server/modules/class.itemmodule.php:72
 msgid "You have insufficient privileges to save items in this folder"
 msgstr ""
 "Sinulla ei ole riittäviä oikeuksia tallentaaksesi kohteita tähän kansioon."
 
 # 92%
-#: php-webclient-ajax/server/modules/class.listmodule.php:155
-#: php-webclient-ajax/server/modules/class.itemmodule.php:153
+#: php-webclient-ajax/server/modules/class.listmodule.php:157
+#: php-webclient-ajax/server/modules/class.itemmodule.php:154
 #, fuzzy
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr ""
 "Sinulla ei ole riittäviä oikeuksia tallentaaksesi kohteita tähän kansioon."
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "Kansio"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "Järjestelykansio"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:281
-#: php-webclient-ajax/server/modules/class.listmodule.php:292
-#: php-webclient-ajax/server/modules/class.listmodule.php:320
+#: php-webclient-ajax/server/modules/class.listmodule.php:283
+#: php-webclient-ajax/server/modules/class.listmodule.php:294
+#: php-webclient-ajax/server/modules/class.listmodule.php:322
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "Virhe hakutoiminnossa. Ole hyvä ja yritä uudelleen"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:416
+#: php-webclient-ajax/server/modules/class.listmodule.php:418
 msgid "Error in search"
 msgstr "Virhe hakutoiminnossa"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1085
+#: php-webclient-ajax/server/modules/class.listmodule.php:1087
 msgid "Private Appointment"
 msgstr "Yksityinen tapaaminen"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:141
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:140
 msgid "Could not handle this type of object."
 msgstr "Kohdetyyppiä ei voitu käsitellä."
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:149
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:148
 msgid "Could not open this object."
 msgstr "Kohdetta ei voitu avata."
 
@@ -3539,12 +3539,12 @@ msgstr "Tuntematon käyttäjä/ryhmä"
 msgid "unknown"
 msgstr "tuntematon"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:221
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
 #, php-format
 msgid "%s's Birthday"
 msgstr "%s':n syntymäpäivä"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:245
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
 #, php-format
 msgid "%s's Anniversary"
 msgstr "%s:n vuosipäivä"
@@ -3573,12 +3573,12 @@ msgstr ""
 "Tämän ominaisuuden käyttämiseksi vaaditaan PHP:n JSON-lisäosa. Ota yhteys "
 "järjestelmäsi ylläpitäjään."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:38
+#: php-webclient-ajax/server/modules/class.itemmodule.php:39
 msgid "The message store has exceeded its hard quota limit."
 msgstr "Viestivarasto on ylittänyt ehdottoman ylärajansa."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:39
-#: php-webclient-ajax/server/modules/class.itemmodule.php:42
+#: php-webclient-ajax/server/modules/class.itemmodule.php:40
+#: php-webclient-ajax/server/modules/class.itemmodule.php:43
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
@@ -3586,26 +3586,26 @@ msgstr ""
 "Vähentääksesi datan määrää viestivarastossa, valitse kohteita, joita et enää "
 "tarvitse ja poista ne pysyvästi (SHIFT+DEL)."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:41
+#: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
 msgstr "Viestivarasto on ylittänyt joustavan ylärajansa."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:191
+#: php-webclient-ajax/server/modules/class.itemmodule.php:192
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "Tehtävä hyväksytty"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:193
+#: php-webclient-ajax/server/modules/class.itemmodule.php:194
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "Tehtävä hylätty:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:471
+#: php-webclient-ajax/server/modules/class.itemmodule.php:472
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "Kalenteriisi on jo merkitty tapaaminen tälle ajankohdalle."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:473
+#: php-webclient-ajax/server/modules/class.itemmodule.php:474
 #, php-format
 #, php-format,
 msgid ""
@@ -3615,7 +3615,7 @@ msgstr ""
 "%s tästä toistuvasta tapahtumasta on ristiriidassa muiden kalenterissasi "
 "olevien tapahtumien kanssa."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:475
 #, php-format
 #, php-format,
 msgid ""
@@ -4533,8 +4533,8 @@ msgstr "Saapuneet-kansiossa on %s lukematonta viestiä"
 msgid "Do you want to update the location '%s' with new location '%s'"
 msgstr "Haluatko päivättää sijainnin '%s' uudella sijainnilla '%s'"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:335
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:383
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:343
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:391
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:484
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:1761
 #: php-webclient-ajax/client/views/calendar.day.view.js:2047
@@ -4548,11 +4548,11 @@ msgstr ""
 "Haluatko lähettää osallistujille päivityksen koskien kokoukseen tulleita "
 "muutoksia?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:529
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:537
 msgid "Resources have been planned."
 msgstr "Resurssit on suunniteltu."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:551
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:559
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:535
 #, c-format
 msgid ""
@@ -4566,7 +4566,7 @@ msgstr ""
 "hänen nimensä tarvittavaksi tai vaihtoehtoiseksi osallistujaksi, tai pyydä "
 "ylläpitäjältä oikeudet aikatauluttaa \"%s\"."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:554
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:562
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:538
 #, c-format
 msgid ""
@@ -4576,7 +4576,7 @@ msgstr ""
 "\"%s\" kieltäytyi kokouksesta, koska \"%s\" ei automaattisesti hyväksy "
 "kokouspyyntöjä."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:557
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:541
 #, c-format
 msgid ""
@@ -4586,7 +4586,7 @@ msgstr ""
 "\"%s\" kieltäytyi kokouksesta, koska se on toistuva. Sinun täytyy kirjata "
 "jokainen toistuva kokous erikseen."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:560
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4596,7 +4596,7 @@ msgstr ""
 "\"%s\" on jo kirjattu tietylle ajalle. Sinun täytyy muuttaa aika tai etsiä "
 "toinen resurssi."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:563
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 msgid "Meeting was not scheduled."
 msgstr "Kokousta ei aikataulutettu."
@@ -4800,17 +4800,17 @@ msgstr "Kuukausi"
 msgid "List"
 msgstr "Lista"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:211
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:217
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:212
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:218
 msgid "RE"
 msgstr "VS"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:221
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:222
 msgid "FW"
 msgstr "VL"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:467
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:478
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:468
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:479
 msgid "Original message"
 msgstr "Alkuperäinen viesti"
 
@@ -5229,7 +5229,7 @@ msgstr "kieltäytyi"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
 #: php-webclient-ajax/client/core/utils.js:1612
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
-#: php-webclient-ajax/client/layout/js/rule.js:244
+#: php-webclient-ajax/client/layout/js/rule.js:255
 msgid "and"
 msgstr "ja"
 
@@ -5615,7 +5615,8 @@ msgstr "%.1f viikkoa"
 #: php-webclient-ajax/client/core/utils.js:599
 #: php-webclient-ajax/client/layout/js/emailaddress.js:5
 #: php-webclient-ajax/client/layout/js/dialog.js:198
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:221
+#: php-webclient-ajax/client/layout/js/rule.js:231
 msgid "Please input a valid email address!"
 msgstr "Anna voimassaoleva sähköpostiosoite!"
 
@@ -6951,32 +6952,37 @@ msgstr "Useamman toiminnon sääntöä ei voitu näyttää"
 msgid "Unable to show the rule action"
 msgstr "Säännön toimintoa ei voitu näyttää"
 
-#: php-webclient-ajax/client/layout/js/rule.js:200
+#: php-webclient-ajax/client/layout/js/rule.js:201
 msgid "Please select an appropriate action for this rule"
 msgstr "Valitse kelvollinen toiminto säännölle"
 
-#: php-webclient-ajax/client/layout/js/rule.js:205
+#: php-webclient-ajax/client/layout/js/rule.js:206
 msgid "Please select a folder to move the item to"
 msgstr "Valitse kansio johon kohde siirretään"
 
-#: php-webclient-ajax/client/layout/js/rule.js:210
+#: php-webclient-ajax/client/layout/js/rule.js:211
 msgid "Please select a folder to copy the item to"
 msgstr "Valitse kansio johon kohde kopioidaan"
 
-#: php-webclient-ajax/client/layout/js/rule.js:215
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:217
+#: php-webclient-ajax/client/layout/js/rule.js:221
 msgid "Please specify a forwarding address"
 msgstr "Määritä välitysosoite"
 
-#: php-webclient-ajax/client/layout/js/rule.js:234
+#: php-webclient-ajax/client/layout/js/rule.js:227
+#: php-webclient-ajax/client/layout/js/rule.js:231
+msgid "Please specify a redirecting address"
+msgstr ""
+
+#: php-webclient-ajax/client/layout/js/rule.js:245
 msgid "Low priority"
 msgstr "Pieni tärkeysaste"
 
-#: php-webclient-ajax/client/layout/js/rule.js:235
+#: php-webclient-ajax/client/layout/js/rule.js:246
 msgid "Normal priority"
 msgstr "Normaali tärkeysaste"
 
-#: php-webclient-ajax/client/layout/js/rule.js:236
+#: php-webclient-ajax/client/layout/js/rule.js:247
 msgid "High priority"
 msgstr "Suuri tärkeysaste"
 

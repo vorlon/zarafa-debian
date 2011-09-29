@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-24 00:02+0200\n"
+"POT-Creation-Date: 2011-09-30 00:02+0200\n"
 "PO-Revision-Date: 2010-11-25 10:52+0200\n"
 "Last-Translator: Bee Leng <bizibee@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -230,7 +230,7 @@ msgstr "收件人"
 #: php-webclient-ajax/client/core/properties.js:23
 #: php-webclient-ajax/client/core/properties.js:95
 #: php-webclient-ajax/client/layout/js/restoreitems.js:130
-#: php-webclient-ajax/client/layout/js/rule.js:230
+#: php-webclient-ajax/client/layout/js/rule.js:241
 msgid "Subject"
 msgstr "主题"
 
@@ -1137,7 +1137,7 @@ msgstr "已阅读邮件"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2481
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2484
 #: php-webclient-ajax/client/layout/js/restoreitems.js:129
-#: php-webclient-ajax/client/layout/js/rule.js:228
+#: php-webclient-ajax/client/layout/js/rule.js:239
 msgid "From"
 msgstr "发件人"
 
@@ -1681,7 +1681,7 @@ msgid "No Information"
 msgstr "没有资料"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
-#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:177
+#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 msgid "Reminders"
 msgstr "提醒"
 
@@ -2077,7 +2077,7 @@ msgid "Subject contains"
 msgstr "主题包含的"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:56
-#: php-webclient-ajax/client/layout/js/rule.js:240
+#: php-webclient-ajax/client/layout/js/rule.js:251
 msgid "Sent to"
 msgstr "发送到"
 
@@ -2086,7 +2086,7 @@ msgid "Contact or Distribution List"
 msgstr "联系人或通讯组列表"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:59
-#: php-webclient-ajax/client/layout/js/rule.js:242
+#: php-webclient-ajax/client/layout/js/rule.js:253
 msgid "Sent only to me"
 msgstr "只发送给我"
 
@@ -3449,64 +3449,64 @@ msgstr "用户未能得到解决"
 msgid "Multi-user calendar is not available with your license"
 msgstr "你的注册授權不提供多用户日历"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:155
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:158
 #: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:228
 msgid ""
 "Cannot set a reminder to appear before the previous occurence. Reset "
 "reminder to save the change"
 msgstr "无法在前一个事件之前设置提醒. 从新设置提醒以便保存所更改的"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:160
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:163
 msgid "Two occurrences cannot occur on the same day"
 msgstr "不能在同一天发生两个事项"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:133
-#: php-webclient-ajax/server/modules/class.itemmodule.php:71
+#: php-webclient-ajax/server/modules/class.listmodule.php:135
+#: php-webclient-ajax/server/modules/class.itemmodule.php:72
 msgid "You have insufficient privileges to save items in this folder"
 msgstr "你没有足够的权限把项目保存到此文件夹中"
 
 # 92%
-#: php-webclient-ajax/server/modules/class.listmodule.php:155
-#: php-webclient-ajax/server/modules/class.itemmodule.php:153
+#: php-webclient-ajax/server/modules/class.listmodule.php:157
+#: php-webclient-ajax/server/modules/class.itemmodule.php:154
 #, fuzzy
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr "你没有足够的权限把项目保存到此文件夹中"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "收件文件夹"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:209
-#: php-webclient-ajax/server/modules/class.listmodule.php:339
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "文件夹排序"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:281
-#: php-webclient-ajax/server/modules/class.listmodule.php:292
-#: php-webclient-ajax/server/modules/class.listmodule.php:320
+#: php-webclient-ajax/server/modules/class.listmodule.php:283
+#: php-webclient-ajax/server/modules/class.listmodule.php:294
+#: php-webclient-ajax/server/modules/class.listmodule.php:322
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "搜索错误, 请再试一次"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:416
+#: php-webclient-ajax/server/modules/class.listmodule.php:418
 msgid "Error in search"
 msgstr "搜索错误"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1085
+#: php-webclient-ajax/server/modules/class.listmodule.php:1087
 msgid "Private Appointment"
 msgstr "私人约会"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:141
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:140
 msgid "Could not handle this type of object."
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:149
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:148
 msgid "Could not open this object."
 msgstr ""
 
@@ -3543,12 +3543,12 @@ msgstr "不明用户/组"
 msgid "unknown"
 msgstr "不明"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:221
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
 #, php-format
 msgid "%s's Birthday"
 msgstr "%s的生日"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:245
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
 #, php-format
 msgid "%s's Anniversary"
 msgstr "%s的纪念日"
@@ -3574,44 +3574,44 @@ msgid ""
 "your system administrator."
 msgstr "这功能需要使用到PHP的JSON的延伸. 请告知你的系统管理员."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:38
+#: php-webclient-ajax/server/modules/class.itemmodule.php:39
 msgid "The message store has exceeded its hard quota limit."
 msgstr "信息储存已超过其硬性额定限制."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:39
-#: php-webclient-ajax/server/modules/class.itemmodule.php:42
+#: php-webclient-ajax/server/modules/class.itemmodule.php:40
+#: php-webclient-ajax/server/modules/class.itemmodule.php:43
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
 msgstr "要减少此邮件存储的数据量, 选择一些你不再需要的项目,  并以(SHIFT+ Del) 永久删除它们."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:41
+#: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
 msgstr "信息储存已超过其软性额定限制."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:191
+#: php-webclient-ajax/server/modules/class.itemmodule.php:192
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "已接受任务:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:193
+#: php-webclient-ajax/server/modules/class.itemmodule.php:194
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "已拒绝任务:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:471
+#: php-webclient-ajax/server/modules/class.itemmodule.php:472
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "与日历上的另一个约会有所冲突."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:473
+#: php-webclient-ajax/server/modules/class.itemmodule.php:474
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
 "appointments on your Calendar."
 msgstr "这%s定期性约会与日历上的另一个约会有所冲突."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:475
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -4524,8 +4524,8 @@ msgstr "在你的收件箱中有%s个未读邮件"
 msgid "Do you want to update the location '%s' with new location '%s'"
 msgstr ""
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:335
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:383
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:343
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:391
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:484
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:1761
 #: php-webclient-ajax/client/views/calendar.day.view.js:2047
@@ -4537,12 +4537,12 @@ msgid ""
 "meeting?"
 msgstr "你想发送关于本次会议变动的最新信息給会议与会者吗?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:529
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:537
 msgid "Resources have been planned."
 msgstr "资源已规划."
 
 # need to see the actual dialogue box in context to make sure the meaning is right.
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:551
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:559
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:535
 #, c-format
 msgid ""
@@ -4554,7 +4554,7 @@ msgstr ""
 "你已标记\"%s\"为资源. 你不能安排一个以\"%s\"的会议, 因为你没有该帐户的适当权限. 你可以把名称输入为必需的或可选与会者,  "
 "或向管理员要求让你能够安排\"%s\"的权限."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:554
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:562
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:538
 #, c-format
 msgid ""
@@ -4563,7 +4563,7 @@ msgid ""
 msgstr "\"%s\" 已拒绝你的会议, 因为\"%s\" 不能自动接受会议要求."
 
 # need to see the actual dialogue in context to determine whether it makes sense.
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:557
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:541
 #, c-format
 msgid ""
@@ -4571,7 +4571,7 @@ msgid ""
 "meeting separetly with this recurrence."
 msgstr "\"%s\" 已拒绝你的会议, 因为此会议是重复性的. 你必须分别预订此重复性会议."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:560
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4579,7 +4579,7 @@ msgid ""
 "or find another resource."
 msgstr "在这个指定的时间\"%s\" 已被预订了. 你必须使用另一个时间或寻找其他资源."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:563
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 msgid "Meeting was not scheduled."
 msgstr "这会议并没有被安排"
@@ -4777,18 +4777,18 @@ msgstr "月"
 msgid "List"
 msgstr "列表"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:211
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:217
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:212
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:218
 msgid "RE"
 msgstr "主题"
 
 # Forward right?
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:221
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:222
 msgid "FW"
 msgstr "转发"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:467
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:478
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:468
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:479
 msgid "Original message"
 msgstr "原有邮件"
 
@@ -5193,7 +5193,7 @@ msgstr "已被拒绝"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
 #: php-webclient-ajax/client/core/utils.js:1612
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
-#: php-webclient-ajax/client/layout/js/rule.js:244
+#: php-webclient-ajax/client/layout/js/rule.js:255
 msgid "and"
 msgstr "与"
 
@@ -5579,7 +5579,8 @@ msgstr "%.1f 周"
 #: php-webclient-ajax/client/core/utils.js:599
 #: php-webclient-ajax/client/layout/js/emailaddress.js:5
 #: php-webclient-ajax/client/layout/js/dialog.js:198
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:221
+#: php-webclient-ajax/client/layout/js/rule.js:231
 msgid "Please input a valid email address!"
 msgstr "请输入一个有效的电子邮件地址!"
 
@@ -6902,32 +6903,37 @@ msgstr "无法显示一个以上的行动规则"
 msgid "Unable to show the rule action"
 msgstr "无法显示规则行动"
 
-#: php-webclient-ajax/client/layout/js/rule.js:200
+#: php-webclient-ajax/client/layout/js/rule.js:201
 msgid "Please select an appropriate action for this rule"
 msgstr "请为这个规则选择适当行动"
 
-#: php-webclient-ajax/client/layout/js/rule.js:205
+#: php-webclient-ajax/client/layout/js/rule.js:206
 msgid "Please select a folder to move the item to"
 msgstr "请选择一个文件夹以便移动项目"
 
-#: php-webclient-ajax/client/layout/js/rule.js:210
+#: php-webclient-ajax/client/layout/js/rule.js:211
 msgid "Please select a folder to copy the item to"
 msgstr "请选择一个文件夹以便复制项目"
 
-#: php-webclient-ajax/client/layout/js/rule.js:215
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:217
+#: php-webclient-ajax/client/layout/js/rule.js:221
 msgid "Please specify a forwarding address"
 msgstr "请指定一个转发地址"
 
-#: php-webclient-ajax/client/layout/js/rule.js:234
+#: php-webclient-ajax/client/layout/js/rule.js:227
+#: php-webclient-ajax/client/layout/js/rule.js:231
+msgid "Please specify a redirecting address"
+msgstr ""
+
+#: php-webclient-ajax/client/layout/js/rule.js:245
 msgid "Low priority"
 msgstr "低优先级"
 
-#: php-webclient-ajax/client/layout/js/rule.js:235
+#: php-webclient-ajax/client/layout/js/rule.js:246
 msgid "Normal priority"
 msgstr "普通优先级"
 
-#: php-webclient-ajax/client/layout/js/rule.js:236
+#: php-webclient-ajax/client/layout/js/rule.js:247
 msgid "High priority"
 msgstr "高优先级"
 
