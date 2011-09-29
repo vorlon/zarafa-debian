@@ -1,0 +1,12 @@
+#!/bin/sh
+
+CONFIG=/etc/zarafa/server.cfg
+test -f ${CONFIG} || exit 0
+
+LOGPATH=$(grep -w client_update_log_path ${CONFIG} | grep -v \# | cut -d= -f2 | sed -e 's/[[:blank:]\r]//g')
+if test -n ${LOGPATH} -a ${#LOGPATH} -gt 6 -a -d ${LOGPATH}; then
+	# remove all files older than 14 days
+	find ${LOGPATH} -maxdepth 2 -type f -ctime +14 -exec rm {} \;
+	# remove all empty directories
+	find ${LOGPATH} -maxdepth 1 -type d -exec rmdir --ignore-fail-on-non-empty {} \;
+fi
