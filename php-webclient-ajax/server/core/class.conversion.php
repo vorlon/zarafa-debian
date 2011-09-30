@@ -618,13 +618,16 @@ class Conversion {
 			}
 
 			if (isset($xmlitem["flavor"])){
-				if ($xmlitem["flavor"]==0){
-					$action["flavor"] = 0;
-				}else{
-				    if(defined($xmlitem["flavor"])) 
-    					$action["flavor"] = constant($xmlitem["flavor"]);
-                    else
-                        $action["flavor"] = $xmlitem["flavor"];
+				$action["flavor"] = 0;
+				$flavors = explode("|", $xmlitem["flavor"]);
+
+				foreach($flavors as $flavor){
+					$flavor = trim($flavor);
+					if (defined($flavor)) {
+						$action["flavor"] += constant($flavor);
+					} else {
+						$action["flavor"] += intval($flavor, 10);
+					}
 				}
 			}
 
@@ -680,7 +683,7 @@ class Conversion {
 						break;
 					case "flavor":
 						if ($action["action"]==OP_FORWARD||$action["action"]==OP_REPLY){
-							$xml_action["flavor"] = Conversion::getFlavorName($val);
+							$xml_action["flavor"] = Conversion::getFlavorName($val, $action["action"]);
 						}
 						break;
 	
@@ -802,23 +805,35 @@ class Conversion {
 	*
 	* @access private
 	* @param string $flavor string representation of the flavor from XML
+	* @param Number $actionType Number representing action type (OP_REPLY or OP_FORWARD)
 	* @return int MAPI flavor ID
 	*/
-	function getFlavorName($flavor)
+	function getFlavorName($flavor, $actionType)
 	{
-		switch($flavor){
-			case STOCK_REPLY_TEMPLATE:
-				return "STOCK_REPLY_TEMPLATE";
-			case DO_NOT_SEND_TO_ORIGINATOR:
-				return "DO_NOT_SEND_TO_ORIGINATOR";
-			case FWD_PRESERVE_SENDER:
-				return "FWD_PRESERVE_SENDER";
-			case FWD_DO_NOT_MUNGE_MSG:
-				return "FWD_DO_NOT_MUNGE_MSG";
-			case FWD_AS_ATTACHMENT:
-				return "FWD_AS_ATTACHMENT";
+		$flavors = array();
+
+		if($actionType == OP_REPLY) {
+			if (($flavor & STOCK_REPLY_TEMPLATE) === STOCK_REPLY_TEMPLATE)
+				$flavors[] = "STOCK_REPLY_TEMPLATE";
+
+			if (($flavor & DO_NOT_SEND_TO_ORIGINATOR) === DO_NOT_SEND_TO_ORIGINATOR)
+				$flavors[] = "DO_NOT_SEND_TO_ORIGINATOR";
+		} else if ($actionType == OP_FORWARD) {
+			if (($flavor & FWD_PRESERVE_SENDER) === FWD_PRESERVE_SENDER)
+				$flavors[] = "FWD_PRESERVE_SENDER";
+
+			if (($flavor & FWD_DO_NOT_MUNGE_MSG) === FWD_DO_NOT_MUNGE_MSG)
+				$flavors[] = "FWD_DO_NOT_MUNGE_MSG";
+
+			if (($flavor & FWD_AS_ATTACHMENT) === FWD_AS_ATTACHMENT)
+				$flavors[] = "FWD_AS_ATTACHMENT";
 		}
-		return $flavor;
+
+		if(!empty($flavors)) {
+			return implode(" | ", $flavors);
+		} else {
+			return $flavor;
+		}
 	}
 
 	/**

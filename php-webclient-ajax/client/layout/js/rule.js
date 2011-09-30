@@ -174,12 +174,6 @@ function showAction(action, state)
         dhtml.getElementById("action_copy_folder").storeentryid = action.storeentryid.value;
         dhtml.getElementById("action_copy_folder").innerHTML = action.foldername.value;
     } else if(action.action.value == "OP_FORWARD") {
-		if(action.flavor.value == 0){
-			dhtml.getElementById("action_forward").checked = true;
-		}else if(action.flavor.value == FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG){
-			dhtml.getElementById("action_redirect").checked = true;
-		}
-		
 		var smtpaddress = "";
 		var emailaddress = "";
 		var addrType = "";
@@ -187,6 +181,10 @@ function showAction(action, state)
 		var objectType = MAPI_MAILUSER;
 		
 		for(var i=0;i<action.adrlist.address.property.length;i++) {
+			if(!action.adrlist.address.property[i].attributes) {
+				continue;
+			}
+
 			if(action.adrlist.address.property[i].attributes.proptag == "PR_SMTP_ADDRESS") {
 				smtpaddress = action.adrlist.address.property[i].value;
 			}
@@ -208,9 +206,14 @@ function showAction(action, state)
 			emailaddress = nameAndEmailToString(displayName, smtpaddress, objectType);
 		}
 
-		if(action.flavor.value == 0){
+		if(action.flavor.value == "0"){
+			dhtml.getElementById("action_forward").checked = true;
 			dhtml.getElementById("action_forward_address").value = emailaddress;
-		}else if(action.flavor.value == FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG){
+		}else if(action.flavor.value == "FWD_AS_ATTACHMENT"){
+			dhtml.getElementById("action_forward_attach").checked = true;
+			dhtml.getElementById("action_forward_attach_address").value = emailaddress;
+		}else if(action.flavor.value == "FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG"){
+			dhtml.getElementById("action_redirect").checked = true;
 			dhtml.getElementById("action_redirect_address").value = emailaddress;
 		}
 	}
@@ -225,6 +228,7 @@ function submitRule()
     var action_copy = dhtml.getElementById("action_copy").checked;
     var action_delete = dhtml.getElementById("action_delete").checked;
     var action_forward = dhtml.getElementById("action_forward").checked;
+    var action_forward_attach = dhtml.getElementById("action_forward_attach").checked;
     var action_redirect = dhtml.getElementById("action_redirect").checked;
     
     var action_move_folder = dhtml.getElementById("action_move_folder");
@@ -232,6 +236,8 @@ function submitRule()
 
 	if(action_forward){
 		var action_address = dhtml.getElementById("action_forward_address").value;
+	}else if(action_forward_attach){
+		var action_address = dhtml.getElementById("action_forward_attach_address").value;
 	}else if(action_redirect){
 	    var action_address = dhtml.getElementById("action_redirect_address").value;
 	}
@@ -246,7 +252,7 @@ function submitRule()
     var cond_sent_to = dhtml.getElementById("cond_sent_to").value;
     var cond_sent_to_me = dhtml.getElementById("cond_sent_to_me").checked;
     
-    if(!action_move && !action_copy && !action_delete && !action_forward && !action_redirect) {
+    if(!action_move && !action_copy && !action_delete && !action_forward && !action_forward_attach && !action_redirect) {
         alert(_("Please select an appropriate action for this rule"));
         return false;
     }
@@ -262,23 +268,33 @@ function submitRule()
     }
     
 	// check for validity of forwarding email address
-    if(action_forward && !action_address) {
-        alert(_("Please specify a forwarding address"));
-        return false;
-    }
-    if(action_forward && !parseEmailAddress(action_address)) {
-        alert(_("Please specify a forwarding address")+"\n"+_("Please input a valid email address!"));
-        return false;
+	if(action_forward && !action_address) {
+		alert(_("Please specify a forwarding address"));
+		return false;
+	}
+	if(action_forward && !parseEmailAddress(action_address)) {
+		alert(_("Please specify a forwarding address")+"\n"+_("Please input a valid email address!"));
+		return false;
+	}
+
+	// check for validity of forwarding as attachment email address
+	if(action_forward_attach && !action_address) {
+		alert(_("Please specify a forwarding as attachment address"));
+		return false;
+	}
+	if(action_forward_attach && !parseEmailAddress(action_address)) {
+		alert(_("Please specify a forwarding as attachment address")+"\n"+_("Please input a valid email address!"));
+		return false;
 	}
 
 	// check for validity of redirecting email address
 	if(action_redirect && !action_address) {
-        alert(_("Please specify a redirecting address"));
-        return false;
-    }
-    if(action_redirect && !parseEmailAddress(action_address)) {
-        alert(_("Please specify a redirecting address")+"\n"+_("Please input a valid email address!"));
-        return false;
+		alert(_("Please specify a redirecting address"));
+		return false;
+	}
+	if(action_redirect && !parseEmailAddress(action_address)) {
+		alert(_("Please specify a redirecting address")+"\n"+_("Please input a valid email address!"));
+		return false;
 	}
 
     // Create name if none given
@@ -408,13 +424,16 @@ function getConditions()
     }
     
     if(cond_sent_to.value) {
-        var parsed = parseEmailAddress(cond_sent_to.value);
-        var addrtype = cond_sent_to.addrtype ? cond_sent_to.addrtype : "SMTP";
-        var emailaddr = cond_sent_to.emailaddress ? cond_sent_to.emailaddress : parsed.emailaddress;
-        var name = cond_sent_to.displayname ? cond_sent_to.displayname : (parsed.displayname ? parsed.displayname : parsed.emailaddress);
-        var entryid = cond_sent_to.entryid ? cond_sent_to.entryid : createOneOff(name, addrtype, emailaddr);
-        var searchkey = cond_sent_to.searchkey ? cond_sent_to.searchkey : createSearchKey(addrtype, emailaddr);
-        
+		var parsed = parseEmailAddress(cond_sent_to.value);
+		var addrtype = action_address.addrtype ? cond_sent_to.addrtype : "SMTP";
+		if(cond_sent_to.emailaddress) {
+			var emailaddr = cond_sent_to.emailaddress;
+		}
+		var smtpaddr = cond_sent_to.smtpaddr ? cond_sent_to.smtpaddr : parsed.emailaddress;
+		var name = cond_sent_to.displayname ? cond_sent_to.displayname : (parsed.displayname ? parsed.displayname : parsed.emailaddress);
+		var entryid = cond_sent_to.entryid ? cond_sent_to.entryid : createOneOff(name, addrtype, smtpaddr);
+		var searchkey = cond_sent_to.searchkey ? cond_sent_to.searchkey : createSearchKey(addrtype, smtpaddr);
+
         condition = new Object;
         condition.restype = new Object;
         condition.restype.value = "RES_SUBRESTRICTION";
@@ -528,6 +547,7 @@ function getAction()
     var action_delete = dhtml.getElementById("action_delete").checked;
     var action_redirect = dhtml.getElementById("action_redirect").checked;
     var action_forward = dhtml.getElementById("action_forward").checked;
+    var action_forward_attach = dhtml.getElementById("action_forward_attach").checked;
     
     var action_move_folder = dhtml.getElementById("action_move_folder");
     var action_copy_folder = dhtml.getElementById("action_copy_folder");
@@ -535,7 +555,9 @@ function getAction()
 	if(action_redirect){
 		var action_address = dhtml.getElementById("action_redirect_address");
 	}else if(action_forward){
-		var action_address = dhtml.getElementById("action_forward_address");	
+		var action_address = dhtml.getElementById("action_forward_address");
+	}else if(action_forward_attach){
+		var action_address = dhtml.getElementById("action_forward_attach_address");
 	}
     
     var action = new Object;
@@ -567,11 +589,13 @@ function getAction()
         action.storeentryid.value = parentwindow.module.storeid;
         action.foldername = new Object;
         action.foldername.value = "DELETE";
-    } else if(action_forward || action_redirect) {
+    } else if(action_forward || action_redirect || action_forward_attach) {
 
         var parsed = parseEmailAddress(action_address.value);
         var addrtype = action_address.addrtype ? action_address.addrtype : "SMTP";
-        var emailaddr = action_address.emailaddress ? action_address.emailaddress : "";
+		if(action_address.emailaddress) {
+			var emailaddr = action_address.emailaddress;
+		}
         var smtpaddr = action_address.smtpaddr ? action_address.smtpaddr : parsed.emailaddress;
         var name = action_address.displayname ? action_address.displayname : (parsed.displayname ? parsed.displayname : parsed.emailaddress);
         var entryid = action_address.entryid ? action_address.entryid : createOneOff(name, addrtype, smtpaddr);
@@ -582,11 +606,11 @@ function getAction()
         action.flavor = new Object;
 
 		if (action_forward){
-			 action.flavor.value = 0; 
-		}
-
-		if (action_redirect) {
-			 action.flavor.value = FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG; // Redirect
+			action.flavor.value = "0"; 
+		} else if (action_forward_attach) {
+			action.flavor.value = "FWD_AS_ATTACHMENT";
+		} else if (action_redirect) {
+			action.flavor.value = "FWD_PRESERVE_SENDER | FWD_DO_NOT_MUNGE_MSG"; // Redirect
 		}
 
         action.adrlist = new Object;
@@ -637,11 +661,13 @@ function getAction()
         property.value = 6;
         action.adrlist.address.property.push(property);
 
-        var property = new Object;
-        property.attributes = new Object;
-        property.attributes.proptag = "PR_EMAIL_ADDRESS";
-        property.value = emailaddr;
-        action.adrlist.address.property.push(property);
+		if(emailaddr) {
+			var property = new Object;
+			property.attributes = new Object;
+			property.attributes.proptag = "PR_EMAIL_ADDRESS";
+			property.value = emailaddr;
+			action.adrlist.address.property.push(property);
+		}
 
 		var property = new Object;
 		property.attributes = new Object;

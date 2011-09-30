@@ -443,8 +443,3 @@ var olTaskNotDelegated			= 0;
 var olTaskDelegationUnknown		= 1;	// After sending req
 var olTaskDelegationAccepted	= 2;	// After receiving accept
 var olTaskDelegationDeclined	= 3;	// After receiving decline
-
-// action flavors for OP_FORWARD
-var FWD_PRESERVE_SENDER			= 1;	// Preserves the sender information and indicates the message was autoforwarded.
-var FWD_DO_NOT_MUNGE_MSG		= 2;	// Forwards the message without making any changes to the message.
-var FWD_AS_ATTACHMENT			= 4;	// Makes the message an attachment to the forwarded message.
