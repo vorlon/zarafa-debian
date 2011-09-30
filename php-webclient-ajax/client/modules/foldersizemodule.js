@@ -106,7 +106,7 @@ foldersizemodule.prototype.setFolderSizeData = function(action){
 
 	// Get the properies for the selected folder
 	dialogData = {
-		'name': dhtml.getXMLValue(mainfolder[0], "name"),
+		'name': dhtml.getXMLValue(mainfolder[0], "name").htmlEntities(),
 		'size': parseInt(dhtml.getXMLValue(mainfolder[0], "size"),10) + _("KB"),
 		'totalsize': parseInt(dhtml.getXMLValue(mainfolder[0], "totalsize"),10) + _("KB"),
 		'subfolders': new Array()
@@ -116,7 +116,7 @@ foldersizemodule.prototype.setFolderSizeData = function(action){
 	for(var i=0;i<subfolderlist.length;i++){
 		dialogData['subfolders'].push({
 			name: {
-				innerHTML: dhtml.getXMLValue(subfolderlist[i], "name")
+				innerHTML: dhtml.getXMLValue(subfolderlist[i], "name").htmlEntities()
 			},
 			size: {
 				innerHTML: parseInt(dhtml.getXMLValue(subfolderlist[i], "size"),10) + _("KB")

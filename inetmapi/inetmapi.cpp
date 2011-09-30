@@ -317,7 +317,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IM
 		goto exit;
 	}
 	
-	hr = mailer->sendMail(lpAddrBook, lpMessage, vmMessage);
+	hr = mailer->sendMail(lpAddrBook, lpMessage, vmMessage, sopt.allow_send_to_everyone);
 
 exit:
 	delete mToVM;

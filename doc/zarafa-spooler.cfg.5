@@ -237,6 +237,14 @@ Default:
 \fIyes\fR
 .RE
 .PP
+\fBallow_send_to_everyone\fR
+.RS 4
+When set to \'no\', sending to the \'everyone\' group is disallowed\&. The entire message will be bounced if this is attempted\&. When set to \'yes\', this allows sending to all users in the \'everyone\' group\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
 \fBexpand_groups\fR
 .RS 4
 Expand groups in headers of sent e\-mails\&. This means that the recipient of an e\-mail with one or more groups as recipients will see the members of the groups instead of the groups themselves\&. If a group has an e\-mail address, the group is not expanded irrespective of this setting, since having an e\-mail address for the group implies that this address can be used to send messages to the group\&.

@@ -1122,6 +1122,7 @@ int main(int argc, char *argv[]) {
 		{ "always_send_utf8", "no", CONFIGSETTING_RELOADABLE },
 		{ "allow_redirect_spoofing", "yes", CONFIGSETTING_RELOADABLE },
 		{ "allow_delegate_meeting_request", "yes", CONFIGSETTING_RELOADABLE },
+		{ "allow_send_to_everyone", "yes", CONFIGSETTING_RELOADABLE },
 		{ "copy_delegate_mails", "yes", CONFIGSETTING_RELOADABLE },
 		{ "expand_groups", "no", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_send", "no", CONFIGSETTING_RELOADABLE },

@@ -66,6 +66,7 @@
 #include <mapix.h>
 #include "mapiext.h"
 #include <EMSAbTag.h>
+#include "ECABEntryID.h"
 
 using namespace std;
 
@@ -122,11 +123,12 @@ static void extractMailboxes(vmime::mailboxList& recipients, const vmime::addres
  * @param recipients Reference to list of recipients to append to
  * @param setGroups Set of groups already processed, used for loop-detection in nested expansion
  * @param setRecips Set of recipients already processed, used for duplicate-recip detection
+ * @param bAllowEveryone Allow sending to 'everyone'
  *
  * This function takes a MAPI table, reads all items from it, expands any groups and adds all expanded recipients into the passed
  * recipient table. Group expansion is recursive.
  */
-HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips)
+HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
 	LPSRowSet lpRowSet = NULL;
@@ -159,8 +161,19 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			LPSPropValue lpGroupName = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
 			LPSPropValue lpGroupEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
 	
+			if(bAllowEveryone == false) {
+				bool bEveryone = false;
+				
+				if(EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
+					lpLogger->Log(EC_LOGLEVEL_ERROR, "Denying send to Everyone");
+					error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
+					hr = MAPI_E_NO_ACCESS;
+					goto exit;
+				}
+			}
+
 			// Recursively expand all recipients in the group
-			hr = HrExpandGroup(lpAdrBook, lpGroupName, lpGroupEntryID, recipients, setGroups, setRecips);
+			hr = HrExpandGroup(lpAdrBook, lpGroupName, lpGroupEntryID, recipients, setGroups, setRecips, bAllowEveryone);
 			if (hr == MAPI_E_TOO_COMPLEX || hr == MAPI_E_INVALID_PARAMETER) {
 				// ignore group nesting loop and non user/group types (eg. companies)
 				hr = hrSuccess;
@@ -197,7 +210,7 @@ exit:
  * lpGroupEntryID may be NULL, in which case lpGroupName is used to resolve the group via the addressbook. If
  * both parameters are set, lpGroupEntryID is used, and lpGroupName is ignored.
  */
-HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips)
+HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
 	IDistList *lpGroup = NULL;
@@ -266,7 +279,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = HrAddRecipsFromTable(lpAdrBook, lpTable, recipients, setGroups, setRecips);
+	hr = HrAddRecipsFromTable(lpAdrBook, lpTable, recipients, setGroups, setRecips, bAllowEveryone);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -286,7 +299,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, vmime::mailboxList &recipients)
+HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, vmime::mailboxList &recipients, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
 	SRestriction sRestriction;
@@ -323,7 +336,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMes
 			goto exit;
 	}
 
-	hr = HrAddRecipsFromTable(lpAdrBook, lpRTable, recipients, setGroups, setRecips);
+	hr = HrAddRecipsFromTable(lpAdrBook, lpRTable, recipients, setGroups, setRecips, bAllowEveryone);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -341,7 +354,7 @@ exit:
 // This function does not catch the vmime exception
 // it should be handled by the calling party.
 
-HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage)
+HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
 	vmime::mailbox expeditor;
@@ -382,7 +395,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 			throw vmime::exceptions::no_expeditor();
 		}
 
-		hr = HrMakeRecipientsList(lpAdrBook, lpMessage, vmMessage, recipients);
+		hr = HrMakeRecipientsList(lpAdrBook, lpMessage, vmMessage, recipients, bAllowEveryone);
 		if (hr != hrSuccess)
 			goto exit;
 

@@ -6419,6 +6419,19 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>allow_send_to_everyone</option></term>
+			<listitem>
+			  <para>
+			  When set to 'no', sending to the 'everyone' group is
+			  disallowed. The entire message will be bounced if this is
+			  attempted. When set to 'yes', this allows sending to all users
+			  in the 'everyone' group.
+			  </para>
+			  <para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>expand_groups</option></term>
 			<listitem>
 			  <para>Expand groups in headers of sent e-mails. This means

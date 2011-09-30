@@ -104,8 +104,7 @@
 							
 							$data = array( 
 										"mainfolder" => array(
-													// encode html entities to prevent it from running in browser
-													"name" => htmlspecialchars($foldername),
+													"name" => $foldername,
 													"size" => round($sizemainfolder),
 													"totalsize" => round($sizemainfolder + $subfoldersize)),
 										"subfolders" => array("folder" => $subfolderdata) );
@@ -159,8 +158,7 @@
 					}
 				}
 				$subfolderdata[] = array(
-									// encode html entities to prevent it from running in browser
-									"name" => htmlspecialchars($foldernames),
+									"name" => $foldernames,
 									"size" => round($foldersize),
 									"totalsize" => round($subfoldersize + $foldersize));
 									

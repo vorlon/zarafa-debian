@@ -3258,4 +3258,5 @@ void imopt_default_sending_options(sending_options *sopt) {
 	sopt->add_received_date = false;
 	sopt->force_tnef = false;
 	sopt->force_utf8 = false;
+	sopt->allow_send_to_everyone = true;
 }

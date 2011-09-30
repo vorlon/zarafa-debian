@@ -2070,6 +2070,7 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	// optional force sending with TNEF
 	sopt.force_tnef = parseBool(g_lpConfig->GetSetting("always_send_tnef"));
 	sopt.force_utf8 = parseBool(g_lpConfig->GetSetting("always_send_utf8"));
+	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
 
 	// so we require admin stuff now
 	hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
