@@ -92,7 +92,7 @@
 							} else {
 								$foldername = w2u($folderprops[PR_DISPLAY_NAME]);
 							}
-							
+
 							// Get the folder size
 							$sizemainfolder = $GLOBALS["operations"]->calcFolderMessageSize($folder, false)/1024;
 							
@@ -104,7 +104,8 @@
 							
 							$data = array( 
 										"mainfolder" => array(
-													"name" => $foldername,
+													// encode html entities to prevent it from running in browser
+													"name" => htmlspecialchars($foldername),
 													"size" => round($sizemainfolder),
 													"totalsize" => round($sizemainfolder + $subfoldersize)),
 										"subfolders" => array("folder" => $subfolderdata) );
@@ -148,7 +149,7 @@
 			{
 				$foldernames = (($parentfoldernames==null)?"":"$parentfoldernames \\ ") .w2u($subfolder[PR_DISPLAY_NAME]);
 				$subfoldersize = 0;
-				
+
 				$folderObject = mapi_msgstore_openentry($store, $subfolder[PR_ENTRYID]);
 				if ($folderObject) {
 					$foldersize = $GLOBALS["operations"]->calcFolderMessageSize($folderObject, false)/1024;
@@ -158,7 +159,8 @@
 					}
 				}
 				$subfolderdata[] = array(
-									"name" => $foldernames,
+									// encode html entities to prevent it from running in browser
+									"name" => htmlspecialchars($foldernames),
 									"size" => round($foldersize),
 									"totalsize" => round($subfoldersize + $foldersize));
 									
