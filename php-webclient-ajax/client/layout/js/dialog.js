@@ -369,7 +369,11 @@ function submit_task(send) {
 					}
 				}
 			}
+		} else if (send == "request"){
+			alert(_("You must enter at least one recipient in To field."));
+			return;
 		}
+
 		module.save(props, send, recipients, dhtml.getElementById("dialog_attachments").value);
 
 		return true;
