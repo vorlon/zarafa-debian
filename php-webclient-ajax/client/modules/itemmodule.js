@@ -827,9 +827,11 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 			}
 
 			// add data in result
-			result[tagName] = new Object;
-			result[tagName].label = properties[tagName];
-			result[tagName].value = xmlValue;
+			if(xmlValue != "") {
+				result[tagName] = new Object;
+				result[tagName].label = properties[tagName];
+				result[tagName].value = xmlValue;
+			}
 		}
 	}
 	return result;
@@ -1648,11 +1650,10 @@ ItemModule.prototype.generateAttachmentStringFromXML = function(message)
 	var attachment = new Array();
 	var attachments = message.getElementsByTagName("attachment");
 	for(var i = 0; i < attachments.length; i++){
-		attachment.push(convertHtmlToPlain(dhtml.getXMLValue(attachments[i], "name", _("Untitled"))));
+		if(dhtml.getXMLValue(attachments[i], "hidden") != "1")
+			attachment.push(convertHtmlToPlain(dhtml.getXMLValue(attachments[i], "name", _("Untitled"))));
 	}
-	attachment.join(", ");
-	
-	return attachment;
+	return attachment.join(", ");
 }
 
 /**
