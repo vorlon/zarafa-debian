@@ -198,11 +198,11 @@
 						}
 					}
 				}
-				
+
 				// Check if the attachment is opened
 				if($attachment) {
 					// Get the props of the attachment
-					$props = mapi_attach_getprops($attachment, array(PR_ATTACH_LONG_FILENAME, PR_ATTACH_MIME_TAG, PR_DISPLAY_NAME, PR_ATTACH_METHOD));
+					$props = mapi_attach_getprops($attachment, array(PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME, PR_ATTACH_MIME_TAG, PR_DISPLAY_NAME, PR_ATTACH_METHOD));
 
 					// Content Type
 					$contentType = "application/octet-stream";
