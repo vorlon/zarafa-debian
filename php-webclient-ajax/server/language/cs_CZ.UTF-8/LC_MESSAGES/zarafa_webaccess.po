@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-04 00:02+0200\n"
+"POT-Creation-Date: 2011-10-05 00:02+0200\n"
 "PO-Revision-Date: 2011-10-03 15:41+0200\n"
 "Last-Translator: jaroslav <jaroslav.dub@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -238,6 +238,7 @@ msgstr "Předmět"
 msgid "Due Date"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:304
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:327
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:367
@@ -268,8 +269,9 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/task.js:176
 #: php-webclient-ajax/client/layout/js/task.js:335
 #: php-webclient-ajax/client/layout/js/task.js:349
+#, fuzzy
 msgid "None"
-msgstr ""
+msgstr "Poznámka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:310
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:476
@@ -783,12 +785,14 @@ msgstr ""
 msgid "Personal"
 msgstr "Osobní"
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:321
 #: php-webclient-ajax/client/views/table.view.js:1103
 #: php-webclient-ajax/client/layout/js/advancedfind.js:331
 #: php-webclient-ajax/client/layout/js/attachitem.js:368
+#, fuzzy
 msgid "Vacation"
-msgstr ""
+msgstr "Umístění"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:322
 #: php-webclient-ajax/client/views/table.view.js:1107
@@ -909,6 +913,7 @@ msgstr "hodiny"
 msgid "day"
 msgstr "den"
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:387
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:388
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:389
@@ -926,8 +931,9 @@ msgstr "den"
 #: php-webclient-ajax/client/layout/js/appointment.js:1034
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
+#, fuzzy
 msgid "days"
-msgstr ""
+msgstr "den"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
@@ -1674,10 +1680,12 @@ msgstr ""
 msgid "No Information"
 msgstr ""
 
+# 88%
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
 #: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
+#, fuzzy
 msgid "Reminders"
-msgstr ""
+msgstr "Připomínka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:36
 #: php-webclient-ajax/client/modules/reminderlistmodule.js:246
@@ -1742,9 +1750,11 @@ msgid ""
 "folder)."
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:3
+#, fuzzy
 msgid "Attach Items"
-msgstr ""
+msgstr "Přidat položku"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:49
 msgid "Look in"
@@ -1773,10 +1783,12 @@ msgstr ""
 msgid "Text Only"
 msgstr ""
 
+# 90%
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:65
 #: php-webclient-ajax/client/core/properties.js:14
+#, fuzzy
 msgid "Attachment"
-msgstr ""
+msgstr "Přílohy"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:72
 msgid "Select from"
@@ -2341,9 +2353,11 @@ msgid ""
 "be omitted."
 msgstr ""
 
+# 93%
 #: php-webclient-ajax/client/layout/dialogs/modal/attachments.php:223
+#, fuzzy
 msgid "Add attachments"
-msgstr ""
+msgstr "Přidat přílohy"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/attachments.php:227
 #: php-webclient-ajax/client/layout/dialogs/modal/attachments.php:234
@@ -2921,9 +2935,11 @@ msgstr ""
 msgid "New Contact"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:88
+#, fuzzy
 msgid "New Distribution List"
-msgstr ""
+msgstr "Distribuční seznam"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:92
 msgid "New Task"
@@ -2964,9 +2980,11 @@ msgstr ""
 msgid "Toggle Read/Unread"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:130
+#, fuzzy
 msgid "Categorize"
-msgstr ""
+msgstr "Kategorie"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:134
 msgid "Toggle Red/Complete Flag"
@@ -3328,11 +3346,13 @@ msgstr ""
 msgid "seconds"
 msgstr ""
 
+# 85%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/preferences.php:115
 #: php-webclient-ajax/client/layout/js/appointment.js:128
 #: php-webclient-ajax/client/layout/js/appointment.js:166
+#, fuzzy
 msgid "minute"
-msgstr ""
+msgstr "minuty"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/preferences.php:118
 msgid "Server default"
@@ -3632,6 +3652,7 @@ msgstr ""
 msgid "No Response"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/server/core/class.operations.php:982
 #: php-webclient-ajax/client/modules/itemmodule.js:537
 #: php-webclient-ajax/client/views/table.view.js:1044
@@ -3639,9 +3660,11 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/appointment.js:1286
 #: php-webclient-ajax/client/layout/js/appointment.js:1357
 #: php-webclient-ajax/client/layout/js/attachitem.js:299
+#, fuzzy
 msgid "Accepted"
-msgstr ""
+msgstr "Přijmout"
 
+# 87%
 #: php-webclient-ajax/server/core/class.operations.php:985
 #: php-webclient-ajax/client/modules/itemmodule.js:540
 #: php-webclient-ajax/client/views/table.view.js:1048
@@ -3649,8 +3672,9 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/appointment.js:1289
 #: php-webclient-ajax/client/layout/js/appointment.js:1358
 #: php-webclient-ajax/client/layout/js/attachitem.js:302
+#, fuzzy
 msgid "Declined"
-msgstr ""
+msgstr "Odmítnout"
 
 #: php-webclient-ajax/server/core/class.operations.php:988
 #: php-webclient-ajax/client/layout/js/appointment.js:1292
@@ -3868,9 +3892,11 @@ msgstr ""
 msgid "Sort on Icon"
 msgstr ""
 
+# 85%
 #: php-webclient-ajax/server/core/class.tablecolumns.php:61
+#, fuzzy
 msgid "File As"
-msgstr ""
+msgstr "Uložit jako"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:61
 #: php-webclient-ajax/server/core/class.tablecolumns.php:113
@@ -4727,17 +4753,21 @@ msgstr ""
 msgid "Workweek"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:25
+#, fuzzy
 msgid "Week"
-msgstr ""
+msgstr "týden"
 
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:26
 msgid "7 Days"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:27
+#, fuzzy
 msgid "Month"
-msgstr ""
+msgstr "měsíc"
 
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:29
 #: php-webclient-ajax/client/modules/contactlistmodule.js:28
@@ -5237,9 +5267,11 @@ msgstr ""
 msgid "Open shared folders"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/modules/hierarchymodule.js:701
+#, fuzzy
 msgid "items"
-msgstr ""
+msgstr "Položky"
 
 #: php-webclient-ajax/client/modules/hierarchymodule.js:705
 msgid "new"
@@ -5919,10 +5951,12 @@ msgstr ""
 msgid "You don't have permission to view this user's calendar."
 msgstr ""
 
+# 84%
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:693
 #: php-webclient-ajax/client/views/today.calendar.view.js:216
+#, fuzzy
 msgid "All day event"
-msgstr ""
+msgstr "Celodenní událost"
 
 #: php-webclient-ajax/client/views/today.calendar.view.js:154
 #: php-webclient-ajax/client/views/today.calendar.view.js:165
@@ -6142,11 +6176,13 @@ msgstr ""
 msgid "received"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1376
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1836
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1973
+#, fuzzy
 msgid "sent"
-msgstr ""
+msgstr "Odesláno"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1377
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1498
@@ -6278,9 +6314,11 @@ msgstr ""
 msgid "Only items that are"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2057
+#, fuzzy
 msgid "unread"
-msgstr ""
+msgstr "Nepřečtené"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2058
 msgid "read"
@@ -6306,9 +6344,11 @@ msgstr ""
 msgid "normal"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2082
+#, fuzzy
 msgid "high"
-msgstr ""
+msgstr "Vysoká"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2083
 msgid "low"
@@ -6569,9 +6609,11 @@ msgstr ""
 msgid "Total Size"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/js/attachments.js:28
+#, fuzzy
 msgid "Attach files"
-msgstr ""
+msgstr "Přidat položku"
 
 #: php-webclient-ajax/client/layout/js/attachments.js:181
 #: php-webclient-ajax/client/layout/js/attachments.js:247
@@ -6710,9 +6752,11 @@ msgstr ""
 msgid "workday"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/layout/js/appointment.js:1052
+#, fuzzy
 msgid "months"
-msgstr ""
+msgstr "měsíc"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1057
 msgid "year"
@@ -6739,9 +6783,11 @@ msgstr ""
 msgid "until"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/js/appointment.js:1097
+#, fuzzy
 msgid "from"
-msgstr ""
+msgstr "Od"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1101
 msgid "to"
@@ -6771,9 +6817,11 @@ msgstr ""
 msgid "tentatively accepted"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/js/appointment.js:1241
+#, fuzzy
 msgid "declined"
-msgstr ""
+msgstr "Odmítnout"
 
 #: php-webclient-ajax/client/layout/js/restoreitems.js:22
 msgid "Would you like to restore the selected items?"
