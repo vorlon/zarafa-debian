@@ -1103,10 +1103,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			if ($basedate) { //remove the occurence
 				$this->doRemoveExceptionFromCalendar($basedate, $this->message, $store);
 			} else { //remove normal/recurring meeting item.
-				$entryids = $this->findCalendarItems($goid, $calFolder);
-				
-				if(is_array($entryids)) 
-					mapi_folder_deletemessages($calFolder, $entryids);
+				mapi_folder_deletemessages($calFolder, Array($messageprops[PR_ENTRYID]));
 			}
 		}
 	}
