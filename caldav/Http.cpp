@@ -50,6 +50,8 @@
 #include "platform.h"
 #include "Http.h"
 
+#include "ECConfig.h"
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -131,10 +133,11 @@ exit:
 	return hrSuccess;
 }
 
-Http::Http(ECChannel *lpChannel, ECLogger *lpLogger)
+Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
 {
 	m_lpChannel = lpChannel;
 	m_lpLogger = lpLogger;
+	m_lpConfig = lpConfig;
 
 	m_ulContLength = 0;
 	m_ulKeepAlive = 0;
@@ -564,6 +567,12 @@ HRESULT Http::HrValidateReq()
 	if (m_strMethod.empty()) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "HTTP request method is empty: %08X", hr);
+		goto exit;
+	}
+	
+	if (!parseBool(m_lpConfig->GetSetting("enable_ical_get")) && m_strMethod == "GET") {
+		hr = MAPI_E_NO_ACCESS;
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Denying iCalendar GET since it is disabled");
 		goto exit;
 	}
 

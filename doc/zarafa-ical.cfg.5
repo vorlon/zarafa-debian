@@ -227,6 +227,11 @@ Specify whether to prefix each log line with a timestamp in \'file\' logging mod
 Default:
 \fI1\fR
 .RE
+.PP
+\fBenable_ical_get\fR
+.RS 4
+Enable the ical GET method to download an entire calendar\&. When set to \'yes\', the GET method is enabled and allowed\&. If not, then calendars can only be retrieved with the CalDAV PROPFIND method, which is much more efficient\&. This option allows you to force the use of CalDAV which lowers load on your server since it is much less intensive than CalDAV\&.
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the zarafa\-ical process a HUP signal:

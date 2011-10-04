@@ -9053,6 +9053,19 @@
 			  <para>Default: <replaceable>1</replaceable></para>
 			</listitem>
 		  </varlistentry>
+		  
+		  <varlistentry>
+		    <term><option>enable_ical_get</option></term>
+		    <listitem>
+		      <para>Enable the ical GET method to download an entire
+		      calendar. When set to 'yes', the GET method is enabled and
+		      allowed. If not, then calendars can only be retrieved with the
+		      CalDAV PROPFIND method, which is much more efficient. This
+		      option allows you to force the use of CalDAV which lowers load
+		      on your server since it is much less intensive than CalDAV.
+		      </para>
+		    </listitem>
+		  </varlistentry>
 
 		</variablelist>
 	  </refsection>

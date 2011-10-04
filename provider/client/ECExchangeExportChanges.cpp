@@ -1201,12 +1201,21 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	if (cbRead != sizeof(idLen)) {
 		// cbRead == 0 --> End of stream
 		if (cbRead == 0) {
-			// If we're not processing the last batch, we need to
-			// update m_ulStep and m_setProcessedChanges to compensate
-			// for the missing stream and set hr = SYNC_W_PROGRESS
-			if (m_ulStep + m_ulBatchSize < m_lstChange.size())
+			// End of stream while we were expecting some data. This can mean two things:
+			// - stream broken due to sending error on the source
+			// - messages deleted just before sending
+			
+			if (m_ulStep + m_ulBatchSize < m_lstChange.size()) {
+				// Not last batch
+				
+				// Normally, ulStep should be equal to m_ulBatchEnd when we get here. However,
+				// when a network error has occurred, we may read 0 bytes before we reach m_ulBatchEnd. Since
+				// this error will be detected later through CloseAndGetAsyncResult(), we just force the current
+				// step to the last step in this batch so that that we can process the result for the stream.
+				m_ulStep = m_ulBatchEnd;
 				hr = SYNC_W_PROGRESS;
-			else
+			} else
+				// Last batch
 				m_ulStep = m_lstChange.size();
 		}
 		else {

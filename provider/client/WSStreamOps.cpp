@@ -487,7 +487,6 @@ ULONG WSStreamOps::AddRef()
 ULONG WSStreamOps::Release()
 {
 	ULONG	ulRef = 0;
-	bool	bDelete = false;
 
 	pthread_mutex_lock(&m_hBufferLock);
 	ulRef = --m_ulRef;
@@ -499,25 +498,28 @@ ULONG WSStreamOps::Release()
 			m_sBufferList.back()->Close();
 		m_bDone = true; 
 		pthread_cond_broadcast(&m_hBufferCond);
-	} else if (ulRef == 0) {
-		bDelete = true;
 
+		pthread_mutex_unlock(&m_hBufferLock);
+
+	} else if (ulRef == 0) {
 		if (m_ptrDeferredFunc.get()) {
-			// Thread might be reading. make sure it's signalled to stop doing that.
+			// Thread might be reading or writing. make sure it's signalled to stop doing that.
 			if (!m_sBufferList.empty())
 				m_sBufferList.back()->Close();
 			m_bDone = true; 
 			pthread_cond_broadcast(&m_hBufferCond);
 		}
+		
+		// Release the buffer lock since the thread may need the lock to continue
+		pthread_mutex_unlock(&m_hBufferLock);
 
 		if (m_ptrDeferredFunc.get())
 			m_ptrDeferredFunc->wait();
-	}
-
-	pthread_mutex_unlock(&m_hBufferLock);
-
-	if (bDelete)
+			
 		delete this;
+	} else {
+		pthread_mutex_unlock(&m_hBufferLock);
+	}
 
 	return ulRef;
 }
@@ -559,8 +561,8 @@ HRESULT WSStreamOps::CloseAndGetAsyncResult(HRESULT *lphrResult)
 
 	// make sure the thread is finished
 	m_ptrDeferredFunc->wait();	// This can't fail
-	hr = m_ptrDeferredFunc->result();
-
+	if(lphrResult)
+		*lphrResult = m_ptrDeferredFunc->result();
 
 exit:
 	return hr;

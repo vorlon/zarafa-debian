@@ -81,7 +81,7 @@ class Http
 {
 public:
 
-	Http(ECChannel *lpChannel, ECLogger *lpLogger);
+	Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
 	~Http();
 
 	HRESULT HrReadHeaders();
@@ -110,6 +110,7 @@ public:
 private:
 	ECChannel *m_lpChannel;
 	ECLogger *m_lpLogger;
+	ECConfig *m_lpConfig;
 
 	/* request */
 	std::string m_strReqHeaders;

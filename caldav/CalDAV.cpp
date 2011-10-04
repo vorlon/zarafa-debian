@@ -207,6 +207,7 @@ int main(int argc, char **argv) {
 		{ "ical_enable", "yes" },
 		{ "icals_port", "8443" },
 		{ "icals_enable", "no" },
+		{ "enable_ical_get", "yes", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/zarafa" },
 		{ "server_timezone","Europe/Amsterdam"},
 		{ "default_charset","utf-8"},
@@ -638,7 +639,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 	std::string strMethod;
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
 	std::string strCharset;
-	Http *lpRequest = new Http(lpChannel, g_lpLogger);
+	Http *lpRequest = new Http(lpChannel, g_lpLogger, g_lpConfig);
 	ProtocolBase *lpBase = NULL;
 	IMAPISession *lpSession = NULL;
 	ULONG ulFlag = 0;
