@@ -2142,25 +2142,14 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 		// Make sure we dont have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
 		if(lpPropValArray->__ptr[i].ulPropTag == PR_SOURCE_KEY)
 		{
-			// don't use the sourcekey if found.
-			// Don't query the cache as that can be out of sync with the db in rare occasions.
-			strQuery = 
-				"SELECT hierarchyid FROM indexedproperties "
-					"WHERE tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + 
-					" AND val_binary=" + lpDatabase->EscapeBinary(lpPropValArray->__ptr[i].Value.bin->__ptr, lpPropValArray->__ptr[i].Value.bin->__size);
-			
-			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if(er != erSuccess)
-				goto exit;
-
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-			lpDatabase->FreeResult(lpDBResult); 
-			lpDBResult = NULL;
-
-			// We can't use lpDBRow here except for checking if it was NULL.
-			if (lpDBRow != NULL)
+		    // Remove any old (deleted) indexed property if it's there
+		    er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, lpPropValArray->__ptr[i].Value.bin->__ptr, lpPropValArray->__ptr[i].Value.bin->__size);
+		    if(er != erSuccess) {
+		        // Unable to remove the (old) sourcekey in use. This means that it is in use by some other object. We just skip
+		        // the property so that it is generated later as a new random sourcekey
+		        er = erSuccess;
 				continue;
-				
+            }
 				
 			// Insert sourcekey, use REPLACE because createfolder already created a sourcekey.
 			// Because there is a non-primary unique key on the
@@ -3525,6 +3514,9 @@ ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 		}
 
 		//Create entryid, 0x0FFF = PR_ENTRYID
+		er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, lpsNewEntryId->__ptr, lpsNewEntryId->__size);
+		if(er != erSuccess)
+		    goto exit;
 		strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES("+stringify(ulLastId)+", 0x0FFF, "+lpDatabase->EscapeBinary(lpsNewEntryId->__ptr, lpsNewEntryId->__size)+")";
 		er = lpDatabase->DoInsert(strQuery);
 		if(er != erSuccess)
@@ -3604,6 +3596,10 @@ ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 				goto exit;
 		}
 
+		er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, sSourceKey, sSourceKey.size());
+		if(er != erSuccess)
+		    goto exit;
+		    
 		strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulLastId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + ")";
 		er = lpDatabase->DoInsert(strQuery);
 		if(er != erSuccess)
@@ -5944,19 +5940,31 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	er = lpecSession->GetNewSourceKey(&sSourceKey);
 	if(er != erSuccess)
 		goto exit;
-
+		
+    er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, sSourceKey, sSourceKey.size());
+    if(er != erSuccess)
+        goto exit;
+        
 	strQuery = "INSERT INTO indexedproperties(hierarchyid,tag,val_binary) VALUES(" + stringify(ulRootMapId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		goto exit;
 
 	// Add store entryid: 0x0FFF = PR_ENTRYID
+    er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sStoreId.__ptr, sStoreId.__size);
+    if(er != erSuccess)
+        goto exit;
+        
 	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES("+stringify(ulStoreId)+", 0x0FFF, "+lpDatabase->EscapeBinary(sStoreId.__ptr, sStoreId.__size)+")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		goto exit;
 
 	// Add rootfolder entryid: 0x0FFF = PR_ENTRYID
+    er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sRootId.__ptr, sRootId.__size);
+    if(er != erSuccess)
+        goto exit;
+        
 	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES("+stringify(ulRootMapId)+", 0x0FFF, "+lpDatabase->EscapeBinary(sRootId.__ptr, sRootId.__size)+")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
@@ -9251,7 +9259,7 @@ exit:
 		if(lpDatabase)
 			lpDatabase->Rollback();
 
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Failed to remove store (%s), errorcode=0x%08X", bin2hex(lpDBLen[1], (unsigned char*)lpDBRow[1]).c_str(), er);
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Failed to remove store, errorcode=0x%08X", er);
 	}
 }
 SOAP_ENTRY_END()
@@ -10230,6 +10238,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 	unsigned int	ulFolderId = 0;
 	unsigned int	ulParent = 0;
 	unsigned int	ulStoreId = 0;
+	unsigned int	ulStoreFound = 0;
 	EID				eid;
 
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreId);
@@ -10245,12 +10254,14 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 		if(er != erSuccess)
 			goto exit;
 
+        // Check if given sourcekey is in the given parent sourcekey
 		er = g_lpSessionManager->GetCacheManager()->GetParent(ulMessageId, &ulParent);
 		if(er != erSuccess || ulFolderId != ulParent) {
 			er = ZARAFA_E_NOT_FOUND;
 			goto exit;
 		}
-
+		
+		
 		ulObjId = ulMessageId;
 		ulObjType = MAPI_MESSAGE;
 
@@ -10259,6 +10270,14 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 		ulObjType = MAPI_FOLDER;
 	}
 
+	// Check if the folder given is actually in the store we're working on (may not be so if cache
+	// is out-of-date during a re-import of a store that has been deleted and re-imported). In this case
+	// we return NOT FOUND, which really is true since we cannot found the given sourcekey in this store.
+    er = g_lpSessionManager->GetCacheManager()->GetStore(ulFolderId, &ulStoreFound, NULL);
+    if(er != erSuccess || ulStoreFound != ulStoreId) {
+        er = ZARAFA_E_NOT_FOUND;
+        goto exit;
+    }
 
 	// Check security
 	if(ulObjType == MAPI_FOLDER){

@@ -1425,6 +1425,41 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	return er;
 }
 
+
+ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData)
+{
+	ECRESULT				er = erSuccess;
+	ECsIndexProp	sObject;
+	ECsIndexObject	*sObjectId;
+
+	if(lpData == NULL || cbData == 0) {
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	sObject.ulTag = PROP_ID(ulPropTag);
+	sObject.cbData = cbData;
+	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
+
+	{
+        scoped_lock lock(m_hCacheIndPropMutex);
+
+        if(m_PropToObjectCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
+            m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "REMOVE cache for %s", bin2hex(cbData, lpData).c_str());
+            m_ObjectToPropCache.RemoveCacheItem(*sObjectId);
+            m_PropToObjectCache.RemoveCacheItem(sObject);
+        }
+	}
+
+    // Make sure there's no delete when it goes out of scope	
+	sObject.lpData = NULL;
+
+exit:
+	return er;
+}
+
+
+
 ECRESULT ECCacheManager::_AddIndexData(ECsIndexObject* lpObject, ECsIndexProp* lpProp)
 {
 	ECRESULT	er = erSuccess;

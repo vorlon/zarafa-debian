@@ -1390,22 +1390,13 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 	ECRESULT 	er = erSuccess;
 	DB_RESULT	lpDBResult = NULL; 
 	std::string	strQuery;
-	
-	// map entryId <-> ulObjId on new items
-	//0x0FFF = PR_ENTRYID
-	strQuery = "SELECT hierarchyid FROM indexedproperties WHERE tag=0xFFF AND val_binary=" + lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size);
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess)
-		goto exit;
 
-	if (lpDatabase->FetchRow(lpDBResult) != NULL) {
+	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sEntryId.__ptr, sEntryId.__size);
+	if(er != erSuccess) {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "ERROR: Collision detected while setting entryid. objectid=%u, entryid=%s, user=%u", ulObjId, bin2hex(sEntryId.__size, (unsigned char *)sEntryId.__ptr).c_str(), lpecSession->GetSecurity()->GetUserId());
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
-
-	lpDatabase->FreeResult(lpDBResult);
-	lpDBResult = NULL;
 
 	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES("+stringify(ulObjId)+", 0x0FFF, "+lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size)+")";
 	er = lpDatabase->DoInsert(strQuery);
@@ -1932,6 +1923,82 @@ ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *
 	}
 	
 	*lpulStoreType = atoui(lpDBRow[0]);
+
+exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+
+	return er;
+}
+
+/**
+ * Removes stale indexed properties
+ *
+ * In some cases, the database can contain stale (old) indexed properties. One example is when
+ * you replicate a store onto a server, then remove that store with zarafa-admin --remove-store
+ * and then do the replication again. The second replication will attempt to create items with
+ * equal entryids and sourcekeys. Since the softdelete purge will not have removed the data from
+ * the system yet, we check to see if the indexedproperty that is in the database is actually in
+ * use by checking if the store it belongs to is deleted. If so, we remove the entry. If the
+ * item is used by a non-deleted store, then an error occurs since you cannot use the same indexed
+ * property for two items.
+ *
+ * @param[in] lpDatabase Database handle
+ * @param[in] ulPropTag Property tag to scan for 
+ * @param[in] lpData Data if the indexed property
+ * @param[in] cbSize Bytes in lpData
+ * @return result
+ */
+ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned char *lpData, unsigned int cbSize)
+{
+	ECRESULT er = erSuccess;
+	DB_RESULT lpDBResult = NULL;
+	DB_ROW lpDBRow = NULL;
+	std::string strQuery;
+	unsigned int ulObjId = 0;
+	unsigned int ulStoreId = 0;
+	bool bStale = false;
+
+	strQuery = "SELECT hierarchyid FROM indexedproperties WHERE tag= " + stringify(PROP_ID(ulPropTag)) + " AND val_binary=" + lpDatabase->EscapeBinary(lpData, cbSize);
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+	    goto exit;
+	    
+    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+    if(!lpDBRow || lpDBRow[0] == NULL)
+        goto exit; // Nothing there, no need to do anything
+        
+    ulObjId = atoui(lpDBRow[0]);
+        
+    // Check if the found item is in a deleted store
+    if(g_lpSessionManager->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL) == erSuccess) {
+        lpDatabase->FreeResult(lpDBResult);
+        lpDBResult = NULL;
+        
+        // Find the store
+        strQuery = "SELECT hierarchy_id FROM stores WHERE hierarchy_id = " + stringify(ulStoreId);
+        er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+        if(er != erSuccess)
+            goto exit;
+
+        lpDBRow = lpDatabase->FetchRow(lpDBResult);
+        if(!lpDBRow || lpDBRow[0] == NULL) {
+            bStale = true;
+        }        
+    } else {
+        // The item has no store. This means it's safe to re-use the indexed prop. Possibly the store is half-deleted at this time.
+        bStale = true;
+    }
+
+    if(bStale) {
+        // Item is in a deleted store. This means we can delete it
+        er = lpDatabase->DoDelete("DELETE FROM indexedproperties WHERE hierarchyid = " + stringify(ulObjId));
+        if(er != erSuccess)
+            goto exit;
+            
+        // Remove it from the cache
+        g_lpSessionManager->GetCacheManager()->RemoveIndexData(ulPropTag, cbSize, lpData);
+    }
 
 exit:
 	if (lpDBResult)

@@ -1176,7 +1176,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	char				id[256] = {0};
 
 	// The very first time, we need to get the source stream.
-	if (m_ulStep == 0) {
+	if (m_ulStep == 0 || m_lpsStreamOps == NULL) {
 		hr = GetMessageStream();
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			hr = hrSuccess;
