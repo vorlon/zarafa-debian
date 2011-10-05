@@ -75,7 +75,7 @@ def decode_wtf1252(s):
 
 
 @update_descriptor(46, 'Converting database to Unicode')
-def UpdateDatabaseConvertToUnicode(cursor, progress_callback):
+def UpdateDatabaseConvertToUnicode(db, cursor, progress_callback):
     progress_callback.setTotal(5);
 
     cursor.execute("UPDATE objectproperty SET value = hex(value) WHERE propname = 'companyid'")
@@ -96,7 +96,7 @@ def UpdateDatabaseConvertToUnicode(cursor, progress_callback):
     
 
 @update_descriptor(47, 'Update stores table usernames')
-def UpdateDatabaseConvertStoreUsername(cursor, progress_callback):
+def UpdateDatabaseConvertStoreUsername(db, cursor, progress_callback):
     progress_callback.setTotal(2);
 
     cursor.execute("UPDATE stores SET user_name = CAST(CONVERT(user_name USING latin1) AS CHAR(255) CHARACTER SET utf8)")
@@ -108,7 +108,7 @@ def UpdateDatabaseConvertStoreUsername(cursor, progress_callback):
 
 
 @update_descriptor(48, 'Converting rules to Unicode')
-def UpdateDatabaseConvertRules(cursor, progress_callback):
+def UpdateDatabaseConvertRules(db, cursor, progress_callback):
     cursor.execute("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'")
     results = cursor.fetchall()
     if len(results) == 0:
@@ -127,7 +127,7 @@ def UpdateDatabaseConvertRules(cursor, progress_callback):
 
 
 @update_descriptor(49, 'Converting search folders to Unicode')
-def UpdateDatabaseConvertSearchFolders(cursor, progress_callback):
+def UpdateDatabaseConvertSearchFolders(db, cursor, progress_callback):
     cursor.execute("SELECT h.id, p.storeid, p.val_string FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag=0x6706 AND p.type=0x1e WHERE h.type=3 AND h.flags=2")
     results = cursor.fetchall()
     if len(results) == 0:
@@ -137,7 +137,7 @@ def UpdateDatabaseConvertSearchFolders(cursor, progress_callback):
     processed = 0    
     for result in results:
         new_rule_data = decode_wtf1252(dbresult2string(result[2]))
-        cursor.execute("UPDATE properties SET val_string='%s' WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (new_rule_data, result[0], result[1]))
+        cursor.execute("UPDATE properties SET val_string='%s' WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (db.escape_string(new_rule_data), result[0], result[1]))
         processed += 1
 
         progress_callback.setProgress(processed)
@@ -146,7 +146,7 @@ def UpdateDatabaseConvertSearchFolders(cursor, progress_callback):
 
 
 @update_descriptor(50, 'Converting properties for IO performance')
-def UpdateDatabaseConvertProperties(cursor, progress_callback):
+def UpdateDatabaseConvertProperties(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `properties_temp` (
                        `hierarchyid` int(11) unsigned NOT NULL default '0',
                        `tag` smallint(6) unsigned NOT NULL default '0',
@@ -199,7 +199,7 @@ def UpdateDatabaseConvertProperties(cursor, progress_callback):
 
 
 @update_descriptor(51, 'Creating counters for IO performance')
-def UpdateDatabaseCreateCounters(cursor, progress_callback):
+def UpdateDatabaseCreateCounters(db, cursor, progress_callback):
     counter_info = (
         ( 0x3602,   0x0003, 5,  0x0040|0x0400,          0,              'COUNT(*)' ),
         ( 0x3603,   0x0003, 5,  0x0040|0x0400|0x0001,   0,              'SUM(IF(flags&1,0,1))' ),
@@ -238,7 +238,7 @@ def UpdateDatabaseCreateCounters(cursor, progress_callback):
 
 
 @update_descriptor(52, 'Creating common properties for IO performance')
-def UpdateDatabaseCreateCommonProps(cursor, progress_callback):
+def UpdateDatabaseCreateCommonProps(db, cursor, progress_callback):
     progress_callback.setTotal(4)
 
     query = """REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong)
@@ -272,7 +272,7 @@ def UpdateDatabaseCreateCommonProps(cursor, progress_callback):
 
 
 @update_descriptor(53, 'Creating message attachment properties for IO performance')
-def UpdateDatabaseCheckAttachments(cursor, progress_callback):
+def UpdateDatabaseCheckAttachments(db, cursor, progress_callback):
     progress_callback.setTotal(2)
 
     query = """REPLACE INTO properties(hierarchyid,tag,type,val_ulong)
@@ -294,7 +294,7 @@ def UpdateDatabaseCheckAttachments(cursor, progress_callback):
 
 
 @update_descriptor(54, 'Creating tproperties for IO performance')
-def UpdateDatabaseCreateTProperties(cursor, progress_callback):
+def UpdateDatabaseCreateTProperties(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `tproperties` (
                        `folderid` int(11) unsigned NOT NULL default '0',
                        `hierarchyid` int(11) unsigned NOT NULL default '0',
@@ -336,7 +336,7 @@ def UpdateDatabaseCreateTProperties(cursor, progress_callback):
 
 
 @update_descriptor(55, 'Converting hierarchy for IO performance')
-def UpdateDatabaseConvertHierarchy(cursor, progress_callback):
+def UpdateDatabaseConvertHierarchy(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `hierarchy_temp` (
                        `id` int(11) unsigned NOT NULL auto_increment,
                        `parent` int(11) unsigned default '0',
@@ -377,7 +377,7 @@ def UpdateDatabaseConvertHierarchy(cursor, progress_callback):
 
 
 @update_descriptor(56, 'Creating deferred table for IO performance')
-def UpdateDatabaseCreateDeferred(cursor, progress_callback):
+def UpdateDatabaseCreateDeferred(db, cursor, progress_callback):
     progress_callback.setTotal(1)
     table_def = """CREATE TABLE `deferredupdate` (
                        `hierarchyid` int(11) unsigned NOT NULL,
@@ -392,7 +392,7 @@ def UpdateDatabaseCreateDeferred(cursor, progress_callback):
 
 
 @update_descriptor(57, 'Converting changes for IO performance')
-def UpdateDatabaseConvertChanges(cursor, progress_callback):
+def UpdateDatabaseConvertChanges(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `changes_temp` (
                        `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                        `sourcekey` VARBINARY(64) NOT NULL,
@@ -436,7 +436,7 @@ def UpdateDatabaseConvertChanges(cursor, progress_callback):
 
     
 @update_descriptor(58, 'Converting names table to Unicode')
-def UpdateDatabaseConvertNames(cursor, progress_callback):
+def UpdateDatabaseConvertNames(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `names_temp` (
                        `id` int(11) NOT NULL auto_increment,
                        `nameid` int(11) default NULL,
@@ -560,7 +560,7 @@ def UpdateDB(db):
         try:
             cursor = db.cursor()
             cursor.execute("BEGIN")
-            update(cursor, p)
+            update(db, cursor, p)
             UpdateVersion(cursor, zarafa_version, update.update_db_revision)
             cursor.execute("COMMIT")
             #print "Update completed: %s" % update.update_description
