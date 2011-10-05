@@ -147,9 +147,6 @@ void zarafa_get_server_stats(unsigned int *lpulQueueLength, double *lpdblAge, un
  */
 void process_signal(int sig)
 {
-	int stat;
-	pid_t pid;
-
 	LOG_AUDIT(g_lpAudit, "zarafa-server signalled sig=%d", sig);
 
 	if (!m_bNPTL)
@@ -172,7 +169,6 @@ void process_signal(int sig)
 
 	switch (sig) {
 	case SIGTERM:
-	case SIGINT:
 		if(g_lpLogger)
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Shutting down.");
 	
@@ -213,11 +209,6 @@ void process_signal(int sig)
 			g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(NULL));
 			g_lpSoapServerConn->DoHUP();
 		}
-		break;
-	case SIGUSR1:
-	case SIGUSR2:
-	case SIGPIPE:
-		//Ignore the signal
 		break;
 	default:
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
@@ -1046,13 +1037,16 @@ int running_server(char *szName, const char *szConfig)
 
 
 	if (m_bNPTL) {
+		// normally ignore these signals
+		signal(SIGINT, SIG_IGN);
+		signal(SIGUSR1, SIG_IGN);
+		signal(SIGUSR2, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
+
+		// block these signals to handle only in the thread by sigwait()
 		sigemptyset(&signal_mask);
 		sigaddset(&signal_mask, SIGTERM);
-		sigaddset(&signal_mask, SIGINT);
 		sigaddset(&signal_mask, SIGHUP);
-		sigaddset(&signal_mask, SIGUSR1);
-		sigaddset(&signal_mask, SIGUSR2);
-		sigaddset(&signal_mask, SIGPIPE);
 
 		// valid for all threads afterwards
 		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
