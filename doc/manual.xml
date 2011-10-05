@@ -9062,7 +9062,7 @@
 		      allowed. If not, then calendars can only be retrieved with the
 		      CalDAV PROPFIND method, which is much more efficient. This
 		      option allows you to force the use of CalDAV which lowers load
-		      on your server since it is much less intensive than CalDAV.
+		      on your server.
 		      </para>
 		    </listitem>
 		  </varlistentry>
