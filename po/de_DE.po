@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-13 00:03+0200\n"
-"PO-Revision-Date: 2011-08-11 09:13+0200\n"
-"Last-Translator: Felix <fbartels@zarafaserver.de>\n"
+"POT-Creation-Date: 2011-10-06 00:02+0200\n"
+"PO-Revision-Date: 2011-10-05 13:01+0200\n"
+"Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -76,7 +76,7 @@ msgstr "Die Abwesenheitsbenachrichtigung konnte nicht gespeicht werden"
 msgid "Delegates"
 msgstr "Stellvertreter"
 
-#: provider/ECProps/Addin.cpp:865 provider/client/ECMAPIFolderPublic.cpp:159
+#: provider/ECProps/Addin.cpp:865 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favoriten"
@@ -173,7 +173,7 @@ msgstr "&Speichern"
 #: provider/ECProps/SyncConfigDlg.cpp:115
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:177
+#: provider/client/ProviderUtil.cpp:178
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -783,7 +783,7 @@ msgid "Upgrade: "
 msgstr "Aktualisierung:"
 
 #: provider/libserver/ECGenProps.cpp:808
-#: provider/client/ECMAPIFolderPublic.cpp:157
+#: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Alle Öffentlichen Ordner"
@@ -792,9 +792,9 @@ msgstr "Alle Öffentlichen Ordner"
 msgid "Inbox -"
 msgstr "Postfach -"
 
-#: provider/client/ECMSProvider.cpp:235
+#: provider/client/ECMSProvider.cpp:242
 #: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/EntryPoint.cpp:1047
+#: provider/client/EntryPoint.cpp:1080
 msgid ""
 "Cannot use the profile because you are over the license limit. To continue, "
 "you must purchase additional client licenses."
@@ -802,9 +802,9 @@ msgstr ""
 "Das Profil kann nicht genutzt werden, da Sie Ihre Lizenz überschritten "
 "haben. Um fortzufahren müssen Sie weitere Client Lizenzen kaufen"
 
-#: provider/client/ECMSProvider.cpp:239
+#: provider/client/ECMSProvider.cpp:246
 #: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/EntryPoint.cpp:1053
+#: provider/client/EntryPoint.cpp:1086
 msgid ""
 "Cannot use the profile because the server was unable to contact the license "
 "server. Please consult your system administrator."
@@ -901,7 +901,7 @@ msgstr ""
 msgid "Unable to store SSL certificate in registry key."
 msgstr "Das SSL Zertifikat konnte nicht in der Registry hinterlegt werden."
 
-#: provider/client/ProviderUtil.cpp:158
+#: provider/client/ProviderUtil.cpp:159
 msgid ""
 "Unable to work online! The first time you need a network connection. Retry "
 "if you have the network connection."
@@ -910,11 +910,11 @@ msgstr ""
 "eine Netzwerkverbindung. Versuchen Sie es erneut, wenn eine "
 "Netzwerkverbindung besteht."
 
-#: provider/client/ProviderUtil.cpp:176
+#: provider/client/ProviderUtil.cpp:177
 msgid "First Folder Sync..."
 msgstr "Erster Abgleich der Ordner..."
 
-#: provider/client/ProviderUtil.cpp:181
+#: provider/client/ProviderUtil.cpp:182
 msgid "Sync folder items"
 msgstr "Ordnereinträge abgleichen"
 
@@ -948,15 +948,15 @@ msgstr "RSS Feed Kommentar"
 
 #: provider/client/ECMsgStore.cpp:2471
 msgid "Conversation Action Settings"
-msgstr ""
+msgstr "Konversationseinstellungen"
 
 #: provider/client/ECMsgStore.cpp:2475
 msgid "Quick Step Settings"
-msgstr ""
+msgstr "Quickstep Einstellungen"
 
 #: provider/client/ECMsgStore.cpp:2479
 msgid "Suggested Contacts"
-msgstr ""
+msgstr "Vorgeschlagene Kontakte"
 
 #: provider/client/SettingsPropPageAdvance.cpp:98
 msgid "MailBox"
@@ -982,15 +982,15 @@ msgstr ""
 "Es ist nicht möglich, online zu arbeiten. Möchten Sie in den Offline-Mode "
 "wechseln?"
 
-#: provider/client/EntryPoint.cpp:914
+#: provider/client/EntryPoint.cpp:947
 msgid "Unknown username"
 msgstr "Unbekannter Benutzername"
 
-#: provider/client/EntryPoint.cpp:1016
+#: provider/client/EntryPoint.cpp:1049
 msgid "Connecting to the server..."
 msgstr "Verbinde mit dem Server..."
 
-#: provider/client/EntryPoint.cpp:1036
+#: provider/client/EntryPoint.cpp:1069
 msgid ""
 "Unable to reach the server.\n"
 "Do you want to save the settings or cancel and re-enter the settings?"
@@ -998,21 +998,21 @@ msgstr ""
 "Verbindung zum Server war nicht möglich. Wollen Sie diese Einstellungen "
 "speichern oder abbrechen und die Verbindungsdaten neu eingeben?"
 
-#: provider/client/EntryPoint.cpp:1131
+#: provider/client/EntryPoint.cpp:1164
 msgid "Incorrect username and/or password."
 msgstr "Falscher Benutzername und/oder falsches Passwort"
 
-#: provider/client/EntryPoint.cpp:1133
+#: provider/client/EntryPoint.cpp:1166
 msgid ""
 "Incorrect servername and/or port\n"
 "Check if the server is running."
 msgstr "Falscher Servername und/oder Port. Läuft der Serverprozess?"
 
-#: provider/client/EntryPoint.cpp:1135
+#: provider/client/EntryPoint.cpp:1168
 msgid "Incorrect version."
 msgstr "Falsche Version."
 
-#: provider/client/EntryPoint.cpp:1137
+#: provider/client/EntryPoint.cpp:1170
 msgid ""
 "An unknown failure has occurred.\n"
 "Please contact your administrator."
@@ -1020,7 +1020,7 @@ msgstr ""
 "Es ist ein unbekannter Fehler aufgetreten. Bitte kontaktieren Sie Ihren "
 "Administrator."
 
-#: provider/client/EntryPoint.cpp:1163
+#: provider/client/EntryPoint.cpp:1196
 msgid "You should restart Outlook for the changes to take effect."
 msgstr "Sie sollten Outlook neu starten damit die Änderungen übernommen werden."
 
@@ -1365,35 +1365,35 @@ msgstr ""
 
 #: spooler/archive.cpp:241
 msgid "Unable to obtain list of attached archives."
-msgstr ""
+msgstr "Die Liste der eingehängten Archive konnte nicht geladen werden."
 
 #: spooler/archive.cpp:272
 msgid "Unable to open archive."
-msgstr ""
+msgstr "Archiv konnte nicht geöffnet werden"
 
 #: spooler/archive.cpp:279
 msgid "Unable to get outgoing archive folder."
-msgstr ""
+msgstr "Der Ausgangsarchivordner konnte nicht gefunden werden."
 
 #: spooler/archive.cpp:286
 msgid "Unable to create archive message in outgoing archive folder."
-msgstr ""
+msgstr "Die Nachricht konnte nicht im Ausgangsarchivordner erstellt werden."
 
 #: spooler/archive.cpp:292
 msgid "Unable to copy message data."
-msgstr ""
+msgstr "Die Nachricht konnte nicht kopiert werden."
 
 #: spooler/archive.cpp:305
 msgid "Unable to save archived message."
-msgstr ""
+msgstr "Die archivierte Nachricht konnte nicht gespeichert werden."
 
 #: spooler/archive.cpp:335
 msgid "Error code:"
-msgstr ""
+msgstr "Fehlercode:"
 
 #: spooler/archive.cpp:339
 msgid "Error description:"
-msgstr ""
+msgstr "Fehlerbeschreibung:"
 
 #: spooler/mailer.cpp:1688
 msgid "You are not allowed to send as user or group "
@@ -1407,7 +1407,7 @@ msgstr ""
 "Der Benutzer/die Gruppe in deren Namen der Versand erfolgen soll kann nicht "
 "gefunden werden."
 
-#: spooler/mailer.cpp:2485
+#: spooler/mailer.cpp:2486
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fehler beim Versuch Ihre Nachricht zu senden. Fehler Code:"
 
@@ -1507,11 +1507,11 @@ msgstr "Der Unterordner der gelöscht werden soll enthält Nachrichten."
 
 #: common/Util.cpp:1759
 msgid "No description available."
-msgstr ""
+msgstr "Keine Beschreibung vorhanden."
 
 #: common/Util.cpp:1761
 msgid "MAPI error code:"
-msgstr ""
+msgstr "MAPI Fehlercode:"
 
 #~ msgid "This folder contains archived of messages that have been deleted."
 #~ msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte"

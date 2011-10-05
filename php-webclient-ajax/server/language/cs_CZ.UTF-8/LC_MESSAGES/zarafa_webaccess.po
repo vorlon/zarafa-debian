@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-05 00:02+0200\n"
+"POT-Creation-Date: 2011-10-06 00:02+0200\n"
 "PO-Revision-Date: 2011-10-03 15:41+0200\n"
 "Last-Translator: jaroslav <jaroslav.dub@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2610,9 +2610,12 @@ msgstr ""
 msgid "of every "
 msgstr ""
 
+# 83%
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:192
+#, fuzzy
 msgid "month(s)"
-msgstr ""
+msgstr "měsíc"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:195
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:246
@@ -4819,6 +4822,7 @@ msgstr ""
 msgid "Remove user"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/modules/propertiesmodule.js:103
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1374
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1495
@@ -4826,8 +4830,9 @@ msgstr ""
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1700
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1834
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1971
+#, fuzzy
 msgid "none"
-msgstr ""
+msgstr "Poznámka"
 
 #: php-webclient-ajax/client/modules/propertiesmodule.js:358
 msgid "User already exists"
@@ -6332,9 +6337,12 @@ msgstr ""
 msgid "one or more attachments"
 msgstr ""
 
+# 93%
+# 80%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2070
+#, fuzzy
 msgid "no attachments"
-msgstr ""
+msgstr "Přidat přílohy"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2077
 msgid "Whose importance is"
