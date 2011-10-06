@@ -194,6 +194,14 @@
 								$GLOBALS["bus"]->notify(bin2hex($messageProps[PR_PARENT_ENTRYID]), TABLE_SAVE, $messageProps); // send TABLE_SAVE event because an occurrence is deleted
 							break;
 						case "cancelInvitation":
+							$accessToFolder = false;
+							// Find the parententryid using the store and the entryid when it has not been sent in the request
+							if($store && $entryid && !$parententryid){
+								$folder = mapi_msgstore_openentry($store, $entryid);
+								$folderProps = mapi_getprops($folder, Array(PR_PARENT_ENTRYID));
+								$parententryid = $folderProps[PR_PARENT_ENTRYID];
+							}
+
 							if($store && $parententryid)
 								$accessToFolder = $GLOBALS["operations"]->checkFolderAccess($store, $parententryid);
 
