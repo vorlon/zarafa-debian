@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-06 00:02+0200\n"
+"POT-Creation-Date: 2011-10-07 00:02+0200\n"
 "PO-Revision-Date: 2011-10-03 15:41+0200\n"
 "Last-Translator: jaroslav <jaroslav.dub@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2662,9 +2662,13 @@ msgstr ""
 msgid "of every"
 msgstr ""
 
+# 83%
+# 75%
+# 87%
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:217
+#, fuzzy
 msgid "Month(s)"
-msgstr ""
+msgstr "měsíc"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:222
 msgid "after each task is completed"
@@ -3470,38 +3474,38 @@ msgstr ""
 msgid "You have insufficient privileges to save items in this folder"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:157
-#: php-webclient-ajax/server/modules/class.itemmodule.php:154
+#: php-webclient-ajax/server/modules/class.listmodule.php:165
+#: php-webclient-ajax/server/modules/class.itemmodule.php:162
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:283
-#: php-webclient-ajax/server/modules/class.listmodule.php:294
-#: php-webclient-ajax/server/modules/class.listmodule.php:322
+#: php-webclient-ajax/server/modules/class.listmodule.php:291
+#: php-webclient-ajax/server/modules/class.listmodule.php:302
+#: php-webclient-ajax/server/modules/class.listmodule.php:330
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:418
+#: php-webclient-ajax/server/modules/class.listmodule.php:426
 msgid "Error in search"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1087
+#: php-webclient-ajax/server/modules/class.listmodule.php:1095
 msgid "Private Appointment"
 msgstr ""
 
@@ -3591,29 +3595,29 @@ msgstr ""
 msgid "The message store has exceeded its soft quota limit."
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:192
+#: php-webclient-ajax/server/modules/class.itemmodule.php:200
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:194
+#: php-webclient-ajax/server/modules/class.itemmodule.php:202
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:472
+#: php-webclient-ajax/server/modules/class.itemmodule.php:480
 msgid "Conflicts with another appointment on your Calendar."
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:482
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
 "appointments on your Calendar."
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:475
+#: php-webclient-ajax/server/modules/class.itemmodule.php:483
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
