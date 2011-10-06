@@ -112,6 +112,8 @@ HRESULT ProtocolBase::HrHandleCommand(std::string strMethod)
 	// @todo we really need to get rid of this
 	if (strAgent.find("CalendarStore") != string::npos)
 		m_blIsCLMAC = true;
+	else if (strAgent.find("iOS") != string::npos)
+		m_blIsCLMAC = true;
 
 	if(strAgent.find("Evolution") != string::npos)
 		m_blIsCLEVO = true;

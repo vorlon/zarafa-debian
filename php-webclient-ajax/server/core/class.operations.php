@@ -1431,7 +1431,7 @@
 							} else {
 								$oldProps = mapi_getprops($message, array($properties['startdate'], $properties['duedate']));
 								$recipTable = mapi_message_getrecipienttable($message);
-								$oldRecipients = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID));
+								$oldRecipients = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY));
 
 								// Modifying non-exception (the series) or normal appointment item
 								$message = $GLOBALS["operations"]->saveMessage($store, $parententryid, Conversion::mapXML2MAPI($properties, $action["props"]), $recips, $action["dialog_attachments"], $messageProps, false, false, array(), array(), array(), false, false);
@@ -1577,7 +1577,7 @@
 		function clearRecipientResponse($message)
 		{
 			$recipTable = mapi_message_getrecipienttable($message);
-			$recipsRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID));
+			$recipsRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY));
 
 			foreach($recipsRows as $recipient) {
 				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
@@ -1594,17 +1594,17 @@
 		{
 			$recips = array();
 			$recipTable = mapi_message_getrecipienttable($message);
-			$recipientRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID));
+			$recipientRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY));
 
 			foreach($oldRecipients as $oldRecip) {
 				$found = false;
 
 				foreach($recipientRows as $recipient) {
-					if ($oldRecip[PR_ENTRYID] == $recipient[PR_ENTRYID] && ($oldRecip[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer)
+					if ($oldRecip[PR_SEARCH_KEY] == $recipient[PR_SEARCH_KEY])
 						$found = true;
 				}
 
-				if (!$found)
+				if (!$found && ($oldRecip[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer)
 					$recips[] = $oldRecip;
 			}
 
