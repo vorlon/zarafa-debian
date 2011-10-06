@@ -1998,6 +1998,9 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
             
         // Remove it from the cache
         g_lpSessionManager->GetCacheManager()->RemoveIndexData(ulPropTag, cbSize, lpData);
+    } else {
+        // Caller wanted to remove the entry, but we can't since it is in use
+        er = ZARAFA_E_COLLISION;
     }
 
 exit:
