@@ -74,7 +74,7 @@
 
 #include "charset/convert.h"
 
-ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder)
+ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults)
 {
 	m_lpThreadData = lpThreadData;
 
@@ -82,6 +82,7 @@ ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *l
 	m_lpLuceneAccess->AddRef();
 
 	m_listFolder = listFolder;
+	m_ulMaxResults = ulMaxResults;
 }
 
 ECLuceneSearcher::~ECLuceneSearcher()
@@ -90,13 +91,13 @@ ECLuceneSearcher::~ECLuceneSearcher()
 		m_lpLuceneAccess->Release();
 }
 
-HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, ECLuceneSearcher **lppSearcher)
+HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher)
 {
 	HRESULT hr = hrSuccess;
 	ECLuceneSearcher *lpSearcher = NULL;
 
 	try {
-		lpSearcher = new ECLuceneSearcher(lpThreadData, lpLuceneAccess, listFolder);
+		lpSearcher = new ECLuceneSearcher(lpThreadData, lpLuceneAccess, listFolder, ulMaxResults);
 	}
 	catch (...) {
 		lpSearcher = NULL;
@@ -233,6 +234,9 @@ HRESULT ECLuceneSearcher::SearchIndexedEntries(std::string &strQuery, lucene::se
 		}
 
 		for (int i = 0; i < lpHits->length(); i++) {
+			if(m_ulMaxResults && i >= m_ulMaxResults)
+				break;
+
 			lucene::document::Document *lpDoc = &lpHits->doc(i);
 			const wchar_t *lpszEntryId = lpDoc->get(UNIQUE_FIELD);
 
@@ -241,6 +245,7 @@ HRESULT ECLuceneSearcher::SearchIndexedEntries(std::string &strQuery, lucene::se
 				continue;
 
 			lplistResults->push_back(converter.convert_to<std::string>(lpszEntryId) + " " + stringify_float(lpHits->score(i)));
+			
 		}
 	}
 	catch (CLuceneError &e) {

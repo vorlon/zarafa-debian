@@ -78,7 +78,7 @@ private:
 	 * @param[in]	lpLuceneAccess
 	 * @param[in]	listFolder
 	 */
-	ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder);
+	ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults);
 
 public:
 	/**
@@ -92,11 +92,13 @@ public:
 	 *					Reference to the ECLuceneAccess object.
 	 * @param[in]	listFolder
 	 *					List of folders which limits the scope of the search query for ECLuceneSearcher.
+	 * @param[in]	ulMaxResults
+	 *					Maximum  number of results to produce
 	 * @param[out]	lppSearcher
 	 *					The created ECLuceneSearcher object.
 	 * @return HRESULT
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, ECLuceneSearcher **lppSearcher);
+	static HRESULT Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher);
 
 	/**
 	 * Destructor
@@ -142,6 +144,7 @@ private:
 	ECLuceneAccess *m_lpLuceneAccess;
 
 	string_list_t m_listFolder;
+	unsigned int m_ulMaxResults;
 };
 
 #endif /* ECLUCENESEARCHER_H */

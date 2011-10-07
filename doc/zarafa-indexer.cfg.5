@@ -95,6 +95,13 @@ If for some unfortunate reason the zarafa\-indexer is not cleanly stopped, it ma
 Default:
 \fIno\fR
 .RE
+.PP
+\fBlimit_results\fR
+.RS 4
+Limit the number of results returned to the server\&. If set to a nonzero value, only the N most relevant results will be returned to the server\&. This in turn limits the number of results that the user will see\&. If the limit is set to 0, all results will be returned\&.
+.sp
+Default:\fI0\fR
+.RE
 .SH "EXPLANATION OF THE SSL SETTINGS PARAMETERS"
 .PP
 \fBssl_key_file\fR

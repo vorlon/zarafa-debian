@@ -546,6 +546,7 @@ int main(int argc, char *argv[]) {
 		{ "ssl_verify_path", "" },
 		/* operational settings */
 		{ "cleanup_lockfiles", "no" },
+		{ "limit_results", "0", CONFIGSETTING_RELOADABLE },
 		/* Indexer settings */
 		{ "index_path", "/var/lib/zarafa/index/" },
 		{ "index_sync_stream", "yes", CONFIGSETTING_UNUSED },

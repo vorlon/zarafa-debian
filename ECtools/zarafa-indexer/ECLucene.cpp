@@ -199,6 +199,9 @@ HRESULT ECLucene::CreateSearcher(ECThreadData *lpThreadData, std::string &strSto
 	ECLuceneAccess *lpAccess = NULL;
 	ECLuceneSearcher *lpSearcher = NULL;
 	std::string strIndexPath;
+	unsigned int ulMaxResults = 0;
+	
+	ulMaxResults = atoui(m_lpThreadData->lpConfig->GetSetting("limit_results"));
 
 	hr = lpThreadData->lpFileIndex->GetStoreIndexPath(strStorePath, &strIndexPath);
 	if (hr != hrSuccess)
@@ -213,7 +216,7 @@ HRESULT ECLucene::CreateSearcher(ECThreadData *lpThreadData, std::string &strSto
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ECLuceneSearcher::Create(m_lpThreadData, lpAccess, listFolder, &lpSearcher);
+	hr = ECLuceneSearcher::Create(m_lpThreadData, lpAccess, listFolder, ulMaxResults, &lpSearcher);
 	if (hr != hrSuccess)
 		goto exit;
 
