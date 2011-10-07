@@ -801,7 +801,7 @@ HRESULT HrGetSharedFolder(IMAPISession *lpSession, IMsgStore *lpUsrStore, std::w
 		
 		//Open root Folder to get all subfolders from this folder
 		if(hr == hrSuccess && wstrFolderPath.empty())
-			goto exit;
+			goto done;
 		//Open Default Calendar if IPM
 		else if(wstrFolderPath.empty())
 		{
@@ -849,6 +849,7 @@ HRESULT HrGetSharedFolder(IMAPISession *lpSession, IMsgStore *lpUsrStore, std::w
 	if (hr != hrSuccess)
 		goto exit;
 
+done:
 	if(lppUsrFld && lpUsrFld)
 	{
 		*lppUsrFld = lpUsrFld;
