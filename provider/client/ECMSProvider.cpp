@@ -207,9 +207,11 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
-		hr = lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType);
-		if (hr != hrSuccess)
-			goto exit;
+		if(lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType) != hrSuccess) {
+			// Maintain backward-compat: if connecting to a server that does not support the storetype
+			// call, assume private store, which is what happened before this call was introduced
+			ulStoreType = ECSTORE_TYPE_PRIVATE;
+		}
 
 		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 			memcpy(&guidMDBProvider, &ZARAFA_STORE_DELEGATE_GUID, sizeof(MAPIUID));
