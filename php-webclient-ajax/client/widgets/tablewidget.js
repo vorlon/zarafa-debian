@@ -219,8 +219,8 @@ TableWidget.prototype.generateTable = function(data, sort){
 		content += '<div style="height: 100%;" id="tablewidget['+this.widgetID+'][container]" class="tableview">';
 		content += '<div id="tablewidget['+this.widgetID+'][headercontainer]" class="columnbackground">';
 
-		content += '<table border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td>';
-		content += '<table border="0" cellpadding="0" cellspacing="0" width="100%" id="tablewidget['+this.widgetID+'][headertable]"><tbody>';
+		content += '<table border="0" cellpadding="0" cellspacing="0" style="width: 100%;"><tbody><tr><td>';
+		content += '<table border="0" cellpadding="0" cellspacing="0" style="width: 100%;" id="tablewidget['+this.widgetID+'][headertable]"><tbody>';
 		content += '<tr class="columns">';
 
 //		content += '<td id="property_icon_index" class="column message_icon icon_icon_index" title="Sort On Icon" width="25">';
@@ -246,9 +246,12 @@ TableWidget.prototype.generateTable = function(data, sort){
 //		content += '</td>';
 
 		for(var i=0;i<this.columns.length;i++){
-			content += '<td id="property_'+this.columns[i]["id"]+'" columnID="'+this.columns[i]["id"]+'" class="column tablewiget_column_icon icon_'+ this.columns[i]["id"] +'" title="'+this.columns[i]['name']+'" ';
+			content += '<td id="property_'+this.columns[i]["id"]+'" columnID="'+this.columns[i]["id"]+'" '+
+                            'class="column tablewiget_column_icon icon_'+ this.columns[i]["id"] +
+                                    (i == this.columns.length - 1 ? ' tablewidget_header_lastcolumn' : '') + '" '+
+                            'title="'+this.columns[i]['name']+'" ';
 			if(parseInt(this.widths[ this.columns[i]["id"] ],10) > 0){
-				content += ' width="'+this.widths[ this.columns[i]['id'] ]+'" ';
+				content += ' style="width:'+this.widths[ this.columns[i]['id'] ]+'px;" ';
 			}
 			content += '>';
 			content += '<span class="column_seperator">&nbsp;</span>'+this.columns[i]['name']+'';
@@ -259,7 +262,6 @@ TableWidget.prototype.generateTable = function(data, sort){
 			content += '</td>';
 		}
 
-		content += '<td class="tablewidget_header_lastcolumn" style="cursor:default;"></td>';
 		content += '</tr></tbody></table>';
 
 		content += '</div>';
@@ -267,7 +269,7 @@ TableWidget.prototype.generateTable = function(data, sort){
 		content += '<div id="tablewidget['+this.widgetID+'][contentcontainer]" style="width: 100%; height:'+availableContentHeight+'px; overflow-x: hidden; overflow-y: auto; position: relative;">';
 
 
-		content += '<table  width="100%" id="tablewidget['+this.widgetID+'][contenttable]" class="table" border="0" cellpadding="0" cellspacing="0"><tbody>';
+		content += '<table  style="width:100%;" id="tablewidget['+this.widgetID+'][contenttable]" class="table" border="0" cellpadding="0" cellspacing="0"><tbody>';
 		
 		var firstRow = true;
 		for(var key in this.data){
@@ -347,7 +349,7 @@ TableWidget.prototype.generateRowColumnsHTML = function(rowData, addWidthData){
 
 				var columnWidth = "";
 				if(addWidthData && parseInt(this.widths[ this.columns[i]["id"] ],10) > 0){
-					columnWidth = ' width="'+this.widths[ this.columns[i]['id'] ]+'" ';
+					columnWidth = ' style="width:'+this.widths[ this.columns[i]['id'] ]+'px;" ';
 				}
 
 				content += '<td class="rowcolumn '+cellClassnames+'" '+columnWidth+' columnID="'+this.columns[i]["id"]+'">'+rowData[ this.columns[i]["id"] ]['innerHTML']+'</td>';
@@ -358,7 +360,7 @@ TableWidget.prototype.generateRowColumnsHTML = function(rowData, addWidthData){
 				 */
 				var columnWidth = "";
 				if(addWidthData && parseInt(this.widths[ this.columns[i]["id"] ],10) > 0){
-					columnWidth = ' width="'+this.widths[ this.columns[i]['id'] ]+'" ';
+					columnWidth = ' style="width:'+this.widths[ this.columns[i]['id'] ]+'px;" ';
 				}
 
 				content += '<td class="rowcolumn '+cellClassnames+'" '+columnWidth+'></td>';
@@ -451,7 +453,7 @@ TableWidget.prototype.resize = function(){
 				var columnID = headerTbl.rows[i].cells[j].getAttribute("columnID");
 				if(columnID){
 					if(this.widths[columnID]){
-						headerTbl.rows[i].cells[j].setAttribute("width", parseInt(this.widths[columnID],10)+"px");
+						headerTbl.rows[i].cells[j].style.width = parseInt(this.widths[columnID],10)+"px";
 					}
 				}
 			}
@@ -465,7 +467,7 @@ TableWidget.prototype.resize = function(){
 			var columnID = contentTbl.rows[0].cells[i].getAttribute("columnID");
 			if(columnID){
 				if(this.widths[columnID]){
-					contentTbl.rows[0].cells[i].setAttribute("width", parseInt(this.widths[columnID],10)+"px");
+					contentTbl.rows[0].cells[i].style.width = parseInt(this.widths[columnID],10)+"px";
 				}
 			}
 		}
