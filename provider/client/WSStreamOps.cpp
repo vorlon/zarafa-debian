@@ -78,7 +78,7 @@ static char THIS_FILE[] = __FILE__;
 #ifdef DEBUG
 	#define STR_DEF_TIMEOUT 0
 #else
-	#define STR_DEF_TIMEOUT	60000
+	#define STR_DEF_TIMEOUT	180000
 #endif
 
 #define WSSO_MARK_EOS ((unsigned int)0)		// End Of Stream	(Contains Frames)
