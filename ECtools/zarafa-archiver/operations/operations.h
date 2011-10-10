@@ -73,8 +73,8 @@ public:
 	/**
 	 * Entrypoint for all archive operations.
 	 * 
-	 * @param[in]	ptrFolder
-	 *					A MAPIFolderPtr that points to the folder that's to be processed. This folder will usualy be
+	 * @param[in]	lpFolder
+	 *					A MAPIFolder pointer that points to the folder that's to be processed. This folder will usualy be
 	 *					a searchfolder containing the messages that are ready to be processed.
 	 * @param[in]	cProps
 	 *					The number op properties pointed to by lpProps.
@@ -83,7 +83,7 @@ public:
 	 *
 	 * @return HRESULT
 	 */
-	virtual HRESULT ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps) = 0;
+	virtual HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps) = 0;
 
 	/**
 	 * Obtain the restriction the messages need to match in order to be processed by this operation.
@@ -143,7 +143,7 @@ class ArchiveOperationBaseEx : public ArchiveOperationBase
 {
 public:
 	ArchiveOperationBaseEx(ECLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
-	HRESULT ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps);
+	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);
 	
 protected:
 	/**

@@ -73,12 +73,46 @@ Stubber::Stubber(ECLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcess
 , m_ulptStubbed(ulptStubbed)
 { }
 
-HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps)
+HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpEntryId = NULL;
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
+
+	ASSERT(lpFolder != NULL);
+	if (lpFolder == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+	
+	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
+	if (lpEntryId == NULL) {
+		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
+	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
+	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &ptrMessage);
+	if (hr == MAPI_E_NOT_FOUND) {
+		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
+		hr = hrSuccess;
+		goto exit;
+	} else if (hr != hrSuccess) {
+		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
+		goto exit;
+	}
+
+	hr = ProcessEntry(ptrMessage);
+
+exit:
+	return hr;
+}
+
+HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
+{
+	HRESULT hr = hrSuccess;
 	SPropValue sProps[3];
 	SPropValue sProp = {0};
 	MAPITablePtr ptrAttTable;
@@ -90,26 +124,13 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 
 	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
-	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
-	if (lpEntryId == NULL) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
-		hr = MAPI_E_NOT_FOUND;
+	ASSERT(lpMessage != NULL);
+	if (lpMessage == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
-	hr = ptrFolder->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &ptrMessage);
-	if (hr == MAPI_E_NOT_FOUND) {
-		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
-		hr = hrSuccess;
-		goto exit;
-	} else if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
-	}
-
-
-	hr = VerifyRestriction(ptrMessage);
+	hr = VerifyRestriction(lpMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring message because it doesn't match the criteria for begin stubbed.");
 		Logger()->Log(EC_LOGLEVEL_WARNING, "This can happen when huge amounts of message are being processed.");
@@ -124,7 +145,7 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 
 
 	// Verify if we have at least one archive that's in the current multi-server cluster.
-	hr = MAPIPropHelper::Create(ptrMessage.as<MAPIPropPtr>(), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -156,13 +177,13 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 	sProps[2].ulPropTag = PR_ICON_INDEX;
 	sProps[2].Value.l = 2;
 
-	hr = ptrMessage->SetProps(3, sProps, NULL);
+	hr = lpMessage->SetProps(3, sProps, NULL);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set properties. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
 
-	hr = ptrMessage->GetAttachmentTable(fMapiDeferredErrors, &ptrAttTable);
+	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &ptrAttTable);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -177,7 +198,7 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 	if (!ptrRowSet.empty()) {
 		Logger()->Log(EC_LOGLEVEL_INFO, "Removing %u attachments", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
-			hr = ptrMessage->DeleteAttach(ptrRowSet[i].lpProps[0].Value.ul, 0, NULL, 0);
+			hr = lpMessage->DeleteAttach(ptrRowSet[i].lpProps[0].Value.ul, 0, NULL, 0);
 			if (hr != hrSuccess) {
 				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u. (hr=%s)", i, stringify(hr, true).c_str());
 				goto exit;
@@ -185,7 +206,7 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 		}
 		
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");		
-		hr = ptrMessage->CreateAttach(&ptrAttach.iid, 0, &ulAttachNum, &ptrAttach);
+		hr = lpMessage->CreateAttach(&ptrAttach.iid, 0, &ulAttachNum, &ptrAttach);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create attachment. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
@@ -206,7 +227,7 @@ HRESULT Stubber::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSP
 		}
 	}
 	
-	hr = ptrMessage->SaveChanges(0);
+	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save stubbed message. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;

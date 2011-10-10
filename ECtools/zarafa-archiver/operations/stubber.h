@@ -61,7 +61,8 @@ class Stubber : public ArchiveOperationBase
 {
 public:
 	Stubber(ECLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
-	HRESULT ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps);
+	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);
+	HRESULT ProcessEntry(LPMESSAGE lpMessage);
 	
 private:
 	ULONG m_ulptStubbed;
