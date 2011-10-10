@@ -80,7 +80,7 @@ esac
 
 # default to debug mode
 # disable write-strings: too much complains about "" being 'cast' to char* (since const char* is not in the declarations) on g++-4.2 and higher
-ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings $BUILDOS"
+ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings $BUILDOS -DHAVE_CONFIG_H"
 if ! test "$want_release" = "yes"; then
 # when using -pedantic, -Wno-long-long is required
 # only add -pedantic in non-release mode, since a header in php5 contains a , too much in an enum, which triggers a compile error.
@@ -532,9 +532,10 @@ AC_SUBST(CRYPT_LIBS)
 
 # Only specific links with uuid and dl, clients only with crypto and ssl for ssl connections
 SSL_LIBS=
-AC_CHECK_LIB([crypto], [BIO_accept], [SSL_LIBS="$SSL_LIBS -lcrypto"], AC_MSG_ERROR([required library libcrypto missing or unusable]))
 # TODO: version of ssl check??
+# ssl before crypto, because of dependancies
 AC_CHECK_LIB([ssl], [SSL_accept], [SSL_LIBS="$SSL_LIBS -lssl"], AC_MSG_ERROR([required library libssl missing or unusable]))
+AC_CHECK_LIB([crypto], [BIO_accept], [SSL_LIBS="$SSL_LIBS -lcrypto"], AC_MSG_ERROR([required library libcrypto missing or unusable]))
 AC_SUBST(SSL_LIBS)
 LIBS=$LIBS_system
 

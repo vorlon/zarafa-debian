@@ -21909,7 +21909,7 @@ esac
 
 # default to debug mode
 # disable write-strings: too much complains about "" being 'cast' to char* (since const char* is not in the declarations) on g++-4.2 and higher
-ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings $BUILDOS"
+ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings $BUILDOS -DHAVE_CONFIG_H"
 if ! test "$want_release" = "yes"; then
 # when using -pedantic, -Wno-long-long is required
 # only add -pedantic in non-release mode, since a header in php5 contains a , too much in an enum, which triggers a compile error.
@@ -27636,76 +27636,8 @@ LIBS=$LIBS_system
 
 # Only specific links with uuid and dl, clients only with crypto and ssl for ssl connections
 SSL_LIBS=
-{ echo "$as_me:$LINENO: checking for BIO_accept in -lcrypto" >&5
-echo $ECHO_N "checking for BIO_accept in -lcrypto... $ECHO_C" >&6; }
-if test "${ac_cv_lib_crypto_BIO_accept+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcrypto  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char BIO_accept ();
-int
-main ()
-{
-return BIO_accept ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_crypto_BIO_accept=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_crypto_BIO_accept=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_crypto_BIO_accept" >&5
-echo "${ECHO_T}$ac_cv_lib_crypto_BIO_accept" >&6; }
-if test $ac_cv_lib_crypto_BIO_accept = yes; then
-  SSL_LIBS="$SSL_LIBS -lcrypto"
-else
-  { { echo "$as_me:$LINENO: error: required library libcrypto missing or unusable" >&5
-echo "$as_me: error: required library libcrypto missing or unusable" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
 # TODO: version of ssl check??
+# ssl before crypto, because of dependancies
 { echo "$as_me:$LINENO: checking for SSL_accept in -lssl" >&5
 echo $ECHO_N "checking for SSL_accept in -lssl... $ECHO_C" >&6; }
 if test "${ac_cv_lib_ssl_SSL_accept+set}" = set; then
@@ -27772,6 +27704,75 @@ if test $ac_cv_lib_ssl_SSL_accept = yes; then
 else
   { { echo "$as_me:$LINENO: error: required library libssl missing or unusable" >&5
 echo "$as_me: error: required library libssl missing or unusable" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+{ echo "$as_me:$LINENO: checking for BIO_accept in -lcrypto" >&5
+echo $ECHO_N "checking for BIO_accept in -lcrypto... $ECHO_C" >&6; }
+if test "${ac_cv_lib_crypto_BIO_accept+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrypto  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char BIO_accept ();
+int
+main ()
+{
+return BIO_accept ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_cxx_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_crypto_BIO_accept=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_crypto_BIO_accept=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_crypto_BIO_accept" >&5
+echo "${ECHO_T}$ac_cv_lib_crypto_BIO_accept" >&6; }
+if test $ac_cv_lib_crypto_BIO_accept = yes; then
+  SSL_LIBS="$SSL_LIBS -lcrypto"
+else
+  { { echo "$as_me:$LINENO: error: required library libcrypto missing or unusable" >&5
+echo "$as_me: error: required library libcrypto missing or unusable" >&2;}
    { (exit 1); exit 1; }; }
 fi
 

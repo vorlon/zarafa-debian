@@ -40,9 +40,10 @@ host_triplet = @host@
 @HAVE_ICU_TRUE@			ustringutil/utfutil.cpp
 
 subdir = common
-DIST_COMMON = $(libcommon_mapi_la_include_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(srcdir)/zarafa.pc.in
+DIST_COMMON = $(charset_HEADERS) $(libcommon_mapi_la_include_HEADERS) \
+	$(mapiptr_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/config.h.in $(srcdir)/zarafa.pc.in \
+	$(ustringutil_HEADERS) $(utf8_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
 	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
@@ -59,7 +60,10 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" \
-	"$(DESTDIR)$(libcommon_mapi_la_includedir)"
+	"$(DESTDIR)$(charsetdir)" \
+	"$(DESTDIR)$(libcommon_mapi_la_includedir)" \
+	"$(DESTDIR)$(mapiptrdir)" "$(DESTDIR)$(ustringutildir)" \
+	"$(DESTDIR)$(utf8dir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcommon_mapi_la_LIBADD =
@@ -123,8 +127,13 @@ DIST_SOURCES = $(libcommon_mapi_la_SOURCES) \
 	$(am__libcommon_util_la_SOURCES_DIST)
 dataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(data_DATA)
+charsetHEADERS_INSTALL = $(INSTALL_HEADER)
 libcommon_mapi_la_includeHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(libcommon_mapi_la_include_HEADERS)
+mapiptrHEADERS_INSTALL = $(INSTALL_HEADER)
+ustringutilHEADERS_INSTALL = $(INSTALL_HEADER)
+utf8HEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(charset_HEADERS) $(libcommon_mapi_la_include_HEADERS) \
+	$(mapiptr_HEADERS) $(ustringutil_HEADERS) $(utf8_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -314,20 +323,31 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libcommon_util.la libcommon_mapi.la libcommon_ssl.la
-libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h  ECGuid.h  ECTags.h ECDefs.h IECSecurity.h IECServiceAdmin.h IECSpooler.h IECUnknown.h IECExportChanges.h IECExportAddressbookChanges.h IECStatsCollector.h \
-				  IECImportAddressbookChanges.h ECUnknown.h ECMemStream.h ECMemTable.h ECKeyTable.h Util.h ECDebug.h namedprops.h mapiguidext.h edkguid.h IMAPIOffline.h IECMultiStoreTable.h \
-				  restrictionutil.h favoritesutil.h ZarafaCode.h platform.linux.h md5.h base64.h ECLogger.h ECConfig.h ECConfigImpl.h EMSAbTag.h my_getopt.h codepage.h ECScheduler.h stringutil.h \
-				  Trace.h UnixUtil.h ECIConv.h ustringutil.h SymmetricCrypt.h SSLUtil.h ECChannel.h platform.h CommonUtil.h mapicontact.h IECLicense.h ECABEntryID.h RecurrenceState.h ECFifoBuffer.h ECSerializer.h \
-				  IECSingleInstance.h IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h \
-				  charset/convert.h charset/traits.h charset/utf32string.h charset/utf8string.h charset/utf16string.h charset/convstring.h charset/localeutil.h \
-				  auto_free.h ECCache.h TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h \
-				  mapi_ptr.h mapi_ptr/mapi_array_ptr.h mapi_ptr/mapi_memory_ptr.h mapi_ptr/mapi_object_ptr.h mapi_ptr/mapi_rowset_ptr.h \
-				  ustringutil/utf32iter.h ustringutil/utf8iter.h ustringutil/itercomp.h ustringutil/utfutil.h utf8.h \
-				  utf8/checked.h utf8/core.h utf8/unchecked.h ECRestriction.h threadutil.h HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h \
-				  ECDebugPrint.h ECInterfaceDefs.h HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h
 
-data_DATA = zarafa.pc
+# keep subdirs for these headers
+charset_HEADERS = charset/convert.h charset/traits.h charset/utf32string.h charset/utf8string.h charset/utf16string.h charset/convstring.h charset/localeutil.h
+charsetdir = $(includedir)/zarafa/charset
+utf8_HEADERS = utf8/checked.h utf8/core.h utf8/unchecked.h
+utf8dir = $(includedir)/zarafa/utf8
+ustringutil_HEADERS = ustringutil/utf32iter.h ustringutil/utf8iter.h ustringutil/itercomp.h ustringutil/utfutil.h
+ustringutildir = $(includedir)/zarafa/ustringutil
+mapiptr_HEADERS = mapi_ptr/mapi_array_ptr.h mapi_ptr/mapi_memory_ptr.h mapi_ptr/mapi_object_ptr.h mapi_ptr/mapi_rowset_ptr.h
+mapiptrdir = $(includedir)/zarafa/mapi_ptr
+libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs.h IECSecurity.h IECServiceAdmin.h IECSpooler.h		\
+				  IECUnknown.h IECExportChanges.h IECExportAddressbookChanges.h IECStatsCollector.h IECImportAddressbookChanges.h	\
+				  ECUnknown.h ECMemStream.h ECMemTable.h ECKeyTable.h Util.h ECDebug.h namedprops.h mapiguidext.h edkguid.h			\
+				  IMAPIOffline.h IECMultiStoreTable.h restrictionutil.h favoritesutil.h ZarafaCode.h platform.linux.h md5.h			\
+				  base64.h ECLogger.h ECConfig.h ECConfigImpl.h EMSAbTag.h my_getopt.h codepage.h ECScheduler.h stringutil.h		\
+				  Trace.h UnixUtil.h ECIConv.h ustringutil.h SymmetricCrypt.h SSLUtil.h ECChannel.h platform.h CommonUtil.h			\
+				  mapicontact.h IECLicense.h ECABEntryID.h RecurrenceState.h ECFifoBuffer.h ECSerializer.h IECSingleInstance.h		\
+				  IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h auto_free.h ECCache.h		\
+				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
+				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
+				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h \
+				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
+
 libcommon_mapi_la_includedir = $(includedir)/zarafa
+data_DATA = zarafa.pc
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/libfreebusy
@@ -613,6 +633,23 @@ uninstall-dataDATA:
 	  echo " rm -f '$(DESTDIR)$(datadir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(datadir)/$$f"; \
 	done
+install-charsetHEADERS: $(charset_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(charsetdir)" || $(MKDIR_P) "$(DESTDIR)$(charsetdir)"
+	@list='$(charset_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(charsetHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(charsetdir)/$$f'"; \
+	  $(charsetHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(charsetdir)/$$f"; \
+	done
+
+uninstall-charsetHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(charset_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(charsetdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(charsetdir)/$$f"; \
+	done
 install-libcommon_mapi_la_includeHEADERS: $(libcommon_mapi_la_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(libcommon_mapi_la_includedir)" || $(MKDIR_P) "$(DESTDIR)$(libcommon_mapi_la_includedir)"
@@ -629,6 +666,57 @@ uninstall-libcommon_mapi_la_includeHEADERS:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(libcommon_mapi_la_includedir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(libcommon_mapi_la_includedir)/$$f"; \
+	done
+install-mapiptrHEADERS: $(mapiptr_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(mapiptrdir)" || $(MKDIR_P) "$(DESTDIR)$(mapiptrdir)"
+	@list='$(mapiptr_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(mapiptrHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(mapiptrdir)/$$f'"; \
+	  $(mapiptrHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(mapiptrdir)/$$f"; \
+	done
+
+uninstall-mapiptrHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(mapiptr_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(mapiptrdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(mapiptrdir)/$$f"; \
+	done
+install-ustringutilHEADERS: $(ustringutil_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(ustringutildir)" || $(MKDIR_P) "$(DESTDIR)$(ustringutildir)"
+	@list='$(ustringutil_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(ustringutilHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(ustringutildir)/$$f'"; \
+	  $(ustringutilHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(ustringutildir)/$$f"; \
+	done
+
+uninstall-ustringutilHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(ustringutil_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(ustringutildir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(ustringutildir)/$$f"; \
+	done
+install-utf8HEADERS: $(utf8_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(utf8dir)" || $(MKDIR_P) "$(DESTDIR)$(utf8dir)"
+	@list='$(utf8_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(utf8HEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(utf8dir)/$$f'"; \
+	  $(utf8HEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(utf8dir)/$$f"; \
+	done
+
+uninstall-utf8HEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(utf8_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(utf8dir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(utf8dir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -708,7 +796,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS) config.h
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(libcommon_mapi_la_includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(charsetdir)" "$(DESTDIR)$(libcommon_mapi_la_includedir)" "$(DESTDIR)$(mapiptrdir)" "$(DESTDIR)$(ustringutildir)" "$(DESTDIR)$(utf8dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -756,8 +844,10 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dataDATA \
-	install-libcommon_mapi_la_includeHEADERS
+install-data-am: install-charsetHEADERS install-dataDATA \
+	install-libcommon_mapi_la_includeHEADERS \
+	install-mapiptrHEADERS install-ustringutilHEADERS \
+	install-utf8HEADERS
 
 install-dvi: install-dvi-am
 
@@ -793,8 +883,11 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dataDATA uninstall-libLTLIBRARIES \
-	uninstall-libcommon_mapi_la_includeHEADERS
+uninstall-am: uninstall-charsetHEADERS uninstall-dataDATA \
+	uninstall-libLTLIBRARIES \
+	uninstall-libcommon_mapi_la_includeHEADERS \
+	uninstall-mapiptrHEADERS uninstall-ustringutilHEADERS \
+	uninstall-utf8HEADERS
 
 .MAKE: install-am install-strip
 
@@ -802,18 +895,23 @@ uninstall-am: uninstall-dataDATA uninstall-libLTLIBRARIES \
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dataDATA install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
+	html-am info info-am install install-am install-charsetHEADERS \
+	install-data install-data-am install-dataDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES \
 	install-libcommon_mapi_la_includeHEADERS install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
+	install-mapiptrHEADERS install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip install-ustringutilHEADERS \
+	install-utf8HEADERS installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-dataDATA uninstall-libLTLIBRARIES \
-	uninstall-libcommon_mapi_la_includeHEADERS
+	uninstall-charsetHEADERS uninstall-dataDATA \
+	uninstall-libLTLIBRARIES \
+	uninstall-libcommon_mapi_la_includeHEADERS \
+	uninstall-mapiptrHEADERS uninstall-ustringutilHEADERS \
+	uninstall-utf8HEADERS
 
 
 # pkgconfigdir = $(libdir)/pkgconfig

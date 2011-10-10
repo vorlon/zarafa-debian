@@ -60,7 +60,9 @@
   // Log the pthreads locks
   #define DEBUG_PTHREADS 0
 
-  #include <config.h>
+  #ifdef HAVE_CONFIG_H
+  #include "config.h"
+  #endif
   #include "platform.linux.h"
 
 #define ZARAFA_SYSTEM_USER		"SYSTEM"
