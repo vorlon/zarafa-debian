@@ -534,6 +534,8 @@ namespace PrivatePipe {
 	int quit = 0;
 	ECLogger_File *m_lpFileLogger;
 	ECConfig *m_lpConfig;
+	pthread_t signal_thread;
+	sigset_t signal_mask;
 	void sighup(int s) {
 		if (m_lpConfig) {
 			char *ll;
@@ -550,6 +552,22 @@ namespace PrivatePipe {
 		m_lpFileLogger->Log(EC_LOGLEVEL_WARNING, "[%5d] Log process received sigpipe", getpid());
 		quit = 1;
 	}
+	void* signal_handler(void*)
+	{
+		int sig;
+		m_lpFileLogger->Log(EC_LOGLEVEL_DEBUG, "[%5d] Log signal thread started", getpid());
+		while (!quit && sigwait(&signal_mask, &sig) == 0) {
+			switch(sig) {
+			case SIGHUP:
+				sighup(sig);
+				break;
+			case SIGPIPE:
+				sigpipe(sig);
+				break;
+			};
+		}
+		return NULL;
+	}	
 	int PipePassLoop(int readfd, ECLogger_File *lpFileLogger, ECConfig* lpConfig) {
 		int ret = 0;
 		fd_set readfds;
@@ -558,11 +576,25 @@ namespace PrivatePipe {
 		const char *p = NULL;
 		int s;
 		int l;
+		bool bNPTL = true;
 
+		confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
+		if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0)
+			bNPTL = false;
+		
 		m_lpConfig = lpConfig;
 		m_lpFileLogger = lpFileLogger;
-		signal(SIGHUP, sighup);
-		signal(SIGPIPE, sigpipe);
+
+		if (bNPTL) {
+			sigemptyset(&signal_mask);
+			sigaddset(&signal_mask, SIGHUP);
+			sigaddset(&signal_mask, SIGPIPE);
+			pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+			pthread_create(&signal_thread, NULL, signal_handler, NULL);
+		} else {
+			signal(SIGHUP, sighup);
+			signal(SIGPIPE, sigpipe);
+		}
 		// ignore stop signals to keep logging until the very end
 		signal(SIGTERM, SIG_IGN);
 		signal(SIGINT, SIG_IGN);
@@ -614,6 +646,8 @@ namespace PrivatePipe {
 		}
 
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
+		if (bNPTL)
+			pthread_join(signal_thread, NULL);
 		return ret;
 	}
 }
