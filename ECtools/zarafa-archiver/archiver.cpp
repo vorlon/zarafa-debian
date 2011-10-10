@@ -95,10 +95,16 @@ public:
 	ArchiverImpl();
 	~ArchiverImpl();
 
-	eResult Init(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags);
+	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags);
 
 	eResult GetControl(ArchiveControlPtr *lpptrControl);
 	eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage);
+
+	ECConfig* GetConfig() const;
+
+private:
+	configsetting_t* MergeSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
+	unsigned CountSettings(const configsetting_t *lpSettings);
 
 private:
 	AutoMAPI	m_MAPI;
@@ -222,13 +228,20 @@ ArchiverImpl::~ArchiverImpl()
 	delete m_lpsConfig;
 }
 
-eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags)
+eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags)
 {
 	eResult r = Success;
 
 	MAPIINIT_0 sMapiInit = {MAPI_INIT_VERSION, MAPI_MULTITHREAD_NOTIFICATIONS};
-	
-	m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+
+	if (lpExtraSettings == NULL)
+		m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+
+	else {
+		configsetting_t *lpDefaults = MergeSettings(Archiver::GetConfigDefaults(), lpExtraSettings);
+		m_lpsConfig = ECConfig::Create(lpDefaults);
+		delete[] lpDefaults;
+	}
 
 	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig)) {
 		r = FileNotFound;
@@ -308,4 +321,37 @@ eResult ArchiverImpl::GetManage(const char *lpszUser, ArchiveManagePtr *lpptrMan
 		return Uninitialized;
 		
 	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, lpszUser, m_lpLogger, lpptrManage));
+}
+
+ECConfig* ArchiverImpl::GetConfig() const
+{
+	return m_lpsConfig;
+}
+
+configsetting_t* ArchiverImpl::MergeSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)
+{
+	configsetting_t *lpMergedSettings = NULL;
+	unsigned ulSettings = 0;
+	unsigned ulIndex = 0;
+
+	ulSettings = CountSettings(lpSettings1) + CountSettings(lpSettings2);
+	lpMergedSettings = new configsetting_t[ulSettings + 1];
+
+	while (lpSettings1->szName != NULL)
+		lpMergedSettings[ulIndex++] = *lpSettings1++;
+	while (lpSettings2->szName != NULL)
+		lpMergedSettings[ulIndex++] = *lpSettings2++;
+	memset(&lpMergedSettings[ulIndex], 0, sizeof(lpMergedSettings[ulIndex]));
+
+	return lpMergedSettings;
+}
+
+unsigned ArchiverImpl::CountSettings(const configsetting_t *lpSettings)
+{
+	unsigned ulSettings = 0;
+
+	while ((lpSettings++)->szName != NULL)
+		ulSettings++;
+
+	return ulSettings;
 }

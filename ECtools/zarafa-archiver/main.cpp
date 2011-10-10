@@ -58,6 +58,8 @@ using namespace std;
 #include <initguid.h>
 #include "archiver.h"
 
+#include "UnixUtil.cpp"
+
 enum modes {
 	MODE_INVALID = 0, 
 	MODE_ATTACH, 
@@ -176,6 +178,46 @@ struct option long_options[] = {
 };
 
 /**
+ * Make sure only one instance of the archiver is running.
+ * Running multiple instances of the archiver might result in unpredictable
+ * behaviour. This method ensures only one instance can run on one machine.
+ * Because there are also administrative tasks that can be performed with
+ * the zarafa-archiver that don't take very long but can be started multple
+ * times from an administrative interface, this method will attempt for a
+ * configurable amount of time to become the only instance.
+ *
+ * @param[in]	argv0		The argv[0] from main, the application name.
+ * @param[in]	ptrArchiver	The archiver instance containing the ECConfig
+ * 							instance for unix_create_pidfile.
+ * 
+ * @retval	true	This instance is now the only one.
+ * @retval	false	Another instance is running or there are no permissions
+ * 					to write the pidfile.
+ */
+bool EnforceInstance(char *argv0, const ArchiverPtr &ptrArchiver)
+{
+	unsigned ulInstanceWaitMs = 0;
+	double dblDeadLine;
+	ECLogger_Null logger;
+
+	ulInstanceWaitMs = atoui(ptrArchiver->GetConfig()->GetSetting("instance_wait_timeout_ms"));
+
+	dblDeadLine = GetTimeOfDay() + (double)ulInstanceWaitMs / 1000;
+	do {
+		switch (unix_create_pidfile(argv0, ptrArchiver->GetConfig(), &logger, false)) {
+		case 0:
+			return true;
+		case -1:
+			sleep_ms(100);
+			break;
+		default:
+			return false;
+		}
+	} while (GetTimeOfDay() < dblDeadLine);
+	return false;
+}
+
+/**
  * In some programming languages, the main function is where a program starts execution.
  *
  * It is generally the first user-written function run when a program starts (some system-specific software generally runs
@@ -200,6 +242,12 @@ int main(int argc, char *argv[])
     ULONG ulFlags = 0;
     
 	const char *lpszConfig = Archiver::GetConfigPath();
+
+	const configsetting_t lpDefaults[] = {
+		{ "pid_file", "/var/run/zarafa-archiver.pid" },
+		{ "instance_wait_timeout_ms", "2500" },
+		{ NULL, NULL }
+	};
 
 	setlocale(LC_CTYPE, "");
 
@@ -388,7 +436,7 @@ int main(int argc, char *argv[])
 	if (mode != MODE_ARCHIVE)
 		ulFlags |= Archiver::AttachStdErr;
 		
-	r = ptrArchiver->Init(argv[0], lpszConfig, ulFlags);
+	r = ptrArchiver->Init(argv[0], lpszConfig, lpDefaults, ulFlags);
 	if (r == FileNotFound) {
 		cerr << "Unable to open configuration file " << lpszConfig << endl;
 		return 1;
@@ -397,8 +445,13 @@ int main(int argc, char *argv[])
 		cerr << "Failed to initialize" << endl;
 		return 1;
 	}
-	
-	
+
+	if (EnforceInstance(argv[0], ptrArchiver) == false) {
+		cerr << "Another instance of " << argv[0] << " is running." << endl;
+		cerr << "Please try again later." << endl;
+		return 1;
+	}
+
 	switch (mode) {
 	case MODE_ATTACH: {
 		ArchiveManagePtr ptr;

@@ -2995,7 +2995,7 @@ SWIGINTERN Archiver *Archiver_Create__SWIG_0(char const *lpszAppName,char const 
 			if (r != Success)
 				throw ArchiverError(r, "Failed to instantiate object!");
 
-			r = ptr->Init(lpszAppName, lpszConfig, ulFlags);
+			r = ptr->Init(lpszAppName, lpszConfig, NULL, ulFlags);
 			if (r != Success)
 				throw ArchiverError(r, "Failed to initialize object!");
 
