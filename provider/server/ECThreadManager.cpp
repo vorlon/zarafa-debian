@@ -554,7 +554,7 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait)
             pthread_cond_wait(&m_condItems, &m_mutexItems);
             
             pthread_mutex_lock(&m_mutexIdle); m_ulIdle--; pthread_mutex_unlock(&m_mutexIdle);
-            if(m_queueItems.size() > 0) {
+            if(!m_queueItems.empty()) {
                 lpItem = m_queueItems.front();
                 m_queueItems.pop();
             } else {
@@ -826,13 +826,13 @@ ECRESULT ECDispatcherSelect::MainLoop()
     pthread_cond_broadcast(&m_condItems);
     pthread_mutex_unlock(&m_mutexItems);
     
-    // Delete thread manager (waits for threads to become idle, should be quick since the queue is empty). During this time
+    // Delete thread manager (waits for threads to become idle). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
     delete m_lpThreadManager;
     
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
-    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    while(!m_queueItems.empty()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
@@ -1006,7 +1006,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
-    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    while(!m_queueItems.empty()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
