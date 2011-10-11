@@ -103,14 +103,15 @@ public:
 	ECConfig* GetConfig() const;
 
 private:
-	configsetting_t* MergeSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
+	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
 private:
-	AutoMAPI	m_MAPI;
-	ECConfig	*m_lpsConfig;
-	ECLogger	*m_lpLogger;
-	SessionPtr 	m_ptrSession;
+	AutoMAPI		m_MAPI;
+	ECConfig		*m_lpsConfig;
+	ECLogger		*m_lpLogger;
+	SessionPtr 		m_ptrSession;
+	configsetting_t	*m_lpDefaults;
 };
 
 
@@ -217,6 +218,7 @@ exit:
 ArchiverImpl::ArchiverImpl()
 : m_lpsConfig(NULL)
 , m_lpLogger(NULL)
+, m_lpDefaults(NULL)
 {
 }
 
@@ -226,6 +228,7 @@ ArchiverImpl::~ArchiverImpl()
 		m_lpLogger->Release();
 	
 	delete m_lpsConfig;
+	delete[] m_lpDefaults;
 }
 
 eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags)
@@ -238,9 +241,8 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
 
 	else {
-		configsetting_t *lpDefaults = MergeSettings(Archiver::GetConfigDefaults(), lpExtraSettings);
-		m_lpsConfig = ECConfig::Create(lpDefaults);
-		delete[] lpDefaults;
+		m_lpDefaults = ConcatSettings(Archiver::GetConfigDefaults(), lpExtraSettings);
+		m_lpsConfig = ECConfig::Create(m_lpDefaults);
 	}
 
 	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig)) {
@@ -328,7 +330,7 @@ ECConfig* ArchiverImpl::GetConfig() const
 	return m_lpsConfig;
 }
 
-configsetting_t* ArchiverImpl::MergeSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)
+configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)
 {
 	configsetting_t *lpMergedSettings = NULL;
 	unsigned ulSettings = 0;
