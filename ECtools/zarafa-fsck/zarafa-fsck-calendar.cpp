@@ -498,7 +498,7 @@ HRESULT ZarafaFsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 			}
 
 			hr = AddMissingProperty(lpMessage, "dispidRecurrencePattern",
-						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE_PATTERN], PT_TSTRING),
+						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE_PATTERN], PT_STRING8),
 						Value);
 			if (hr != hrSuccess)
 				goto exit;
