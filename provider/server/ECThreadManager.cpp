@@ -818,23 +818,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // Delete the watchdog. This makes sure no new threads will be started.
     delete lpWatchDog;
     
-    // Close all listener sockets. 
-    for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
-		zarafa_end_soap_connection(iterListenSockets->second);
-        soap_free(iterListenSockets->second);
-    }
-    // Close all sockets. This will cause all that we were listening on clients to get an EOF
-	pthread_mutex_lock(&m_mutexSockets);
-    for(iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); iterSockets++) {
-        soap_free(iterSockets->second.soap);
-    }
-	pthread_mutex_unlock(&m_mutexSockets);
-    
-    // Empty the queue
-    pthread_mutex_lock(&m_mutexItems);
-    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    pthread_mutex_unlock(&m_mutexItems);
-
     // Set the thread count to zero so that threads will exit
     m_lpThreadManager->SetThreadCount(0);
 
@@ -846,6 +829,23 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // Delete thread manager (waits for threads to become idle, should be quick since the queue is empty). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
     delete m_lpThreadManager;
+    
+    // Empty the queue
+    pthread_mutex_lock(&m_mutexItems);
+    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    pthread_mutex_unlock(&m_mutexItems);
+
+    // Close all listener sockets. 
+    for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
+		zarafa_end_soap_connection(iterListenSockets->second);
+        soap_free(iterListenSockets->second);
+    }
+    // Close all sockets. This will cause all that we were listening on clients to get an EOF
+	pthread_mutex_lock(&m_mutexSockets);
+    for(iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); iterSockets++) {
+        soap_free(iterSockets->second.soap);
+    }
+	pthread_mutex_unlock(&m_mutexSockets);
     
     return er;
 }
@@ -994,6 +994,21 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	// Delete the watchdog. This makes sure no new threads will be started.
 	delete lpWatchDog;
 
+    // Set the thread count to zero so that threads will exit
+    m_lpThreadManager->SetThreadCount(0);
+
+    // Notify threads that they should re-query their idle state (and exit)
+    pthread_mutex_lock(&m_mutexItems);
+    pthread_cond_broadcast(&m_condItems);
+    pthread_mutex_unlock(&m_mutexItems);
+
+	delete m_lpThreadManager;
+
+    // Empty the queue
+    pthread_mutex_lock(&m_mutexItems);
+    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    pthread_mutex_unlock(&m_mutexItems);
+
     // Close all listener sockets. 
     for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
 		zarafa_end_soap_connection(iterListenSockets->second);
@@ -1006,18 +1021,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
     }
 	pthread_mutex_unlock(&m_mutexSockets);
     
-    // Empty the queue
-    pthread_mutex_lock(&m_mutexItems);
-    while(m_queueItems.size()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    pthread_mutex_unlock(&m_mutexItems);
-
-    // Set the thread count to zero so that threads will exit
-    m_lpThreadManager->SetThreadCount(0);
-
-    // Notify threads that they should re-query their idle state (and exit)
-    pthread_mutex_lock(&m_mutexItems);
-    pthread_cond_broadcast(&m_condItems);
-    pthread_mutex_unlock(&m_mutexItems);
 
 	delete [] epevents;
 
