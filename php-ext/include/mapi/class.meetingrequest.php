@@ -1049,7 +1049,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$calFolder = $this->openDefaultCalendar();
 		}
 
-		if ($messageprops[PR_MESSAGE_CLASS] == "IPM.Schedule.Meeting.Request") {
+		$wastebasket = $this->openDefaultWastebasket();
+		$sourcefolder = $this->openParentFolder();
+
+		// Check if the message is a meeting request in the inbox or a calendaritem by checking the message class
+		if (strpos($messageprops[PR_MESSAGE_CLASS], 'IPM.Schedule.Meeting') === 0) {
 			/**
 			 * 'Remove from calendar' option from previewpane then we have to check GlobalID of this meeting request.
 			 * If basedate found then open meeting from calendar and delete that occurence.
@@ -1084,13 +1088,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				
 				$entryids = $this->findCalendarItems($goid, $calFolder);
 				
-				if(is_array($entryids)) 
-					mapi_folder_deletemessages($calFolder, $entryids);
+				if(is_array($entryids)){
+					// Move the calendaritem to the waste basket
+					mapi_folder_copymessages($sourcefolder, $entryids, $wastebasket, MESSAGE_MOVE);
+				}
 			}
-
-			// Now remove message to the wastebasket
-			$wastebasket = $this->openDefaultWastebasket();
-			$sourcefolder = $this->openParentFolder();
 
 			// Release the message
 			$this->message = null;
@@ -1103,7 +1105,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			if ($basedate) { //remove the occurence
 				$this->doRemoveExceptionFromCalendar($basedate, $this->message, $store);
 			} else { //remove normal/recurring meeting item.
-				mapi_folder_deletemessages($calFolder, Array($messageprops[PR_ENTRYID]));
+				// Move the message to the waste basket
+				mapi_folder_copymessages($sourcefolder, Array($messageprops[PR_ENTRYID]), $wastebasket, MESSAGE_MOVE);
 			}
 		}
 	}
