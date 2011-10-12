@@ -1891,8 +1891,8 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Will not upgrade your database from 6.40.x to 7.0.");
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "The recommended upgrade procedure is to use the zarafa7-upgrade commandline tool.");
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please consult the Zarafa administrator manual on how to correctly upgrade your database.");
-		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Alternatively you may try to upgrade using --force-database-upgrade.");
-		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "However, the database will contain invalid data, and the server and client programs may crash because of this.");
+		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Alternatively you may try to upgrade using --force-database-upgrade,");
+		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "but no progress and estimates within the updates will be available.");
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
