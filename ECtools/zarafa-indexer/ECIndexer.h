@@ -128,6 +128,13 @@ public:
 
 	HRESULT RunSynchronization();
 
+	/**
+	 * Optimize on-disk index
+	 *
+	 * @return result
+	 */
+	HRESULT OptimizeIndex(ECEntryData *lpEntryData);
+
 private:
 	/**
 	 * Main thread handler

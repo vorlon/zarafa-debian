@@ -181,6 +181,13 @@ public:
 	 */
 	HRESULT UpdateContents(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession);
 
+	/**
+	 * Optimize on-disk index
+	 *
+	 * @return result
+	 */
+	HRESULT OptimizeIndex(ECEntryData *lpEntry);
+
 private:
 	/**
 	 * Distribute tasks over multiple servers

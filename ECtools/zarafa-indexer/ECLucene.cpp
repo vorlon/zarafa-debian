@@ -319,6 +319,32 @@ HRESULT ECLucene::Optimize(BOOL bReset)
 	return hr;
 }
 
+HRESULT ECLucene::OptimizeIndex(ECThreadData *lpThreadData, std::string strStorePath)
+{
+	HRESULT hr = hrSuccess;
+	ECLuceneAccess *lpAccess = NULL;
+	lucene::index::IndexWriter *lpWriter = NULL;
+	
+	hr = CreateAccess(lpThreadData, strStorePath, &lpAccess);
+	if(hr != hrSuccess)
+		goto exit;
+	
+	hr = lpAccess->GetLuceneWriter(&lpWriter);	
+	if(hr != hrSuccess)
+		goto exit;
+
+	lpWriter->optimize();
+				
+exit:
+	if(lpWriter)
+		lpAccess->PutLuceneWriter(lpWriter);
+		
+	if(lpAccess)
+		lpAccess->Release();
+		
+	return hr;
+}
+
 VOID ECLucene::Delete(std::string &strStorePath)
 {
 	ECLuceneAccess *lpAccess = NULL;

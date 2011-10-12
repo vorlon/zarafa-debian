@@ -983,3 +983,12 @@ exit:
 
 	return hr;
 }
+
+HRESULT ECIndexer::OptimizeIndex(ECEntryData *lpEntry)
+{
+	HRESULT hr = hrSuccess;
+	
+	hr = m_lpThreadData->lpLucene->OptimizeIndex(m_lpThreadData, lpEntry->m_strStorePath);
+
+	return hr;
+}

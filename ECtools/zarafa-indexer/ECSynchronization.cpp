@@ -321,6 +321,10 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 
 	m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
 
+	if(ulCreate || ulChange || ulDelete) {
+		m_lpIndexerData->OptimizeIndex(lpEntryData);
+	}
+
 	hr = StopMergedChanges();
 	if (hr != hrSuccess)
 		goto exit;

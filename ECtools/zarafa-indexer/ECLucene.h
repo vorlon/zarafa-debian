@@ -268,6 +268,8 @@ public:
 	 * @return HRESULT
 	 */
 	HRESULT UpdateAttachmentCache(std::string &strInstanceId, std::wstring &strAttachData);
+	
+	HRESULT OptimizeIndex(ECThreadData *lpThreadData, std::string strStorePath);
 
 private:
 	/**

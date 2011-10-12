@@ -233,3 +233,8 @@ HRESULT ECIndexerData::UpdateContents(ECSynchronization *lpSyncer, ECEntryData *
 exit:
 	return hr;
 }
+
+HRESULT ECIndexerData::OptimizeIndex(ECEntryData *lpEntry)
+{
+	return m_lpIndexer->OptimizeIndex(lpEntry);
+}
