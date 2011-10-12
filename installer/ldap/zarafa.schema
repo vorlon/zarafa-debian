@@ -191,7 +191,7 @@ objectclass	( 1.3.6.1.4.1.26278.1.2.0.0
 	SUP top	AUXILIARY
 	MUST ( cn )
 	MAY (
-		zarafaAccount $ zarafaHidden $ mail $ zarafaAliases $ zarafaSecurityGroup
+		zarafaAccount $ zarafaHidden $ mail $ zarafaAliases $ zarafaSecurityGroup $ zarafaSendAsPrivilege
 		)
 	)
 	

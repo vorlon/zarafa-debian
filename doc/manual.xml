@@ -11552,6 +11552,17 @@
 			  <para>Default: <replaceable>2</replaceable></para>
 			</listitem>
 		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>pid_file</option></term>
+			<listitem>
+			  <para>The location of the pid file used to guarantee
+              only one instance of zarafa-archiver is running
+              in non-administrative mode.</para>
+			  <para>Default: <replaceable>/var/run/zarafa-archiver.pid
+			  </replaceable></para>
+			</listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 

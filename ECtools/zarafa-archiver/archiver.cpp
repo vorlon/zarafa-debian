@@ -101,6 +101,7 @@ public:
 	eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage);
 
 	ECConfig* GetConfig() const;
+	ECLogger* GetLogger() const;
 
 private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
@@ -328,6 +329,11 @@ eResult ArchiverImpl::GetManage(const char *lpszUser, ArchiveManagePtr *lpptrMan
 ECConfig* ArchiverImpl::GetConfig() const
 {
 	return m_lpsConfig;
+}
+
+ECLogger* ArchiverImpl::GetLogger() const
+{
+	return m_lpLogger;
 }
 
 configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)

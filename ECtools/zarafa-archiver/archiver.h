@@ -161,6 +161,7 @@ public:
 	virtual eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage) = 0;
 
 	virtual ECConfig* GetConfig() const = 0;
+	virtual ECLogger* GetLogger() const = 0;
 
 protected:
 	Archiver() {};
