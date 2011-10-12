@@ -238,6 +238,15 @@ Default:
 \fIno\fR
 .RE
 .PP
+\fBimap_store_rfc822\fR
+.RS 4
+Store the rfc822 data with the message in MAPI\&. The Zarafa Gateway stores the original rfc822 data of an APPENDed message in the database for later retrieval\&. This makes sure that the exact message that was delivered into the Zarafa gateway is available for retrieval later, which is the behaviour when set to
+\fIyes\fR\&. If set to no, the zarafa\-gateway will not store the original rfc822 text\&. This means that the rfc822 data must be re\-created when retrieved\&. This may cause changes in encoding or charset and some loss of fidelity\&. This will also invalidate any signatures in the stored messages\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
 \fBssl_private_key_file\fR
 .RS 4
 The gateway will use this file as private key for SSL TLS\&. This file can be created with:

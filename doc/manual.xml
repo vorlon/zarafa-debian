@@ -6997,6 +6997,26 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>imap_store_rfc822</option></term>
+			<listitem>
+				<para>Store the rfc822 data with the message in MAPI. The
+				Zarafa Gateway stores the original rfc822 data of an
+				APPENDed message in the database for later retrieval. This
+				makes sure that the exact message that was delivered into
+				the Zarafa gateway is available for retrieval later, which
+				is the behaviour when set to
+				<replaceable>yes</replaceable>. If set to no, the zarafa-gateway
+				will not store the original rfc822 text. This means that the
+				rfc822 data must be re-created when retrieved. This may
+				cause changes in encoding or charset and some loss of
+				fidelity. This will also invalidate any signatures in the
+				stored messages.
+				</para>
+				<para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>ssl_private_key_file</option></term>
 			<listitem>
 			  <para>The gateway will use this file as private

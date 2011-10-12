@@ -344,6 +344,7 @@ int main(int argc, char *argv[]) {
 		{ "imap_max_messagesize", "134217728", CONFIGSETTING_RELOADABLE },
 		{ "imap_generate_utf8", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_expunge_on_delete", "no", CONFIGSETTING_RELOADABLE },
+		{ "imap_store_rfc822", "yes", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/zarafa" },
 		{ "server_hostname", "" },
 		{ "server_hostname_greeting", "no", CONFIGSETTING_RELOADABLE },
