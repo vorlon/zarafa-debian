@@ -1085,6 +1085,10 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachme
 
 
 exit:
+	if (er != erSuccess) {
+		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_ERROR, "SerializeObject failed with error code 0x%08x", er);
+	}
+
 	if (lpDatabase) {
 		if (lpDBResult)
 			lpDatabase->FreeResult(lpDBResult);
@@ -1764,6 +1768,11 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 #endif
 
 exit:
+	if (er != erSuccess) {
+		lpSource->Flush(); // Flush the whole stream
+		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_ERROR, "DeserializeObject failed with error code 0x%08x", er);
+	}	
+
 	if (lpPropValArray)
 		FreePropValArray(lpPropValArray, true);
 

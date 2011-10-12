@@ -10988,12 +10988,13 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		
 		pthread_join(lpsStreamInfo->hThread, (void**)&er);
 		lpsStreamInfo->hThread = pthread_self();
+		if (er != erSuccess)
+			goto exit;
+
 		if (!content) {
 			er = ZARAFA_E_CALL_FAILED;
 			goto exit;
 		}
-		if (er != erSuccess)
-			goto exit;
 		
 		// Flush remaining attachments (that shouldn't even be there)
 		while (true) {

@@ -218,7 +218,6 @@ HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
 	lucene::index::Term sTerm;
 	sourceid_list_t::iterator iter;
 	NShttpmail_t * lpNSProp = NULL;
-	unsigned int deleted = 0;
 
 	lpNSProp = m_lpThreadData->lpLucene->GetIndexedProp(PR_SOURCE_KEY);
 	if (!lpNSProp)
@@ -240,8 +239,7 @@ HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
 		sTerm.set(strField.c_str(), strContents.c_str());
 
 		try {
-			unsigned int d = lpReader->deleteDocuments(&sTerm);
-			deleted += d;
+			lpReader->deleteDocuments(&sTerm);
 		}
 		catch (CLuceneError &e) {
 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
@@ -259,7 +257,7 @@ HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
 	
 exit:
 	if (lpReader)
-		m_lpLuceneAccess->PutLuceneReader(lpReader, deleted > 0);
+		m_lpLuceneAccess->PutLuceneReader(lpReader, true);
 
 	return hr;
 }

@@ -72,6 +72,7 @@ public:
 	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) = 0;
 
 	virtual ECRESULT Skip(size_t size, size_t nmemb) = 0;
+	virtual ECRESULT Flush() = 0;
 };
 
 class ECStreamSerializer : public ECSerializer
@@ -86,6 +87,7 @@ public:
 	ECRESULT Read(void *ptr, size_t size, size_t nmemb);
 
 	ECRESULT Skip(size_t size, size_t nmemb);
+	ECRESULT Flush();
 
 private:
 	IStream *m_lpBuffer;
@@ -103,6 +105,7 @@ public:
 	ECRESULT Read(void *ptr, size_t size, size_t nmemb);
 
 	ECRESULT Skip(size_t size, size_t nmemb);
+	ECRESULT Flush();
 
 private:
 	ECFifoBuffer *m_lpBuffer;

@@ -167,6 +167,13 @@ ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 	return er;
 }
 
+ECRESULT ECStreamSerializer::Flush()
+{
+	LARGE_INTEGER zero = {{0,0}};
+	return m_lpBuffer->Seek(zero, SEEK_END, NULL);
+}
+
+
 ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer)
 {
 	SetBuffer(lpBuffer);
@@ -282,5 +289,24 @@ exit:
 	if (buf)
 		delete [] buf;
 
+	return er;
+}
+
+ECRESULT ECFifoSerializer::Flush()
+{
+	ECRESULT er = erSuccess;
+	size_t cbRead = 0;
+	char buf[1024];
+	
+	while(true) {
+		er = m_lpBuffer->Read(buf, 1024, STR_DEF_TIMEOUT, &cbRead);
+		if (er != erSuccess)
+			goto exit;
+
+		if(cbRead < 1024)
+			break;
+	}
+
+exit:
 	return er;
 }
