@@ -2063,7 +2063,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		// we're overriding a plain text body, setting a new HTML body or appending HTML data
 		try {
 			vmime::charset bodyCharset;
-			std::string strTmp;
 
 			vmime::utility::outputStreamStringAdapter os(strHTML);
 			try {
@@ -2086,15 +2085,13 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			try {
 				// check charset validity
 				// since this text is saved in a PT_BINARY, it needs to be valid data to convert to the plain-text version.
-				strTmp = m_converter.convert_to<std::string>(bodyCharset.getName().c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				m_converter.convert_to<std::string>(bodyCharset.getName().c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
 			}
 			catch (convert_exception &ce) {
 				lpLogger->Log(EC_LOGLEVEL_FATAL, "Incorrect charset for html body: %s, trying to recover", bodyCharset.getName().c_str());
 				std::string charset = bodyCharset.getName() + "//IGNORE";
-				strTmp = m_converter.convert_to<std::string>(charset.c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
-				swap(strHTML, strTmp);
+				strHTML = m_converter.convert_to<std::string>(charset.c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
 			}
-			strTmp.clear();
 			
 			// write codepage for PR_HTML property
 			if (HrGetCPByCharset(bodyCharset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess) {

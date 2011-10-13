@@ -406,7 +406,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
-		unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false);
+		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
+			return 1;
 
 	switch (mode) {
 	case MODE_ATTACH: {

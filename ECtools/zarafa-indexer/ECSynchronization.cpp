@@ -323,6 +323,7 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 
 	if(ulCreate || ulChange || ulDelete) {
 		m_lpIndexerData->OptimizeIndex(lpEntryData);
+		// Since it is not really fatal when the optimize failed, we will just ignore the error here
 	}
 
 	hr = StopMergedChanges();

@@ -528,10 +528,14 @@ def ValidateDBVersions(db):
     for result in results:
         rev += 1
         if result[0] != rev:
-            print "Your database is not fully up to date. Please start your server and let it"
-            print "upgrade as far as possible. It will stop and inform you once it can"
-            print "be upgraded with this tool."
-            sys.exit(1)
+            if rev == 4 || rev == 23:
+                # skip non-mandatory revisions
+                rev += 1
+            else:
+                print "Your database is not fully up to date. Please start your server and let it"
+                print "upgrade as far as possible. It will stop and inform you once it can"
+                print "be upgraded with this tool."
+                sys.exit(1)
     if rev < 45:
         print "Your database is not up to date. Please start your server and let it"
         print "upgrade as far as possible. It will stop and inform you once it can"

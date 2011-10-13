@@ -333,7 +333,24 @@ HRESULT ECLucene::OptimizeIndex(ECThreadData *lpThreadData, std::string strStore
 	if(hr != hrSuccess)
 		goto exit;
 
-	lpWriter->optimize();
+	try {
+		lpWriter->optimize();
+	}
+	catch (CLuceneError &e) {
+		hr = MAPI_E_CALL_FAILED;
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error during index optimize: %s", e.what());
+		goto exit;
+	}
+	catch (std::exception &e) {
+		hr = MAPI_E_CALL_FAILED;
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during index optimize: %s", e.what());
+		goto exit;
+	}
+	catch (...) {
+		hr = MAPI_E_CALL_FAILED;
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during index optimize");
+		goto exit;
+	}
 				
 exit:
 	if(lpWriter)
