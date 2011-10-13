@@ -1067,6 +1067,14 @@ This option is forced to \'yes\' when using the \'db\' plugin since synchronizat
 Default:
 \fIyes\fR
 .RE
+.PP
+\fBcounter_reset\fR
+.RS 4
+The counter_reset option forces a recount of items in the folder each time a folder is opened\&. Although this is not strictly necessary, it is a precaution to make sure that counters are always correct\&. When enabled, this does incur a performance penalty, especially on large (>50000 items) folders\&. Each time a counter_reset found an incorrect item count, it increments the system statistic counter_resyncs\&. If it is at 0 on your system, then this option has had no effect except for slowing it down\&.
+.sp
+Default:
+\fIyes\fR
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the zarafa\-server process a HUP signal:
