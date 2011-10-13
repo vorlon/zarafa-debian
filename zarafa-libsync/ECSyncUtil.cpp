@@ -49,6 +49,7 @@
 
 #include "platform.h"
 #include "ECSyncUtil.h"
+#include "mapi_ptr.h"
 
 #include <mapix.h>
 
@@ -162,6 +163,27 @@ HRESULT ResetStream(LPSTREAM lpStream)
 	hr = lpStream->Write("\0\0\0\0\0\0\0\0", 8, NULL);
 	if (hr != hrSuccess)
 		goto exit;
+	hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
+
+exit:
+	return hr;
+}
+
+HRESULT CreateNullStatusStream(LPSTREAM *lppStream)
+{
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrStream;
+
+	hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &ptrStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ResetStream(ptrStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrStream->QueryInterface(IID_IStream, (LPVOID*)lppStream);
+
 exit:
 	return hr;
 }

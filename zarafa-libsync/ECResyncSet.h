@@ -54,17 +54,28 @@
 #include <vector>
 
 #include <mapidefs.h>
+#include <edkmdb.h>
 
 class ECResyncSetIterator;
 class ECResyncSet
 {
 public:
-	typedef std::vector<BYTE>						storage_type;
-	typedef std::map<storage_type, storage_type>	map_type;
+	typedef std::vector<BYTE>						array_type;
+	struct storage_type {
+		storage_type(const array_type& _entryId, const FILETIME& _lastModTime)
+			: entryId(_entryId), lastModTime(_lastModTime), flags(SYNC_NEW_MESSAGE)
+		{ }
+
+		array_type	entryId;
+		FILETIME	lastModTime;
+		ULONG		flags;
+	};
+	typedef std::map<array_type, storage_type>		map_type;
 	typedef map_type::size_type						size_type;
 
-	void Append(const SBinary &sbinSourceKey, const SBinary &sbinEntryID);
+	void Append(const SBinary &sbinSourceKey, const SBinary &sbinEntryID, const FILETIME &lastModTime);
 	bool Remove(const SBinary &sbinSourceKey);
+	ECResyncSetIterator Find(const SBinary &sBinSourceKey);
 
 	bool IsEmpty() const { return m_map.empty(); }
 	size_type Size() const { return m_map.size(); }
@@ -78,18 +89,24 @@ private:
 class ECResyncSetIterator
 {
 public:
-	ECResyncSetIterator(const ECResyncSet &resyncSet);
+	ECResyncSetIterator(ECResyncSet &resyncSet);
+	ECResyncSetIterator(ECResyncSet &resyncSet, const SBinary &sBinSourceKey);
 
 	bool IsValid() const;
 	LPENTRYID GetEntryID() const;
 	ULONG GetEntryIDSize() const;
+	const FILETIME& GetLastModTime() const;
+	ULONG GetFlags() const;
+	void SetFlags(ULONG flags);
 	void Next();
 
 private:
-	typedef ECResyncSet::map_type::const_iterator	iterator_type;
+	typedef ECResyncSet::map_type::iterator	iterator_type;
 
-	const ECResyncSet	*m_lpResyncSet;
-	iterator_type		m_iterator;
+	ECResyncSet		*m_lpResyncSet;
+	iterator_type	m_iterator;
+
+	const static FILETIME	s_nullTime;
 };
 
 

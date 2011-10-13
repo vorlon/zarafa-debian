@@ -53,6 +53,7 @@
 #include "ECOfflineABImporter.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
+#include "threadutil.h"
 
 #include <IECExportAddressbookChanges.h>
 #include <IECExportChanges.h>
@@ -72,6 +73,7 @@
 
 #include <mapi_ptr.h>
 DEFINEMAPIPTR(ECChangeAdvisor);
+DEFINEMAPIPTR(ECChangeAdviseSink);
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -270,6 +272,61 @@ HRESULT ECSyncContext::HrGetChangeAdvisor(LPECCHANGEADVISOR *lppChangeAdvisor)
 		goto exit;
 
 	hr = m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor, (void**)lppChangeAdvisor);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	return hr;
+}
+
+HRESULT ECSyncContext::HrReleaseChangeAdvisor()
+{
+	HRESULT hr = hrSuccess;
+	ECChangeAdvisorPtr ptrReleaseMe;
+
+	// WARNING:
+	// This must come after the declaration of ptrReleaseMe to
+	// ensure the mutex is unlocked before the change advisor
+	// is released.
+	scoped_lock lock(m_hMutex);
+
+	if (!m_lpSettings->ChangeNotificationsEnabled()) {
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	if (m_lpChangeAdvisor) {
+		// Don't release while holding the lock as that might
+		// cause a deadlock if a notification is being delivered.
+		ptrReleaseMe.reset(m_lpChangeAdvisor);
+		m_lpChangeAdvisor = NULL;
+	}
+
+	m_mapNotifiedSyncIds.clear();
+
+exit:
+	return hr;
+}
+
+HRESULT ECSyncContext::HrResetChangeAdvisor()
+{
+	HRESULT hr = hrSuccess;
+	ECChangeAdvisorPtr ptrChangeAdvisor;
+	ECChangeAdviseSinkPtr ptrChangeAdviseSink;
+
+	hr = HrReleaseChangeAdvisor();
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetChangeAdvisor(&ptrChangeAdvisor);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetChangeAdviseSink(&ptrChangeAdviseSink);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrChangeAdvisor->Config(NULL, NULL, ptrChangeAdviseSink, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -774,10 +831,7 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 	if (iStatusStream != m_mapSyncStatus.end()) {
 		*lppStream = iStatusStream->second;
 	} else {
-		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &lpStream);
-		if (hr != hrSuccess)
-			goto exit;
-		hr = lpStream->Write("\0\0\0\0\0\0\0\0", 8, &ulSize);
+		hr = CreateNullStatusStream(&lpStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -837,6 +891,86 @@ HRESULT ECSyncContext::SetResyncID(ULONG ulResyncID)
 	sPropResyncID.Value.ul = ulResyncID;
 
 	hr = HrSetOneProp(ptrRoot, &sPropResyncID);
+
+exit:
+	return hr;
+}
+
+HRESULT ECSyncContext::GetStoredServerUid(LPGUID lpServerUid)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrRoot;
+	SPropValuePtr ptrServerUid;
+
+	if (lpServerUid == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &ptrServerUid);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ptrServerUid->Value.bin.lpb == NULL || ptrServerUid->Value.bin.cb != sizeof *lpServerUid) {
+		hr = MAPI_E_CORRUPT_DATA;
+		goto exit;
+	}
+
+	memcpy(lpServerUid, ptrServerUid->Value.bin.lpb, sizeof *lpServerUid);
+
+exit:
+	return hr;
+}
+
+HRESULT ECSyncContext::SetStoredServerUid(LPGUID lpServerUid)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrRoot;
+	SPropValue sPropServerUid;
+
+	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	sPropServerUid.ulPropTag = PR_EC_STORED_SERVER_UID;
+	sPropServerUid.Value.bin.cb = sizeof *lpServerUid;
+	sPropServerUid.Value.bin.lpb = (LPBYTE)lpServerUid;
+
+	hr = HrSetOneProp(ptrRoot, &sPropServerUid);
+
+exit:
+	return hr;
+}
+
+HRESULT ECSyncContext::GetServerUid(LPGUID lpServerUid)
+{
+	HRESULT hr = hrSuccess;
+	MsgStorePtr ptrStore;
+	SPropValuePtr ptrServerUid;
+
+	if (lpServerUid == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = HrGetMsgStore(&ptrStore);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &ptrServerUid);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ptrServerUid->Value.bin.lpb == NULL || ptrServerUid->Value.bin.cb != sizeof *lpServerUid) {
+		hr = MAPI_E_CORRUPT_DATA;
+		goto exit;
+	}
+
+	memcpy(lpServerUid, ptrServerUid->Value.bin.lpb, sizeof *lpServerUid);
 
 exit:
 	return hr;

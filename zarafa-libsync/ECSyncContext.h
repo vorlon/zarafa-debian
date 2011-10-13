@@ -129,6 +129,12 @@ public:
 	HRESULT HrGetChangeAdvisor(LPECCHANGEADVISOR *lppChangeAdvisor);
 
 	/**
+	 * Replace the change advisor. This causes all the registered change advises
+	 * to be dropped. Also the map with received states is cleared.
+	 */
+	HRESULT HrResetChangeAdvisor();
+
+	/**
 	 * Get the change advise sink for this sync context.
 	 * The underlying objects reference will be incremented, so the obtained
 	 * pointer needs to be released when it's not needed anymore.
@@ -281,8 +287,53 @@ public:
 	 */
 	HRESULT HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lppStream);
 
+	/**
+	 * Get the resync id from the store.
+	 * This id is incremented with zarafa-admin on the online store if a folder
+	 * resync is required. If the online and offline id differ, a resync will be
+	 * initiated. Afterwards the offline id is copied from the online id.
+	 *
+	 * @param[out]	lpulResyncID	The requested id.
+	 */
 	HRESULT GetResyncID(ULONG *lpulResyncID);
+
+	/**
+	 * Set the resync id on the store.
+	 * @see GetResyncID
+	 *
+	 * @param[in]	ulResyncID		The id to set.
+	 */
 	HRESULT SetResyncID(ULONG ulResyncID);
+
+	/**
+	 * Get stored server UID.
+	 * Get the stored onlinse server UID. This is compared to the current online
+	 * server UID in order to determine if the online store was relocated. In that
+	 * case a resync must be performed in order for ICS to function properly.
+	 * This server UID is stored during the first folder sync step or whenever it's
+	 * absent (for older profiles).
+	 * Only applicable on offline stores.
+	 *
+	 * @param[out]	lpServerUid		The requested server UID.
+	 */
+	HRESULT GetStoredServerUid(LPGUID lpServerUid);
+
+	/**
+	 * Set stored server UID.
+	 * @see GetStoredServerUid
+	 *
+	 * @param[in]	lpServerUid		The server uid to set.
+	 */
+	HRESULT SetStoredServerUid(LPGUID lpServerUid);
+
+	/**
+	 * Get the server UID.
+	 * This is used to compare with the stores server UID.
+	 * @see GetStoredServerUid
+	 *
+	 * @param[out]	lpServerUid		The requested server UID.
+	 */
+	HRESULT GetServerUid(LPGUID lpServerUid);
 
 private:	// methods
 	/**
@@ -307,6 +358,11 @@ private:	// methods
 	 * @return 0
 	 */
 	ULONG	OnChange(ULONG ulFlags, LPENTRYLIST lpEntryList);
+
+	/**
+	 * Release the change advisor and clear the map with received states.
+	 */
+	HRESULT HrReleaseChangeAdvisor();
 
 private:	// members
 	LPMDB					m_lpStore;

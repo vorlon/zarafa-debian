@@ -50,22 +50,27 @@
 #include "platform.h"
 #include "ECResyncSet.h"
 
-void ECResyncSet::Append(const SBinary &sbinSourceKey, const SBinary &sbinEntryID)
+void ECResyncSet::Append(const SBinary &sbinSourceKey, const SBinary &sbinEntryID, const FILETIME &lastModTime)
 {
 	m_map.insert(map_type::value_type(
-		storage_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb),
-		storage_type(sbinEntryID.lpb, sbinEntryID.lpb + sbinEntryID.cb)));
+		array_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb),
+		storage_type(array_type(sbinEntryID.lpb, sbinEntryID.lpb + sbinEntryID.cb), lastModTime)));
 }
 
 bool ECResyncSet::Remove(const SBinary &sbinSourceKey)
 {
-	return m_map.erase(storage_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb)) == 1;
+	return m_map.erase(array_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb)) == 1;
 }
 
 
-ECResyncSetIterator::ECResyncSetIterator(const ECResyncSet &resyncSet)
+ECResyncSetIterator::ECResyncSetIterator(ECResyncSet &resyncSet)
 : m_lpResyncSet(&resyncSet)
 , m_iterator(m_lpResyncSet->m_map.begin())
+{ }
+
+ECResyncSetIterator::ECResyncSetIterator(ECResyncSet &resyncSet, const SBinary &sbinSourceKey)
+: m_lpResyncSet(&resyncSet)
+, m_iterator(m_lpResyncSet->m_map.find(ECResyncSet::array_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb)))
 { }
 
 bool ECResyncSetIterator::IsValid() const
@@ -75,12 +80,28 @@ bool ECResyncSetIterator::IsValid() const
 
 LPENTRYID ECResyncSetIterator::GetEntryID() const 
 {
-	return IsValid() ? (LPENTRYID)&m_iterator->second.front() : NULL;
+	return IsValid() ? (LPENTRYID)&m_iterator->second.entryId.front() : NULL;
 }
 
 ULONG ECResyncSetIterator::GetEntryIDSize() const
 {
-	return IsValid() ? m_iterator->second.size() : 0;
+	return IsValid() ? m_iterator->second.entryId.size() : 0;
+}
+
+const FILETIME& ECResyncSetIterator::GetLastModTime() const
+{
+	return IsValid() ? m_iterator->second.lastModTime : s_nullTime;
+}
+
+ULONG ECResyncSetIterator::GetFlags() const
+{
+	return IsValid() ? m_iterator->second.flags : 0;
+}
+
+void ECResyncSetIterator::SetFlags(ULONG flags)
+{
+	if (IsValid())
+		m_iterator->second.flags = flags;
 }
 
 void ECResyncSetIterator::Next()
@@ -88,3 +109,5 @@ void ECResyncSetIterator::Next()
 	if (IsValid())
 		m_iterator++;
 }
+
+const FILETIME ECResyncSetIterator::s_nullTime = {0, 0};

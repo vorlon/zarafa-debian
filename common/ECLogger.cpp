@@ -453,9 +453,11 @@ ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) : ECLogger(lo
 }
 
 ECLogger_Pipe::~ECLogger_Pipe() {
-	close(m_fd);				// this will make the log child exit
-	if (m_childpid)
-		waitpid(m_childpid, NULL, 0); // wait for the child if we're the one that forked it
+	close(m_fd);						// this will make the log child exit
+	if (m_childpid) {
+		kill(m_childpid, SIGPIPE);		// this will make the signal thread exit
+		waitpid(m_childpid, NULL, 0);	// wait for the child if we're the one that forked it
+	}
 }
 
 void ECLogger_Pipe::Reset() {
