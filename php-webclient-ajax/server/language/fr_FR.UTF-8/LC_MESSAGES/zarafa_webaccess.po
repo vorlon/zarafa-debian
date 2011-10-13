@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-04 00:02+0200\n"
-"PO-Revision-Date: 2011-09-08 16:13+0200\n"
+"POT-Creation-Date: 2011-10-14 00:03+0200\n"
+"PO-Revision-Date: 2011-10-13 09:16+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -1974,7 +1974,7 @@ msgstr "Signature pour messages nouveaux"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/signatures.php:133
 msgid "Signature for replies and forwards"
-msgstr "Signature pour réponses et transferts"
+msgstr "Signature pour les réponses et transferts"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:6
 msgid "Delegate Permissions"
@@ -2109,15 +2109,15 @@ msgstr "Supprimer le message"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:144
 msgid "Redirect to"
-msgstr "Rediriger vers"
+msgstr "Réexpédier à"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:156
 msgid "Forward to"
-msgstr "Transférer vers"
+msgstr "Transférer à"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
 msgid "Forward as Attachment to"
-msgstr ""
+msgstr "Transférer comme pièce jointe à"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
@@ -3471,40 +3471,40 @@ msgstr ""
 "enregistrements dans ce dossier"
 
 # 92%
-#: php-webclient-ajax/server/modules/class.listmodule.php:157
-#: php-webclient-ajax/server/modules/class.itemmodule.php:154
+#: php-webclient-ajax/server/modules/class.listmodule.php:165
+#: php-webclient-ajax/server/modules/class.itemmodule.php:162
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr ""
 "Vous ne disposez pas des privilèges vous permettant de supprimer des "
 "éléments dans ce dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "Dans le dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "Trier le dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:283
-#: php-webclient-ajax/server/modules/class.listmodule.php:294
-#: php-webclient-ajax/server/modules/class.listmodule.php:322
+#: php-webclient-ajax/server/modules/class.listmodule.php:291
+#: php-webclient-ajax/server/modules/class.listmodule.php:302
+#: php-webclient-ajax/server/modules/class.listmodule.php:330
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "Erreur de recherche, veuillez effectuer une nouvelle tentative"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:418
+#: php-webclient-ajax/server/modules/class.listmodule.php:426
 msgid "Error in search"
 msgstr "Erreur de recherche"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1087
+#: php-webclient-ajax/server/modules/class.listmodule.php:1095
 msgid "Private Appointment"
 msgstr "Rendez-vous personnel"
 
@@ -3606,22 +3606,22 @@ msgstr ""
 msgid "The message store has exceeded its soft quota limit."
 msgstr "Cette boîte de message a dépassé sa limite modérée de quota."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:192
+#: php-webclient-ajax/server/modules/class.itemmodule.php:200
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "Tâche acceptée :"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:194
+#: php-webclient-ajax/server/modules/class.itemmodule.php:202
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "Tâche déclinée :"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:472
+#: php-webclient-ajax/server/modules/class.itemmodule.php:480
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "Conflits avec un autre rendez-vous sur votre agenda."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:482
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
@@ -3630,7 +3630,7 @@ msgstr ""
 "%s occurrences de ce rendez-vous périodique entrent en conflit avec d'autres "
 "rendez-vous sur votre agenda."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:475
+#: php-webclient-ajax/server/modules/class.itemmodule.php:483
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -3865,7 +3865,7 @@ msgstr "Participant requis"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
 msgid "Sort on Required Attendee"
-msgstr ""
+msgstr "Tri par participant requis"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 #: php-webclient-ajax/client/modules/freebusymodule.js:1095
@@ -3874,11 +3874,11 @@ msgstr "Participant optionnel"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 msgid "Sort on Optional Attendee"
-msgstr ""
+msgstr "Tri par participant optionnel"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
 msgid "Sort on Resource"
-msgstr ""
+msgstr "Tri par ressource"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -6521,11 +6521,11 @@ msgstr "Aller à la dernière page"
 msgid "Page"
 msgstr "Page"
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:962
+#: php-webclient-ajax/client/widgets/tablewidget.js:964
 msgid "Loading..."
 msgstr "Chargement..."
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:981
+#: php-webclient-ajax/client/widgets/tablewidget.js:983
 msgid "There are no items to show in this view."
 msgstr "Il n'y a aucun élément à afficher dans cette fenêtre."
 
@@ -6766,7 +6766,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/js/dialog.js:324
 msgid "You must enter at least one recipient in To field."
-msgstr ""
+msgstr "Veuillez saisir au moins un destinataire dans le champ À"
 
 #: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"
@@ -7021,17 +7021,16 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/rule.js:223
 #: php-webclient-ajax/client/layout/js/rule.js:227
 msgid "Please specify a forwarding address"
-msgstr "Veuillez spécifier une adresse de réexpédition"
+msgstr "Veuillez spécifier une adresse de transfert"
 
 #: php-webclient-ajax/client/layout/js/rule.js:233
 #: php-webclient-ajax/client/layout/js/rule.js:237
 msgid "Please specify a forwarding as attachment address"
-msgstr ""
+msgstr "Veuillez spécifier une adresses pour le transfert en pièce jointe"
 
 # 77%
 #: php-webclient-ajax/client/layout/js/rule.js:243
 #: php-webclient-ajax/client/layout/js/rule.js:247
-#, fuzzy
 msgid "Please specify a redirecting address"
 msgstr "Veuillez spécifier une adresse de réexpédition"
 
