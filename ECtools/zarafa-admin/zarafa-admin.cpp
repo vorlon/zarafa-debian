@@ -870,7 +870,7 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 	if (lpECUCUS && lpECUCUS->ulTrackId > 0) {
 		 cout << "Client update Information:" << endl;
 
-		 cout << " Trackid:\t\t" << ((lpECUCUS->ulTrackId != 0 ) ? stringify(lpECUCUS->ulTrackId).c_str() : "-" ) << endl;
+		 cout << " Trackid:\t\t" << ((lpECUCUS->ulTrackId != 0 ) ? stringify(lpECUCUS->ulTrackId, true).c_str() : "-" ) << endl;
 		 cout << " Last update:\t\t" << ( (lpECUCUS->tUpdatetime>0) ? UnixtimeToString(lpECUCUS->tUpdatetime) : "-" ) << endl;
 		 cout << " From version:\t\t" << ( (lpECUCUS->lpszCurrentversion) ? (LPSTR)lpECUCUS->lpszCurrentversion : "-" ) << endl;
 		 cout << " To version:\t\t" << ( (lpECUCUS->lpszLatestversion) ? (LPSTR)lpECUCUS->lpszLatestversion : "-" ) << endl;
