@@ -2276,12 +2276,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 			sWebVal.wstrValue = ((ulFlags & PROPFIND_ROOT) == PROPFIND_ROOT)? U2W(m_strUserEmail) : SPropValToWString(lpFoundProp);
 			sWebProperty.lstValues.push_back(sWebVal);
 
-		} else if (strProperty == "schedule-inbox-URL") {
+		} else if (strProperty == "schedule-inbox-URL" && (m_ulUrlFlag & REQ_PUBLIC) == 0) {
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
 			sWebVal.wstrValue = (L"/caldav/" + (m_wstrFldOwner.empty()? m_wstrUser : m_wstrFldOwner) + L"/Inbox");
 			sWebProperty.lstValues.push_back(sWebVal);
 
-		} else if (strProperty == "schedule-outbox-URL") {
+		} else if (strProperty == "schedule-outbox-URL" && (m_ulUrlFlag & REQ_PUBLIC) == 0) {
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
 			sWebVal.wstrValue = (L"/caldav/" + (m_wstrFldOwner.empty()? m_wstrUser : m_wstrFldOwner) + L"/Outbox");
 			sWebProperty.lstValues.push_back(sWebVal);
