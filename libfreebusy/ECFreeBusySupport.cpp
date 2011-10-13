@@ -283,7 +283,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 
 		// Get the FB message, is not exist create them
 		hr = GetFreeBusyMessage(m_lpSession, m_lpPublicStore, m_lpUserStore, lpUsers[i].m_cbEid, lpUsers[i].m_lpEid, true, &lpMessage);
-		if(FAILED(hr))
+		if (hr != hrSuccess)
 		{
 			lppFBUpdate[i] = NULL;//FIXME: what todo with this?
 			continue;

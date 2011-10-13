@@ -131,11 +131,9 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
 
-	lpPublicStore->AddRef();
-
 	// Get freebusy properies
 	hr = lpPublicStore->GetProps((LPSPropTagArray)&sPropsFreeBusy, 0, &cValuesFreeBusy, &lpPropArrayFreeBusy);
-	if(hr != hrSuccess)
+	if (FAILED(hr))
 		goto exit;
 
 	if(lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].ulPropTag != PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID)
@@ -164,9 +162,6 @@ exit:
 
 	if(lpMapiFolder)
 		lpMapiFolder->Release();
-
-	if(lpPublicStore)
-		lpPublicStore->Release();
 
 	return hr;
 }
