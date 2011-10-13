@@ -56,6 +56,7 @@
 #include <string>
 
 class ECSerializer;
+class ECLogger;
 
 class ECAttachmentStorage {
 public:
@@ -64,7 +65,7 @@ public:
 	ULONG AddRef();
 	ULONG Release();
 
-	static ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECConfig *lpConfig, ECAttachmentStorage **lppAttachmentStorage);
+	static ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger *lpLogger, ECAttachmentStorage **lppAttachmentStorage);
 
 	/* Single Instance Attachment wrappers (should not be overridden by subclasses) */
 	bool ExistAttachment(ULONG ulObjId, ULONG ulPropId);
@@ -123,7 +124,7 @@ protected:
 
 class ECDatabaseAttachment : public ECAttachmentStorage {
 public:
-	ECDatabaseAttachment(ECDatabase *lpDatabase);
+	ECDatabaseAttachment(ECDatabase *lpDatabase, ECLogger *lpLogger);
 
 protected:
 	virtual ~ECDatabaseAttachment();
@@ -141,11 +142,13 @@ protected:
 	virtual ECRESULT Begin();
 	virtual ECRESULT Commit();
 	virtual ECRESULT Rollback();
+	
+	ECLogger *m_lpLogger;
 };
 
 class ECFileAttachment : public ECAttachmentStorage {
 public:
-	ECFileAttachment(ECDatabase *lpDatabase, std::string basepath, unsigned int ulCompressionLevel);
+	ECFileAttachment(ECDatabase *lpDatabase, std::string basepath, unsigned int ulCompressionLevel, ECLogger *lpLogger);
 
 protected:
 	virtual ~ECFileAttachment();
@@ -176,6 +179,7 @@ private:
 	std::set<ULONG> m_setNewAttachment;
 	std::set<ULONG> m_setDeletedAttachment;
 	std::set<ULONG> m_setMarkedAttachment;
+	ECLogger * m_lpLogger;
 };
 
 #endif

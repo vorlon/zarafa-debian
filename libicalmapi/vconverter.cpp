@@ -3215,6 +3215,7 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 {
 	icalproperty *lpicProp = NULL;
 	icaltimetype icStart;
+	icaltimetype icEnd;
 	bool blIsAllday = false;
 
 	// Note: we do not set bIsAllDay to true when (END-START)%24h == 0
@@ -3226,6 +3227,12 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 		blIsAllday = true;
 		goto exit;
 	}
+
+	// only assume the X header valid when it's a non-floating timestamp.
+	// also check is_utc and/or zone pointer in DTSTART/DTEND ?
+	icEnd = icalcomponent_get_dtend(lpicEvent);
+	if ((icStart.hour + icStart.minute + icStart.second) != 0 || (icEnd.hour + icEnd.minute + icEnd.second) != 0)
+		goto exit;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {

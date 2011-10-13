@@ -63,7 +63,7 @@ extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 
 ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECAttachmentStorage **lppAttachmentStorage)
 {
-	return ECAttachmentStorage::CreateAttachmentStorage(lpDatabase, g_lpSessionManager->GetConfig(), lppAttachmentStorage);
+	return ECAttachmentStorage::CreateAttachmentStorage(lpDatabase, g_lpSessionManager->GetConfig(), g_lpSessionManager->GetLogger(), lppAttachmentStorage);
 }
 
 

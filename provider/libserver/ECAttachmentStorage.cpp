@@ -124,7 +124,7 @@ ULONG ECAttachmentStorage::Release() {
  * @return Zarafa error code
  * @retval ZARAFA_E_DATABASE_ERROR given database pointer wasn't valid
  */
-ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase, ECConfig *lpConfig, ECAttachmentStorage **lppAttachmentStorage)
+ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger *lpLogger, ECAttachmentStorage **lppAttachmentStorage)
 {
 	ECAttachmentStorage *lpAttachmentStorage = NULL;
 
@@ -132,9 +132,9 @@ ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase, EC
 		return ZARAFA_E_DATABASE_ERROR; // somebody called this function too soon.
 
 	if (strcmp(lpConfig->GetSetting("attachment_storage"), "files") == 0) {
-		lpAttachmentStorage = new ECFileAttachment(lpDatabase, lpConfig->GetSetting("attachment_path"), atoi(lpConfig->GetSetting("attachment_compression")));
+		lpAttachmentStorage = new ECFileAttachment(lpDatabase, lpConfig->GetSetting("attachment_path"), atoi(lpConfig->GetSetting("attachment_compression")), lpLogger);
 	} else {
-		lpAttachmentStorage = new ECDatabaseAttachment(lpDatabase);
+		lpAttachmentStorage = new ECDatabaseAttachment(lpDatabase, lpLogger);
 	}
 
 	lpAttachmentStorage->AddRef();
@@ -840,8 +840,8 @@ exit:
 }
 
 // Attachment storage is in database
-ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase)
-	: ECAttachmentStorage(lpDatabase, 0)
+ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase, ECLogger *lpLogger)
+	: ECAttachmentStorage(lpDatabase, 0),  m_lpLogger(lpLogger)
 {
 }
 
@@ -1208,10 +1208,12 @@ ECRESULT ECDatabaseAttachment::Rollback()
 
 
 // Attachment storage is in separate files
-ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase, std::string basepath, unsigned int ulCompressionLevel)
+ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase, std::string basepath, unsigned int ulCompressionLevel, ECLogger *lpLogger)
 	: ECAttachmentStorage(lpDatabase, ulCompressionLevel)
 {
 	m_basepath = basepath;
+	m_lpLogger = lpLogger;
+	
 	if (m_basepath.empty())
 		m_basepath = "/var/lib/zarafa";
 	
@@ -1272,7 +1274,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 	gzFile gzfp = NULL;
 	unsigned char *lpData = NULL;
 	ULONG ulSize = 0;
-	ULONG ulReadSize = 0;
+	LONG lReadSize = 0;
 	bool bCompressed;
 
 	/*
@@ -1301,8 +1303,13 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 			goto exit;
 		}
 
-		ulReadSize = gzread(gzfp, lpData, ulSize);
-		if (ulSize != ulReadSize) {
+		lReadSize = gzread(gzfp, lpData, ulSize);
+		if (lReadSize < 0) {
+		    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Error while reading attachment data from %s: %s", filename.c_str(), strerror(errno));
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+		if (ulSize != (ULONG)lReadSize) {
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
@@ -1314,8 +1321,9 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 			goto exit;
 		}
 
-		ulReadSize = (ULONG)fread(lpData, 1, ulSize, fp);
-		if (ulSize != ulReadSize) {
+		lReadSize = (LONG)fread(lpData, 1, ulSize, fp);
+		if (ulSize != (ULONG)lReadSize) {
+		    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Short read while reading attachment data from %s", filename.c_str());
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
@@ -1349,7 +1357,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, int *lpiSi
 	FILE *fp = NULL;
 	gzFile gzfp = NULL;
 	ULONG ulReadSize = 0;
-	ULONG ulReadNow = 0;
+	LONG lReadNow = 0;
 	ULONG ulSize = 0;
 	bool bCompressed;
 	char buffer[0x1000] = {0};
@@ -1371,12 +1379,17 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, int *lpiSi
 			goto exit;
 		}
 		while (ulReadSize < ulSize) {
-			ulReadNow = gzread(gzfp, buffer, sizeof(buffer));
-			if (ulReadNow > 0) {
-				lpSink->Write(buffer, 1, ulReadNow);
-				ulReadSize += ulReadNow;
+			lReadNow = gzread(gzfp, buffer, sizeof(buffer));
+			if (lReadNow < 0) {
+			    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Error while reading attachment data from %s: %s", filename.c_str(), strerror(errno));
+				er = ZARAFA_E_DATABASE_ERROR;
+				goto exit;
 			}
-			if (ulReadNow < sizeof(buffer))
+			if (lReadNow > 0) {
+				lpSink->Write(buffer, 1, lReadNow);
+				ulReadSize += lReadNow;
+			}
+			if ((ULONG)lReadNow < sizeof(buffer))
 				break;
 		}
 		if (ulSize != ulReadSize) {
@@ -1390,15 +1403,21 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, int *lpiSi
 			goto exit;
 		}
 		while (ulReadSize < ulSize) {
-			ulReadNow = (ULONG)fread(buffer, 1, sizeof(buffer), fp);
-			if (ulReadNow > 0) {
-				lpSink->Write(buffer, 1, ulReadNow);
-				ulReadSize += ulReadNow;
+			lReadNow = (ULONG)fread(buffer, 1, sizeof(buffer), fp);
+			if (lReadNow == 0 && ferror(fp)) {
+    			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Error while reading attachment data from %s: %s", filename.c_str(), strerror(errno));
+    			er = ZARAFA_E_DATABASE_ERROR;
+    			goto exit;
+            }
+			if (lReadNow > 0) {
+				lpSink->Write(buffer, 1, lReadNow);
+				ulReadSize += lReadNow;
 			}
-			if (ulReadNow < sizeof(buffer))
+			if ((ULONG)lReadNow < sizeof(buffer))
 				break;
 		}
 		if (ulSize != ulReadSize) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Short read while reading attachment data from %s", filename.c_str());
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
