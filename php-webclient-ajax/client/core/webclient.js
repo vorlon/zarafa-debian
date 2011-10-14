@@ -94,7 +94,10 @@ WebClient.prototype.init = function(base_url, modulePrefix, availableModules, se
 
 	startKeepAlive();
 
-    /* Trigger the hook so plugins know that all the plugins have been loaded */
+    /*
+     * Trigger the hook so it is possible to execute code directly after the webclient
+     * has finished initializing.
+     */
     webclient.pluginManager.triggerHook('client.core.webclient.init.after', {});
 }
 
