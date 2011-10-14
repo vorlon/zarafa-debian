@@ -276,6 +276,11 @@ HRESULT Http::HrParseHeaders()
 
 	strAuthdata = base64_decode(strBase64Data);
 	ulEnd = strAuthdata.find(":");
+	if (ulEnd == string::npos) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
 	m_strUser.reserve(ulEnd);	// pre allocate memory
 	std::transform(strAuthdata.begin(), (strAuthdata.begin() + ulEnd), std::back_inserter(m_strUser), (int(*)(int)) std::tolower);
 	m_strPass = strAuthdata.substr(ulEnd + 1, strAuthdata.find("^\n"));
