@@ -93,6 +93,9 @@ WebClient.prototype.init = function(base_url, modulePrefix, availableModules, se
 	this.pluginManager.init();
 
 	startKeepAlive();
+
+    /* Trigger the hook so plugins know that all the plugins have been loaded */
+    webclient.pluginManager.triggerHook('client.core.webclient.init.after', {});
 }
 
 WebClient.prototype.setUserInfo = function(username, fullname, entryid, emailaddress)
