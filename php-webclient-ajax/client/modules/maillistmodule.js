@@ -76,6 +76,9 @@ maillistmodule.prototype.init = function(id, element, title, data)
 	this.menuItems.push(webclient.menu.createMenuItem("seperator", ""));
 	this.menuItems.push(webclient.menu.createMenuItem("send_receive", _("Send/Receive"), _("Send or Receive mails") , eventSendReceiveItems));
 
+    /* Trigger the hook so plugins can add functionality in the top menu */
+    webclient.pluginManager.triggerHook('client.module.maillistmodule.topmenu.buildup', {contextmenu: this.menuItems});
+
 	webclient.menu.buildTopMenu(this.id, "createmail", this.menuItems, eventListNewMessage);
 	
 	var items = new Array();

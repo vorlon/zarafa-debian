@@ -545,8 +545,10 @@ ECRESULT ECABObjectTable::Load()
 			if (er != erSuccess)
 				goto exit;
 
-			/* Security distribution lists (i.e. companies) should not contain contacts */
-			if (objectid.objclass == CONTAINER_COMPANY)
+			/* Security distribution lists (i.e. companies) should not contain contacts. Note that containers
+			 * *do* contain contacts
+			 */
+			if (objectid.objclass == CONTAINER_COMPANY && lpODAB->ulABParentType == MAPI_DISTLIST)
 				ulObjectFilter |= AB_FILTER_CONTACTS;
 		} else {
 			if (lpODAB->ulABParentId == ZARAFA_UID_SYSTEM) {
