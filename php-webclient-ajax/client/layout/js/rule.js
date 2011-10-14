@@ -425,7 +425,7 @@ function getConditions()
     
     if(cond_sent_to.value) {
 		var parsed = parseEmailAddress(cond_sent_to.value);
-		var addrtype = action_address.addrtype ? cond_sent_to.addrtype : "SMTP";
+		var addrtype = cond_sent_to.addrtype ? cond_sent_to.addrtype : "SMTP";
 		if(cond_sent_to.emailaddress) {
 			var emailaddr = cond_sent_to.emailaddress;
 		}
