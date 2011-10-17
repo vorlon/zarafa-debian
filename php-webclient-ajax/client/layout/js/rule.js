@@ -426,8 +426,9 @@ function getConditions()
     if(cond_sent_to.value) {
 		var parsed = parseEmailAddress(cond_sent_to.value);
 		var addrtype = cond_sent_to.addrtype ? cond_sent_to.addrtype : "SMTP";
+		var emailaddr = '';
 		if(cond_sent_to.emailaddress) {
-			var emailaddr = cond_sent_to.emailaddress;
+			emailaddr = cond_sent_to.emailaddress;
 		}
 		var smtpaddr = cond_sent_to.smtpaddr ? cond_sent_to.smtpaddr : parsed.emailaddress;
 		var name = cond_sent_to.displayname ? cond_sent_to.displayname : (parsed.displayname ? parsed.displayname : parsed.emailaddress);
@@ -593,8 +594,9 @@ function getAction()
 
         var parsed = parseEmailAddress(action_address.value);
         var addrtype = action_address.addrtype ? action_address.addrtype : "SMTP";
+		var emailaddr = '';
 		if(action_address.emailaddress) {
-			var emailaddr = action_address.emailaddress;
+			emailaddr = action_address.emailaddress;
 		}
         var smtpaddr = action_address.smtpaddr ? action_address.smtpaddr : parsed.emailaddress;
         var name = action_address.displayname ? action_address.displayname : (parsed.displayname ? parsed.displayname : parsed.emailaddress);
