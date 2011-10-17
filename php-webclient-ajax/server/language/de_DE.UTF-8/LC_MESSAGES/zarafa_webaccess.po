@@ -4,9 +4,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-04 00:02+0200\n"
-"PO-Revision-Date: 2011-09-07 10:59+0200\n"
-"Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
+"POT-Creation-Date: 2011-10-18 00:03+0200\n"
+"PO-Revision-Date: 2011-10-17 08:54+0200\n"
+"Last-Translator: André <welter@bitbone.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -165,7 +165,7 @@ msgstr "Speichern"
 #: php-webclient-ajax/client/layout/dialogs/modal/rules.php:64
 #: php-webclient-ajax/client/layout/dialogs/modal/attachments.php:252
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:138
-#: php-webclient-ajax/client/modules/maillistmodule.js:52
+#: php-webclient-ajax/client/modules/maillistmodule.js:55
 #: php-webclient-ajax/client/modules/distlistmodule.js:28
 #: php-webclient-ajax/client/modules/freebusymodule.js:86
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:83
@@ -219,7 +219,7 @@ msgstr "An"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:192
 #: php-webclient-ajax/server/core/class.tablecolumns.php:219
 #: php-webclient-ajax/server/core/class.tablecolumns.php:275
-#: php-webclient-ajax/client/modules/maillistmodule.js:380
+#: php-webclient-ajax/client/modules/maillistmodule.js:383
 #: php-webclient-ajax/client/modules/printmessageitem.js:67
 #: php-webclient-ajax/client/core/properties.js:13
 #: php-webclient-ajax/client/core/properties.js:23
@@ -428,7 +428,7 @@ msgstr "Anhänge"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:195
 #: php-webclient-ajax/server/core/class.tablecolumns.php:222
 #: php-webclient-ajax/server/core/class.tablecolumns.php:278
-#: php-webclient-ajax/client/modules/maillistmodule.js:44
+#: php-webclient-ajax/client/modules/maillistmodule.js:47
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:81
 #: php-webclient-ajax/client/modules/tasklistmodule.js:32
 #: php-webclient-ajax/client/modules/contactlistmodule.js:40
@@ -1024,7 +1024,7 @@ msgstr "Neue Zeit vorschlagen"
 #: php-webclient-ajax/client/layout/dialogs/modal/printlist.php:66
 #: php-webclient-ajax/client/layout/dialogs/modal/printlist.php:67
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:142
-#: php-webclient-ajax/client/modules/maillistmodule.js:35
+#: php-webclient-ajax/client/modules/maillistmodule.js:38
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:79
 #: php-webclient-ajax/client/modules/tasklistmodule.js:27
 #: php-webclient-ajax/client/modules/contactlistmodule.js:37
@@ -1221,7 +1221,7 @@ msgstr "Nicht aktuell"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:255
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:160
 #: php-webclient-ajax/client/modules/maillistmodule.js:17
-#: php-webclient-ajax/client/modules/maillistmodule.js:38
+#: php-webclient-ajax/client/modules/maillistmodule.js:41
 #: php-webclient-ajax/client/modules/journallistmodule.js:18
 #: php-webclient-ajax/client/modules/journallistmodule.js:28
 msgid "Reply"
@@ -1231,7 +1231,7 @@ msgstr "Antworten"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:267
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:164
 #: php-webclient-ajax/client/modules/maillistmodule.js:18
-#: php-webclient-ajax/client/modules/maillistmodule.js:39
+#: php-webclient-ajax/client/modules/maillistmodule.js:42
 #: php-webclient-ajax/client/modules/journallistmodule.js:19
 #: php-webclient-ajax/client/modules/journallistmodule.js:29
 msgid "Reply All"
@@ -1241,7 +1241,7 @@ msgstr "Allen antworten"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:279
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:168
 #: php-webclient-ajax/client/modules/maillistmodule.js:19
-#: php-webclient-ajax/client/modules/maillistmodule.js:40
+#: php-webclient-ajax/client/modules/maillistmodule.js:43
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:58
 #: php-webclient-ajax/client/modules/journallistmodule.js:20
 #: php-webclient-ajax/client/modules/journallistmodule.js:30
@@ -1252,7 +1252,7 @@ msgstr "Weiterleiten"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:291
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:612
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:613
-#: php-webclient-ajax/client/modules/maillistmodule.js:57
+#: php-webclient-ajax/client/modules/maillistmodule.js:60
 msgid "Options"
 msgstr "Optionen"
 
@@ -2000,7 +2000,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:59
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/preferences.php:68
-#: php-webclient-ajax/client/core/webclient.js:546
+#: php-webclient-ajax/client/core/webclient.js:552
 #: php-webclient-ajax/client/layout/js/sharedfolder.js:6
 msgid "Inbox"
 msgstr "Posteingang"
@@ -2117,7 +2117,7 @@ msgstr "Weiterleiten an"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
 msgid "Forward as Attachment to"
-msgstr ""
+msgstr "Als Anhang weiterleiten an"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
@@ -2961,7 +2961,7 @@ msgid "For All items (List View)"
 msgstr "Für alle Elemente (Listenansicht)"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:114
-#: php-webclient-ajax/client/modules/maillistmodule.js:33
+#: php-webclient-ajax/client/modules/maillistmodule.js:36
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:78
 #: php-webclient-ajax/client/modules/tasklistmodule.js:26
 #: php-webclient-ajax/client/modules/contactlistmodule.js:36
@@ -3470,40 +3470,40 @@ msgstr ""
 "speichern"
 
 # 92%
-#: php-webclient-ajax/server/modules/class.listmodule.php:157
-#: php-webclient-ajax/server/modules/class.itemmodule.php:154
+#: php-webclient-ajax/server/modules/class.listmodule.php:165
+#: php-webclient-ajax/server/modules/class.itemmodule.php:162
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr ""
 "Sie haben nicht genügend Berechtigungen um Elemente in diesem Ordner zu "
 "löschen"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "Im Ordner"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:211
-#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
 #: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "Ordner sortieren"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:283
-#: php-webclient-ajax/server/modules/class.listmodule.php:294
-#: php-webclient-ajax/server/modules/class.listmodule.php:322
-#: php-webclient-ajax/client/modules/maillistmodule.js:320
+#: php-webclient-ajax/server/modules/class.listmodule.php:291
+#: php-webclient-ajax/server/modules/class.listmodule.php:302
+#: php-webclient-ajax/server/modules/class.listmodule.php:330
+#: php-webclient-ajax/client/modules/maillistmodule.js:323
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "Fehler bei der Suche, bitte erneut versuchen"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:418
+#: php-webclient-ajax/server/modules/class.listmodule.php:426
 msgid "Error in search"
 msgstr "Fehler bei der Suche"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1087
+#: php-webclient-ajax/server/modules/class.listmodule.php:1095
 msgid "Private Appointment"
 msgstr "Privater Termin"
 
@@ -3604,23 +3604,23 @@ msgstr ""
 msgid "The message store has exceeded its soft quota limit."
 msgstr "Das Postfach hat das Soft Quota Limit überschritten."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:192
+#: php-webclient-ajax/server/modules/class.itemmodule.php:200
 #: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "Aufgabe zugesagt:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:194
+#: php-webclient-ajax/server/modules/class.itemmodule.php:202
 #: php-webclient-ajax/server/core/class.operations.php:2544
 #: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "Aufgabe abgelehnt:"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:472
+#: php-webclient-ajax/server/modules/class.itemmodule.php:480
 msgid "Conflicts with another appointment on your Calendar."
 msgstr ""
 "Der Termin überschneidet sich mit einem anderen Termin in Ihrem Kalender."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:474
+#: php-webclient-ajax/server/modules/class.itemmodule.php:482
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
@@ -3629,7 +3629,7 @@ msgstr ""
 "%s Termin(e) dieser Terminserie überschneiden sich mit anderen Terminen in "
 "Ihrem Kalender."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:475
+#: php-webclient-ajax/server/modules/class.itemmodule.php:483
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -3864,7 +3864,7 @@ msgstr "Notwendiger Teilnehmer"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
 msgid "Sort on Required Attendee"
-msgstr ""
+msgstr "Nach erforderlichen Teilnehmern sortieren"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 #: php-webclient-ajax/client/modules/freebusymodule.js:1095
@@ -3873,11 +3873,11 @@ msgstr "optionaler Teilnehmer"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 msgid "Sort on Optional Attendee"
-msgstr ""
+msgstr "Nach optionalen Teilnehmern sortieren"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
 msgid "Sort on Resource"
-msgstr ""
+msgstr "Nach Ressourcen sortieren"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -4307,7 +4307,7 @@ msgid "0%"
 msgstr "0%"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:276
-#: php-webclient-ajax/client/modules/maillistmodule.js:382
+#: php-webclient-ajax/client/modules/maillistmodule.js:385
 #: php-webclient-ajax/client/modules/itemmodule.js:639
 #: php-webclient-ajax/client/core/properties.js:15
 #: php-webclient-ajax/client/core/properties.js:32
@@ -4384,7 +4384,7 @@ msgid "B"
 msgstr "B"
 
 #: php-webclient-ajax/client/modules/maillistmodule.js:21
-#: php-webclient-ajax/client/modules/maillistmodule.js:375
+#: php-webclient-ajax/client/modules/maillistmodule.js:378
 #: php-webclient-ajax/client/modules/contactlistmodule.js:30
 #: php-webclient-ajax/client/modules/contactlistmodule.js:315
 msgid "Search"
@@ -4407,77 +4407,77 @@ msgstr "Senden/Empfangen"
 msgid "Send or Receive mails"
 msgstr "E-Mails senden oder empfangen"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:34
+#: php-webclient-ajax/client/modules/maillistmodule.js:37
 msgid "Save Email As a File"
 msgstr "E-Mail als Datei speichern"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:36
+#: php-webclient-ajax/client/modules/maillistmodule.js:39
 msgid "Edit as New Message"
 msgstr "Als \"Neu\" bearbeiten"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:42
+#: php-webclient-ajax/client/modules/maillistmodule.js:45
 #: php-webclient-ajax/client/modules/tasklistmodule.js:29
 #: php-webclient-ajax/client/modules/journallistmodule.js:32
 msgid "Mark Read"
 msgstr "als gelesen markieren"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:43
+#: php-webclient-ajax/client/modules/maillistmodule.js:46
 #: php-webclient-ajax/client/modules/tasklistmodule.js:30
 #: php-webclient-ajax/client/modules/journallistmodule.js:33
 msgid "Mark Unread"
 msgstr "als ungelesen markieren"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:45
+#: php-webclient-ajax/client/modules/maillistmodule.js:48
 msgid "Forward Items"
 msgstr "Elemente weiterleiten"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:47
+#: php-webclient-ajax/client/modules/maillistmodule.js:50
 #: php-webclient-ajax/client/modules/listmodule.js:3399
 msgid "Red Flag"
 msgstr "zur Nachverfolgung markieren"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:48
+#: php-webclient-ajax/client/modules/maillistmodule.js:51
 #: php-webclient-ajax/client/modules/listmodule.js:3408
 msgid "Flag Complete"
 msgstr "als erledigt markieren"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:49
+#: php-webclient-ajax/client/modules/maillistmodule.js:52
 #: php-webclient-ajax/client/modules/listmodule.js:3409
 msgid "Delete Flag"
 msgstr "Markierung aufheben"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:51
+#: php-webclient-ajax/client/modules/maillistmodule.js:54
 msgid "Move to Junk Folder"
 msgstr "in Junk-E-Mail verschieben"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:55
+#: php-webclient-ajax/client/modules/maillistmodule.js:58
 msgid "Create a task from email"
 msgstr "Aufgabe aus Email erstellen"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:66
+#: php-webclient-ajax/client/modules/maillistmodule.js:69
 msgid "Previewpane right"
 msgstr "Lesebereich rechts"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:67
+#: php-webclient-ajax/client/modules/maillistmodule.js:70
 msgid "Previewpane bottom"
 msgstr "Lesebereich unten"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:68
+#: php-webclient-ajax/client/modules/maillistmodule.js:71
 msgid "Previewpane off"
 msgstr "Lesebereich aus"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:135
+#: php-webclient-ajax/client/modules/maillistmodule.js:138
 msgid "A new task has been created and is moved into task folder"
 msgstr ""
 "Eine neue Aufgabe wurde erstellt und in Ihrem Aufgabenordner gespeichert"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:137
+#: php-webclient-ajax/client/modules/maillistmodule.js:140
 msgid "You have insufficient privileges to create a new task for this item"
 msgstr ""
 "Sie haben keine ausreichende Berechtigung um eine Aufgabe für dieses Element "
 "zu erstellen"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:165
+#: php-webclient-ajax/client/modules/maillistmodule.js:168
 #, c-format
 #, c-format,
 msgid "Cannot copy this item. Cannot open calendar for user %s: Access Denied."
@@ -4485,7 +4485,7 @@ msgstr ""
 "Das Element konnte nicht kopiert werden. Der Kalender von Benutzer %s konnte "
 "nicht geöffnet werden."
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:167
+#: php-webclient-ajax/client/modules/maillistmodule.js:170
 msgid ""
 "You received a more recent update to this meeting. This meeting request is "
 "out of date. You cannot respond this request."
@@ -4494,7 +4494,7 @@ msgstr ""
 "Besprechungsanfrage ist nicht mehr aktuell. Sie können auf diese Anfrage "
 "nicht antworten."
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:170
+#: php-webclient-ajax/client/modules/maillistmodule.js:173
 msgid ""
 "The meeting has been accepted and moved to your calendar. A response has "
 "been sent to the meeting organiser."
@@ -4502,29 +4502,29 @@ msgstr ""
 "Die Besprechungsanfrage wurde akzeptiert und in Ihrem Kalender gespeichert. "
 "Eine Nachricht wurde an den Organisator gesendet."
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:379
+#: php-webclient-ajax/client/modules/maillistmodule.js:382
 #: php-webclient-ajax/client/modules/contactlistmodule.js:48
 msgid "All text fields"
 msgstr "Alle Textfelder"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:381
+#: php-webclient-ajax/client/modules/maillistmodule.js:384
 msgid "Sender"
 msgstr "Absender"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:383
+#: php-webclient-ajax/client/modules/maillistmodule.js:386
 msgid "Subject or Sender"
 msgstr "Betreff oder Absender"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:384
+#: php-webclient-ajax/client/modules/maillistmodule.js:387
 msgid "To or Cc"
 msgstr "An oder Cc"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:391
+#: php-webclient-ajax/client/modules/maillistmodule.js:394
 #: php-webclient-ajax/client/modules/contactlistmodule.js:327
 msgid "for"
 msgstr "nach"
 
-#: php-webclient-ajax/client/modules/maillistmodule.js:435
+#: php-webclient-ajax/client/modules/maillistmodule.js:438
 #: php-webclient-ajax/client/modules/contactlistmodule.js:366
 msgid "Subfolders"
 msgstr "Unterordner"
@@ -4790,7 +4790,7 @@ msgid "Select"
 msgstr "Auswählen"
 
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:21
-#: php-webclient-ajax/client/core/webclient.js:569
+#: php-webclient-ajax/client/core/webclient.js:575
 #: php-webclient-ajax/client/views/today.calendar.view.js:90
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:119
 msgid "Today"
@@ -5834,13 +5834,13 @@ msgstr "Einstellungen"
 msgid "log out"
 msgstr "Abmelden"
 
-#: php-webclient-ajax/client/core/webclient.js:188
+#: php-webclient-ajax/client/core/webclient.js:194
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr ""
 "Der Abwesenheitsassistent ist momentan eingeschaltet. Wollen Sie ihn "
 "ausschalten?"
 
-#: php-webclient-ajax/client/core/webclient.js:555
+#: php-webclient-ajax/client/core/webclient.js:561
 msgid "Date picker"
 msgstr "Datum auswählen"
 
@@ -6505,11 +6505,11 @@ msgstr "Zur letzten Seite springen"
 msgid "Page"
 msgstr "Seite"
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:962
+#: php-webclient-ajax/client/widgets/tablewidget.js:964
 msgid "Loading..."
 msgstr "Laden..."
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:981
+#: php-webclient-ajax/client/widgets/tablewidget.js:983
 msgid "There are no items to show in this view."
 msgstr "Es gibt keine Elemente, die in dieser Ansicht angezeigt werden."
 
@@ -6752,7 +6752,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/js/dialog.js:324
 msgid "You must enter at least one recipient in To field."
-msgstr ""
+msgstr "Sie müssen mindestens einen Empfänger im Feld \"An\" eingeben"
 
 #: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"
@@ -7016,9 +7016,8 @@ msgstr ""
 # 77%
 #: php-webclient-ajax/client/layout/js/rule.js:243
 #: php-webclient-ajax/client/layout/js/rule.js:247
-#, fuzzy
 msgid "Please specify a redirecting address"
-msgstr "Bitte geben Sie eine eine Weiterleitungsadresse an"
+msgstr "Bitte geben Sie eine Weiterleitungsadresse an"
 
 #: php-webclient-ajax/client/layout/js/rule.js:261
 msgid "Low priority"
