@@ -341,7 +341,14 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
 			}
 			if(hr != hrSuccess) {
-				hr = MAPI_E_UNCONFIGURED;
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty delegate store
+				hr = hrSuccess;
 				goto exit;
 			}
 
@@ -365,16 +372,24 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
 			if (hr != hrSuccess)
 				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
-			if (hr != hrSuccess) {
-				hr = MAPI_E_UNCONFIGURED;
-				goto exit;
+			if (hr == hrSuccess) {
+				hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
+				if (hr != hrSuccess)
+					hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueServerName);
+				if (hr != hrSuccess) {
+					hr = MAPI_E_UNCONFIGURED;
+					goto exit;
+				}
 			}
-
-			hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
-			if (hr != hrSuccess)
-				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueServerName);
 			if (hr != hrSuccess) {
-				hr = MAPI_E_UNCONFIGURED;
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty archive store
+				hr = hrSuccess;
 				goto exit;
 			}
 

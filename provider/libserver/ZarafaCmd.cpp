@@ -3327,7 +3327,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 					if (er != erSuccess)
 						goto exit;
 
-					if (ulStoreType == ECSTORE_TYPE_PRIVATE) {
+					if (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC) {
 						std::string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
 						if (strServerName.empty()) {
 							er = ZARAFA_E_NOT_FOUND;
