@@ -51,6 +51,7 @@
 #include "WebDav.h"
 #include "stringutil.h"
 #include "CommonUtil.h"
+#include <libical/ical.h>
 
 using namespace std;
 
@@ -83,7 +84,7 @@ WebDav::~WebDav()
 /**
  * Parse the xml request body
  * @return		HRESULT
- * @retval		MAPI_E_NOT_INITIALIZED		Unable to parse the xml data
+ * @retval		MAPI_E_INVALID_PARAMETER		Unable to parse the xml data
  */
 HRESULT WebDav::HrParseXml()
 {
@@ -98,7 +99,7 @@ HRESULT WebDav::HrParseXml()
 
 	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
 	if (m_lpXmlDoc == NULL)
-		hr = MAPI_E_NOT_INITIALIZED;
+		hr = MAPI_E_INVALID_PARAMETER;
 
 	strBody.clear();
 
@@ -278,7 +279,7 @@ HRESULT WebDav::HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus)
  *
  * @return		HRESULT
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY	Error alocating memory
- * @retval		MAPI_E_NOT_INITIALIZED		Error initializing xml writer
+ * @retval		MAPI_E_CALL_FAILED			Error initializing xml writer
  * @retval		MAPI_E_CALL_FAILED			Error writing xml data
  */
 HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *strXml)
@@ -306,7 +307,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	xmlWriter = xmlNewTextWriterMemory(xmlBuff, 0);
 	if (xmlWriter == NULL)
 	{
-		hr = MAPI_E_NOT_INITIALIZED;
+		hr = MAPI_E_CALL_FAILED;
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error Initializing xmlWriter");
 		goto exit;
 	}
@@ -455,12 +456,15 @@ exit:
  * @return	HRESULT
  * @retval	MAPI_E_CORRUPT_DATA		Invalid xml data
  */
+// @todo, do not return MAPI_E_CORRUPT_DATA, but make a clean error report for the client.
+// only return MAPI_E_CORRUPT_DATA when xml is invalid (which normal working clients won't send)
 HRESULT WebDav::HrHandleRptCalQry()
 {
 	HRESULT hr = hrSuccess;
 	xmlNode * lpXmlNode = NULL;
 	xmlNode * lpXmlChildNode = NULL;
 	xmlAttr * lpXmlAttr = NULL;
+	xmlNode * lpXmlChildAttr = NULL;
 	WEBDAVREQSTPROPS sReptQuery;
 	WEBDAVMULTISTATUS sWebMStatus;
 	std::string strXml;
@@ -472,88 +476,114 @@ HRESULT WebDav::HrHandleRptCalQry()
 		goto exit;
 	}
 
-	//REPORT CALENDAR-QUERY.
-	//xmldata to Structures.
+	// REPORT calendar-query
 	sReptQuery.sPropName.strPropname.assign((const char*) lpXmlNode->name);
+	sReptQuery.sFilter.tStart = 0;
+
 	//HrSetDavPropName(&(sReptQuery.sPropName),lpXmlNode);
 	lpXmlNode = lpXmlNode->children;
-	if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop"))
-	{
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
 
-	if(lpXmlNode->ns && lpXmlNode->ns->href)
-		sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
-	else
-		sReptQuery.sPropName.strNS.assign(CALDAVNSDEF);
+	while (lpXmlNode) {
+		if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"filter") == 0)
+		{
+			// @todo convert xml filter to mapi restriction			
 
-	HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
-	lpXmlChildNode = lpXmlNode->children;
-	while (lpXmlChildNode)
-	{
-		//properties requested by client.
-		WEBDAVPROPERTY sWebProperty;
-		
-		HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
-		sReptQuery.sProp.lstProps.push_back(sWebProperty);
-		lpXmlChildNode = lpXmlChildNode->next;
-	}
+			// "old" code
+			if (!lpXmlNode->children) {
+				hr = MAPI_E_CORRUPT_DATA;
+				goto exit;
+			}
+			HrSetDavPropName(&(sReptQuery.sFilter.sPropName),lpXmlNode);
+			lpXmlChildNode = lpXmlNode->children;
 
-	lpXmlNode = lpXmlNode->next;
-	if (lpXmlNode && lpXmlNode->children)
-	{
-		HrSetDavPropName(&(sReptQuery.sFilter.sPropName),lpXmlNode);
-		lpXmlNode = lpXmlNode->children;
-	}
-	else
-	{
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+			lpXmlAttr = lpXmlChildNode->properties;
+			if (lpXmlAttr && lpXmlAttr->children)
+				lpXmlChildAttr = lpXmlAttr->children;
+			else
+			{
+				hr = MAPI_E_CORRUPT_DATA;
+				goto exit;
+			}
 
-	lpXmlAttr = lpXmlNode->properties;
-	if (lpXmlAttr && lpXmlAttr->children)
-		lpXmlChildNode = lpXmlAttr->children;
-	else
-	{
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
-	
-	if (!lpXmlChildNode || !lpXmlChildNode->content || xmlStrcmp(lpXmlChildNode->content, (const xmlChar *)"VCALENDAR"))
-	{
-		hr = E_FAIL;
-		goto exit;	
-	}
+			if (!lpXmlChildAttr || !lpXmlChildAttr->content || xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VCALENDAR"))
+			{
+				hr = E_FAIL;
+				goto exit;	
+			}
 
-	sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildNode->content);
+			sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
 
-	lpXmlNode = lpXmlNode->children;
-	if (lpXmlNode && lpXmlNode->properties->children)
-	{
-		lpXmlAttr = lpXmlNode->properties;
-		lpXmlChildNode = lpXmlAttr->children;
-	}
-	else
-	{
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+			lpXmlChildNode = lpXmlChildNode->children;
+			if (lpXmlChildNode->properties && lpXmlChildNode->properties->children)
+			{
+				lpXmlAttr = lpXmlChildNode->properties;
+				lpXmlChildAttr = lpXmlAttr->children;
+			}
+			else
+			{
+				hr = MAPI_E_CORRUPT_DATA;
+				goto exit;
+			}
 
-	if (lpXmlChildNode && lpXmlChildNode->content && !xmlStrcmp( lpXmlChildNode->content, (const xmlChar *)"VTODO"))
-	{
-		sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildNode->content);
-	}
-	else if (lpXmlChildNode && lpXmlChildNode->content && !xmlStrcmp(lpXmlChildNode->content, (const xmlChar *)"VEVENT"))
-	{
-		sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildNode->content);
-	} 
-	else
-	{
-		// unknown/unsupported request
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
+			if (lpXmlChildAttr == NULL || lpXmlChildAttr->content == NULL) {
+				hr = MAPI_E_CORRUPT_DATA;
+				goto exit;
+			}
+
+			if (xmlStrcmp( lpXmlChildAttr->content, (const xmlChar *)"VTODO") == 0 || xmlStrcmp(lpXmlChildAttr->content, (const xmlChar *)"VEVENT") == 0) {
+				sReptQuery.sFilter.lstFilters.push_back((char *)lpXmlChildAttr->content);
+			} else {
+				hr = MAPI_E_CORRUPT_DATA;
+				goto exit;
+			}
+
+			// filter not done here.., time-range in lpXmlChildNode->children.
+			if (lpXmlChildNode->children) {
+				lpXmlChildNode = lpXmlChildNode->children;
+				while (lpXmlChildNode) {
+					if (xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"time-range") == 0) {
+
+						if (lpXmlChildNode->properties == NULL || lpXmlChildNode->properties->children == NULL) {
+							lpXmlChildNode = lpXmlChildNode->next;
+							continue;
+						}
+
+						lpXmlChildAttr = lpXmlChildNode->properties->children;
+						if (xmlStrcmp(lpXmlChildAttr->name, (const xmlChar *)"start") == 0) {
+							// timestamp from ical
+							icaltimetype iTime = icaltime_from_string((const char *)lpXmlChildAttr->content);
+							sReptQuery.sFilter.tStart = icaltime_as_timet(iTime);
+							// @note this is still being ignored in CalDavProto::HrListCalEntries
+						}
+						// other lpXmlChildAttr->name .. like "end" maybe?
+					}
+					// other lpXmlChildNode->name ..  like, uh?
+					lpXmlChildNode = lpXmlChildNode->next;
+				}
+			}
+		}
+		else if (xmlStrcmp(lpXmlNode->name, (const xmlChar *)"prop") == 0)
+		{
+			if (lpXmlNode->ns && lpXmlNode->ns->href)
+				sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
+			else
+				sReptQuery.sPropName.strNS.assign(CALDAVNSDEF);
+
+			HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
+			lpXmlChildNode = lpXmlNode->children;
+			while (lpXmlChildNode)
+			{
+				//properties requested by client.
+				WEBDAVPROPERTY sWebProperty;
+
+				HrSetDavPropName(&(sWebProperty.sPropName),lpXmlChildNode);
+				sReptQuery.sProp.lstProps.push_back(sWebProperty);
+				lpXmlChildNode = lpXmlChildNode->next;
+			}
+		} else {
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping unknown XML element: %s", lpXmlNode->name);
+		}
+		lpXmlNode = lpXmlNode->next;
 	}
 
 	//Retrieve Data from the server & return WEBMULTISTATUS structure.

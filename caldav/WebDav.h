@@ -54,11 +54,13 @@
 #include "libxml/xmlwriter.h"
 #include "libxml/parser.h"
 #include "libxml/tree.h"
+
 #include <mapi.h>
+#include <map>
+
+#include "ProtocolBase.h"
 #include "Http.h"
 
-#include <map>
-#include "ProtocolBase.h"
 typedef struct {
 	std::string strNS;
 	std::string strPropname;
@@ -111,6 +113,7 @@ typedef struct {
 typedef struct {
 	WEBDAVPROPNAME sPropName;
 	std::list<std::string> lstFilters;
+	time_t tStart;
 } WEBDAVFILTER;
 
 typedef struct {
