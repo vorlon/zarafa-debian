@@ -100,7 +100,7 @@ HRESULT HrOpenUserFld(IMsgStore *lpMsgStore, std::wstring wstrFolderParam, bool 
 	SPropValue sPropVal;
 	bool bCreated = false;
 
-	if(wstrFolderParam.empty())
+	if (wstrFolderParam.empty() && !blIsPublic)
 	{
 		hr = HrOpenDefaultCalendar(lpMsgStore, lpLogger, &lpSubFolder);
 		if (hr != hrSuccess)
@@ -109,7 +109,6 @@ HRESULT HrOpenUserFld(IMsgStore *lpMsgStore, std::wstring wstrFolderParam, bool 
 			goto exit;
 		}		
 	}
-	
 	else
 	{
 		hr = OpenSubFolder(lpMsgStore, wstrFolderParam.c_str(), lpszpsep, lpLogger, blIsPublic, false, &lpSubFolder);
@@ -175,7 +174,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 	hr = HrGetOneProp(lpMapiProp, sPropVal.ulPropTag, &lpMsgProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = HrSetOneProp(lpMapiProp,&sPropVal);
-		if (hr == E_ACCESSDENIED && bFldId )
+		if (hr == E_ACCESSDENIED && bFldId)
 		{
 			hr = HrGetOneProp(lpMapiProp,PR_ENTRYID,&lpsPropValEid);
 			if(hr != hrSuccess)

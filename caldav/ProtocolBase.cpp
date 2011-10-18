@@ -110,9 +110,11 @@ HRESULT ProtocolBase::HrHandleCommand(std::string strMethod)
 	m_lpRequest->HrGetUserAgent(&strAgent);
 
 	// @todo we really need to get rid of this
-	if (strAgent.find("CalendarStore") != string::npos)
+	if (strAgent.find("CalendarStore") != string::npos)	// ical4 and 5 client
 		m_blIsCLMAC = true;
-	else if (strAgent.find("iOS") != string::npos)
+	else if (strAgent.find("iOS") != string::npos)		// iphone
+		m_blIsCLMAC = true;
+	else if (strAgent.find("CoreDAV") != string::npos)	// found when listing calendars
 		m_blIsCLMAC = true;
 
 	if(strAgent.find("Evolution") != string::npos)
@@ -146,6 +148,8 @@ HRESULT ProtocolBase::HrGetFolder()
 
 	HrParseURL(wstrUrl, &m_ulUrlFlag, &m_wstrFldOwner, &m_wstrFldName);
 	bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
+	if (m_wstrFldOwner.empty())
+		m_wstrFldOwner = m_wstrUser;
 
 	m_lpRequest->HrGetMethod(&strMethod);	
 	
@@ -156,6 +160,7 @@ HRESULT ProtocolBase::HrGetFolder()
 		goto exit;
 	}
 
+	// default store required for various actions (delete, freebusy, ...)
 	hr = HrOpenDefaultStore(m_lpSession, &m_lpDefStore);
 	if(hr != hrSuccess)
 	{
@@ -188,8 +193,9 @@ HRESULT ProtocolBase::HrGetFolder()
 	if ( (!strMethod.compare("PUT")) && (m_ulFolderFlag & SERVICE_ICAL) )
 		blCreateIFNf = true;
 
-	
-	if(!m_wstrFldOwner.empty() && m_wstrFldOwner != m_wstrUser && !bIsPublic)
+
+	// @todo this block of if/else needs to be rewritten .. it should be much easier than it is now.
+	if(m_wstrFldOwner != m_wstrUser && !bIsPublic)
 	{
 		hr = HrGetSharedFolder(m_lpSession, m_lpDefStore, m_wstrFldOwner, m_wstrFldName, m_blIsCLMAC, false, m_lpLogger, &m_ulFolderFlag, &m_lpSharedStore, &m_lpUsrFld);
 		if(hr == hrSuccess && m_lpSharedStore)

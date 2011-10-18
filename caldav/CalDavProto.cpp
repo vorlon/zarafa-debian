@@ -459,7 +459,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	lpsWebMStatus->lstResp.push_back(sWebResponse);
 	sWebResponse.lstsPropStat.clear();
 
-
+	// @todo, add "start time" property and recurrence data to table and filter in loop
+	// if lpsWebRCalQry->sFilter.tStart is set.
 	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
@@ -1547,6 +1548,14 @@ exit:
  * @return		HRESULT
  * @retval		MAPI_E_BAD_VALUE	Method called by a non mac client
  */
+/*
+ * input		  		output
+ * /caldav					list of /caldav/user/FLDPRFX_id
+ * /caldav/other			list of /caldav/other/FLDPRFX_id
+ * /caldav/other/folder		single folder, same url
+ * /caldav/public			list of /caldav/public/FLDPRFX_id
+ * /caldav/public/folder	single folder, same url
+ */
 HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsMulStatus)
 {
 	HRESULT hr = hrSuccess;	
@@ -1554,7 +1563,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	IMAPITable *lpHichyTable = NULL;
 	IMAPITable *lpDelHichyTable = NULL;
 	IMAPIFolder *lpWasteBox = NULL;
-	IMAPIFolder *lpSingleFld = NULL;
 	SRestriction *lpRestrict = NULL;
 	LPSPropValue lpSpropWbEID = NULL;
 	LPSPropValue lpsPropSingleFld = NULL;
@@ -1570,7 +1578,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	WEBDAVRESPONSE sDavResponse;
 	std::wstring wstrUser;
 	std::wstring wstrPath;
-	bool blSingleFld = false;
 
 	m_lpRequest->HrGetUser(&wstrUser);
 	m_lpRequest->HrGetUrl(&wstrPath);
@@ -1581,19 +1588,60 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		goto exit;
 	}
 
+	// all folder properties to fill request.
+	cbsize = lpsDavProp->lstProps.size() + 2;
+
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray((ULONG)cbsize), (void **)&lpPropTagArr);
+	if(hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot allocate memory");
+		goto exit;
+	}
+
+	ulPropTagFldId = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
+	//add PR_ENTRYID & FolderID in setcolumns along with requested data.
+	lpPropTagArr->cValues = (ULONG)cbsize;
+	lpPropTagArr->aulPropTag[0] = PR_ENTRYID;
+	lpPropTagArr->aulPropTag[1] = ulPropTagFldId;
+
+	iter = lpsDavProp->lstProps.begin();
+	for(int i = 2; iter != lpsDavProp->lstProps.end(); iter++, i++)	
+	{
+		lpPropTagArr->aulPropTag[i] = GetPropmap((char*)iter->sPropName.strPropname.c_str());
+	}
+
+
 	if(m_ulFolderFlag & DEFAULT_FOLDER || m_ulFolderFlag & SINGLE_FOLDER)
 	{
-		blSingleFld = true;
-		if(m_lpUsrFld)
-			lpSingleFld = m_lpUsrFld;
-		else
+		if (m_lpUsrFld == NULL)
 		{
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error User's Folder not found, while accessing single folder");
 			goto exit;
 		}
+
+		hr = HrSetDavPropName(&(lpsMulStatus->sPropName), "multistatus", lpsDavProp->sPropName.strNS);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = HrSetDavPropName(&(sDavResponse.sPropName), "response", lpsDavProp->sPropName.strNS);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = HrSetDavPropName(&(sDavResponse.sHRef.sPropName), "href", lpsDavProp->sPropName.strNS);
+		if (hr != hrSuccess)
+			goto exit;
+		sDavResponse.sHRef.wstrValue = wstrPath;
+
+		hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, (ULONG *)&cbsize, &lpsPropSingleFld);
+		if (FAILED(hr))
+			goto exit;
+
+		hr = HrMapValtoStruct(lpsPropSingleFld, cbsize, NULL, 0, &lpsDavProp->lstProps, &sDavResponse);
+		if (hr != hrSuccess)
+			goto exit;
+
+		lpsMulStatus->lstResp.push_back(sDavResponse);
+		goto exit;
 	}
 
-	if(!blSingleFld )
 	{		
 		hr = HrGetSubCalendars(m_lpSession, m_lpRootFld, NULL, &lpHichyTable);
 		if(hr != hrSuccess)
@@ -1630,82 +1678,36 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		}
 	}
 
-	cbsize = lpsDavProp->lstProps.size() + 2;
 
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray((ULONG)cbsize), (void **)&lpPropTagArr);
+	hr = lpHichyTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
-	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot allocate memory");
 		goto exit;
-	}
 
-	ulPropTagFldId = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
-	//add PR_ENTRYID & FolderID in setcolumns along with requested data.
-	lpPropTagArr->cValues = (ULONG)cbsize;
-	lpPropTagArr->aulPropTag[0] = PR_ENTRYID;
-	lpPropTagArr->aulPropTag[1] = ulPropTagFldId;
+	hr = lpDelHichyTable->SetColumns(lpPropTagArr, 0);
+	if(hr != hrSuccess)
+		goto exit;
 
-	iter = lpsDavProp->lstProps.begin();
-	for(int i = 2; iter != lpsDavProp->lstProps.end(); iter++, i++)	
-	{
-		lpPropTagArr->aulPropTag[i] = GetPropmap((char*)iter->sPropName.strPropname.c_str());
-	}
-
-	if(!blSingleFld)
-	{
-		hr = lpHichyTable->SetColumns(lpPropTagArr, 0);
-		if(hr != hrSuccess)
-			goto exit;
-
-		hr = lpDelHichyTable->SetColumns(lpPropTagArr, 0);
-		if(hr != hrSuccess)
-			goto exit;
-	}
-	else
-	{
-		hr = lpSingleFld->GetProps(lpPropTagArr, 0, (ULONG *)&cbsize, &lpsPropSingleFld);
-		if (FAILED(hr))
-			goto exit;
-
-		hr = hrSuccess;
-	}
-
-	if (blSingleFld)
-		// start a new multistatus result just for this one folder
-		hr = HrSetDavPropName(&(lpsMulStatus->sPropName), "multistatus", lpsDavProp->sPropName.strNS);
-	else
-		// load top level container properties too for iCal 5
-		hr = HrHandlePropfindRoot(sDavProp, lpsMulStatus);
+	// load top level container properties too for iCal 5
+	hr = HrHandlePropfindRoot(sDavProp, lpsMulStatus);
 	if (hr != hrSuccess)
 		goto exit;
 	while(1)
 	{
-		ULONG ulEntryCount = 0;
-		if(!blSingleFld)
-		{
-			hr = lpHichyTable->QueryRows(50, 0, &lpRowsALL);
-			if(hr != hrSuccess || lpRowsALL->cRows == 0)
-				break;
+		hr = lpHichyTable->QueryRows(50, 0, &lpRowsALL);
+		if(hr != hrSuccess || lpRowsALL->cRows == 0)
+			break;
 		
-			hr = lpDelHichyTable->QueryRows(50, 0, &lpRowsDeleted);
-			if(hr != hrSuccess)
-				break;
-		}
-		if(blSingleFld)
-			ulEntryCount = 1;
-		else
-			ulEntryCount = lpRowsALL->cRows;
+		hr = lpDelHichyTable->QueryRows(50, 0, &lpRowsDeleted);
+		if(hr != hrSuccess)
+			break;
 
-		for(ULONG i = 0; i < ulEntryCount; i++)
+		for(ULONG i = 0; i < lpRowsALL->cRows; i++)
 		{
 			std::wstring wstrFldPath;
-			
-			WEBDAVPROPSTAT sWebPropStat;
-			WEBDAVPROP sPropNF;
-			WEBDAVPROP sPropOK;
-			
-			if(!blSingleFld && lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows )
+
+			if (lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows)
 			{
+				// @todo is this optimized, or just pure luck that this works? don't we need a loop?
 				ulCmp = memcmp((const void *)lpRowsALL->aRow[i].lpProps[0].Value.bin.lpb,
 							   (const void *)lpRowsDeleted->aRow[ulDelEntries].lpProps[0].Value.bin.lpb, lpRowsALL->aRow[i].lpProps[0].Value.bin.cb);
 				if(ulCmp == 0)
@@ -1716,20 +1718,15 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 			}
 
 			HrSetDavPropName(&(sDavResponse.sPropName), "response", lpsDavProp->sPropName.strNS);
-			
-			if(blSingleFld && lpsPropSingleFld && lpsPropSingleFld[1].ulPropTag == ulPropTagFldId)
-				wstrFldPath = lpsPropSingleFld[1].Value.lpszW;
-			else if (lpRowsALL && lpRowsALL && lpRowsALL->aRow[i].lpProps[1].ulPropTag == ulPropTagFldId)
+
+			if (lpRowsALL->aRow[i].lpProps[1].ulPropTag == ulPropTagFldId)
 				wstrFldPath = lpRowsALL->aRow[i].lpProps[1].Value.lpszW;
-			else
-				wstrFldPath.clear();
-			
-			if(blSingleFld && wstrFldPath.empty() && lpsPropSingleFld && lpsPropSingleFld[0].ulPropTag == PR_ENTRYID )
-				hr = HrAddProperty(m_lpActiveStore, lpsPropSingleFld[0].Value.bin, ulPropTagFldId, true, &wstrFldPath);
-			else if (wstrFldPath.empty() && lpRowsALL && lpRowsALL->aRow[i].lpProps[0].ulPropTag == PR_ENTRYID )
+			else if (lpRowsALL->aRow[i].lpProps[0].ulPropTag == PR_ENTRYID)
+				// creates new ulPropTagFldId on this folder, or return PR_ENTRYID in wstrFldPath
+				// @todo boolean should become default return proptag if save fails, PT_NULL for no default
 				hr = HrAddProperty(m_lpActiveStore, lpRowsALL->aRow[i].lpProps[0].Value.bin, ulPropTagFldId, true, &wstrFldPath);
 
-			if( hr != hrSuccess || wstrFldPath.empty())
+			if (hr != hrSuccess || wstrFldPath.empty())
 			{
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error adding Folder id property, error code : 0x%08X", hr);
 				continue;
@@ -1744,17 +1741,11 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 
 			iter = lpsDavProp->lstProps.begin();
 			
-			if (blSingleFld)
-				HrMapValtoStruct(lpsPropSingleFld, cbsize, NULL, 0, &lpsDavProp->lstProps, &sDavResponse);
-			else
-				HrMapValtoStruct(lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, &lpsDavProp->lstProps, &sDavResponse);
+			HrMapValtoStruct(lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, &lpsDavProp->lstProps, &sDavResponse);
 
 			lpsMulStatus->lstResp.push_back(sDavResponse);
 			sDavResponse.lstsPropStat.clear();
 		}
-
-		if(blSingleFld)
-			break;
 
 		if(lpRowsALL)
 		{
@@ -2236,7 +2227,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 		} else if (strProperty == "displayname") {
 			
 			if (m_blIsCLMAC && ((ulFlags & PROPFIND_ROOT) == PROPFIND_ROOT))
-				sWebProperty.wstrValue = m_wstrUserFullName;
+				sWebProperty.wstrValue = m_wstrUserFullName; // @todo store PR_DISPLAY_NAME_W ?
 
 			else
 				sWebProperty.wstrValue = SPropValToWString(lpFoundProp);

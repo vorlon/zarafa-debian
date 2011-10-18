@@ -732,7 +732,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 
 exit:
 	if(hr != hrSuccess && !strMethod.empty())
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error processing %s request",strMethod.c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error processing %s request, error code 0x%08x", strMethod.c_str(), hr);
 
 	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.
 		hr = lpRequest->HrFinalize();
