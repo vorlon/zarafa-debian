@@ -20,7 +20,7 @@ zarafa_ical_LDADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/libicalmapi/libicalmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/libfreebusy/libfreebusy.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(ICONV_LIBS) $(XML2_LIBS)
+	$(PROG_LIBS) $(SSL_LIBS) $(ICONV_LIBS) $(XML2_LIBS) $(ICAL_LIBS)
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
