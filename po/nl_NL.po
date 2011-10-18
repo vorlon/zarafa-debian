@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-13 00:03+0200\n"
-"PO-Revision-Date: 2011-06-14 09:26+0200\n"
-"Last-Translator: Robin <r.vandenkerkhoff@zarafa.com>\n"
+"POT-Creation-Date: 2011-10-18 15:02+0200\n"
+"PO-Revision-Date: 2011-10-18 13:25+0200\n"
+"Last-Translator: Remon <remon@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -64,7 +64,7 @@ msgstr "De Aanwezigheid-instelling is ingeschakeld. Wilt u deze uitschakelen?"
 
 #: provider/ECProps/Addin.cpp:644
 msgid "Out Of Office Turned On"
-msgstr "De Afwezigheids Assistent is ingeschakeld"
+msgstr "De Afwezigheid Assistent is ingeschakeld"
 
 #: provider/ECProps/Addin.cpp:650
 msgid "Unable to save Out of Office status"
@@ -74,7 +74,7 @@ msgstr "Kon afwezigheidsstatus niet opslaan"
 msgid "Delegates"
 msgstr "Gemachtigden"
 
-#: provider/ECProps/Addin.cpp:865 provider/client/ECMAPIFolderPublic.cpp:159
+#: provider/ECProps/Addin.cpp:865 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favorieten"
@@ -172,7 +172,7 @@ msgstr "&Opslaan"
 #: provider/ECProps/SyncConfigDlg.cpp:115
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:177
+#: provider/client/ProviderUtil.cpp:178
 msgid "Cancel"
 msgstr "Annuleren"
 
@@ -779,7 +779,7 @@ msgid "Upgrade: "
 msgstr "Bijwerken: "
 
 #: provider/libserver/ECGenProps.cpp:808
-#: provider/client/ECMAPIFolderPublic.cpp:157
+#: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Publieke Mappen"
@@ -788,9 +788,9 @@ msgstr "Publieke Mappen"
 msgid "Inbox -"
 msgstr "Postvak -"
 
-#: provider/client/ECMSProvider.cpp:235
+#: provider/client/ECMSProvider.cpp:244
 #: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/EntryPoint.cpp:1047
+#: provider/client/EntryPoint.cpp:1095
 msgid ""
 "Cannot use the profile because you are over the license limit. To continue, "
 "you must purchase additional client licenses."
@@ -798,9 +798,9 @@ msgstr ""
 "Kan profiel niet gebruiken omdat de licentielimiet is overschreden. Om door "
 "te gaan moet u een aanvullende client licenties aanschaffen."
 
-#: provider/client/ECMSProvider.cpp:239
+#: provider/client/ECMSProvider.cpp:248
 #: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/EntryPoint.cpp:1053
+#: provider/client/EntryPoint.cpp:1101
 msgid ""
 "Cannot use the profile because the server was unable to contact the license "
 "server. Please consult your system administrator."
@@ -896,7 +896,7 @@ msgstr "Kon de 'registry key' voor het SSL certificaatopslag niet openen"
 msgid "Unable to store SSL certificate in registry key."
 msgstr "Kon het SSL certificaat niet in het register opslaan."
 
-#: provider/client/ProviderUtil.cpp:158
+#: provider/client/ProviderUtil.cpp:159
 msgid ""
 "Unable to work online! The first time you need a network connection. Retry "
 "if you have the network connection."
@@ -904,11 +904,11 @@ msgstr ""
 "Kan niet online werken! De eerste keer moet er netwerk verbinding zijn. "
 "Probeer nogmaals als de verbinding is hersteld."
 
-#: provider/client/ProviderUtil.cpp:176
+#: provider/client/ProviderUtil.cpp:177
 msgid "First Folder Sync..."
 msgstr "Eerste Synchronisatie Mappen..."
 
-#: provider/client/ProviderUtil.cpp:181
+#: provider/client/ProviderUtil.cpp:182
 msgid "Sync folder items"
 msgstr "Sync map items"
 
@@ -942,15 +942,15 @@ msgstr "Commentaar bij RSS-kanaal"
 
 #: provider/client/ECMsgStore.cpp:2471
 msgid "Conversation Action Settings"
-msgstr ""
+msgstr "Conversatie actie instellingen"
 
 #: provider/client/ECMsgStore.cpp:2475
 msgid "Quick Step Settings"
-msgstr ""
+msgstr "Snelle Handeling Instellingen"
 
 #: provider/client/ECMsgStore.cpp:2479
 msgid "Suggested Contacts"
-msgstr ""
+msgstr "Voorgestelde Contactpersonen"
 
 #: provider/client/SettingsPropPageAdvance.cpp:98
 msgid "MailBox"
@@ -975,15 +975,15 @@ msgstr ""
 msgid "Unable to work online! Do you want to switch to offline mode?"
 msgstr "Kan niet online werken! Wilt u naar offline omschakelen?"
 
-#: provider/client/EntryPoint.cpp:914
+#: provider/client/EntryPoint.cpp:962
 msgid "Unknown username"
 msgstr "Onbekende gebruiker"
 
-#: provider/client/EntryPoint.cpp:1016
+#: provider/client/EntryPoint.cpp:1064
 msgid "Connecting to the server..."
 msgstr "Verbinding maken met de server..."
 
-#: provider/client/EntryPoint.cpp:1036
+#: provider/client/EntryPoint.cpp:1084
 msgid ""
 "Unable to reach the server.\n"
 "Do you want to save the settings or cancel and re-enter the settings?"
@@ -992,11 +992,11 @@ msgstr ""
 " Wilt u de instellingen opslaan of deze annuleren en de instellingen "
 "nogmaals opgeven?"
 
-#: provider/client/EntryPoint.cpp:1131
+#: provider/client/EntryPoint.cpp:1179
 msgid "Incorrect username and/or password."
 msgstr "Foute gebruikersnaam en/of wachtwoord."
 
-#: provider/client/EntryPoint.cpp:1133
+#: provider/client/EntryPoint.cpp:1181
 msgid ""
 "Incorrect servername and/or port\n"
 "Check if the server is running."
@@ -1004,11 +1004,11 @@ msgstr ""
 "Foute servernaam en/of poort.\n"
 " Controleer of de server beschikbaar is."
 
-#: provider/client/EntryPoint.cpp:1135
+#: provider/client/EntryPoint.cpp:1183
 msgid "Incorrect version."
 msgstr "Incorrecte versie."
 
-#: provider/client/EntryPoint.cpp:1137
+#: provider/client/EntryPoint.cpp:1185
 msgid ""
 "An unknown failure has occurred.\n"
 "Please contact your administrator."
@@ -1016,7 +1016,7 @@ msgstr ""
 "Er is een onbekende fout opgetreden.\n"
 " Neem contact op met uw systeem beheerder."
 
-#: provider/client/EntryPoint.cpp:1163
+#: provider/client/EntryPoint.cpp:1211
 msgid "You should restart Outlook for the changes to take effect."
 msgstr "U moet Outlook herstarten voordat de veranderingen toegepast worden."
 
@@ -1315,38 +1315,37 @@ msgstr "Wilt u doorgaan?"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:723
 msgid "Zarafa Archive"
-msgstr ""
+msgstr "Zarafa Archief"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:724
 msgid "This folder contains the special archive folders."
-msgstr ""
+msgstr "Deze map bevat de speciale archief mappen."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:728
 msgid "History"
-msgstr ""
+msgstr "Geschiedenis"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:729
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
-msgstr ""
+msgstr "Deze map bevat archieven die vervangen zijn door een nieuwere versie."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:733
 msgid "Outgoing"
-msgstr ""
+msgstr "Uitgaand"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:734
 msgid "This folder contains archives of all outgoing messages."
-msgstr ""
+msgstr "Deze folder bevat archieven van alle uitgaande berichten."
 
 # 85%
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:738
-#, fuzzy
 msgid "Deleted"
-msgstr "Verwijderen"
+msgstr "Verwijderd "
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:739
 msgid "This folder contains archives of messages that have been deleted."
-msgstr ""
+msgstr "Deze map bevat archieven van berichten die zijn verwijderd. "
 
 #: spooler/Spooler.cpp:481
 msgid ""
@@ -1358,35 +1357,36 @@ msgstr ""
 
 #: spooler/archive.cpp:241
 msgid "Unable to obtain list of attached archives."
-msgstr ""
+msgstr "De lijst van aangesloten archieven kon niet worden opgehaald."
 
 #: spooler/archive.cpp:272
 msgid "Unable to open archive."
-msgstr ""
+msgstr "Niet in staat het archief te openen."
 
 #: spooler/archive.cpp:279
 msgid "Unable to get outgoing archive folder."
-msgstr ""
+msgstr "Niet in staat de uitgaande archief map op te halen."
 
 #: spooler/archive.cpp:286
 msgid "Unable to create archive message in outgoing archive folder."
 msgstr ""
+"Niet in staat een archief bericht in de uitgaande archief map aan te maken."
 
 #: spooler/archive.cpp:292
 msgid "Unable to copy message data."
-msgstr ""
+msgstr "Niet in staat bericht data te kopiëren."
 
 #: spooler/archive.cpp:305
 msgid "Unable to save archived message."
-msgstr ""
+msgstr "Niet in staat het gearchiveerde bericht op te slaan."
 
 #: spooler/archive.cpp:335
 msgid "Error code:"
-msgstr ""
+msgstr "Fout code:"
 
 #: spooler/archive.cpp:339
 msgid "Error description:"
-msgstr ""
+msgstr "Fout beschrijving:"
 
 #: spooler/mailer.cpp:1688
 msgid "You are not allowed to send as user or group "
@@ -1398,7 +1398,7 @@ msgstr ""
 "De gebruiker of groep namens wie u probeert te verzenden kan niet worden "
 "gevonden"
 
-#: spooler/mailer.cpp:2485
+#: spooler/mailer.cpp:2486
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
 
@@ -1497,11 +1497,11 @@ msgstr "De onderliggende map die verwijdert wordt bevat berichten"
 
 #: common/Util.cpp:1759
 msgid "No description available."
-msgstr ""
+msgstr "Geen beschrijving beschikbaar."
 
 #: common/Util.cpp:1761
 msgid "MAPI error code:"
-msgstr ""
+msgstr "MAPI fout code:"
 
 #~ msgid "Adding local folders"
 #~ msgstr "Lokale mappen toevoegen"
