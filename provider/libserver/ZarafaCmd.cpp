@@ -7406,12 +7406,12 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreGuid, unsigned int ulStoreType, struct resolveUserStoreResponse *lpsResponse)
+SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse)
 {
 	USE_DATABASE();
 	string strStoreGuid;
 
-	if (sStoreGuid.__ptr == NULL || sStoreGuid.__size == 0 || !ECSTORE_TYPE_ISVALID(ulStoreType)) {
+	if (sStoreGuid.__ptr == NULL || sStoreGuid.__size == 0) {
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -7424,7 +7424,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 		"FROM stores AS s "
 		"LEFT JOIN users AS u "
 			"ON s.user_id = u.id "
-		"WHERE s.guid=" + strStoreGuid + " AND s.type=" + stringify(ulStoreType);
+		"WHERE s.guid=" + strStoreGuid ;
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
@@ -7473,7 +7473,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned int ulStoreType, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse)
+SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse)
 {
 	unsigned int		ulObjectId = 0;
 	objectdetails_t		sUserDetails;
@@ -7481,7 +7481,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 
 	USE_DATABASE();
 
-	if (szUserName == NULL || !ECSTORE_TYPE_ISVALID(ulStoreType) || ulStoreType == ECSTORE_TYPE_PUBLIC) {
+	if (szUserName == NULL) {
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -7515,7 +7515,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 	if (lpecSession->GetSessionManager()->IsDistributedSupported() && 
 		!lpecSession->GetUserManagement()->IsInternalObject(ulObjectId)) 
 	{
-		if (ulStoreType == ECSTORE_TYPE_PRIVATE) {
+		if (ulStoreTypeMask & (ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC)) {
 			/* Check if this is the correct server for its store */
 			string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
 			if (strServerName.empty()) {
@@ -7541,7 +7541,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 			}
 		}
 
-		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
 			if (!sUserDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
 				// No redirect with archive stores because there can be multiple archive stores.
 				er = ZARAFA_E_NOT_FOUND;
@@ -7556,7 +7556,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		}
 	}
 
-	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND type = " + stringify(ulStoreType);
+	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask);
     if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
     	er = ZARAFA_E_DATABASE_ERROR;
     	goto exit;

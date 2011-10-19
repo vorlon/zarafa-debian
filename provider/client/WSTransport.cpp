@@ -1705,8 +1705,7 @@ HRESULT WSTransport::HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpc
 
 	START_SOAP_CALL
 	{
-		// @todo: Expose the store type. Currently this seems to be only used from zarafa-backup.
-		if(SOAP_OK != m_lpCmd->ns__resolveStore(m_ecSessionId, sStoreGuid, ECSTORE_TYPE_PRIVATE, &sResponse))
+		if(SOAP_OK != m_lpCmd->ns__resolveStore(m_ecSessionId, sStoreGuid, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1746,7 +1745,7 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ECSTORE_TYPE_PRIVATE, ulFlags, &sResponse))
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC, ulFlags, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1811,7 +1810,7 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ulStoreType, 0, &sResponse))
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), (1 << ulStoreType), 0, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;

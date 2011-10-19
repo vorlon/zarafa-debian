@@ -215,6 +215,8 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 			memcpy(&guidMDBProvider, &ZARAFA_STORE_DELEGATE_GUID, sizeof(MAPIUID));
+		else if (ulStoreType == ECSTORE_TYPE_PUBLIC)
+			memcpy(&guidMDBProvider, &ZARAFA_STORE_PUBLIC_GUID, sizeof(MAPIUID));
 		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
 			memcpy(&guidMDBProvider, &ZARAFA_STORE_ARCHIVE_GUID, sizeof(MAPIUID));
 		else {

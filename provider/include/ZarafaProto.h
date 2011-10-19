@@ -1052,8 +1052,8 @@ int ns__abortSubmit(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result)
 int ns__isMessageInQueue(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result);
 
 // Get user ID / store for username (username == NULL for current user)
-int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, unsigned int ulStoreType, struct resolveUserStoreResponse *lpsResponse);
-int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreType, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse);
+int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse);
+int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse);
 
 // Actual user creation/deletion in the external user source
 int ns__createUser(ULONG64 ulSessionId, struct user *lpsUser, struct setUserResponse *lpsUserSetResponse);
