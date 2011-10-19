@@ -10176,7 +10176,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 	if(ulSyncId == 0){
 	    // SyncID is 0, which means the client will be requesting an initial sync from this new sync. The change_id will
 		// be updated in another call done when the synchronization is complete.
-		strQuery = "INSERT INTO syncs (change_id, sourcekey, sync_type, sync_time) VALUES (1, "+lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size())+", '" + stringify(ulChangeType) + "', NOW())";
+		strQuery = "INSERT INTO syncs (change_id, sourcekey, sync_type, sync_time) VALUES (1, "+lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size())+", '" + stringify(ulChangeType) + "', FROM_UNIXTIME("+stringify(time(NULL))+"))";
 		er = lpDatabase->DoInsert(strQuery, &ulSyncId);
 		if (er == erSuccess) {
 			er = lpDatabase->Commit();
@@ -10214,7 +10214,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 		goto exit;
 	}
 
-	strQuery = "UPDATE syncs SET change_id = "+stringify(ulChangeId)+", sync_time = NOW() WHERE id = "+stringify(ulSyncId);
+	strQuery = "UPDATE syncs SET change_id = "+stringify(ulChangeId)+", sync_time = FROM_UNIXTIME("+stringify(time(NULL))+") WHERE id = "+stringify(ulSyncId);
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
 		goto exit;

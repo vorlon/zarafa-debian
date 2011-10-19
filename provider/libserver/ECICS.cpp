@@ -407,7 +407,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 		goto exit;
 	}
 	
-	strQuery = "DELETE FROM syncs WHERE sync_time < DATE_SUB(NOW(), INTERVAL " + stringify(ulSyncLifeTime) + " DAY)";
+	strQuery = "DELETE FROM syncs WHERE sync_time < DATE_SUB(FROM_UNIXTIME("+stringify(time(NULL))+"), INTERVAL " + stringify(ulSyncLifeTime) + " DAY)";
 	er = lpDatabase->DoDelete(strQuery, &ulDeletedSyncs);
 	if(er != erSuccess)
 		goto exit;

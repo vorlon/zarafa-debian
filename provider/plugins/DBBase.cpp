@@ -497,7 +497,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	}
 
 	// Remember modtime for this object
-	strQuery = "REPLACE INTO " +  (string)DB_OBJECTPROPERTY_TABLE + "(objectid, propname, value) VALUES ((" + strSubQuery + "),'" + OP_MODTIME + "',now())";
+	strQuery = "REPLACE INTO " +  (string)DB_OBJECTPROPERTY_TABLE + "(objectid, propname, value) VALUES ((" + strSubQuery + "),'" + OP_MODTIME + "', FROM_UNIXTIME("+stringify(time(NULL))+"))";
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
@@ -1077,4 +1077,3 @@ void DBPlugin::removeAllObjects(objectid_t except) throw(std::exception)
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 }
-

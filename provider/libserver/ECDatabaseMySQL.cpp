@@ -810,7 +810,7 @@ DB_LENGTHS ECDatabaseMySQL::FetchRowLengths(DB_RESULT sResult) {
 std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 {
 	const char *c = strToFilter.c_str();
-	int pos = 0;
+	std::string::size_type pos = 0;
 	std::string strFiltered;
 
 	while(pos < strToFilter.size()) {
@@ -1356,7 +1356,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	// Insert version number
 	strQuery = "INSERT INTO versions (major, minor, revision, databaserevision, updatetime) VALUES(";
 	strQuery += stringify(PROJECT_VERSION_MAJOR) + std::string(", ") + stringify(PROJECT_VERSION_MINOR) + std::string(", ");
-	strQuery += std::string("'") + std::string(PROJECT_SVN_REV_STR) +  std::string("', ") + stringify(ulDatabaseRevision) + ", NOW() )";
+	strQuery += std::string("'") + std::string(PROJECT_SVN_REV_STR) +  std::string("', ") + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME("+stringify(time(NULL))+") )";
 
 	er = DoInsert(strQuery);
 	if(er != erSuccess)
