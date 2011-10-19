@@ -89,6 +89,15 @@
 	ob_start();
 	setlocale(LC_CTYPE, "en_US.UTF-8");
 
+	// Set timezone
+	if(function_exists("date_default_timezone_set")) {
+		if(defined('TIMEZONE') && TIMEZONE) {
+			date_default_timezone_set(TIMEZONE);
+		} else if(!ini_get('date.timezone')) {
+			date_default_timezone_set('Europe/London');
+		}
+	}
+
 	// Get the available modules
 	$GLOBALS["availableModules"] = getAvailableModules();
 
