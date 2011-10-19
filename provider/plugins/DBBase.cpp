@@ -1067,12 +1067,12 @@ void DBPlugin::removeAllObjects(objectid_t except) throw(std::exception)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 	
-	strQuery = "DELETE objectproperties.* FROM objectproperties JOIN object WHERE id != '" + m_lpDatabase->EscapeBinary(except.id) + "'";
+	strQuery = "DELETE objectproperty.* FROM objectproperty JOIN object ON object.id = objectproperty.objectid WHERE externid != " + m_lpDatabase->EscapeBinary(except.id);
 	er = m_lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 		
-	strQuery = "DELETE FROM object WHERE id != '" + m_lpDatabase->EscapeBinary(except.id) + "'";
+	strQuery = "DELETE FROM object WHERE externid != " + m_lpDatabase->EscapeBinary(except.id);
 	er = m_lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
