@@ -50,7 +50,6 @@
 #include "platform.h"
 #include "CalDavUtil.h"
 #include "charset/convert.h"
-#include <boost/algorithm/string.hpp>
 
 using namespace std;
 
@@ -1036,9 +1035,6 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	}
 	CREATE_RESTRICTION(lpsRoot);
 	CREATE_RES_OR(lpsRoot, lpsRoot, 4);
-
-	// recover from url-base64
-	boost::algorithm::replace_all(strWebBase64, "_", "/");
 
 	// convert guid to outlook format
 	if (IsOutlookUid(strWebBase64))

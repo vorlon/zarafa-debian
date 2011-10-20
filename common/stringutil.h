@@ -152,9 +152,11 @@ std::wstring bin2hexw(unsigned int inLength, const unsigned char *input);
 #define bin2hext bin2hex
 #endif
 
-std::string StringEscape(const char* input, const char *tokens, const char escape);
+std::string urlEncode(const std::string &input);
+std::wstring urlEncode(const std::wstring &input);
+std::string urlDecode(const std::string &input);
 
-std::string strUnEscapeHex(std::string strIn);
+std::string StringEscape(const char* input, const char *tokens, const char escape);
 
 template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)

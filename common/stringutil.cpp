@@ -562,28 +562,97 @@ std::string StringEscape(const char* input, const char *tokens, const char escap
 	return strEscaped;
 }
 
-// replaces %## values by ascii values
-// i.e Amsterdam%2C -> Amsterdam,
-std::string strUnEscapeHex(std::string strIn)
-{
-	std::string strOut;
-	std::string strTemp;
-	unsigned int ulEscaped = 0;
 
-	for (size_t i = 0; i < strIn.length(); i++) 
+/** 
+ * Encodes a string for inclusion into an url.
+ *
+ * @note: this does not encode an url to another more valid url!
+ * 
+ * @param[in] input string to encode
+ * 
+ * @return encoded string valid to include in url
+ */
+template <typename StringType>
+StringType doUrlEncode(const StringType &input) {
+	StringType output;
+	const char digits[] = "0123456789ABCDEF";
+
+	output.reserve(input.length());
+	for (size_t i = 0; i < input.length(); i++) 
 	{
-		if (strIn.at(i) == '%' && strIn.length() > i + 2)
-		{
-			strTemp = "0x";
-			strTemp += strIn.at(i+1);
-			strTemp += strIn.at(i+2);
-			ulEscaped = strtol(strTemp.c_str(), NULL, 16);
-			strOut += ulEscaped;
-			i += 2;
-		} 
-		else 
-			strOut += strIn.at(i);
+		if (input[i] <= 127) {
+			switch (input[i]) {
+			case ':':
+			case '/':
+			case '?':
+			case '#':
+			case '[':
+			case ']':
+			case '@':
+			case '!':
+			case '$':
+			case '&':
+			case '\'':
+			case '(':
+			case ')':
+			case '*':
+			case '+':
+			case ',':
+			case ';':
+			case '=':
+				output += '%';
+				output += digits[input[i]>>4];
+				output += digits[input[i]&0x0F];
+				break;
+			default:
+				output += input[i];
+			}
+		} else {
+			output += '%';
+			output += digits[input[i]>>4];
+			output += digits[input[i]&0x0F];
+		}
 	}
 
-	return strOut;
+	return output;
+}
+
+std::string urlEncode(const std::string &input)
+{
+	return doUrlEncode(input);
+}
+
+std::wstring urlEncode(const std::wstring &input)
+{
+	return doUrlEncode(input);
+}
+
+/** 
+ * replaces %## values by ascii values
+ * i.e Amsterdam%2C -> Amsterdam,
+ * @note this can take a full url, since it just replaces the %## 
+ * 
+ * @param[in] input url encoded string
+ * 
+ * @return 
+ */
+std::string urlDecode(const std::string &input)
+{
+	std::string output;
+
+	output.reserve(input.length());
+	for (size_t i = 0; i < input.length(); i++) 
+	{
+		if (input[i] == '%' && input.length() > i + 2)
+		{
+			unsigned char c;
+			c = x2b(input[++i]) << 4;
+			c |= x2b(input[++i]);
+			output += c;
+		} 
+		else 
+			output += input[i];
+	}
+
+	return output;
 }

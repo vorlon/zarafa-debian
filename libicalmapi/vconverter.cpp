@@ -3164,7 +3164,7 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 	{
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
 		if(lpicTZParam) {
-			strTZ = strUnEscapeHex(icalparameter_get_tzid(lpicTZParam));
+			strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
 			lpszTZID = strTZ.c_str();
 		}
 		else if (!m_mapTimeZones->empty())

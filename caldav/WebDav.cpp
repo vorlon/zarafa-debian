@@ -692,10 +692,13 @@ HRESULT WebDav::HrHandleRptMulGet()
 		}
 		found++;
 
-		//GUID is of the form "00349543499823933AB332455634C.ics"
-		//so remove the last characters ".ics" to get only GUID values
-		sWebVal.wstrValue.reserve(strGuid.length() - found - 4);
-		copy(strGuid.begin() + found, strGuid.end() - 4, back_inserter(sWebVal.wstrValue));	// Only valid with chars from the ASCII range.
+		// strip url and .ics from guid, and convert %hex to real data
+		strGuid.erase(0, found);
+		strGuid.erase(strGuid.length() - 4);
+		strGuid = urlDecode(strGuid);
+
+		sWebVal.wstrValue.reserve(strGuid.length());
+		copy(strGuid.begin(), strGuid.end(), back_inserter(sWebVal.wstrValue));	// Only valid with chars from the ASCII range.
 
 		sRptMGet.lstWebVal.push_back(sWebVal);
 		lpXmlChildNode = lpXmlChildNode->next;

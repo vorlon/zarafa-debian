@@ -50,7 +50,6 @@
 #include "platform.h"
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
-#include <boost/algorithm/string.hpp>
 
 using namespace std;
 
@@ -510,8 +509,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 				else if(hr != hrSuccess)
 					continue;
 			} else {
-				// create url-base64
-				boost::algorithm::replace_all(wstrConvVal, L"/", L"_");
+				wstrConvVal = urlEncode(wstrConvVal);
 			}
 
 			wstrConvVal.append(L".ics");
@@ -650,7 +648,6 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	{
 		WEBDAVVALUE sWebDavVal;
 		SRowSet *lpValRows = NULL;
-		std::string strBinString;
 		ULONG ulCensorFlag = (ULONG)blCensorPrivate;
 		
 		sWebDavVal = sWebRMGet->lstWebVal.front();

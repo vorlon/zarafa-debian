@@ -34310,6 +34310,7 @@ SWIGEXPORT void SWIG_init(void) {
   SWIG_Python_SetConstant(d, "MAPI_EXPLICIT_PROFILE",SWIG_From_int(static_cast< int >(0x00000010)));
   SWIG_Python_SetConstant(d, "MAPI_SERVICE_UI_ALWAYS",SWIG_From_int(static_cast< int >(0x00002000)));
   SWIG_Python_SetConstant(d, "MAPI_NO_MAIL",SWIG_From_int(static_cast< int >(0x00008000)));
+  SWIG_Python_SetConstant(d, "MAPI_NT_SERVICE",SWIG_From_int(static_cast< int >(0x00010000)));
   SWIG_Python_SetConstant(d, "MAPI_TIMEOUT_SHORT",SWIG_From_int(static_cast< int >(0x00100000)));
   SWIG_Python_SetConstant(d, "MAPI_INIT_VERSION",SWIG_From_int(static_cast< int >(0)));
   SWIG_Python_SetConstant(d, "MAPI_MULTITHREAD_NOTIFICATIONS",SWIG_From_int(static_cast< int >(0x00000001)));
