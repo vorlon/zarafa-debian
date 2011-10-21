@@ -63,10 +63,10 @@ class ProtocolBase
 public:
 	ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~ProtocolBase();
-	virtual HRESULT HrHandleCommand(std::string strMethod);
+
+	virtual HRESULT HrHandleCommand(const std::string &strMethod);
 	
 protected:
-	
 	Http *m_lpRequest;
 	IMAPISession *m_lpSession;
 	ECLogger *m_lpLogger;

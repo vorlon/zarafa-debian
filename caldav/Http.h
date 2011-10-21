@@ -125,7 +125,6 @@ private:
 	
 	
 	/* response */
-	bool m_bHeadersSent;
 	std::string m_strRespHeader;			// first header with http status code
 	std::list<std::string> m_lstHeaders;	// other headers
 	std::string m_strRespBody;

@@ -65,13 +65,13 @@
 
 class CalDAV : public WebDav
 {
-
 public:
 	CalDAV(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~CalDAV();
-	HRESULT HrHandleCommand(std::string strMethod);
-protected:
 
+	HRESULT HrHandleCommand(const std::string &strMethod);
+
+protected:
 	std::wstring m_wstrCalHome;
 
 	HRESULT HrPropfind();

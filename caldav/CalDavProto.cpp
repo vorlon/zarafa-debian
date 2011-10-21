@@ -120,7 +120,7 @@ CalDAV::~CalDAV()
  * @param[in]	strMethod	Name of the http request(e.g PROPFIND, REPORT..)
  * @return		MAPI error code
  */
-HRESULT CalDAV::HrHandleCommand(std::string strMethod)
+HRESULT CalDAV::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 

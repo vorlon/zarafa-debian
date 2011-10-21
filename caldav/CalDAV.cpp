@@ -713,7 +713,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 
 	//GET & ical Requests
 	// @todo fix caldav GET request
-	if( !strMethod.compare("GET") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
+	if( !strMethod.compare("GET") || !strMethod.compare("HEAD") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
 	{
 		lpBase = new iCal(lpRequest, lpSession, g_lpLogger, strServerTZ, strCharset);
 	}

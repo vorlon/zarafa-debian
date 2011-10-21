@@ -102,7 +102,7 @@ ProtocolBase::~ProtocolBase()
 		m_lpPubStore->Release();
 }
 
-HRESULT ProtocolBase::HrHandleCommand(std::string strMethod)
+HRESULT ProtocolBase::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 	std::string strAgent;

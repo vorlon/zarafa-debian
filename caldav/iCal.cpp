@@ -87,7 +87,7 @@ iCal::~iCal()
 
 }
 
-HRESULT iCal::HrHandleCommand(std::string strMethod)
+HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 
@@ -95,8 +95,8 @@ HRESULT iCal::HrHandleCommand(std::string strMethod)
 	if (hr != hrSuccess)
 		goto exit;
 
-	if (!strMethod.compare("GET"))
-		hr = HrHandleIcalGet();
+	if (!strMethod.compare("GET") || !strMethod.compare("HEAD"))
+		hr = HrHandleIcalGet(strMethod);
 	else if (!strMethod.compare("PUT"))
 		hr = HrHandleIcalPost();
 	else if (!strMethod.compare("DELETE"))
@@ -109,14 +109,15 @@ exit:
 }
 
 /**
- * Handles http GET request
+ * Handles http GET and HEAD request
  * 
- * The Get request could be to retrieve one paticular msg or all calendar entries
+ * The GET request could be to retrieve one paticular msg or all calendar entries
+ * HEAD is just a GET without the body returned.
  *
  * @return	HRESULT
  * @retval	MAPI_E_NOT_FOUND	Folder or message not found
  */
-HRESULT iCal::HrHandleIcalGet()
+HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 	std::string strIcal;
@@ -150,31 +151,27 @@ HRESULT iCal::HrHandleIcalGet()
 
 	
 exit:
-	if (hr == hrSuccess && !strIcal.empty())
+	if (hr == hrSuccess)
 	{
 		if (!strModtime.empty())
 			m_lpRequest->HrResponseHeader("Etag", strModtime);
-		
-		m_lpRequest->HrResponseHeader(200, "OK");
 		m_lpRequest->HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\""); 
-		if(!blIsWholeCal)
-			strMsg = "attachment; filename=\"" + W2U(m_wstrFldName) + "\"";
-		else
-			strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
-		m_lpRequest->HrResponseHeader("Content-Disposition", strMsg);
-		m_lpRequest->HrResponseBody(strIcal);
+
+		if (strIcal.empty()) {
+			m_lpRequest->HrResponseHeader(204, "No Content");
+		} else {
+			m_lpRequest->HrResponseHeader(200, "OK");
+			if(!blIsWholeCal)
+				strMsg = "attachment; filename=\"" + W2U(m_wstrFldName) + "\"";
+			else
+				strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
+			m_lpRequest->HrResponseHeader("Content-Disposition", strMsg);
+		}
+		if (strMethod.compare("GET") == 0)
+			m_lpRequest->HrResponseBody(strIcal);
+		// @todo, send Content-Length header? but HrFinalize in HTTP class will also send with size:0
 	}
-	else if (hr == hrSuccess && strIcal.empty())
-	{
-		if (!strModtime.empty())
-			m_lpRequest->HrResponseHeader("Etag", strModtime);		
-		
-		m_lpRequest->HrResponseHeader(204, "No Content");
-		m_lpRequest->HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\"");
-		strMsg.clear();
-		m_lpRequest->HrResponseBody(strMsg);
-	}
-	else if( hr == MAPI_E_NOT_FOUND)
+	else if (hr == MAPI_E_NOT_FOUND)
 	{
 		m_lpRequest->HrResponseHeader(404, "Not Found");
 	}

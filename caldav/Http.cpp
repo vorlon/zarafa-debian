@@ -60,8 +60,25 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *lpwstrUrlUser , std::wstring *lpwstrFolder) {
-
+/** 
+ * Parse the incoming URL into known peices:
+ *
+ * /<service>/[username][/foldername][/uid.ics]
+ * service: ical or caldav, mandatory
+ * username: open store of this user, "public" for public folders. optional: default comes from HTTP Authenticate header.
+ * foldername: folder name in store to open. multiple forms possible (normal name, prefix_guid, prefix_entryid).
+ * 
+ * @todo move to http class so we can always retrun lpwstrUrlUser from auth header
+ *
+ * @param[in] wstrUrl incoming url
+ * @param[out] lpulFlag 
+ * @param[out] lpwstrUrlUser 
+ * @param[out] lpwstrFolder 
+ * 
+ * @return 
+ */
+HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *lpwstrUrlUser, std::wstring *lpwstrFolder)
+{
 	std::wstring wstrService;
 	std::wstring wstrFolder;
 	std::wstring wstrUrlUser;
@@ -143,7 +160,6 @@ Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
 	m_ulKeepAlive = 0;
 
 	m_strRespHeader.clear();
-	m_bHeadersSent = false;
 }
 
 /**
@@ -565,7 +581,7 @@ HRESULT Http::HrReadBody()
 HRESULT Http::HrValidateReq()
 {
 	HRESULT hr = hrSuccess;
-	char *lpszMethods[] = {"ACL","GET","POST","PUT","DELETE","OPTIONS","PROPFIND","REPORT","MKCALENDAR" ,"PROPPATCH" ,"MOVE", NULL};
+	char *lpszMethods[] = {"ACL","GET","HEAD","POST","PUT","DELETE","OPTIONS","PROPFIND","REPORT","MKCALENDAR" ,"PROPPATCH" ,"MOVE", NULL};
 	bool bFound = false;
 	int i = 0;
 
@@ -636,10 +652,11 @@ HRESULT Http::HrFinalize()
 {
 	HRESULT hr = hrSuccess;
 
-	// force chunked http for long size response
-	if (!m_bHeadersSent && (m_strRespBody.size() < HTTP_CHUNK_SIZE || m_strHttpVer.compare("1.1") != 0) ) {
+	HrResponseHeader("Content-Length", stringify(m_strRespBody.length()));
 
-		HrResponseHeader("Content-Length", stringify(m_strRespBody.length()));
+	// force chunked http for long size response, should check version >= 1.1 to disable chunking
+	if (m_strRespBody.size() < HTTP_CHUNK_SIZE || m_strHttpVer.compare("1.1") != 0)
+	{
 		hr = HrFlushHeaders();
 		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION)
 			goto exit;
@@ -657,33 +674,33 @@ HRESULT Http::HrFinalize()
 		char lpstrLen[10];
 		std::string::size_type szBodyLen = m_strRespBody.size();	// length of data to be sent to the client
 		std::string::size_type szBodyWritten = 0;					// length of data sent to client
-		std::string::size_type szBody = HTTP_CHUNK_SIZE;			// default lenght of chunk data to be written
+		unsigned int szPart = HTTP_CHUNK_SIZE;						// default lenght of chunk data to be written
 
-		if (!m_bHeadersSent) {
-			HrResponseHeader("Transfer-Encoding", "chunked");
+		HrResponseHeader("Transfer-Encoding", "chunked");
 
 		hr = HrFlushHeaders();
 		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION)
 			goto exit;
-		}
 
 		while (szBodyWritten < szBodyLen)
 		{
 			if ((szBodyWritten + HTTP_CHUNK_SIZE) > szBodyLen)
-				szBody = szBodyLen - szBodyWritten;				// change length of data for last chunk
+				szPart = szBodyLen - szBodyWritten;				// change length of data for last chunk
 
-			sprintf( (char*) lpstrLen, "%X", szBody);
-			m_lpChannel->HrWriteLine( (char*) lpstrLen);		// length of data
-			m_lpChannel->HrWriteLine( (char*) lpstrBody, szBody);
-			
-			szBodyWritten += szBody;
-			lpstrBody += szBody;
+			// send hex length of data and data part
+			snprintf(lpstrLen, sizeof(lpstrLen), "%X", szPart);
+			m_lpChannel->HrWriteLine(lpstrLen);
+			m_lpChannel->HrWriteLine((char*)lpstrBody, szPart);
+
+			szBodyWritten += szPart;
+			lpstrBody += szPart;
 		}
 
-		sprintf( (char*) lpstrLen, "0\r\n");
-		m_lpChannel->HrWriteLine(lpstrLen);					// end of response
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Chunked Response :\n%s", m_strRespBody.c_str());
-
+		// end of response
+		snprintf(lpstrLen, 10, "0\r\n");
+		m_lpChannel->HrWriteLine(lpstrLen);
+		// just the first part of the body in the log. header shows it's chunked.
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s", m_strRespBody.c_str());
 	}
 
 exit:
@@ -778,14 +795,11 @@ HRESULT Http::HrFlushHeaders()
 	char lpszChar[128];
 	time_t tmCurrenttime = time(NULL);
 
-	if (m_bHeadersSent)
-		return hrSuccess;
-
 	// Add misc. headers
 	HrResponseHeader("Server","Zarafa");
 	strftime(lpszChar, 127, "%a, %d %b %Y %H:%M:%S GMT", gmtime(&tmCurrenttime));
 	HrResponseHeader("Date", lpszChar);
-	HrResponseHeader("DAV", "1, 2, 3, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
+	HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
 	if (m_ulKeepAlive != 0 && stricmp(m_strConnection.c_str(), "keep-alive") == 0) {
 		HrResponseHeader("Connection", "Keep-Alive");
 		HrResponseHeader("Keep-Alive", stringify(m_ulKeepAlive, false));
@@ -813,7 +827,6 @@ HRESULT Http::HrFlushHeaders()
 	//as last line has a CRLF. The HrWriteLine adds one more CRLF.
 	//this means the End of headder.
 	m_lpChannel->HrWriteLine(strOutput);
-	m_bHeadersSent = true;
 
 	return hr;
 }
