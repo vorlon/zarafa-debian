@@ -54,6 +54,8 @@
 #include "threadutil.h"
 #include "ECLogger.h"
 #include "ECConfig.h"
+#include "ECSession.h"
+#include "ECSessionManager.h"
 #include "ECDatabaseFactory.h"
 #include "ECStatsCollector.h"
 #include "ZarafaCode.h"
@@ -168,36 +170,39 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
     ECRESULT er = erSuccess;
     unsigned int ulCount = 0;
     unsigned int ulFolderId = 0;
+    int ulMaxDeferred = atoi(m_lpConfig->GetSetting("max_deferred_records"));
     
-    while(!m_bExit) {
-        er = GetDeferredCount(lpDatabase, &ulCount);
-        if(er != erSuccess)
-            goto exit;
-            
-		if(ulCount < atoui(m_lpConfig->GetSetting("max_deferred_records")))
-			break;
-            
-    	er = lpDatabase->Begin();
-    	if(er != erSuccess)
-    		goto exit;
-    	
-        er = GetLargestFolderId(lpDatabase, &ulFolderId);
-        if(er != erSuccess) {
-        	lpDatabase->Rollback();
-            goto exit;
+    if(ulMaxDeferred >= 0) {
+		while(!m_bExit) {
+			er = GetDeferredCount(lpDatabase, &ulCount);
+			if(er != erSuccess)
+				goto exit;
+				
+			if(ulCount < ulMaxDeferred)
+				break;
+				
+			er = lpDatabase->Begin();
+			if(er != erSuccess)
+				goto exit;
+			
+			er = GetLargestFolderId(lpDatabase, &ulFolderId);
+			if(er != erSuccess) {
+				lpDatabase->Rollback();
+				goto exit;
+			}
+				
+			er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
+			if(er != erSuccess) {
+				lpDatabase->Rollback();
+				goto exit;
+			}
+				
+			er = lpDatabase->Commit();
+			if(er != erSuccess)
+				goto exit;
 		}
-            
-        er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-        if(er != erSuccess) {
-        	lpDatabase->Rollback();
-            goto exit;
-		}
-            
-		er = lpDatabase->Commit();
-		if(er != erSuccess)
-			goto exit;
-    }
-    
+	}
+	    
 exit:
     return er;
 }
@@ -342,3 +347,81 @@ exit:
 	return er;
 }
 
+ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount)
+{
+	ECRESULT er = erSuccess;
+	DB_RESULT lpDBResult = NULL;
+	DB_ROW lpDBRow = NULL;
+	unsigned int ulCount = 0;
+	std::string strQuery;
+	
+	strQuery = "SELECT count(*) FROM deferredupdate WHERE folderid = " + stringify(ulFolderId);
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		goto exit;
+		
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	
+	if(!lpDBRow || !lpDBRow[0])
+		ulCount = 0;
+	else
+		ulCount = atoui(lpDBRow[0]);
+		
+	*lpulCount = ulCount;
+	
+exit:
+	return er;
+}
+
+/**
+ * Add a defferred update
+ *
+ * Adds a deferred update to the deferred updates table and flushes the deferred updates for the folder if necessary.
+ *
+ * @param[in] lpSession Session that created the change
+ * @param[in] lpDatabase Database handle
+ * @param[in] ulFolderId Folder ID to add a deferred update to
+ * @param[in] ulOldFolderId Previous folder ID if the message was moved (may be 0)
+ * @param[in] ulObjId Object ID that should be added
+ * @return result
+ */
+ECRESULT ECTPropsPurge::AddDeferredUpdate(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId)
+{
+	ECRESULT er = erSuccess;
+	DB_RESULT lpDBResult = NULL;
+	DB_ROW lpDBRow = NULL;
+	std::string strQuery;
+	unsigned int ulCount = 0;
+	unsigned int ulMaxDeferred = 0;
+
+	if (ulOldFolderId)
+		// Message has moved into a new folder. If the record is already there then just update the existing record so that srcfolderid from a previous move remains untouched
+		strQuery = "INSERT INTO deferredupdate(hierarchyid, srcfolderid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulOldFolderId) + "," + stringify(ulFolderId) + ") ON DUPLICATE KEY UPDATE folderid = " + stringify(ulFolderId);
+	else
+		// Message has modified. If there is already a record for this message, we don't need to do anything
+		strQuery = "INSERT IGNORE INTO deferredupdate(hierarchyid, srcfolderid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulFolderId) + "," + stringify(ulFolderId) + ")";
+		
+	er = lpDatabase->DoInsert(strQuery);
+	if(er != erSuccess)
+		goto exit;
+		
+	ulMaxDeferred = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("max_deferred_records_folder"));
+		
+	if(ulMaxDeferred) {
+		er = GetDeferredCount(lpDatabase, ulFolderId, &ulCount);
+		if(er != erSuccess)
+			goto exit;
+			
+		if(ulCount >= ulMaxDeferred) {
+			er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
+			if(er != erSuccess)
+				goto exit;
+		}
+	}
+
+exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+
+	return er;
+}

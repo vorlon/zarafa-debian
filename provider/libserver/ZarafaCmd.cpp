@@ -103,6 +103,7 @@
 #include "ECTPropsPurge.h"
 #include "ZarafaVersions.h"
 #include "ECTestProtocol.h"
+#include "ECTPropsPurge.h"
 
 #include "ECDefs.h"
 #include <EMSAbTag.h>
@@ -2321,12 +2322,11 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 					goto exit;
 			}
 		} else {
-			// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
+			// Instead of writing directly to tproperties, save a delayed write request.
 			if(ulParent != CACHE_NO_PARENT) {
-				strInsertTProp = "INSERT IGNORE INTO deferredupdate(hierarchyid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulParent) + ")";
-				er = lpDatabase->DoInsert(strInsertTProp);
-				if(er != erSuccess)
-					goto exit;
+                er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulParent, 0, ulObjId);
+                if(er != erSuccess)
+                    goto exit;
 			}
 		}
 	}
@@ -7842,9 +7842,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
                                                                                 
 		// FIXME update last modification time
 
-		// Record move for delayed tproperties update. Note that this may generate a move entry that shows srcfolderid == dstfolderid. We just leave it there for the moment.
-		strQuery = "INSERT INTO deferredupdate(hierarchyid, srcfolderid, folderid) VALUES(" + stringify(iterCopyItems->ulId) + "," + stringify(iterCopyItems->ulParent) + "," + stringify(ulDestFolderId) + ") ON DUPLICATE KEY UPDATE folderid = " + stringify(ulDestFolderId);
-		er = lpDatabase->DoUpdate(strQuery);
+		er = ECTPropsPurge::AddDeferredUpdate(lpSession, lpDatabase, iterCopyItems->ulParent, 0, iterCopyItems->ulId);
 		if(er != erSuccess)
 			goto exit;
 
@@ -8205,10 +8203,9 @@ ECRESULT CopyObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentSto
 		goto exit;
 		
     // Deferred tproperties
-    strQuery = "INSERT INTO deferredupdate (folderid, hierarchyid) VALUES (" + stringify(ulDestFolderId) + "," + stringify(ulNewObjectId) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
+    er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewObjectId);
+    if(er != erSuccess)
+        goto exit;
 
 	// Copy MVproperties...
 	strQuery = "INSERT INTO mvproperties (hierarchyid, orderid, tag, type, val_ulong, val_string, val_binary,val_double,val_longint,val_hi,val_lo) SELECT "+stringify(ulNewObjectId)+", orderid, tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo FROM mvproperties WHERE hierarchyid ="+stringify(ulObjId);
@@ -8419,10 +8416,9 @@ ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession, unsigned i
 	if(er != erSuccess)
 		goto exit;
 
-	strQuery = "INSERT IGNORE INTO deferredupdate(hierarchyid, folderid) VALUES(" + stringify(ulNewDestFolderId) + "," + stringify(ulDestFolderId) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
+    er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewDestFolderId);
+    if(er != erSuccess)
+        goto exit;
 
 	// Copy large objects... if present .. probably not, on a folder
 	er = lpAttachmentStorage->CopyAttachment(ulFolderFrom, ulNewDestFolderId);
@@ -8787,10 +8783,9 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			goto exit;
 		}
 
-		strQuery = "REPLACE INTO deferredupdate(hierarchyid, folderid, srcfolderid) VALUES(" + stringify(ulFolderId) + "," + stringify(ulDestFolderId) + "," + stringify(ulOldParent) + ")";
-		er = lpDatabase->DoInsert(strQuery);
-		if(er != erSuccess)
-			goto exit;
+        er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
+        if(er != erSuccess)
+            goto exit;
 
 		// Update the folder to the destination folder
 		//Info: Always an update, It's not faster first check and than update/or not

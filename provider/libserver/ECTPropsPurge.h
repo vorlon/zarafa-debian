@@ -54,6 +54,7 @@ class ECDatabase;
 class ECLogger;
 class ECConfig;
 class ECDatabaseFactory;
+class ECSession;
 
 class ECTPropsPurge {
 public:
@@ -63,10 +64,13 @@ public:
     static ECRESULT PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId);
     static ECRESULT GetDeferredCount(ECDatabase *lpDatabase, unsigned int *lpulCount);
     static ECRESULT GetLargestFolderId(ECDatabase *lpDatabase, unsigned int *lpulFolderId);
+    static ECRESULT AddDeferredUpdate(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId);
 
 private:
     ECRESULT PurgeThread();
     ECRESULT PurgeOverflowDeferred(ECDatabase *lpDatabase);
+    static ECRESULT GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount);
+    
     static void *Thread(void *param);
 
     pthread_mutex_t		m_hMutexExit;

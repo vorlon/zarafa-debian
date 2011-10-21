@@ -56,6 +56,7 @@
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECGenProps.h"
+#include "ECTPropsPurge.h"
 #include "ECICS.h"
 
 #include "charset/convert.h"
@@ -1530,9 +1531,8 @@ next_property:
 		} else {
 			// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
 			if (ulParentId != CACHE_NO_PARENT) {
-				strInsertTProp = "INSERT IGNORE INTO deferredupdate(hierarchyid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulParentId) + ")";
-				er = lpDatabase->DoInsert(strInsertTProp);
-				if (er != erSuccess)
+                er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulParentId, 0, ulObjId);
+				if(er != erSuccess)
 					goto exit;
 			}
 		}

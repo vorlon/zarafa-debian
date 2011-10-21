@@ -414,10 +414,19 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		// Check whether we're sending a calender object
 		// if so, we do not need to create a message-in-message object, but just attach the ics file.
 		hr = HrGetOneProp(lpAttachedMessage, PR_MESSAGE_CLASS_A, &lpAMClass);
-		if (hr == hrSuccess && strncmp(lpAMClass->Value.lpszA, "IPM.Note", 8) != 0 &&
+		if (hr == hrSuccess &&
+			strncmp(lpAMClass->Value.lpszA, "IPM.Note", 8) != 0 &&
 			// currently no task support for ical
 			strncmp(lpAMClass->Value.lpszA, "IPM.Task", 8) != 0)
 		{
+			if (strcmp(lpAMClass->Value.lpszA, "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}") == 0) {
+				// This is an exception message. We might get here because zarafa-ical is able to
+				// SubmitMessage for Mac Ical meeting requests. The way Outlook does this, is
+				// send a message for each exception itself. We just ignore this exception, since
+				// it's already in the main ical data on the top level message.
+				goto exit;
+			}
+
 			// attach ical without submessage
 			// still tnef when attachments are in the submessage
 			hr = HrGetOneProp(lpAttachedMessage, PR_HASATTACH, &lpAMAttach);

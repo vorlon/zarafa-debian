@@ -3704,7 +3704,18 @@
 		  		low will force writes to complete directly, but speed up reading
 		  		of tables.
 		  		</para>
-		  		<para>Default: <replaceable>10000</replaceable></para>
+		  		<para>Default: <replaceable>0 (off)</replaceable></para>
+		  	</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+		  	<term><option>max_deferred_records_folder</option></term>
+		  	<listitem>
+		  		<para>
+		  		Same as the max_deferred_records variable, but per folder
+		  		instead of total.
+		  		</para>
+		  		<para>Default: <replaceable>20</replaceable></para>
 		  	</listitem>
 		  </varlistentry>
 

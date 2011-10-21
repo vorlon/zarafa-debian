@@ -634,7 +634,15 @@ Default:
 The server has a list of deferred writes to the tproperties table, to improve overall I/O performance\&. The number of deferred writes is kept below this value; setting it high will allow writes to be more efficient by grouping more writes together, but may slow down reading, and setting it low will force writes to complete directly, but speed up reading of tables\&.
 .sp
 Default:
-\fI10000\fR
+\fI0 (off)\fR
+.RE
+.PP
+\fBmax_deferred_records_folder\fR
+.RS 4
+Same as the max_deferred_records variable, but per folder instead of total\&.
+.sp
+Default:
+\fI20\fR
 .RE
 .PP
 \fBdisabled_features\fR

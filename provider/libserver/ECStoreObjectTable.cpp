@@ -499,16 +499,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 					goto exit;
 			}
 				
-			if(lstDeferred.size() > 20 && lpODStore->ulFolderId) {
-				// If there are more than 20 deferred actions, purge the list, after which we can read all the
-				// data from the column-oriented store. This groups writes into tproperties into bunches of 20, effectively
-				// reducing the amount of random-read/writes in the tproperties table by a factor of 20, with the tradeoff that
-				// we need to do more reads in the properties table when opening a table with deferred rows. Since these messages
-				// or recent though, the pages in the properties table are most probably still 'hot' in the buffer pool.
-				if(ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, lpODStore->ulFolderId) == erSuccess)
-					lstDeferred.clear();
-			}
-				
 			// Build list of rows that are incomplete (not in cache) AND deferred
 			for(iterDeferred = lstDeferred.begin(); iterDeferred != lstDeferred.end(); iterDeferred++) {
 				sKey.ulObjId = *iterDeferred;
