@@ -1156,8 +1156,10 @@
 			$this->properties = $GLOBALS["properties"]->getContactABProperties($store);
 			$this->ab_properties = $GLOBALS["properties"]->getAddressBookProperties($store);
 
-			$this->sort = array();
-			$this->sort[$this->properties["fileas"]] = TABLE_SORT_ASCEND;
+			if(isset($this->properties["fileas"])) {
+				$this->sort = array();
+				$this->sort[$this->properties["fileas"]] = TABLE_SORT_ASCEND;
+			}
 		}
 	}
 

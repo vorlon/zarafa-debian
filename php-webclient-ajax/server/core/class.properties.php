@@ -142,8 +142,8 @@
 			$properties["recipient_status"] = PR_RECIPIENT_TRACKSTATUS;
 			$properties["recipient_status_num"] = PR_RECIPIENT_TRACKSTATUS_TIME;
 			$properties["objecttype"] = PR_OBJECT_TYPE;
-			
-			return $properties;
+
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 		
 		/**
@@ -219,8 +219,8 @@
 			$properties["deleted_on"] = PR_DELETED_ON;
 			$properties["updatecounter"] = "PT_LONG:PSETID_Appointment:0x8201";
 			$properties["recur_type"] = "PT_LONG:PSETID_Appointment:0x8231";
-			
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 		
 		/**
@@ -359,7 +359,7 @@
 			$properties["birthday_eventid"] = "PT_BINARY:PSETID_Address:0x804D";
 			$properties["anniversary_eventid"] = "PT_BINARY:PSETID_Address:0x804E";
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -409,7 +409,7 @@
 			
 			$properties["deleted_on"] = PR_DELETED_ON;
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -442,7 +442,7 @@
 
 			$properties["deleted_on"] = PR_DELETED_ON;
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -470,7 +470,7 @@
 			$properties["fax"] = PR_PRIMARY_FAX_NUMBER;
 			$properties["department"] = PR_DEPARTMENT_NAME;
 
-			return $properties;
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -523,7 +523,7 @@
 				'store' => isset($store) ? $store : $this->store
 			));
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -552,7 +552,7 @@
 				'store' => isset($store) ? $store : $this->store
 			));
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -580,7 +580,7 @@
 				'store' => isset($store) ? $store : $this->store
 			));
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -668,7 +668,7 @@
 			// Archiver property
 			$properties["stubbed"] = "PT_BOOLEAN:PSETID_Archive:stubbed";
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 		
 		/**
@@ -699,7 +699,7 @@
 
 			$properties["deleted_on"] = PR_DELETED_ON;
 			
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 		
 		/**
@@ -781,7 +781,7 @@
 
 			$properties["display_cc"] = PR_DISPLAY_CC;
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 		/**
@@ -798,7 +798,7 @@
 			$properties["parent_entryid"] = PR_PARENT_ENTRYID;
 			$properties["categories"] = "PT_MV_STRING8:PS_PUBLIC_STRINGS:Keywords";
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 	
 		/**
@@ -827,7 +827,7 @@
 			
 			$properties["deleted_on"] = PR_DELETED_ON;
 
-			return $properties;
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 		
 		/**
@@ -868,7 +868,7 @@
 			
 			$properties["deleted_on"] = PR_DELETED_ON;
 
-			return getPropIdsFromStrings(isset($store) ? $store : $this->store, $properties);
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 
 
@@ -892,7 +892,7 @@
 			$properties["rule_provider_data"] = PR_RULE_PROVIDER_DATA;
 			$properties["rule_level"] = PR_RULE_LEVEL;
 			
-			return $properties;
+			return getPropIdsFromStrings((isset($store) && $store) ? $store : $this->store, $properties);
 		}
 }
 ?>
