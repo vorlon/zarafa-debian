@@ -54,17 +54,7 @@
 #include <list>
 #include <string>
 
-#ifndef TCHAR
-	#ifdef UNICODE
-	#define TCHAR wchar_t
-	#else
-	#define TCHAR char
-	#endif
-#endif
-
-#ifndef LPTSTR
-	#define LPTSTR TCHAR*
-#endif
+#include "platform.h"
 
 #ifdef ARCHIVER_EXTRA
 #include <mapix.h>
