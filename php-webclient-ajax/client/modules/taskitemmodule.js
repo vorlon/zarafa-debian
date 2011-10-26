@@ -211,8 +211,8 @@ taskitemmodule.prototype.resize = function()
 
 taskitemmodule.prototype.setDisabledProperties = function()
 {
-	dhtml.getElementById("disabled_subject").innerHTML = dhtml.getElementById("subject").value;
-	dhtml.getElementById("disabled_owner").innerHTML = dhtml.getElementById("owner").value;
+	dhtml.addTextNode(dhtml.getElementById("disabled_subject"), dhtml.getElementById("subject").value);
+	dhtml.addTextNode(dhtml.getElementById("disabled_owner"), dhtml.getElementById("owner").value);
 
 	// Duedate
 	var duedate = dhtml.getElementById("text_commonend").value;
@@ -226,25 +226,29 @@ taskitemmodule.prototype.setDisabledProperties = function()
 	} else {
 		duedate_text += _("None");
 	}
-	dhtml.getElementById("disabled_duedate").innerHTML = duedate_text;
+	dhtml.addTextNode(dhtml.getElementById("disabled_duedate"), duedate_text);
 
 	// Status
 	var select = dhtml.getElementById("select_status");
 	var status = dhtml.getElementById("status").value;
 	for(var i=0; i < select.options.length; i++) {
-		if (select.options[i].value == parseInt(status, 10)) dhtml.getElementById("disabled_status").innerHTML = select.options[i].text;
+		if (select.options[i].value == parseInt(status, 10)){
+			dhtml.addTextNode(dhtml.getElementById("disabled_status"), select.options[i].text);
+		}
 	}
 
 	// Importance
 	var select = dhtml.getElementById("select_priority");
 	var priorty = dhtml.getElementById("importance").value;
 	for(var i=0; i < select.options.length; i++) {
-		if (select.options[i].value == parseInt(priorty, 10)) dhtml.getElementById("disabled_priority").innerHTML = select.options[i].text;
+		if (select.options[i].value == parseInt(priorty, 10)){
+			dhtml.addTextNode(dhtml.getElementById("disabled_priority"), select.options[i].text);
+		}
 	}
 
 	// Percent Complete
 	var percent_complete = dhtml.getElementById("percent_complete");
-	dhtml.getElementById("disabled_percentcomplete").innerHTML = (percent_complete.value * 100) + "%";
+	dhtml.addTextNode(dhtml.getElementById("disabled_percentcomplete"), (percent_complete.value * 100) + "%");
 
 	// Body
 	var html_body = dhtml.getElementById("html_body");
