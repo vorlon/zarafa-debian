@@ -520,7 +520,7 @@ createmailitemmodule.prototype.setBody = function(message, isReply, isConcept, a
 						if(key == "body"){
 							content = data[key].value;
 						}else{
-							replyinfo += "<strong>" + data[key].label + ":</strong>\t" + data[key].value + "<br />";
+							replyinfo += "<strong>" + data[key].label + ":</strong>\t" + data[key].value.htmlEntities() + "<br />";
 						}
 					}
 				} else {
@@ -530,7 +530,7 @@ createmailitemmodule.prototype.setBody = function(message, isReply, isConcept, a
 						if(key == "body"){
 							content = data[key].value;
 						}else{
-							replyinfo += data[key].label + ":\t" + data[key].value + "\n";
+							replyinfo += data[key].label + ":\t" + data[key].value.htmlEntities() + "\n";
 						}
 					}
 					// plain text reply/forward, use ">" to quote the message
