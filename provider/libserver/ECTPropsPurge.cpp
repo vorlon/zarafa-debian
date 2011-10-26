@@ -172,7 +172,7 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
     unsigned int ulFolderId = 0;
     int ulMaxDeferred = atoi(m_lpConfig->GetSetting("max_deferred_records"));
     
-    if(ulMaxDeferred >= 0) {
+    if(ulMaxDeferred > 0) {
 		while(!m_bExit) {
 			er = GetDeferredCount(lpDatabase, &ulCount);
 			if(er != erSuccess)
@@ -374,9 +374,9 @@ exit:
 }
 
 /**
- * Add a defferred update
+ * Add a deferred update
  *
- * Adds a deferred update to the deferred updates table and flushes the deferred updates for the folder if necessary.
+ * Adds a deferred update to the deferred updates table and purges the deferred updates for the folder if necessary.
  *
  * @param[in] lpSession Session that created the change
  * @param[in] lpDatabase Database handle
@@ -388,11 +388,32 @@ exit:
 ECRESULT ECTPropsPurge::AddDeferredUpdate(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId)
 {
 	ECRESULT er = erSuccess;
-	DB_RESULT lpDBResult = NULL;
-	DB_ROW lpDBRow = NULL;
+
+	er = AddDeferredUpdateNoPurge(lpDatabase, ulFolderId, ulOldFolderId, ulObjId);
+	if (er != erSuccess)
+		goto exit;
+
+	er = NormalizeDeferredUpdates(lpSession, lpDatabase, ulFolderId);
+
+exit:
+	return er;
+}
+
+/**
+ * Add a deferred update
+ *
+ * Adds a deferred update to the deferred updates table but never purges the deferred updates for the folder.
+ *
+ * @param[in] lpDatabase Database handle
+ * @param[in] ulFolderId Folder ID to add a deferred update to
+ * @param[in] ulOldFolderId Previous folder ID if the message was moved (may be 0)
+ * @param[in] ulObjId Object ID that should be added
+ * @return result
+ */
+ECRESULT ECTPropsPurge::AddDeferredUpdateNoPurge(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId)
+{
+	ECRESULT er = erSuccess;
 	std::string strQuery;
-	unsigned int ulCount = 0;
-	unsigned int ulMaxDeferred = 0;
 
 	if (ulOldFolderId)
 		// Message has moved into a new folder. If the record is already there then just update the existing record so that srcfolderid from a previous move remains untouched
@@ -404,24 +425,41 @@ ECRESULT ECTPropsPurge::AddDeferredUpdate(ECSession *lpSession, ECDatabase *lpDa
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		goto exit;
+
+exit:
+	return er;
+}
+
+/**
+ * Purge the deferred updates table if the count for the folder exceeds max_deferred_records_folder
+ *
+ * Purges the deferred updates for the folder if necessary.
+ *
+ * @param[in] lpSession Session that created the change
+ * @param[in] lpDatabase Database handle
+ * @param[in] ulFolderId Folder ID to add a deferred update to
+ * @return result
+ */
+ECRESULT ECTPropsPurge::NormalizeDeferredUpdates(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId)
+{
+	ECRESULT er = erSuccess;
+	unsigned int ulMaxDeferred = 0;
+	unsigned int ulCount = 0;
 		
 	ulMaxDeferred = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("max_deferred_records_folder"));
-		
-	if(ulMaxDeferred) {
+	
+	if (ulMaxDeferred) {
 		er = GetDeferredCount(lpDatabase, ulFolderId, &ulCount);
-		if(er != erSuccess)
+		if (er != erSuccess)
 			goto exit;
 			
-		if(ulCount >= ulMaxDeferred) {
+		if (ulCount >= ulMaxDeferred) {
 			er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-			if(er != erSuccess)
+			if (er != erSuccess)
 				goto exit;
 		}
 	}
 
 exit:
-	if (lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	return er;
 }

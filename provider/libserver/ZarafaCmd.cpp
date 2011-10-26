@@ -2324,7 +2324,7 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 		} else {
 			// Instead of writing directly to tproperties, save a delayed write request.
 			if(ulParent != CACHE_NO_PARENT) {
-                er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulParent, 0, ulObjId);
+                er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
                 if(er != erSuccess)
                     goto exit;
 			}
@@ -3109,6 +3109,12 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	er = ProcessSubmitFlag(lpDatabase, ulSyncId, ulStoreId, ulObjId, fNewItem, &lpsSaveObj->modProps);
 	if (er != erSuccess)
 		goto exit;
+
+	if (ulParentObjType == MAPI_FOLDER) {
+		er = ECTPropsPurge::NormalizeDeferredUpdates(lpecSession, lpDatabase, ulParentObjId);
+		if (er != erSuccess)
+			goto exit;
+	}
 
 	er = lpAttachmentStorage->Commit();
 	if (er != erSuccess)
@@ -7842,10 +7848,6 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
                                                                                 
 		// FIXME update last modification time
 
-		er = ECTPropsPurge::AddDeferredUpdate(lpSession, lpDatabase, iterCopyItems->ulParent, 0, iterCopyItems->ulId);
-		if(er != erSuccess)
-			goto exit;
-
 		// remove PR_DELETED_ON, This is on a softdeleted message
 		strQuery = "DELETE FROM properties WHERE hierarchyid="+stringify(iterCopyItems->ulId)+" AND tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND type="+stringify(PROP_TYPE(PR_DELETED_ON));
 		er = lpDatabase->DoDelete(strQuery);
@@ -7862,6 +7864,10 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 			// Restore a softdeleted message
 			AddChange(lpSession, ulSyncId, sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
 		}
+
+		er = ECTPropsPurge::AddDeferredUpdate(lpSession, lpDatabase, ulDestFolderId, iterCopyItems->ulParent, iterCopyItems->ulId);
+		if(er != erSuccess)
+			goto exit;
 
 		// Track folder count changes
 		if(iterCopyItems->ulType == MAPI_MESSAGE) {
@@ -7890,6 +7896,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 				}
 			}
 		} 
+
 		er = lpDatabase->Commit();
 		if(er != erSuccess)
 			goto exit;
@@ -8202,11 +8209,6 @@ ECRESULT CopyObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentSto
 	if(er != erSuccess)
 		goto exit;
 		
-    // Deferred tproperties
-    er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewObjectId);
-    if(er != erSuccess)
-        goto exit;
-
 	// Copy MVproperties...
 	strQuery = "INSERT INTO mvproperties (hierarchyid, orderid, tag, type, val_ulong, val_string, val_binary,val_double,val_longint,val_hi,val_lo) SELECT "+stringify(ulNewObjectId)+", orderid, tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo FROM mvproperties WHERE hierarchyid ="+stringify(ulObjId);
 	er = lpDatabase->DoInsert(strQuery);
@@ -8245,14 +8247,29 @@ ECRESULT CopyObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentSto
 			}
 		}
 
+		// Update ICS system
+		GetSourceKey(ulDestFolderId, &sParentSourceKey);
+		AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_NEW);
+
 		// Hack, when lpInternalAttachmentStorage exist your are in a transaction!
 		if (lpInternalAttachmentStorage) {
+			// Deferred tproperties
+			er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewObjectId);
+			if(er != erSuccess)
+				goto exit;
+
 			er = lpInternalAttachmentStorage->Commit();
 			if (er != erSuccess)
 				goto exit;
 
 			er = lpDatabase->Commit();
 			if (er != erSuccess)
+				goto exit;
+		} else {
+			// Deferred tproperties, let the caller handle the purge so we won't purge every 20 messages on a copy
+			// of a complete folder.
+			er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulDestFolderId, 0, ulNewObjectId);
+			if(er != erSuccess)
 				goto exit;
 		}
 
@@ -8268,12 +8285,6 @@ ECRESULT CopyObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentSto
 
 
 	g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
-
-	// Update ICS system
-	if(bIsRoot == true){
-		GetSourceKey(ulDestFolderId, &sParentSourceKey);
-		AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_NEW);
-	}
 
 	if(bDoNotification){
 		// Update destenation folder
@@ -8416,10 +8427,6 @@ ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession, unsigned i
 	if(er != erSuccess)
 		goto exit;
 
-    er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewDestFolderId);
-    if(er != erSuccess)
-        goto exit;
-
 	// Copy large objects... if present .. probably not, on a folder
 	er = lpAttachmentStorage->CopyAttachment(ulFolderFrom, ulNewDestFolderId);
 	if(er != erSuccess && er != ZARAFA_E_NOT_FOUND)
@@ -8465,6 +8472,10 @@ ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession, unsigned i
 	er = WriteLocalCommitTimeMax(NULL, lpDatabase, ulNewDestFolderId, NULL);
 	if (er != erSuccess)
 		goto exit;
+
+    er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, 0, ulNewDestFolderId);
+    if(er != erSuccess)
+        goto exit;
 
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
@@ -8783,10 +8794,6 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			goto exit;
 		}
 
-        er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
-        if(er != erSuccess)
-            goto exit;
-
 		// Update the folder to the destination folder
 		//Info: Always an update, It's not faster first check and than update/or not
 		strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(ZARAFA_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
@@ -8830,6 +8837,10 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
 			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
 		}
+
+        er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
+        if(er != erSuccess)
+            goto exit;
 
 		er = lpDatabase->Commit();
 		if(er != erSuccess) {
@@ -11046,6 +11057,12 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	er = ProcessSubmitFlag(lpDatabase, ulSyncId, ulStoreId, ulObjectId, bIsNew, lpsStreamInfo->lpPropValArray);
 	if (er != erSuccess)
 		goto exit;
+
+	if (ulParentType == MAPI_FOLDER) {
+		er = ECTPropsPurge::NormalizeDeferredUpdates(lpecSession, lpDatabase, ulParentId);
+		if (er != erSuccess)
+			goto exit;
+	}
 
 	er = lpAttachmentStorage->Commit();
 	if (er != erSuccess)

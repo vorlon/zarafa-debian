@@ -1531,7 +1531,7 @@ next_property:
 		} else {
 			// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
 			if (ulParentId != CACHE_NO_PARENT) {
-                er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulParentId, 0, ulObjId);
+                er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParentId, 0, ulObjId);
 				if(er != erSuccess)
 					goto exit;
 			}

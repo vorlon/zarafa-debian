@@ -9049,18 +9049,28 @@ SWIGINTERN PyObject *_wrap_IMsgStore_StoreLogoff(PyObject *SWIGUNUSEDPARM(self),
   void *argp1 = 0 ;
   int res1 = 0 ;
   ULONG temp2 ;
-  int res2 = SWIG_TMPOBJ ;
+  int res2 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  arg2 = &temp2;
-  if (!PyArg_ParseTuple(args,(char *)"O:IMsgStore_StoreLogoff",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IMsgStore_StoreLogoff",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IMsgStore, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IMsgStore_StoreLogoff" "', argument " "1"" of type '" "IMsgStore *""'"); 
   }
   arg1 = reinterpret_cast< IMsgStore * >(argp1);
+  if (!(SWIG_IsOK((res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2),SWIGTYPE_p_ULONG,0))))) {
+    unsigned int val; 
+    int ecode = SWIG_AsVal_unsigned_SS_int(obj1, &val);
+    if (!SWIG_IsOK(ecode)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "IMsgStore_StoreLogoff" "', argument " "2"" of type '" "ULONG""'");
+    }
+    temp2 = static_cast< ULONG >(val);
+    arg2 = &temp2;
+    res2 = SWIG_AddTmpMask(ecode);
+  }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -11168,15 +11178,13 @@ SWIGINTERN PyObject *_wrap_IMessage_ModifyRecipients(PyObject *SWIGUNUSEDPARM(se
     }
   }
   {
-    if(arg3)
-    MAPIFreeBuffer(arg3);
+    FreeProws((LPSRowSet)arg3);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
-    if(arg3)
-    MAPIFreeBuffer(arg3);
+    FreeProws((LPSRowSet)arg3);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -11724,8 +11732,7 @@ SWIGINTERN PyObject *_wrap_IABContainer_ResolveNames(PyObject *SWIGUNUSEDPARM(se
     MAPIFreeBuffer(arg2);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   {
     if(arg5)
@@ -11739,8 +11746,7 @@ fail:
     MAPIFreeBuffer(arg2);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   {
     if(arg5)
@@ -12176,8 +12182,7 @@ SWIGINTERN PyObject *_wrap_IDistList_ResolveNames(PyObject *SWIGUNUSEDPARM(self)
     MAPIFreeBuffer(arg2);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   {
     if(arg5)
@@ -12191,8 +12196,7 @@ fail:
     MAPIFreeBuffer(arg2);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   {
     if(arg5)
@@ -18520,8 +18524,7 @@ SWIGINTERN PyObject *_wrap_IAddrBook_ResolveName(PyObject *SWIGUNUSEDPARM(self),
     
   }
   {
-    if(arg5)
-    MAPIFreeBuffer(arg5);
+    FreeProws((LPSRowSet)arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
@@ -18530,8 +18533,7 @@ fail:
     
   }
   {
-    if(arg5)
-    MAPIFreeBuffer(arg5);
+    FreeProws((LPSRowSet)arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -19442,9 +19444,15 @@ SWIGINTERN PyObject *_wrap_IAddrBook_SetSearchPath(PyObject *SWIGUNUSEDPARM(self
       SWIG_fail;
     }
   }
+  {
+    FreeProws((LPSRowSet)arg3);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    FreeProws((LPSRowSet)arg3);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -19523,8 +19531,7 @@ SWIGINTERN PyObject *_wrap_IAddrBook_PrepareRecips(PyObject *SWIGUNUSEDPARM(self
     MAPIFreeBuffer(arg3);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
@@ -19534,8 +19541,7 @@ fail:
     MAPIFreeBuffer(arg3);
   }
   {
-    if(arg4)
-    MAPIFreeBuffer(arg4);
+    FreeProws((LPSRowSet)arg4);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;

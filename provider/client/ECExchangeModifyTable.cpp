@@ -440,6 +440,9 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	}
 
 exit:
+	if (lpECPerms)
+		MAPIFreeBuffer(lpECPerms);
+
 	if (lpSecurity)
 		lpSecurity->Release();
 

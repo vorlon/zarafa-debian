@@ -5164,20 +5164,31 @@ XS(_wrap_IMsgStore_StoreLogoff) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     ULONG temp2 ;
-    int res2 = SWIG_TMPOBJ ;
+    int res2 = 0 ;
     int argvi = 0;
+    SV * _saved[1] ;
     HRESULT result;
     dXSARGS;
     
-    arg2 = &temp2;
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: IMsgStore_StoreLogoff(self);");
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: IMsgStore_StoreLogoff(self,INOUT);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IMsgStore, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IMsgStore_StoreLogoff" "', argument " "1"" of type '" "IMsgStore *""'"); 
     }
     arg1 = reinterpret_cast< IMsgStore * >(argp1);
+    if (!(SWIG_IsOK((res2 = SWIG_ConvertPtr(ST(1),SWIG_as_voidptrptr(&arg2),SWIGTYPE_p_ULONG,0))))) {
+      unsigned int val; 
+      int ecode = SWIG_AsVal_unsigned_SS_int SWIG_PERL_CALL_ARGS_2(ST(1), &val);
+      if (!SWIG_IsOK(ecode)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "IMsgStore_StoreLogoff" "', argument " "2"" of type '" "ULONG""'");
+      }
+      temp2 = static_cast< ULONG >(val);
+      arg2 = &temp2;
+      res2 = SWIG_AddTmpMask(ecode);
+    }
+    _saved[0] = ST(1);
     result = (arg1)->StoreLogoff(arg2);
     {
       if(FAILED(result)) {
@@ -6944,7 +6955,7 @@ XS(_wrap_IMessage_ModifyRecipients) {
     ULONG ulFlags = 0;
     arg3 = NULL;
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: IMessage_ModifyRecipients(self,ulFlags,lpMods);");
+      SWIG_croak("Usage: IMessage_ModifyRecipients(self,ulFlags,INPUT);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IMessage, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -6975,16 +6986,14 @@ XS(_wrap_IMessage_ModifyRecipients) {
     
     
     {
-      if(arg3)
-      MAPIFreeBuffer(arg3);
+      FreeProws((LPSRowSet)arg3);
     }
     XSRETURN(argvi);
   fail:
     
     
     {
-      if(arg3)
-      MAPIFreeBuffer(arg3);
+      FreeProws((LPSRowSet)arg3);
     }
     SWIG_croak_null();
   }
@@ -7429,8 +7438,7 @@ XS(_wrap_IABContainer_ResolveNames) {
     }
     
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     {
       if(arg5)
@@ -7445,8 +7453,7 @@ XS(_wrap_IABContainer_ResolveNames) {
     }
     
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     {
       if(arg5)
@@ -7803,8 +7810,7 @@ XS(_wrap_IDistList_ResolveNames) {
     }
     
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     {
       if(arg5)
@@ -7819,8 +7825,7 @@ XS(_wrap_IDistList_ResolveNames) {
     }
     
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     {
       if(arg5)
@@ -13110,8 +13115,7 @@ XS(_wrap_IAddrBook_ResolveName) {
       
     }
     {
-      if(arg5)
-      MAPIFreeBuffer(arg5);
+      FreeProws((LPSRowSet)arg5);
     }
     XSRETURN(argvi);
   fail:
@@ -13122,8 +13126,7 @@ XS(_wrap_IAddrBook_ResolveName) {
       
     }
     {
-      if(arg5)
-      MAPIFreeBuffer(arg5);
+      FreeProws((LPSRowSet)arg5);
     }
     SWIG_croak_null();
   }
@@ -13830,7 +13833,7 @@ XS(_wrap_IAddrBook_SetSearchPath) {
     
     ULONG ulFlags = 0;
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: IAddrBook_SetSearchPath(self,ulFlags,lpSearchPath);");
+      SWIG_croak("Usage: IAddrBook_SetSearchPath(self,ulFlags,INPUT);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IAddrBook, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -13864,10 +13867,16 @@ XS(_wrap_IAddrBook_SetSearchPath) {
     }
     
     
+    {
+      FreeProws((LPSRowSet)arg3);
+    }
     XSRETURN(argvi);
   fail:
     
     
+    {
+      FreeProws((LPSRowSet)arg3);
+    }
     SWIG_croak_null();
   }
 }
@@ -13933,8 +13942,7 @@ XS(_wrap_IAddrBook_PrepareRecips) {
       MAPIFreeBuffer(arg3);
     }
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     XSRETURN(argvi);
   fail:
@@ -13945,8 +13953,7 @@ XS(_wrap_IAddrBook_PrepareRecips) {
       MAPIFreeBuffer(arg3);
     }
     {
-      if(arg4)
-      MAPIFreeBuffer(arg4);
+      FreeProws((LPSRowSet)arg4);
     }
     SWIG_croak_null();
   }

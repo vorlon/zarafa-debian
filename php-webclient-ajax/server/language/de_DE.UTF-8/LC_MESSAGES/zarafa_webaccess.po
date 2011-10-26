@@ -4,9 +4,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-18 00:03+0200\n"
-"PO-Revision-Date: 2011-10-17 08:54+0200\n"
-"Last-Translator: André <welter@bitbone.de>\n"
+"POT-Creation-Date: 2011-10-22 00:02+0200\n"
+"PO-Revision-Date: 2011-10-21 08:51+0200\n"
+"Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -2109,7 +2109,7 @@ msgstr "Diese Nachricht löschen"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:144
 msgid "Redirect to"
-msgstr "Weiterleiten nach"
+msgstr "Umleiten an"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:156
 msgid "Forward to"

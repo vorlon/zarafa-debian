@@ -420,3 +420,9 @@
 {
 	FreeProws((LPSRowSet)*$1);
 }
+
+%typemap(freearg) LPADRLIST INOUT, LPSRowSet INOUT, LPSRowSet INPUT, LPADRLIST INPUT
+{
+    FreeProws((LPSRowSet)$1);
+}
+

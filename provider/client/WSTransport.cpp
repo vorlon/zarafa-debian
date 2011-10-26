@@ -125,9 +125,13 @@ WSTransport::WSTransport(ULONG ulUIFlags)
     
 	m_lpCmd = NULL;
 	m_ecSessionGroupId = 0;
+	m_ecSessionId = 0;
 	m_ulReloadId = 1;
+	m_ulServerCapabilities = 0;
+	m_llFlags = 0;
 	m_ulUIFlags = ulUIFlags;
 	memset(&m_sServerGuid, 0, sizeof(m_sServerGuid));
+
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
 	pthread_mutex_init(&m_hDataLock, &attr);

@@ -230,6 +230,13 @@ MAPINotifSink::~MAPINotifSink() {
     
     pthread_cond_destroy(&m_hCond);
     pthread_mutex_destroy(&m_hMutex);
+
+	std::list<NOTIFICATION *>::iterator iterNotif;
+
+    for(iterNotif = m_lstNotifs.begin(); iterNotif != m_lstNotifs.end(); iterNotif++) 
+		MAPIFreeBuffer(*iterNotif);	
+
+	m_lstNotifs.clear();
 }
 
 // Add a notification to the queue; Normally called as notification sink

@@ -389,7 +389,7 @@ ItemModule.prototype.addAttachments = function(attachmentsElement, attachments)
 					attachmentLink.setAttribute("attach_num", (attachment["attach_num"]||false));
 					attachmentLink.href = "#";
 					var name = attachment["name"] || _("Untitled Attachment");
-					attachmentLink.innerHTML = name + " (" + kb + ");";
+					dhtml.addTextNode(attachmentLink, name + " (" + kb + ");");
 					dhtml.addEvent(this, attachmentLink, "mousedown", eventAttachmentClick);
 
 					dhtml.addTextNode(attachmentsElement, NBSP);

@@ -159,7 +159,8 @@ freebusymodule.prototype.initView = function(zoom,user,recips)
 
 	//make day headers
 	for(var i=0;i<this.numberOfDays;i++){
-		curViewDate = new Date(this.startViewDate.getTime()+(ONE_DAY*i));
+		curViewDate = new Date(this.startViewDate.getTime());
+		curViewDate.setDate(curViewDate.getDate()+i);
 		var textToDisplay = DAYS_SHORT[curViewDate.getDay()]+" "
 			+curViewDate.getDate()+" "
 			+MONTHS_SHORT[curViewDate.getMonth()]+" "
@@ -619,11 +620,31 @@ freebusymodule.prototype.updateBusyInfo = function(clientuser)
 		}
 		var newBusyElement = dhtml.addElement(screenIn, "div", className);
 		newBusyElement.setAttribute("clientuser",clientuser);
-		newBusyElement.style.left = (25*((startUnixTime-this.startViewDate.getTime()/1000)/(ONE_HOUR/1000)))/this.zoom+"px";
+		secondsToStart = this.getDSTCorrectedDiff(this.startViewDate, new Date(startUnixTime*1000));
+		secondsToEnd = this.getDSTCorrectedDiff(this.startViewDate, new Date(dueUnixTime*1000));
+		newBusyElement.style.left = (25*(secondsToStart/(ONE_HOUR/1000)))/this.zoom+"px";
 		newBusyElement.style.top = 31+(this.getPositionUserList(clientuser)*19)+3+"px";
-		newBusyElement.style.width = (25*((dueUnixTime-startUnixTime)/(ONE_HOUR/1000)))/this.zoom+"px";
+		newBusyElement.style.width = (25*((secondsToEnd-secondsToStart)/(ONE_HOUR/1000)))/this.zoom+"px";
 		this.busyElements[clientuser].push(newBusyElement);
 	}
+}
+
+/**
+ * Get the DST corrected difference between start and end in seconds
+ *
+ * This is used for displaying times with a constant scale (so the scale doesn't
+ * show any DST jumps). This function outputs the number of seconds that there would 
+ * be between start and end if there were no DST jumps at all.
+ * @param Date start The start date
+ * @param Date end The end date
+ * @return Number The number of seconds without DST jumps
+ */
+freebusymodule.prototype.getDSTCorrectedDiff = function(start, end)
+{
+	var actualSeconds = (end.getTime() - start.getTime())/1000;
+	var bias = end.getTimezoneOffset() * 60 - start.getTimezoneOffset() * 60;
+	
+	return actualSeconds - bias;
 }
 
 /**
@@ -785,10 +806,16 @@ freebusymodule.prototype.updatePicker = function()
 		var dueUnixTime = this.dtp.getEndValue(); 
 	}
 
-	var tmpWidth,tmpLeft;
+	var tmpWidth,tmpLeft,tmpRight,secondsDiff;
 	
-	tmpLeft = (25*((startUnixTime-this.startViewDate.getTime()/1000)/(ONE_HOUR/1000)))/this.zoom;
-	tmpWidth = ((25*((dueUnixTime-startUnixTime)/(ONE_HOUR/1000)))/this.zoom);
+	// Calculate the nubmer of pixels of the left edge from the start of the timeline
+	secondsDiff = this.getDSTCorrectedDiff(this.startViewDate, new Date(startUnixTime*1000) );
+	tmpLeft = (25*(( secondsDiff )/(ONE_HOUR/1000)))/this.zoom;
+
+	// Calculate the width by first calculating the number of pixels to the right edge from the start of the timeline
+	secondsDiff = this.getDSTCorrectedDiff(this.startViewDate, new Date(dueUnixTime*1000) );
+	tmpRight = (25*(( secondsDiff )/(ONE_HOUR/1000)))/this.zoom;
+	tmpWidth = tmpRight - tmpLeft;
 	
 	//start time out of view leftside
 	if(tmpLeft<0){
@@ -1027,8 +1054,15 @@ function eventFreebusyPickHour(moduleObject, element, event)
 		
 		fb_module.freezeScrollbar = true;
 		var duration = (fb_module.getEndMeetingTime() - fb_module.getStartMeetingTime());
+
+		var startTimeline = new Date(fb_module.startViewDate.getTime());
+		var hoursSinceStartTimeline = xrel/25 * fb_module.zoom;
+		// If hoursSinceStartTimeline is higher than 24 it will go to the next day(s)
+		startTimeline.setHours( Math.floor(hoursSinceStartTimeline) );
+		// Use modulo to get the remainder of the hour and multiply it by 60 to get the minutes
 		// clicktime is the exact moment of clicking
-		var clicktime = fb_module.startViewDate.getTime()/1000 + ((xrel/25) * 60 * 60 * fb_module.zoom);
+		var clicktime = startTimeline.setMinutes( hoursSinceStartTimeline%1*60 ) / 1000;
+
 		var start = Math.floor(clicktime/(30*60))*30*60;
 		fb_module.setStartMeetingTime(start);
 		fb_module.setEndMeetingTime(start + duration);

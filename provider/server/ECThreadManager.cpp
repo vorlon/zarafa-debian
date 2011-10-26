@@ -547,7 +547,7 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait)
         m_queueItems.pop();
     } else {
         // No item waiting
-        if(bWait) {
+        if(bWait && !m_bExit) {
             pthread_mutex_lock(&m_mutexIdle); m_ulIdle++; pthread_mutex_unlock(&m_mutexIdle);
             
             // If requested, wait until item is available

@@ -214,7 +214,7 @@ readmailitemmodule.prototype.setAttachments = function(message)
 							kb = size.firstChild.nodeValue + _("B");
 						}
 
-						attachmentElement.innerHTML = dhtml.getTextNode(name, _("Untitled Attachment")) + " (" + kb + ");"+ NBSP;
+						dhtml.addTextNode(attachmentElement, dhtml.getTextNode(name, _("Untitled Attachment")) + " (" + kb + ");"+ NBSP );
 						dhtml.addEvent(this, attachmentElement, "mousedown", eventAttachmentClick);
 					}
 				}

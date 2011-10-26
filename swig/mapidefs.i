@@ -271,7 +271,7 @@ public:
     virtual HRESULT GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG *OUTPUT, LPENTRYID* OUTPUT /*lppEntryID*/,
 				     LPTSTR* OUTPUT /*lppszExplicitClass*/) = 0;
     virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT StoreLogoff(ULONG *lpulFlags) = 0;
+    virtual HRESULT StoreLogoff(ULONG * INOUT /*lpulFlags*/) = 0;
     virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags) = 0;
     virtual HRESULT GetOutgoingQueue(ULONG ulFlags, IMAPITable ** OUTPUT/*lppTable*/) = 0;
     virtual HRESULT SetLockState(IMessage *lpMessage, ULONG ulLockState) = 0;
@@ -375,7 +375,7 @@ public:
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, IAttach** OUTPUT /*lppAttach*/) = 0;
     virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT GetRecipientTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods) = 0;
+    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST INPUT /*lpMods*/) = 0;
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
     virtual HRESULT SetReadFlag(ULONG ulFlags) = 0;
 	%extend {

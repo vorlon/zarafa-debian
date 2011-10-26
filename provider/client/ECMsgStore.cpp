@@ -1142,6 +1142,9 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	if (hr != hrSuccess)
 		goto exit;
 
+	ECFreeBuffer(lpsPropArray);
+	lpsPropArray = NULL;
+
 	hr = ECAllocateBuffer(sizeof(SPropValue)*1, (void**)&lpsPropArray);
 	if (hr != hrSuccess)
 		goto exit;

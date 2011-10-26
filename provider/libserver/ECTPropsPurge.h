@@ -65,6 +65,8 @@ public:
     static ECRESULT GetDeferredCount(ECDatabase *lpDatabase, unsigned int *lpulCount);
     static ECRESULT GetLargestFolderId(ECDatabase *lpDatabase, unsigned int *lpulFolderId);
     static ECRESULT AddDeferredUpdate(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId);
+    static ECRESULT AddDeferredUpdateNoPurge(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulOldFolderId, unsigned int ulObjId);
+    static ECRESULT NormalizeDeferredUpdates(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFolderId);
 
 private:
     ECRESULT PurgeThread();

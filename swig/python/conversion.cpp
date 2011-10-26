@@ -376,10 +376,12 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, void *lpBase)
         PyErr_SetString(PyExc_RuntimeError, "ulPropTag or Value missing from SPropValue");
         goto exit;
     }
-    
+
+	lpProp->dwAlignPad = 0;	
     lpProp->ulPropTag = (ULONG)PyLong_AsUnsignedLong(ulPropTag);
     switch(PROP_TYPE(lpProp->ulPropTag)) {
         case PT_NULL:
+			lpProp->Value.x = 0;
             break;
         case PT_STRING8:
             PyString_AsStringAndSize(Value, &lpProp->Value.lpszA, NULL);
