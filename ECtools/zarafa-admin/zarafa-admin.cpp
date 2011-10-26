@@ -1337,6 +1337,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 	ArchiveManagePtr ptrArchiveManage;
 	ArchiveList lstArchives;
 	LPECUSERCLIENTUPDATESTATUS lpECUCUS = NULL;
+	convert_context converter;
 
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
 	if (hr != hrSuccess) {
@@ -1469,7 +1470,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 
-		hr = Archiver::CreateManage(lpSession, NULL, lpszName, &ptrArchiveManage);
+		hr = Archiver::CreateManage(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
 				cerr << "Error while obtaining archive details, " << getMapiCodeString(hr) << endl;

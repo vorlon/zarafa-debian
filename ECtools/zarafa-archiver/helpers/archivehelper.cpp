@@ -98,13 +98,13 @@ namespace za { namespace helpers {
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::Create(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveHelperPtr ptrArchiveHelper;
 	
 	try {
-		ptrArchiveHelper.reset(new ArchiveHelper(ptrArchiveStore, strFolder, lpszServerPath ? lpszServerPath : std::string()));
+		ptrArchiveHelper.reset(new ArchiveHelper(lpArchiveStore, strFolder, lpszServerPath ? lpszServerPath : std::string()));
 	} catch (std::bad_alloc &) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -135,13 +135,13 @@ exit:
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::Create(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveHelperPtr ptrArchiveHelper;
 	
 	try {
-		ptrArchiveHelper.reset(new ArchiveHelper(ptrArchiveStore, ptrArchiveFolder, lpszServerPath ? lpszServerPath : std::string()));
+		ptrArchiveHelper.reset(new ArchiveHelper(lpArchiveStore, lpArchiveFolder, lpszServerPath ? lpszServerPath : std::string()));
 	} catch (std::bad_alloc &) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -204,8 +204,8 @@ exit:
 /**
  * Constructor
  */
-ArchiveHelper::ArchiveHelper(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const std::string &strServerPath)
-: m_ptrArchiveStore(ptrArchiveStore)
+ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath)
+: m_ptrArchiveStore(lpArchiveStore, true)
 , m_strFolder(strFolder)
 , m_strServerPath(strServerPath)
 { }
@@ -213,9 +213,9 @@ ArchiveHelper::ArchiveHelper(MsgStorePtr &ptrArchiveStore, const std::string &st
 /**
  * Constructor
  */
-ArchiveHelper::ArchiveHelper(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const std::string &strServerPath)
-: m_ptrArchiveStore(ptrArchiveStore)
-, m_ptrArchiveFolder(ptrArchiveFolder)
+ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath)
+: m_ptrArchiveStore(lpArchiveStore, true)
+, m_ptrArchiveFolder(lpArchiveFolder, true)
 , m_strServerPath(strServerPath)
 { }
 
@@ -229,6 +229,7 @@ HRESULT ArchiveHelper::Init()
 
 	PROPMAP_INIT_NAMED_ID(ATTACHED_USER_ENTRYID, PT_BINARY, PSETID_Archive, dispidAttachedUser)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_TYPE, PT_LONG, PSETID_Archive, dispidType)
+	PROPMAP_INIT_NAMED_ID(ATTACH_TYPE, PT_LONG, PSETID_Archive, dispidAttachType)
 	PROPMAP_INIT_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidSpecialFolderEntryIds);
 	PROPMAP_INIT(m_ptrArchiveStore)
 	
@@ -257,7 +258,7 @@ HRESULT ArchiveHelper::GetAttachedUser(entryid_t *lpsUserEntryId)
 	MAPIFolderPtr ptrFolder;
 	SPropValuePtr ptrPropValue;
 	
-	hr = GetArchiveFolder(&ptrFolder);
+	hr = GetArchiveFolder(false, &ptrFolder);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -286,7 +287,7 @@ HRESULT ArchiveHelper::SetAttachedUser(const entryid_t &sUserEntryId)
 	MAPIFolderPtr ptrFolder;
 	SPropValue sPropValue = {0};
 
-	hr = GetArchiveFolder(&ptrFolder);
+	hr = GetArchiveFolder(true, &ptrFolder);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -303,13 +304,15 @@ exit:
 /**
  * Get an SObjectEntry that uniquely identifies this archive.
  *
+ * @param[in]	bCreate
+ * 					Create the folder if it doesn't exist.
  * @param[out]	lpSObjectEntry
  *					Pointer to a SObjectEntry structure that will be populated with the unique
  *					reference to this archive.
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::GetArchiveEntry(SObjectEntry *lpsObjectEntry)
+HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry)
 {
 	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrStoreEntryId;
@@ -320,7 +323,7 @@ HRESULT ArchiveHelper::GetArchiveEntry(SObjectEntry *lpsObjectEntry)
 	if (hr != hrSuccess)
 		goto exit;
 		
-	hr = GetArchiveFolder(&ptrFolder);
+	hr = GetArchiveFolder(bCreate, &ptrFolder);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -341,24 +344,31 @@ exit:
 /**
  * Get the archive type of this archive.
  *
- * @param[out]	lpaType
+ * @param[out]	lparchType
  *					Pointer to a ArchiveType enum that will be set to the type
  *					of this archive.
+ * @param[out]	lpattachType
+ *					Pointer to a AttachType enum that will be set to the way this
+ * 					archive was attached (explicit / implicit).
  */
-HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lpaType)
+HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType)
 {
 	HRESULT hr = hrSuccess;
-	SPropValuePtr ptrArchiveType;
+	SPropValuePtr ptrPropVal;
+	MAPIFolderPtr ptrArchiveFolder;
 
-	hr = HrGetOneProp(m_ptrArchiveStore, PROP_ARCHIVE_TYPE, &ptrArchiveType);
+	ArchiveType archType;
+	AttachType attachType;
+
+	hr = HrGetOneProp(m_ptrArchiveStore, PROP_ARCHIVE_TYPE, &ptrPropVal);
 	if (hr == MAPI_E_NOT_FOUND) {
-		*lpaType = UndefArchive;
+		archType = UndefArchive;
 		hr = hrSuccess;
 	} else if (hr == hrSuccess) {
-		switch (ptrArchiveType->Value.l) {
+		switch (ptrPropVal->Value.l) {
 			case SingleArchive:
 			case MultiArchive:
-				*lpaType = (ArchiveType)ptrArchiveType->Value.l;
+				archType = (ArchiveType)ptrPropVal->Value.l;
 				break;
 
 			default:
@@ -366,7 +376,41 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lpaType)
 				break;
 		}
 	}
+	if (hr != hrSuccess)
+		goto exit;
 
+	if (lpattachType) {
+		hr = GetArchiveFolder(true, &ptrArchiveFolder);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = HrGetOneProp(ptrArchiveFolder, PROP_ATTACH_TYPE, &ptrPropVal);
+		if (hr == MAPI_E_NOT_FOUND) {
+			attachType = ExplicitAttach;
+			hr = hrSuccess;
+		} else if (hr == hrSuccess) {
+			switch (ptrPropVal->Value.l) {
+				case ExplicitAttach:
+				case ImplicitAttach:
+					attachType = (AttachType)ptrPropVal->Value.l;
+					break;
+
+				default:
+					hr = MAPI_E_CORRUPT_DATA;
+					break;
+			}
+		}
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	if (lparchType)
+		*lparchType = archType;
+
+	if (lpattachType)
+		*lpattachType = attachType;
+
+exit:
 	return hr;
 }
 
@@ -378,16 +422,29 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lpaType)
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::SetArchiveType(ArchiveType aType)
+HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachType)
 {
 	HRESULT hr = hrSuccess;
-	SPropValue sArchiveType = {0};
+	MAPIFolderPtr ptrArchiveFolder;
+	SPropValue sPropVal = {0};
 
-	sArchiveType.ulPropTag = PROP_ARCHIVE_TYPE;
-	sArchiveType.Value.l = aType;
+	sPropVal.ulPropTag = PROP_ARCHIVE_TYPE;
+	sPropVal.Value.l = archType;
 
-	hr = HrSetOneProp(m_ptrArchiveStore, &sArchiveType);
+	hr = HrSetOneProp(m_ptrArchiveStore, &sPropVal);
+	if (hr != hrSuccess)
+		goto exit;
 
+	hr = GetArchiveFolder(true, &ptrArchiveFolder);
+	if (hr != hrSuccess)
+		goto exit;
+
+	sPropVal.ulPropTag = PROP_ATTACH_TYPE;
+	sPropVal.Value.l = attachType;
+
+	hr = HrSetOneProp(ptrArchiveFolder, &sPropVal);
+
+exit:
 	return hr;
 }
 
@@ -454,7 +511,7 @@ HRESULT ArchiveHelper::SetPermissions(const entryid_t &sUserEntryId, bool bWrita
 	
 	// Grant read only permissions on the archive folder for this user (unless bWritable is requested).
 	// Grant no access for all other users (everyone)
-	hr = GetArchiveFolder(&ptrFolder);
+	hr = GetArchiveFolder(true, &ptrFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -556,7 +613,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Sessi
 			goto exit;
 			
 		if (ptrFolderType->Value.l == FOLDER_ROOT)
-			hr = GetArchiveFolder(&ptrArchiveFolder);
+			hr = GetArchiveFolder(true, &ptrArchiveFolder);
 		
 		else {		
 			hr = GetArchiveFolderFor(ptrParentFolder, ptrSession, &ptrArchiveParentFolder);
@@ -642,13 +699,15 @@ HRESULT ArchiveHelper::GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder)
 /**
  * Get the archive folder. This opens the actual folder if only a name was specified.
  *
+ * @param[in]	bCreate
+ * 					Create the folder if it doesn't exist.
  * @param[out]	lppArchiveFolder
  *					Pointer to the MAPIFolder pointer that will be assigned the address of the
  *					returned folder.
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::GetArchiveFolder(LPMAPIFOLDER *lppArchiveFolder)
+HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder)
 {
 	HRESULT hr = hrSuccess;
 	StoreHelperPtr ptrStoreHelper;
@@ -661,7 +720,7 @@ HRESULT ArchiveHelper::GetArchiveFolder(LPMAPIFOLDER *lppArchiveFolder)
 		if (m_strFolder.empty())
 			hr = ptrStoreHelper->GetIpmSubtree(&m_ptrArchiveFolder);
 		else
-			hr = ptrStoreHelper->GetFolder(m_strFolder, true, &m_ptrArchiveFolder);
+			hr = ptrStoreHelper->GetFolder(m_strFolder, bCreate, &m_ptrArchiveFolder);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -681,7 +740,7 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSp
 	MAPIFolderPtr ptrSpecialFolder;
 	SPropValuePtr ptrEntryID;
 
-	hr = GetArchiveFolder(&ptrArchiveRoot);
+	hr = GetArchiveFolder(true, &ptrArchiveRoot);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -759,7 +818,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 
 	if (sfWhich == sfBase) {
 		// We need to get the archive root to create the special root folder in
-		hr = GetArchiveFolder(&ptrParent);
+		hr = GetArchiveFolder(true, &ptrParent);
 	} else {
 		// We need to get the special root to create the other special folders in
 		hr = GetSpecialFolder(sfBase, &ptrParent);

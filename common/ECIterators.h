@@ -53,25 +53,21 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <mapi_ptr.h>
 
-class ECFolderIterator
-      : public boost::iterator_facade<
-          ECFolderIterator,
-		  MAPIFolderPtr,
-          boost::single_pass_traversal_tag>
+class ECHierarchyIteratorBase
 {
 public:
-	ECFolderIterator(): m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0) {}  // creates the "end" iterator
-	ECFolderIterator(LPMAPIFOLDER lpFolder, ULONG ulFlags = 0, ULONG ulDepth = 0);
+	ECHierarchyIteratorBase(): m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0) {}  // creates the "end" iterator
+	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
 
-	MAPIFolderPtr& dereference() const
+	MAPIContainerPtr& dereference() const
 	{
 		ASSERT(m_ptrCurrent && "attempt to dereference end iterator");
-		return const_cast<MAPIFolderPtr&>(m_ptrCurrent);
+		return const_cast<MAPIContainerPtr&>(m_ptrCurrent);
 	}
 
 	void increment();
 
-	bool equal(const ECFolderIterator &rhs) const
+	bool equal(const ECHierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent; 
 	}
@@ -79,13 +75,109 @@ public:
 private:
 	friend class boost::iterator_core_access;
 
-	MAPIFolderPtr	m_ptrFolder;
-	ULONG			m_ulFlags;
-	ULONG			m_ulDepth;
-	MAPITablePtr	m_ptrTable;
-	mapi_rowset_ptr	m_ptrRows;
-	ULONG			m_ulRowIndex;
-	MAPIFolderPtr	m_ptrCurrent;
+	MAPIContainerPtr	m_ptrContainer;
+	ULONG				m_ulFlags;
+	ULONG				m_ulDepth;
+	MAPITablePtr		m_ptrTable;
+	mapi_rowset_ptr		m_ptrRows;
+	ULONG				m_ulRowIndex;
+	MAPIContainerPtr	m_ptrCurrent;
 };
+
+template <typename ContainerPtrType>
+class ECHierarchyIterator
+	: public boost::iterator_facade<
+		ECHierarchyIterator<ContainerPtrType>,
+		ContainerPtrType,
+		boost::single_pass_traversal_tag>
+	, public ECHierarchyIteratorBase
+{
+public:
+	ECHierarchyIterator() {}
+	ECHierarchyIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0)
+		: ECHierarchyIteratorBase(lpContainer, ulFlags, ulDepth) {}
+
+	ContainerPtrType& dereference() const
+	{
+		ECHierarchyIteratorBase::dereference().QueryInterface(m_ptr);
+		return m_ptr;
+	}
+
+private:
+	mutable ContainerPtrType	m_ptr;
+};
+
+typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
+typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
+
+
+
+class ECContentsIteratorBase
+{
+protected:
+	ECContentsIteratorBase(): m_ulFlags(0), m_ulRowIndex(0) {}  // creates the "end" iterator
+	ECContentsIteratorBase(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags, bool bOwnRestriction);
+
+	UnknownPtr& dereference() const
+	{
+		ASSERT(m_ptrCurrent && "attempt to dereference end iterator");
+		return const_cast<UnknownPtr&>(m_ptrCurrent);
+	}
+
+	void increment();
+
+	bool equal(const ECContentsIteratorBase &rhs) const
+	{
+		return m_ptrCurrent == rhs.m_ptrCurrent; 
+	}
+
+private:
+	friend class boost::iterator_core_access;
+
+	MAPIContainerPtr	m_ptrContainer;
+	ULONG				m_ulFlags;
+	SRestrictionPtr		m_ptrRestriction;
+	MAPITablePtr		m_ptrTable;
+	mapi_rowset_ptr		m_ptrRows;
+	ULONG				m_ulRowIndex;
+	UnknownPtr			m_ptrCurrent;
+};
+
+template <typename ContainerPtrType>
+class ECContentsIterator
+	: public boost::iterator_facade<
+		ECContentsIterator<ContainerPtrType>,
+		ContainerPtrType,
+		boost::single_pass_traversal_tag>
+	, public ECContentsIteratorBase
+{
+public:
+	ECContentsIterator() {}
+	ECContentsIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0)
+		: ECContentsIteratorBase(lpContainer, NULL, ulFlags, false) {}
+	ECContentsIterator(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags = 0)
+		: ECContentsIteratorBase(lpContainer, lpRestriction, ulFlags, false) {}
+
+	ContainerPtrType& dereference() const
+	{
+		ECContentsIteratorBase::dereference().QueryInterface(m_ptr);
+		return m_ptr;
+	}
+
+private:
+	mutable ContainerPtrType	m_ptr;
+};
+
+typedef ECContentsIterator<MessagePtr> ECMessageIterator;
+typedef ECContentsIterator<MailUserPtr> ECMailUserIterator;
+
+
+/*
+ * Declare ECContentsIterator<MailUserPtr> contructor specializations.
+ * Needed to ensure no groups are returned.
+ */
+template <> ECContentsIterator<MailUserPtr>::ECContentsIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags);
+template <> ECContentsIterator<MailUserPtr>::ECContentsIterator(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags);
+
 
 #endif // ndef ECIterators_INCLUDED

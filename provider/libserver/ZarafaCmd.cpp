@@ -3345,7 +3345,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 							goto exit;
 						}
 					} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-						if (!sUserDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
+						if (!sUserDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true)) {
 							er = ZARAFA_E_UNABLE_TO_COMPLETE;	// Reason 2
 							goto exit;
 						}

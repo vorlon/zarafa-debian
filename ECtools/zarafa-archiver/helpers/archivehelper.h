@@ -59,6 +59,7 @@
 #include <mapi_ptr.h>
 
 #include "archiver-session_fwd.h"
+#include "tstring.h"
 
 class ECLogger;
 
@@ -73,6 +74,11 @@ enum ArchiveType {
 	MultiArchive = 2
 };
 
+enum AttachType {
+	ExplicitAttach = 0,
+	ImplicitAttach = 1
+};
+
 /**
  * The ArchiveHelper class is a utility class that operates on a message store that's used as
  * an archive.
@@ -80,17 +86,17 @@ enum ArchiveType {
 class ArchiveHelper
 {
 public:
-	static HRESULT Create(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
-	static HRESULT Create(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
 	static HRESULT Create(SessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
 	~ArchiveHelper();
 	
 	HRESULT GetAttachedUser(entryid_t *lpsUserEntryId);
 	HRESULT SetAttachedUser(const entryid_t &sUserEntryId);
-	HRESULT GetArchiveEntry(SObjectEntry *lpsObjectEntry);
+	HRESULT GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry);
 
-	HRESULT GetArchiveType(ArchiveType *lpaType);
-	HRESULT SetArchiveType(ArchiveType aType);
+	HRESULT GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType);
+	HRESULT SetArchiveType(ArchiveType archType, AttachType attachType);
 	
 	HRESULT SetPermissions(const entryid_t &sUserEntryId, bool bWritable);
 	
@@ -99,15 +105,15 @@ public:
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
 	HRESULT GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder);
 
-	HRESULT GetArchiveFolder(LPMAPIFOLDER *lppArchiveFolder);
+	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
 
 	MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
 
 	HRESULT PrepareForFirstUse(ECLogger *lpLogger = NULL);
 
 private:
-	ArchiveHelper(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const std::string &strServerPath);
-	ArchiveHelper(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const std::string &strServerPath);
+	ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath);
+	ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath);
 	HRESULT Init();
 
 	enum eSpecFolder {
@@ -122,12 +128,13 @@ private:
 private:
 	MsgStorePtr	m_ptrArchiveStore;
 	MAPIFolderPtr m_ptrArchiveFolder;
-	std::string	m_strFolder;
+	tstring	m_strFolder;
 	const std::string m_strServerPath;
 	
 	PROPMAP_START
 	PROPMAP_DEF_NAMED_ID(ATTACHED_USER_ENTRYID)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_TYPE)
+	PROPMAP_DEF_NAMED_ID(ATTACH_TYPE)
 	PROPMAP_DEF_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS)
 };
 

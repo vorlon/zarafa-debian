@@ -11543,6 +11543,17 @@
 		  </varlistentry>
 		  
 		  <varlistentry>
+			<term><option>enable_auto_attach</option></term>
+			<listitem>
+			  <para> Specify whether on each archive run an auto-attach run
+			  is performed in order to match the attached archives to the
+			  requested state as specified in LDAP or ADS.
+			  </para>
+			  <para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
 			<term><option>log_method</option></term>
 			<listitem>
 			  <para>The method which should be used for logging. Valid

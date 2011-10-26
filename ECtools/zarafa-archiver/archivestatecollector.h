@@ -47,60 +47,50 @@
  * 
  */
 
-#ifndef mapi_ptr_INCLUDED
-#define mapi_ptr_INCLUDED
+#ifndef ArchiveStateCollector_INCLUDED
+#define ArchiveStateCollector_INCLUDED
 
-#include "mapi_ptr/mapi_object_ptr.h"
-#include "mapi_ptr/mapi_memory_ptr.h"
-#include "mapi_ptr/mapi_array_ptr.h"
-#include "mapi_ptr/mapi_rowset_ptr.h"
+#include "archiver-session_fwd.h"
+#include "archiver-common.h"
+#include "archivestateupdater_fwd.h"
+#include "tstring.h"
 
-#include <mapix.h>
-#include <edkmdb.h>
-#include <edkguid.h>
+#include <boost/smart_ptr.hpp>
+#include <map>
+#include <mapidefs.h>
 
-#include "IECServiceAdmin.h"
-#include "IECSecurity.h"
-#include "IECSingleInstance.h"
-#include "ECGuid.h"
+class ArchiveStateCollector;
+typedef boost::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
-DEFINEMAPIPTR(ABContainer);
-DEFINEMAPIPTR(AddrBook);
-DEFINEMAPIPTR(DistList);
-DEFINEMAPIPTR(ECSecurity);
-DEFINEMAPIPTR(ECServiceAdmin);
-DEFINEMAPIPTR(ECSingleInstance);
-DEFINEMAPIPTR(ExchangeManageStore);
-DEFINEMAPIPTR(ExchangeModifyTable);
-DEFINEMAPIPTR(MAPIContainer);
-DEFINEMAPIPTR(MAPIFolder);
-DEFINEMAPIPTR(MAPIProp);
-DEFINEMAPIPTR(MAPISession);
-DEFINEMAPIPTR(MAPITable);
-DEFINEMAPIPTR(MailUser);
-DEFINEMAPIPTR(Message);
-DEFINEMAPIPTR(MsgServiceAdmin);
-DEFINEMAPIPTR(MsgStore);
-DEFINEMAPIPTR(ProfAdmin);
-DEFINEMAPIPTR(ProfSect);
-DEFINEMAPIPTR(Unknown);
-DEFINEMAPIPTR(Stream);
-typedef mapi_object_ptr<IAttach, IID_IAttachment> AttachPtr;	// Nice... MS (not Mark S) is a bit inconsistent here.
+class ECLogger;
 
+class ArchiveStateCollector {
+public:
+	static HRESULT Create(const SessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector);
 
-typedef mapi_memory_ptr<ECPERMISSION> ECPermissionPtr;
-typedef mapi_memory_ptr<ENTRYID> EntryIdPtr;
-typedef mapi_memory_ptr<ENTRYLIST> EntryListPtr;
-typedef mapi_memory_ptr<MAPIERROR> MAPIErrorPtr;
-typedef mapi_memory_ptr<ROWLIST> RowListPtr;
-typedef mapi_memory_ptr<SPropValue> SPropValuePtr;
-typedef mapi_memory_ptr<SPropTagArray> SPropTagArrayPtr;
-typedef mapi_memory_ptr<SRestriction> SRestrictionPtr;
-typedef mapi_memory_ptr<SSortOrderSet> SSortOrderSetPtr;
-typedef mapi_memory_ptr<WCHAR> WStringPtr;
+	~ArchiveStateCollector();
+	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);
 
-typedef mapi_array_ptr<ECPERMISSION> ECPermissionArrayPtr;
-typedef mapi_array_ptr<SPropValue> SPropArrayPtr;
+public:
+	struct ArchiveInfo {
+		tstring userName;
+		entryid_t storeId;
+		std::list<tstring> lstServers;
+		std::list<tstring> lstCouplings;
+		ObjectEntryList lstArchives;
+	};
+	typedef std::map<entryid_t, ArchiveInfo> ArchiveInfoMap;
 
+private:
+	ArchiveStateCollector(const SessionPtr &ptrSession, ECLogger *lpLogger);
+	HRESULT PopulateUserList();
+	HRESULT PopulateFromContainer(LPABCONT lpContainer);
 
-#endif // ndef mapi_ptr_INCLUDED
+private:
+	SessionPtr	m_ptrSession;
+	ECLogger	*m_lpLogger;
+
+	ArchiveInfoMap	m_mapArchiveInfo;
+};
+
+#endif // ndef ArchiveStateCollector_INCLUDED

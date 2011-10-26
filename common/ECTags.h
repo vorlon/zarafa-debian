@@ -82,9 +82,9 @@
 #define PR_EC_OFFLINE_PATH_A			PROP_TAG(PT_STRING8,	PR_EC_BASE+0x10) /* same as PR_EC_CONTACT_ENTRYID, but on different objects! */
 #define PR_EC_OFFLINE_PATH_W			PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x10) /* same as PR_EC_CONTACT_ENTRYID, but on different objects! */
 
-#define PR_EC_SERVERNAME				PROP_TAG(PT_TSTRING,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on different objects! */
-#define PR_EC_SERVERNAME_A				PROP_TAG(PT_STRING8,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on different objects! */
-#define PR_EC_SERVERNAME_W				PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on different objects! */
+#define PR_EC_SERVERNAME				PROP_TAG(PT_TSTRING,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
+#define PR_EC_SERVERNAME_A				PROP_TAG(PT_STRING8,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
+#define PR_EC_SERVERNAME_W				PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
 
 ////////////////////////////////////////////////////////////////////////////////
 

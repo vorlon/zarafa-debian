@@ -18,6 +18,8 @@ libarchiver_la_SOURCES = \
 	archivemanage.cpp archivemanage.h \
 	archiver.cpp archiver.h \
 	archivectrl.cpp archivectrl.h \
+	archivestatecollector.cpp archivestatecollector.h \
+	archivestateupdater.cpp archivestateupdater.h \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
 	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \

@@ -802,6 +802,10 @@ HRESULT CopySOAPRowToMAPIRow(void* lpProvider, struct propValArray *lpsRowSrc, L
 				if(ECABContainer::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
 					continue;
 				break;
+			case MAPI_STORE:
+				if (ECMsgStore::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)
+					continue;
+				break;
 		}
 
 		if (ECGenericProp::TableRowGetProp(lpProvider, &lpsRowSrc->__ptr[j], &lpsRowDst[j], lpBase, ulType) == erSuccess)

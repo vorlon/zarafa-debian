@@ -56,6 +56,8 @@
 #include "operations/copier.h"
 #include "operations/stubber.h"
 #include "operations/deleter.h"
+#include "archivestatecollector.h"
+#include "archivestateupdater.h"
 
 #include "ECLogger.h"
 #include "ECConfig.h"
@@ -206,11 +208,30 @@ exit:
  *
  * @return HRESULT
  */
-eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly)
+eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach)
 {
 	HRESULT hr = hrSuccess;
 
+	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
+		ArchiveStateCollectorPtr ptrArchiveStateCollector;
+		ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+		hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrArchiveStateUpdater->UpdateAll();
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
 	hr = ProcessAll(bLocalOnly, &ArchiveControlImpl::DoArchive);
+
+exit:
 	return MAPIErrorToArchiveError(hr);
 }
 
@@ -222,11 +243,30 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly)
  *
  * @return HRESULT
  */
-eResult ArchiveControlImpl::Archive(const char *lpszUser)
+eResult ArchiveControlImpl::Archive(const TCHAR *lpszUser, bool bAutoAttach)
 {
 	HRESULT hr = hrSuccess;
 
+	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
+		ArchiveStateCollectorPtr ptrArchiveStateCollector;
+		ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+		hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrArchiveStateUpdater->Update(lpszUser);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
 	hr = DoArchive(lpszUser);
+
+exit:
 	return MAPIErrorToArchiveError(hr);
 }
 
@@ -259,7 +299,7 @@ eResult ArchiveControlImpl::CleanupAll(bool bLocalOnly)
  *
  * @return HRESULT
  */
-eResult ArchiveControlImpl::Cleanup(const char *lpszUser)
+eResult ArchiveControlImpl::Cleanup(const TCHAR *lpszUser)
 {
 	HRESULT hr = hrSuccess;
 
@@ -276,7 +316,7 @@ eResult ArchiveControlImpl::Cleanup(const char *lpszUser)
  */ 
 HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 {
-	typedef std::list<std::string> StringList;
+	typedef std::list<tstring> StringList;
 	
 	HRESULT hr = hrSuccess;
 	StringList lstUsers;
@@ -295,10 +335,10 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing "SIZE_T_PRINTF"%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
 	for (iUser = lstUsers.begin(); iUser != lstUsers.end(); ++iUser) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing user %s.", iUser->c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing user '" TSTRING_PRINTF "'.", iUser->c_str());
 		hr = (this->*fnProcess)(iUser->c_str());
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to archive user %s. (hr=0x%08x)", iUser->c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to archive user '" TSTRING_PRINTF "'. (hr=0x%08x)", iUser->c_str(), hr);
 			continue;
 		}
 	}
@@ -313,7 +353,7 @@ exit:
  * 
  * @param[in]	lpszUser	The username of the user to process.
  */
-HRESULT ArchiveControlImpl::DoArchive(const char *lpszUser)
+HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 {
 	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrUserStore;
@@ -332,7 +372,7 @@ HRESULT ArchiveControlImpl::DoArchive(const char *lpszUser)
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Archiving store for user %s", lpszUser);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Archiving store for user '" TSTRING_PRINTF "'", lpszUser);
 
 	hr = m_ptrSession->OpenStoreByName(lpszUser, &ptrUserStore);
 	if (hr != hrSuccess) {
@@ -356,7 +396,7 @@ HRESULT ArchiveControlImpl::DoArchive(const char *lpszUser)
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "List of archives is corrupt for user %s, skipping user.", lpszUser);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "List of archives is corrupt for user '" TSTRING_PRINTF "', skipping user.", lpszUser);
 			hr = hrSuccess;
 		} else
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get list of archives. (hr=%s)", stringify(hr, true).c_str());
@@ -364,7 +404,7 @@ HRESULT ArchiveControlImpl::DoArchive(const char *lpszUser)
 	}
 
 	if (lstArchives.empty()) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "%s has no attached archives", lpszUser);
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "'" TSTRING_PRINTF "' has no attached archives", lpszUser);
 		goto exit;
 	}
 
@@ -447,7 +487,7 @@ exit:
  * 
  * @param[in]	lpszUser	The username of the user to process.
  */
-HRESULT ArchiveControlImpl::DoCleanup(const char *lpszUser)
+HRESULT ArchiveControlImpl::DoCleanup(const TCHAR *lpszUser)
 {
 	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrUserStore;
@@ -459,7 +499,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const char *lpszUser)
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Cleanup store for user %s", lpszUser);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Cleanup store for user '" TSTRING_PRINTF "'", lpszUser);
 
 	hr = m_ptrSession->OpenStoreByName(lpszUser, &ptrUserStore);
 	if (hr != hrSuccess) {
@@ -476,7 +516,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const char *lpszUser)
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "List of archives is corrupt for user %s, skipping user.", lpszUser);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "List of archives is corrupt for user '" TSTRING_PRINTF "', skipping user.", lpszUser);
 			hr = hrSuccess;
 		} else
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get list of archives. (hr=0x%08x)", hr);
@@ -484,7 +524,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const char *lpszUser)
 	}
 
 	if (lstArchives.empty()) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "%s has no attached archives", lpszUser);
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "'" TSTRING_PRINTF "' has no attached archives", lpszUser);
 		goto exit;
 	}
 
@@ -803,7 +843,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, LPM
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrArchiveHelper->GetArchiveFolder(&ptrArchiveFolder);
+	hr = ptrArchiveHelper->GetArchiveFolder(true, &ptrArchiveFolder);
 	if (hr != hrSuccess)
 		goto exit;
 

@@ -214,6 +214,8 @@ public:
 	// Called when session is reloaded
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
 
+	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+
 protected:
 	HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, const IMessageFactory &refMessageFactory, ULONG *lpulObjType, LPUNKNOWN *lppUnk);
 

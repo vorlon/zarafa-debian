@@ -3324,3 +3324,40 @@ exit:
 	return hr;
 }
 
+
+HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
+{
+	HRESULT hr = hrSuccess;
+	ExchangeManageStorePtr ptrEMS;
+	ULONG cbStoreId;
+	EntryIdPtr ptrStoreId;
+	MsgStorePtr ptrMsgStore;
+
+	if (lpMAPISession == NULL || lpMsgStore == NULL || lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE|MDB_WRITE)) || lppMsgStore == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = lpMsgStore->QueryInterface(ptrEMS.iid, &ptrEMS);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ulFlags & MAPI_UNICODE) {
+		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE, &cbStoreId, &ptrStoreId);
+	} else {
+		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", 0, &cbStoreId, &ptrStoreId);
+	}
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid, ulFlags & MDB_WRITE, &ptrMsgStore);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrMsgStore->QueryInterface(IID_IMsgStore, (LPVOID*)lppMsgStore);
+
+exit:
+	return hr;
+}

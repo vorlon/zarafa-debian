@@ -1061,7 +1061,7 @@ function eventFreebusyPickHour(moduleObject, element, event)
 		startTimeline.setHours( Math.floor(hoursSinceStartTimeline) );
 		// Use modulo to get the remainder of the hour and multiply it by 60 to get the minutes
 		// clicktime is the exact moment of clicking
-		var clicktime = startTimeline.setMinutes( hoursSinceStartTimeline%1*60 ) / 1000;
+		var clicktime = startTimeline.setMinutes( (hoursSinceStartTimeline % 1) * 60 ) / 1000;
 
 		var start = Math.floor(clicktime/(30*60))*30*60;
 		fb_module.setStartMeetingTime(start);
