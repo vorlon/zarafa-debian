@@ -268,7 +268,7 @@ function advFindRenderRowColumnData(moduleObject, itemData, properties) {
 				} else {
 					var folderName = NBSP;
 				}
-				value = folderName;
+				value = folderName.htmlEntities();
 				break;
 			case "alldayevent":
 				var checked = "";
@@ -420,7 +420,7 @@ function advFindRenderRowColumnData(moduleObject, itemData, properties) {
 				} else if(xmlNode && xmlNode.getAttribute("type") == "timestamp_date") {
 					value = strftime_gmt(_("%a %x %X"), xmlValue);
 				} else if(typeof xmlValue != null) {
-					value = xmlValue;
+					value = xmlValue.htmlEntities();
 				} else {
 					value = NBSP;
 				}
@@ -433,7 +433,7 @@ function advFindRenderRowColumnData(moduleObject, itemData, properties) {
 		var message_flags = parseInt(dhtml.getXMLValue(itemData, "message_flags", -1), 10);
 		if((message_flags != -1) && (message_flags & MSGFLAG_READ) != MSGFLAG_READ) {
 			if(value != null) {
-				value = "<b>" + value + "</b>";
+				value = "<b>" + value.htmlEntities() + "</b>";
 			}
 		}
 
