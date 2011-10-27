@@ -55,8 +55,8 @@
 #include <string>
 
 #include <mapidefs.h>
+#include <mapix.h>
 class ECLogger;
-class IMAPISession;
 
 HRESULT ValidateArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, unsigned int *lpulArchivedUsers, unsigned int *lpulMaxUsers);
 HRESULT GetArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, unsigned int *lpulArchivedUsers);
