@@ -616,10 +616,11 @@ ECRESULT ECGetContentChangesHelper::Init()
 	ECRESULT	er = erSuccess;
 	DB_RESULT	lpDBResult = NULL;
 	DB_ROW		lpDBRow;
-	std::string	strQuery = "SELECT MAX(id),(SELECT MAX(id) FROM changes) FROM changes WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
-
+	std::string	strQuery;
 
 	ASSERT(m_lpDatabase);
+
+	strQuery = "SELECT MAX(id) FROM changes WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
@@ -631,10 +632,23 @@ ECRESULT ECGetContentChangesHelper::Init()
 	
 	if (lpDBRow[0])
 		m_ulMaxFolderChange = atoui(lpDBRow[0]);
-		
-	if (lpDBRow[1])
-		m_ulMaxSystemChange = atoui(lpDBRow[1]);	
 	
+	m_lpDatabase->FreeResult(lpDBResult);
+	lpDBResult = NULL;
+
+	strQuery = "SELECT MAX(id) FROM changes";
+	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+		
+	if ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult)) == NULL || lpDBRow == NULL) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+
+	if (lpDBRow[0])
+		m_ulMaxSystemChange = atoui(lpDBRow[0]);
+
 	// Here we setup the classes to delegate specific work to	
 	if (m_ulChangeId == 0) {
 		/*
