@@ -941,8 +941,18 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 		ulType = atoui(lpDBRow[FIELD_NR_TYPE]);
 
 		// Find the right place to put things. 
-		
-		iterObjIds = mapObjIds.find(key);
+
+		// In an MVI column, we need to find the exact row to put the data in. We could get order id 0 from the database
+		// while it was not requested. If that happens, then we should just discard the data.
+		// In a non-MVI column, orderID from the DB is 0, and we should write that value into all rows with this object ID.
+		// The lower_bound makes sure that if the requested row had order ID 1, we can still find it.
+		if(ulType & MVI_FLAG)
+			iterObjIds = mapObjIds.find(key);
+		else {
+			ASSERT(key.ulOrderId == 0);
+			iterObjIds = mapObjIds.lower_bound(key);
+		}
+			
 		if(iterObjIds == mapObjIds.end())
 			continue; // Got data for a row we didn't request ? (Possible for MVI queries)
 			
