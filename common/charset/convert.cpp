@@ -132,6 +132,10 @@ namespace details {
 	 * other characters are represented by an HTML entity. Note: the HTMLENTITY modifier may only
 	 * be applied when the fromcode is CHARSET_WCHAR (this is purely an implementation limitation)
 	 *
+     * Note that in release builds, the FORCE flag is implicit. This means that a conversion error
+     * is never generated. If you require an error on conversion problems, you must pass the NOFORCE
+     * modifier. This has no effect in debug builds.
+	 *
 	 * @param tocode Destination charset
 	 * @param fromcode Source charset
 	 */
@@ -163,6 +167,8 @@ namespace details {
             while(i != vOptions.end()) {
                 if(*i == "FORCE") {
                     m_bForce = true;
+                } if(*i == "NOFORCE") {
+                    m_bForce = false;
                 } else if(*i == "HTMLENTITIES" && stricmp(fromcode, CHARSET_WCHAR) == 0) {
                 	m_bHTML = true;
                 } else vOptionsFiltered.push_back(*i);

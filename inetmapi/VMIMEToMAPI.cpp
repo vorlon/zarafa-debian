@@ -2085,12 +2085,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			try {
 				// check charset validity
 				// since this text is saved in a PT_BINARY, it needs to be valid data to convert to the plain-text version.
-				m_converter.convert_to<std::string>(bodyCharset.getName().c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				m_converter.convert_to<std::string>((bodyCharset.getName() + "//NOFORCE").c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
 			}
 			catch (convert_exception &ce) {
 				lpLogger->Log(EC_LOGLEVEL_FATAL, "Incorrect charset for html body: %s, trying to recover", bodyCharset.getName().c_str());
-				std::string charset = bodyCharset.getName() + "//IGNORE";
-				strHTML = m_converter.convert_to<std::string>(charset.c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				strHTML = m_converter.convert_to<std::string>((bodyCharset.getName() + "//FORCE").c_str(), strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
 			}
 			
 			// write codepage for PR_HTML property
