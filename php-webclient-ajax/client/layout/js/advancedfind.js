@@ -433,7 +433,7 @@ function advFindRenderRowColumnData(moduleObject, itemData, properties) {
 		var message_flags = parseInt(dhtml.getXMLValue(itemData, "message_flags", -1), 10);
 		if((message_flags != -1) && (message_flags & MSGFLAG_READ) != MSGFLAG_READ) {
 			if(value != null) {
-				value = "<b>" + value.htmlEntities() + "</b>";
+				value = "<b>" + value + "</b>";
 			}
 		}
 
