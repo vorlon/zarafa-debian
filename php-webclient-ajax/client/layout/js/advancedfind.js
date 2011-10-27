@@ -419,7 +419,7 @@ function advFindRenderRowColumnData(moduleObject, itemData, properties) {
 					value = strftime(_("%a %x %X"), xmlValue);
 				} else if(xmlNode && xmlNode.getAttribute("type") == "timestamp_date") {
 					value = strftime_gmt(_("%a %x %X"), xmlValue);
-				} else if(typeof xmlValue != null) {
+				} else if(typeof xmlValue == "string") {
 					value = xmlValue.htmlEntities();
 				} else {
 					value = NBSP;

@@ -528,7 +528,7 @@ def ValidateDBVersions(db):
     for result in results:
         rev += 1
         if result[0] != rev:
-            if rev == 4 || rev == 23:
+            if rev == 4 or rev == 23:
                 # skip non-mandatory revisions
                 rev += 1
             else:
