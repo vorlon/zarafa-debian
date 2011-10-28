@@ -927,14 +927,56 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 
 	if (!m_setNewMessages.empty()) {
-		unsigned int ulMinChangeId = 0;
+		std::set<unsigned int> setChangeIds;
 		
-		// Delete all entries that have a changeid that are greater or equal to the new change id.
-		strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>=" + stringify(ulMaxChange);
-		er = m_lpDatabase->DoDelete(strQuery);
+		strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId);
+		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			goto exit;
-			
+
+		while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
+			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+				er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+				goto exit;
+			}
+			setChangeIds.insert(atoui(lpDBRow[0]));
+		}
+
+		m_lpDatabase->FreeResult(lpDBResult);
+		lpDBResult = NULL;
+
+		if (!setChangeIds.empty()) {
+			// We'll delete all entries with a change id greater or equal to ulMaxChange and all
+			// entries that are smaller than the two highest entries that are lower than ulMaxChange.
+			// After the commit that will leave us with 3 sets.
+			std::set<unsigned int> setDeleteIds;
+			std::set<unsigned int>::const_iterator iter;
+
+			// Find the first item that is ulMaxChange or higher
+			iter = setChangeIds.lower_bound(ulMaxChange);
+			if (iter != setChangeIds.end())
+				std::copy(iter, setChangeIds.end(), std::inserter(setDeleteIds, setDeleteIds.begin()));
+
+			// Try to ge back two items
+			for (int i = 0; iter != setChangeIds.begin() && i < 2; ++i, --iter);
+			std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
+
+			if (!setDeleteIds.empty()) {
+				ASSERT(setChangeIds.size() - setDeleteIds.size() <= 2);
+				
+				strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
+				for (iter = setDeleteIds.begin(); iter != setDeleteIds.end(); ++iter) {
+					strQuery.append(stringify(*iter));
+					strQuery.append(1, ',');
+				}
+				strQuery.resize(strQuery.size() - 1);	// Remove trailing ','
+				strQuery.append(1, ')');
+
+				er = m_lpDatabase->DoDelete(strQuery);
+				if (er != erSuccess)
+					goto exit;
+			}
+		}
 	
 		// Create the insert query
 		strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES ";
@@ -947,42 +989,9 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			goto exit;
-
-
-		// Leave three sets (including the current one)
-		strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " ORDER BY change_id DESC LIMIT 3";
-		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-		if (er != erSuccess)
-			goto exit;
-		
-		while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
-			unsigned int ulTmpChangeId;
-			
-			if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-				er = ZARAFA_E_DATABASE_ERROR; // this should never happen
-				goto exit;
-			}
-			
-			ulTmpChangeId = atoui(lpDBRow[0]);
-			
-			ASSERT(ulMinChangeId == 0 || ulTmpChangeId < ulMinChangeId);
-			ulMinChangeId = ulTmpChangeId;
-		}
-		
-		m_lpDatabase->FreeResult(lpDBResult);
-		lpDBResult = NULL;
-		
-		if (ulMinChangeId > 0) {
-			ASSERT(ulMinChangeId <= ulMaxChange);
-			strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id<" + stringify(ulMinChangeId);
-			er = m_lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess)
-				goto exit;
-		}
-
 	}
 	
-	*lpulMaxChange = ulMaxChange;	
+	*lpulMaxChange = ulMaxChange;
 
 exit:
 	if (lpDBResult)
