@@ -375,7 +375,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 			if (hr == hrSuccess) {
 				hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
 				if (hr != hrSuccess)
-					hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
+					hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_A, &ptrPropValueServerName);
 				if (hr != hrSuccess) {
 					hr = MAPI_E_UNCONFIGURED;
 					goto exit;
