@@ -130,6 +130,7 @@
 #include "restrictionutil.h"
 #include "rules.h"
 #include "archive.h"
+#include "helpers/mapiprophelper.h"
 #include "options.h"			// inetmapi/options.h
 #include "charset/convert.h"
 #include "base64.h"
@@ -1885,9 +1886,10 @@ HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage, IMAPIFolder *lpDeliver
 	IMessage *lpMessage = NULL;
 	IMAPIFolder *lpFolder = NULL;
 	LPSPropTagArray lpExclude = NULL;
+	za::helpers::MAPIPropHelperPtr ptrArchiveHelper;
 
-	SizedSPropTagArray(8, sptaReceivedBy) = {
-		8, {
+	SizedSPropTagArray(13, sptaReceivedBy) = {
+		13, {
 			/* Overriden by HrOverrideRecipProps() */
 			PR_MESSAGE_RECIP_ME,
 			PR_MESSAGE_TO_ME,
@@ -1898,26 +1900,21 @@ HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage, IMAPIFolder *lpDeliver
 			PR_RECEIVED_BY_ENTRYID,
 			PR_RECEIVED_BY_NAME,
 			PR_RECEIVED_BY_SEARCH_KEY,
+			/* Written by rules */
+			PR_LAST_VERB_EXECUTED,
+			PR_LAST_VERB_EXECUTION_TIME,
+			PR_ICON_INDEX,
 		}
 	};
 
-	SizedSPropTagArray(20, sptaFallback) = {
-		20, {
-			/* Overriden by HrOverrideRecipProps() */
-			PR_MESSAGE_RECIP_ME,
-			PR_MESSAGE_TO_ME,
-			PR_MESSAGE_CC_ME,
+	SizedSPropTagArray(12, sptaFallback) = {
+		12, {
 			/* Overriden by HrOverrideFallbackProps() */
 			PR_SENDER_ADDRTYPE,
 			PR_SENDER_EMAIL_ADDRESS,
 			PR_SENDER_ENTRYID,
 			PR_SENDER_NAME,
 			PR_SENDER_SEARCH_KEY,
-			PR_RECEIVED_BY_ADDRTYPE,
-			PR_RECEIVED_BY_EMAIL_ADDRESS,
-			PR_RECEIVED_BY_ENTRYID,
-			PR_RECEIVED_BY_NAME,
-			PR_RECEIVED_BY_SEARCH_KEY,
 			PR_SENT_REPRESENTING_ADDRTYPE,
 			PR_SENT_REPRESENTING_EMAIL_ADDRESS,
 			PR_SENT_REPRESENTING_ENTRYID,
@@ -1938,7 +1935,20 @@ HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage, IMAPIFolder *lpDeliver
 		lpExclude = (LPSPropTagArray)&sptaReceivedBy;
 
 	/* Copy message, exclude all previously set properties (Those are recipient dependent) */
-	hr = lpOrigMessage->CopyTo(0, NULL, lpExclude, 0, NULL, &IID_IMessage, lpMessage, 0, NULL);
+	hr = lpOrigMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptaReceivedBy, 0, NULL, &IID_IMessage, lpMessage, 0, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	// For a fallback, remove some more properties
+	if (bFallbackDelivery)
+		lpMessage->DeleteProps((LPSPropTagArray)&sptaFallback, 0);
+		
+	// Make sure the message is not attached to an archive
+	hr = za::helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	hr = ptrArchiveHelper->DetachFromArchives();
 	if (hr != hrSuccess)
 		goto exit;
 

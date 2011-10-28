@@ -133,12 +133,12 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 
 		strForwardText += L"\nSent: ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {
-			WCHAR buffer[32];
+			WCHAR buffer[64];
 			time_t t;
 			struct tm date;
 			FileTimeToUnixTime(ptrInfo[2].Value.ft, &t);
 			localtime_r(&t, &date);
-			wcsftime(buffer, 32, L"%c", &date);
+			wcsftime(buffer, arraySize(buffer), L"%c", &date);
 			strForwardText += buffer;
 		}
 
