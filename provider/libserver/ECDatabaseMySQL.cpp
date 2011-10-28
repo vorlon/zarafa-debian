@@ -529,11 +529,12 @@ exit:
  * @param[in] fStreamResult TRUE if data should be streamed instead of stored
  * @return result erSuccess or ZARAFA_E_DATABASE_ERROR
  */
-ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, bool fStreamResult) {
+ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult, bool fStreamResult) {
 
 	ECRESULT er = erSuccess;
+	DB_RESULT lpResult = NULL;
 
-	_ASSERT(strQuery.length()!= 0 && lpResult != NULL);
+	_ASSERT(strQuery.length()!= 0);
 
 	// Autolock, lock data
 	if(m_bAutoLock)
@@ -545,16 +546,21 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 	}
 
 	if(fStreamResult)
-    	*lpResult = mysql_use_result( &m_lpMySQL );
+    	lpResult = mysql_use_result( &m_lpMySQL );
     else
-    	*lpResult = mysql_store_result( &m_lpMySQL );
+    	lpResult = mysql_store_result( &m_lpMySQL );
     
-	if( *lpResult == NULL ) {
+	if( lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: %s, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str()); 
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
+	
+	if (lppResult)
+		*lppResult = lpResult;
+	else
+		FreeResult(lpResult);
 
 exit:
 	if (er != erSuccess) {
