@@ -75,7 +75,6 @@ public:
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, SessionPtr *lpptrSession);
 	~Session();
 	
-	//HRESULT OpenStoreByName(const std::string &strUser, LPMDB *lppMsgStore);
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
 	HRESULT OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore);
 	HRESULT OpenStore(const entryid_t &sEntryId, LPMDB *lppMsgStore);

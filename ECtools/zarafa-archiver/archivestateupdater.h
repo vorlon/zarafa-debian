@@ -62,6 +62,9 @@
 #include <list>
 #include <map>
 
+/**
+ * This class updates the current archive state to the should-be state.
+ */
 class ArchiveStateUpdater {
 public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;

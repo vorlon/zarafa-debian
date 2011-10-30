@@ -112,7 +112,7 @@ void print_help(ostream &ostr, const char *name)
 	ostr << "     --auto-attach                 : When no user is specified with -u, all users" << endl;
 	ostr << "                                     will have their archives attached or detached" << endl;
 	ostr << "                                     based on the LDAP/ADS settings. If a user is" << endl;
-	ostr << "                                     specified only that users store will be processed." << endl;
+	ostr << "                                     specified only that user's store will be processed." << endl;
 	ostr << "                                     This option can be combined with -A/--archive to" << endl;
 	ostr << "                                     force an auto-attach run regardless of the" << endl;
 	ostr << "                                     enable_auto_attach configuration option." << endl;

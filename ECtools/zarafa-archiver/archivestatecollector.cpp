@@ -60,6 +60,10 @@
 
 namespace details {
 
+	/**
+	 * Subclass of DataCollector that is used to get the current state
+	 * through the MailboxTable.
+	 */
 	class MailboxDataCollector : public DataCollector {
 	public:
 		MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
@@ -170,6 +174,12 @@ namespace details {
 	}
 }
 
+/**
+ * Create an ArchiveStateCollector instance.
+ * @param[in]	SessionPtr		The archive session
+ * @param[in]	lpLogger		The logger.
+ * @param[out]	lpptrCollector	The new ArchiveStateCollector instance.
+ */
 HRESULT ArchiveStateCollector::Create(const SessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
 {
 	HRESULT hr = hrSuccess;
@@ -188,6 +198,11 @@ exit:
 	return hr;
 }
 
+/**
+ * Constructor
+ * @param[in]	SessionPtr		The archive session
+ * @param[in]	lpLogger		The logger.
+ */
 ArchiveStateCollector::ArchiveStateCollector(const SessionPtr &ptrSession, ECLogger *lpLogger): m_ptrSession(ptrSession), m_lpLogger(lpLogger)
 {
 	if (m_lpLogger)
@@ -201,6 +216,11 @@ ArchiveStateCollector::~ArchiveStateCollector()
 	m_lpLogger->Release();
 }
 
+/**
+ * Return an ArchiveStateUpdater instance that can update the current state
+ * to the required state.
+ * @param[out]	lpptrUpdate		The new ArchiveStateUpdater instance.
+ */
 HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater)
 {
 	HRESULT hr = hrSuccess;
@@ -226,6 +246,11 @@ exit:
 	return hr;
 }
 
+/**
+ * Populate the user list through the GAL.
+ * When this method completes, a list will be available of all users that
+ * should have one or more archives attached to their primary store.
+ */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
 	HRESULT hr = hrSuccess;
@@ -255,6 +280,13 @@ exit:
 	return hr;
 }
 
+/**
+ * Populate the user list through one AB container.
+ * When this method completes, the userlist will be available for all users
+ * from the passed container that should have one or more archives attached to
+ * their primary store.
+ * @param[in]	lpContainer		The addressbook container to process.
+ */
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
 	HRESULT hr = hrSuccess;

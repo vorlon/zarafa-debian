@@ -260,11 +260,6 @@ exit:
  *
  * @return HRESULT
  */ 
-//HRESULT Session::OpenStoreByName(const string &strUser, LPMDB *lppMsgStore)
-//{
-//	return OpenStoreByName(convert_to<tstring>(strUser), lppMsgStore);
-//}
-
 HRESULT Session::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore)
 {
 	HRESULT hr = hrSuccess;

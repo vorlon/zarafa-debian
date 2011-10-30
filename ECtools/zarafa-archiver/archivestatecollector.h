@@ -64,6 +64,12 @@ typedef boost::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
 class ECLogger;
 
+/**
+ * The ArchiveStateCollector will construct the current archive state, which 
+ * is the set of currently attached archives for each primary store, and the
+ * should-be archive state, which is the set of attached archives for each
+ * primary store as specified in LDAP/ADS.
+ */
 class ArchiveStateCollector {
 public:
 	static HRESULT Create(const SessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector);

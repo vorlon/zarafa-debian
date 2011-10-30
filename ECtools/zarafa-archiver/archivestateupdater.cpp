@@ -64,7 +64,11 @@ using namespace za;
 using namespace za::helpers;
 
 namespace Predicates {
-	
+
+	/**
+	 * Compare two SObjectEntry instances.
+	 * This version does a binary compare of the embedded entry ids.
+	 */
 	class SObjectEntry_equals_binary {
 	public:
 		SObjectEntry_equals_binary(const SObjectEntry &objEntry): m_objEntry(objEntry) {}
@@ -74,6 +78,10 @@ namespace Predicates {
 	};
 
 
+	/**
+	 * Compare two SObjectEntry instances.
+	 * This method uses CompareEntryIDs to do the comparison.
+	 */
 	class SObjectEntry_equals_compareEntryId {
 	public:
 		SObjectEntry_equals_compareEntryId(IMAPISession *lpSession, const SObjectEntry &objEntry): m_lpSession(lpSession), m_objEntry(objEntry) {}
@@ -94,6 +102,10 @@ namespace Predicates {
 	};
 
 
+	/**
+	 * Compare a store entryid with the store entryid from an SObjectEntry instance.
+	 * This method uses CompareEntryIDs to do the comparison.
+	 */
 	class storeId_equals_compareEntryId {
 	public:
 		storeId_equals_compareEntryId(IMAPISession *lpSession, const entryid_t &storeId): m_lpSession(lpSession), m_storeId(storeId) {}
@@ -120,6 +132,15 @@ namespace Predicates {
 } // namespace Predicates
 
 
+/**
+ * Create an ArchiveStateUpdater instance.
+ * @param[in]	ptrSession		The archiver session.
+ * @param[in]	lpLogger		The logger.
+ * @param[in]	mapArchiveInfo	The map containing the users that have and/or
+ * 								should have an archive attached to their
+ * 								primary store.
+ * @param[out]	lpptrUpdater	The new ArchiveStateUpdater instance
+ */
 HRESULT ArchiveStateUpdater::Create(const SessionPtr &ptrSession, ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo, ArchiveStateUpdaterPtr *lpptrUpdater)
 {
 	HRESULT hr = hrSuccess;
@@ -138,6 +159,14 @@ exit:
 	return hr;
 }
 
+/**
+ * Constructor
+ * @param[in]	ptrSession		The archiver session.
+ * @param[in]	lpLogger		The logger.
+ * @param[in]	mapArchiveInfo	The map containing the users that have and/or
+ * 								should have an archive attached to their
+ * 								primary store.
+ */
 ArchiveStateUpdater::ArchiveStateUpdater(const SessionPtr &ptrSession, ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo): m_ptrSession(ptrSession), m_lpLogger(lpLogger), m_mapArchiveInfo(mapArchiveInfo)
 {
 	if (m_lpLogger)
@@ -151,6 +180,9 @@ ArchiveStateUpdater::~ArchiveStateUpdater()
 	m_lpLogger->Release();
 }
 
+/**
+ * Update all users to the required state.
+ */
 HRESULT ArchiveStateUpdater::UpdateAll()
 {
 	HRESULT hr = hrSuccess;
@@ -164,6 +196,10 @@ HRESULT ArchiveStateUpdater::UpdateAll()
 	return hr;
 }
 
+/**
+ * Update a single user to the required state.
+ * @param[in]	userName	The username of the user to update.
+ */
 HRESULT ArchiveStateUpdater::Update(const tstring &userName)
 {
 	HRESULT hr = hrSuccess;
@@ -195,6 +231,12 @@ exit:
 	return hr;
 }
 
+/**
+ * Update one single user.
+ * @param[in]	userId		The entryid of the user to update.
+ * @param[in[	info		The ArchiveInfo object containing the current and
+ * 							required state.
+ */
 HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInfo& info)
 {
 	HRESULT hr = hrSuccess;
@@ -220,6 +262,18 @@ HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInf
 return hr;
 }
 
+/**
+ * Remove/detach all implicit attached archives
+ * @param[in]	storeId		The entryid of the primary store to process.
+ * @param[in]	userName	The name of the user owning the store to process. This
+ * 							is an alternative way of finding the store if
+ * 							storeId is unwrapped.
+ * @param[in]	userId		The entryid of the user owning the store to process.
+ * 							This is an alternative way of finding the store if
+ * 							storeId is unwrapped and userName is unknown.
+ * @param[in]	lstArchives	The list of archives to remove the implicit attached
+ * 							archives from.
+ */
 HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const entryid_t &userId, const ObjectEntryList &lstArchives)
 {
 	HRESULT hr = hrSuccess;
@@ -332,6 +386,13 @@ exit:
 	return hr;
 }
 
+/**
+ * Split a coupling in a store name and a folder name.
+ * A coupling is defined as <storename>:<foldername>
+ * @param[in]	strCoupling		The coupling to parse
+ * @param[out]	lpstrArchive	The archive store name
+ * @param[out]	lpstrFolder		The archive folder name
+ */
 HRESULT ArchiveStateUpdater::ParseCoupling(const tstring &strCoupling, tstring *lpstrArchive, tstring *lpstrFolder)
 {
 	HRESULT hr = hrSuccess;
@@ -366,6 +427,12 @@ exit:
 	return hr;
 }
 
+/**
+ * Add/attach coupling based archives.
+ * @param[in]	userName		The username of the primary store to attach the
+ * 								archives to.
+ * @param[in]	lstCouplings	The list of couplings to attach to the store.
+ */
 HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings)
 {
 	HRESULT hr = hrSuccess;
@@ -411,6 +478,16 @@ exit:
 	return hr;
 }
 
+/**
+ * Add/attach server based archives.
+ * @param[in]	userName		The username of the primary store to attach the
+ * 								archives to.
+ * @param[in]	userId			The entryid of the user whose primary store to
+ * 								attach to.
+ * @param[in]	lstServers		The list of servers on which an archive for userName
+ * 								should be created or opened and attached to the
+ * 								primary store.
+ */
 HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entryid_t &userId, const std::list<tstring> &lstServers)
 {
 	HRESULT hr = hrSuccess;
@@ -457,6 +534,13 @@ exit:
 	return hr;
 }
 
+/**
+ * Verify the current state and update it to match the required state.
+ * @param[in]	userId		The entryid of the user whose primary store to
+ * 							process.
+ * @param[in]	info		ArchiveInfo instance containing the current and
+ * 							requried state.
+ */
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const ArchiveInfo& info)
 {
 	HRESULT hr = hrSuccess;
@@ -546,6 +630,13 @@ exit:
 	return hr;
 }
 
+/**
+ * Find the SObjectEntry for the archive specified by store- and foldername.
+ * @param[in]	strArchive	The store name of the archive.
+ * @param[in]	strFolder	The folder name of the archive.
+ * @param[out]	lpObjEntry	The returned SObjectEntry.
+ * @retval	MAPI_E_NOT_FOUND	The requested archive does not exist.
+ */
 HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry)
 {
 	HRESULT hr = hrSuccess;
