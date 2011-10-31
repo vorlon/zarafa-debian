@@ -950,7 +950,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 			// entries that are smaller than the two highest entries that are lower than ulMaxChange.
 			// After the commit that will leave us with 3 sets.
 			std::set<unsigned int> setDeleteIds;
-			std::set<unsigned int>::const_iterator iter;
+			std::set<unsigned int>::iterator iter;
 
 			// Find the first item that is ulMaxChange or higher
 			iter = setChangeIds.lower_bound(ulMaxChange);
