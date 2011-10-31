@@ -569,7 +569,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	ProfSectPtr		ptrGlobalProfSect;
 	ProfSectPtr		ptrProfSect;
 	MAPISessionPtr	ptrSession;
-	SPropValuePtr	ptrProfSectProp;
 
 	WSTransport		*lpTransport = NULL;
 	LPSPropValue	lpsPropValue = NULL;

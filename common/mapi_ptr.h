@@ -83,6 +83,7 @@ DEFINEMAPIPTR(MsgServiceAdmin);
 DEFINEMAPIPTR(MsgStore);
 DEFINEMAPIPTR(ProfAdmin);
 DEFINEMAPIPTR(ProfSect);
+DEFINEMAPIPTR(ProviderAdmin);
 DEFINEMAPIPTR(Unknown);
 DEFINEMAPIPTR(Stream);
 typedef mapi_object_ptr<IAttach, IID_IAttachment> AttachPtr;	// Nice... MS (not Mark S) is a bit inconsistent here.

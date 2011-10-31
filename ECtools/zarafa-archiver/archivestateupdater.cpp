@@ -333,17 +333,13 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		AttachType attachType;
 
 		hr = m_ptrSession->OpenStore(i->sStoreEntryId, &ptrArchStore);
-		if (hr == MAPI_E_UNCONFIGURED) {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store returned unconfigured, detaching it.");
+		if (hr == MAPI_E_NOT_FOUND) {
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store returned not found, detaching it.");
 			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(*i));
 			continue;
 		}
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store. hr=0x%08x", hr);
-			if (hr == MAPI_E_NOT_FOUND) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Possibly invalid entry, skipping...");
-				continue;
-			}
 			goto exit;
 		}
 

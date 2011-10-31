@@ -394,7 +394,7 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	WSTransport *lpNewTransport = NULL;
 
 	if (lpszServerName == NULL || lpTransport == NULL || lppTransport == NULL) {
-		hr = MAPI_E_NOT_FOUND;
+		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
