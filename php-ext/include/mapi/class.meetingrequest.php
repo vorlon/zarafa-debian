@@ -2798,6 +2798,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			|| ($newProps[$this->proptags['duedate']] != $oldProps[$this->proptags['duedate']])
 			|| $isRecurrenceChanged) {
 			$this->clearRecipientResponse($message);
+			$message[$this->proptags['owner_critical_change']] = time();
 
 			mapi_savechanges($message);
 			if ($attach) { // Also save attachment Object.
@@ -2816,8 +2817,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$recipsRows = mapi_table_queryallrows($recipTable, $this->recipprops);
 
 		foreach($recipsRows as $recipient) {
-			$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
-			mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
+			// Probably recipient is an organizer, not possible at the moment but for safety reasons.
+			if(($recipient[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer){
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
+				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
+			}
 		}
 	}
 
