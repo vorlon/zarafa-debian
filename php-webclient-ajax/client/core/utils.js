@@ -669,8 +669,14 @@ function parseEmailAddress(address)
 	
 	if(matches) {
 		result = new Object;
-		result.displayname = matches[2].trim();
-		result.emailaddress = matches[3].trim();
+		result.displayname = matches[2];
+		result.emailaddress = matches[3];
+
+		if(result.displayname)
+			result.displayname = result.displayname.trim();
+		if(result.emailaddress)
+			result.emailaddress = result.emailaddress.trim();
+
 	} else {
 		result = false;
 	}	
