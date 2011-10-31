@@ -75,11 +75,16 @@ function freebusymodule(startTime)
 	else{
 		this.startViewDate = new Date();
 	}
-	this.endViewDate = new Date(this.startViewDate.getTime()+(ONE_DAY*this.numberOfDays));
+
+	// Start from this.daysBefore before today
 	this.startViewDate.setHours(0);
 	this.startViewDate.setMinutes(0);
 	this.startViewDate.setSeconds(0);
-	this.startViewDate = new Date(this.startViewDate.getTime()-ONE_DAY*this.daysBefore);
+	this.startViewDate.setDate(-this.daysBefore);
+
+	// End this.numberOfDays after startViewDate
+	this.endViewDate = new Date(this.startViewDate.getTime());
+	this.endViewDate.setDate(this.numberOfDays);
 
 	// This flag is set when fb_module is initialized for the first time, so that we can keep the track
 	// of wheather we can change the resource recipient when we switch between view while create meetings
