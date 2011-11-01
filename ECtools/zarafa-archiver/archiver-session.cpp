@@ -764,7 +764,8 @@ HRESULT Session::CreateArchiveStore(const tstring& strUserName, const tstring& s
 	if (hr != hrSuccess)
 		goto exit;
 
-	// The returned entryids are unwrapped and unusable from external client code.
+	// The entryids returned from CreateEmptyStore are unwrapped and unusable from external client code. So
+	// we'll resolve the correct entryids through GetArchiveStoreEntryID.
 	hr = ptrRemoteServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &ptrStoreId);
 	if (hr != hrSuccess)
 		goto exit;
