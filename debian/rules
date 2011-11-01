@@ -1,0 +1,202 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+INSTDIR=$(CURDIR)/debian/tmp
+SMARTYVER=2.6.14
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CONFFLAG = ""
+else
+	CONFFLAG = "--enable-release"
+endif
+
+tversion := $(shell tar --version | head -1 | cut -f4 -d\ | head -c 4)
+ifeq "$(tversion)" "1.14"
+tstrip := --strip-path
+else
+tstrip := --strip-components
+endif
+
+config.status: configure
+	dh_testdir
+	# Add here commands to configure the package.
+	#[ -x bootstrap ] && ./bootstrap
+	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --with-distro=debian --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --with-userscript-prefix=/etc/zarafa/userscripts --with-quotatemplate-prefix=/etc/zarafa/quotamail --with-indexerscripts-prefix=/usr/share/zarafa/indexerscripts --disable-static --enable-tcmalloc --enable-unicode --disable-perl --enable-python --disable-swig $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
+
+# first entry point of dpkg-buildpackage
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
+	# Add here commands to clean up after the build process.
+	-$(MAKE) distclean
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	cp -f /usr/share/misc/config.guess config.guess
+endif
+	dh_clean 
+
+
+# second entry point of dpkg-buildpackage
+build: build-arch build-indep
+
+build-arch: build-arch-stamp
+build-arch-stamp:  config.status
+	# Add here commands to compile the arch part of the package.
+	# compile zarafa
+	$(MAKE) 
+	touch build-arch-stamp
+
+build-indep: build-indep-stamp
+build-indep-stamp:  config.status
+	# Add here commands to compile the indep part of the package.
+	# build files for webaccess?
+	touch build-indep-stamp
+
+
+# no install entry point
+
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -i 
+
+	# Add here commands to install the indep part of the package into
+	# debian/<package>-doc.
+	#INSTALLDOC#
+	$(MAKE) DESTDIR=$(INSTDIR) install-ajax-webaccess
+	$(MAKE) DESTDIR=$(INSTDIR) install-mobile-webaccess
+
+	# fix webaccess correct owner writable files
+	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess/tmp
+	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess-mobile/*
+	# add apache config
+	mkdir -p $(INSTDIR)/etc/apache2/sites-available
+	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess
+	mv $(INSTDIR)/usr/share/zarafa-webaccess-mobile/zarafa-webaccess-mobile.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess-mobile
+
+	dh_install -i --sourcedir=debian/tmp --fail-missing
+
+install-arch:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -s 
+
+	# Add here commands to install the arch part of the package into 
+	# debian/tmp.
+	$(MAKE) DESTDIR=$(INSTDIR) install
+
+	# since this is not linked to an initscript anymore, install the file ourselves.
+	mkdir -p $(INSTDIR)/etc/default
+	install -o root -g root -m 644 debian/zarafa-common.zarafa.default $(INSTDIR)/etc/default/zarafa
+
+	# link userscripts in /usr/share/zarafa/userscripts
+	mkdir -p $(INSTDIR)/usr/share/zarafa/userscripts
+	for file in `find $(INSTDIR)/etc/zarafa/userscripts -maxdepth 1 -type f`; do \
+		mv $$file $(INSTDIR)/usr/share/zarafa/userscripts; \
+		ln -sf /usr/share/zarafa/userscripts/`basename $$file` $$file; \
+	done
+	# link indexerscripts
+	ln -sf /usr/share/zarafa/indexerscripts $(INSTDIR)/etc/zarafa/indexerscripts
+
+# move example-config files
+	for package in spooler gateway monitor dagent ical indexer archiver; do \
+		mkdir -p $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
+		mv $(INSTDIR)/usr/share/doc/zarafa/example-config/$$package.cfg $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
+	done
+	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/autorespond $(INSTDIR)/usr/share/doc/zarafa-dagent/example-config
+	mkdir -p $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
+
+	# remove compiled python files
+	find $(INSTDIR) -name \*.pyc -exec rm {} \;
+# add php:Depends
+	echo php:Depends=phpapi-$(shell php-config5 --phpapi) > debian/php5-mapi.substvars
+
+# Build architecture independant packages using the common target.
+binary-indep: install-indep
+	dh_testdir -i
+	dh_testroot -i
+	dh_installdirs -i
+#	dh_movefiles -i
+# installs NEWS files
+	dh_installchangelogs -i
+	dh_compress -i
+	dh_fixperms -i -Xvar/lib/zarafa-webaccess/tmp -Xvar/lib/zarafa-webaccess-mobile/config -Xvar/lib/zarafa-webaccess-mobile/cache -Xvar/lib/zarafa-webaccess-mobile/templates_c
+	dh_pysupport -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture dependant packages using the common target.
+binary-arch-real: install-arch
+	dh_testdir
+	dh_testroot
+	cp -p $(CURDIR)/installer/licenseagreement/AGPL-3 $(CURDIR)/debian/copyright
+	# install empty paths not present in 'make install' from <packagename>.dirs file, in actual package directory, not in tmp.
+	dh_installdirs
+	dh_install --sourcedir=debian/tmp
+	dh_installchangelogs
+	dh_installdocs
+#	dh_installexamples
+#	dh_installmenu
+#	dh_installdebconf	
+#	dh_installlogrotate	
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+	dh_installinit --name zarafa-server
+	dh_installinit --name zarafa-spooler
+	dh_installinit --name zarafa-dagent
+	dh_installinit --name zarafa-gateway
+	dh_installinit --name zarafa-monitor
+	dh_installinit --name zarafa-ical
+	dh_installinit --name zarafa-indexer
+#	dh_installcron
+#	dh_installinfo
+#	dh_installman
+	dh_link
+	dh_strip --dbg-package=zarafa-dbg
+	dh_compress -X.py -X.pl
+	dh_fixperms
+#	dh_perl
+#	dh_python
+	dh_pysupport
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# last entry point of dpkg-buildpackage
+# but the ubuntu buildsystem may call 'binary-arch' insteadof 'binary' target as entry point
+binary-arch: binary
+binary:
+	# make sure these do not run concurrent
+	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-arch-real
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-indep
+
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 

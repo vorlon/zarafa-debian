@@ -1,0 +1,18 @@
+zarafa (7.0.1-28228) unstable; urgency=low
+
+  * new release, build using libgoogle-perftools
+
+ -- John van der Kamp <john@memleak.office.zarafa.com>  Wed, 20 Jul 2011 16:20:09 +0200
+
+zarafa (7.0.0-27791.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Make 3.0 (quilt) source format
+
+ -- John van der Kamp <john@memleak.office.zarafa.com>  Fri, 15 Jul 2011 16:36:34 +0200
+
+zarafa (7.0.0-27791) unstable; urgency=low
+
+  * First OpenSource release of Zarafa Collaboration Platform for Debian.
+
+ -- John van der Kamp <j.vdkamp@zarafa.com>  Fri, 15 Jul 2011 15:28:10 +0200

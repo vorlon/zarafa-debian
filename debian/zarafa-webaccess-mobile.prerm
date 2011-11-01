@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+# disable zarafa-webaccess-mobile for apache
+if [ -x "`which a2dissite`" ]; then
+  # no error, file may have been renamed
+  a2dissite zarafa-webaccess-mobile || true
+fi
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,75 @@
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          zarafa-indexer
+# Required-Start:    $syslog $network $remote_fs
+# Required-Stop:     $syslog $network $remote_fs
+# Should-Start:      zarafa-server
+# Should-Stop:       zarafa-server
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: The Search Indexer of the Zarafa Collaboration Platform
+# Description:       The Zarafa Indexer is the indexer daemon for full-text 
+#                    search through all objects (including attachments)
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+INDEXER=/usr/bin/zarafa-indexer
+DESC="Zarafa indexer"
+NAME=`basename $INDEXER`
+#QUIETDAEMON=--quiet
+PIDFILE=/var/run/$NAME.pid
+
+test -x $INDEXER || exit 0
+
+# Include zarafa defaults if available
+if [ -f /etc/default/zarafa ] ; then
+	. /etc/default/zarafa
+fi
+if [ -z "$ZARAFA_LOCALE" ]; then
+	ZARAFA_LOCALE="C"
+fi
+
+if [ -e $INDEXER_CONFIG ]; then
+	INDEXER_OPTS="$INDEXER_OPTS -c $INDEXER_CONFIG"
+fi
+
+#set -e
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+	if [ "$INDEXER_ENABLED" = "no" ]; then
+		log_warning_msg "Zarafa Search Indexer daemon not enabled in /etc/default/zarafa ... not starting"
+		exit 0
+	fi
+	log_begin_msg "Starting $DESC: $NAME"
+	export LC_ALL=$ZARAFA_LOCALE
+	export LANG=$ZARAFA_LOCALE
+	start-stop-daemon --start $QUIETDAEMON --pidfile $PIDFILE --exec $INDEXER -- $INDEXER_OPTS
+	log_end_msg $?
+	unset LC_ALL LANG
+	;;
+  stop)
+	log_begin_msg "Stopping $DESC: $NAME"
+	start-stop-daemon --stop $QUIETDAEMON --pidfile $PIDFILE --retry TERM/15/KILL --exec $INDEXER
+	log_end_msg $?
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  reload|force-reload)
+	log_begin_msg "Reloading $DESC: $NAME"
+	start-stop-daemon --stop $QUIETDAEMON --signal HUP --pidfile $PIDFILE --exec $INDEXER
+	log_end_msg $?
+	;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

@@ -1,0 +1,186 @@
+Source: zarafa
+Section: mail
+Priority: optional
+Maintainer: John van der Kamp <j.vdkamp@zarafa.com>
+Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, g++, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev
+Standards-Version: 3.7.3
+
+Package: zarafa
+Architecture: all
+Depends: zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-indexer
+Recommends: zarafa-webaccess
+Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
+ This groupware solution combines the usability of 
+ Outlook with the stability and flexibility of a Linux server.
+ .
+ It features a rich web-interface, the Zarafa WebAccess, and provides 
+ brilliant integration options with all sorts of clients including 
+ all most popular mobile platforms. 
+
+Package: zarafa-common
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: lsb-base
+Description: Shared files between ZCP services.
+ Common components for services of the Zarafa Collaboration Platform.
+
+Package: zarafa-server
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version})
+Description: Server component for the Zarafa Collaboration Platform
+ The key component of the ZCP, providing the server to which ZCP
+ clients connect. The server requires a MySQL server to use for
+ storage.
+
+Package: zarafa-dbg
+Priority: extra
+Architecture: any
+Section: debug
+Description: Debug files for the Zarafa Collaboration Platform
+ This package contains the debug symbols for the Zarafa
+ Collaboration Platform
+
+Package: zarafa-dev
+Priority: extra
+Architecture: any
+Depends: zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Description: C++ Development files for the Zarafa Collaboration Platform
+ Development files to create MAPI programs under Linux for use with
+ Zarafa. You can find examples and documentation on the website
+ http://developer.zarafa.com/
+
+Package: zarafa-client
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, locales
+Description: MAPI4Linux and the Zarafa MAPI provider libraries
+ The main libraries for any Zarafa client program. This package is
+ required by all Zarafa client programs.
+
+Package: zarafa-libs
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, libvmime0 (>= 0.9.2), libvmime0 (<< 1.0), libical0 (>= 0.44)
+Description: Conversion libraries between Open Standards and MAPI
+ Commonly used libraries by Zarafa Collaboration Platform client
+ programs.
+
+Package: zarafa-libarchiver
+Architecture: any
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-common (= ${binary:Version})
+Description: Library with shared ZCP archiver functionality
+ Library with shared archiver functionality for the Zarafa Collaboration Platform.
+
+Package: zarafa-utils
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version})
+Description: Admin command-line utils for the Zarafa Collaboration Platform
+ Commandline clients to control and check the ZCP server.
+
+Package: zarafa-monitor
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
+Description: Quota Monitor for the Zarafa Collaboration Platform
+ Regularly checks stores for total usage. If a quota limit has been
+ exceeded, an e-mail will be internally sent to this account.
+
+Package: zarafa-spooler
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Description: E-mail Spooler for the Zarafa Collaboration Platform
+ Sends all outgoing e-mail requests from Zarafa to an SMTP server.
+
+Package: zarafa-dagent
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Description: E-Mail Delivery Agent for the Zarafa Collaboration Platform
+ Delivers incoming e-mail from your SMTP server to stores in the
+ Zarafa server.
+
+Package: zarafa-gateway
+Architecture: any
+Suggests: python-mapi
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Description: POP3 and IMAP Gateway for the Zarafa Collaboration Platform
+ Provides access to the Zarafa server through the POP3 and IMAP
+ protocols.
+
+Package: zarafa-ical
+Architecture: any
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Description: ICal and CalDAV Gateway for the Zarafa Collaboration Platform
+ Provides access to the Zarafa server through the ICal and CalDAV
+ protocols.
+
+Package: python-mapi
+Architecture: any
+Section: python
+Conflicts: zarafa-python
+Replaces: zarafa-python
+Provides: zarafa-python
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), python-support
+Description: Python MAPI bindings
+ Using this module, you can create python programs which use MAPI
+ calls to interact with Zarafa.
+
+Package: php5-mapi
+Architecture: any
+Section: php
+Conflicts: zarafa (<< 7.0)
+Replaces: zarafa (<< 7.0)
+Depends: ${shlibs:Depends}, ${php:Depends}, zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), apache2 | apache-ssl | apache-perl | apache | httpd, libapache2-mod-php5 | libapache-mod-php5 | php5-cgi
+Description: PHP MAPI bindings
+ Using this module, you can create PHP programs which use MAPI
+ calls to interact with Zarafa.
+
+Package: zarafa-indexer
+Architecture: any
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), lsb-base, coreutils (>= 5.93), mktemp (>= 1.5), bash (>= 3.0), gawk, w3m, xsltproc, poppler-utils, unzip, file, catdoc
+Description: Indexer search engine for the Zarafa Collaboration Platform
+ Based on the CLucene search engine, the zarafa-indexer makes an index
+ per user of messages and attachments. When this service is enabled,
+ search queries on the server will use this index to quickly find
+ messages and even in contents of attached documents.
+
+Package: zarafa-archiver
+Architecture: any
+Depends: ${shlibs:Depends}, zarafa-libarchiver (= ${binary:Version})
+Description: Archive messages to a secondary Zarafa server
+ To decrease the database size of your production Zarafa server, the
+ Zarafa Archiver copies or moves messages to a secondary Zarafa
+ server. Clients will still be able to open the message from the
+ secondary Zarafa server directly.
+
+Package: zarafa-webaccess
+Architecture: all
+Section: web
+Depends: php5-mapi
+Description: A web interface for the Zarafa Collaboration Platform
+ Provides a web-client written in PHP that makes use of AJAX to allow
+ users to make full use of the Zarafa Collaboration Platform through a
+ modern web browser.
+
+Package: zarafa-webaccess-mobile
+Architecture: all
+Section: web
+Depends: php5-mapi
+Description: A mobile device optimized web interface to the Zarafa Collaboration Platform
+ Allows user to manage their e-mail, calendar and contacts by simple
+ web browsers as found on older mobile devices.

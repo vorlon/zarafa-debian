@@ -1,0 +1,8 @@
+usr/bin/zarafa-admin
+usr/bin/zarafa-fsck
+usr/bin/zarafa-passwd
+usr/bin/zarafa-stats
+usr/share/man/man1/zarafa-admin.1
+usr/share/man/man1/zarafa-fsck.1
+usr/share/man/man1/zarafa-passwd.1
+usr/share/man/man1/zarafa-stats.1
