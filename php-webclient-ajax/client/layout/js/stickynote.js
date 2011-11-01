@@ -52,7 +52,7 @@ function initStickyNote()
 	var title = dhtml.getElementById("windowtitle");
 	
 	if(title) {
-		title.innerHTML += ": " + dhtml.getElementById("subject").value;
+		title.innerHTML += ": " + dhtml.getElementById("subject").value.htmlEntities();
 	}
 	
 	// Color

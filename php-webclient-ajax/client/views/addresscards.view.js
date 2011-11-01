@@ -373,7 +373,7 @@ AddressCardsView.prototype.createContactItem = function(element, id, item)
 		var telephone_number = item.getElementsByTagName(j)[0];
 
 		if(telephone_number && telephone_number.firstChild) {
-			table.push("<tr><td class='info'>" + telephone_numbers[j] + ":</td><td class='value'>" + telephone_number.firstChild.nodeValue + "</td></tr>");
+			table.push("<tr><td class='info'>" + telephone_numbers[j] + ":</td><td class='value'>" + telephone_number.firstChild.nodeValue.htmlEntities() + "</td></tr>");
 		}
 	}
 	
@@ -383,7 +383,7 @@ AddressCardsView.prototype.createContactItem = function(element, id, item)
 		var email_address = item.getElementsByTagName("email_address_" + j)[0];
 		
 		if(email_address && email_address.firstChild) {
-			table.push("<tr><td class='info'>" + _("Email") + (j > 1?" " + j:"") + ":</td><td class='value'>" + email_address.firstChild.nodeValue + "</td></tr>");
+			table.push("<tr><td class='info'>" + _("Email") + (j > 1?" " + j:"") + ":</td><td class='value'>" + email_address.firstChild.nodeValue.htmlEntities() + "</td></tr>");
 		}
 	}
 	
