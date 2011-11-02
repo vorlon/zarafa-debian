@@ -167,7 +167,7 @@ namespace details {
             while(i != vOptions.end()) {
                 if(*i == "FORCE") {
                     m_bForce = true;
-                } if(*i == "NOFORCE") {
+                } else if(*i == "NOFORCE") {
                     m_bForce = false;
                 } else if(*i == "HTMLENTITIES" && stricmp(fromcode, CHARSET_WCHAR) == 0) {
                 	m_bHTML = true;
