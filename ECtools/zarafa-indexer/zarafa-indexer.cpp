@@ -287,7 +287,7 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 	pthread_cond_init(&g_hExitSignal, NULL);
 	g_hMainThread = pthread_self();
 
-	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting Zarafa indexer...");
+	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-indexer version " PROJECT_VERSION_INDEXER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	/*
 	 * Set the maxClauses value to something more useful
