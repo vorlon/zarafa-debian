@@ -2767,7 +2767,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 * @param Boolean isRecurrenceChanged for change in recurrence pattern.
 	 * isRecurrenceChanged true means Recurrence pattern has been changed, so clear all attendees response
 	 */
-	function checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged)
+	function checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged = false)
 	{
 		// If basedate is specified then we need to open exception message to clear recipient responses
 		if($basedate) {
@@ -2798,7 +2798,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			|| ($newProps[$this->proptags['duedate']] != $oldProps[$this->proptags['duedate']])
 			|| $isRecurrenceChanged) {
 			$this->clearRecipientResponse($message);
-			$message[$this->proptags['owner_critical_change']] = time();
+
+			$props = mapi_getprops($message, array($this->proptags['owner_critical_change']));
+			$props[$this->proptags['owner_critical_change']] = time();
+			mapi_setprops($message, $props);
 
 			mapi_savechanges($message);
 			if ($attach) { // Also save attachment Object.
