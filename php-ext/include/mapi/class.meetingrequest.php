@@ -2799,9 +2799,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			|| $isRecurrenceChanged) {
 			$this->clearRecipientResponse($message);
 
-			$props = mapi_getprops($message, array($this->proptags['owner_critical_change']));
-			$props[$this->proptags['owner_critical_change']] = time();
-			mapi_setprops($message, $props);
+			mapi_setprops($message, array($this->proptags['owner_critical_change'] => time()));
 
 			mapi_savechanges($message);
 			if ($attach) { // Also save attachment Object.
