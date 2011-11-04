@@ -105,6 +105,8 @@ void ber_auto_free(BerElement *ber) { ber_free(ber, 0); }
 typedef auto_free<char, auto_free_dealloc<void*, void, ldap_memfree> >auto_free_ldap_attribute;
 typedef auto_free<BerElement, auto_free_dealloc<BerElement*, void, ber_auto_free> >auto_free_ldap_berelement;
 typedef auto_free<LDAPMessage, auto_free_dealloc<LDAPMessage*, int, ldap_msgfree> >auto_free_ldap_message;
+typedef auto_free<LDAPControl, auto_free_dealloc<LDAPControl*, void, ldap_control_free> >auto_free_ldap_control;
+typedef auto_free<LDAPControl*, auto_free_dealloc<LDAPControl**, void, ldap_controls_free> >auto_free_ldap_controls;
 typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_value_free_len> >auto_free_ldap_berval;
 
 
@@ -115,6 +117,60 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 
 #define FETCH_ATTR_VALS 0
 #define DONT_FETCH_ATTR_VALS 1
+
+
+#define FOREACH_PAGING_SEARCH(basedn, scope, filter, attrs, flags, res) \
+{ \
+	bool morePages = false; \
+	struct berval sCookie = {0, NULL};									\
+	int ldap_page_size = strtoul(m_config->GetSetting("ldap_page_size"), NULL, 10); \
+	LDAPControl *serverControls[2] = { NULL, NULL }; \
+	auto_free_ldap_control pageControl; \
+	auto_free_ldap_controls returnedControls; \
+	int rc; \
+	\
+	ldap_page_size = (ldap_page_size == 0) ? 1000 : ldap_page_size; \
+	do { \
+		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
+		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &pageControl); \
+		if (rc != LDAP_SUCCESS) {										\
+			/* 'F' ? */ \
+			throw ldap_error(string("ldap_create_page_control: ") + ldap_err2string(rc), rc); \
+		} \
+		serverControls[0] = pageControl; \
+		\
+		/* search like normal, throws on error */ \
+		my_ldap_search_s(basedn, scope, filter, attrs, flags, &res, serverControls); \
+		\
+		/* get paged result */ \
+		rc = ldap_parse_result(m_ldap, res, NULL, NULL, NULL, NULL, &returnedControls, 0); \
+		if (rc != LDAP_SUCCESS && rc != LDAP_PARTIAL_RESULTS) { \
+			/* @todo, whoops do we really need to unbind? */ \
+			/* ldap_unbind(m_ldap); */ \
+			/* m_ldap = NULL; */ \
+			throw ldap_error(string("ldap_parse_result: ") + ldap_err2string(rc), rc); \
+		} \
+		\
+		if (sCookie.bv_val != NULL) { \
+			ber_memfree(sCookie.bv_val); \
+			sCookie.bv_val = NULL; \
+			sCookie.bv_len = 0; \
+		} \
+		\
+		/* rc = ldap_parse_page_control(m_ldap, returnedControls, NULL, &cookie); */ \
+		/* ctrlptr = ldap_control_find(LDAP_PARSE_PAGE_CONTROL, returnedControls, NULL); when we have more controls */ \
+		rc = ldap_parse_pageresponse_control(m_ldap, returnedControls[0], NULL, &sCookie); \
+		if (rc != LDAP_SUCCESS) {										\
+			throw ldap_error(string("ldap_parse_pageresponse_control: ") + ldap_err2string(rc), rc); \
+		}																\
+		/* you can't check on cookie->bv_len. and yes this is the stop value. */ \
+		morePages = sCookie.bv_val && strlen(sCookie.bv_val) > 0; \
+
+		
+#define END_FOREACH_LDAP_PAGING	\
+	} \
+	while (morePages == true); \
+}
 
 #define FOREACH_ENTRY(res) \
 { \
@@ -305,6 +361,7 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *
 		{ "ldap_network_timeout", "30", CONFIGSETTING_RELOADABLE },
 		{ "ldap_object_search_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_filter_cutoff_elements", "1000", CONFIGSETTING_RELOADABLE },
+		{ "ldap_page_size", "1000", CONFIGSETTING_RELOADABLE }, // MaxPageSize in ADS defaults to 1000
 
 		/* Aliases, they should be loaded through the propmap directive */
 		{ "0x6788001E", "", 0, CONFIGGROUP_PROPMAP },								/* PR_EC_EXCHANGE_DN */
@@ -444,7 +501,7 @@ LDAPUserPlugin::~LDAPUserPlugin() {
 		delete m_iconvrev;
 }
 
-void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres) throw(exception)
+void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls) throw(exception)
 {
 	int result=LDAP_SUCCESS;
 	string req;
@@ -453,7 +510,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	auto_free_ldap_message res;
 
 	gettimeofday(&tstart, NULL);
-	
+
 	if (attrs) {
 		for (unsigned int i = 0; attrs[i] != NULL; i++)
 			req += string(attrs[i]) + " ";
@@ -466,7 +523,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	}
 
 	if (m_ldap != NULL)
-		result = ldap_search_s(m_ldap,base,scope,filter,attrs,attrsonly,&res);
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, NULL, 0, &res);
 
 	if (m_ldap == NULL || result == LDAP_SERVER_DOWN) {
 		// server is 'down'. try 1 reconnect and retry, and if that fails, just completely fail
@@ -484,7 +541,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 
 		m_lpStatsCollector->Increment(SCN_LDAP_RECONNECTS);
 
-		result = ldap_search_s(m_ldap,base,scope,filter,attrs,attrsonly,&res);
+		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, NULL, 0, &res);
 	}
 
 	if(result == LDAP_SERVER_DOWN) {
@@ -495,7 +552,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		m_logger->Log(EC_LOGLEVEL_ERROR, "The ldap service is unavailable, or the ldap service is shutting down");
 
 		goto exit;
-	} else if(result != LDAP_SUCCESS) {
+	} else if(result != LDAP_SUCCESS && result != LDAP_PARTIAL_RESULTS) {
 		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
 		goto exit;
 	}
@@ -514,11 +571,11 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	m_lpStatsCollector->Max(SCN_LDAP_SEARCH_TIME_MAX, llelapsedtime);
 
 exit:
-	if (result != LDAP_SUCCESS) {
+	if (result != LDAP_SUCCESS && result != LDAP_PARTIAL_RESULTS) {
 		m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_FAILED);
 
 		// throw ldap error
-		throw ldap_error(string("ldap_search_s: ") + ldap_err2string(result), result);
+		throw ldap_error(string("ldap_search_ext_s: ") + ldap_err2string(result), result);
 	}
 
 	// In rare situations ldap_search_s can return LDAP_SUCCESS, but leave res at NULL. This
@@ -529,7 +586,7 @@ exit:
 	// The easiest way around this is to net let this function return with a NULL result.
 	else if (*lppres == NULL) {
 		m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_FAILED);
-		throw ldap_error("ldap_search_s: spurious NULL result");
+		throw ldap_error("ldap_search_ext_s: spurious NULL result");
 	}
 }
 
@@ -800,50 +857,52 @@ auto_ptr<signatures_t> LDAPUserPlugin::getAllObjectsByFilter(const string &based
 	/* Needed for cache */
 	CONFIG_TO_ATTR(request_attrs, modify_attr, "ldap_last_modification_attribute");
 
-	my_ldap_search_s(
-			(char *)basedn.c_str(), scope,
-			(char *)search_filter.c_str(), (char **)request_attrs->get(),
-			FETCH_ATTR_VALS, &res);
 
-	FOREACH_ENTRY(res) {
-		dn = GetLDAPEntryDN(entry);
+	FOREACH_PAGING_SEARCH((char *)basedn.c_str(), scope,
+						  (char *)search_filter.c_str(), (char **)request_attrs->get(),
+						  FETCH_ATTR_VALS, res)
+	{
+		FOREACH_ENTRY(res) {
+			dn = GetLDAPEntryDN(entry);
 
-		/* Make sure the DN isn't filtered because it is located in the subcontainer */
-		if (m_bHosted && !strCompanyDN.empty()) {
-			if (m_lpCache->isDNInList(dnFilter, dn))
+			/* Make sure the DN isn't filtered because it is located in the subcontainer */
+			if (m_bHosted && !strCompanyDN.empty()) {
+				if (m_lpCache->isDNInList(dnFilter, dn))
+					continue;
+			}
+
+			FOREACH_ATTR(entry) {
+				if (modify_attr && stricmp(att, modify_attr) == 0)
+					signature = getLDAPAttributeValue(att, entry);
+			}
+			END_FOREACH_ATTR
+
+			try {
+				objectid = GetObjectIdForEntry(entry);
+			} catch(data_error &e) {
+				m_logger->Log(EC_LOGLEVEL_WARNING, "Unable to get object id: %s", e.what());
 				continue;
-		}
+			}
 
-		FOREACH_ATTR(entry) {
-			if (modify_attr && stricmp(att, modify_attr) == 0)
-				signature = getLDAPAttributeValue(att, entry);
-		}
-		END_FOREACH_ATTR
+			if (objectid.id.empty()) {
+				m_logger->Log(EC_LOGLEVEL_WARNING, "Unique id not found for DN: %s", dn.c_str());
+				continue;
+			}
 
-		try {
-			objectid = GetObjectIdForEntry(entry);
-		} catch(data_error &e) {
-			m_logger->Log(EC_LOGLEVEL_WARNING, "Unable to get object id: %s", e.what());
-			continue;
-		}
-		
-		if (objectid.id.empty()) {
-			m_logger->Log(EC_LOGLEVEL_WARNING, "Unique id not found for DN: %s", dn.c_str());
-			continue;
-		}
+			signatures->push_back(objectsignature_t(objectid, signature));
 
-		signatures->push_back(objectsignature_t(objectid, signature));
-
-		if (bCache) {
-			std::pair<map<objectclass_t, dn_cache_t*>::iterator, bool> retval;
-			retval = mapDNCache.insert(make_pair(objectid.objclass, (dn_cache_t*)NULL));
-			if (retval.second)
-				retval.first->second = new dn_cache_t();
-			iterDNCache = retval.first;
-			iterDNCache->second->insert(make_pair(objectid, dn));
+			if (bCache) {
+				std::pair<map<objectclass_t, dn_cache_t*>::iterator, bool> retval;
+				retval = mapDNCache.insert(make_pair(objectid.objclass, (dn_cache_t*)NULL));
+				if (retval.second)
+					retval.first->second = new dn_cache_t();
+				iterDNCache = retval.first;
+				iterDNCache->second->insert(make_pair(objectid, dn));
+			}
 		}
+		END_FOREACH_ENTRY
 	}
-	END_FOREACH_ENTRY
+	END_FOREACH_LDAP_PAGING
 
 	/* Update cache */
 	for (iterDNCache = mapDNCache.begin(); iterDNCache != mapDNCache.end(); iterDNCache++)
@@ -1671,6 +1730,19 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 	return dn;
 }
 
+// typedef inside a function is not allowed when using in templates.
+typedef struct {
+	objectid_t objectid;
+	// resolveObjectFromAttributeType (single) / resolveObjectsFromAttributeType (multi) parameters
+	objectclass_t objclass;
+	string ldap_attr;
+	list<string> ldap_attrs;
+	char *relAttr;
+	char *relAttrType;
+	// Set/AddPropObject parameters
+	property_key_t propname;
+} postaction;
+
 auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(const list<objectid_t> &objectids) throw(std::exception)
 {
 	auto_ptr<map<objectid_t, objectdetails_t> > mapdetails = auto_ptr<map<objectid_t, objectdetails_t> >(new map<objectid_t, objectdetails_t>);
@@ -1691,6 +1763,8 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 	string						ldap_attr;
 	list<string>				ldap_attrs;
 	string						strDN;
+
+	list<postaction> lPostActions;
 
 	set<objectid_t>			setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
@@ -1828,11 +1902,11 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 		ldap_filter += ")";
 	}
 
-	my_ldap_search_s(
-			 (char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-			 (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
-			 FETCH_ATTR_VALS, &res);
 
+	FOREACH_PAGING_SEARCH((char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
+						  (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
+						  FETCH_ATTR_VALS, res)
+	{
 	FOREACH_ENTRY(res) {
 		strDN = GetLDAPEntryDN(entry);
 		objectid_t objectid = GetObjectIdForEntry(entry);
@@ -2017,31 +2091,21 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 				}
 
 				if (sendas_attr && !stricmp(att, sendas_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					postaction p;
+
+					p.objectid = objectid;
+					
+					p.objclass = OBJECTCLASS_UNKNOWN;
+					p.ldap_attrs = getLDAPAttributeValues(att, entry);
 	
-					char *relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
-					char *relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
+					p.relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
+					p.relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
 
-					if (relAttr == NULL || relAttr[0] == '\0')
-						relAttr = m_config->GetSetting("ldap_user_unique_attribute");
-
-					/* Relation attribute is set, we should resolve all objects */
-					auto_ptr<signatures_t> lstSenders;
-					signatures_t::iterator iSenders;
-
-					try {
-						lstSenders = resolveObjectsFromAttributeType(OBJECTCLASS_UNKNOWN, ldap_attrs, relAttr, relAttrType);
-					} catch(ldap_error &e) {
-						if(!LDAP_NAME_ERROR(e.GetLDAPError())) {
-							throw;
-						}
-					} catch (...) { }
-
-					if (lstSenders.get() != NULL) {
-						for (iSenders = lstSenders->begin(); iSenders != lstSenders->end(); iSenders++) {
-							sObjDetails.AddPropObject(OB_PROP_LO_SENDAS, iSenders->id);
-						}
-					}
+					if (p.relAttr == NULL || p.relAttr[0] == '\0')
+						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
+					
+					p.propname = OB_PROP_LO_SENDAS;
+					lPostActions.push_back(p);
 				}
 
 				break;
@@ -2064,31 +2128,21 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 				}
 
 				if (sendas_attr && !stricmp(att, sendas_attr)) {
-					ldap_attrs = getLDAPAttributeValues(att, entry);
+					postaction p;
+
+					p.objectid = objectid;
+					
+					p.objclass = OBJECTCLASS_UNKNOWN;
+					p.ldap_attrs = getLDAPAttributeValues(att, entry);
 	
-					char *relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
-					char *relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
+					p.relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
+					p.relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
 
-					if (relAttr == NULL || relAttr[0] == '\0')
-						relAttr = m_config->GetSetting("ldap_user_unique_attribute");
-
-					/* Relation attribute is set, we should resolve all objects */
-					auto_ptr<signatures_t> lstSenders;
-					signatures_t::iterator iSenders;
-
-					try {
-						lstSenders = resolveObjectsFromAttributeType(OBJECTCLASS_UNKNOWN, ldap_attrs, relAttr, relAttrType);
-					} catch(ldap_error &e) {
-						if(!LDAP_NAME_ERROR(e.GetLDAPError())) {
-							throw;
-						}
-					} catch (...) { }
-
-					if (lstSenders.get() != NULL) {
-						for (iSenders = lstSenders->begin(); iSenders != lstSenders->end(); iSenders++) {
-							sObjDetails.AddPropObject(OB_PROP_LO_SENDAS, iSenders->id);
-						}
-					}
+					if (p.relAttr == NULL || p.relAttr[0] == '\0')
+						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
+					
+					p.propname = OB_PROP_LO_SENDAS;
+					lPostActions.push_back(p);
 				}
 				break;
 			case DISTLIST_DYNAMIC:
@@ -2117,22 +2171,17 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 
 
 				if (sysadmin_attr && !stricmp(att, sysadmin_attr)) {
-					ldap_attr = getLDAPAttributeValue(att, entry);
-					if (sysadmin_attr_rel == NULL)
-						sysadmin_attr_rel = user_unique_attr;
-					objectsignature_t admin;
-					try {
-						admin = resolveObjectFromAttributeType(OBJECTCLASS_USER, ldap_attr, sysadmin_attr_rel, sysadmin_attr_type);
-					} catch(ldap_error &e) {
-						if(!LDAP_NAME_ERROR(e.GetLDAPError())) {
-							throw;
-						}
-					} catch (...) { }
+					postaction p;
 
-					if (!admin.id.id.empty())
-						sObjDetails.SetPropObject(OB_PROP_O_SYSADMIN, admin.id);
-					else
-						m_logger->Log(EC_LOGLEVEL_WARNING, "Unable to find administrator %s in attribute %s", ldap_attr.c_str(), sysadmin_attr_rel);
+					p.objectid = objectid;
+
+					p.objclass = OBJECTCLASS_USER;
+					p.ldap_attr = getLDAPAttributeValue(att, entry);
+					p.relAttr = sysadmin_attr_rel ? sysadmin_attr_rel : user_unique_attr;
+					p.relAttrType = sysadmin_attr_type;
+					p.propname = OB_PROP_O_SYSADMIN;
+
+					lPostActions.push_back(p);
 				}
 
 				break;
@@ -2163,6 +2212,46 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 			(*mapdetails)[objectid] = sObjDetails;
 	}
 	END_FOREACH_ENTRY
+	}
+	END_FOREACH_LDAP_PAGING
+
+	// paged loop ended, so now we can process the postactions.
+	for (list<postaction>::iterator p = lPostActions.begin(); p != lPostActions.end(); p++) {
+		map<objectid_t, objectdetails_t>::iterator o = mapdetails->find(p->objectid);
+		if (o == mapdetails->end()) {
+			// this should never happen, but only some details will be missing, not the end of the world.
+			m_logger->Log(EC_LOGLEVEL_FATAL, "No object %s found for postaction", p->objectid.id.c_str());
+			continue;
+		}
+
+		if (p->ldap_attr.empty()) {
+			// list, so use AddPropObject()
+			try {
+				auto_ptr<signatures_t> lstSignatures;
+				signatures_t::iterator iSignature;
+				lstSignatures = resolveObjectsFromAttributeType(p->objclass, p->ldap_attrs, p->relAttr, p->relAttrType);
+				for (iSignature = lstSignatures->begin(); iSignature != lstSignatures->end(); iSignature++) {
+					o->second.AddPropObject(p->propname, iSignature->id);
+				}
+			} catch (ldap_error &e) {
+				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
+					throw;
+			} catch (...) {}
+		} else {
+			// string, so use SetPropObject
+			try {
+				objectsignature_t signature;
+				signature = resolveObjectFromAttributeType(p->objclass, p->ldap_attr, p->relAttr, p->relAttrType);
+				if (!signature.id.id.empty())
+					o->second.SetPropObject(p->propname, signature.id);
+				else
+					m_logger->Log(EC_LOGLEVEL_WARNING, "Unable to find relation %s in attribute %s", p->ldap_attr.c_str(), p->relAttr);
+			} catch (ldap_error &e) {
+				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
+					throw;
+			} catch (...) {}
+		}
+	}
 
 	return mapdetails;
 }
