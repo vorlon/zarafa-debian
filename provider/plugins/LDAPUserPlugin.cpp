@@ -118,7 +118,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 #define FETCH_ATTR_VALS 0
 #define DONT_FETCH_ATTR_VALS 1
 
-
+#if HAVE_LDAP_CREATE_PAGE_CONTROL
 #define FOREACH_PAGING_SEARCH(basedn, scope, filter, attrs, flags, res) \
 { \
 	bool morePages = false; \
@@ -171,6 +171,16 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 	} \
 	while (morePages == true); \
 }
+#else
+// non paged support, revert to normal search
+#define FOREACH_PAGING_SEARCH(basedn, scope, filter, attrs, flags, res) \
+{ \
+	my_ldap_search_s(basedn, scope, filter, attrs, flags, &res);
+
+#define END_FOREACH_LDAP_PAGING	\
+	}
+
+#endif
 
 #define FOREACH_ENTRY(res) \
 { \
