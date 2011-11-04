@@ -140,7 +140,7 @@ public:
 	unsigned int GetObjectSize();
 
 	static bool rowcompare(ECTableRow *a, ECTableRow *b);
-	static bool rowcompare(unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB);
+	static bool rowcompare(unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB, bool fIgnoreOrder = false);
 	static bool rowcompareprefix(unsigned int ulSortColPrefix, unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB);
 
 	bool operator < (const ECTableRow &other) const;

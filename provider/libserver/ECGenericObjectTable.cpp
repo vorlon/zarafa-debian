@@ -2899,6 +2899,8 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
         
 	if(lppCategory)
 		*lppCategory = lpCategory;
+
+    ASSERT(m_mapCategories.size() == m_mapSortedCategories.size());
     
 exit:
     if(lpSortLen)
@@ -3218,6 +3220,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     m_mapLeafs.erase(iterLeafs);
         
     // All done
+    ASSERT(m_mapCategories.size() == m_mapSortedCategories.size());
 
 exit:
 	if(lpSortKey)

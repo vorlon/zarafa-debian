@@ -238,7 +238,7 @@ bool ECTableRow::rowcompare (ECTableRow *a, ECTableRow *b)
 }
 
 // Does a normal row compare between two rows
-bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB) {
+bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB, bool fIgnoreOrder) {
 	unsigned int i=0;
 	bool ret = false;
 	unsigned int ulSortCols;
@@ -295,7 +295,7 @@ bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned
         }
 	} else {
 	    // Unequal, flip order if desc
-		if(lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
+		if(!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
 			return !ret;
 		else
 			return ret;
@@ -311,7 +311,7 @@ bool ECTableRow::rowcompareprefix (unsigned int ulPrefix, unsigned int ulSortCol
 bool ECTableRow::operator <(const ECTableRow &other) const
 {
     return ECTableRow::rowcompare(ulSortCols, lpSortLen, lppSortKeys, lpFlags,
-                                  other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags);
+                                  other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags, true);
                                           
 }
 
