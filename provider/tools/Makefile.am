@@ -1,0 +1,1 @@
+SUBDIRS=soapcpp2

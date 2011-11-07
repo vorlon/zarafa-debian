@@ -1,0 +1,853 @@
+/*
+ * Copyright 2005 - 2009  Zarafa B.V.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3, 
+ * as published by the Free Software Foundation with the following additional 
+ * term according to sec. 7:
+ *  
+ * According to sec. 7 of the GNU Affero General Public License, version
+ * 3, the terms of the AGPL are supplemented with the following terms:
+ * 
+ * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
+ * the Program under the AGPL does not imply a trademark license.
+ * Therefore any rights, title and interest in our trademarks remain
+ * entirely with us.
+ * 
+ * However, if you propagate an unmodified version of the Program you are
+ * allowed to use the term "Zarafa" to indicate that you distribute the
+ * Program. Furthermore you may use our trademarks where it is necessary
+ * to indicate the intended purpose of a product or service provided you
+ * use it in accordance with honest practices in industrial or commercial
+ * matters.  If you want to propagate modified versions of the Program
+ * under the name "Zarafa" or "Zarafa Server", you may only do so if you
+ * have a written permission by Zarafa B.V. (to acquire a permission
+ * please contact Zarafa at trademark@zarafa.com).
+ * 
+ * The interactive user interface of the software displays an attribution
+ * notice containing the term "Zarafa" and/or the logo of Zarafa.
+ * Interactive user interfaces of unmodified and modified versions must
+ * display Appropriate Legal Notices according to sec. 5 of the GNU
+ * Affero General Public License, version 3, when you propagate
+ * unmodified or modified versions of the Program. In accordance with
+ * sec. 7 b) of the GNU Affero General Public License, version 3, these
+ * Appropriate Legal Notices must retain the logo of Zarafa or display
+ * the words "Initial Development by Zarafa" if the display of the logo
+ * is not reasonably feasible for technical reasons. The use of the logo
+ * of Zarafa in Legal Notices is allowed for unmodified and modified
+ * versions of the software.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *  
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
+#include "platform.h"
+#include "ECABEntryID.h"
+
+#include <mapix.h>
+#include <mapiutil.h>
+
+#include <edkguid.h>
+#include <edkmdb.h>
+#include "mapiguidext.h"
+#include "ECLogger.h"
+#include "ECGetText.h"
+#include "ECACL.h"
+#include "ECLogger.h"
+
+#include "archivehelper.h"
+#include "storehelper.h"
+
+#include <algorithm>
+
+#include <mapi_ptr.h>
+
+using namespace std;
+
+#include "archiver-common.h"
+#include "archiver-session.h"
+
+namespace za { namespace helpers {
+
+// mapi4linux does defines this in edkmdb.h
+#ifndef CbNewROWLIST
+	#define CbNewROWLIST(_centries) \
+		(offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
+#endif
+
+
+/**
+ * Create an ArchiveHelper object based on a message store and a folder name.
+ *
+ * @param[in]	ptrArchiveStore
+ *					A MsgStorePtr that points to the message store that's used as an archive.
+ * @param[in]	strFolder
+ *					The folder name that's used as the root of the archive. If left empty, the IPM subtree
+ *					of the message store is used as the archive folder.
+ * @param[in]	lpszServerPath
+ * 					When set and not empty, it specifies the serverpath to the server containing the archive. So it
+ * 					implies that the archive is remote (other server/cluster).
+ * @param[out]	lpptrArchiveHelper
+ *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::Create(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+{
+	HRESULT hr = hrSuccess;
+	ArchiveHelperPtr ptrArchiveHelper;
+	
+	try {
+		ptrArchiveHelper.reset(new ArchiveHelper(ptrArchiveStore, strFolder, lpszServerPath ? lpszServerPath : std::string()));
+	} catch (std::bad_alloc &) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	
+	hr = ptrArchiveHelper->Init();
+	if (hr != hrSuccess)
+		goto exit;
+		
+	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+		
+exit:
+	return hr;
+}
+
+/**
+ * Create an ArchiveHelper object based on a message store and a folder.
+ *
+ * @param[in]	ptrArchiveStore
+ *					A MsgStorePtr that points to the message store that's used as an archive.
+ * @param[in]	ptrArchiveFolder
+ *					A MAPIFolderPtr that points to the folder that will be used as the root of the archive.
+ * @param[in]	lpszServerPath
+ * 					When set and not empty, it specifies the serverpath to the server containing the archive. So it
+ * 					implies that the archive is remote (other server/cluster).
+ * @param[out]	lpptrArchiveHelper
+ *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::Create(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
+{
+	HRESULT hr = hrSuccess;
+	ArchiveHelperPtr ptrArchiveHelper;
+	
+	try {
+		ptrArchiveHelper.reset(new ArchiveHelper(ptrArchiveStore, ptrArchiveFolder, lpszServerPath ? lpszServerPath : std::string()));
+	} catch (std::bad_alloc &) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	
+	hr = ptrArchiveHelper->Init();
+	if (hr != hrSuccess)
+		goto exit;
+		
+	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+		
+exit:
+	return hr;
+}
+
+HRESULT ArchiveHelper::Create(SessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper)
+{
+	HRESULT hr = hrSuccess;
+	MsgStorePtr ptrArchiveStore;
+	ULONG ulType;
+	MAPIFolderPtr ptrArchiveRootFolder;
+	ArchiveHelperPtr ptrArchiveHelper;
+
+	if (lpptrArchiveHelper == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = ptrSession->OpenStore(archiveEntry.sStoreEntryId, &ptrArchiveStore);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store. (hr=%s)", stringify(hr, true).c_str());
+		goto exit;
+	}
+	
+	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(), archiveEntry.sItemEntryId, &ptrArchiveRootFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveRootFolder);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive root folder. (hr=%s)", stringify(hr, true).c_str());
+		goto exit;
+	}
+	
+	// We pass a NULL to the lpszServerPath argument, indicating that it's local. However, it was already
+	// remotly opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
+	// to malfunction (it won't wrap the entryid with the serverpath). This is not an issue as we don't use
+	// that here anyway.
+	hr = ArchiveHelper::Create(ptrArchiveStore, ptrArchiveRootFolder, NULL, &ptrArchiveHelper);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive helper. (hr=%s)", stringify(hr, true).c_str());
+		goto exit;
+	}
+
+	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+
+exit:
+	return hr;
+}
+
+/**
+ * Constructor
+ */
+ArchiveHelper::ArchiveHelper(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const std::string &strServerPath)
+: m_ptrArchiveStore(ptrArchiveStore)
+, m_strFolder(strFolder)
+, m_strServerPath(strServerPath)
+{ }
+
+/**
+ * Constructor
+ */
+ArchiveHelper::ArchiveHelper(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const std::string &strServerPath)
+: m_ptrArchiveStore(ptrArchiveStore)
+, m_ptrArchiveFolder(ptrArchiveFolder)
+, m_strServerPath(strServerPath)
+{ }
+
+/**
+ * Initialize an ArchiveHelper object.
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::Init()
+{
+	HRESULT	hr = hrSuccess;
+
+	PROPMAP_INIT_NAMED_ID(ATTACHED_USER_ENTRYID, PT_BINARY, PSETID_Archive, dispidAttachedUser)
+	PROPMAP_INIT_NAMED_ID(ARCHIVE_TYPE, PT_LONG, PSETID_Archive, dispidType)
+	PROPMAP_INIT_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidSpecialFolderEntryIds);
+	PROPMAP_INIT(m_ptrArchiveStore)
+	
+exit:
+	return hr;
+}
+
+/**
+ * Destructor
+ */
+ArchiveHelper::~ArchiveHelper()
+{ }
+
+/**
+ * Get the user that's attached to this archive.
+ *
+ * @param[out]	lpsUserEntryId
+ *					Pointer to a entryid_t that will be populated with the entryid of the user
+ *					who's store is attached to this archive.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::GetAttachedUser(entryid_t *lpsUserEntryId)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrFolder;
+	SPropValuePtr ptrPropValue;
+	
+	hr = GetArchiveFolder(&ptrFolder);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	hr = HrGetOneProp(ptrFolder, PROP_ATTACHED_USER_ENTRYID, &ptrPropValue);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	lpsUserEntryId->assign(ptrPropValue->Value.bin);
+
+exit:
+	return hr;
+}
+
+/**
+ * Set the user that's attached to this archive.
+ *
+ * @param[in]	sUserEntryId
+ *					The entryid of the user who's store is attached to this
+ *					archive.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::SetAttachedUser(const entryid_t &sUserEntryId)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrFolder;
+	SPropValue sPropValue = {0};
+
+	hr = GetArchiveFolder(&ptrFolder);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	sPropValue.ulPropTag = PROP_ATTACHED_USER_ENTRYID;
+	sPropValue.Value.bin.cb = sUserEntryId.size();
+	sPropValue.Value.bin.lpb = sUserEntryId;
+		
+	hr = HrSetOneProp(ptrFolder, &sPropValue);
+
+exit:
+	return hr;
+}
+
+/**
+ * Get an SObjectEntry that uniquely identifies this archive.
+ *
+ * @param[out]	lpSObjectEntry
+ *					Pointer to a SObjectEntry structure that will be populated with the unique
+ *					reference to this archive.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::GetArchiveEntry(SObjectEntry *lpsObjectEntry)
+{
+	HRESULT hr = hrSuccess;
+	SPropValuePtr ptrStoreEntryId;
+	MAPIFolderPtr ptrFolder;
+	SPropValuePtr ptrFolderEntryId;
+	
+	hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &ptrStoreEntryId);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	hr = GetArchiveFolder(&ptrFolder);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	hr = HrGetOneProp(ptrFolder, PR_ENTRYID, &ptrFolderEntryId);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	lpsObjectEntry->sStoreEntryId.assign(ptrStoreEntryId->Value.bin);
+	if (!m_strServerPath.empty())
+		lpsObjectEntry->sStoreEntryId.wrap(m_strServerPath);
+		
+	lpsObjectEntry->sItemEntryId.assign(ptrFolderEntryId->Value.bin);
+	
+exit:
+	return hr;
+}
+
+/**
+ * Get the archive type of this archive.
+ *
+ * @param[out]	lpaType
+ *					Pointer to a ArchiveType enum that will be set to the type
+ *					of this archive.
+ */
+HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lpaType)
+{
+	HRESULT hr = hrSuccess;
+	SPropValuePtr ptrArchiveType;
+
+	hr = HrGetOneProp(m_ptrArchiveStore, PROP_ARCHIVE_TYPE, &ptrArchiveType);
+	if (hr == MAPI_E_NOT_FOUND) {
+		*lpaType = UndefArchive;
+		hr = hrSuccess;
+	} else if (hr == hrSuccess) {
+		switch (ptrArchiveType->Value.l) {
+			case SingleArchive:
+			case MultiArchive:
+				*lpaType = (ArchiveType)ptrArchiveType->Value.l;
+				break;
+
+			default:
+				hr = MAPI_E_CORRUPT_DATA;
+				break;
+		}
+	}
+
+	return hr;
+}
+
+/**
+ * Set the archive type for this archive.
+ *
+ * @param[in]	aType
+ *					The ArchiveType type of this archive.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::SetArchiveType(ArchiveType aType)
+{
+	HRESULT hr = hrSuccess;
+	SPropValue sArchiveType = {0};
+
+	sArchiveType.ulPropTag = PROP_ARCHIVE_TYPE;
+	sArchiveType.Value.l = aType;
+
+	hr = HrSetOneProp(m_ptrArchiveStore, &sArchiveType);
+
+	return hr;
+}
+
+/**
+ * Set permissions on the archive for the user specified by sUserEntryId. This makes sure that the archive is
+ * at least readable for the user. If the archive is in a subfolder, only the subfolder that is the archive will
+ * be visible. The other folders will be hidden.
+ *
+ * @param[in]	sUserEntryId
+ *					The entryid of the user for who permissions are being set.
+ * @param[in]	bWriteable.
+ *					If set to true, the archive will be writable by the user.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::SetPermissions(const entryid_t &sUserEntryId, bool bWritable)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrFolder;
+	ExchangeModifyTablePtr ptrEMT;
+	MAPITablePtr ptrTable;
+	SPropValue sUserProps[2];
+	SPropValue sOtherProps[2];
+	RowListPtr ptrRowList;
+	StoreHelperPtr ptrStoreHelper;
+	
+	hr = MAPIAllocateBuffer(CbNewROWLIST(2), &ptrRowList);
+	if (hr != hrSuccess)
+		goto exit;
+
+	
+	// First set permissions on the IPM Subtree since we'll simply overwrite
+	// them if the archive folder IS the IPM Subtree.
+	
+	// Grant folder visible permissions on the IPM Subtree for this user.
+	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrStoreHelper->GetIpmSubtree(&ptrFolder);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid, 0, fMapiDeferredErrors, &ptrEMT);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	sUserProps[0].ulPropTag = PR_MEMBER_ENTRYID;
+	sUserProps[0].Value.bin.cb = sUserEntryId.size();
+	sUserProps[0].Value.bin.lpb = sUserEntryId;
+	sUserProps[1].ulPropTag = PR_MEMBER_RIGHTS;
+	sUserProps[1].Value.l = RIGHTS_FOLDER_VISIBLE;
+	
+	ptrRowList->cEntries = 1;
+	ptrRowList->aEntries[0].ulRowFlags = ROW_MODIFY;
+	ptrRowList->aEntries[0].cValues = 2;
+	ptrRowList->aEntries[0].rgPropVals = sUserProps;
+	
+	hr = ptrEMT->ModifyTable(0, ptrRowList);
+	if (hr != hrSuccess && hr != MAPI_E_INVALID_PARAMETER)	// We can't set rights for non-active users.
+		goto exit;
+	
+	
+	
+	// Grant read only permissions on the archive folder for this user (unless bWritable is requested).
+	// Grant no access for all other users (everyone)
+	hr = GetArchiveFolder(&ptrFolder);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid, 0, fMapiDeferredErrors, &ptrEMT);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	sUserProps[0].ulPropTag = PR_MEMBER_ENTRYID;
+	sUserProps[0].Value.bin.cb = sUserEntryId.size();
+	sUserProps[0].Value.bin.lpb = sUserEntryId;
+	sUserProps[1].ulPropTag = PR_MEMBER_RIGHTS;
+	sUserProps[1].Value.l = (bWritable ? ROLE_OWNER : ROLE_REVIEWER);
+	
+	sOtherProps[0].ulPropTag = PR_MEMBER_ENTRYID;
+	sOtherProps[0].Value.bin.cb = g_cbEveryoneEid;
+	sOtherProps[0].Value.bin.lpb = g_lpEveryoneEid;
+	sOtherProps[1].ulPropTag = PR_MEMBER_RIGHTS;
+	sOtherProps[1].Value.l = RIGHTS_NONE;
+	
+	ptrRowList->cEntries = 2;
+	ptrRowList->aEntries[0].ulRowFlags = ROW_MODIFY;
+	ptrRowList->aEntries[0].cValues = 2;
+	ptrRowList->aEntries[0].rgPropVals = sUserProps;
+	ptrRowList->aEntries[1].ulRowFlags = ROW_MODIFY;
+	ptrRowList->aEntries[1].cValues = 2;
+	ptrRowList->aEntries[1].rgPropVals = sOtherProps;
+	
+	hr = ptrEMT->ModifyTable(0, ptrRowList);
+	if (hr == MAPI_W_PARTIAL_COMPLETION)		// We can't set rights for non-active users.
+		hr = hrSuccess;	
+	
+exit:
+	return hr;
+}
+
+/**
+ * Open or create the folder in the archive that's linked to the non-archive folder referenced by ptrSourceFolder.
+ *
+ * @param[in]	ptrSourceFolder
+ *					The MAPIFolderPtr that points to the folder for which the attached archive folder
+ *					is being requested.
+ * @param[in]	ptrSession
+ *					The Session pointer that's used to open folders with.
+ * @param[out]	lppDestinationFolder
+ *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, SessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder)
+{
+	HRESULT hr = hrSuccess;
+	SPropValuePtr ptrStoreEntryId;
+	SPropValuePtr ptrFolderType;
+	SPropValuePtr ptrFolderEntryId;
+	MAPIPropHelperPtr ptrSourceFolderHelper;
+	MAPIPropHelperPtr ptrArchiveFolderHelper;
+	ObjectEntryList lstFolderArchives;
+	ObjectEntryList::const_iterator iArchiveFolder;
+	MAPIFolderPtr ptrArchiveFolder;
+	MAPIFolderPtr ptrParentFolder;
+	MAPIFolderPtr ptrArchiveParentFolder;
+	ULONG ulType = 0;
+	ULONG cValues = 0;
+	SPropArrayPtr ptrPropArray;
+	SObjectEntry objectEntry;
+	
+	SizedSPropTagArray(3, sptaFolderPropsForCreate) = {3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
+	SizedSPropTagArray(2, sptaFolderPropsForReference) = {2, {PR_ENTRYID, PR_STORE_ENTRYID}};
+	
+	hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &ptrStoreEntryId);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	hr = MAPIPropHelper::Create(ptrSourceFolder.as<MAPIPropPtr>(), &ptrSourceFolderHelper);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	hr = ptrSourceFolderHelper->GetArchiveList(&lstFolderArchives);
+	if (hr == MAPI_E_CORRUPT_DATA) {
+		// If the list is corrupt, the folder will become unusable. We'll just create a new folder, which will most
+		// likely become the same folder (if the name hasn't changed).
+		hr = hrSuccess;
+	} else if (hr != hrSuccess)
+		goto exit;
+	
+	iArchiveFolder = find_if(lstFolderArchives.begin(), lstFolderArchives.end(), StoreCompare(ptrStoreEntryId->Value.bin));
+	if (iArchiveFolder != lstFolderArchives.end())
+		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &ptrArchiveFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
+
+	else {
+		hr = ptrSourceFolderHelper->GetParentFolder(ptrSession, &ptrParentFolder);
+		if (hr != hrSuccess)
+			goto exit;
+			
+		// If the parent is the root folder, we're currently working on the IPM-SUBTREE. This means
+		// we can just return the root archive folder in that case.
+		hr = HrGetOneProp(ptrParentFolder, PR_FOLDER_TYPE, &ptrFolderType);
+		if (hr != hrSuccess)
+			goto exit;
+			
+		if (ptrFolderType->Value.l == FOLDER_ROOT)
+			hr = GetArchiveFolder(&ptrArchiveFolder);
+		
+		else {		
+			hr = GetArchiveFolderFor(ptrParentFolder, ptrSession, &ptrArchiveParentFolder);
+			if (hr != hrSuccess)
+				goto exit;
+			
+			// We now have the parent of the folder we're looking for. Se we can just create the folder we need.
+			hr = ptrSourceFolder->GetProps((LPSPropTagArray)&sptaFolderPropsForCreate, 0, &cValues, &ptrPropArray);
+			if (FAILED(hr))
+				goto exit;
+			
+			hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, 
+													  (LPTSTR)(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[1].Value.LPSZ),
+													  (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ),
+													  &ptrArchiveFolder.iid,
+													  OPEN_IF_EXISTS|fMapiUnicode,
+													  &ptrArchiveFolder);
+			if (hr != hrSuccess)
+				goto exit;
+
+			if (PROP_TYPE(ptrPropArray[0].ulPropTag) != PT_ERROR)
+				hr = HrSetOneProp(ptrArchiveFolder, &ptrPropArray[0]);
+		}
+		if (hr != hrSuccess)
+			goto exit;
+			
+
+		// Update the archive list for the source folder
+		hr = HrGetOneProp(ptrArchiveFolder, PR_ENTRYID, &ptrFolderEntryId);
+		if (hr != hrSuccess)
+			goto exit;
+			
+		objectEntry.sStoreEntryId.assign(ptrStoreEntryId->Value.bin);
+		objectEntry.sItemEntryId.assign(ptrFolderEntryId->Value.bin);
+		
+		lstFolderArchives.push_back(objectEntry);
+		lstFolderArchives.sort();
+		lstFolderArchives.unique();
+		
+		hr = ptrSourceFolderHelper->SetArchiveList(lstFolderArchives);
+		if (hr != hrSuccess)
+			goto exit;
+
+
+		// Reference the source folder in the archive folder
+		hr = ptrSourceFolder->GetProps((LPSPropTagArray)&sptaFolderPropsForReference, 0, &cValues, &ptrPropArray);
+		if (hr != hrSuccess)
+			goto exit;
+
+		objectEntry.sStoreEntryId.assign(ptrPropArray[1].Value.bin);
+		objectEntry.sItemEntryId.assign(ptrPropArray[0].Value.bin);
+
+		hr = MAPIPropHelper::Create(ptrArchiveFolder.as<MAPIPropPtr>(), &ptrArchiveFolderHelper);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrArchiveFolderHelper->SetReference(objectEntry);
+	}
+	if (hr != hrSuccess)
+		goto exit;
+		
+	hr = ptrArchiveFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppDestinationFolder);
+	
+exit:
+	return hr;
+}
+
+HRESULT ArchiveHelper::GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder)
+{
+	return GetSpecialFolder(sfHistory, lppHistoryFolder);
+}
+
+HRESULT ArchiveHelper::GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder)
+{
+	return GetSpecialFolder(sfOutgoing, lppOutgoingFolder);
+}
+
+HRESULT ArchiveHelper::GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder)
+{
+	return GetSpecialFolder(sfDeleted, lppOutgoingFolder);
+}
+
+/**
+ * Get the archive folder. This opens the actual folder if only a name was specified.
+ *
+ * @param[out]	lppArchiveFolder
+ *					Pointer to the MAPIFolder pointer that will be assigned the address of the
+ *					returned folder.
+ *
+ * @return HRESULT
+ */
+HRESULT ArchiveHelper::GetArchiveFolder(LPMAPIFOLDER *lppArchiveFolder)
+{
+	HRESULT hr = hrSuccess;
+	StoreHelperPtr ptrStoreHelper;
+
+	if (!m_ptrArchiveFolder) {
+		hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
+		if (hr != hrSuccess)
+			goto exit;
+		
+		if (m_strFolder.empty())
+			hr = ptrStoreHelper->GetIpmSubtree(&m_ptrArchiveFolder);
+		else
+			hr = ptrStoreHelper->GetFolder(m_strFolder, true, &m_ptrArchiveFolder);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+	
+	hr = m_ptrArchiveFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppArchiveFolder);
+
+exit:
+	return hr;
+}
+
+
+HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrArchiveRoot;
+	SPropValuePtr ptrSFEntryIDs;
+	MAPIFolderPtr ptrSpecialFolder;
+	SPropValuePtr ptrEntryID;
+
+	hr = GetArchiveFolder(&ptrArchiveRoot);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &ptrSFEntryIDs);
+	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
+		goto exit;
+
+	if (hr == hrSuccess && ptrSFEntryIDs->Value.MVbin.cValues > ULONG(sfWhich) && ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].cb > 0) {
+		const LPSBinary lpBinEntryID = &ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich];
+		ULONG ulType;
+		hr = ptrArchiveRoot->OpenEntry(lpBinEntryID->cb, (LPENTRYID)lpBinEntryID->lpb, &ptrSpecialFolder.iid, MAPI_MODIFY, &ulType, &ptrSpecialFolder);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	else {
+		hr = CreateSpecialFolder(sfWhich, &ptrSpecialFolder);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = HrGetOneProp(ptrSpecialFolder, PR_ENTRYID, &ptrEntryID);
+		if (hr != hrSuccess)
+			goto exit;
+
+		if (!ptrSFEntryIDs) {
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrSFEntryIDs);
+			if (hr != hrSuccess)
+				goto exit;
+
+			ptrSFEntryIDs->ulPropTag = PROP_SPECIAL_FOLDER_ENTRYIDS;
+			ptrSFEntryIDs->Value.MVbin.cValues = 0;
+			ptrSFEntryIDs->Value.MVbin.lpbin = NULL;
+		}
+
+		if (ptrSFEntryIDs->Value.MVbin.cValues <= ULONG(sfWhich)) {
+			LPSBinary lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
+
+			hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, (LPVOID*)&ptrSFEntryIDs->Value.MVbin.lpbin);
+			if (hr != hrSuccess)
+				goto exit;
+
+			// Copy old entries
+			for (ULONG i = 0; i < ptrSFEntryIDs->Value.MVbin.cValues; ++i)
+				ptrSFEntryIDs->Value.MVbin.lpbin[i] = lpbinPrev[i];		// Shallow copy
+
+			// Pad entries
+			for (ULONG i = ptrSFEntryIDs->Value.MVbin.cValues; i < ULONG(sfWhich); ++i) {
+				ptrSFEntryIDs->Value.MVbin.lpbin[i].cb = 0;
+				ptrSFEntryIDs->Value.MVbin.lpbin[i].lpb = NULL;
+			}
+
+			ptrSFEntryIDs->Value.MVbin.cValues = sfWhich + 1;
+		}
+
+		ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich] = ptrEntryID->Value.bin;	// Shallow copy
+
+		hr = HrSetOneProp(ptrArchiveRoot, ptrSFEntryIDs);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	hr = ptrSpecialFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppSpecialFolder);
+
+exit:
+	return hr;
+}
+
+HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrParent;
+	MAPIFolderPtr ptrSpecialFolder;
+	LPTSTR lpszName = NULL;
+	LPTSTR lpszDesc = NULL;
+
+	if (sfWhich == sfBase) {
+		// We need to get the archive root to create the special root folder in
+		hr = GetArchiveFolder(&ptrParent);
+	} else {
+		// We need to get the special root to create the other special folders in
+		hr = GetSpecialFolder(sfBase, &ptrParent);
+	}
+	if (hr != hrSuccess)
+		goto exit;
+
+	switch (sfWhich) {
+		case sfBase:
+			lpszName = _("Zarafa Archive");
+			lpszDesc = _("This folder contains the special archive folders.");
+			break;
+
+		case sfHistory:
+			lpszName = _("History");
+			lpszDesc = _("This folder contains archives that have been replaced by a newer version.");
+			break;
+
+		case sfOutgoing:
+			lpszName = _("Outgoing");
+			lpszDesc = _("This folder contains archives of all outgoing messages.");
+			break;
+
+		case sfDeleted:
+			lpszName = _("Deleted Items");
+			lpszDesc = _("This folder contains archived of messages that have been deleted.");
+			break;
+
+		default:
+			ASSERT(FALSE);
+			hr = MAPI_E_INVALID_PARAMETER;
+			goto exit;
+	}
+
+	hr = ptrParent->CreateFolder(FOLDER_GENERIC, lpszName, lpszDesc, &ptrSpecialFolder.iid, MAPI_UNICODE|OPEN_IF_EXISTS, &ptrSpecialFolder);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrSpecialFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppSpecialFolder);
+
+exit:
+	return hr;
+}
+
+HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
+{
+	HRESULT hr = hrSuccess;
+	StoreHelperPtr ptrStoreHelper;
+	MAPIFolderPtr ptrIpmSubtree;
+	SPropValue sEntryId;
+
+	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=0x%08x).", hr);
+		goto exit;
+	}
+
+	hr = ptrStoreHelper->GetIpmSubtree(&ptrIpmSubtree);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive IPM subtree (hr=0x%08x).", hr);
+		goto exit;
+	}
+
+	hr = ptrIpmSubtree->EmptyFolder(0, NULL, DEL_ASSOCIATED|DELETE_HARD_DELETE);
+	if (FAILED(hr)) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to empty archive IPM subtree (hr=0x%08x).", hr);
+		goto exit;
+	} else if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "archive IPM subtree was only partially emptied.");
+	}
+
+	// Now set the Wastebasket entryid to 0,NULL, so outlook won't create it
+	sEntryId.ulPropTag = PR_IPM_WASTEBASKET_ENTRYID;
+	sEntryId.Value.bin.cb = 0;
+	sEntryId.Value.bin.lpb = NULL;
+	hr = HrSetOneProp(m_ptrArchiveStore, &sEntryId);
+	if (hr != hrSuccess) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to clear wasebasket entryid (hr=0x%08x)", hr);
+		goto exit;
+	}
+
+exit:
+	return hr;
+}
+
+}} // namespaces

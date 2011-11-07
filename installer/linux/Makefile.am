@@ -1,0 +1,99 @@
+datadir = ${docdir}
+
+config_files = \
+	server.cfg unix.cfg ldap.propmap.cfg \
+	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg indexer.cfg \
+	autorespond archiver.cfg
+
+rhel_initscript_files = \
+	zarafa-server.init.rhel zarafa-spooler.init.rhel zarafa-gateway.init.rhel zarafa-monitor.init.rhel zarafa-ical.init.rhel zarafa-dagent.init.rhel zarafa-indexer.init.rhel
+suse_initscript_files = \
+	zarafa-server.init.suse zarafa-spooler.init.suse zarafa-gateway.init.suse zarafa-monitor.init.suse zarafa-ical.init.suse zarafa-dagent.init.suse zarafa-indexer.init.suse
+sles_initscript_files = $(suse_initscript_files)
+cbs4_initscript_files = \
+	zarafa-server.init.cbs4 zarafa-spooler.init.cbs4 zarafa-gateway.init.cbs4 zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4
+
+rhel_sysconfig_files = sysconfig.rhel
+suse_sysconfig_files = sysconfig.suse
+sles_sysconfig_files = ${suse_sysconfig_files}
+
+data_configdir = ${docdir}/example-config
+dist_data_config_DATA = ${config_files}
+
+sysconf_configdir = ${sysconfdir}/zarafa
+dist_sysconf_config_DATA = ${config_files}
+
+sysconf_initdir=${sysconfdir}/init.d
+sysconf_init_SCRIPTS = ${@DISTRO@_initscript_files}
+
+rhel_sysconfig_path = ${sysconfdir}/sysconfig
+suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
+sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
+sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
+sysconf_sysconfig_DATA = ${@DISTRO@_sysconfig_files}
+
+dist_data_DATA = \
+	db-convert-4.1-to-4.2 db-convert-4.20-to-4.21 db-convert-4.20-to-innodb.sql db-calc-storesize db-convert-attachments-to-files \
+	createuser.dotforward db-convert-4.2x-to-5.00 ssl-certificates.sh db-upgrade-objectsid-to-objectguid.pl ldap-switch-sendas.pl \
+	${top_srcdir}/tools/python-scripts/optimize-imap.py audit-parse.pl zarafa7-upgrade db-remove-orphaned-attachments
+
+BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
+
+ldap.openldap.cfg: ldap.m4
+	m4 -DTYPE=OPENLDAP ${top_srcdir}/installer/linux/ldap.m4 > $@
+
+ldap.active-directory.cfg: ldap.m4
+	m4 -DTYPE=ADS ${top_srcdir}/installer/linux/ldap.m4 > $@
+
+ldapms.openldap.cfg: ldap.m4
+	m4 -DTYPE=OPENLDAP -DMULTISERVER=1 ${top_srcdir}/installer/linux/ldap.m4 > $@
+
+ldapms.active-directory.cfg: ldap.m4
+	m4 -DTYPE=ADS -DMULTISERVER=1 ${top_srcdir}/installer/linux/ldap.m4 > $@
+
+
+bindir = ${prefix}/bin
+dist_bin_SCRIPTS = zarafa-autorespond zarafa-mr-accept
+
+sysconf_rotatedir = ${sysconfdir}/logrotate.d
+dist_sysconf_rotate_DATA = zarafa.logrotate
+
+sysconf_certdir = ${sysconfdir}/zarafa/report-ca
+if ! OSS_ONLY
+BUILT_SOURCES += ldapms.openldap.cfg ldapms.active-directory.cfg
+
+config_files += licensed.cfg example-msr.cfg backup.cfg
+rhel_initscript_files += zarafa-licensed.init.rhel
+suse_initscript_files += zarafa-licensed.init.suse
+cbs4_initscript_files += zarafa-licensed.init.cbs4
+
+dist_sysconf_cert_DATA = addtrust.crt
+endif
+
+config_files += $(BUILT_SOURCES)
+EXTRA_DIST = $(BUILT_SOURCES) ldap.m4 \
+	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
+	$(rhel_sysconfig_files) $(suse_sysconfig_files)
+
+install-data-hook:
+	install -d -m 755 ${DESTDIR}/${sysconf_configdir}/license
+	install -d -m 755 ${DESTDIR}/${localstatedir}/lib/zarafa/report
+	for f in ${DESTDIR}/${sysconf_rotatedir}/*.logrotate; do \
+		mv $$f $${f%.logrotate}; \
+	done
+	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
+		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.suse ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.zarafa || true; \
+	elif test ${DISTRO} = "rhel"; then \
+		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.${DISTRO} ${DESTDIR}${sysconf_sysconfigdir}/zarafa || true; \
+	else \
+		true; \
+	fi
+	if test `ls -1A ${DESTDIR}${sysconf_initdir}/ | wc -l` -ne 0; then \
+		for f in ${DESTDIR}${sysconf_initdir}/*; do \
+			newf=`echo "$$f" | sed -e 's/\(zarafa-.*\).init.*/\1/'`; \
+			mv "$$f" "$$newf"; \
+		done \
+	fi
+	mkdir -p ${DESTDIR}/${docdir}/../zarafa-gateway
+	mv ${DESTDIR}/${docdir}/optimize-imap.py ${DESTDIR}/${docdir}/../zarafa-gateway
+	rm -f ${DESTDIR}/${sysconf_configdir}/example-msr.cfg

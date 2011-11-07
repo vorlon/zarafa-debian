@@ -1,0 +1,113 @@
+#!/bin/bash
+#
+# zarafa-indexer The Search Indexer of the Zarafa Collaboration Platform
+#
+# chkconfig: 345 86 24
+# description: The Zarafa indexer is the indexer daemon for full-text search \
+#              through all objects (including attachemnts)
+# processname: /usr/bin/zarafa-indexer
+# config: /etc/zarafa/indexer.cfg
+# pidfile: /var/run/zarafa-indexer.pid
+
+### BEGIN INIT INFO
+# Provides: zarafa-indexer
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: zarafa-server
+# Should-Stop: zarafa-server
+# Short-Description: The Search Indexer of the Zarafa Collaboration Platform
+# Description: The Zarafa indexer is the indexer daemon for full-text search 
+#              through all objects (including attachemnts)
+### END INIT INFO
+
+INDEXERCONFIG=/etc/zarafa/indexer.cfg
+INDEXERPROGRAM=/usr/bin/zarafa-indexer
+
+# Sanity checks.
+[ -x $INDEXERPROGRAM ] || exit 0
+
+INDEXERCONFIG_OPT=""
+[ ! -z $INDEXERCONFIG -a -f $INDEXERCONFIG ] && INDEXERCONFIG_OPT="-c $INDEXERCONFIG"
+
+[ -f /etc/sysconfig/zarafa ] && . /etc/sysconfig/zarafa
+if [ -z "$ZARAFA_LOCALE" ]; then
+	ZARAFA_LOCALE="C"
+fi
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+indexer=`basename $INDEXERPROGRAM`
+lockfile=/var/lock/subsys/$indexer
+pidfile=/var/run/$indexer.pid
+
+start() {
+	# Start in background, always succeeds
+	echo -n $"Starting $indexer: "
+	export LC_ALL=$ZARAFA_LOCALE
+	export LANG=$ZARAFA_LOCALE
+	daemon $INDEXERPROGRAM $INDEXERCONFIG_OPT
+	RETVAL=$?
+	unset LC_ALL LANG
+	echo
+	[ $RETVAL -eq 0 ] && touch $lockfile
+
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $indexer: "
+	killproc $INDEXERPROGRAM
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $lockfile
+
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	echo -n $"Restarting $indexer: "
+	killproc $INDEXERPROGRAM -SIGHUP
+	RETVAL=$?
+	echo
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    status)
+		status $indexer
+		RETVAL=$?
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condrestart|try-restart)
+		if [ -f ${pidfile} ]; then
+			stop
+			start
+		fi
+		;;
+    reload)
+		reload
+		;;
+    *)
+		echo $"Usage: $indexer {start|stop|status|reload|restart|condrestart|force-reload|try-restart}"
+		RETVAL=1
+		;;
+esac
+
+exit $RETVAL
