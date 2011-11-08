@@ -2695,11 +2695,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECMsgStore::HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
+HRESULT ECMsgStore::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
 {
 	HRESULT			hr = hrSuccess;
 
-	hr = lpTransport->HrHookStore(cbUserId, lpUserId, lpGuid, 0);
+	hr = lpTransport->HrHookStore(ulStoreType, cbUserId, lpUserId, lpGuid, 0);
 
 	return hr;
 }
@@ -3334,20 +3334,27 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 	HRESULT hr = hrSuccess;
 	ULONG cbStoreID;
 	EntryIdPtr ptrStoreID;
-	WSTransportPtr ptrTransport;
 
-	if (lpszUserName == NULL || lpszServerName == NULL || lpcbStoreID == NULL || lppStoreID == NULL) {
+	if (lpszUserName == NULL || lpcbStoreID == NULL || lppStoreID == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &ptrTransport);
-	if (hr != hrSuccess)
-		goto exit;
+	if (lpszServerName != NULL) {
+		WSTransportPtr ptrTransport;
 
-	hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
-	if (hr != hrSuccess)
-		goto exit;
+		hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &ptrTransport);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		if (hr != hrSuccess)
+			goto exit;
+	} else {
+		hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		if (hr != hrSuccess)
+			goto exit;
+	}
 
 	hr = lpSupport->WrapStoreEntryID(cbStoreID, ptrStoreID, lpcbStoreID, lppStoreID);
 
@@ -3967,11 +3974,11 @@ HRESULT ECMsgStore::xECServiceAdmin::CreateEmptyStore(ULONG ulStoreType, ULONG c
 	return hr;
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
+HRESULT ECMsgStore::xECServiceAdmin::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::HookStore", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->HookStore(cbUserId, lpUserId, lpGuid);
+	HRESULT hr = pThis->HookStore(ulStoreType, cbUserId, lpUserId, lpGuid);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::HookStore", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }

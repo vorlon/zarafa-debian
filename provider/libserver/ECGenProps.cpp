@@ -66,6 +66,7 @@
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECLockManager.h"
+#include "ZarafaCmdUtil.h"	// for GetStoreType (seems to be a bit misplaced)
 
 #include <edkmdb.h>
 
@@ -472,19 +473,26 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			}
 			break;
 		case PROP_ID(PR_DISPLAY_NAME):
+		{
+			unsigned int ulStoreType = 0;
+
 			if(ulObjType != MAPI_STORE) {
 			    er = ZARAFA_E_NOT_FOUND;
 			    goto exit;
 	        }
+
+			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			if (er != erSuccess)
+				break;
         
-			er = GetStoreName(soap, lpSession, ulObjId, &lpStoreName);
+			er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
 			if(er != erSuccess)
 				break;
 		
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
 			lpPropVal->Value.lpszA = lpStoreName;
-
+		}
 		break;
 		case PROP_ID(PR_MAILBOX_OWNER_NAME):
 			sPropTagArray.__ptr = new unsigned int[1];
@@ -832,7 +840,7 @@ exit:
  * @param lppStoreName Output pointer
  * @return result
  */
-ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, char** lppStoreName)
+ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
 {
 	ECRESULT			er = erSuccess;
 	unsigned int		ulUserId = 0;
@@ -895,7 +903,12 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
                 strFormat.replace(pos, sub.size(), sPropValArray.__ptr[i].Value.lpszA);
         }
 
-        strFormat = string(_("Inbox -")) + " " + strFormat;
+		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
+			strFormat = string(_("Inbox")) + " - " + strFormat;
+		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
+			strFormat = string(_("Archive")) + " - " + strFormat;
+		else
+			assert(false);
     }
     
 	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);

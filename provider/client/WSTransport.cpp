@@ -2079,7 +2079,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
+HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -2102,7 +2102,7 @@ HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGu
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, sUserId, sStoreGuid, ulSyncId, &er))
+		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, ulStoreType, sUserId, sStoreGuid, ulSyncId, &er))
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL

@@ -1083,7 +1083,7 @@ int ns__deleteStore(ULONG64 ulSessionId, unsigned int ulStoreId, unsigned int ul
 // Mark store deleted for softdelete to purge from database
 int ns__removeStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
 // Hook a store to a specified user (overrides previous hooked store)
-int ns__hookStore(ULONG64 ulSessionId, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
+int ns__hookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
 // Unhook a store from a specific user
 int ns__unhookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result);
 

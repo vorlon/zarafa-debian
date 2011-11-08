@@ -1343,12 +1343,17 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStoreNameResponse *lpsResponse)
 {
 	unsigned int	ulObjId = 0;
+	unsigned int	ulStoreType = 0;
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
 
-	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, &lpsResponse->lpszStoreName);
+	er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
+	if (er != erSuccess)
+		goto exit;
+
+	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, ulStoreType, &lpsResponse->lpszStoreName);
 	if(er != erSuccess)
 		goto exit;
 
@@ -9070,7 +9075,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
@@ -9103,8 +9108,8 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		}
 	}
 
-	// check if store currently is owned
-	strQuery = "SELECT users.id, stores.id, stores.user_id, stores.hierarchy_id FROM stores LEFT JOIN users ON stores.user_id = users.id WHERE guid = ";
+	// check if store currently is owned and the correct type
+	strQuery = "SELECT users.id, stores.id, stores.user_id, stores.hierarchy_id, stores.type FROM stores LEFT JOIN users ON stores.user_id = users.id WHERE guid = ";
 	strQuery += lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -9119,9 +9124,20 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		goto exit;
 	}
 
+	if (lpDBRow[4] == NULL) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+
 	if (lpDBRow[0]) {
 		// this store already belongs to a user
 		er = ZARAFA_E_COLLISION;
+		goto exit;
+	}
+
+	if (atoi(lpDBRow[4]) != ulStoreType) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Requested store type is %u, actual store type is %s", ulStoreType, lpDBRow[4]);
+		er = ZARAFA_E_INVALID_TYPE;
 		goto exit;
 	}
 
@@ -9135,7 +9151,7 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		goto exit;
 
 	// remove previous user of store
-	strQuery = "UPDATE stores SET user_id = " + string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId);
+	strQuery = "UPDATE stores SET user_id = " + string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId) + " AND type = " + stringify(ulStoreType);
 
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)

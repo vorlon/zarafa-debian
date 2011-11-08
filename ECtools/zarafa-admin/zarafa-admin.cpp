@@ -1570,6 +1570,54 @@ exit:
 }
 
 /**
+ * Print archive store details on local server
+ *
+ * @param[in]	lpSession		MAPI session of the internal Zarafa System adminstrator user
+ * @param[in]	lpECMsgStore	The IECUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
+ * @param[in]	lpszName		Name to resolve, using type in ulClass
+ * @return		MAPI error code
+ */
+HRESULT print_archive_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, const char *lpszName)
+{
+	HRESULT hr = hrSuccess;
+	ECServiceAdminPtr ptrServiceAdmin;
+	ULONG cbArchiveId = 0;
+	EntryIdPtr ptrArchiveId;
+	MsgStorePtr ptrArchive;
+	SPropValuePtr ptrArchiveSize;
+
+	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&ptrServiceAdmin);
+	if (hr != hrSuccess) {
+		cerr << "Unable to get admin interface." << endl;
+		goto exit;
+	}
+
+	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &ptrArchiveId);
+	if (hr != hrSuccess) {
+		cerr << "No archive found for user '" << lpszName << "'." << endl;
+		goto exit;
+	}
+
+	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &ptrArchive.iid, 0, &ptrArchive);
+	if (hr != hrSuccess) {
+		cerr << "Unable to open archive." << endl;
+		goto exit;
+	}
+
+	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &ptrArchiveSize);
+	if (hr != hrSuccess) {
+		cerr << "Unable to get archive store size." << endl;
+		goto exit;
+	}
+
+	cout << "Current store size:\t";
+	cout << stringify_double((double)ptrArchiveSize->Value.li.QuadPart /1024.0 /1024.0, 2, true) << " MiB" << endl;
+
+exit:
+	return hr;
+}
+
+/**
  * Print a list of all users within a company.
  *
  * @param[in]	lpServiceAdmin	IECServiceAdmin on SYSTEM store
@@ -2873,13 +2921,16 @@ int main(int argc, char* argv[])
 			ulClass = DISTLIST_GROUP;
 		else if (stricmp(detailstype, "company") == 0)
 			ulClass = CONTAINER_COMPANY;
-		else {
+		else if (stricmp(detailstype, "archive") != 0) {
 			hr = MAPI_E_INVALID_TYPE;
 			cerr << "Unknown userobject type \"" << detailstype << "\"" << endl;
 			goto exit;
 		}
 
-		hr = print_details(lpSession, lpECMsgStore, ulClass, username);
+		if (detailstype && stricmp(detailstype, "archive") == 0)
+			hr = print_archive_details(lpSession, lpECMsgStore, username);
+		else
+			hr = print_details(lpSession, lpECMsgStore, ulClass, username);
 		if (hr != hrSuccess)
 			goto exit;
 		break;
@@ -3069,13 +3120,25 @@ int main(int argc, char* argv[])
 			}
 				
 		} else {
+			ULONG ulStoreType;
+
+			// MSw: Did I just break hooking public stores?
+			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+				ulStoreType = ECSTORE_TYPE_PRIVATE;
+			else if (strcmp(detailstype, "archive") == 0)
+				ulStoreType = ECSTORE_TYPE_ARCHIVE;
+			else {
+				cerr << "Unknown store type: '" << detailstype << "'." << endl;
+				goto exit;
+			}
+
 			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 			if (hr != hrSuccess) {
 				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}		
 
-			hr = lpServiceAdmin->HookStore(cbUserId, lpUserId, lpGUID);
+			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
 			if (hr != hrSuccess) {
 				cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
 				goto exit;
@@ -3084,19 +3147,31 @@ int main(int argc, char* argv[])
 		}
 
 		break;
-	case MODE_UNHOOK_STORE:
-		hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
-			goto exit;
-		}		
+	case MODE_UNHOOK_STORE: {
+			ULONG ulStoreType;
 
-		hr = lpServiceAdmin->UnhookStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+				ulStoreType = ECSTORE_TYPE_PRIVATE;
+			else if (strcmp(detailstype, "archive") == 0)
+				ulStoreType = ECSTORE_TYPE_ARCHIVE;
+			else {
+				cerr << "Unknown store type: '" << detailstype << "'." << endl;
+				goto exit;
+			}
+
+			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
+				goto exit;
+			}		
+
+			hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+			cout << "Store unhooked." << endl;
 		}
-		cout << "Store unhooked." << endl;
 		break;
 	case MODE_REMOVE_STORE:
 		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (LPBYTE*)&lpGUID);

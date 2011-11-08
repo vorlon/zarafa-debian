@@ -157,8 +157,6 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 			sCookie.bv_len = 0; \
 		} \
 		\
-		/* rc = ldap_parse_page_control(m_ldap, returnedControls, NULL, &cookie); */ \
-		/* ctrlptr = ldap_control_find(LDAP_PARSE_PAGE_CONTROL, returnedControls, NULL); when we have more controls */ \
 		rc = ldap_parse_pageresponse_control(m_ldap, returnedControls[0], NULL, &sCookie); \
 		if (rc != LDAP_SUCCESS) {										\
 			throw ldap_error(string("ldap_parse_pageresponse_control: ") + ldap_err2string(rc), rc); \
@@ -1742,15 +1740,13 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 
 // typedef inside a function is not allowed when using in templates.
 typedef struct {
-	objectid_t objectid;
-	// resolveObjectFromAttributeType (single) / resolveObjectsFromAttributeType (multi) parameters
-	objectclass_t objclass;
-	string ldap_attr;
-	list<string> ldap_attrs;
-	char *relAttr;
-	char *relAttrType;
-	// Set/AddPropObject parameters
-	property_key_t propname;
+	objectid_t objectid;		//!< object to act on in the resolved map
+	objectclass_t objclass;		//!< resolveObject(s)FromAttributeType 1st parameter
+	string ldap_attr;			//!< resolveObjectFromAttributeType 2nd parameter
+	list<string> ldap_attrs;	//!< resolveObjectsFromAttributeType 2nd parameter
+	char *relAttr;				//!< resolveObject(s)FromAttributeType 3rd parameter
+	char *relAttrType;			//!< resolveObject(s)FromAttributeType 4th parameter
+	property_key_t propname;	//!< object prop to add/set from the result
 } postaction;
 
 auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(const list<objectid_t> &objectids) throw(std::exception)
