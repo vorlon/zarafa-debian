@@ -81,6 +81,8 @@ typedef std::list<unsigned int>::iterator	ECListIntIterator;
 class ECSession;
 class ECCacheManager;
 
+typedef std::map<ECTableRow, sObjectTableKey> ECSortedCategoryMap;
+
 class ECCategory {
 public:
     ECCategory(unsigned int ulCategory, struct propVal *lpProps, unsigned int cProps, unsigned int nProps, ECCategory *lpParent, unsigned int ulDepth, bool fExpanded, const ECLocale &locale);
@@ -115,6 +117,7 @@ public:
 	const ECLocale& m_locale;
 
 	std::map<sObjectTableKey, struct propVal *> m_mapMinMax;
+	ECSortedCategoryMap::iterator iSortedCategory;
 	sObjectTableKey m_sCurMinMax;
 };
 
@@ -124,7 +127,6 @@ typedef struct {
 } LEAFINFO;
 
 typedef std::map<sObjectTableKey, ECCategory *, ObjectTableKeyCompare> ECCategoryMap;
-typedef std::map<ECTableRow, sObjectTableKey> ECSortedCategoryMap;
 typedef std::map<sObjectTableKey, LEAFINFO, ObjectTableKeyCompare> ECLeafMap;
 
 class ECGenericObjectTable;
