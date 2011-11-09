@@ -1509,7 +1509,8 @@ exit:
  * @param[in]	lpszMailboxDN
  *					The username for whom to find the store.
  * @param[in]	ulFlags
- *					Unused.
+ *					OPENSTORE_OVERRIDE_HOME_MDB - Don't fall back to resolving the server if the user can't be found on the specified server.
+ *					MAPI_UNICODE - All passed strings are in Unicode.
  * @param[out]	lpcbEntryID
  *					Pointer to a ULONG variable, which will be set to the size of the returned entry id.
  * @param[out]	lppEntryID
@@ -1553,7 +1554,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 		bool bIsPeer;
 
 		hr = MsgStoreDnToPseudoUrl(tstrMsgStoreDN, &strPseudoUrl);
-		if (hr == MAPI_E_NO_SUPPORT) {
+		if (hr == MAPI_E_NO_SUPPORT && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			// Try again old style since the MsgStoreDn contained Unknown as the server name.
 			hr = CreateStoreEntryID(NULL, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 			goto exit;
@@ -1563,7 +1564,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 		
 		// MsgStoreDN successfully converted
 		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &ptrServerPath, &bIsPeer);
-		if (hr == MAPI_E_NOT_FOUND) {
+		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			// Try again old style since the MsgStoreDN contained an unknown server name or the server doesn't support multi server.
 			hr = CreateStoreEntryID(NULL, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 			goto exit;
