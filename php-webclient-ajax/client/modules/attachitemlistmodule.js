@@ -118,7 +118,7 @@ attachitemlistmodule.prototype.execute = function(type, action)
 	switch(type)
 	{
 		case "list":
-			this.tableWidget.resetWidget();	
+			this.tableWidget.resetWidget();
 			this.messageList(action);
 			break;
 		case "attach_items":

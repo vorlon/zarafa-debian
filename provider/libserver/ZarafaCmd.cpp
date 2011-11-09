@@ -279,7 +279,7 @@ ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId, unsigned ulSt
 			else
 				*lpbHasLocalStore = (stricmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
 		} else	// Archive store
-			*lpbHasLocalStore = sDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
+			*lpbHasLocalStore = sDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
 	} else	// Single tennant
 		*lpbHasLocalStore = bPrivateOrPublic;
 
@@ -3378,7 +3378,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 							goto exit;
 						}
 					} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-						if (!sUserDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true)) {
+						if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true)) {
 							er = ZARAFA_E_NOT_FOUND;
 							goto exit;
 						}
@@ -7581,7 +7581,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		}
 
 		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
-			if (!sUserDetails.PropListStringContains(OB_PROP_LS_ARCHIVESERVERS, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
+			if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
 				// No redirect with archive stores because there can be multiple archive stores.
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;

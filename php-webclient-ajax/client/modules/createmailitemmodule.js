@@ -530,7 +530,7 @@ createmailitemmodule.prototype.setBody = function(message, isReply, isConcept, a
 						if(key == "body"){
 							content = data[key].value;
 						}else{
-							replyinfo += data[key].label + ":\t" + data[key].value.htmlEntities() + "\n";
+							replyinfo += data[key].label + ":\t" + data[key].value + "\n";
 						}
 					}
 					// plain text reply/forward, use ">" to quote the message
