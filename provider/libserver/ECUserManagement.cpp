@@ -4021,42 +4021,6 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				}
 				break;
 			}
-			case PR_EC_ARCHIVE_SERVERS: {
-				list<string> lstServerNames = lpDetails->GetPropListString(OB_PROP_LS_ARCHIVESERVERS);
-				if (lstServerNames.empty()) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
-					lpPropVal->Value.ul = ZARAFA_E_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-				} else {
-					list<string>::const_iterator iter;
-					unsigned idx = 0;
-
-					lpPropVal->Value.mvszA.__size = lstServerNames.size();
-					lpPropVal->Value.mvszA.__ptr = s_alloc<char*>(soap, lpPropVal->Value.mvszA.__size);
-					for (iter = lstServerNames.begin(); iter != lstServerNames.end(); ++iter, ++idx)
-						lpPropVal->Value.mvszA.__ptr[idx] = s_strcpy(soap, iter->c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-				}
-				break;
-			}
-			case PR_EC_ARCHIVE_COUPLINGS: {
-				list<string> lstCouplings = lpDetails->GetPropListString(OB_PROP_LS_ARCHIVECOUPLINGS);
-				if (lstCouplings.empty()) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
-					lpPropVal->Value.ul = ZARAFA_E_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-				} else {
-					list<string>::const_iterator iter;
-					unsigned idx = 0;
-
-					lpPropVal->Value.mvszA.__size = lstCouplings.size();
-					lpPropVal->Value.mvszA.__ptr = s_alloc<char*>(soap, lpPropVal->Value.mvszA.__size);
-					for (iter = lstCouplings.begin(); iter != lstCouplings.end(); ++iter, ++idx)
-						lpPropVal->Value.mvszA.__ptr[idx] = s_strcpy(soap, iter->c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-				}
-				break;
-			}
 			default:
 				/* Property not handled in switch, try checking if user has mapped the property personally */ 
 				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) != erSuccess) {

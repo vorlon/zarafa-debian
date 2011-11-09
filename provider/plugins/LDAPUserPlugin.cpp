@@ -1774,7 +1774,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 
 	set<objectid_t>			setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
-	auto_ptr<attrArray>		request_attrs = auto_ptr<attrArray>(new attrArray(35 + lExtraAttrs.size()));
+	auto_ptr<attrArray>		request_attrs = auto_ptr<attrArray>(new attrArray(33 + lExtraAttrs.size()));
 
 	CONFIG_TO_ATTR(request_attrs, object_attr, "ldap_object_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr, "ldap_user_unique_attribute");

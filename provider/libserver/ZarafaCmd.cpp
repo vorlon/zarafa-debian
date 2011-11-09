@@ -11138,6 +11138,12 @@ exit:
 
 	ROLLBACK_ON_ERROR();
 	FREE_DBRESULT();
+
+	if (er != erSuccess) {
+		// remove from cache, else we can get sync issue, with missing messages offline
+		lpecSession->GetSessionManager()->GetCacheManager()->RemoveIndexData(ulObjectId);
+		lpecSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectDeleted, ulObjectId);
+	}
 }
 SOAP_ENTRY_END()
 

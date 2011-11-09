@@ -77,7 +77,7 @@
 					<!-- Store action attributes to hidden variable to pass it to index page -->
 					<?php	if($_POST && $_POST["action_url"] != "") {	?>
 								<!-- if login has failed then action attributes will be in POST variable -->
-								<input type="hidden" name="action_url" value="<?= $_POST["action_url"] ?>"></input>
+								<input type="hidden" name="action_url" value="<?= htmlspecialchars($_POST["action_url"]) ?>"></input>
 					<?php	} else {	?>
 								<!-- or else in the URL -->
 								<input type="hidden" name="action_url" value="<?= stristr($_SERVER["REQUEST_URI"], "?action=") ?>"></input>

@@ -111,7 +111,6 @@ enum property_key_t {
 	OB_PROP_S_SSLPATH,
 	OB_PROP_S_FILEPATH,
 	OB_PROP_LS_ARCHIVESERVERS,
-	OB_PROP_LS_ARCHIVECOUPLINGS,
 	OB_PROP_MAX				/* Not a propname, keep as last entry */
 };
 
