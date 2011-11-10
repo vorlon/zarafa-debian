@@ -64,7 +64,9 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECDisplayTable.h ECDisplayTable.cpp	\
 	ECArchiveAwareMsgStore.h ECArchiveAwareMsgStore.cpp	\
 	ECArchiveAwareMessage.h ECArchiveAwareMessage.cpp	\
-	ECArchiveAwareAttach.h ECArchiveAwareAttach.cpp
+	ECArchiveAwareAttach.h ECArchiveAwareAttach.cpp	\
+	WSMessageStreamExporter.h WSMessageStreamExporter.cpp \
+	WSSerializedMessage.h WSSerializedMessage.cpp
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

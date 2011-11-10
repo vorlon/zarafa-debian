@@ -83,7 +83,8 @@ am_libzarafaclient_la_OBJECTS = ECABLogon.lo ECABProvider.lo \
 	ECExportAddressbookChanges.lo ECMAPIFolderPublic.lo \
 	ECMemTablePublic.lo ECMsgStorePublic.lo WSStreamOps.lo \
 	ECChangeAdvisor.lo ECDisplayTable.lo ECArchiveAwareMsgStore.lo \
-	ECArchiveAwareMessage.lo ECArchiveAwareAttach.lo
+	ECArchiveAwareMessage.lo ECArchiveAwareAttach.lo \
+	WSMessageStreamExporter.lo WSSerializedMessage.lo
 libzarafaclient_la_OBJECTS = $(am_libzarafaclient_la_OBJECTS)
 libzarafaclient_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -364,7 +365,9 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECDisplayTable.h ECDisplayTable.cpp	\
 	ECArchiveAwareMsgStore.h ECArchiveAwareMsgStore.cpp	\
 	ECArchiveAwareMessage.h ECArchiveAwareMessage.cpp	\
-	ECArchiveAwareAttach.h ECArchiveAwareAttach.cpp
+	ECArchiveAwareAttach.h ECArchiveAwareAttach.cpp	\
+	WSMessageStreamExporter.h WSMessageStreamExporter.cpp \
+	WSSerializedMessage.h WSSerializedMessage.cpp
 
 all: all-am
 
@@ -486,6 +489,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSABTableView.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMAPIFolderOps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMAPIPropStorage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMessageStreamExporter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSSerializedMessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSStoreTableView.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSStreamOps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSTableView.Plo@am__quote@

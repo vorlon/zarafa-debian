@@ -50,6 +50,8 @@
 #include "platform.h"
 
 #include "ECExchangeExportChanges.h"
+#include "WSMessageStreamExporter.h"
+#include "WSSerializedMessage.h"
 
 #include <set>
 
@@ -93,7 +95,6 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigne
 
 	m_bConfiged = false;
 	m_lpStream = NULL;
-	m_lpsStreamOps = NULL;
 	m_lpImportContents = NULL;
 	m_lpImportStreamedContents = NULL;
 	m_lpImportHierarchy = NULL;
@@ -101,10 +102,7 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigne
 	m_ulSyncId = 0;
 	m_ulChangeId = 0;
 	m_ulStep = 0;
-	m_ulStepOffset = 0;
 	m_ulBatchSize = 256;
-	m_ulBatchEnd = 0;
-	m_ulBatchNextStart = 0;
 	m_ulBufferSize = 0;
 	m_ulChanges = 0;
 	m_lpChanges = NULL;
@@ -119,9 +117,6 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigne
 }
 
 ECExchangeExportChanges::~ECExchangeExportChanges(){
-	if (m_lpsStreamOps)
-		m_lpsStreamOps->Release();
-
 	if(m_lpChanges)
 		MAPIFreeBuffer(m_lpChanges);
 
@@ -1162,107 +1157,57 @@ exit:
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::ExportMessageChangesFast() 
+HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 {
-	HRESULT				hr = hrSuccess;
-	HRESULT				hrAsync = hrSuccess;
-	LPSTREAM			lpDstStream = NULL;
-	ECStreamInfo		sStreamInfo = {0};
-	LPSPropValue		lpPropVal = NULL;
-	LPSPropValue		lpsPropArray = NULL;
-	ULONG				ulFlags = 0;
-	ULONG				cbRead = 0;
-	unsigned char		idLen = 0;
-	char				id[256] = {0};
+	HRESULT hr = hrSuccess;
+	WSSerializedMessagePtr ptrSerializedMessage;
+	ULONG cbProps = 0;
+	SPropValuePtr ptrProps;
+	LPSPropValue lpPropVal = NULL;
+	ULONG ulFlags = 0;
+	StreamPtr ptrDestStream;
 
-	// The very first time, we need to get the source stream.
-	if (m_ulStep == 0 || m_lpsStreamOps == NULL) {
-		hr = GetMessageStream();
+	// No more changes (add/modify).
+	if (m_ulStep >= m_lstChange.size())
+		goto exit;
+
+	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsEmpty()) {
+		hr = m_lpFolder->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
+			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
 			hr = hrSuccess;
 			goto exit;
-		}
-
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get message stream. hr=0x%08x", hr);
+		} else if (hr != hrSuccess)
 			goto exit;
-		}
 	}
-	
 
-	// Determine the id of the current stream, blocks until data is written on the other side. Once this
-	// happens the StreamInfo map is updated with information about all streams that will be returned.
-	hr = m_lpsStreamOps->Read(&idLen, sizeof(idLen), &cbRead);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to read size of identifier from stream. hr=0x%08x", hr);
+
+	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &ptrSerializedMessage);
+	if (hr == SYNC_E_OBJECT_DELETED) {
+		hr = hrSuccess;
+		goto skip;
+	} else if (hr != hrSuccess)
 		goto exit;
-	}
 
-	if (cbRead != sizeof(idLen)) {
-		// cbRead == 0 --> End of stream
-		if (cbRead == 0) {
-			// End of stream while we were expecting some data. This can mean two things:
-			// - stream broken due to sending error on the source
-			// - messages deleted just before sending
-			
-			if (m_ulStep + m_ulBatchSize < m_lstChange.size()) {
-				// Not last batch
-				
-				// Normally, ulStep should be equal to m_ulBatchEnd when we get here. However,
-				// when a network error has occurred, we may read 0 bytes before we reach m_ulBatchEnd. Since
-				// this error will be detected later through CloseAndGetAsyncResult(), we just force the current
-				// step to the last step in this batch so that that we can process the result for the stream.
-				m_ulStep = m_ulBatchEnd;
-				hr = SYNC_W_PROGRESS;
-			} else
-				// Last batch
-				m_ulStep = m_lstChange.size();
-		}
-		else {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Read invalid size of identifier from stream. size=%u, expected=%u", cbRead, sizeof(idLen));
-			hr = MAPI_E_INVALID_PARAMETER;
-		}
+	hr = ptrSerializedMessage->GetProps(&cbProps, &ptrProps);
+	if (hr != hrSuccess)
 		goto exit;
-	}
 
-	hr = m_lpsStreamOps->Read(id, idLen, &cbRead);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to read identifier from stream. hr=0x%08x", hr);
-		goto exit;
-	}
-	if (cbRead != idLen) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Read unexpected amount of data for identifier from stream. size=%u, expected=%u", cbRead, idLen);
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing frame '%s'", id);
-	hr = m_lpsStreamOps->GetStreamInfo(id, &sStreamInfo);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to obtain information about frame '%s'. hr=0x%08x", id, hr);
-		goto exit;
-	}
-
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Frame info: id='%s', step=%u, props=%u", id, sStreamInfo.ulStep, sStreamInfo.cbPropVals);
-
-	ulFlags = 0;
-	lpPropVal = PpropFindProp(sStreamInfo.lpsPropVals, sStreamInfo.cbPropVals, PR_MESSAGE_FLAGS);
+	lpPropVal = PpropFindProp(ptrProps, cbProps, PR_MESSAGE_FLAGS);
 	if (lpPropVal != NULL && (lpPropVal->Value.ul & MSGFLAG_ASSOCIATED))
 		ulFlags |= SYNC_ASSOCIATED;
 	if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 		ulFlags |= SYNC_NEW_MESSAGE;
 
-	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(sStreamInfo.cbPropVals, sStreamInfo.lpsPropVals, ulFlags, &lpDstStream);
-	switch (hr) {
-	case erSuccess:
-		// Copy the message data
-		hr = m_lpsStreamOps->CopyFrameTo(lpDstStream, NULL);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to copy frame to importer. hr=0x%08x", hr);
-			goto exit;	
-		}
+	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(cbProps, ptrProps, ulFlags, &ptrDestStream);
+	if (hr == hrSuccess) {
+		HRESULT hrAsync;
 
-		hr = CloseAndGetAsyncResult(lpDstStream, &hrAsync);
+		hr = ptrSerializedMessage->CopyData(ptrDestStream);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = CloseAndGetAsyncResult(ptrDestStream, &hrAsync);
 		if (hr != MAPI_E_INTERFACE_NOT_SUPPORTED) {
 			if (hrAsync != hrSuccess) {	// Async operation failed.
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Async import operation failed. hr=0x%08x", hrAsync); 
@@ -1273,69 +1218,22 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get async import result. hr=0x%08x", hr);
 			goto exit;
 		}
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Frame '%s' copied to importer", id);
-		break;
-
-	case SYNC_E_IGNORE:
-	case SYNC_E_OBJECT_DELETED:
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "ignored change");
-		// Flush the message data
-		hr = m_lpsStreamOps->FlushFrame();
+	} else if (hr == SYNC_E_IGNORE || hr == SYNC_E_OBJECT_DELETED) {
+		hr = ptrSerializedMessage->DiscardData();
 		if (hr != hrSuccess)
 			goto exit;
-		break;
-
-	default:
+	} else {
 		goto exit;
 	}
 
-	UpdateProgress(sStreamInfo.ulStep + m_ulStepOffset + 1);
-	if (m_ulStep < m_ulChanges)
+skip:
+	m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
+	if (++m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
-	
+
 exit:
-	if (hr == SYNC_W_PROGRESS && m_ulStep == m_ulBatchEnd) {
-		ASSERT(m_lpsStreamOps != NULL);
-
-		// See if the async operation completed successfully
-		if (m_lpsStreamOps->CloseAndGetAsyncResult(&hrAsync) == hrSuccess && hrAsync != hrSuccess)
-			hr = hrAsync;
-
-		m_lpsStreamOps->Release();
-		m_lpsStreamOps = NULL;;
-
-		m_ulStepOffset += m_ulBatchSize;
-
-		if (hr == SYNC_W_PROGRESS) {
-			hr = GetMessageStream();
-			if (hr == MAPI_E_UNABLE_TO_COMPLETE)
-				hr = hrSuccess;
-			else if (hr == hrSuccess) {
-				// Restore original error code
-				hr = SYNC_W_PROGRESS;
-			}
-		}
-	}
-
-	// Cleanup when we're done
-	if (hr != SYNC_W_PROGRESS) {
-		if (m_lpsStreamOps) {
-			if (hr == hrSuccess) {
-				// See if the async operation also completed successfully
-				if (m_lpsStreamOps->CloseAndGetAsyncResult(&hrAsync) == hrSuccess && hrAsync != hrSuccess)
-					hr = hrAsync;
-			}
-
-			m_lpsStreamOps->Release();
-			m_lpsStreamOps = NULL;
-		}
-	}
-
-	if (lpDstStream)
-		lpDstStream->Release();
-		
-	if (lpsPropArray)
-		MAPIFreeBuffer(lpsPropArray);
+	if (FAILED(hr))
+		m_ptrStreamExporter.reset();
 
 	return hr;
 }
@@ -1796,66 +1694,6 @@ HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(iterChange->ulChangeId, std::string((char *)iterChange->sSourceKey.lpb, iterChange->sSourceKey.cb)));
 
 	return hrSuccess;
-}
-
-HRESULT ECExchangeExportChanges::UpdateProgress(ULONG ulNewStep)
-{
-	// Mark message as processed.
-	m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
-
-	// Update progress
-	m_ulStep = ulNewStep;
-
-	return hrSuccess;
-}
-
-HRESULT ECExchangeExportChanges::GetMessageStream()
-{
-	HRESULT hr = hrSuccess;
-	std::set<unsigned long> setSteps;
-
-	// Construct a subset of m_lstChange
-	m_ulStep = m_ulBatchNextStart;
-	std::vector<ICSCHANGE>::const_iterator iterStart(m_lstChange.begin() + m_ulStep);
-	std::vector<ICSCHANGE>::const_iterator iterLast;
-	if (m_lstChange.size() > m_ulStep + m_ulBatchSize)
-		iterLast = iterStart + m_ulBatchSize;
-	else
-		iterLast = m_lstChange.end();
-	m_ulBatchNextStart = m_ulStep + std::distance(iterStart, iterLast);
-
-	std::vector<ICSCHANGE> lstBatch(iterStart, iterLast);
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Requesting stream for batch of %u message(s)", lstBatch.size());
-		for (unsigned i = 0; i < lstBatch.size(); ++i)
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "  %3u: changeid=%u, type=%u, sourcekey=%s", i + m_ulStep, lstBatch[i].ulChangeId, lstBatch[i].ulChangeType, bin2hex(lstBatch[i].sSourceKey.cb, lstBatch[i].sSourceKey.lpb).c_str());
-	}
-
-	hr = m_lpFolder->ExportMessageChangesAsStream((m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE)), lstBatch, m_lpChangePropTagArray, &m_lpsStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = m_lpsStreamOps->GetSteps(&setSteps);
-	if (hr != hrSuccess)
-		goto exit;
-
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got a stream for %u message(s) from the server", setSteps.size());
-
-	// All steps that are in the requested range, but not in setSteps are deleted on the exporter side. So they're hereby processed.
-	// If a request is made for range A:B from m_lstChange, the server will return range 0:(B-A)
-	m_ulBatchEnd = m_ulStep;
-	for (ULONG ulStep = 0; ulStep < std::distance(iterStart, iterLast); ++ulStep) {
-		const ULONG ulLocalStep = ulStep + m_ulStep;
-		if (setSteps.find(ulStep) == setSteps.end()) {
-			m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(ulLocalStep).ulChangeId, std::string((char *)m_lstChange.at(ulLocalStep).sSourceKey.lpb, m_lstChange.at(ulLocalStep).sSourceKey.cb)));
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "  %3u: DELETED changeid=%u, type=%u, sourcekey=%s", ulLocalStep, m_lstChange[ulLocalStep].ulChangeId, m_lstChange[ulLocalStep].ulChangeType, bin2hex(m_lstChange[ulLocalStep].sSourceKey.cb, m_lstChange[ulLocalStep].sSourceKey.lpb).c_str());
-		} else
-			m_ulBatchEnd = ulLocalStep + 1;
-	}
-
-exit:
-	return hr;
 }
 
 /**

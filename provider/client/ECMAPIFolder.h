@@ -55,6 +55,8 @@
 #include "ECMsgStore.h"
 #include "ECMAPIContainer.h"
 
+class WSMessageStreamExporter;
+
 class ECMAPIFolder : public ECMAPIContainer {
 protected:
 	ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, char *szClassName);
@@ -106,7 +108,7 @@ public:
 	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
 	
 	// Streaming support
-	virtual HRESULT ExportMessageChangesAsStream(ULONG ulFlags, const std::vector<ICSCHANGE> &sChanges, LPSPropTagArray lpsProps, WSStreamOps **lppsStreamOps);
+	virtual HRESULT ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter);
 	virtual HRESULT CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSStreamOps **lppsStreamOps);
 	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSStreamOps **lppsStreamOps);
