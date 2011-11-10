@@ -3203,7 +3203,7 @@ int main(int argc, char* argv[])
 		} else {
 			ULONG ulStoreType;
 
-			// MSw: Did I just break hooking public stores?
+			// @todo: Add public store support
 			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
 				ulStoreType = ECSTORE_TYPE_PRIVATE;
 			else if (strcmp(detailstype, "archive") == 0)
