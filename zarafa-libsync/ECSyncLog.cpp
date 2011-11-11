@@ -104,6 +104,8 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	}
 
 	*lppLogger = s_lpLogger;
+	
+	s_lpLogger->AddRef();
 
 	pthread_mutex_unlock(&s_hMutex);
 

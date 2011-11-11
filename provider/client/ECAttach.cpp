@@ -372,7 +372,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 		m_sMapiObject->lstChildren->erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren->push_back(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
 
 exit:
 
