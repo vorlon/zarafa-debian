@@ -90,6 +90,8 @@ ECExportAddressbookChanges::~ECExportAddressbookChanges() {
 		MAPIFreeBuffer(m_lpChanges);
 	if(m_lpImporter)
 		m_lpImporter->Release();
+    if(m_lpLogger)
+        m_lpLogger->Release();
 }
 
 HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface) {

@@ -82,7 +82,7 @@ class ExchangeImportContentsChanges : public IExchangeImportContentsChanges {
 public:
 	ExchangeImportContentsChanges(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~ExchangeImportContentsChanges() { self->Release(); }
+		virtual ~ExchangeImportContentsChanges() { delete self; }
 	}
 };
 
@@ -92,7 +92,7 @@ class ExchangeImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 public:
 	ExchangeImportHierarchyChanges(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~ExchangeImportHierarchyChanges() { self->Release(); }
+		virtual ~ExchangeImportHierarchyChanges() { delete self; }
 	}
 };
 
@@ -102,7 +102,7 @@ class ExchangeExportChanges : public IExchangeExportChanges {
 public:
 	ExchangeExportChanges(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~ExchangeExportChanges() { self->Release(); }
+		virtual ~ExchangeExportChanges() { delete self; }
 	}
 };
 

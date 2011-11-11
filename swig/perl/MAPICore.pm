@@ -1379,6 +1379,40 @@ sub ACQUIRE {
 }
 
 
+############# Class : MAPICore::IECExportChanges ##############
+
+package MAPICore::IECExportChanges;
+use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+@ISA = qw( MAPICore::IUnknown MAPICore );
+%OWNER = ();
+%ITERATORS = ();
+*GetChangeCount = *MAPICorec::IECExportChanges_GetChangeCount;
+*SetMessageInterface = *MAPICorec::IECExportChanges_SetMessageInterface;
+*SetLogger = *MAPICorec::IECExportChanges_SetLogger;
+sub DESTROY {
+    return unless $_[0]->isa('HASH');
+    my $self = tied(%{$_[0]});
+    return unless defined $self;
+    delete $ITERATORS{$self};
+    if (exists $OWNER{$self}) {
+        MAPICorec::delete_IECExportChanges($self);
+        delete $OWNER{$self};
+    }
+}
+
+sub DISOWN {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    delete $OWNER{$ptr};
+}
+
+sub ACQUIRE {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    $OWNER{$ptr} = 1;
+}
+
+
 ############# Class : MAPICore::IECChangeAdvisor ##############
 
 package MAPICore::IECChangeAdvisor;
