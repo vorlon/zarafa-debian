@@ -123,8 +123,13 @@ ECSyncLog::__initializer::__initializer() {
 }
 
 ECSyncLog::__initializer::~__initializer() {
-	if (ECSyncLog::s_lpLogger)
-		ECSyncLog::s_lpLogger->Release();
+	if (ECSyncLog::s_lpLogger) {
+		unsigned ulRef = ECSyncLog::s_lpLogger->Release();
+		ASSERT(ulRef == 0);	
+		// Make sure all references are released so compressed logs don't get corrupted.
+		while (ulRef)
+			ulRef = ECSyncLog::s_lpLogger->Release();
+	}
 
 	pthread_mutex_destroy(&ECSyncLog::s_hMutex);
 }

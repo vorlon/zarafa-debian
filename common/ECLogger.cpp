@@ -123,13 +123,15 @@ int ECLogger::GetFileDescriptor()
 	return -1;
 }
 
-void ECLogger::AddRef() {
-	++m_ulRef;
+unsigned ECLogger::AddRef() {
+	return ++m_ulRef;
 }
 
-void ECLogger::Release() {
-	if (--m_ulRef == 0)
+unsigned ECLogger::Release() {
+	unsigned ulRef = --m_ulRef;
+	if (ulRef == 0)
 		delete this;
+	return ulRef;
 }
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
