@@ -760,7 +760,7 @@ HRESULT Session::CreateArchiveStore(const tstring& strUserName, const tstring& s
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, 0, &cbStoreId, &ptrStoreId, &cbRootId, &ptrRootId);
+	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, EC_OVERRIDE_HOMESERVER, &cbStoreId, &ptrStoreId, &cbRootId, &ptrRootId);
 	if (hr != hrSuccess)
 		goto exit;
 

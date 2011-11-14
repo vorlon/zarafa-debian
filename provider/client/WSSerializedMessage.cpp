@@ -108,6 +108,10 @@ HRESULT WSSerializedMessage::CopyData(LPSTREAM lpDestStream)
 	}
 
 	hr = DoCopyData(lpDestStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpDestStream->Commit(0);
 
 exit:
 	return hr;

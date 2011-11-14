@@ -56,6 +56,7 @@
 #include "ECMAPIContainer.h"
 
 class WSMessageStreamExporter;
+class WSMessageStreamImporter;
 
 class ECMAPIFolder : public ECMAPIContainer {
 protected:
@@ -109,9 +110,9 @@ public:
 	
 	// Streaming support
 	virtual HRESULT ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter);
-	virtual HRESULT CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSStreamOps **lppsStreamOps);
+	virtual HRESULT CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter);
 	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
-	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSStreamOps **lppsStreamOps);
+	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
 private:
 	HRESULT GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue);

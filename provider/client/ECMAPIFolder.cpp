@@ -60,8 +60,9 @@
 #include "ECExchangeImportContentsChanges.h"
 #include "ECExchangeExportChanges.h"
 #include "WSTransport.h"
-#include "WSStreamOps.h"
+//#include "WSStreamOps.h"
 #include "WSMessageStreamExporter.h"
+#include "WSMessageStreamImporter.h"
 
 #include "Mem.h"
 #include "ECGuid.h"
@@ -1130,25 +1131,18 @@ exit:
 	return hr;
 }
 
-HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSStreamOps **lppsStreamOps)
+HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter)
 {
-	HRESULT		hr = hrSuccess;
-	WSStreamOps	*lpStreamOps = NULL;
-	
-	hr = GetMsgStore()->lpTransport->HrOpenStreamOps(m_cbEntryId, m_lpEntryId, &lpStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStreamOps->HrStartImportMessageFromStream(ulFlags, ulSyncId, cbEntryID, lpEntryID, true, NULL);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpStreamOps->QueryInterface(IID_ECStreamOps, (void**)lppsStreamOps);
-		
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr	ptrStreamImporter;
 
+	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, true, false, &ptrStreamImporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppsStreamImporter = ptrStreamImporter.release();
+
+exit:
 	return hr;
 }
 
@@ -1157,25 +1151,18 @@ HRESULT ECMAPIFolder::GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPro
 	return lpFolderOps->HrGetChangeInfo(cbEntryID, lpEntryID, lppPropPCL, lppPropCK);
 }
 
-HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSStreamOps **lppsStreamOps)
+HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter)
 {
-	HRESULT		hr = hrSuccess;
-	WSStreamOps	*lpStreamOps = NULL;
-	
-	hr = GetMsgStore()->lpTransport->HrOpenStreamOps(m_cbEntryId, m_lpEntryId, &lpStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStreamOps->HrStartImportMessageFromStream(0, ulSyncId, cbEntryID, lpEntryID, false, lpConflictItems);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpStreamOps->QueryInterface(IID_ECStreamOps, (void**)lppsStreamOps);
-		
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr	ptrStreamImporter;
 
+	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(0, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, false, lpConflictItems, &ptrStreamImporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppsStreamImporter = ptrStreamImporter.release();
+
+exit:
 	return hr;
 }
 

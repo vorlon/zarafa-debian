@@ -90,7 +90,7 @@ typedef struct MAPIOBJECT {
 	};
 
 	struct CompareMAPIOBJECT {
-		bool operator()(const MAPIOBJECT *a, const MAPIOBJECT *b)
+		bool operator()(const MAPIOBJECT *a, const MAPIOBJECT *b) const
 		{
 			return *a < *b;
 		}
@@ -119,7 +119,7 @@ typedef struct MAPIOBJECT {
 		*this->lstProperties = *lpSource->lstProperties;
 		*this->lstAvailable = *lpSource->lstAvailable;
 
-		for (std::set<MAPIOBJECT*>::iterator i = lpSource->lstChildren->begin(); i != lpSource->lstChildren->end(); i++) {
+		for (std::set<MAPIOBJECT*, CompareMAPIOBJECT>::iterator i = lpSource->lstChildren->begin(); i != lpSource->lstChildren->end(); i++) {
 			this->lstChildren->insert(new MAPIOBJECT(*i));
 		}
 	};

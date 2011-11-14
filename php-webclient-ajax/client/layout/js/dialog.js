@@ -1017,8 +1017,7 @@ function insertAtCursor(textArea, value) {
  */
 function eventDateInputChange(moduleObject, element, event)
 {
-	var oldValue = element.value;
-	if(element.value.toLowerCase() != _("None").toLowerCase()) {
+	if(element.value && element.value.toLowerCase() != _("None").toLowerCase()) {
 		var newValue = Date.parseDate(element.value.trim(),_("%d-%m-%Y"), true);
 		if(!newValue){
 			alert(_("You must specify a valid date and/or time. Check your entries in this dialog box to make sure they represent a valid date and/or time."));

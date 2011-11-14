@@ -68,10 +68,9 @@
 #include "Mem.h"
 #include "ECMessage.h"
 #include "stringutil.h"
-#include "WSStreamOps.h"
-#include <ECSyncLog.h>
-#include <ECSyncUtil.h>
-#include <ECSyncSettings.h>
+#include "ECSyncLog.h"
+#include "ECSyncUtil.h"
+#include "ECSyncSettings.h"
 #include "EntryPoint.h"
 
 // We use ntohl/htonl for network-order conversion
@@ -1255,33 +1254,37 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	StreamPtr ptrDestStream;
 
 	// No more changes (add/modify).
+	LOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %u items)", m_ulStep, m_lstChange.size());
 	if (m_ulStep >= m_lstChange.size())
 		goto exit;
 
 	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsEmpty()) {
+		LOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
 		hr = m_lpFolder->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
 			hr = hrSuccess;
 			goto exit;
 		} else if (hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Stream export failed");
+			LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Stream export failed");
 			goto exit;
 		}
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Got new batch");
 	}
 
+	LOG_DEBUG(m_lpLogger, "ExportFast: Requesting serialized message, step = %u", m_ulStep);
 	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &ptrSerializedMessage);
 	if (hr == SYNC_E_OBJECT_DELETED) {
 		hr = hrSuccess;
 		goto skip;
 	} else if (hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "%s", "Unable to get serialized message");
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Unable to get serialized message");
 		goto exit;
 	}
 
 	hr = ptrSerializedMessage->GetProps(&cbProps, &ptrProps);
 	if (hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "%s", "Unable to get required properties from serialized message");
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Unable to get required properties from serialized message");
 		goto exit;
 	}
 
@@ -1291,31 +1294,25 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 		ulFlags |= SYNC_NEW_MESSAGE;
 
+	LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Importing message change");
 	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(cbProps, ptrProps, ulFlags, &ptrDestStream);
 	if (hr == hrSuccess) {
-		HRESULT hrAsync;
-
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copying data");
 		hr = ptrSerializedMessage->CopyData(ptrDestStream);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = CloseAndGetAsyncResult(ptrDestStream, &hrAsync);
-		if (hr != MAPI_E_INTERFACE_NOT_SUPPORTED) {
-			if (hrAsync != hrSuccess) {	// Async operation failed.
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Async import operation failed. hr=0x%08x", hrAsync); 
-				hr = hrAsync;
-				goto exit;
-			}
-		} else if (hr != hrSuccess)	{ // CloseAndGetAsyncResult failed.
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get async import result. hr=0x%08x", hr);
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "ExportFast: Failed to copy data, hr = 0x%08x", hr);
 			goto exit;
 		}
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copied data");
 	} else if (hr == SYNC_E_IGNORE || hr == SYNC_E_OBJECT_DELETED) {
+		LOG_DEBUG(m_lpLogger, "ExportFast: Change ignored, code = 0x%08x", hr);
 		hr = ptrSerializedMessage->DiscardData();
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "ExportFast: Failed to discard data, hr = 0x%08x", hr);
 			goto exit;
+		}
 	} else {
-		LOG_DEBUG(m_lpLogger, "%s", "Import failed");
+		LOG_DEBUG(m_lpLogger, "ExportFast: Import failed, hr = 0x%08x", hr);
 		goto exit;
 	}
 
@@ -1328,6 +1325,7 @@ exit:
 	if (FAILED(hr))
 		m_ptrStreamExporter.reset();
 
+	LOG_DEBUG(m_lpLogger, "ExportFast: Done, hr = 0x%08x", hr);
 	return hr;
 }
 
@@ -1819,44 +1817,3 @@ HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 
 	return hrSuccess;
 }
-
-/**
- * Obtain the WSStreamOps interface of a stream, stop it's async operation and get the result. Note that
- * the operation should already be completed, but an implicit end is normally signalled through Release().
- *
- * @param[in]	lpStream
- *					The Stream object that should be stopped and inspected.
- * @param[out]	lphrResult
- *					Pointer to a HRESULT value that will be set to the result of the async operation.
- *
- * @return	HRESULT
- * @retval	MAPI_E_INVALID_PARAMETER		One of the provided arguments is NULL.
- * @retval	MAPI_E_UNCONFIGURED				There was no async operation bound to the WSStreamOps object.
- */
-HRESULT ECExchangeExportChanges::CloseAndGetAsyncResult(IStream *lpStream, HRESULT *lphrResult)
-{
-	HRESULT hr = hrSuccess;
-	WSStreamOps *lpStreamOps = NULL;
-
-	if (lpStream == NULL || lphrResult == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	
-	hr = lpStream->QueryInterface(IID_ECStreamOps, (void**)&lpStreamOps);
-	if (hr != hrSuccess) {
-		// It's possible to stream to something else than an ECStreamOps object (ie. The indexer streams to a memstream).
-		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
-			hr = hrSuccess;
-		goto exit;
-	}
-
-	hr = lpStreamOps->CloseAndGetAsyncResult(lphrResult);
-
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
-
-	return hr;
-}
-

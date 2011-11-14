@@ -81,10 +81,12 @@ am_libzarafaclient_la_OBJECTS = ECABLogon.lo ECABProvider.lo \
 	ECProfSect.lo ECMSProviderSwitch.lo ECMSProviderOffline.lo \
 	ECABProviderSwitch.lo ECABProviderOffline.lo ProviderUtil.lo \
 	ECExportAddressbookChanges.lo ECMAPIFolderPublic.lo \
-	ECMemTablePublic.lo ECMsgStorePublic.lo WSStreamOps.lo \
-	ECChangeAdvisor.lo ECDisplayTable.lo ECArchiveAwareMsgStore.lo \
+	ECMemTablePublic.lo ECMsgStorePublic.lo ECChangeAdvisor.lo \
+	ECDisplayTable.lo ECArchiveAwareMsgStore.lo \
 	ECArchiveAwareMessage.lo ECArchiveAwareAttach.lo \
-	WSMessageStreamExporter.lo WSSerializedMessage.lo
+	WSMessageStreamExporter.lo WSSerializedMessage.lo \
+	WSMessageStreamImporter.lo \
+	ECMessageStreamImporterIStreamAdapter.lo
 libzarafaclient_la_OBJECTS = $(am_libzarafaclient_la_OBJECTS)
 libzarafaclient_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -360,14 +362,15 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECMAPIFolderPublic.h ECMAPIFolderPublic.cpp														\
 	ECMemTablePublic.h ECMemTablePublic.cpp															\
 	ECMsgStorePublic.h ECMsgStorePublic.cpp															\
-	WSStreamOps.h WSStreamOps.cpp																\
 	ECChangeAdvisor.h ECChangeAdvisor.cpp											\
 	ECDisplayTable.h ECDisplayTable.cpp	\
 	ECArchiveAwareMsgStore.h ECArchiveAwareMsgStore.cpp	\
 	ECArchiveAwareMessage.h ECArchiveAwareMessage.cpp	\
 	ECArchiveAwareAttach.h ECArchiveAwareAttach.cpp	\
 	WSMessageStreamExporter.h WSMessageStreamExporter.cpp \
-	WSSerializedMessage.h WSSerializedMessage.cpp
+	WSSerializedMessage.h WSSerializedMessage.cpp \
+	WSMessageStreamImporter.h WSMessageStreamImporter.cpp \
+	ECMessageStreamImporterIStreamAdapter.h ECMessageStreamImporterIStreamAdapter.cpp
 
 all: all-am
 
@@ -470,6 +473,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMailUser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMemTablePublic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMessage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMessageStreamImporterIStreamAdapter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMsgStore.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMsgStorePublic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECNamedProp.Plo@am__quote@
@@ -490,9 +494,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMAPIFolderOps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMAPIPropStorage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMessageStreamExporter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSMessageStreamImporter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSSerializedMessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSStoreTableView.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSStreamOps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSTableView.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSTransport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSUtil.Plo@am__quote@

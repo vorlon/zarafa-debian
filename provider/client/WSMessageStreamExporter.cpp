@@ -176,10 +176,15 @@ WSMessageStreamExporter::WSMessageStreamExporter()
 
 WSMessageStreamExporter::~WSMessageStreamExporter()
 {
-	for (ULONG i = m_ulExpectedIndex; i <= m_ulMaxIndex; ++i) {
-		WSSerializedMessagePtr ptrMessage;
-		if (GetSerializedMessage(i, &ptrMessage) == hrSuccess)
+	// Discard data of all remaining streams so all data is read from the network
+	for (StreamInfoMap::const_iterator i = m_mapStreamInfo.find(m_ulExpectedIndex); i != m_mapStreamInfo.end(); ++i) {
+		try {
+			WSSerializedMessagePtr ptrMessage(new WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, i->second->id, i->second->cbPropVals, i->second->ptrPropVals.get()), true);
 			ptrMessage->DiscardData();
+		} catch(const std::bad_alloc &) {
+			// We might end up with unread data from the network... Not much we can do about that now.
+			break;
+		}
 	}
 
 	if (m_ptrTransport)
