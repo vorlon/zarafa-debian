@@ -1424,11 +1424,13 @@ ECRESULT PrepareReadProps(struct soap *soap, ECSession *lpecSession, unsigned in
 
         ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
 
-		// server strings are always unicode
-		if (PROP_TYPE(ulPropTag) == PT_STRING8)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE);
-		else if (PROP_TYPE(ulPropTag) == PT_MV_STRING8)
-			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
+		// server strings are always unicode, for unicode clients.
+		if (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) {
+			if (PROP_TYPE(ulPropTag) == PT_STRING8)
+				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE);
+			else if (PROP_TYPE(ulPropTag) == PT_MV_STRING8)
+				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
+		}
 
         ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 
