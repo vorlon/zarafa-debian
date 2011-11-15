@@ -1017,7 +1017,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	else
 		hr = ImportMessageUpdateAsStream(cbEntryId, ptrEntryId, cValue, lpPropArray, &ptrMessageImporter);
 	if (hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "ImportFast: Failed to get MessageImporter, hr = 0x%08x", hr);
+		if (hr != SYNC_E_IGNORE && hr != SYNC_E_OBJECT_DELETED)
+			LOG_DEBUG(m_lpLogger, "ImportFast: Failed to get MessageImporter, hr = 0x%08x", hr);
 		goto exit;
 	}
 

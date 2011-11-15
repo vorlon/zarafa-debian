@@ -634,6 +634,9 @@ ItemModule.prototype.createAppointmentTemplate= function(message, htmlFormat)
 				case "duedate":
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
+					break;
 			}
 			// add data in result
 			result[tagName] = new Object;
@@ -663,6 +666,9 @@ ItemModule.prototype.createContactTemplate= function(message, htmlFormat)
 				case "wedding_anniversary":
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
+					break;
 			}
 			// add data in result
 			result[tagName] = new Object;
@@ -686,8 +692,8 @@ ItemModule.prototype.createStickyNoteTemplate= function(message, htmlFormat)
 		// add data in result
 		result["body"] = new Object;
 		result["body"].label = _("Body");
-		result["body"].value = dhtml.getXMLValue(message, "body", "");
-	
+		result["body"].value = htmlFormat ? dhtml.getXMLValue(message, "body", "").htmlEntities() : dhtml.getXMLValue(message, "body", "");
+		
 	return result;
 }
 
@@ -737,6 +743,9 @@ ItemModule.prototype.createTaskTemplate= function(message, htmlFormat)
 					break;
 				case "percent_complete":
 					xmlValue = xmlValue *100 +"%";
+					break;
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
 					break;
 			}
 			// add data in result

@@ -134,7 +134,6 @@ HRESULT WSSerializedMessage::DiscardData()
 HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 {
 	HRESULT hr = hrSuccess;
-	soap_multipart *content;
 
 	if (m_bUsed) {
 		hr = MAPI_E_UNCONFIGURED;
@@ -149,12 +148,7 @@ HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 	m_lpSoap->fmimewrite = StaticMTOMWrite;
 	m_lpSoap->fmimewriteclose = StaticMTOMWriteClose;
 
-	content = soap_get_mime_attachment(m_lpSoap, (void*)this);
-	if (!content) {
-		// This should not happen
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	soap_get_mime_attachment(m_lpSoap, (void*)this);
     if (m_lpSoap->error) {
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;

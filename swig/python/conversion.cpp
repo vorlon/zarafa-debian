@@ -571,10 +571,11 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, void *lpBase)
             break;
     }
     
-    if(PyErr_Occurred())
-        goto exit;
-        
 exit:
+	if (ulPropTag)
+		Py_DECREF(ulPropTag);
+	if (Value)
+		Py_DECREF(Value);
     ;
 }
 
@@ -1302,6 +1303,25 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 	case OP_DELETE:
 	case OP_MARK_AS_READ:
 		break;
+	}
+
+	if (poActType) {
+		Py_DECREF(poActType);
+	}
+	if (poActionFlavor) {
+		Py_DECREF(poActionFlavor);
+	}
+	if (poRes) {
+		Py_DECREF(poRes);
+	}
+	if (poPropTagArray) {
+		Py_DECREF(poPropTagArray);
+	}
+	if (poFlags) {
+		Py_DECREF(poFlags);
+	}
+	if (poActObject) {
+		Py_DECREF(poActObject);
 	}
 }
 
@@ -2573,6 +2593,7 @@ int GetExceptionError(PyObject *object, HRESULT *lphr)
 	}
 
 	*lphr = (HRESULT)PyLong_AsUnsignedLong(hr);
+	Py_DECREF(hr);
 	
 	if (type) {
 		Py_DECREF(type);
