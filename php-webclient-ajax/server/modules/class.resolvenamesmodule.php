@@ -433,7 +433,16 @@
 						$item["emailaddress"] = w2u($oneoff["address"]);
 						$items[] = $item;
 					}else{
-						switch($parts["type"]){
+							switch($parts["type"]){
+							case 0: //one off
+								$oneoff = mapi_parseoneoff($item);
+								$item = array();
+								$item["fileas"] = w2u($oneoff["name"]);
+								$item["display_name"] = $item["fileas"];
+								$item["type"] = w2u($oneoff["type"]);
+								$item["emailaddress"] = w2u($oneoff["address"]);
+								$items[] = $item;
+								break;
 							case DL_USER: // contact
 								$msg = mapi_msgstore_openentry($store, $parts["entryid"]);
 								if (mapi_last_hresult()!=NOERROR) // contact could be deleted, skip item
