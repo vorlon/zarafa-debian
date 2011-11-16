@@ -389,6 +389,7 @@ appointmentitemmodule.prototype.deleteMessage = function (basedate)
 			 * Check whether there are any recepients/resource in MR or not.
 			 */
 			if (isMeetingOrganized && this.itemProps.requestsent && this.itemProps.requestsent == "1") {
+				window.focus();
 				send = confirm(_("Would you like to send an update to the attendees regarding changes to this meeting?"));
 			} else if (!isMeetingOrganized){
 				sendConfirmationDeleteAppointmentItem(this, this.itemProps["subject"], basedate);
