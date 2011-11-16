@@ -21846,20 +21846,20 @@ XS(_wrap_IECServiceAdmin_OpenUserStoresTable) {
   {
     IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
     ULONG arg2 ;
-    LPMAPITABLE *arg3 = (LPMAPITABLE *) 0 ;
+    IMAPITable **arg3 = (IMAPITable **) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned int fl2 ;
     int ecode2 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
+    IMAPITable *temp3 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
     ULONG ulFlags = 0;
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: IECServiceAdmin_OpenUserStoresTable(self,ulFlags,lppTable);");
+    temp3 = NULL; arg3 = &temp3;
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: IECServiceAdmin_OpenUserStoresTable(self,ulFlags);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -21874,16 +21874,14 @@ XS(_wrap_IECServiceAdmin_OpenUserStoresTable) {
       arg2 = fl2;
       ulFlags = fl2;
     }
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_LPMAPITABLE, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_OpenUserStoresTable" "', argument " "3"" of type '" "LPMAPITABLE *""'"); 
-    }
-    arg3 = reinterpret_cast< LPMAPITABLE * >(argp3);
     result = (arg1)->OpenUserStoresTable(arg2,arg3);
     {
       if(FAILED(result)) {
         Do_Exception(result);
       }
+    }
+    {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)*(arg3), SWIGTYPE_p_IMAPITable, SWIG_SHADOW | SWIG_OWNER); argvi++  ;
     }
     
     

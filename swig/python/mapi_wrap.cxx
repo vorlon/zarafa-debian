@@ -30314,21 +30314,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_OpenUserStoresTable(PyObject *SWIGUNU
   PyObject *resultobj = 0;
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
   ULONG arg2 ;
-  LPMAPITABLE *arg3 = (LPMAPITABLE *) 0 ;
+  IMAPITable **arg3 = (IMAPITable **) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   unsigned int fl2 ;
   int ecode2 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
+  IMAPITable *temp3 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
-  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_OpenUserStoresTable",&obj0,&obj1,&obj2)) SWIG_fail;
+  temp3 = NULL; arg3 = &temp3;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_OpenUserStoresTable",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_OpenUserStoresTable" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -30342,11 +30341,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_OpenUserStoresTable(PyObject *SWIGUNU
     arg2 = fl2;
     ulFlags = fl2;
   }
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_LPMAPITABLE, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_OpenUserStoresTable" "', argument " "3"" of type '" "LPMAPITABLE *""'"); 
-  }
-  arg3 = reinterpret_cast< LPMAPITABLE * >(argp3);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -30368,6 +30362,9 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_OpenUserStoresTable(PyObject *SWIGUNU
       DoException(result);
       SWIG_fail;
     }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)*(arg3), SWIGTYPE_p_IMAPITable, SWIG_SHADOW | SWIG_OWNER));
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
