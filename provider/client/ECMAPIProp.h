@@ -104,6 +104,10 @@ protected:
 	HRESULT HrLoadProps();
 	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
 
+	HRESULT GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue);
+	HRESULT SetSerializedACLData(LPSPropValue lpsPropValue);
+	HRESULT	UpdateACLs(ULONG cNewPerms, LPECPERMISSION lpNewPerms);
+
 protected:
 	// IECServiceAdmin and IECSecurity
 	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, LPECUSER* lppsUsers);

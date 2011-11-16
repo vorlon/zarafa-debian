@@ -114,11 +114,6 @@ public:
 	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
-private:
-	HRESULT GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue);
-	HRESULT SetSerializedACLData(LPSPropValue lpsPropValue);
-	HRESULT	UpdateACLs(ULONG cNewPerms, LPECPERMISSION lpNewPerms);
-
 public:
 	class xMAPIFolder : public IMAPIFolder {
 		public:
