@@ -1430,7 +1430,6 @@ HRESULT ECMessage::SaveRecips()
 		if (iterSObj != m_sMapiObject->lstChildren->end()) {
 			FreeMapiObject(*iterSObj);
 			m_sMapiObject->lstChildren->erase(iterSObj);
-			break;
 		}
 		
 		m_sMapiObject->lstChildren->insert(mo);
