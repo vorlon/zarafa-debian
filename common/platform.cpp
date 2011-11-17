@@ -53,6 +53,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <limits.h>
+#include <pthread.h>
 
 #include <sys/stat.h>
 
