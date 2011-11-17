@@ -3173,14 +3173,17 @@
 		* @return string Folder name of specified folder
 		*/
 		function getFolderName($storeid, $folderid) {
-			$store = $GLOBALS["mapisession"]->openMessageStore($storeid);
-			if(!$store)
-				return false;
-			
-			$folder = mapi_msgstore_openentry($store, $folderid);
-			if(!$folder)
-				return false;
+			$folder = mapi_openentry($GLOBALS["mapisession"]->getSession(), $folderid, 0);
+			if (!$folder) {
+				$store = $GLOBALS["mapisession"]->openMessageStore($storeid);
+				if(!$store)
+					return false;
 				
+				$folder = mapi_msgstore_openentry($store, $folderid);
+				if(!$folder)
+					return false;
+			}
+			
 			$folderprops = mapi_getprops($folder, array(PR_DISPLAY_NAME));
 			
 			return $folderprops[PR_DISPLAY_NAME];
