@@ -1,3 +1,11 @@
+giraffe (7.0.3~beta1-1~1.gbpe4c14c) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @e4c14c384782481ae8adde0c376927d45caca787 **
+
+  * [e4c14c3] Add gbp.conf
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 17 Nov 2011 20:30:30 +0100
+
 zarafa (7.0.1-28228) unstable; urgency=low
 
   * new release, build using libgoogle-perftools
