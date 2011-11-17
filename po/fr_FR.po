@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-08 00:03+0100\n"
+"POT-Creation-Date: 2011-11-18 00:03+0100\n"
 "PO-Revision-Date: 2011-10-25 16:15+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
@@ -96,7 +96,7 @@ msgid "Unable to open MAPI session."
 msgstr "Impossible d'ouvrir une session MAPI."
 
 #: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2342
+#: provider/client/ECMsgStore.cpp:2374
 msgid "Shortcut"
 msgstr "Raccourci"
 
@@ -611,32 +611,32 @@ msgid "This delegate has the following permissions"
 msgstr "Ce délégué dispose des autorisations suivantes"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2419
+#: provider/client/ECMsgStore.cpp:2451
 msgid "Calendar"
 msgstr "Agenda"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2465
+#: provider/client/ECMsgStore.cpp:2497
 msgid "Tasks"
 msgstr "Tâches"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:858 provider/client/ECMsgStore.cpp:2359
+#: provider/libserver/ECGenProps.cpp:858 provider/client/ECMsgStore.cpp:2391
 msgid "Inbox"
 msgstr "Boîte de réception"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2407
+#: provider/client/ECMsgStore.cpp:2439
 msgid "Contacts"
 msgstr "Contacts"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2453
+#: provider/client/ECMsgStore.cpp:2485
 msgid "Notes"
 msgstr "Notes"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2441
+#: provider/client/ECMsgStore.cpp:2473
 msgid "Journal"
 msgstr "Journal"
 
@@ -922,43 +922,43 @@ msgstr "Synchronisation du premier dossier..."
 msgid "Sync folder items"
 msgstr "Synchroniser les éléments du dossier"
 
-#: provider/client/ECMsgStore.cpp:2389
+#: provider/client/ECMsgStore.cpp:2421
 msgid "Outbox"
 msgstr "Boîte d'envoi"
 
-#: provider/client/ECMsgStore.cpp:2395
+#: provider/client/ECMsgStore.cpp:2427
 msgid "Deleted Items"
 msgstr "Éléments supprimés"
 
-#: provider/client/ECMsgStore.cpp:2401
+#: provider/client/ECMsgStore.cpp:2433
 msgid "Sent Items"
 msgstr "Éléments envoyés"
 
-#: provider/client/ECMsgStore.cpp:2429
+#: provider/client/ECMsgStore.cpp:2461
 msgid "Drafts"
 msgstr "Brouillons"
 
-#: provider/client/ECMsgStore.cpp:2477
+#: provider/client/ECMsgStore.cpp:2509
 msgid "Junk E-mail"
 msgstr "Courrier indésirable"
 
-#: provider/client/ECMsgStore.cpp:2499
+#: provider/client/ECMsgStore.cpp:2531
 msgid "RSS Feeds"
 msgstr "Flux RSS"
 
-#: provider/client/ECMsgStore.cpp:2499
+#: provider/client/ECMsgStore.cpp:2531
 msgid "RSS Feed comment"
 msgstr "Commentaire de flux RSS"
 
-#: provider/client/ECMsgStore.cpp:2503
+#: provider/client/ECMsgStore.cpp:2535
 msgid "Conversation Action Settings"
 msgstr "Paramètres d'actions de conversation"
 
-#: provider/client/ECMsgStore.cpp:2507
+#: provider/client/ECMsgStore.cpp:2539
 msgid "Quick Step Settings"
 msgstr "Paramètres d'étape rapides"
 
-#: provider/client/ECMsgStore.cpp:2511
+#: provider/client/ECMsgStore.cpp:2543
 msgid "Suggested Contacts"
 msgstr "Contacts suggérés"
 
@@ -973,6 +973,38 @@ msgstr "Supprimer"
 #: provider/client/SettingsPropPageAdvance.cpp:183
 msgid "User already exists."
 msgstr "L'utilisateur existe déjà."
+
+#: provider/client/ECArchiveAwareMessage.cpp:446
+msgid "Zarafa Archiver"
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:448
+msgid "An error has occurred while fetching the message from the archive."
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:450
+msgid "Please contact your system administrator."
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
+msgid "Error code:"
+msgstr "Code erreur :"
+
+#: provider/client/ECArchiveAwareMessage.cpp:462
+msgid "It seems no valid archiver license is installed."
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:466
+msgid "The archive could not be found."
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:470
+msgid "You don't have sufficient access to the archive."
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
+msgid "Error description:"
+msgstr "Description de l'erreur :"
 
 #: provider/client/ECABProviderSwitch.cpp:138
 #: provider/client/ECMSProviderSwitch.cpp:281
@@ -1238,19 +1270,19 @@ msgstr ""
 "connexion ne pourra s'effectuer tant que vous n'aurez pas désactivé l'option "
 "'Travailler hors connexion' du menu 'Fichier'."
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:801
+#: provider/client/ECExchangeImportContentsChanges.cpp:808
 msgid "Sync Issues"
 msgstr "Erreur de synchronisation"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:805
+#: provider/client/ECExchangeImportContentsChanges.cpp:812
 msgid "Conflicts"
 msgstr "Conflits"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:809
+#: provider/client/ECExchangeImportContentsChanges.cpp:816
 msgid "Local Failures"
 msgstr "Défaillances locales"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:813
+#: provider/client/ECExchangeImportContentsChanges.cpp:820
 msgid "Server Failures"
 msgstr "Défaillance du serveur"
 
@@ -1396,14 +1428,6 @@ msgstr "Impossible de copier les données du message."
 #: spooler/archive.cpp:305
 msgid "Unable to save archived message."
 msgstr "Impossible d'enregistrer le message archivé."
-
-#: spooler/archive.cpp:335
-msgid "Error code:"
-msgstr "Code erreur :"
-
-#: spooler/archive.cpp:339
-msgid "Error description:"
-msgstr "Description de l'erreur :"
 
 #: spooler/mailer.cpp:1688
 msgid "You are not allowed to send as user or group "
