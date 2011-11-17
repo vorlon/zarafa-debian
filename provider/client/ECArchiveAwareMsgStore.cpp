@@ -138,7 +138,7 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 			continue;
 		}
 
-		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, (LPENTRYID)(*iterIterEID)->lpb, &IID_ECMessage, MAPI_DEFERRED_ERRORS, &ulType, &ptrArchiveMessage);
+		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, (LPENTRYID)(*iterIterEID)->lpb, &IID_ECMessage, 0, &ulType, &ptrArchiveMessage);
 		if (hr != hrSuccess) {
 			continue;
 		}
