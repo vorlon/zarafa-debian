@@ -69,7 +69,7 @@ class WSMessageStreamExporter : public ECUnknown
 public:
 	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
 
-	bool IsEmpty() const;
+	bool IsDone() const;
 	HRESULT GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage);
 
 private:

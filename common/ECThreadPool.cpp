@@ -409,17 +409,7 @@ bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 		
 	default: 
 		{
-			struct timeval tv;
-			struct timespec ts;
-			
-			gettimeofday(&tv, NULL);
-			
-			ts.tv_sec = tv.tv_sec + timeout / 1000;
-			ts.tv_nsec = 1000 * (tv.tv_usec + 1000 * (timeout % 1000));
-			if (ts.tv_nsec >= 1000000000) {
-				ts.tv_sec++;
-				ts.tv_nsec -= 1000000000;
-			}
+			struct timespec ts = GetDeadline(timeout);
 			
 			while (!(m_state & waitMask)) {
 				if (pthread_cond_timedwait(&m_hCondition, &m_hMutex, &ts) == ETIMEDOUT)

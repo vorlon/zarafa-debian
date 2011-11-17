@@ -50,6 +50,7 @@
 #include "platform.h"
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
+#include "ECSyncSettings.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -63,9 +64,11 @@ static char THIS_FILE[]=__FILE__;
 /**
  * Create a new WSMessageStreamSink instance
  * @param[in]	lpFifoBuffer	The fifobuffer to write the data into.
+ * @param[in]	ulTimeout		The timeout in ms to use when writing to the
+ * 								fifobuffer.
  * @param[out]	lppSink			The newly created object
  */
-HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, WSMessageStreamSink **lppSink)
+HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamSink **lppSink)
 {
 	HRESULT hr = hrSuccess;
 	WSMessageStreamSinkPtr ptrSink;
@@ -76,7 +79,7 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, WSMessageStreamS
 	}
 
 	try {
-		ptrSink.reset(new WSMessageStreamSink(lpFifoBuffer));
+		ptrSink.reset(new WSMessageStreamSink(lpFifoBuffer, ulTimeout));
 	} catch (const std::bad_alloc &) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -95,15 +98,16 @@ exit:
  */
 HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
 {
-	return ZarafaErrorToMAPIError(m_lpFifoBuffer->Write(lpData, cbData, 30000, NULL));
+	return ZarafaErrorToMAPIError(m_lpFifoBuffer->Write(lpData, cbData, m_ulTimeout, NULL));
 }
 
 /**
  * Constructor
  * @param[in]	lpFifoBuffer	The fifobuffer to write the data into.
  */
-WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer)
+WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout)
 : m_lpFifoBuffer(lpFifoBuffer)
+, m_ulTimeout(ulTimeout)
 { }
 
 /**
@@ -125,6 +129,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 	entryId sFolderEntryId = {0};
 	propVal sConflictItems = {0};
 	WSMessageStreamImporterPtr ptrStreamImporter;
+	ECSyncSettings* lpSyncSettings = NULL;
 
 	if (lppStreamImporter == NULL || 
 		lpEntryID == NULL || cbEntryID == 0 || 
@@ -150,8 +155,10 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 			goto exit;
 	}
 
+	lpSyncSettings = ECSyncSettings::GetInstance();
+
 	try {
-		ptrStreamImporter.reset(new WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport));
+		ptrStreamImporter.reset(new WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport, lpSyncSettings->StreamBufferSize(), lpSyncSettings->StreamTimeout()));
 
 		// The following are now owned by the stream importer
 		sEntryId.__ptr = NULL;
@@ -184,7 +191,7 @@ HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 		goto exit;
 	}
 
-	hr = WSMessageStreamSink::Create(&m_fifoBuffer, &ptrSink);
+	hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, &ptrSink);
 	if (hr != hrSuccess) {
 		m_fifoBuffer.Close();
 		goto exit;
@@ -207,7 +214,7 @@ HRESULT WSMessageStreamImporter::GetAsyncResult(HRESULT *lphrResult)
 		goto exit;
 	}
 
-	if (wait(30000) == false) {
+	if (wait(m_ulTimeout) == false) {
 		hr = MAPI_E_TIMEOUT;
 		goto exit;
 	}
@@ -218,7 +225,7 @@ exit:
 	return hr;
 }
 
-WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, const entryId &sEntryId, const entryId &sFolderEntryId, bool bNewMessage, const propVal &sConflictItems, WSTransport *lpTransport)
+WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, const entryId &sEntryId, const entryId &sFolderEntryId, bool bNewMessage, const propVal &sConflictItems, WSTransport *lpTransport, ULONG ulBufferSize, ULONG ulTimeout)
 : m_ulFlags(ulFlags)
 , m_ulSyncId(ulSyncId)
 , m_sEntryId(sEntryId)
@@ -226,7 +233,9 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 , m_bNewMessage(bNewMessage)
 , m_sConflictItems(sConflictItems)
 , m_ptrTransport(lpTransport, true)
+, m_fifoBuffer(ulBufferSize)
 , m_threadPool(1)
+, m_ulTimeout(ulTimeout)
 { 
 }
 
@@ -298,7 +307,7 @@ size_t WSMessageStreamImporter::MTOMRead(struct soap* soap, void* /*handle*/, ch
 	ECRESULT er = erSuccess;
 	ECFifoBuffer::size_type cbRead = 0;
 
-	er = m_fifoBuffer.Read(buf, len, 30000, &cbRead);
+	er = m_fifoBuffer.Read(buf, len, m_ulTimeout, &cbRead);
 	if (er != erSuccess) {
 		m_hr = ZarafaErrorToMAPIError(er);
 		return 0;

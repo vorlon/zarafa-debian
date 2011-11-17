@@ -67,15 +67,16 @@ typedef mapi_object_ptr<WSTransport> WSTransportPtr;
 class WSMessageStreamSink : public ECUnknown
 {
 public:
-	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, WSMessageStreamSink **lppSink);
+	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamSink **lppSink);
 	HRESULT Write(LPVOID lpData, ULONG cbData);
 
 private:
-	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer);
+	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout);
 	~WSMessageStreamSink();
 
 private:
 	ECFifoBuffer	*m_lpFifoBuffer;
+	ULONG			m_ulTimeout;
 };
 
 typedef mapi_object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
@@ -97,7 +98,7 @@ public:
 	HRESULT GetAsyncResult(HRESULT *lphrResult);
 
 private:
-	WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, const entryId &sEntryId, const entryId &sFolderEntryId, bool bNewMessage, const propVal &sConflictItems, WSTransport *lpTransport);
+	WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, const entryId &sEntryId, const entryId &sFolderEntryId, bool bNewMessage, const propVal &sConflictItems, WSTransport *lpTransport, ULONG ulBufferSize, ULONG ulTimeout);
 	~WSMessageStreamImporter();
 
 	void run();
@@ -123,6 +124,7 @@ private:
 	HRESULT m_hr;
 	ECFifoBuffer m_fifoBuffer;
 	ECThreadPool m_threadPool;
+	ULONG m_ulTimeout;
 };
 
 typedef mapi_object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;

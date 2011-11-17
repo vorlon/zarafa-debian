@@ -1196,7 +1196,7 @@ exit:
  * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
  * @param[in]	lpChanges	The complete set of changes available.
  * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
- * @param[in]	ulCount		The number of messages to export, starting at ulStart. ulStart and ulCount must not me larger than the amount of available changes.
+ * @param[in]	ulChanges	The number of messages to export, starting at ulStart. ulStart and ulCount must not me larger than the amount of available changes.
  * @param[in]	lpsProps	The set of proptags that will be returned as regular properties outside the stream.
  * @param[out]	lppsStreamExporter	The streamexporter that must be used to get the individual streams.
  *

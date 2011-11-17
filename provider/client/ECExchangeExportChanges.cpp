@@ -383,7 +383,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
 	if(hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "%s", "Unable to decode sync state stream");
+		LOG_DEBUG(m_lpLogger, "Unable to decode sync state stream, hr=0x%08x", hr);
 		goto exit;
 	}
 
@@ -398,7 +398,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// Ignore any trailing garbage in the stream
 		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
 		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source key of folder");
+			LOG_DEBUG(m_lpLogger, "Unable to get source key of folder, hr=0x%08x", hr);
 			goto exit;
 		}
 
@@ -421,7 +421,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// Register our sync with the server, get a sync ID
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(lpPropSourceKey->Value.bin , 0, 0, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Unable to update sync status on server");
+			LOG_DEBUG(m_lpLogger, "Unable to update sync status on server, hr=0x%08x", hr);
 			goto exit;
 		}
 
@@ -437,7 +437,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	hr = m_lpFolder->GetMsgStore()->lpTransport->HrGetChanges(lpPropSourceKey ? lpPropSourceKey->Value.bin : sbNull, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &m_lpChanges);
 	if(hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "%s", "Unable to get changes from server");
+		LOG_DEBUG(m_lpLogger, "Unable to get changes from server, hr=0x%08x", hr);
 		goto exit;
 	}
 
@@ -666,7 +666,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 			hr = m_lpImportHierarchy->UpdateState(NULL);
 		}
 		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Importer state update failed");
+			LOG_DEBUG(m_lpLogger, "Importer state update failed, hr=0x%08x", hr);
 			goto exit;
 		}
 	}
@@ -679,7 +679,7 @@ progress:
 		// communicate with the server.
 		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
 		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder's source key");
+			LOG_DEBUG(m_lpLogger, "Unable to get source folder's source key, hr=0x%08x", hr);
 			goto exit;
 		}
 
@@ -1258,10 +1258,11 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	if (m_ulStep >= m_lstChange.size())
 		goto exit;
 
-	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsEmpty()) {
+	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsDone()) {
 		LOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
 		hr = m_lpFolder->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
+			// There was nothing to export (see ExportMessageChangesAsStream documentation)
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
 			hr = hrSuccess;
 			goto exit;
@@ -1275,6 +1276,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	LOG_DEBUG(m_lpLogger, "ExportFast: Requesting serialized message, step = %u", m_ulStep);
 	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &ptrSerializedMessage);
 	if (hr == SYNC_E_OBJECT_DELETED) {
+		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Source message is deleted");
 		hr = hrSuccess;
 		goto skip;
 	} else if (hr != hrSuccess) {

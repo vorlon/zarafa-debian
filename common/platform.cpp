@@ -362,6 +362,25 @@ struct tm* gmtime_safe(const time_t* timer, struct tm *result)
 	return tmp;
 }
 
+struct timespec GetDeadline(unsigned int ulTimeoutMs)
+{
+	struct timespec	deadline;
+	struct timeval	now;
+	gettimeofday(&now, NULL);
+
+	now.tv_sec += ulTimeoutMs / 1000;
+	now.tv_usec += 1000 * (ulTimeoutMs % 1000);
+	if (now.tv_usec >= 1000000) {
+		now.tv_sec++;
+		now.tv_usec -= 1000000;
+	}
+
+	deadline.tv_sec = now.tv_sec;
+	deadline.tv_nsec = now.tv_usec * 1000;
+
+	return deadline;
+}
+
 // Does mkdir -p <path>
 int CreatePath(const char *createpath)
 {

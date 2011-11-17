@@ -104,7 +104,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 	}
 
 	if (ulTimeoutMs > 0)
-		GetDeadline(ulTimeoutMs, &deadline);
+		deadline = GetDeadline(ulTimeoutMs);
 
 	pthread_mutex_lock(&m_hMutex);
 
@@ -174,7 +174,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	}
 
 	if (ulTimeoutMs > 0)
-		GetDeadline(ulTimeoutMs, &deadline);
+		deadline = GetDeadline(ulTimeoutMs);
 	
 	pthread_mutex_lock(&m_hMutex);
 
@@ -223,27 +223,4 @@ ECRESULT ECFifoBuffer::Close()
 	pthread_cond_signal(&m_hCondNotEmpty);
 	pthread_mutex_unlock(&m_hMutex);
 	return erSuccess;
-}
-
-/**
- * Creates the deadline timespec at which time the calling function should stop to
- * read or write.
- *
- * @param[in]	ulTimeoutMs		The timeout in ms.
- * @param[out]	lptsDeadline	The timespec specifying when to stop.
- */
-void ECFifoBuffer::GetDeadline(unsigned int ulTimeoutMs, struct timespec *lptsDeadline)
-{
-	struct timeval	now;
-	gettimeofday(&now, NULL);
-
-	now.tv_sec += ulTimeoutMs / 1000;
-	now.tv_usec += 1000 * (ulTimeoutMs % 1000);
-	if (now.tv_usec >= 1000000) {
-		now.tv_sec++;
-		now.tv_usec -= 1000000;
-	}
-
-	lptsDeadline->tv_sec = now.tv_sec;
-	lptsDeadline->tv_nsec = now.tv_usec * 1000;
 }

@@ -120,7 +120,7 @@ exit:
 /**
  * Check if any more streams are available from the exporter.
  */
-bool WSMessageStreamExporter::IsEmpty() const
+bool WSMessageStreamExporter::IsDone() const
 {
 	assert(m_ulExpectedIndex <= m_ulMaxIndex);
 	return m_ulExpectedIndex == m_ulMaxIndex;
@@ -160,10 +160,9 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		goto exit;
 	}
 
-	AddChild(ptrMessage);	//@todo: Is this enough to make sure all WSSerializedMessages are destructed
-							//       before this object is?
+	AddChild(ptrMessage);
 
-	++m_ulExpectedIndex;	//@todo: Should we increment now or wait for the message to be actually streamed?
+	++m_ulExpectedIndex;
 	*lppSerializedMessage = ptrMessage.release();	
 
 exit:
