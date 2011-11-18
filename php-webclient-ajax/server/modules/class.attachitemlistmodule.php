@@ -139,8 +139,10 @@
 
 						// enable columns that are by default disabled
 						$GLOBALS["TableColumns"]->changeColumnPropertyValue($this->tablecolumns, "message_delivery_time", "visible", true);
+						$GLOBALS["TableColumns"]->changeColumnPropertyValue($this->tablecolumns, "sent_representing_name", "visible", true);
 						break;
 				}
+
 				// add folder name column
 				if($GLOBALS["TableColumns"]->getColumn($this->tablecolumns, "parent_entryid") === false) {
 					$GLOBALS["TableColumns"]->addColumn($this->tablecolumns, "parent_entryid", true, 6, _("In Folder"), _("Sort Folder"), 90, "folder_name");
