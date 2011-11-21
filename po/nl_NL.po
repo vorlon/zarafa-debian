@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-18 00:03+0100\n"
+"POT-Creation-Date: 2011-11-19 00:03+0100\n"
 "PO-Revision-Date: 2011-10-18 13:25+0200\n"
 "Last-Translator: Remon <remon@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
@@ -14,96 +14,96 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:503 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:322
 msgid "Configure"
 msgstr "Instellen"
 
-#: provider/ECProps/Addin.cpp:505 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:504 provider/ECProps/SyncBar.cpp:314
 msgid "Synchronize"
 msgstr "Synchroniseren"
 
-#: provider/ECProps/Addin.cpp:507
+#: provider/ECProps/Addin.cpp:506
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Open Gedeelde Mappen..."
 
-#: provider/ECProps/Addin.cpp:509 provider/ECProps/Addin.cpp:550
+#: provider/ECProps/Addin.cpp:508 provider/ECProps/Addin.cpp:549
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Verwijderde Items Herstellen..."
 
-#: provider/ECProps/Addin.cpp:511 provider/ECProps/Addin.cpp:552
+#: provider/ECProps/Addin.cpp:510 provider/ECProps/Addin.cpp:551
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Afwezigheid instellingen..."
 
-#: provider/ECProps/Addin.cpp:515
+#: provider/ECProps/Addin.cpp:514
 msgid "Offline"
 msgstr "Offline"
 
-#: provider/ECProps/Addin.cpp:544 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:324
 msgid "Configure offline synchronization"
 msgstr "Offline synchronisatie instellen"
 
-#: provider/ECProps/Addin.cpp:546 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:545 provider/ECProps/SyncBar.cpp:316
 msgid "Start offline synchronization"
 msgstr "Start offline synchronisatie"
 
-#: provider/ECProps/Addin.cpp:548
+#: provider/ECProps/Addin.cpp:547
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Open de mappen van een andere Outlook mappen delende gebruiker (Agenda, "
 "E-mail, etc)"
 
-#: provider/ECProps/Addin.cpp:660
+#: provider/ECProps/Addin.cpp:659
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "De Aanwezigheid-instelling is ingeschakeld. Wilt u deze uitschakelen?"
 
-#: provider/ECProps/Addin.cpp:660
+#: provider/ECProps/Addin.cpp:659
 msgid "Out Of Office Turned On"
 msgstr "De Afwezigheid Assistent is ingeschakeld"
 
-#: provider/ECProps/Addin.cpp:666
+#: provider/ECProps/Addin.cpp:665
 msgid "Unable to save Out of Office status"
 msgstr "Kon afwezigheidsstatus niet opslaan"
 
-#: provider/ECProps/Addin.cpp:763
+#: provider/ECProps/Addin.cpp:760
 msgid "Delegates"
 msgstr "Gemachtigden"
 
-#: provider/ECProps/Addin.cpp:887 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:884 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favorieten"
 
-#: provider/ECProps/Addin.cpp:899 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:896 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Machtigingen"
 
-#: provider/ECProps/Addin.cpp:1103 provider/ECProps/Addin.cpp:1104
+#: provider/ECProps/Addin.cpp:1100 provider/ECProps/Addin.cpp:1101
 msgid "Add to Public Favorites Folder"
 msgstr "Voeg toe aan Favorieten"
 
-#: provider/ECProps/Addin.cpp:1188
+#: provider/ECProps/Addin.cpp:1185
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:106
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Kan geen MAPI sessie openen."
 
-#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2374
 msgid "Shortcut"
 msgstr "Snelkoppeling"
 
-#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Snelkoppelingenmap"
 
-#: provider/ECProps/Addin.cpp:1194
+#: provider/ECProps/Addin.cpp:1191
 msgid "Unable to get shortcut folder."
 msgstr "Kan de snelkoppelingenmap niet openen."
 
@@ -964,9 +964,11 @@ msgstr "Verwijderen"
 msgid "User already exists."
 msgstr "Gebruiker is al aanwezig."
 
+# 93%
 #: provider/client/ECArchiveAwareMessage.cpp:446
+#, fuzzy
 msgid "Zarafa Archiver"
-msgstr ""
+msgstr "Zarafa Archief"
 
 #: provider/client/ECArchiveAwareMessage.cpp:448
 msgid "An error has occurred while fetching the message from the archive."
