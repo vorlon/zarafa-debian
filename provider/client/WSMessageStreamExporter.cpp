@@ -176,15 +176,11 @@ WSMessageStreamExporter::WSMessageStreamExporter()
 WSMessageStreamExporter::~WSMessageStreamExporter()
 {
 	// Discard data of all remaining streams so all data is read from the network
-	for (StreamInfoMap::const_iterator i = m_mapStreamInfo.find(m_ulExpectedIndex); i != m_mapStreamInfo.end(); ++i) {
-		try {
-			WSSerializedMessagePtr ptrMessage(new WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, i->second->id, i->second->cbPropVals, i->second->ptrPropVals.get()), true);
-			ptrMessage->DiscardData();
-		} catch(const std::bad_alloc &) {
-			// We might end up with unread data from the network... Not much we can do about that now.
-			break;
-		}
-	}
+	m_ptrTransport->m_lpCmd->soap->fmimewriteopen = NULL;
+	m_ptrTransport->m_lpCmd->soap->fmimewrite = NULL;
+	m_ptrTransport->m_lpCmd->soap->fmimewriteclose = NULL;
+
+	while (soap_get_mime_attachment(m_ptrTransport->m_lpCmd->soap, NULL));	// This is a loop!
 
 	if (m_ptrTransport)
 		m_ptrTransport->UnLockSoap();
