@@ -1378,6 +1378,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	// See if we're looping
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
 		if ( (strstr(lpMessageProps[0].Value.lpszA, "X-Zarafa-Vacation:") != NULL) ||
+			 (strstr(lpMessageProps[0].Value.lpszA, "Auto-Submitted:") != NULL) ||
 			 (strstr(lpMessageProps[0].Value.lpszA, "Precedence:") != NULL) )
 			// Vacation header already present, do not send vacation reply
 			// Precedence: list/bulk/junk, do not reply to these mails
