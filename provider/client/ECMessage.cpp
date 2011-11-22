@@ -895,6 +895,9 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			goto exit;
 	}
 
+	// Synchronize PR_DISPLAY_* properties
+	SyncRecips();
+
 exit:
 	if(lpRecipProps)
 		ECFreeBuffer(lpRecipProps);
@@ -1690,8 +1693,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		if (hr != hrSuccess)
 			goto exit;
 
-		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
-		SyncRecips();
 	}
 
 	// Synchronize any changes between RTF, HTML and plaintext before proceeding

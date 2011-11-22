@@ -65,7 +65,7 @@
 
 using namespace std;
 
-HRESULT MungeForwardBody(LPMESSAGE lpMessage)
+HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
@@ -77,12 +77,11 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		} };
 	SPropArrayPtr ptrInfo;
 	SizedSPropTagArray (6, sInfo) = { 6, {
-			// SENT_REPRESENTING?
-			PR_SENDER_NAME_W,
-			PR_SENDER_EMAIL_ADDRESS_W,
+			PR_SENT_REPRESENTING_NAME_W,
+			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 			PR_MESSAGE_DELIVERY_TIME,
-			PR_RECEIVED_BY_NAME_W,
-			PR_RECEIVED_BY_EMAIL_ADDRESS_W,
+			PR_DISPLAY_TO_W,
+			PR_DISPLAY_CC_W,
 			PR_SUBJECT_W
 		} };
 	ULONG ulCharset;
@@ -95,10 +94,10 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 	wstring wstrBody;
 	wstring strForwardText;
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
+	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
 		goto exit;
-
+		
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)
 		ulCharset = ptrBodies[3].Value.ul;
 	else
@@ -114,11 +113,12 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 
 	// From: <fullname>
 	// Sent: <date>
-	// To: <fullname>
+	// To: <original To:>
+	// Cc: <original Cc:>
 	// Subject: <>
 	// Auto forwarded by a rule
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
+	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
 	if (FAILED(hr))
 		goto exit;
 
@@ -145,7 +145,9 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		strForwardText += L"\nTo: ";
 		if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
 			strForwardText += ptrInfo[3].Value.lpszW;
-		else if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
+
+		strForwardText += L"\nCc: ";
+		if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
 			strForwardText += ptrInfo[4].Value.lpszW;
 
 		strForwardText += L"\nSubject: ";
@@ -155,7 +157,7 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
-			hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
+			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
 			if (hr == hrSuccess) {
 				hr = Util::HrStreamToWString(ptrStream, wstrBody);
 			}
@@ -171,7 +173,7 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		string strFind("<body");
 		const char* pos;
 
-		hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
+		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
 		if (hr == hrSuccess) {
 			hr = Util::HrStreamToString(ptrStream, strHTML);
 		}
@@ -204,7 +206,9 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 			strHTMLForwardText += "<br><b>To:</b> ";
 			if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
 				Util::HrTextToHtml(ptrInfo[3].Value.lpszW, strHTMLForwardText, ulCharset);
-			else if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
+
+			strHTMLForwardText += "<br><b>Cc:</b> ";
+			if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
 				Util::HrTextToHtml(ptrInfo[4].Value.lpszW, strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Subject:</b> ";
@@ -611,7 +615,7 @@ HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigS
 		goto exit;
 
 	if (!bDoNotMunge && !bForwardAsAttachment)
-		MungeForwardBody(lpFwdMsg);
+		MungeForwardBody(lpFwdMsg, lpOrigMessage);
 
 	*lppMessage = lpFwdMsg;
 
