@@ -208,9 +208,14 @@ exit:
  *
  * @return HRESULT
  */
-eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach)
+eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags)
 {
 	HRESULT hr = hrSuccess;
+
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
 		ArchiveStateCollectorPtr ptrArchiveStateCollector;
@@ -224,7 +229,14 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach)
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = ptrArchiveStateUpdater->UpdateAll();
+		if (ulFlags == 0) {
+			if (parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
+				ulFlags = ArchiveManage::Writable;
+			else
+				ulFlags = ArchiveManage::ReadOnly;
+		}
+
+		hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -243,9 +255,14 @@ exit:
  *
  * @return HRESULT
  */
-eResult ArchiveControlImpl::Archive(const TCHAR *lpszUser, bool bAutoAttach)
+eResult ArchiveControlImpl::Archive(const TCHAR *lpszUser, bool bAutoAttach, unsigned int ulFlags)
 {
 	HRESULT hr = hrSuccess;
+
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
 		ArchiveStateCollectorPtr ptrArchiveStateCollector;
@@ -259,7 +276,14 @@ eResult ArchiveControlImpl::Archive(const TCHAR *lpszUser, bool bAutoAttach)
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = ptrArchiveStateUpdater->Update(lpszUser);
+		if (ulFlags == 0) {
+			if (parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
+				ulFlags = ArchiveManage::Writable;
+			else
+				ulFlags = ArchiveManage::ReadOnly;
+		}
+
+		hr = ptrArchiveStateUpdater->Update(lpszUser, ulFlags);
 		if (hr != hrSuccess)
 			goto exit;
 	}

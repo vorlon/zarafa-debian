@@ -79,8 +79,8 @@ public:
 
 	virtual ~ArchiveControl() {};
 
-	virtual eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach) = 0;
-	virtual eResult Archive(const TCHAR *lpszUser, bool bAutoAttach) = 0;
+	virtual eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) = 0;
+	virtual eResult Archive(const TCHAR *lpszUser, bool bAutoAttach, unsigned int ulFlags) = 0;
 	virtual eResult CleanupAll(bool bLocalOnly) = 0;
 	virtual eResult Cleanup(const TCHAR *lpszUser) = 0;
 
@@ -111,7 +111,8 @@ class ArchiveManage {
 public:
 	enum {
 		UseIpmSubtree = 1,
-		Writable = 2
+		Writable = 2,
+		ReadOnly = 4
 	};
 
 	typedef std::auto_ptr<ArchiveManage>	auto_ptr_type;
@@ -125,7 +126,7 @@ public:
 	virtual eResult ListArchives(ArchiveList *lplstArchives, const char *lpszIpmSubtreeSubstitude = NULL) = 0;
 	virtual eResult ListAttachedUsers(std::ostream &ostr) = 0;
 	virtual eResult ListAttachedUsers(UserList *lplstUsers) = 0;
-	virtual eResult AutoAttach() = 0;
+	virtual eResult AutoAttach(unsigned int ulFlags) = 0;
 
 protected:
 	ArchiveManage() {};
@@ -162,7 +163,7 @@ public:
 
 	virtual eResult GetControl(ArchiveControlPtr *lpptrControl) = 0;
 	virtual eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage) = 0;
-	virtual eResult AutoAttach() = 0;
+	virtual eResult AutoAttach(unsigned int ulFlags) = 0;
 
 	virtual ECConfig* GetConfig() const = 0;
 	virtual ECLogger* GetLogger() const = 0;

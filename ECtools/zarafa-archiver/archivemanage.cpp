@@ -79,8 +79,10 @@ inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
 /**
  * Create an ArchiveManageImpl object.
  *
- * @param[in]	lpSession
+ * @param[in]	ptrSession
  *					Pointer to a Session object.
+ * @param[in]	lpConfig
+ * 					Pointer to an ECConfig object.
  * @param[in]	lpszUser
  *					The username of the user for which to create the archive manager.
  * @param[in]	lpLogger
@@ -90,7 +92,7 @@ inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
  *
  * @return HRESULT
  */
-HRESULT ArchiveManageImpl::Create(SessionPtr ptrSession, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
+HRESULT ArchiveManageImpl::Create(SessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
 {
 	HRESULT hr = hrSuccess;
 	std::auto_ptr<ArchiveManageImpl> ptrArchiveManage;
@@ -101,7 +103,7 @@ HRESULT ArchiveManageImpl::Create(SessionPtr ptrSession, const TCHAR *lpszUser, 
 	}
 	
 	try {
-		ptrArchiveManage.reset(new ArchiveManageImpl(ptrSession, lpszUser, lpLogger));
+		ptrArchiveManage.reset(new ArchiveManageImpl(ptrSession, lpConfig, lpszUser, lpLogger));
 	} catch (bad_alloc &) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -120,15 +122,18 @@ exit:
 /**
  * Constructor
  *
- * @param[in]	lpSession
+ * @param[in]	ptrSession
  *					Pointer to a Session object.
+ * @param[in]	lpConfig
+ * 					Pointer to an ECConfig object.
  * @param[in]	lpszUser
  *					The username of the user for which to create the archive manager.
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object to which message will be logged.
  */
-ArchiveManageImpl::ArchiveManageImpl(SessionPtr ptrSession, const tstring &strUser, ECLogger *lpLogger)
+ArchiveManageImpl::ArchiveManageImpl(SessionPtr ptrSession, ECConfig *lpConfig, const tstring &strUser, ECLogger *lpLogger)
 : m_ptrSession(ptrSession)
+, m_lpConfig(lpConfig)
 , m_strUser(strUser)
 , m_lpLogger(lpLogger)
 {
@@ -279,7 +284,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive Type: %d", (int)aType);
 	if (aType == UndefArchive) {
 		m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Preparing archive for first use");
-		hr = ptrArchiveHelper->PrepareForFirstUse();
+		hr = ptrArchiveHelper->PrepareForFirstUse(m_lpLogger);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to prepare archive (hr=0x%08x).", hr);
 			goto exit;
@@ -797,11 +802,16 @@ exit:
  * Auto attach and detach archives to user stores based on the addressbook
  * settings.
  */
-eResult ArchiveManageImpl::AutoAttach()
+eResult ArchiveManageImpl::AutoAttach(unsigned int ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
@@ -811,7 +821,14 @@ eResult ArchiveManageImpl::AutoAttach()
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrArchiveStateUpdater->Update(m_strUser);
+	if (ulFlags == 0) {
+		if (!m_lpConfig || parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
+			ulFlags = ArchiveManage::Writable;
+		else
+			ulFlags = ArchiveManage::ReadOnly;
+	}
+
+	hr = ptrArchiveStateUpdater->Update(m_strUser, ulFlags);
 
 exit:
 	return MAPIErrorToArchiveError(hr);

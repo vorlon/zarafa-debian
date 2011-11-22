@@ -155,8 +155,8 @@ class ArchiveControlImpl : public ArchiveControl
 public:
 	static HRESULT Create(SessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiveControlPtr *lpptrArchiveControl);
 
-	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach);
-	eResult Archive(const TCHAR *lpszUser, bool bAutoAttach);
+	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags);
+	eResult Archive(const TCHAR *lpszUser, bool bAutoAttach, unsigned int ulFlags);
 
 	eResult CleanupAll(bool bLocalOnly);
 	eResult Cleanup(const TCHAR *lpszUser);
