@@ -1280,7 +1280,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		hr = hrSuccess;
 		goto skip;
 	} else if (hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "ExportFast: %s", "Unable to get serialized message");
+		LOG_DEBUG(m_lpLogger, "ExportFast: Unable to get serialized message, hr = 0x%08x", hr);
 		goto exit;
 	}
 
