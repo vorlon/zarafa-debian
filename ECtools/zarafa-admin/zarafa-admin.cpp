@@ -883,7 +883,7 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 		 if (lpECUCUS->ulStatus == UPDATE_STATUS_SUCCESS) cout << " Update:\t\tSucceed" << endl;
 		 else if (lpECUCUS->ulStatus == UPDATE_STATUS_PENDING) cout << " Update:\t\tPending" << endl;
 		 else if (lpECUCUS->ulStatus == UPDATE_STATUS_UNKNOWN) cout << " Update: \t\tUnknown" << endl;
-		 else cout << " Update:\t\ttFailed" << endl;
+		 else cout << " Update:\t\tFailed" << endl;
 	}
 
 	if(lpProps)
