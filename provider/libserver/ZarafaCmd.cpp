@@ -7533,6 +7533,9 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 
 	szUserName = STRIN_FIX(szUserName);
 
+	if (ulStoreTypeMask == 0)
+		ulStoreTypeMask = ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC;
+
 	er = lpecSession->GetUserManagement()->ResolveObjectAndSync(OBJECTCLASS_USER, szUserName, &ulObjectId);
 	if ((er == ZARAFA_E_NOT_FOUND || er == ZARAFA_E_INVALID_PARAMETER) && lpecSession->GetSessionManager()->IsHostedSupported())
 		// FIXME: this function is being misused, szUserName can also be a company name
