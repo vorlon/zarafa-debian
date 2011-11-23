@@ -654,6 +654,29 @@ function sq_fixatts($tagname,
             }
         }
 
+        if ($attname == 'href' || $attname == 'src' || $attname == 'background') {
+            # If you just type in \\server\share (e.g. using WebAccess),
+            # then you get this.  It is transformed into
+            # file://///server/share (the extra /'s are required for
+            # correct functioning on Firefox).
+            if (preg_match("/^['\"]\\\\\\\\([^\\\\]+)\\\\([^\\\\]+)(\\\\.*)?['\"]$/", $attvalue, $aMatch)) {
+                $attvalue = "\"file://///" . $aMatch[1] . "/" . 
+                    $aMatch[2] . str_replace(Array("\\"), Array("/"),
+                                             $aMatch[3]) . "\"";
+            } else {
+                # If you type \\server\share into Outlook, then it will put
+                # file:/// in front of it, making it file:///\\server\share.
+                # Transform this into file://///server/share.
+                if (preg_match("/^['\"]file:\\/\\/\\/?\\\\\\\\([^\\\\]+)\\\\([^\\\\]+)(\\\\.*)?['\"]$/", $attvalue, $aMatch)) {
+                    $attvalue = "\"file://///" . $aMatch[1] . "/" .
+                        $aMatch[2] . str_replace(Array("\\"), Array("/"),
+                                                 $aMatch[3]) . "\"";
+                }
+            }
+        }
+
+
+
         /**
          * Workaround for IE quirks
          */
