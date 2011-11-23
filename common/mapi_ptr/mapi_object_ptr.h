@@ -132,11 +132,7 @@ public:
 	
 	
 	// Dereference
-	pointer operator->() {
-		return m_lpObject;
-	}
-	
-	const_pointer operator->() const {
+	pointer operator->() const {
 		return m_lpObject;
 	}
 	
@@ -184,11 +180,7 @@ public:
 		return hr;
 	}
 
-	operator pointer() {
-		return m_lpObject;
-	}
-
-	operator const_pointer() const {
+	operator pointer() const {
 		return m_lpObject;
 	}
 
