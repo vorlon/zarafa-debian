@@ -111,8 +111,8 @@ int HandleClientUpdate(struct soap *soap)
 	// Get the server.cfg setting
 	szClientUpdatePath = g_lpConfig->GetSetting("client_update_path");
 
-	if (!szClientUpdatePath) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: The client_update_path is not found.");
+	if (!szClientUpdatePath || szClientUpdatePath[0] == 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: The configuration field 'client_update_path' is empty.");
 		goto exit;
 	}
 
@@ -462,8 +462,8 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 	soap_set_imode(soap, SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING | SOAP_ENC_ZLIB | SOAP_ENC_MTOM);
 	soap_set_omode(soap, SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING | SOAP_ENC_ZLIB | SOAP_ENC_MTOM | SOAP_IO_CHUNK);
 
-	if (!lpszClientUpdatePath) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The client_update_path is not found.", sClientUpdateInfo.ulTrackId);
+	if (!lpszClientUpdatePath || lpszClientUpdatePath[0] == 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The configuration field 'client_update_path' is empty.", sClientUpdateInfo.ulTrackId);
 		er = ZARAFA_E_NO_ACCESS;
 		goto exit;
 	}
@@ -662,14 +662,14 @@ int ns__setClientUpdateStatus(struct soap *soap, struct clientUpdateStatusReques
 		goto exit;
 	}
 
-	if (!lpszClientUpdatePath) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The 'client_update_path' is not found.", sClientUpdateStatus.ulTrackId);
+	if (!lpszClientUpdatePath || lpszClientUpdatePath[0] == 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The configuration field 'client_update_path' is empty.", sClientUpdateStatus.ulTrackId);
 		er = ZARAFA_E_NO_ACCESS;
 		goto exit;
 	}
 
-	if (!lpszLogPath) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The 'client_update_log_path' is not found.", sClientUpdateStatus.ulTrackId);
+	if (!lpszLogPath || lpszLogPath[0] == 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, The configuration field 'client_update_log_path' is empty.", sClientUpdateStatus.ulTrackId);
 		er = ZARAFA_E_NO_ACCESS;
 		goto exit;
 	}
