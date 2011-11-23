@@ -65,7 +65,57 @@
 
 using namespace std;
 
-HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
+HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo, std::wstring &wstrCc, std::wstring &wstrBcc)
+{
+	HRESULT hr = hrSuccess;
+	mapi_rowset_ptr ptrRows;
+	MAPITablePtr ptrRecips;
+	SizedSPropTagArray(2, sptaDisplay)  = {2, { PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE } };
+	
+	wstrTo.clear();
+	wstrCc.clear();
+	wstrBcc.clear();
+	
+	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	hr = ptrRecips->SetColumns((LPSPropTagArray)&sptaDisplay, TBL_BATCH);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	while(1) {
+		hr = ptrRecips->QueryRows(1, 0, &ptrRows);
+		if(hr != hrSuccess)
+			goto exit;
+			
+		if(ptrRows.size() == 0)
+			break;
+			
+		if(ptrRows[0].lpProps[0].ulPropTag != PR_DISPLAY_NAME_W || ptrRows[0].lpProps[1].ulPropTag != PR_RECIPIENT_TYPE)
+			continue;
+			
+		switch(ptrRows[0].lpProps[1].Value.ul) {
+			case MAPI_TO:
+				if (!wstrTo.empty()) wstrTo += L"; ";
+				wstrTo += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+			case MAPI_CC:
+				if (!wstrCc.empty()) wstrCc += L"; ";
+				wstrCc += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+			case MAPI_BCC:
+				if (!wstrBcc.empty()) wstrBcc += L"; ";
+				wstrBcc += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+		}
+	}
+
+exit:	
+	return hr;
+}
+
+HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
@@ -76,12 +126,10 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 			PR_INTERNET_CPID
 		} };
 	SPropArrayPtr ptrInfo;
-	SizedSPropTagArray (6, sInfo) = { 6, {
+	SizedSPropTagArray (4, sInfo) = { 4, {
 			PR_SENT_REPRESENTING_NAME_W,
 			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 			PR_MESSAGE_DELIVERY_TIME,
-			PR_DISPLAY_TO_W,
-			PR_DISPLAY_CC_W,
 			PR_SUBJECT_W
 		} };
 	ULONG ulCharset;
@@ -93,6 +141,7 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 	string strHTMLForwardText;
 	wstring wstrBody;
 	wstring strForwardText;
+	wstring wstrTo, wstrCc, wstrBcc;
 
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
@@ -117,6 +166,10 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 	// Cc: <original Cc:>
 	// Subject: <>
 	// Auto forwarded by a rule
+	
+	hr = GetRecipStrings(lpOrigMessage, wstrTo, wstrCc, wstrBcc);
+	if (FAILED(hr))
+		goto exit;
 
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
 	if (FAILED(hr))
@@ -143,16 +196,14 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 		}
 
 		strForwardText += L"\nTo: ";
-		if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[3].Value.lpszW;
+		strForwardText += wstrTo;
 
 		strForwardText += L"\nCc: ";
-		if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[4].Value.lpszW;
+		strForwardText += wstrCc;
 
 		strForwardText += L"\nSubject: ";
-		if (PROP_TYPE(ptrInfo[5].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[5].Value.lpszW;
+		if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
+			strForwardText += ptrInfo[3].Value.lpszW;
 
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
@@ -204,16 +255,14 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, IMAPIProp *lpOrigMessage)
 			}
 
 			strHTMLForwardText += "<br><b>To:</b> ";
-			if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[3].Value.lpszW, strHTMLForwardText, ulCharset);
+			Util::HrTextToHtml(wstrTo.c_str(), strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Cc:</b> ";
-			if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[4].Value.lpszW, strHTMLForwardText, ulCharset);
+			Util::HrTextToHtml(wstrCc.c_str(), strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Subject:</b> ";
-			if (PROP_TYPE(ptrInfo[5].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[5].Value.lpszW, strHTMLForwardText, ulCharset);
+			if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
+				Util::HrTextToHtml(ptrInfo[3].Value.lpszW, strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Auto forwarded by a rule</b><br><hr><br>";
 		}
@@ -486,7 +535,7 @@ exit:
 	return hr;
 }
 
-HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, IMAPIProp *lpOrigMessage, LPADRLIST lpRuleRecipients, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
+HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMESSAGE lpOrigMessage, LPADRLIST lpRuleRecipients, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;

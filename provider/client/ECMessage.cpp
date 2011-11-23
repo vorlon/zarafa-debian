@@ -895,9 +895,6 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			goto exit;
 	}
 
-	// Synchronize PR_DISPLAY_* properties
-	SyncRecips();
-
 exit:
 	if(lpRecipProps)
 		ECFreeBuffer(lpRecipProps);
@@ -1693,6 +1690,8 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		if (hr != hrSuccess)
 			goto exit;
 
+		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
+		SyncRecips();
 	}
 
 	// Synchronize any changes between RTF, HTML and plaintext before proceeding
@@ -2521,6 +2520,7 @@ HRESULT ECMessage::SyncRTF()
 	// HACK ALERT: we force fModify to TRUE, because even on read-only messages,
 	// we want to be able to create RTF_COMPRESSED or BODY from the other, which
 	// is basically a WRITE to the object
+	
 	fModifySaved = this->fModify;
 	this->fModify = TRUE;
 
