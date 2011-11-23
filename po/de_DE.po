@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-19 00:03+0100\n"
-"PO-Revision-Date: 2011-10-05 13:01+0200\n"
+"POT-Creation-Date: 2011-11-24 00:03+0100\n"
+"PO-Revision-Date: 2011-11-23 15:04+0200\n"
 "Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
@@ -14,98 +14,98 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:506 provider/ECProps/SyncBar.cpp:322
 msgid "Configure"
 msgstr "Eigenschaften"
 
-#: provider/ECProps/Addin.cpp:504 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:508 provider/ECProps/SyncBar.cpp:314
 msgid "Synchronize"
 msgstr "Synchronisieren"
 
-#: provider/ECProps/Addin.cpp:506
+#: provider/ECProps/Addin.cpp:510
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Gemeinsame Ordner öffnen ..."
 
-#: provider/ECProps/Addin.cpp:508 provider/ECProps/Addin.cpp:549
+#: provider/ECProps/Addin.cpp:512 provider/ECProps/Addin.cpp:553
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Gelöschte Objekte wiederherstellen ..."
 
-#: provider/ECProps/Addin.cpp:510 provider/ECProps/Addin.cpp:551
+#: provider/ECProps/Addin.cpp:514 provider/ECProps/Addin.cpp:555
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Abwesenheitsassistent"
 
-#: provider/ECProps/Addin.cpp:514
+#: provider/ECProps/Addin.cpp:518
 msgid "Offline"
 msgstr "Offline"
 
-#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:547 provider/ECProps/SyncBar.cpp:324
 msgid "Configure offline synchronization"
 msgstr "Offline Synchronisation konfigurieren"
 
-#: provider/ECProps/Addin.cpp:545 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:316
 msgid "Start offline synchronization"
 msgstr "Starte Zarafa Offline Synchronisation"
 
-#: provider/ECProps/Addin.cpp:547
+#: provider/ECProps/Addin.cpp:551
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Die öffentlichen Outlook-Ordner eines anderen Benutzers öffnen (Kalender, "
 "E-Mail, etc.)"
 
-#: provider/ECProps/Addin.cpp:659
+#: provider/ECProps/Addin.cpp:663
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr ""
 "Abwesenheitsbenachrichtigung ist momentan aktiv. Möchten Sie diese jetzt "
 "abschalten?"
 
-#: provider/ECProps/Addin.cpp:659
+#: provider/ECProps/Addin.cpp:663
 msgid "Out Of Office Turned On"
 msgstr "Abwesenheitsbenachrichtigungen wurden abgeschaltet"
 
-#: provider/ECProps/Addin.cpp:665
+#: provider/ECProps/Addin.cpp:669
 msgid "Unable to save Out of Office status"
 msgstr "Die Abwesenheitsbenachrichtigung konnte nicht gespeicht werden"
 
-#: provider/ECProps/Addin.cpp:760
+#: provider/ECProps/Addin.cpp:764
 msgid "Delegates"
 msgstr "Stellvertreter"
 
-#: provider/ECProps/Addin.cpp:884 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:888 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favoriten"
 
-#: provider/ECProps/Addin.cpp:896 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:900 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Berechtigungen"
 
-#: provider/ECProps/Addin.cpp:1100 provider/ECProps/Addin.cpp:1101
+#: provider/ECProps/Addin.cpp:1104 provider/ECProps/Addin.cpp:1105
 msgid "Add to Public Favorites Folder"
 msgstr "Dem öffentlichen Favoritenordner hinzufügen"
 
-#: provider/ECProps/Addin.cpp:1185
+#: provider/ECProps/Addin.cpp:1189
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:106
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden"
 
-#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2374
 msgid "Shortcut"
 msgstr "Verknüpfung"
 
-#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Favoriten Ordner"
 
-#: provider/ECProps/Addin.cpp:1191
+#: provider/ECProps/Addin.cpp:1195
 msgid "Unable to get shortcut folder."
 msgstr "Favoriten konnte nicht geöffnet werden"
 
@@ -790,7 +790,7 @@ msgstr "Alle Öffentlichen Ordner"
 
 #: provider/libserver/ECGenProps.cpp:860
 msgid "Archive"
-msgstr ""
+msgstr "Archiv"
 
 #: provider/client/ECMSProvider.cpp:246
 #: provider/client/ECABProviderSwitch.cpp:279
