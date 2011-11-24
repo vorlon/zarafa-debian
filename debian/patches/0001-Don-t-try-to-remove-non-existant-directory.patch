@@ -1,0 +1,35 @@
+From: =?UTF-8?q?Guido=20G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Thu, 24 Nov 2011 21:06:22 +0100
+Subject: Don't try to remove non existant directory
+
+---
+ Makefile.am |    2 +-
+ Makefile.in |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index bcc162e..32be764 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -47,7 +47,7 @@ endif
+ install-ajax-webaccess:
+ 	install -d -m 755 $(DESTDIR)/usr/share
+ 	cp -a $(top_srcdir)/php-webclient-ajax $(DESTDIR)/usr/share/zarafa-webaccess
+-	rmdir $(DESTDIR)/usr/share/zarafa-webaccess/plugins
++	[ ! -d $(DESTDIR)/usr/share/zarafa-webaccess/plugins ] || rmdir $(DESTDIR)/usr/share/zarafa-webaccess/plugins
+ 	ln -sf /var/lib/zarafa-webaccess/plugins $(DESTDIR)/usr/share/zarafa-webaccess/plugins
+ 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/plugins
+ 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/tmp
+diff --git a/Makefile.in b/Makefile.in
+index a31650f..aca512d 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -735,7 +735,7 @@ dist-hook: webapp/deploy
+ install-ajax-webaccess:
+ 	install -d -m 755 $(DESTDIR)/usr/share
+ 	cp -a $(top_srcdir)/php-webclient-ajax $(DESTDIR)/usr/share/zarafa-webaccess
+-	rmdir $(DESTDIR)/usr/share/zarafa-webaccess/plugins
++	[ ! -d $(DESTDIR)/usr/share/zarafa-webaccess/plugins ] || rmdir $(DESTDIR)/usr/share/zarafa-webaccess/plugins
+ 	ln -sf /var/lib/zarafa-webaccess/plugins $(DESTDIR)/usr/share/zarafa-webaccess/plugins
+ 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/plugins
+ 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/tmp
