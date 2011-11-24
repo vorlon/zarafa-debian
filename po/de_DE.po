@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-24 00:03+0100\n"
-"PO-Revision-Date: 2011-11-23 15:04+0200\n"
+"POT-Creation-Date: 2011-11-25 00:03+0100\n"
+"PO-Revision-Date: 2011-11-24 12:09+0200\n"
 "Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
@@ -972,17 +972,16 @@ msgstr "Der Benutzer existiert bereits."
 
 # 93%
 #: provider/client/ECArchiveAwareMessage.cpp:446
-#, fuzzy
 msgid "Zarafa Archiver"
-msgstr "Zarafa Archiv"
+msgstr "Zarafa Archiver"
 
 #: provider/client/ECArchiveAwareMessage.cpp:448
 msgid "An error has occurred while fetching the message from the archive."
-msgstr ""
+msgstr "Beim Abrufen der Mail  aus dem Archiv ist ein Fehler aufgetreten."
 
 #: provider/client/ECArchiveAwareMessage.cpp:450
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Wenden Sie sich an Ihren Systemadministrator."
 
 #: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
 msgid "Error code:"
@@ -990,15 +989,15 @@ msgstr "Fehlercode:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:462
 msgid "It seems no valid archiver license is installed."
-msgstr ""
+msgstr "Es ist keine gültige Archiver Lizenz vorhanden."
 
 #: provider/client/ECArchiveAwareMessage.cpp:466
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Das Archiv konnte nicht gefunden werden."
 
 #: provider/client/ECArchiveAwareMessage.cpp:470
 msgid "You don't have sufficient access to the archive."
-msgstr ""
+msgstr "Sie haben nicht die nötige Berechtigung um auf das Archiv zuzugreifen."
 
 #: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
 msgid "Error description:"
