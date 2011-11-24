@@ -346,6 +346,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 	StringList lstUsers;
 	UserList lstUserEntries;
 	StringList::const_iterator iUser;
+	bool bHaveErrors = false;
 
 	hr = GetArchivedUserList(m_lpLogger, 
 							 m_ptrSession->GetMAPISession(),
@@ -360,14 +361,20 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing "SIZE_T_PRINTF"%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
 	for (iUser = lstUsers.begin(); iUser != lstUsers.end(); ++iUser) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing user '" TSTRING_PRINTF "'.", iUser->c_str());
-		hr = (this->*fnProcess)(iUser->c_str());
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to archive user '" TSTRING_PRINTF "'. (hr=0x%08x)", iUser->c_str(), hr);
-			continue;
+		HRESULT hrTmp = (this->*fnProcess)(iUser->c_str());
+		if (FAILED(hrTmp)) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to process user '" TSTRING_PRINTF "'. (hr=0x%08x)", iUser->c_str(), hrTmp);
+			bHaveErrors = true;
+		} else if (hrTmp == MAPI_W_PARTIAL_COMPLETION) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Errors occured while processing user '" TSTRING_PRINTF "'.", iUser->c_str());
+			bHaveErrors = true;
 		}
 	}
 
 exit:
+	if (hr == hrSuccess && bHaveErrors)
+		hr = MAPI_W_PARTIAL_COMPLETION;
+
 	return hr;
 }
 
@@ -386,6 +393,7 @@ HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 	MAPIFolderPtr ptrSearchDeleteFolder;
 	MAPIFolderPtr ptrSearchStubFolder;
 	ObjectEntryList lstArchives;
+	bool bHaveErrors = false;
 
 	CopierPtr	ptrCopyOp;
 	DeleterPtr	ptrDeleteOp;
@@ -461,9 +469,13 @@ HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 		// Archive all unarchived messages that are old enough
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Archiving messages");
 		hr = ProcessFolder(ptrSearchArchiveFolder, ptrCopyOp);
-		if (hr != hrSuccess) {
+		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to archive messages. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
+		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be archived");
+			bHaveErrors = true;
+			hr = hrSuccess;
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done archiving messages");
 	}
@@ -473,9 +485,13 @@ HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 		// First delete all messages that are elegible for deletion, so we don't unneccesary stub them first
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting old messages");
 		hr = ProcessFolder(ptrSearchDeleteFolder, ptrDeleteOp);
-		if (hr != hrSuccess) {
+		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete old messages. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
+		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be deleted");
+			bHaveErrors = true;
+			hr = hrSuccess;
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done deleting messages");
 	}
@@ -485,9 +501,13 @@ HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 		// Now stub the remaing messages (if they're old enough)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Stubbing messages");
 		hr = ProcessFolder(ptrSearchStubFolder, ptrStubOp);
-		if (hr != hrSuccess) {
+		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to stub messages. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
+		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be stubbed");
+			bHaveErrors = true;
+			hr = hrSuccess;
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done stubbing messages");
 	}
@@ -495,14 +515,21 @@ HRESULT ArchiveControlImpl::DoArchive(const TCHAR *lpszUser)
 	if (m_bPurgeEnable) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging archive(s)");
 		hr = PurgeArchives(lstArchives);
-		if (hr != hrSuccess) {
+		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to purge archive(s). (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
+		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some archives could not be purged");
+			bHaveErrors = true;
+			hr = hrSuccess;
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done purging archive(s)");
 	}
 
 exit:
+	if (hr == hrSuccess && bHaveErrors)
+		hr = MAPI_W_PARTIAL_COMPLETION;
+
 	return hr;
 }
 
@@ -590,6 +617,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	SSortOrderSetPtr ptrSortOrder;
 	mapi_rowset_ptr ptrRowSet;
 	MessagePtr ptrMessage;
+	bool bHaveErrors = false;
 
 	SizedSPropTagArray(3, sptaProps) = {3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 
@@ -633,7 +661,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		goto exit;
 	}
 
-	while (true) {
+	do {
 		hr = ptrTable->QueryRows(50, 0, &ptrRowSet);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
@@ -644,17 +672,18 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = ptrArchiveOperation->ProcessEntry(ptrFolder, ptrRowSet[i].cValues, ptrRowSet[i].lpProps);
 			if (hr != hrSuccess) {
+				bHaveErrors = true;
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to process entry. (hr=%s)", stringify(hr, true).c_str());
 				continue;
 			}
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done processing batch");
-
-		if (ptrRowSet.size() < 50)
-			break;
-	}
+	} while (ptrRowSet.size() == 50);
 
 exit:
+	if (hr == hrSuccess && bHaveErrors)
+		hr = MAPI_W_PARTIAL_COMPLETION;
+
 	return hr;
 }
 
@@ -758,7 +787,7 @@ exit:
 		MAPIFreeBuffer(lpRestriction);
 
 	if (hr == hrSuccess && bErrorOccurred)
-		hr = MAPI_W_ERRORS_RETURNED;
+		hr = MAPI_W_PARTIAL_COMPLETION;
 
 	return hr;
 }

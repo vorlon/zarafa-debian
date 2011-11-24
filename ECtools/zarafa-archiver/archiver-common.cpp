@@ -119,6 +119,7 @@ eResult MAPIErrorToArchiveError(HRESULT hr)
 		case hrSuccess:					return Success;
 		case MAPI_E_NOT_ENOUGH_MEMORY:	return OutOfMemory;
 		case MAPI_E_INVALID_PARAMETER:	return InvalidParameter;
+		case MAPI_W_PARTIAL_COMPLETION:	return PartialCompletion;
 		default: 						return Failure;
 	}
 }

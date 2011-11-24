@@ -69,7 +69,8 @@ enum eResult {
 	OutOfMemory,
 	InvalidParameter,
 	FileNotFound,
-	InvalidConfig
+	InvalidConfig,
+	PartialCompletion
 };
 
 
