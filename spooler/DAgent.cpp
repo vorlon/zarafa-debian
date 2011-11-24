@@ -2939,6 +2939,10 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	unsigned int nMaxThreads;
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
 
+    stack_t st;
+    struct sigaction act;
+    memset(&st, 0, sizeof(st));
+    memset(&act, 0, sizeof(act));
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX) {
@@ -2980,10 +2984,6 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	signal(SIGPIPE, SIG_IGN);
 
 	// SIGSEGV backtrace support
-    stack_t st;
-    struct sigaction act;
-    memset(&st, 0, sizeof(st));
-    memset(&act, 0, sizeof(act));
     st.ss_sp = malloc(65536);
     st.ss_flags = 0;
     st.ss_size = 65536;
@@ -3123,6 +3123,9 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 exit:
 	ECChannel::HrFreeCtx();
 
+
+	if(st.ss_sp)
+		free(st.ss_sp);
 	return hr;
 }
 
