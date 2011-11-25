@@ -366,8 +366,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	struct timeval sNow;
 
 	SizedSPropTagArray(4, sptMessage) = {4,{PR_MDB_PROVIDER, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_STORE_ENTRYID}};
-	// @todo we shouldn't filter the PR_HTML here, but check which was the best body and filter the other 2, see #7076
-	SizedSPropTagArray(7, sptExcludeProps) = {7,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS, PR_HTML }};
+	SizedSPropTagArray(7, sptExcludeProps) = {7,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
 
 	// Un-cancel
 	pthread_mutex_lock( &m_hExitMutex);
