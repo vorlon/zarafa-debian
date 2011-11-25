@@ -366,7 +366,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	struct timeval sNow;
 
 	SizedSPropTagArray(4, sptMessage) = {4,{PR_MDB_PROVIDER, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_STORE_ENTRYID}};
-	SizedSPropTagArray(7, sptExcludeProps) = {7,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
+	SizedSPropTagArray(6, sptExcludeProps) = {6,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
 
 	// Un-cancel
 	pthread_mutex_lock( &m_hExitMutex);
