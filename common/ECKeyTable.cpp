@@ -1414,7 +1414,6 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 	if(er != erSuccess)
 	    goto exit;
 	    
-    ulSortColPrefixLen = lpCurrent->ulSortCols;
     lppSortData = lpCurrent->lppSortKeys;
     lpSortLen = lpCurrent->lpSortLen;
     lpFlags = lpCurrent->lpFlags;
@@ -1431,6 +1430,8 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
     if(lpCurrent == NULL)
         goto exit; // No more rows
             
+    ulSortColPrefixLen = lpCurrent->ulSortCols;
+
     while(lpCurrent) {
         // Stop unhiding when lpCurrent > prefix, so prefix < lpCurrent
         if(ECTableRow::rowcompareprefix(ulSortColPrefixLen, ulSortColPrefixLen, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags))
