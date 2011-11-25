@@ -259,11 +259,61 @@ LPCIID IIDFromType(const char *type)
 }
 %}
 
+////////////////////////////
+// ECLogger director
+////////////////////////////
 #if SWIGPYTHON
 #ifndef WIN32
-%include "ECLogger.i"
 
-// Directors for IStream
+%{
+#include "ECLogger.h"
+
+class ECSimpleLogger {
+public:
+	virtual HRESULT Log(int loglevel, const char *szMessage) = 0;
+};
+
+class ECLoggerProxy : public ECLogger {
+public:
+	static HRESULT Create(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger, ECLoggerProxy **lppProxy) {
+		ECLoggerProxy *lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);
+		lpProxy->AddRef();
+		*lppProxy = lpProxy;
+		return hrSuccess;
+	}
+
+	~ECLoggerProxy() {};
+
+	virtual void Reset() { };
+	virtual void Log(int loglevel, const std::string &message) { Log(loglevel, "%s", message.c_str()); };
+	virtual void Log(int Loglevel, const char *format, ...) __LIKE_PRINTF(3, 4) { 
+		va_list va;
+
+		va_start(va, format);
+		LogVA(Loglevel, format, va);
+		va_end(va);
+	};
+	virtual void LogVA(int loglevel, const char *format, va_list& va) {
+		char buf[4096];
+		vsnprintf(buf, sizeof(buf), format, va);
+		m_lpLogger->Log(loglevel, buf);
+	};
+
+private:
+	ECLoggerProxy(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger) : ECLogger(ulLevel), m_lpLogger(lpSimpleLogger) { };
+	ECSimpleLogger *m_lpLogger;
+};
+
+%}
+
+// Directors for ECLogger and IStream
+
+%feature("director") ECSimpleLogger;
+class ECSimpleLogger {
+public:
+	virtual HRESULT Log(int loglevel, const char *szMessage) = 0;
+};
+
 
 %{
 #include "swig_iunknown.h"

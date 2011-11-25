@@ -60,6 +60,9 @@ am_libzarafasync_la_OBJECTS = ECSync.lo ECSyncLog.lo ECSyncUtil.lo \
 	ECSyncContext.lo ECOfflineABImporter.lo ECSyncSettings.lo \
 	ECResyncSet.lo
 libzarafasync_la_OBJECTS = $(am_libzarafasync_la_OBJECTS)
+libzarafasync_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(libzarafasync_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -271,6 +274,7 @@ AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX	$(BOOST_CPPFLAGS)	\
 	-I${top_srcdir}/common
 
 libzarafasync_la_includedir = $(includedir)/libzarafasync
+libzarafasync_la_LDFLAGS = -static
 libzarafasync_la_include_HEADERS = ECLibSync.h ECSync.h ECSyncLog.h	\
 	ECSyncUtil.h ECSyncContext.h ECOfflineABImporter.h ECSyncSettings.h ECResyncSet.h
 
@@ -338,7 +342,7 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libzarafasync.la: $(libzarafasync_la_OBJECTS) $(libzarafasync_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libzarafasync_la_OBJECTS) $(libzarafasync_la_LIBADD) $(LIBS)
+	$(libzarafasync_la_LINK) -rpath $(libdir) $(libzarafasync_la_OBJECTS) $(libzarafasync_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

@@ -1,5 +1,5 @@
 pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la 
-noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _zarafasync.la
+noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la
 
 if ! OSS_ONLY
 pythonexeclib_LTLIBRARIES += _licensereq.la
@@ -76,16 +76,6 @@ _libfreebusy_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
                          ${top_builddir}/swig/libswigcommon.la \
                          $(PROG_LIBS) $(PYTHON_LIBS)
 
-_zarafasync_la_CXXFLAGS = -I${top_srcdir}/zarafa-libsync
-_zarafasync_la_LDFLAGS = -module -avoid-version -rpath '$(libdir)'
-_zarafasync_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
-					   ${top_builddir}/zarafa-libsync/libzarafasync.la \
-					   ${top_builddir}/common/libcommon_mapi.la \
-					   ${top_builddir}/common/libcommon_util.la \
-					   ${top_builddir}/swig/libswigcommon.la \
-				  	   $(PROG_LIBS) $(PYTHON_LIBS)
-
-
 
 BUILT_SOURCES = mapi_wrap.cxx \
 				mapi_wrap.h \
@@ -94,9 +84,7 @@ BUILT_SOURCES = mapi_wrap.cxx \
 				archiver_wrap.cxx \
 				libcommon_wrap.cxx \
 				licenseclient_wrap.cxx \
-				libfreebusy_wrap.cxx \
-				zarafasync_wrap.cxx \
-				zarafasync_wrap.h
+				libfreebusy_wrap.cxx
 
 if ! OSS_ONLY
 BUILT_SOURCES += licensereq_wrap.cxx
@@ -109,8 +97,7 @@ CLEANFILES = $(BUILT_SOURCES) \
 			 archiver.py \
 			 libcommon.py \
 			 licenseclient.py \
-			 libfreebusy.py \
-			 zarafasync.py
+			 libfreebusy.py
 
 if ! OSS_ONLY
 CLEANFILES += licensereq.py
@@ -124,7 +111,6 @@ archiver.py: $(BUILT_SOURCES)
 libcommon.py: $(BUILT_SOURCES)
 licenseclient.py: $(BUILT_SOURCES)
 libfreebusy.py: $(BUILT_SOURCES)
-zarafasync.py: $(BUILT_SOURCES)
 
 if ! OSS_ONLY
 licensereq.py: $(BUILT_SOURCES)
@@ -137,7 +123,6 @@ _archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
 _libcommon_la_SOURCES = libcommon_wrap.cxx conversion.h conversion.cpp
 _licenseclient_la_SOURCES = licenseclient_wrap.cxx licenseclient_conv.cpp licenseclient_conv.h
 _libfreebusy_la_SOURCES = conversion.h conversion.cpp libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
-_zarafasync_la_SOURCES = conversion.h conversion.cpp zarafasync_wrap.cxx zarafasync_wrap.h ../director_util.h ../director_util.cpp
 
 if ! OSS_ONLY
 _licensereq_la_SOURCES = licensereq_wrap.cxx
@@ -179,10 +164,6 @@ licensereq_wrap.cxx: ../licensereq.i
 
 libfreebusy_wrap.cxx: ../libfreebusy.i
 	$(SWIG_EXEC) -I${top_srcdir}/libfreebusy -I${top_srcdir/swig}  -Wall -python -c++ -threads -o ${top_builddir}/swig/python/libfreebusy_wrap.cxx ${top_srcdir}/swig/libfreebusy.i
-
-zarafasync_wrap.h: zarafasync_wrap.cxx
-zarafasync_wrap.cxx: ../zarafasync.i
-	$(SWIG_EXEC) -I${top_srcdir}/zarafa-libsync -I${top_srcdir/swig}  -Wall -python -c++ -threads -o ${top_builddir}/swig/python/zarafasync_wrap.cxx ${top_srcdir}/swig/zarafasync.i
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
