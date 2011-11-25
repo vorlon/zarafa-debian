@@ -3953,21 +3953,28 @@ LPCIID IIDFromType(const char *type)
 
 #include "ECLogger.h"
 
-class ECSimpleLogger {
+class IECSimpleLogger {
 public:
+	virtual ~IECSimpleLogger() {};
 	virtual HRESULT Log(int loglevel, const char *szMessage) = 0;
 };
+
+#include "swig_iunknown.h"
+typedef IUnknownImplementor<IECSimpleLogger> ECSimpleLogger;
 
 class ECLoggerProxy : public ECLogger {
 public:
 	static HRESULT Create(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger, ECLoggerProxy **lppProxy) {
 		ECLoggerProxy *lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);
-		lpProxy->AddRef();
+		//lpProxy->AddRef();
 		*lppProxy = lpProxy;
 		return hrSuccess;
 	}
 
-	~ECLoggerProxy() {};
+	~ECLoggerProxy() {
+		if (m_lpLogger)
+			m_lpLogger->Release();
+	};
 
 	virtual void Reset() { };
 	virtual void Log(int loglevel, const std::string &message) { Log(loglevel, "%s", message.c_str()); };
@@ -3979,13 +3986,19 @@ public:
 		va_end(va);
 	};
 	virtual void LogVA(int loglevel, const char *format, va_list& va) {
-		char buf[4096];
-		vsnprintf(buf, sizeof(buf), format, va);
-		m_lpLogger->Log(loglevel, buf);
+		if (m_lpLogger) {
+			char buf[4096];
+			vsnprintf(buf, sizeof(buf), format, va);
+			m_lpLogger->Log(loglevel, buf);
+		}
 	};
 
 private:
-	ECLoggerProxy(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger) : ECLogger(ulLevel), m_lpLogger(lpSimpleLogger) { };
+	ECLoggerProxy(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger) : ECLogger(ulLevel), m_lpLogger(lpSimpleLogger) {
+		if (m_lpLogger)
+			m_lpLogger->AddRef();
+	};
+	
 	ECSimpleLogger *m_lpLogger;
 };
 
@@ -31642,8 +31655,9 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
   ECLogger *arg2 = (ECLogger *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int res2 ;
+  ECSimpleLogger *sl2 ;
+  ECLoggerProxy *proxy2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -31655,11 +31669,14 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECExportChanges_SetLogger" "', argument " "1"" of type '" "IECExportChanges *""'"); 
   }
   arg1 = reinterpret_cast< IECExportChanges * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ECLogger, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECExportChanges_SetLogger" "', argument " "2"" of type '" "ECLogger *""'"); 
+  {
+    res2 = SWIG_ConvertPtr(obj1, (void **)&sl2, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+    if(!SWIG_IsOK(res2))
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECExportChanges_SetLogger" "', argument " "2"" of type '" "ECSimpleLogger""'");
+    
+    ECLoggerProxy::Create(EC_LOGLEVEL_DEBUG, sl2, &proxy2);
+    arg2 = proxy2;
   }
-  arg2 = reinterpret_cast< ECLogger * >(argp2);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -31682,9 +31699,15 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
       SWIG_fail;
     }
   }
+  {
+    arg2->Release();
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    arg2->Release();
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }

@@ -7,8 +7,6 @@ AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX	$(BOOST_CPPFLAGS)	\
 
 libzarafasync_la_includedir = $(includedir)/libzarafasync
 
-libzarafasync_la_LDFLAGS = -static
-
 libzarafasync_la_include_HEADERS = ECLibSync.h ECSync.h ECSyncLog.h	\
 	ECSyncUtil.h ECSyncContext.h ECOfflineABImporter.h ECSyncSettings.h ECResyncSet.h
 
