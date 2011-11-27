@@ -372,9 +372,11 @@ int main(int argc, char *argv[])
 			print_help(cout, argv[0]);
 			return 1;
 
-		// error handling?
 		case '?':
-			break;
+			// Invalid option, or required argument missing
+			// my_getopt_long outputs the error message.
+			print_help(cerr, argv[0]);
+			return 1;
 		default:
 			break;
 		};
