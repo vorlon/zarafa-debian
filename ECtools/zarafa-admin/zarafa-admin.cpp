@@ -860,12 +860,14 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 		for (ArchiveList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
 			cout << "\t" << iArchive->FolderName << " in " << iArchive->StoreName;
 
-			if (iArchive->Rights == ROLE_OWNER)
-				cout << " [Read Write]";
-			else if (iArchive->Rights == ROLE_REVIEWER)
-				cout << " [Read Only]";
-			else
-				cout << " [Modified: " << AclRightsToString(iArchive->Rights) << "]";
+			if (iArchive->Rights != ARCHIVE_RIGHTS_NONE) {
+				if (iArchive->Rights == ROLE_OWNER)
+					cout << " [Read Write]";
+				else if (iArchive->Rights == ROLE_REVIEWER)
+					cout << " [Read Only]";
+				else
+					cout << " [Modified: " << AclRightsToString(iArchive->Rights) << "]";
+			}
 
 			cout << endl;
 		}

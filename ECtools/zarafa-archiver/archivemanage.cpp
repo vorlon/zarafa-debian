@@ -621,15 +621,17 @@ eResult ArchiveManageImpl::ListArchives(ostream &ostr)
 	for (ArchiveList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive, ++ulIdx) {
 		ostr << "\t" << ulIdx
 			 << ": Store: " << iArchive->StoreName
-			 << ", Folder: " << iArchive->FolderName
-			 << ", Rights: ";
+			 << ", Folder: " << iArchive->FolderName;
 
-		if (iArchive->Rights == ROLE_OWNER)
-			ostr << "Read Write";
-		else if (iArchive->Rights == ROLE_REVIEWER)
-			ostr << "Read Only";
-		else
-			ostr << "Modified: " << AclRightsToString(iArchive->Rights);
+		if (iArchive->Rights != ARCHIVE_RIGHTS_NONE) {
+			 ostr << ", Rights: ";
+			if (iArchive->Rights == ROLE_OWNER)
+				ostr << "Read Write";
+			else if (iArchive->Rights == ROLE_REVIEWER)
+				ostr << "Read Only";
+			else
+				ostr << "Modified: " << AclRightsToString(iArchive->Rights);
+		}
 
 		ostr << endl;
 	}
@@ -668,7 +670,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		SizedSPropTagArray(3, sptaStoreProps) = {3, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID};
 
-		entry.Rights = unsigned(-1);
+		entry.Rights = ARCHIVE_RIGHTS_ERROR;
 
 		hrTmp = m_ptrSession->OpenStore(iArchive->sStoreEntryId, &ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
@@ -737,9 +739,12 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				entry.FolderName = ptrPropValue->Value.lpszA ;
 		}
 
-		hrTmp = GetRights(ptrArchiveFolder, &entry.Rights);
-		if (hrTmp != hrSuccess)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive rights (hr=%s)", stringify(hrTmp, true).c_str());
+		if (!iArchive->sStoreEntryId.isWrapped()) {
+			hrTmp = GetRights(ptrArchiveFolder, &entry.Rights);
+			if (hrTmp != hrSuccess)
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive rights (hr=%s)", stringify(hrTmp, true).c_str());
+		} else
+			entry.Rights = ARCHIVE_RIGHTS_NONE;
 
 		lstEntries.push_back(entry);
 	}
