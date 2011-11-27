@@ -55,6 +55,7 @@
 #include <time.h>
 
 #include "ECLogger.h"
+#include "mapi_ptr.h"
 
 
 /*
@@ -299,6 +300,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_ab_getdefaultdir, NULL)
 
 	ZEND_FE(mapi_msgstore_createentryid, NULL)
+	ZEND_FE(mapi_msgstore_getarchiveentryid, NULL)
 	ZEND_FE(mapi_msgstore_openentry, NULL)
 	ZEND_FE(mapi_msgstore_getreceivefolder, NULL)
 	ZEND_FE(mapi_msgstore_entryidfromsourcekey, NULL)
@@ -1964,6 +1966,55 @@ exit:
 	if (lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
 
+	THROW_ON_ERROR();
+	return;
+}
+
+
+/**
+* mapi_msgstore_getearchiveentryid
+* Creates an EntryID to open an archive store with mapi_openmsgstore.
+* @param Resource IMsgStore
+*        String   username
+*        String   servername (server containing the archive)
+*
+* return value: EntryID or FALSE when there's no permission...?
+*/
+ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
+{
+	// params
+	zval		*res;
+	LPMDB		pMDB		= NULL;
+	LPSTR		sUser = NULL;
+	int			lUser = 0;
+	LPSTR		sServer = NULL;
+	int			lServer = 0;
+	// return value
+	ULONG		cbEntryID	= 0;
+	EntryIdPtr	ptrEntryID;
+	// local
+	ECServiceAdminPtr ptrSA;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &sUser, &lUser, &sServer, &lServer) == FAILURE) return;
+
+	ZEND_FETCH_RESOURCE(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
+
+	MAPI_G(hr) = pMDB->QueryInterface(ptrSA.iid, &ptrSA);
+	if(MAPI_G(hr) != hrSuccess) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "IECServiceAdmin interface was not supported by given store.");
+		goto exit;
+	}
+
+	MAPI_G(hr) = ptrSA->GetArchiveStoreEntryID((LPTSTR)sUser, (LPTSTR)sServer, 0, &cbEntryID, &ptrEntryID);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+
+	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID, 1);
+
+exit:
 	THROW_ON_ERROR();
 	return;
 }
