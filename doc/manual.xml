@@ -10796,7 +10796,7 @@
 			  the attachment to be searched as well.</para>
 			  <para>This will slow down the indexing process, require more system memory
 			  and increases index file size.</para>
-			  <para>Default: <replaceable>yes</replaceable></para>
+			  <para>Default: <replaceable>no</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
