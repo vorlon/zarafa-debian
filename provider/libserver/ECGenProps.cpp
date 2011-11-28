@@ -453,7 +453,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_USER_NAME):
@@ -470,7 +470,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_DISPLAY_NAME):
@@ -484,11 +484,11 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 
 			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
 			if (er != erSuccess)
-				break;
+				goto exit;
         
 			er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
 			if(er != erSuccess)
-				break;
+				goto exit;
 		
 			sPropVal.__union = SOAP_UNION_propValData_lpszA;
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
@@ -509,7 +509,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 		break;
 		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
@@ -526,7 +526,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
@@ -543,7 +543,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
 			} else {
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
         case PROP_ID(PR_EC_HIERARCHYID):
@@ -597,10 +597,13 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			if(ulParentId == 0) {
 				er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, NULL);
 				if(er != erSuccess)
-					break;
+					goto exit;
 			}
 			
 			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int*)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+			if(er != erSuccess)
+				goto exit;
+
 			break;
 		case PROP_ID(PR_CONTENT_COUNT):
 			if(ulObjType == MAPI_MESSAGE) {
@@ -662,7 +665,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 					case MAPI_STORE:
 					default:
 						er = ZARAFA_E_NOT_FOUND;
-						break;
+						goto exit;
 				}
 
 				break;
@@ -710,11 +713,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 					break;
 				case MAPI_ATTACH:
 				case MAPI_STORE:
-					er = ZARAFA_E_NOT_FOUND;
-					break;
 				default:
 					er = ZARAFA_E_NOT_FOUND;
-					break;
+					goto exit;
 			}
 			break;
 		case PROP_ID(PR_ACCESS_LEVEL):
