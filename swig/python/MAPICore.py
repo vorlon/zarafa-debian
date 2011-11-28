@@ -1648,5 +1648,61 @@ class Stream(IStream):
 Stream_swigregister = _MAPICore.Stream_swigregister
 Stream_swigregister(Stream)
 
+EC_SYNC_OPT_STREAM = _MAPICore.EC_SYNC_OPT_STREAM
+EC_SYNC_OPT_CHANGENOTIF = _MAPICore.EC_SYNC_OPT_CHANGENOTIF
+EC_SYNC_OPT_STATECOLLECT = _MAPICore.EC_SYNC_OPT_STATECOLLECT
+EC_SYNC_OPT_CONTINUOUS = _MAPICore.EC_SYNC_OPT_CONTINUOUS
+EC_SYNC_OPT_ALL = _MAPICore.EC_SYNC_OPT_ALL
+class ECSyncSettings(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSyncSettings, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSyncSettings, name)
+    def __init__(self, *args, **kwargs): raise AttributeError, "No constructor defined"
+    __repr__ = _swig_repr
+    __swig_getmethods__["GetInstance"] = lambda x: _MAPICore.ECSyncSettings_GetInstance
+    if _newclass:GetInstance = staticmethod(_MAPICore.ECSyncSettings_GetInstance)
+    def SyncLogEnabled(*args): return _MAPICore.ECSyncSettings_SyncLogEnabled(*args)
+    def SyncLogLevel(*args): return _MAPICore.ECSyncSettings_SyncLogLevel(*args)
+    def ContinuousLogging(*args): return _MAPICore.ECSyncSettings_ContinuousLogging(*args)
+    def SyncStreamEnabled(*args): return _MAPICore.ECSyncSettings_SyncStreamEnabled(*args)
+    def ChangeNotificationsEnabled(*args): return _MAPICore.ECSyncSettings_ChangeNotificationsEnabled(*args)
+    def StateCollectorEnabled(*args): return _MAPICore.ECSyncSettings_StateCollectorEnabled(*args)
+    def StreamTimeout(*args): return _MAPICore.ECSyncSettings_StreamTimeout(*args)
+    def StreamBufferSize(*args): return _MAPICore.ECSyncSettings_StreamBufferSize(*args)
+    def StreamBatchSize(*args): return _MAPICore.ECSyncSettings_StreamBatchSize(*args)
+    def EnableSyncLog(*args): return _MAPICore.ECSyncSettings_EnableSyncLog(*args)
+    def SetSyncLogLevel(*args): return _MAPICore.ECSyncSettings_SetSyncLogLevel(*args)
+    def SetSyncOptions(*args): return _MAPICore.ECSyncSettings_SetSyncOptions(*args)
+    def SetStreamTimeout(*args): return _MAPICore.ECSyncSettings_SetStreamTimeout(*args)
+    def SetStreamBufferSize(*args): return _MAPICore.ECSyncSettings_SetStreamBufferSize(*args)
+    def SetStreamBatchSize(*args): return _MAPICore.ECSyncSettings_SetStreamBatchSize(*args)
+    __swig_destroy__ = _MAPICore.delete_ECSyncSettings
+    __del__ = lambda self : None;
+ECSyncSettings_swigregister = _MAPICore.ECSyncSettings_swigregister
+ECSyncSettings_swigregister(ECSyncSettings)
+ECSyncSettings_GetInstance = _MAPICore.ECSyncSettings_GetInstance
+
+class ECSyncLog(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSyncLog, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSyncLog, name)
+    __repr__ = _swig_repr
+    __swig_getmethods__["GetLogger"] = lambda x: _MAPICore.ECSyncLog_GetLogger
+    if _newclass:GetLogger = staticmethod(_MAPICore.ECSyncLog_GetLogger)
+    __swig_getmethods__["SetLogger"] = lambda x: _MAPICore.ECSyncLog_SetLogger
+    if _newclass:SetLogger = staticmethod(_MAPICore.ECSyncLog_SetLogger)
+    def __init__(self, *args): 
+        this = _MAPICore.new_ECSyncLog(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_ECSyncLog
+    __del__ = lambda self : None;
+ECSyncLog_swigregister = _MAPICore.ECSyncLog_swigregister
+ECSyncLog_swigregister(ECSyncLog)
+ECSyncLog_GetLogger = _MAPICore.ECSyncLog_GetLogger
+ECSyncLog_SetLogger = _MAPICore.ECSyncLog_SetLogger
+
 
 

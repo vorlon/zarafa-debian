@@ -59,6 +59,7 @@ class ECSyncLog
 {
 public:
 	static HRESULT ECLIBSYNC_API GetLogger(ECLogger **lppLogger);
+	static HRESULT ECLIBSYNC_API SetLogger(ECLogger *lpLogger);
 
 private:
 	static pthread_mutex_t	s_hMutex;

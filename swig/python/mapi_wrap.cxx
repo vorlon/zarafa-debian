@@ -2993,159 +2993,162 @@ namespace Swig {
 #define SWIGTYPE_p_ECImportContentsChanges swig_types[2]
 #define SWIGTYPE_p_ECLogger swig_types[3]
 #define SWIGTYPE_p_ECSimpleLogger swig_types[4]
-#define SWIGTYPE_p_ExchangeExportChanges swig_types[5]
-#define SWIGTYPE_p_ExchangeImportContentsChanges swig_types[6]
-#define SWIGTYPE_p_ExchangeImportHierarchyChanges swig_types[7]
-#define SWIGTYPE_p_GUID swig_types[8]
-#define SWIGTYPE_p_IABContainer swig_types[9]
-#define SWIGTYPE_p_IAddrBook swig_types[10]
-#define SWIGTYPE_p_IAttach swig_types[11]
-#define SWIGTYPE_p_IDistList swig_types[12]
-#define SWIGTYPE_p_IECChangeAdviseSink swig_types[13]
-#define SWIGTYPE_p_IECChangeAdvisor swig_types[14]
-#define SWIGTYPE_p_IECExportChanges swig_types[15]
-#define SWIGTYPE_p_IECImportContentsChanges swig_types[16]
-#define SWIGTYPE_p_IECLicense swig_types[17]
-#define SWIGTYPE_p_IECMultiStoreTable swig_types[18]
-#define SWIGTYPE_p_IECServiceAdmin swig_types[19]
-#define SWIGTYPE_p_IECSingleInstance swig_types[20]
-#define SWIGTYPE_p_IECSpooler swig_types[21]
-#define SWIGTYPE_p_IECTestProtocol swig_types[22]
-#define SWIGTYPE_p_IExchangeExportChanges swig_types[23]
-#define SWIGTYPE_p_IExchangeImportContentsChanges swig_types[24]
-#define SWIGTYPE_p_IExchangeImportHierarchyChanges swig_types[25]
-#define SWIGTYPE_p_IExchangeManageStore swig_types[26]
-#define SWIGTYPE_p_IExchangeModifyTable swig_types[27]
-#define SWIGTYPE_p_IID swig_types[28]
-#define SWIGTYPE_p_IMAPIAdviseSink swig_types[29]
-#define SWIGTYPE_p_IMAPIContainer swig_types[30]
-#define SWIGTYPE_p_IMAPIFolder swig_types[31]
-#define SWIGTYPE_p_IMAPIProgress swig_types[32]
-#define SWIGTYPE_p_IMAPIProp swig_types[33]
-#define SWIGTYPE_p_IMAPISession swig_types[34]
-#define SWIGTYPE_p_IMAPIStatus swig_types[35]
-#define SWIGTYPE_p_IMAPITable swig_types[36]
-#define SWIGTYPE_p_IMailUser swig_types[37]
-#define SWIGTYPE_p_IMessage swig_types[38]
-#define SWIGTYPE_p_IMsgServiceAdmin swig_types[39]
-#define SWIGTYPE_p_IMsgStore swig_types[40]
-#define SWIGTYPE_p_IProfAdmin swig_types[41]
-#define SWIGTYPE_p_IProfSect swig_types[42]
-#define SWIGTYPE_p_IProviderAdmin swig_types[43]
-#define SWIGTYPE_p_ISequentialStream swig_types[44]
-#define SWIGTYPE_p_IStream swig_types[45]
-#define SWIGTYPE_p_IUnknown swig_types[46]
-#define SWIGTYPE_p_LARGE_INTEGER swig_types[47]
-#define SWIGTYPE_p_LONG swig_types[48]
-#define SWIGTYPE_p_LPADRENTRY swig_types[49]
-#define SWIGTYPE_p_LPADRLIST swig_types[50]
-#define SWIGTYPE_p_LPADRPARM swig_types[51]
-#define SWIGTYPE_p_LPBYTE swig_types[52]
-#define SWIGTYPE_p_LPCIID swig_types[53]
-#define SWIGTYPE_p_LPECCOMPANY swig_types[54]
-#define SWIGTYPE_p_LPECGROUP swig_types[55]
-#define SWIGTYPE_p_LPECQUOTA swig_types[56]
-#define SWIGTYPE_p_LPECQUOTASTATUS swig_types[57]
-#define SWIGTYPE_p_LPECSERVERLIST swig_types[58]
-#define SWIGTYPE_p_LPECSVRNAMELIST swig_types[59]
-#define SWIGTYPE_p_LPECUSER swig_types[60]
-#define SWIGTYPE_p_LPENTRYID swig_types[61]
-#define SWIGTYPE_p_LPENTRYLIST swig_types[62]
-#define SWIGTYPE_p_LPFNBUTTON swig_types[63]
-#define SWIGTYPE_p_LPFNDISMISS swig_types[64]
-#define SWIGTYPE_p_LPFlagList swig_types[65]
-#define SWIGTYPE_p_LPGUID swig_types[66]
-#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[67]
-#define SWIGTYPE_p_LPMAPIERROR swig_types[68]
-#define SWIGTYPE_p_LPMAPIFOLDER swig_types[69]
-#define SWIGTYPE_p_LPMAPINAMEID swig_types[70]
-#define SWIGTYPE_p_LPMAPIPROP swig_types[71]
-#define SWIGTYPE_p_LPMAPITABLE swig_types[72]
-#define SWIGTYPE_p_LPMAPIUID swig_types[73]
-#define SWIGTYPE_p_LPMDB swig_types[74]
-#define SWIGTYPE_p_LPMESSAGE swig_types[75]
-#define SWIGTYPE_p_LPNOTIFICATION swig_types[76]
-#define SWIGTYPE_p_LPREADSTATE swig_types[77]
-#define SWIGTYPE_p_LPROWLIST swig_types[78]
-#define SWIGTYPE_p_LPSPropProblemArray swig_types[79]
-#define SWIGTYPE_p_LPSPropTagArray swig_types[80]
-#define SWIGTYPE_p_LPSPropValue swig_types[81]
-#define SWIGTYPE_p_LPSRestriction swig_types[82]
-#define SWIGTYPE_p_LPSRowSet swig_types[83]
-#define SWIGTYPE_p_LPSSortOrderSet swig_types[84]
-#define SWIGTYPE_p_LPSTR swig_types[85]
-#define SWIGTYPE_p_LPTSTR swig_types[86]
-#define SWIGTYPE_p_LPUNKNOWN swig_types[87]
-#define SWIGTYPE_p_LPVOID swig_types[88]
-#define SWIGTYPE_p_MAPIAdviseSink swig_types[89]
-#define SWIGTYPE_p_MAPIINIT_0 swig_types[90]
-#define SWIGTYPE_p_MAPINotifSink swig_types[91]
-#define SWIGTYPE_p_STATSTG swig_types[92]
-#define SWIGTYPE_p_Stream swig_types[93]
-#define SWIGTYPE_p_ULARGE_INTEGER swig_types[94]
-#define SWIGTYPE_p_ULONG swig_types[95]
-#define SWIGTYPE_p_bool swig_types[96]
-#define SWIGTYPE_p_char swig_types[97]
-#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[98]
-#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[99]
-#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[100]
-#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[101]
-#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[102]
-#define SWIGTYPE_p_p_IABContainer swig_types[103]
-#define SWIGTYPE_p_p_IAddrBook swig_types[104]
-#define SWIGTYPE_p_p_IAttach swig_types[105]
-#define SWIGTYPE_p_p_IDistList swig_types[106]
-#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[107]
-#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[108]
-#define SWIGTYPE_p_p_IECExportChanges swig_types[109]
-#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[110]
-#define SWIGTYPE_p_p_IECLicense swig_types[111]
-#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[112]
-#define SWIGTYPE_p_p_IECServiceAdmin swig_types[113]
-#define SWIGTYPE_p_p_IECSingleInstance swig_types[114]
-#define SWIGTYPE_p_p_IECTestProtocol swig_types[115]
-#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[116]
-#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[117]
-#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[118]
-#define SWIGTYPE_p_p_IExchangeManageStore swig_types[119]
-#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[120]
-#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[121]
-#define SWIGTYPE_p_p_IMAPIContainer swig_types[122]
-#define SWIGTYPE_p_p_IMAPIFolder swig_types[123]
-#define SWIGTYPE_p_p_IMAPIProgress swig_types[124]
-#define SWIGTYPE_p_p_IMAPIProp swig_types[125]
-#define SWIGTYPE_p_p_IMAPISession swig_types[126]
-#define SWIGTYPE_p_p_IMAPIStatus swig_types[127]
-#define SWIGTYPE_p_p_IMAPITable swig_types[128]
-#define SWIGTYPE_p_p_IMailUser swig_types[129]
-#define SWIGTYPE_p_p_IMessage swig_types[130]
-#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[131]
-#define SWIGTYPE_p_p_IMsgStore swig_types[132]
-#define SWIGTYPE_p_p_IProfAdmin swig_types[133]
-#define SWIGTYPE_p_p_IProfSect swig_types[134]
-#define SWIGTYPE_p_p_IProviderAdmin swig_types[135]
-#define SWIGTYPE_p_p_ISequentialStream swig_types[136]
-#define SWIGTYPE_p_p_IStream swig_types[137]
-#define SWIGTYPE_p_p_IUnknown swig_types[138]
-#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[139]
-#define SWIGTYPE_p_p_LPTSTR swig_types[140]
-#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[141]
-#define SWIGTYPE_p_p_MAPIERROR swig_types[142]
-#define SWIGTYPE_p_p_MAPINotifSink swig_types[143]
-#define SWIGTYPE_p_p_Stream swig_types[144]
-#define SWIGTYPE_p_p_char swig_types[145]
-#define SWIGTYPE_p_p_unsigned_char swig_types[146]
-#define SWIGTYPE_p_p_void swig_types[147]
-#define SWIGTYPE_p_tagLOCKTYPE swig_types[148]
-#define SWIGTYPE_p_tagSTATFLAG swig_types[149]
-#define SWIGTYPE_p_tagSTGTY swig_types[150]
-#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[151]
-#define SWIGTYPE_p_unsigned_char swig_types[152]
-#define SWIGTYPE_p_unsigned_int swig_types[153]
-#define SWIGTYPE_p_void swig_types[154]
-#define SWIGTYPE_p_wchar_t swig_types[155]
-static swig_type_info *swig_types[157];
-static swig_module_info swig_module = {swig_types, 156, 0, 0, 0, 0};
+#define SWIGTYPE_p_ECSyncLog swig_types[5]
+#define SWIGTYPE_p_ECSyncSettings swig_types[6]
+#define SWIGTYPE_p_ExchangeExportChanges swig_types[7]
+#define SWIGTYPE_p_ExchangeImportContentsChanges swig_types[8]
+#define SWIGTYPE_p_ExchangeImportHierarchyChanges swig_types[9]
+#define SWIGTYPE_p_GUID swig_types[10]
+#define SWIGTYPE_p_IABContainer swig_types[11]
+#define SWIGTYPE_p_IAddrBook swig_types[12]
+#define SWIGTYPE_p_IAttach swig_types[13]
+#define SWIGTYPE_p_IDistList swig_types[14]
+#define SWIGTYPE_p_IECChangeAdviseSink swig_types[15]
+#define SWIGTYPE_p_IECChangeAdvisor swig_types[16]
+#define SWIGTYPE_p_IECExportChanges swig_types[17]
+#define SWIGTYPE_p_IECImportContentsChanges swig_types[18]
+#define SWIGTYPE_p_IECLicense swig_types[19]
+#define SWIGTYPE_p_IECMultiStoreTable swig_types[20]
+#define SWIGTYPE_p_IECServiceAdmin swig_types[21]
+#define SWIGTYPE_p_IECSingleInstance swig_types[22]
+#define SWIGTYPE_p_IECSpooler swig_types[23]
+#define SWIGTYPE_p_IECTestProtocol swig_types[24]
+#define SWIGTYPE_p_IExchangeExportChanges swig_types[25]
+#define SWIGTYPE_p_IExchangeImportContentsChanges swig_types[26]
+#define SWIGTYPE_p_IExchangeImportHierarchyChanges swig_types[27]
+#define SWIGTYPE_p_IExchangeManageStore swig_types[28]
+#define SWIGTYPE_p_IExchangeModifyTable swig_types[29]
+#define SWIGTYPE_p_IID swig_types[30]
+#define SWIGTYPE_p_IMAPIAdviseSink swig_types[31]
+#define SWIGTYPE_p_IMAPIContainer swig_types[32]
+#define SWIGTYPE_p_IMAPIFolder swig_types[33]
+#define SWIGTYPE_p_IMAPIProgress swig_types[34]
+#define SWIGTYPE_p_IMAPIProp swig_types[35]
+#define SWIGTYPE_p_IMAPISession swig_types[36]
+#define SWIGTYPE_p_IMAPIStatus swig_types[37]
+#define SWIGTYPE_p_IMAPITable swig_types[38]
+#define SWIGTYPE_p_IMailUser swig_types[39]
+#define SWIGTYPE_p_IMessage swig_types[40]
+#define SWIGTYPE_p_IMsgServiceAdmin swig_types[41]
+#define SWIGTYPE_p_IMsgStore swig_types[42]
+#define SWIGTYPE_p_IProfAdmin swig_types[43]
+#define SWIGTYPE_p_IProfSect swig_types[44]
+#define SWIGTYPE_p_IProviderAdmin swig_types[45]
+#define SWIGTYPE_p_ISequentialStream swig_types[46]
+#define SWIGTYPE_p_IStream swig_types[47]
+#define SWIGTYPE_p_IUnknown swig_types[48]
+#define SWIGTYPE_p_LARGE_INTEGER swig_types[49]
+#define SWIGTYPE_p_LONG swig_types[50]
+#define SWIGTYPE_p_LPADRENTRY swig_types[51]
+#define SWIGTYPE_p_LPADRLIST swig_types[52]
+#define SWIGTYPE_p_LPADRPARM swig_types[53]
+#define SWIGTYPE_p_LPBYTE swig_types[54]
+#define SWIGTYPE_p_LPCIID swig_types[55]
+#define SWIGTYPE_p_LPECCOMPANY swig_types[56]
+#define SWIGTYPE_p_LPECGROUP swig_types[57]
+#define SWIGTYPE_p_LPECQUOTA swig_types[58]
+#define SWIGTYPE_p_LPECQUOTASTATUS swig_types[59]
+#define SWIGTYPE_p_LPECSERVERLIST swig_types[60]
+#define SWIGTYPE_p_LPECSVRNAMELIST swig_types[61]
+#define SWIGTYPE_p_LPECUSER swig_types[62]
+#define SWIGTYPE_p_LPENTRYID swig_types[63]
+#define SWIGTYPE_p_LPENTRYLIST swig_types[64]
+#define SWIGTYPE_p_LPFNBUTTON swig_types[65]
+#define SWIGTYPE_p_LPFNDISMISS swig_types[66]
+#define SWIGTYPE_p_LPFlagList swig_types[67]
+#define SWIGTYPE_p_LPGUID swig_types[68]
+#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[69]
+#define SWIGTYPE_p_LPMAPIERROR swig_types[70]
+#define SWIGTYPE_p_LPMAPIFOLDER swig_types[71]
+#define SWIGTYPE_p_LPMAPINAMEID swig_types[72]
+#define SWIGTYPE_p_LPMAPIPROP swig_types[73]
+#define SWIGTYPE_p_LPMAPITABLE swig_types[74]
+#define SWIGTYPE_p_LPMAPIUID swig_types[75]
+#define SWIGTYPE_p_LPMDB swig_types[76]
+#define SWIGTYPE_p_LPMESSAGE swig_types[77]
+#define SWIGTYPE_p_LPNOTIFICATION swig_types[78]
+#define SWIGTYPE_p_LPREADSTATE swig_types[79]
+#define SWIGTYPE_p_LPROWLIST swig_types[80]
+#define SWIGTYPE_p_LPSPropProblemArray swig_types[81]
+#define SWIGTYPE_p_LPSPropTagArray swig_types[82]
+#define SWIGTYPE_p_LPSPropValue swig_types[83]
+#define SWIGTYPE_p_LPSRestriction swig_types[84]
+#define SWIGTYPE_p_LPSRowSet swig_types[85]
+#define SWIGTYPE_p_LPSSortOrderSet swig_types[86]
+#define SWIGTYPE_p_LPSTR swig_types[87]
+#define SWIGTYPE_p_LPTSTR swig_types[88]
+#define SWIGTYPE_p_LPUNKNOWN swig_types[89]
+#define SWIGTYPE_p_LPVOID swig_types[90]
+#define SWIGTYPE_p_MAPIAdviseSink swig_types[91]
+#define SWIGTYPE_p_MAPIINIT_0 swig_types[92]
+#define SWIGTYPE_p_MAPINotifSink swig_types[93]
+#define SWIGTYPE_p_STATSTG swig_types[94]
+#define SWIGTYPE_p_Stream swig_types[95]
+#define SWIGTYPE_p_ULARGE_INTEGER swig_types[96]
+#define SWIGTYPE_p_ULONG swig_types[97]
+#define SWIGTYPE_p_bool swig_types[98]
+#define SWIGTYPE_p_char swig_types[99]
+#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[100]
+#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[101]
+#define SWIGTYPE_p_p_ECLogger swig_types[102]
+#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[103]
+#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[104]
+#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[105]
+#define SWIGTYPE_p_p_IABContainer swig_types[106]
+#define SWIGTYPE_p_p_IAddrBook swig_types[107]
+#define SWIGTYPE_p_p_IAttach swig_types[108]
+#define SWIGTYPE_p_p_IDistList swig_types[109]
+#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[110]
+#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[111]
+#define SWIGTYPE_p_p_IECExportChanges swig_types[112]
+#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[113]
+#define SWIGTYPE_p_p_IECLicense swig_types[114]
+#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[115]
+#define SWIGTYPE_p_p_IECServiceAdmin swig_types[116]
+#define SWIGTYPE_p_p_IECSingleInstance swig_types[117]
+#define SWIGTYPE_p_p_IECTestProtocol swig_types[118]
+#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[119]
+#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[120]
+#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[121]
+#define SWIGTYPE_p_p_IExchangeManageStore swig_types[122]
+#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[123]
+#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[124]
+#define SWIGTYPE_p_p_IMAPIContainer swig_types[125]
+#define SWIGTYPE_p_p_IMAPIFolder swig_types[126]
+#define SWIGTYPE_p_p_IMAPIProgress swig_types[127]
+#define SWIGTYPE_p_p_IMAPIProp swig_types[128]
+#define SWIGTYPE_p_p_IMAPISession swig_types[129]
+#define SWIGTYPE_p_p_IMAPIStatus swig_types[130]
+#define SWIGTYPE_p_p_IMAPITable swig_types[131]
+#define SWIGTYPE_p_p_IMailUser swig_types[132]
+#define SWIGTYPE_p_p_IMessage swig_types[133]
+#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[134]
+#define SWIGTYPE_p_p_IMsgStore swig_types[135]
+#define SWIGTYPE_p_p_IProfAdmin swig_types[136]
+#define SWIGTYPE_p_p_IProfSect swig_types[137]
+#define SWIGTYPE_p_p_IProviderAdmin swig_types[138]
+#define SWIGTYPE_p_p_ISequentialStream swig_types[139]
+#define SWIGTYPE_p_p_IStream swig_types[140]
+#define SWIGTYPE_p_p_IUnknown swig_types[141]
+#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[142]
+#define SWIGTYPE_p_p_LPTSTR swig_types[143]
+#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[144]
+#define SWIGTYPE_p_p_MAPIERROR swig_types[145]
+#define SWIGTYPE_p_p_MAPINotifSink swig_types[146]
+#define SWIGTYPE_p_p_Stream swig_types[147]
+#define SWIGTYPE_p_p_char swig_types[148]
+#define SWIGTYPE_p_p_unsigned_char swig_types[149]
+#define SWIGTYPE_p_p_void swig_types[150]
+#define SWIGTYPE_p_tagLOCKTYPE swig_types[151]
+#define SWIGTYPE_p_tagSTATFLAG swig_types[152]
+#define SWIGTYPE_p_tagSTGTY swig_types[153]
+#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[154]
+#define SWIGTYPE_p_unsigned_char swig_types[155]
+#define SWIGTYPE_p_unsigned_int swig_types[156]
+#define SWIGTYPE_p_void swig_types[157]
+#define SWIGTYPE_p_wchar_t swig_types[158]
+static swig_type_info *swig_types[160];
+static swig_module_info swig_module = {swig_types, 159, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3953,21 +3956,28 @@ LPCIID IIDFromType(const char *type)
 
 #include "ECLogger.h"
 
-class ECSimpleLogger {
+class IECSimpleLogger {
 public:
+	virtual ~IECSimpleLogger() {};
 	virtual HRESULT Log(int loglevel, const char *szMessage) = 0;
 };
+
+#include "swig_iunknown.h"
+typedef IUnknownImplementor<IECSimpleLogger> ECSimpleLogger;
 
 class ECLoggerProxy : public ECLogger {
 public:
 	static HRESULT Create(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger, ECLoggerProxy **lppProxy) {
 		ECLoggerProxy *lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);
-		lpProxy->AddRef();
+		//lpProxy->AddRef();
 		*lppProxy = lpProxy;
 		return hrSuccess;
 	}
 
-	~ECLoggerProxy() {};
+	~ECLoggerProxy() {
+		if (m_lpLogger)
+			m_lpLogger->Release();
+	};
 
 	virtual void Reset() { };
 	virtual void Log(int loglevel, const std::string &message) { Log(loglevel, "%s", message.c_str()); };
@@ -3979,13 +3989,19 @@ public:
 		va_end(va);
 	};
 	virtual void LogVA(int loglevel, const char *format, va_list& va) {
-		char buf[4096];
-		vsnprintf(buf, sizeof(buf), format, va);
-		m_lpLogger->Log(loglevel, buf);
+		if (m_lpLogger) {
+			char buf[4096];
+			vsnprintf(buf, sizeof(buf), format, va);
+			m_lpLogger->Log(loglevel, buf);
+		}
 	};
 
 private:
-	ECLoggerProxy(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger) : ECLogger(ulLevel), m_lpLogger(lpSimpleLogger) { };
+	ECLoggerProxy(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger) : ECLogger(ulLevel), m_lpLogger(lpSimpleLogger) {
+		if (m_lpLogger)
+			m_lpLogger->AddRef();
+	};
+	
 	ECSimpleLogger *m_lpLogger;
 };
 
@@ -3995,6 +4011,27 @@ private:
 typedef IUnknownImplementor<IStream> Stream;
 
 SWIGINTERN void delete_Stream(Stream *self){ delete self; }
+
+#include <mapix.h>
+#include <mapidefs.h>
+#include "ECSync.h"
+#include "ECSyncSettings.h"
+#include "ECSyncLog.h"
+
+
+#include <string>
+
+
+#include <cwchar>
+#include <string>
+
+
+SWIGINTERNINLINE PyObject*
+  SWIG_From_bool  (bool value)
+{
+  return PyBool_FromLong(value ? 1 : 0);
+}
+
 
 
 /* ---------------------------------------------------
@@ -31642,8 +31679,9 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
   ECLogger *arg2 = (ECLogger *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int res2 ;
+  ECSimpleLogger *sl2 ;
+  ECLoggerProxy *proxy2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -31655,11 +31693,14 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECExportChanges_SetLogger" "', argument " "1"" of type '" "IECExportChanges *""'"); 
   }
   arg1 = reinterpret_cast< IECExportChanges * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ECLogger, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECExportChanges_SetLogger" "', argument " "2"" of type '" "ECLogger *""'"); 
+  {
+    res2 = SWIG_ConvertPtr(obj1, (void **)&sl2, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+    if(!SWIG_IsOK(res2))
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECExportChanges_SetLogger" "', argument " "2"" of type '" "ECSimpleLogger""'");
+    
+    ECLoggerProxy::Create(EC_LOGLEVEL_DEBUG, sl2, &proxy2);
+    arg2 = proxy2;
   }
-  arg2 = reinterpret_cast< ECLogger * >(argp2);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -31682,9 +31723,15 @@ SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(s
       SWIG_fail;
     }
   }
+  {
+    arg2->Release();
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    arg2->Release();
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -33621,6 +33668,876 @@ SWIGINTERN PyObject *Stream_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObjec
   return SWIG_Py_Void();
 }
 
+SWIGINTERN PyObject *_wrap_ECSyncSettings_GetInstance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *result = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)":ECSyncSettings_GetInstance")) SWIG_fail;
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (ECSyncSettings *)ECSyncSettings::GetInstance();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SyncLogEnabled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_SyncLogEnabled",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SyncLogEnabled" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)((ECSyncSettings const *)arg1)->SyncLogEnabled();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SyncLogLevel(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_SyncLogLevel",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SyncLogLevel" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ((ECSyncSettings const *)arg1)->SyncLogLevel();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_ContinuousLogging(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_ContinuousLogging",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_ContinuousLogging" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)((ECSyncSettings const *)arg1)->ContinuousLogging();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SyncStreamEnabled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_SyncStreamEnabled",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SyncStreamEnabled" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)((ECSyncSettings const *)arg1)->SyncStreamEnabled();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_ChangeNotificationsEnabled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_ChangeNotificationsEnabled",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_ChangeNotificationsEnabled" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)((ECSyncSettings const *)arg1)->ChangeNotificationsEnabled();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_StateCollectorEnabled(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_StateCollectorEnabled",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_StateCollectorEnabled" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)((ECSyncSettings const *)arg1)->StateCollectorEnabled();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_StreamTimeout(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_StreamTimeout",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_StreamTimeout" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ((ECSyncSettings const *)arg1)->StreamTimeout();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_StreamBufferSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_StreamBufferSize",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_StreamBufferSize" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ((ECSyncSettings const *)arg1)->StreamBufferSize();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_StreamBatchSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncSettings_StreamBatchSize",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_StreamBatchSize" "', argument " "1"" of type '" "ECSyncSettings const *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ((ECSyncSettings const *)arg1)->StreamBatchSize();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_EnableSyncLog(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  bool arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  bool val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_EnableSyncLog",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_EnableSyncLog" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_bool(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_EnableSyncLog" "', argument " "2"" of type '" "bool""'");
+  } 
+  arg2 = static_cast< bool >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)(arg1)->EnableSyncLog(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SetSyncLogLevel(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  ULONG arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_SetSyncLogLevel",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SetSyncLogLevel" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_SetSyncLogLevel" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->SetSyncLogLevel(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SetSyncOptions(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  ULONG arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_SetSyncOptions",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SetSyncOptions" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_SetSyncOptions" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->SetSyncOptions(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SetStreamTimeout(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  ULONG arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_SetStreamTimeout",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SetStreamTimeout" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_SetStreamTimeout" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->SetStreamTimeout(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SetStreamBufferSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  ULONG arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_SetStreamBufferSize",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SetStreamBufferSize" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_SetStreamBufferSize" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->SetStreamBufferSize(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncSettings_SetStreamBatchSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  ULONG arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECSyncSettings_SetStreamBatchSize",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncSettings_SetStreamBatchSize" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECSyncSettings_SetStreamBatchSize" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->SetStreamBatchSize(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_ECSyncSettings(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncSettings *arg1 = (ECSyncSettings *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_ECSyncSettings",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncSettings, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ECSyncSettings" "', argument " "1"" of type '" "ECSyncSettings *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncSettings * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        delete arg1;
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *ECSyncSettings_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_ECSyncSettings, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN PyObject *_wrap_ECSyncLog_GetLogger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger **arg1 = (ECLogger **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncLog_GetLogger",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_p_ECLogger, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncLog_GetLogger" "', argument " "1"" of type '" "ECLogger **""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger ** >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ECSyncLog::GetLogger(arg1);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECSyncLog_SetLogger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  int res1 ;
+  ECSimpleLogger *sl1 ;
+  ECLoggerProxy *proxy1 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECSyncLog_SetLogger",&obj0)) SWIG_fail;
+  {
+    res1 = SWIG_ConvertPtr(obj0, (void **)&sl1, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+    if(!SWIG_IsOK(res1))
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECSyncLog_SetLogger" "', argument " "1"" of type '" "ECSimpleLogger""'");
+    
+    ECLoggerProxy::Create(EC_LOGLEVEL_DEBUG, sl1, &proxy1);
+    arg1 = proxy1;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = ECSyncLog::SetLogger(arg1);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    arg1->Release();
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  {
+    arg1->Release();
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_ECSyncLog(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncLog *result = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)":new_ECSyncLog")) SWIG_fail;
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (ECSyncLog *)new ECSyncLog();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ECSyncLog, SWIG_POINTER_NEW |  0 );
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_ECSyncLog(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECSyncLog *arg1 = (ECSyncLog *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_ECSyncLog",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECSyncLog, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ECSyncLog" "', argument " "1"" of type '" "ECSyncLog *""'"); 
+  }
+  arg1 = reinterpret_cast< ECSyncLog * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        delete arg1;
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *ECSyncLog_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_ECSyncLog, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"IUnknown_QueryInterface", _wrap_IUnknown_QueryInterface, METH_VARARGS, NULL},
 	 { (char *)"delete_IUnknown", _wrap_delete_IUnknown, METH_VARARGS, NULL},
@@ -34012,6 +34929,29 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_Stream", _wrap_delete_Stream, METH_VARARGS, NULL},
 	 { (char *)"disown_Stream", _wrap_disown_Stream, METH_VARARGS, NULL},
 	 { (char *)"Stream_swigregister", Stream_swigregister, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_GetInstance", _wrap_ECSyncSettings_GetInstance, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SyncLogEnabled", _wrap_ECSyncSettings_SyncLogEnabled, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SyncLogLevel", _wrap_ECSyncSettings_SyncLogLevel, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_ContinuousLogging", _wrap_ECSyncSettings_ContinuousLogging, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SyncStreamEnabled", _wrap_ECSyncSettings_SyncStreamEnabled, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_ChangeNotificationsEnabled", _wrap_ECSyncSettings_ChangeNotificationsEnabled, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_StateCollectorEnabled", _wrap_ECSyncSettings_StateCollectorEnabled, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_StreamTimeout", _wrap_ECSyncSettings_StreamTimeout, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_StreamBufferSize", _wrap_ECSyncSettings_StreamBufferSize, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_StreamBatchSize", _wrap_ECSyncSettings_StreamBatchSize, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_EnableSyncLog", _wrap_ECSyncSettings_EnableSyncLog, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SetSyncLogLevel", _wrap_ECSyncSettings_SetSyncLogLevel, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SetSyncOptions", _wrap_ECSyncSettings_SetSyncOptions, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SetStreamTimeout", _wrap_ECSyncSettings_SetStreamTimeout, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SetStreamBufferSize", _wrap_ECSyncSettings_SetStreamBufferSize, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_SetStreamBatchSize", _wrap_ECSyncSettings_SetStreamBatchSize, METH_VARARGS, NULL},
+	 { (char *)"delete_ECSyncSettings", _wrap_delete_ECSyncSettings, METH_VARARGS, NULL},
+	 { (char *)"ECSyncSettings_swigregister", ECSyncSettings_swigregister, METH_VARARGS, NULL},
+	 { (char *)"ECSyncLog_GetLogger", _wrap_ECSyncLog_GetLogger, METH_VARARGS, NULL},
+	 { (char *)"ECSyncLog_SetLogger", _wrap_ECSyncLog_SetLogger, METH_VARARGS, NULL},
+	 { (char *)"new_ECSyncLog", _wrap_new_ECSyncLog, METH_VARARGS, NULL},
+	 { (char *)"delete_ECSyncLog", _wrap_delete_ECSyncLog, METH_VARARGS, NULL},
+	 { (char *)"ECSyncLog_swigregister", ECSyncLog_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
@@ -34362,6 +35302,8 @@ static swig_type_info _swigt__p_ECChangeAdviseSink = {"_p_ECChangeAdviseSink", "
 static swig_type_info _swigt__p_ECImportContentsChanges = {"_p_ECImportContentsChanges", "ECImportContentsChanges *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ECLogger = {"_p_ECLogger", "ECLogger *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ECSimpleLogger = {"_p_ECSimpleLogger", "ECSimpleLogger *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_ECSyncLog = {"_p_ECSyncLog", "ECSyncLog *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_ECSyncSettings = {"_p_ECSyncSettings", "ECSyncSettings *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ExchangeExportChanges = {"_p_ExchangeExportChanges", "ExchangeExportChanges *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ExchangeImportContentsChanges = {"_p_ExchangeImportContentsChanges", "ExchangeImportContentsChanges *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ExchangeImportHierarchyChanges = {"_p_ExchangeImportHierarchyChanges", "ExchangeImportHierarchyChanges *", 0, 0, (void*)0, 0};
@@ -34455,6 +35397,7 @@ static swig_type_info _swigt__p_ULARGE_INTEGER = {"_p_ULARGE_INTEGER", "ULARGE_I
 static swig_type_info _swigt__p_ULONG = {"_p_ULONG", "ULONG *|BOOKMARK *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_bool = {"_p_bool", "bool *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_ECLogger = {"_p_p_ECLogger", "ECLogger **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_IAddrBook = {"_p_p_IAddrBook", "IAddrBook **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_IAttach = {"_p_p_IAttach", "IAttach **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_IMAPIFolder = {"_p_p_IMAPIFolder", "IMAPIFolder **", 0, 0, (void*)0, 0};
@@ -34520,6 +35463,8 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_ECImportContentsChanges,
   &_swigt__p_ECLogger,
   &_swigt__p_ECSimpleLogger,
+  &_swigt__p_ECSyncLog,
+  &_swigt__p_ECSyncSettings,
   &_swigt__p_ExchangeExportChanges,
   &_swigt__p_ExchangeImportContentsChanges,
   &_swigt__p_ExchangeImportHierarchyChanges,
@@ -34615,6 +35560,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_p_ECChangeAdviseSink,
   &_swigt__p_p_ECImportContentsChanges,
+  &_swigt__p_p_ECLogger,
   &_swigt__p_p_ExchangeExportChanges,
   &_swigt__p_p_ExchangeImportContentsChanges,
   &_swigt__p_p_ExchangeImportHierarchyChanges,
@@ -34678,6 +35624,8 @@ static swig_cast_info _swigc__p_ECChangeAdviseSink[] = {  {&_swigt__p_ECChangeAd
 static swig_cast_info _swigc__p_ECImportContentsChanges[] = {  {&_swigt__p_ECImportContentsChanges, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ECLogger[] = {  {&_swigt__p_ECLogger, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ECSimpleLogger[] = {  {&_swigt__p_ECSimpleLogger, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_ECSyncLog[] = {  {&_swigt__p_ECSyncLog, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_ECSyncSettings[] = {  {&_swigt__p_ECSyncSettings, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ExchangeExportChanges[] = {  {&_swigt__p_ExchangeExportChanges, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ExchangeImportContentsChanges[] = {  {&_swigt__p_ExchangeImportContentsChanges, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ExchangeImportHierarchyChanges[] = {  {&_swigt__p_ExchangeImportHierarchyChanges, 0, 0, 0},{0, 0, 0, 0}};
@@ -34771,6 +35719,7 @@ static swig_cast_info _swigc__p_ULARGE_INTEGER[] = {  {&_swigt__p_ULARGE_INTEGER
 static swig_cast_info _swigc__p_ULONG[] = {  {&_swigt__p_ULONG, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_bool[] = {  {&_swigt__p_bool, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_ECLogger[] = {  {&_swigt__p_p_ECLogger, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IAddrBook[] = {  {&_swigt__p_p_IAddrBook, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IAttach[] = {  {&_swigt__p_p_IAttach, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IMAPIFolder[] = {  {&_swigt__p_p_IMAPIFolder, 0, 0, 0},{0, 0, 0, 0}};
@@ -34836,6 +35785,8 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_ECImportContentsChanges,
   _swigc__p_ECLogger,
   _swigc__p_ECSimpleLogger,
+  _swigc__p_ECSyncLog,
+  _swigc__p_ECSyncSettings,
   _swigc__p_ExchangeExportChanges,
   _swigc__p_ExchangeImportContentsChanges,
   _swigc__p_ExchangeImportHierarchyChanges,
@@ -34931,6 +35882,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_p_ECChangeAdviseSink,
   _swigc__p_p_ECImportContentsChanges,
+  _swigc__p_p_ECLogger,
   _swigc__p_p_ExchangeExportChanges,
   _swigc__p_p_ExchangeImportContentsChanges,
   _swigc__p_p_ExchangeImportHierarchyChanges,
@@ -36086,6 +37038,11 @@ SWIGEXPORT void SWIG_init(void) {
   SWIG_Python_SetConstant(d, "MAPI_ENVELOPE_ONLY",SWIG_From_int(static_cast< int >(0x00000040)));
   SWIG_Python_SetConstant(d, "MAPI_BODY_AS_FILE",SWIG_From_int(static_cast< int >(0x00000200)));
   SWIG_Python_SetConstant(d, "MAPI_AB_NOMODIFY",SWIG_From_int(static_cast< int >(0x00000400)));
+  SWIG_Python_SetConstant(d, "EC_SYNC_OPT_STREAM",SWIG_From_int(static_cast< int >(1)));
+  SWIG_Python_SetConstant(d, "EC_SYNC_OPT_CHANGENOTIF",SWIG_From_int(static_cast< int >(2)));
+  SWIG_Python_SetConstant(d, "EC_SYNC_OPT_STATECOLLECT",SWIG_From_int(static_cast< int >(4)));
+  SWIG_Python_SetConstant(d, "EC_SYNC_OPT_CONTINUOUS",SWIG_From_int(static_cast< int >(8)));
+  SWIG_Python_SetConstant(d, "EC_SYNC_OPT_ALL",SWIG_From_int(static_cast< int >((1|2|4))));
   
   /* Initialize threading */
   SWIG_PYTHON_INITIALIZE_THREADS;

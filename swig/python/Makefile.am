@@ -8,10 +8,12 @@ endif
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common $(PYTHON_INCLUDES) -I${top_srcdir}/swig -w -DSWIG_PYTHON_OUTPUT_TUPLE
 
+_MAPICore_la_CXXFLAGS = -I${top_srcdir}/zarafa-libsync
 _MAPICore_la_LDFLAGS = -module -avoid-version
 _MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
+						${top_builddir}/zarafa-libsync/libzarafasync.la \
 						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -141,7 +143,7 @@ endif
 mapi_wrap.h: mapi_wrap.cxx
 mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ../mapinotifsink.i ../mapiutil.i ../typemap.i ../helpers.i ../edkmdb.i ../IECServiceAdmin.i ../ecdefs.i typemap_python.i helpers_python.i
 	if test "x$(SWIG_EXEC)" = "x"; then echo "swig is required for 'make dist'"; exit 1; fi
-	$(SWIG_EXEC) -I${top_srcdir}/swig $(SWIG_FLAGS) -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapi_wrap.cxx ${top_srcdir}/swig/mapi.i
+	$(SWIG_EXEC) -I${top_srcdir}/swig -I${top_srcdir}/zarafa-libsync $(SWIG_FLAGS) -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapi_wrap.cxx ${top_srcdir}/swig/mapi.i
 
 inetmapi_wrap.cxx: ../typemap.i ../inetmapi.i typemap_python.i helpers_python.i
 	$(SWIG_EXEC) -I${top_srcdir}/swig -Wall -python -c++ -threads -o ${top_builddir}/swig/python/inetmapi_wrap.cxx ${top_srcdir}/swig/inetmapi.i
