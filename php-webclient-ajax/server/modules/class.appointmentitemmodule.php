@@ -218,6 +218,7 @@
 				$data["attributes"] = array("type" => "saved");
 				$data["meeting_request_saved"] = ($result) ? '1' : '0';
 				$data["sent_meetingrequest"] = ($result && !empty($action['send'])) ? '1' : '0';
+				$data["direct_booking_enabled"] = ENABLE_DIRECT_BOOKING ? '1' : '0';
 				if(is_array($messageProps) && isset($messageProps['error'])){
 					$data["errorcode"] = $messageProps['error'];
 					$data["displayname"] = $messageProps['displayname'];
