@@ -106,6 +106,7 @@ public:
 	HRESULT GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder);
 
 	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
+	HRESULT IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult);
 
 	MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
 
@@ -122,8 +123,10 @@ private:
 		sfOutgoing = 2,		//< The outgoing folder, which is a child of the special root
 		sfDeleted = 3		//< The deleted items folder, which is a child of the special root
 	};
+	HRESULT GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	HRESULT GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder);
 	HRESULT CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder);
+	HRESULT IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolder, bool *lpbResult);
 
 private:
 	MsgStorePtr	m_ptrArchiveStore;
