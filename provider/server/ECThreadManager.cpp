@@ -1031,6 +1031,8 @@ ECRESULT ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 {
 	// add soap socket in epoll fd
 	epoll_event epevent;
+	memset(&epevent, 0, sizeof(epoll_event));
+
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
 	epevent.data.fd = s;
 	epoll_ctl(m_epFD, EPOLL_CTL_ADD, epevent.data.fd, &epevent);
