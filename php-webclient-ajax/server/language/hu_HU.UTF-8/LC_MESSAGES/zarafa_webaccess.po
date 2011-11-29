@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-29 00:02+0100\n"
-"PO-Revision-Date: 2011-11-28 15:55+0200\n"
-"Last-Translator: Kiss <kissjeno@rosti.sulinet.hu>\n"
+"POT-Creation-Date: 2011-11-30 00:02+0100\n"
+"PO-Revision-Date: 2011-11-29 16:11+0200\n"
+"Last-Translator: Krisztián <czako.krisztian@linuxakademia.hu>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/download_message.php:66
 msgid "Can't save this message as a file"
-msgstr "Nem lehet menteni ezt az üzenetet fájlként"
+msgstr "Ezt az üzenetet nem lehet fájlként menteni"
 
 #: php-webclient-ajax/client/download_message.php:81
 #: php-webclient-ajax/server/core/class.operations.php:3528
@@ -75,7 +75,7 @@ msgstr "Üzenetek"
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:71
 #: php-webclient-ajax/client/layout/js/sharedfolder.js:7
 msgid "Notes"
-msgstr "Feljegyzések"
+msgstr "Jegyzetek"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:78
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:53
@@ -87,7 +87,7 @@ msgstr "Feladatok"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:82
 msgid "In"
-msgstr "-ben"
+msgstr "a következőben:"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:100
 msgid "Browse"
@@ -99,11 +99,11 @@ msgstr "Keresés"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:114
 msgid "Stop"
-msgstr "Stop"
+msgstr "Állj"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:121
 msgid "New Search"
-msgstr "új keresés"
+msgstr "Új keresés"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/stickynote.php:12
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:78
@@ -269,7 +269,7 @@ msgstr "esedékesség"
 #: php-webclient-ajax/client/layout/js/task.js:335
 #: php-webclient-ajax/client/layout/js/task.js:349
 msgid "None"
-msgstr "Egyik sem"
+msgstr "Nincs"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:310
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:476
@@ -279,13 +279,13 @@ msgstr "Egyik sem"
 #: php-webclient-ajax/client/core/properties.js:99
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1786
 msgid "Status"
-msgstr "Státusz"
+msgstr "Állapot"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:314
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:357
 #: php-webclient-ajax/client/modules/itemmodule.js:679
 msgid "Not Started"
-msgstr "Nem indult"
+msgstr "Nincs elkezdve"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:315
 #: php-webclient-ajax/client/modules/printmessageitem.js:81
@@ -458,16 +458,16 @@ msgstr "Kategóriák"
 #: php-webclient-ajax/client/layout/js/advancedfind.js:306
 #: php-webclient-ajax/client/layout/js/attachitem.js:343
 msgid "Private"
-msgstr "Saját"
+msgstr "Személyes"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:517
 #: php-webclient-ajax/client/modules/printmessageitem.js:98
 msgid "Date completed"
-msgstr "időpont befejezve"
+msgstr "Befejezés dátuma"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:531
 msgid "Total work"
-msgstr "Összesen munka"
+msgstr "Összes munka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:538
 #: php-webclient-ajax/client/modules/printmessageitem.js:144
@@ -490,11 +490,11 @@ msgstr "Vállalatok"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:580
 msgid "Update List"
-msgstr "Frissítési lista"
+msgstr "Lista frissítése"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:588
 msgid "Create Unassigned Copy"
-msgstr "hozzá nem másolt létrehozása"
+msgstr "Hozzá nem rendelet másolat készítése"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:602
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:603
@@ -509,7 +509,7 @@ msgstr "Vissza a feladat listába"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:213
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:130
 msgid "Accept"
-msgstr "Elfogadás"
+msgstr "Elfogad"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:614
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:615
@@ -590,7 +590,7 @@ msgstr "Általános"
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:118
 #: php-webclient-ajax/client/layout/dialogs/modal/delegates.php:58
 msgid "Permissions"
-msgstr "Engedélyek"
+msgstr "Jogosultságok"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:25
 #: php-webclient-ajax/client/modules/addressbooklistmodule.js:36
@@ -639,7 +639,7 @@ msgstr "Méret"
 #: php-webclient-ajax/server/util.php:274
 #: php-webclient-ajax/client/widgets/quota.js:108
 msgid "MB"
-msgstr "Mb"
+msgstr "MB"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:102
 #: php-webclient-ajax/client/layout/dialogs/modal/foldersize.php:8
@@ -659,7 +659,7 @@ msgstr "Hozzáad"
 #: php-webclient-ajax/client/layout/dialogs/modal/delegates.php:53
 #: php-webclient-ajax/client/layout/dialogs/modal/signatures.php:116
 msgid "Remove"
-msgstr "Eltávolítás"
+msgstr "Eltávolít"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:122
 msgid "Profile"
@@ -679,7 +679,7 @@ msgstr "Olvasott elemek"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:134
 msgid "Folder visible"
-msgstr "Látható mappa"
+msgstr "Mappa látható"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:137
 msgid "Create subfolders"
@@ -711,7 +711,7 @@ msgstr "Elemek törlése"
 #: php-webclient-ajax/client/layout/js/appointment.js:745
 #: php-webclient-ajax/client/layout/js/appointment.js:746
 msgid "Appointment"
-msgstr "Meghatalmazás"
+msgstr "Találkozó"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:8
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:10
@@ -768,7 +768,7 @@ msgstr "Fontos"
 #: php-webclient-ajax/client/layout/js/advancedfind.js:325
 #: php-webclient-ajax/client/layout/js/attachitem.js:362
 msgid "Business"
-msgstr "Üzlet"
+msgstr "Üzleti"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:320
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:91
@@ -795,7 +795,7 @@ msgstr "Szabadság"
 #: php-webclient-ajax/client/layout/js/advancedfind.js:334
 #: php-webclient-ajax/client/layout/js/attachitem.js:371
 msgid "Must Attend"
-msgstr "Köteles részt venni"
+msgstr "Részt kell vegyen"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:323
 #: php-webclient-ajax/client/views/table.view.js:1111
@@ -895,7 +895,7 @@ msgstr "óra"
 #: php-webclient-ajax/client/layout/js/task.js:72
 #: php-webclient-ajax/client/layout/js/task.js:774
 msgid "hours"
-msgstr "órák"
+msgstr "óra"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:384
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:386
@@ -928,7 +928,7 @@ msgstr "nap"
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
 msgid "days"
-msgstr "napok"
+msgstr "nap"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
@@ -942,7 +942,7 @@ msgstr "hét"
 #: php-webclient-ajax/client/layout/js/appointment.js:1043
 #: php-webclient-ajax/client/layout/js/task.js:786
 msgid "weeks"
-msgstr "hetek"
+msgstr "hét"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:393
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:222
@@ -954,7 +954,7 @@ msgstr "hónap"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:397
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Busy Status"
-msgstr "Elfoglalt"
+msgstr "Foglaltsági állapot"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:401
 #: php-webclient-ajax/client/modules/itemmodule.js:490
@@ -1001,11 +1001,11 @@ msgstr "Foglalt"
 #: php-webclient-ajax/client/layout/js/attachitem.js:327
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.js:14
 msgid "Out of Office"
-msgstr "Irodán kívül"
+msgstr "Házon kívül"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:463
 msgid "The following responses to this meeting have been received:"
-msgstr "Az alábbi válaszok érkeztek erre a megbeszélésre:"
+msgstr "Az alábbi válaszok érkeztek erre a találkozóra:"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:495
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:496
@@ -1018,7 +1018,7 @@ msgstr "Az alábbi válaszok érkeztek erre a megbeszélésre:"
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
 msgid "Propose New Time"
-msgstr "Új időpont ajánlása"
+msgstr "Ajánlj új időpontot"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:520
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:297
@@ -1040,7 +1040,7 @@ msgstr "Új időpont ajánlása"
 #: php-webclient-ajax/client/modules/todaymodule.js:40
 #: php-webclient-ajax/client/modules/advancedfindlistmodule.js:41
 msgid "Print"
-msgstr "Nyomtatás"
+msgstr "Nyomtat"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:573
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:574
@@ -1050,7 +1050,7 @@ msgstr "Résztvevők meghívása"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:579
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:580
 msgid "Cancel Invitation"
-msgstr "Meghívás elutasítása"
+msgstr "Meghívás elvetése"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/distlist.php:13
 #: php-webclient-ajax/client/widgets/menu.js:14
@@ -1111,7 +1111,7 @@ msgstr "Megjelenítendő név"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:81
 msgid "Alias name"
-msgstr "Másik név"
+msgstr "Becenév"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:122
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:208
@@ -1173,7 +1173,7 @@ msgstr "Titkos másolatot kap"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1850
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1987
 msgid "Start date"
-msgstr "Kezdési időpont"
+msgstr "Kezdési dátum"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:152
 #: php-webclient-ajax/client/layout/dialogs/modal/flag.php:82
@@ -1186,7 +1186,7 @@ msgstr "Kezdési időpont"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1859
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1996
 msgid "End date"
-msgstr "Befejezési időpont"
+msgstr "Befejezési dátum"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:160
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:72
@@ -1250,7 +1250,7 @@ msgstr "Válasz mindenkinek"
 #: php-webclient-ajax/client/modules/journallistmodule.js:20
 #: php-webclient-ajax/client/modules/journallistmodule.js:30
 msgid "Forward"
-msgstr "Továbbítás"
+msgstr "Továbbít"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:290
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:291
@@ -1264,7 +1264,7 @@ msgstr "Beállítások"
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:619
 #: php-webclient-ajax/client/layout/dialogs/modal/flag.php:4
 msgid "Flag"
-msgstr "kijelöl"
+msgstr "Megjelöl"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:10
 #: php-webclient-ajax/client/modules/createmailitemmodule.js:58
@@ -1285,15 +1285,15 @@ msgstr "Aláírás hozzáadása"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:583
 msgid "Priority: High"
-msgstr "Prioritás: Magas"
+msgstr "Sürgősség: Magas"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:589
 msgid "Priority: Low"
-msgstr "Prioritás: Alacsony"
+msgstr "Sürgősség: Alacsony"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:601
 msgid "Set/Unset Read Receipt"
-msgstr "Tértivevény beállítása"
+msgstr "Tértivevény ki/be kapcsolása"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:22
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:75
@@ -1315,7 +1315,7 @@ msgstr "Teljes Név"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:232
 #: php-webclient-ajax/server/core/class.tablecolumns.php:73
 msgid "Function"
-msgstr "feladat"
+msgstr "Beosztás"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:240
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:107
@@ -1338,7 +1338,7 @@ msgstr "Másolás fájlba"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:258
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:162
 msgid "Phone numbers"
-msgstr "Telefon számok"
+msgstr "Telefonszámok"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:271
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:303
@@ -1496,7 +1496,7 @@ msgstr "Különleges dátum"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:606
 #: php-webclient-ajax/client/layout/dialogs/modal/addressbook.php:211
 msgid "New Message for Contact"
-msgstr "Új üzenet a kapcsolattartónak"
+msgstr "Új üzenet a kapcsolatnak"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:32
 msgid "Organization"
@@ -1509,16 +1509,16 @@ msgstr "Telefon / Megjegyzés"
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:78
 #: php-webclient-ajax/client/layout/js/contact.js:443
 msgid "First"
-msgstr "Első"
+msgstr "Keresztnév"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:80
 msgid "Initials"
-msgstr "Aláírások"
+msgstr "Monogram"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:82
 #: php-webclient-ajax/client/layout/js/contact.js:457
 msgid "Last"
-msgstr "Utolsó"
+msgstr "Vezetéknév"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:86
 msgid "Display"
@@ -1654,7 +1654,7 @@ msgstr "Nagyítás"
 #: php-webclient-ajax/client/modules/freebusymodule.js:402
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:96
 msgid "All Attendees"
-msgstr "Résztvevők"
+msgstr "Minden résztvevő"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:17
 #: php-webclient-ajax/client/modules/freebusymodule.js:1040
@@ -1687,7 +1687,7 @@ msgstr "%d emlékeztető került kiválasztásra"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:41
 msgid "Dismiss All"
-msgstr "Az összes visszautasítása"
+msgstr "Az összes eltüntetése"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:43
 msgid "Open Item"
@@ -1695,7 +1695,7 @@ msgstr "Elem megnyitása"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:44
 msgid "Dismiss"
-msgstr "Elutasítás"
+msgstr "Eltüntet"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:47
 msgid "Click Snooze to be reminded again in:"

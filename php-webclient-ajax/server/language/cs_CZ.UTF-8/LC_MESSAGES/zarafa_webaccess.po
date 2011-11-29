@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-29 00:02+0100\n"
-"PO-Revision-Date: 2011-11-28 20:24+0200\n"
+"POT-Creation-Date: 2011-11-30 00:02+0100\n"
+"PO-Revision-Date: 2011-11-29 18:27+0200\n"
 "Last-Translator: Michal <formanek.michal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: cs\n"
@@ -42,7 +42,7 @@ msgstr "Rozšířené hledání"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:69
 msgid "Look for"
-msgstr ""
+msgstr "Hledat"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:73
 msgid "Any type of item"
@@ -312,21 +312,22 @@ msgstr ""
 #: php-webclient-ajax/client/modules/printmessageitem.js:87
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:360
 msgid "Wait for other person"
-msgstr ""
+msgstr "Čekat na ostatní"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:318
 #: php-webclient-ajax/client/modules/printmessageitem.js:90
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:361
 #: php-webclient-ajax/client/modules/itemmodule.js:691
+#, fuzzy
 msgid "Deferred"
-msgstr ""
+msgstr "Odložený"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:324
 #: php-webclient-ajax/server/core/class.tablecolumns.php:225
 #: php-webclient-ajax/client/modules/printmessageitem.js:72
 #: php-webclient-ajax/client/core/properties.js:97
 msgid "Start Date"
-msgstr ""
+msgstr "Od data"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:333
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:482
@@ -401,11 +402,11 @@ msgstr "Vlastník"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:396
 msgid "Keep copy of task in task list"
-msgstr ""
+msgstr "Zachovat kopii úkolu v seznamu úkolů"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:404
 msgid "Send me a status report when task is completed"
-msgstr ""
+msgstr "Pošlete mi zprávu o stavu po dokončení úkolu"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:415
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:415
@@ -465,7 +466,7 @@ msgstr "Osobní"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:517
 #: php-webclient-ajax/client/modules/printmessageitem.js:98
 msgid "Date completed"
-msgstr ""
+msgstr "Datum dokončení"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:531
 msgid "Total work"
@@ -492,7 +493,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:580
 msgid "Update List"
-msgstr ""
+msgstr "Aktualizovat seznam"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:588
 msgid "Create Unassigned Copy"
@@ -501,7 +502,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:602
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:603
 msgid "Return to Task List"
-msgstr ""
+msgstr "Zpět na seznam úkolů"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:608
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:609
@@ -561,7 +562,7 @@ msgstr "Zkontrolovat jména"
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:44
 #: php-webclient-ajax/client/core/properties.js:28
 msgid "Recurrence"
-msgstr ""
+msgstr "Opakování"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:674
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:675
@@ -572,7 +573,7 @@ msgstr "Přiřadit úkol"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:680
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:681
 msgid "Cancel Assignment"
-msgstr ""
+msgstr "Zrušit přiřazení"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:693
 msgid "Mark Complete"
@@ -668,7 +669,6 @@ msgid "Profile"
 msgstr "Profil"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/properties.php:129
-#, fuzzy
 msgid "Create items"
 msgstr "Vytvořit položky"
 
@@ -824,7 +824,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/advancedfind.js:343
 #: php-webclient-ajax/client/layout/js/attachitem.js:380
 msgid "Birthday"
-msgstr ""
+msgstr "Narozeniny"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:326
 #: php-webclient-ajax/client/core/properties.js:81
@@ -832,14 +832,14 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/advancedfind.js:346
 #: php-webclient-ajax/client/layout/js/attachitem.js:383
 msgid "Anniversary"
-msgstr ""
+msgstr "Výročí"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:327
 #: php-webclient-ajax/client/views/table.view.js:1127
 #: php-webclient-ajax/client/layout/js/advancedfind.js:349
 #: php-webclient-ajax/client/layout/js/attachitem.js:386
 msgid "Phone Call"
-msgstr ""
+msgstr "Telefonní hovor"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:342
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:36
@@ -932,9 +932,8 @@ msgstr "den"
 #: php-webclient-ajax/client/layout/js/appointment.js:1034
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
-#, fuzzy
 msgid "days"
-msgstr "den"
+msgstr "dny"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
@@ -959,8 +958,9 @@ msgstr "měsíc"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:397
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
+#, fuzzy
 msgid "Busy Status"
-msgstr ""
+msgstr "Zaneprázdněný"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:401
 #: php-webclient-ajax/client/modules/itemmodule.js:490
@@ -968,7 +968,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/advancedfind.js:281
 #: php-webclient-ajax/client/layout/js/attachitem.js:318
 msgid "Free"
-msgstr ""
+msgstr "Volný"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:402
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:483
@@ -997,7 +997,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/advancedfind.js:287
 #: php-webclient-ajax/client/layout/js/attachitem.js:324
 msgid "Busy"
-msgstr ""
+msgstr "Zaneprázdněný"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:404
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:4
@@ -1007,11 +1007,12 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/attachitem.js:327
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.js:14
 msgid "Out of Office"
-msgstr ""
+msgstr "Mimo kancelář"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:463
+#, fuzzy
 msgid "The following responses to this meeting have been received:"
-msgstr ""
+msgstr "Následující odpovědi na této schůzi byly přijaty:"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:495
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:496
@@ -1024,7 +1025,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
 msgid "Propose New Time"
-msgstr ""
+msgstr "Navrhnout nový čas"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:520
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:297
@@ -1068,7 +1069,7 @@ msgstr "Distribuční seznam"
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:110
 #: php-webclient-ajax/client/modules/printmessageitem.js:226
 msgid "Members"
-msgstr ""
+msgstr "Členové"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/distlist.php:81
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:219
@@ -1085,48 +1086,51 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/restoreitems.js:138
 #: php-webclient-ajax/client/layout/js/delegates.js:8
 msgid "Name"
-msgstr ""
+msgstr "Jméno"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/distlist.php:87
 msgid "Select Members"
-msgstr ""
+msgstr "Vybrat členy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/distlist.php:88
 msgid "Add new"
-msgstr ""
+msgstr "Přidat nové"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:13
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:13
+#, fuzzy
 msgid "GAB Details"
-msgstr ""
+msgstr "GAB podrobnosti"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:34
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:34
 msgid "Member Of"
-msgstr ""
+msgstr "Člen"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:35
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:35
 #: php-webclient-ajax/client/modules/addressbookitemmodule.js:299
 msgid "E-mail Addresses"
-msgstr ""
+msgstr "Emailové adresy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:77
+#, fuzzy
 msgid "Display name"
-msgstr ""
+msgstr "Zobraz jméno"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:81
+#, fuzzy
 msgid "Alias name"
-msgstr ""
+msgstr "Přezdívka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_distlist.php:122
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:208
 msgid "Group membership"
-msgstr ""
+msgstr "Členství ve skupině"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:12
 msgid "Read Mail"
-msgstr ""
+msgstr "Číst poštu"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:80
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:457
@@ -1179,7 +1183,7 @@ msgstr "Skrytá kopie"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1850
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1987
 msgid "Start date"
-msgstr ""
+msgstr "Od data"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:152
 #: php-webclient-ajax/client/layout/dialogs/modal/flag.php:82
@@ -1192,13 +1196,13 @@ msgstr ""
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1859
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1996
 msgid "End date"
-msgstr ""
+msgstr "Do data"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:160
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:72
 #: php-webclient-ajax/client/modules/itemmodule.js:1223
 msgid "When"
-msgstr ""
+msgstr "Kdy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:168
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:77
@@ -1283,7 +1287,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:516
 msgid "Send new Mail"
-msgstr ""
+msgstr "Poslat nový e-mail"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:559
 msgid "Add Signature"
@@ -1291,15 +1295,15 @@ msgstr "Přidat podpis"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:583
 msgid "Priority: High"
-msgstr ""
+msgstr "Priorita: vysoká"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:589
 msgid "Priority: Low"
-msgstr ""
+msgstr "Priorita: nízká"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:601
 msgid "Set/Unset Read Receipt"
-msgstr ""
+msgstr "Nastavit / Zrušit přečtení"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:22
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:75
@@ -1316,12 +1320,12 @@ msgstr "Kontakt"
 #: php-webclient-ajax/client/modules/printmessageitem.js:117
 #: php-webclient-ajax/client/core/properties.js:41
 msgid "Full Name"
-msgstr ""
+msgstr "Jméno a příjmení"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:232
 #: php-webclient-ajax/server/core/class.tablecolumns.php:73
 msgid "Function"
-msgstr ""
+msgstr "Funkce"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:240
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:107
@@ -1344,7 +1348,7 @@ msgstr "Uložit jako"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:258
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:162
 msgid "Phone numbers"
-msgstr ""
+msgstr "Telefonní číslo"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:271
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:303
@@ -1355,7 +1359,7 @@ msgstr ""
 #: php-webclient-ajax/client/core/properties.js:57
 #: php-webclient-ajax/client/views/addresscards.view.js:318
 msgid "Home"
-msgstr ""
+msgstr "Domů"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:279
 #: php-webclient-ajax/client/modules/printmessageitem.js:129
@@ -1363,7 +1367,7 @@ msgstr ""
 #: php-webclient-ajax/client/core/properties.js:70
 #: php-webclient-ajax/client/views/addresscards.view.js:320
 msgid "Business Fax"
-msgstr ""
+msgstr "Fax do práce"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:287
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:180
@@ -1372,11 +1376,11 @@ msgstr ""
 #: php-webclient-ajax/client/core/properties.js:59
 #: php-webclient-ajax/client/views/addresscards.view.js:319
 msgid "Mobile"
-msgstr ""
+msgstr "Mobil"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:297
 msgid "Addresses"
-msgstr ""
+msgstr "Adresy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:305
 #: php-webclient-ajax/client/modules/contactitemmodule.js:39
@@ -1384,11 +1388,11 @@ msgstr ""
 #: php-webclient-ajax/client/core/properties.js:64
 #: php-webclient-ajax/client/layout/js/properties.js:31
 msgid "Other"
-msgstr ""
+msgstr "Ostatní"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:311
 msgid "Use this address for mailing"
-msgstr ""
+msgstr "Použít tuto adresu pro zasílání"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:316
 msgid "Street"
@@ -1401,20 +1405,21 @@ msgstr "Město"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:332
 msgid "State/Province"
-msgstr ""
+msgstr "Stát / Provincie"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:340
 msgid "ZIP/Postal code"
-msgstr ""
+msgstr "PSČ"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:348
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:129
+#, fuzzy
 msgid "Country/Region"
-msgstr ""
+msgstr "Stát / Region"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:360
 msgid "Photo"
-msgstr ""
+msgstr "Foto"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:370
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:376
@@ -1424,7 +1429,7 @@ msgstr ""
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1587
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2495
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:389
 #: php-webclient-ajax/server/core/class.tablecolumns.php:111
@@ -1571,10 +1576,12 @@ msgstr ""
 msgid "Direct reports"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:172
 #: php-webclient-ajax/client/modules/contactitemmodule.js:45
+#, fuzzy
 msgid "Business 2"
-msgstr ""
+msgstr "Pracovní"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:174
 #: php-webclient-ajax/client/modules/contactitemmodule.js:48
@@ -1804,11 +1811,13 @@ msgstr ""
 msgid "Message Settings"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:74
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:24
 #: php-webclient-ajax/client/core/properties.js:31
+#, fuzzy
 msgid "Importance"
-msgstr ""
+msgstr "Důležité"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:86
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:36
@@ -3625,10 +3634,12 @@ msgid ""
 "on your Calendar."
 msgstr ""
 
+# 77%
 #: php-webclient-ajax/server/core/class.operations.php:943
 #: php-webclient-ajax/server/core/class.operations.php:976
+#, fuzzy
 msgid "Organizor"
-msgstr ""
+msgstr "Organizátor"
 
 #: php-webclient-ajax/server/core/class.operations.php:947
 #: php-webclient-ajax/client/layout/js/appointment.js:1267
@@ -5178,9 +5189,11 @@ msgstr ""
 msgid "more"
 msgstr ""
 
+# 87%
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:93
+#, fuzzy
 msgid "Due date"
-msgstr ""
+msgstr "Termín splnění"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:297
 msgid "has accepted"
@@ -5706,9 +5719,11 @@ msgstr ""
 msgid "Other Address"
 msgstr ""
 
+# 88%
 #: php-webclient-ajax/client/core/properties.js:54
+#, fuzzy
 msgid "Business2"
-msgstr ""
+msgstr "Pracovní"
 
 #: php-webclient-ajax/client/core/properties.js:56
 msgid "Company Main Phone"
@@ -6354,9 +6369,11 @@ msgstr "Přidat přílohy"
 msgid "Whose importance is"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2081
+#, fuzzy
 msgid "normal"
-msgstr ""
+msgstr "Střední"
 
 # 75%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2082
@@ -6653,7 +6670,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/attachments.js:231
 #, c-format
 msgid "%s of %s files are uploaded."
-msgstr ""
+msgstr "%s z %s souborů jsou nahrané."
 
 #: php-webclient-ajax/client/layout/js/advprompt.js:13
 #: php-webclient-ajax/client/layout/js/advprompt.js:56
@@ -6709,7 +6726,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/appointment.js:156
 #: php-webclient-ajax/client/layout/js/appointment.js:160
 msgid "%d-%m-%Y %H:%M"
-msgstr ""
+msgstr "%d-%m-%Y %H:%M"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:183
 #, c-format
@@ -6774,15 +6791,15 @@ msgstr "měsíc"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1057
 msgid "year"
-msgstr ""
+msgstr "rok"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1061
 msgid "years"
-msgstr ""
+msgstr "roky"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1067
 msgid "effective"
-msgstr ""
+msgstr "efektivní"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1079
 msgid "for 1 occurrence"
@@ -6799,13 +6816,12 @@ msgstr ""
 
 # 75%
 #: php-webclient-ajax/client/layout/js/appointment.js:1097
-#, fuzzy
 msgid "from"
 msgstr "Od"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1101
 msgid "to"
-msgstr ""
+msgstr "do"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1149
 msgid "Attendance"
@@ -6815,13 +6831,15 @@ msgstr ""
 msgid "Response"
 msgstr ""
 
+# 88%
 #: php-webclient-ajax/client/layout/js/appointment.js:1188
 #: php-webclient-ajax/client/layout/js/appointment.js:1264
 #: php-webclient-ajax/client/layout/js/appointment.js:1280
 #: php-webclient-ajax/client/layout/js/appointment.js:1348
 #: php-webclient-ajax/client/layout/js/appointment.js:1355
+#, fuzzy
 msgid "Organizer"
-msgstr ""
+msgstr "Organizátor"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:1241
 msgid "attendee accepted"
@@ -6942,25 +6960,25 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/js/rule.js:261
 msgid "Low priority"
-msgstr ""
+msgstr "Nízká priorita"
 
 #: php-webclient-ajax/client/layout/js/rule.js:262
 msgid "Normal priority"
-msgstr ""
+msgstr "Normální priorita"
 
 #: php-webclient-ajax/client/layout/js/rule.js:263
 msgid "High priority"
-msgstr ""
+msgstr "Vysoká priorita"
 
 #: php-webclient-ajax/client/layout/js/task.js:105
 msgid ""
 "The due date for this task has passed. Are you sure you want to continue?"
-msgstr ""
+msgstr "Vypršel datum platnosti pro tento úkol. Opravdu chcete pokračovat?"
 
 #: php-webclient-ajax/client/layout/js/task.js:128
 #: php-webclient-ajax/client/layout/js/task.js:134
 msgid "Please enter correct date"
-msgstr ""
+msgstr "Zadejte prosím správné datum"
 
 #: php-webclient-ajax/client/layout/js/task.js:721
 msgid ""
