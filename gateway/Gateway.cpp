@@ -309,6 +309,8 @@ exit:
 	/** free ssl error data **/
 	ERR_remove_state(0);
 
+	if (bThreads) nChildren--;
+
 	// Do not pthread_exit() because linuxthreads is broken and will not free any objects
 	// pthread_exit(NULL);
 	return NULL;
@@ -672,7 +674,10 @@ HRESULT running_service(char *szPath, char *servicename) {
 					delete lpHandlerArgs->lpChannel;
 					delete lpHandlerArgs;
 					hr = hrSuccess;
+				} else {
+					nChildren++;
 				}
+
 			} else {
 				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
@@ -721,7 +726,10 @@ HRESULT running_service(char *szPath, char *servicename) {
 					delete lpHandlerArgs->lpChannel;
 					delete lpHandlerArgs;
 					hr = hrSuccess;
+				} else {
+					nChildren++;
 				}
+
 			} else {
 				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
@@ -742,25 +750,24 @@ HRESULT running_service(char *szPath, char *servicename) {
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3/IMAP Gateway will now exit");
 
+	// in forked mode, send all children the exit signal
 	if (bThreads == false) {
-		int i;
-
-		// in forked mode, send all children the exit signal
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
-		i = 10;						// wait max 10 seconds (init script waits 15 seconds)
-		while (nChildren && i) {
-			if (i % 5 == 0)
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", nChildren);
-			sleep(1);
-			i--;
-		}
-
-		if (nChildren)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", nChildren);
-		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3/IMAP Gateway shutdown complete");
 	}
+
+	// wait max 10 seconds (init script waits 15 seconds)
+	for(int i = 10; (nChildren && i); i--) {
+		if (i % 5 == 0)
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", nChildren);
+		sleep(1);
+	}
+
+	if (nChildren)
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", nChildren);
+	else
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3/IMAP Gateway shutdown complete");
+
 
 	MAPIUninitialize();
 
