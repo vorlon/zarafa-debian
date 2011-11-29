@@ -596,9 +596,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 			if(IsTruncatableType(lpsPropTagArray->__ptr[k])) {
 				for(i=0, iterRowList = lpRowList->begin(); iterRowList != lpRowList->end(); iterRowList++, i++) {
 					if(IsTruncated(&lpsRowSet->__ptr[i].__ptr[k])) {
-						// free trucated prop if we're not allocing by soap
-						if (soap == NULL)
-							FreePropVal(&lpsRowSet->__ptr[i].__ptr[k], false);
 						
 						// We only want one column in this row
 						mapColumns.clear();
@@ -782,6 +779,14 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
             // The same column may have been requested multiple times. If that is the case, SQL will give us one result for all columns. This
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for(iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag)); iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
+
+				// free prop if we're not allocing by soap
+				if(soap == NULL && lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], false);
+					memset(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]));
+				}
+
+
                 if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
                     iterColumns++;
                     continue;
@@ -962,6 +967,13 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 			// and then use CompareDBPropTag to check the actual type in the while loop later. Same goes for PT_MV_UNICODE.
 			iterColumns = mapColumns.lower_bound(PROP_TAG(ulType, ulTag));
 			while(iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag))) {
+
+				// free prop if we're not allocing by soap
+				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
+					memset(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]));
+				}
+
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
 				// requested. Note that requesting the same ROW more than once is not supported (it is a map, not a multimap)
 				if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]) != erSuccess) {
