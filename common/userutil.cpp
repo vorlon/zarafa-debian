@@ -72,9 +72,32 @@ using namespace std;
 
 DEFINEMAPIPTR(ECLicense);
 
+class servername {
+public:
+	servername(LPCTSTR lpszName): m_strName(lpszName) {}
+	servername(const servername &other): m_strName(other.m_strName) {}
+
+	servername& operator=(const servername &other) {
+		if (&other != this)
+			m_strName = other.m_strName;
+		return *this;
+	}
+
+	LPTSTR c_str() const {
+		return (LPTSTR)m_strName.c_str();
+	}
+
+	bool operator<(const servername &other) const {
+		return wcscasecmp(m_strName.c_str(), other.m_strName.c_str()) < 0;
+	}
+
+private:
+	wstring	m_strName;
+};
+
 static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, char *lpszPath, const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector);
 static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, char *lpszPath, DataCollector *lpCollector);
-static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<std::wstring> &listServers);
+static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers);
 
 
 class UserCountCollector : public DataCollector
@@ -333,7 +356,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 	ULONG cbDDEntryID = 0;
 	ULONG ulCompanyCount = 0;
 
-	std::set<wstring>	listServers;
+	std::set<servername>	listServers;
 	convert_context		converter;
 	
 	ECSVRNAMELIST	*lpSrvNameList = NULL;
@@ -439,8 +462,8 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 		goto exit;
 
 	lpSrvNameList->cServers = 0;
-	for(std::set<wstring>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
-		lpSrvNameList->lpszaServer[lpSrvNameList->cServers++] = (TCHAR*)iServer->c_str();
+	for(std::set<servername>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
+		lpSrvNameList->lpszaServer[lpSrvNameList->cServers++] = iServer->c_str();
 
 	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &lpSrvList);
 	if (hr == MAPI_E_NETWORK_ERROR) {
@@ -455,7 +478,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Details for one or more requested servers was not found.");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "This usually indicates a misconfigured home server for a user.");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested servers:");
-			for(std::set<wstring>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
+			for(std::set<servername>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "* %ls", iServer->c_str());
 		}
 		goto exit;
@@ -582,7 +605,7 @@ exit:
  *
  * @return MAPI error codes
  */
-HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<wstring> &listServers)
+HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers)
 {
 	HRESULT hr = S_OK;
 	mapi_rowset_ptr ptrRows;
