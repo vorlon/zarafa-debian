@@ -1612,7 +1612,7 @@ Optional Packages:
                           both]
   --with-tags[=TAGS]      include additional configurations [automatic]
   --with-distro           set distribution name, used for sysconfig and
-                          initscripts only. available: rhel, suse or sles
+                          initscripts only. available: rhel, alt, suse or sles
   --with-userscript-prefix=PATH
                           path to install the userscripts in (default
                           /etc/zarafa/userscripts)
@@ -22059,7 +22059,7 @@ else
   with_distro=rhel
 fi
 
-if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a "$with_distro" != "sles" -a "$with_distro" != "cbs4"; then
+if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a "$with_distro" != "sles" -a "$with_distro" != "alt" -a "$with_distro" != "cbs4"; then
    { echo "$as_me:$LINENO: result: unknown distro, using rhel instead" >&5
 echo "${ECHO_T}unknown distro, using rhel instead" >&6; }
    with_distro=rhel

@@ -130,9 +130,9 @@ AC_ARG_ENABLE(sparsehash, AC_HELP_STRING([--enable-sparsehash],[enable use of sp
   [want_sparsehash=${enableval}],[want_sparsehash=no])
 
 AC_MSG_CHECKING([specified Linux distribution name])
-AC_ARG_WITH(distro, AC_HELP_STRING([--with-distro],[set distribution name, used for sysconfig and initscripts only. available: rhel, suse or sles]),
+AC_ARG_WITH(distro, AC_HELP_STRING([--with-distro],[set distribution name, used for sysconfig and initscripts only. available: rhel, alt, suse or sles]),
   [with_distro=${withval}],[with_distro=rhel])
-if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a "$with_distro" != "sles" -a "$with_distro" != "cbs4"; then
+if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a "$with_distro" != "sles" -a "$with_distro" != "alt" -a "$with_distro" != "cbs4"; then
    AC_MSG_RESULT([unknown distro, using rhel instead])
    with_distro=rhel
 else
