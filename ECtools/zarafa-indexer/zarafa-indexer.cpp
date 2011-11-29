@@ -81,6 +81,12 @@
 #include "ECSearcher.h"
 #include "zarafa-indexer.h"
 
+#include "SSLUtil.h"
+
+#if HAVE_ICU
+#include "unicode/uclean.h"
+#endif
+
 #include <boost/algorithm/string.hpp>
 namespace ba = boost::algorithm;
 
@@ -653,6 +659,14 @@ int main(int argc, char *argv[]) {
 exit:
 	if(g_lpThreadData)
 		delete g_lpThreadData;
+
+
+	SSL_library_cleanup(); //cleanup memory so valgrind is happy
+
+#if HAVE_ICU
+	// cleanup ICU data so valgrind is happy
+	u_cleanup();
+#endif
 
 	return hr == hrSuccess ? 0 : 1;
 }
