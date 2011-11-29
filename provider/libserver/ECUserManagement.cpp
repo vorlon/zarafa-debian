@@ -4948,7 +4948,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulVer
 	if (IsInternalObject(ulObjId)) {
 		ASSERT(ulVersion == 0); // Internal objects always have version 0 ABEIDs
 		lpEid = (PABEID)s_alloc<unsigned char>(soap, sizeof(ABEID));
-		memset(lpEid, 0, sizeof(PABEID));
+		memset(lpEid, 0, sizeof(ABEID));
 		ulSize = sizeof(ABEID);
 	} else {
 		if(ulVersion == 0) {
