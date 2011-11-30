@@ -18,7 +18,7 @@ endif
 endif
 endif
 
-EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax php-mobile-webaccess webapp/deploy
+EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax webapp/deploy
 
 BUILT_SOURCES = common/ecversion.h
 
@@ -59,20 +59,6 @@ install-ajax-webaccess:
 		msgfmt -f -v -o $${po%.po}.mo $$po; \
 		rm $$po; \
 	done
-
-install-mobile-webaccess:
-	install -d -m 755 $(DESTDIR)/usr/share
-	cp -a $(top_srcdir)/php-mobile-webaccess $(DESTDIR)/usr/share/zarafa-webaccess-mobile
-	rm -f $(DESTDIR)/usr/share/zarafa-webaccess-mobile/debug.php
-	install -d -m 755 $(DESTDIR)/etc/zarafa/webaccess-mobile
-	mv $(DESTDIR)/usr/share/zarafa-webaccess-mobile/config.php $(DESTDIR)/etc/zarafa/webaccess-mobile/config.php
-	ln -sf /etc/zarafa/webaccess-mobile/config.php $(DESTDIR)/usr/share/zarafa-webaccess-mobile/config.php
-	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess-mobile/config
-	ln -sf /var/lib/zarafa-webaccess-mobile/config $(DESTDIR)/usr/share/zarafa-webaccess-mobile/config
-	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess-mobile/cache
-	ln -sf /var/lib/zarafa-webaccess-mobile/cache $(DESTDIR)/usr/share/zarafa-webaccess-mobile/cache
-	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess-mobile/templates_c
-	ln -sf /var/lib/zarafa-webaccess-mobile/templates_c $(DESTDIR)/usr/share/zarafa-webaccess-mobile/templates_c
 
 install-webapp:
 	if [ ! -d $(top_srcdir)/webapp/deploy ]; then \
