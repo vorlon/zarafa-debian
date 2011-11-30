@@ -57,6 +57,7 @@
 #include "mapiutil.h"
 
 #include "freebusyutil.h"
+#include "mapi_ptr.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -442,6 +443,21 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG fDoesRejectRecurring;	/* no effect? */
 	} *lpStatusOlk2K;
 
+	bool bAutoAccept = true, bDeclineConflict = true, bDeclineRecurring = true;
+	ULONG ulObjType = 0;
+	MailUserPtr ptrUser;
+	MsgStorePtr ptrStore;
+	SPropValuePtr ptrName;
+
+	if (m_lpSession->OpenEntry(sFBUser.m_cbEid, sFBUser.m_lpEid, NULL, 0, &ulObjType, &ptrUser) == hrSuccess && 
+		HrGetOneProp(ptrUser, PR_ACCOUNT, &ptrName) == hrSuccess &&
+		HrOpenUserMsgStore(m_lpSession, ptrName->Value.LPSZ, &ptrStore) == hrSuccess)
+	{
+		GetAutoAcceptSettings(ptrStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+		// ignore error, default true.
+		hr = hrSuccess;
+	}
+
 	switch (m_ulOutlookVersion) {
 	case CLIENT_VERSION_OLK2000:
 	case CLIENT_VERSION_OLK2002:
@@ -452,10 +468,10 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		lpStatusOlk2K->ulReserved6 = 1;
 		lpStatusOlk2K->ulReserved7 = 1;
 
-		// TODO, get the actual values. However, they don't seem to have much effect, as outlook will always plan the resource.
-		lpStatusOlk2K->fDoesAutoAccept = 1;
-		lpStatusOlk2K->fDoesRejectConflict = 1;
-		lpStatusOlk2K->fDoesRejectRecurring = 1;
+		// They don't seem to have much effect, as outlook will always plan the resource.
+		lpStatusOlk2K->fDoesAutoAccept = bAutoAccept;
+		lpStatusOlk2K->fDoesRejectConflict = bDeclineConflict;
+		lpStatusOlk2K->fDoesRejectRecurring = bDeclineRecurring;
 
 		break;
 	default:
@@ -465,10 +481,10 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		lpStatus->ulReserved6 = 1;
 		lpStatus->ulReserved7 = 1;
 
-		// TODO, get the actual values. However, they don't seem to have much effect, as outlook will always plan the resource.
-		lpStatus->fDoesAutoAccept = 1;
-		lpStatus->fDoesRejectConflict = 1;
-		lpStatus->fDoesRejectRecurring = 1;
+		// Atleast Outlook 2007 should be able to correctly use these, if you restart outlook.
+		lpStatus->fDoesAutoAccept = bAutoAccept;
+		lpStatus->fDoesRejectConflict = bDeclineConflict;
+		lpStatus->fDoesRejectRecurring = bDeclineRecurring;
 		break;
 	};
 

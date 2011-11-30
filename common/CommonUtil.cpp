@@ -3300,10 +3300,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	bool bDeclineRecurring = false;
 
 	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &lpLocalFBMessage);
-	if(hr != hrSuccess) {
-		// No FB -> all settings are FALSE
-		hr = hrSuccess;
-	} else {
+	if(hr == hrSuccess) {
 		hr = lpLocalFBMessage->GetProps((LPSPropTagArray)&sptaFBProps, 0, &cValues, &lpProps);
 		if(FAILED(hr))
 			goto exit;
@@ -3315,6 +3312,8 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 		if(lpProps[2].ulPropTag == PR_DECLINE_RECURRING_MEETING_REQUESTS)
 			bDeclineRecurring = lpProps[2].Value.b;
 	}
+	// else, hr != hrSuccess: no FB -> all settings are FALSE
+	hr = hrSuccess;
 
 	*lpbAutoAccept = bAutoAccept;
 	*lpbDeclineConflict = bDeclineConflict;
