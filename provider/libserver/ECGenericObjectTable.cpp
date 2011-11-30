@@ -2796,8 +2796,10 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             	lpCategory->IncUnread();
 
 			// Add the category into our sorted-category list and numbered-category list
+            ASSERT(m_mapSortedCategories.find(row) == m_mapSortedCategories.end());
+
             m_mapCategories[sCatRow] = lpCategory;
-            m_mapSortedCategories[row] = sCatRow;
+            lpCategory->iSortedCategory = m_mapSortedCategories.insert(std::make_pair(row, sCatRow)).first;
 
 			// Update the keytable with the effective sort columns
 			er = UpdateKeyTableRow(lpCategory, &sCatRow, lpProps, i+1, fHidden, &sPrevRow, &ulAction);
@@ -3184,7 +3186,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 			}
         	
         	// Remove the category from the sorted categories map
-        	m_mapSortedCategories.erase(*lpRow);
+        	m_mapSortedCategories.erase(lpCategory->iSortedCategory);
         	
         	// Remove the category from the keytable
             lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, 0, NULL, NULL, NULL, NULL, false, &ulAction);
