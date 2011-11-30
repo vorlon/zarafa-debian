@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-02 17:23+0200\n"
+"POT-Creation-Date: 2011-10-04 00:02+0200\n"
 "PO-Revision-Date: 2011-08-18 23:10+0200\n"
 "Last-Translator: Péter <dosapetya@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,10 +23,10 @@ msgid "Can't save this message as a file"
 msgstr "Nem lehet menteni ezt az üzenetet fájlként"
 
 #: php-webclient-ajax/client/download_message.php:81
-#: php-webclient-ajax/server/core/class.operations.php:3603
-#: php-webclient-ajax/server/core/class.operations.php:3619
+#: php-webclient-ajax/server/core/class.operations.php:3571
+#: php-webclient-ajax/server/core/class.operations.php:3587
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:543
-#: php-webclient-ajax/client/modules/itemmodule.js:1602
+#: php-webclient-ajax/client/modules/itemmodule.js:1605
 msgid "Untitled"
 msgstr "Névtelen"
 
@@ -170,7 +170,7 @@ msgstr "Mentés"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:138
 #: php-webclient-ajax/client/modules/maillistmodule.js:52
 #: php-webclient-ajax/client/modules/distlistmodule.js:28
-#: php-webclient-ajax/client/modules/freebusymodule.js:68
+#: php-webclient-ajax/client/modules/freebusymodule.js:86
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:83
 #: php-webclient-ajax/client/modules/tasklistmodule.js:34
 #: php-webclient-ajax/client/modules/contactlistmodule.js:42
@@ -204,8 +204,8 @@ msgstr "Részletek"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:202
 #: php-webclient-ajax/client/modules/printmessageitem.js:64
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:57
-#: php-webclient-ajax/client/modules/itemmodule.js:1563
-#: php-webclient-ajax/client/modules/itemmodule.js:1580
+#: php-webclient-ajax/client/modules/itemmodule.js:1565
+#: php-webclient-ajax/client/modules/itemmodule.js:1582
 msgid "To"
 msgstr "Címzett"
 
@@ -215,7 +215,7 @@ msgstr "Címzett"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:121
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:490
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:24
-#: php-webclient-ajax/server/core/class.operations.php:2770
+#: php-webclient-ajax/server/core/class.operations.php:2738
 #: php-webclient-ajax/server/core/class.tablecolumns.php:19
 #: php-webclient-ajax/server/core/class.tablecolumns.php:154
 #: php-webclient-ajax/server/core/class.tablecolumns.php:170
@@ -228,7 +228,7 @@ msgstr "Címzett"
 #: php-webclient-ajax/client/core/properties.js:23
 #: php-webclient-ajax/client/core/properties.js:95
 #: php-webclient-ajax/client/layout/js/restoreitems.js:130
-#: php-webclient-ajax/client/layout/js/rule.js:230
+#: php-webclient-ajax/client/layout/js/rule.js:257
 msgid "Subject"
 msgstr "Tárgy"
 
@@ -251,15 +251,15 @@ msgstr "esedékesség"
 #: php-webclient-ajax/client/modules/taskitemmodule.js:178
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:347
 #: php-webclient-ajax/client/modules/itemmodule.js:581
-#: php-webclient-ajax/client/views/table.view.js:1117
+#: php-webclient-ajax/client/views/table.view.js:1088
 #: php-webclient-ajax/client/views/today.task.view.js:213
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:20
-#: php-webclient-ajax/client/layout/js/dialog.js:678
-#: php-webclient-ajax/client/layout/js/dialog.js:699
-#: php-webclient-ajax/client/layout/js/dialog.js:716
-#: php-webclient-ajax/client/layout/js/dialog.js:717
-#: php-webclient-ajax/client/layout/js/dialog.js:968
+#: php-webclient-ajax/client/layout/js/dialog.js:682
+#: php-webclient-ajax/client/layout/js/dialog.js:703
+#: php-webclient-ajax/client/layout/js/dialog.js:720
+#: php-webclient-ajax/client/layout/js/dialog.js:721
 #: php-webclient-ajax/client/layout/js/dialog.js:972
+#: php-webclient-ajax/client/layout/js/dialog.js:976
 #: php-webclient-ajax/client/layout/js/advancedfind.js:319
 #: php-webclient-ajax/client/layout/js/attachitem.js:356
 #: php-webclient-ajax/client/layout/js/task.js:127
@@ -330,7 +330,7 @@ msgstr "Kezdő dátum"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:482
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:592
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:598
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:45
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:73
 #: php-webclient-ajax/server/core/class.tablecolumns.php:167
 #: php-webclient-ajax/server/core/class.tablecolumns.php:189
 #: php-webclient-ajax/server/core/class.tablecolumns.php:218
@@ -342,25 +342,25 @@ msgstr "Fontosság"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:337
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:598
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:78
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:48
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:78
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:28
 #: php-webclient-ajax/client/modules/listmodule.js:153
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:366
 #: php-webclient-ajax/client/modules/itemmodule.js:509
-#: php-webclient-ajax/client/views/table.view.js:965
+#: php-webclient-ajax/client/views/table.view.js:939
 msgid "Low"
 msgstr "Alacsony"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:338
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:79
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:90
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:49
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:79
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:29
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:40
 #: php-webclient-ajax/client/modules/listmodule.js:154
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:367
-#: php-webclient-ajax/client/views/table.view.js:975
-#: php-webclient-ajax/client/views/table.view.js:1171
+#: php-webclient-ajax/client/views/table.view.js:949
+#: php-webclient-ajax/client/views/table.view.js:1142
 #: php-webclient-ajax/client/layout/js/advancedfind.js:300
 #: php-webclient-ajax/client/layout/js/attachitem.js:337
 msgid "Normal"
@@ -369,12 +369,12 @@ msgstr "Átlagos"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:339
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:592
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:80
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:50
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:80
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:30
 #: php-webclient-ajax/client/modules/listmodule.js:155
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:368
 #: php-webclient-ajax/client/modules/itemmodule.js:512
-#: php-webclient-ajax/client/views/table.view.js:981
+#: php-webclient-ajax/client/views/table.view.js:955
 msgid "High"
 msgstr "Magas"
 
@@ -454,7 +454,7 @@ msgstr "Kategóriák"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:453
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:92
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:42
-#: php-webclient-ajax/client/views/table.view.js:1179
+#: php-webclient-ajax/client/views/table.view.js:1150
 #: php-webclient-ajax/client/layout/js/advancedfind.js:306
 #: php-webclient-ajax/client/layout/js/attachitem.js:343
 msgid "Private"
@@ -556,7 +556,7 @@ msgstr "Névellenőrzés"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:357
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:561
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:562
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:40
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:44
 #: php-webclient-ajax/client/core/properties.js:28
 msgid "Recurrence"
 msgstr "Ismétlődés"
@@ -708,8 +708,8 @@ msgstr "Elemek törlése"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:24
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:77
 #: php-webclient-ajax/client/widgets/menu.js:11
-#: php-webclient-ajax/client/layout/js/appointment.js:747
-#: php-webclient-ajax/client/layout/js/appointment.js:748
+#: php-webclient-ajax/client/layout/js/appointment.js:745
+#: php-webclient-ajax/client/layout/js/appointment.js:746
 msgid "Appointment"
 msgstr "Meghatalmazás"
 
@@ -725,7 +725,7 @@ msgstr "Követés"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:90
 #: php-webclient-ajax/client/modules/freebusymodule.js:19
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:660
-#: php-webclient-ajax/client/layout/js/appointment.js:1524
+#: php-webclient-ajax/client/layout/js/appointment.js:1527
 #: php-webclient-ajax/client/layout/js/readmail.js:31
 msgid "Start time"
 msgstr "Kezdési idő"
@@ -733,7 +733,7 @@ msgstr "Kezdési idő"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:91
 #: php-webclient-ajax/client/modules/freebusymodule.js:18
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:661
-#: php-webclient-ajax/client/layout/js/appointment.js:1525
+#: php-webclient-ajax/client/layout/js/appointment.js:1528
 #: php-webclient-ajax/client/layout/js/readmail.js:32
 msgid "End time"
 msgstr "Befejezési idő"
@@ -748,7 +748,7 @@ msgid "Label"
 msgstr "Címke"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:318
-#: php-webclient-ajax/client/views/table.view.js:1121
+#: php-webclient-ajax/client/views/table.view.js:1092
 #: php-webclient-ajax/client/layout/js/advancedfind.js:322
 #: php-webclient-ajax/client/layout/js/attachitem.js:359
 msgid "Important"
@@ -763,7 +763,7 @@ msgstr "Fontos"
 #: php-webclient-ajax/client/modules/contactitemmodule.js:38
 #: php-webclient-ajax/client/modules/contactitemmodule.js:44
 #: php-webclient-ajax/client/core/properties.js:53
-#: php-webclient-ajax/client/views/table.view.js:1125
+#: php-webclient-ajax/client/views/table.view.js:1096
 #: php-webclient-ajax/client/views/addresscards.view.js:317
 #: php-webclient-ajax/client/layout/js/advancedfind.js:325
 #: php-webclient-ajax/client/layout/js/attachitem.js:362
@@ -774,8 +774,8 @@ msgstr "Üzlet"
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:91
 #: php-webclient-ajax/client/layout/dialogs/modal/categories.php:64
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:41
-#: php-webclient-ajax/client/views/table.view.js:1129
-#: php-webclient-ajax/client/views/table.view.js:1175
+#: php-webclient-ajax/client/views/table.view.js:1100
+#: php-webclient-ajax/client/views/table.view.js:1146
 #: php-webclient-ajax/client/layout/js/advancedfind.js:303
 #: php-webclient-ajax/client/layout/js/advancedfind.js:328
 #: php-webclient-ajax/client/layout/js/attachitem.js:340
@@ -784,28 +784,28 @@ msgid "Personal"
 msgstr "Személyes"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:321
-#: php-webclient-ajax/client/views/table.view.js:1132
+#: php-webclient-ajax/client/views/table.view.js:1103
 #: php-webclient-ajax/client/layout/js/advancedfind.js:331
 #: php-webclient-ajax/client/layout/js/attachitem.js:368
 msgid "Vacation"
 msgstr "Szabadság"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:322
-#: php-webclient-ajax/client/views/table.view.js:1136
+#: php-webclient-ajax/client/views/table.view.js:1107
 #: php-webclient-ajax/client/layout/js/advancedfind.js:334
 #: php-webclient-ajax/client/layout/js/attachitem.js:371
 msgid "Must Attend"
 msgstr "Köteles részt venni"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:323
-#: php-webclient-ajax/client/views/table.view.js:1140
+#: php-webclient-ajax/client/views/table.view.js:1111
 #: php-webclient-ajax/client/layout/js/advancedfind.js:337
 #: php-webclient-ajax/client/layout/js/attachitem.js:374
 msgid "Travel Required"
 msgstr "Utazást igényel"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:324
-#: php-webclient-ajax/client/views/table.view.js:1144
+#: php-webclient-ajax/client/views/table.view.js:1115
 #: php-webclient-ajax/client/layout/js/advancedfind.js:340
 #: php-webclient-ajax/client/layout/js/attachitem.js:377
 msgid "Needs Preparation"
@@ -815,7 +815,7 @@ msgstr "Előkészítést igényel"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:537
 #: php-webclient-ajax/server/core/class.tablecolumns.php:82
 #: php-webclient-ajax/client/core/properties.js:80
-#: php-webclient-ajax/client/views/table.view.js:1148
+#: php-webclient-ajax/client/views/table.view.js:1119
 #: php-webclient-ajax/client/layout/js/advancedfind.js:343
 #: php-webclient-ajax/client/layout/js/attachitem.js:380
 msgid "Birthday"
@@ -823,20 +823,21 @@ msgstr "Születésnap"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:326
 #: php-webclient-ajax/client/core/properties.js:81
-#: php-webclient-ajax/client/views/table.view.js:1152
+#: php-webclient-ajax/client/views/table.view.js:1123
 #: php-webclient-ajax/client/layout/js/advancedfind.js:346
 #: php-webclient-ajax/client/layout/js/attachitem.js:383
 msgid "Anniversary"
 msgstr "Évforduló"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:327
-#: php-webclient-ajax/client/views/table.view.js:1156
+#: php-webclient-ajax/client/views/table.view.js:1127
 #: php-webclient-ajax/client/layout/js/advancedfind.js:349
 #: php-webclient-ajax/client/layout/js/attachitem.js:386
 msgid "Phone Call"
 msgstr "Telefonhívás"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:342
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:36
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:124
 msgid "All Day Event"
 msgstr "Egész napos esemény"
@@ -902,7 +903,7 @@ msgstr "órák"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:74
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:76
 #: php-webclient-ajax/client/core/utils.js:1668
-#: php-webclient-ajax/client/layout/js/appointment.js:1027
+#: php-webclient-ajax/client/layout/js/appointment.js:1030
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
 msgid "day"
@@ -922,7 +923,7 @@ msgstr "nap"
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:63
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:64
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:77
-#: php-webclient-ajax/client/layout/js/appointment.js:1031
+#: php-webclient-ajax/client/layout/js/appointment.js:1034
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
 msgid "days"
@@ -930,14 +931,14 @@ msgstr "napok"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
-#: php-webclient-ajax/client/layout/js/appointment.js:1036
+#: php-webclient-ajax/client/layout/js/appointment.js:1039
 #: php-webclient-ajax/client/layout/js/task.js:786
 msgid "week"
 msgstr "hét"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:392
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:66
-#: php-webclient-ajax/client/layout/js/appointment.js:1040
+#: php-webclient-ajax/client/layout/js/appointment.js:1043
 #: php-webclient-ajax/client/layout/js/task.js:786
 msgid "weeks"
 msgstr "hetek"
@@ -945,7 +946,7 @@ msgstr "hetek"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:393
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:222
 #: php-webclient-ajax/client/core/utils.js:1627
-#: php-webclient-ajax/client/layout/js/appointment.js:1045
+#: php-webclient-ajax/client/layout/js/appointment.js:1048
 msgid "month"
 msgstr "hónap"
 
@@ -956,7 +957,7 @@ msgstr "Elfoglalt"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:401
 #: php-webclient-ajax/client/modules/itemmodule.js:490
-#: php-webclient-ajax/client/views/table.view.js:1094
+#: php-webclient-ajax/client/views/table.view.js:1068
 #: php-webclient-ajax/client/layout/js/advancedfind.js:281
 #: php-webclient-ajax/client/layout/js/attachitem.js:318
 msgid "Free"
@@ -967,25 +968,25 @@ msgstr "Szabad"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:484
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:218
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:219
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:52
-#: php-webclient-ajax/server/core/class.operations.php:1007
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:56
+#: php-webclient-ajax/server/core/class.operations.php:979
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:131
 #: php-webclient-ajax/client/modules/itemmodule.js:493
 #: php-webclient-ajax/client/modules/itemmodule.js:534
-#: php-webclient-ajax/client/views/table.view.js:1098
+#: php-webclient-ajax/client/views/table.view.js:1071
 #: php-webclient-ajax/client/layout/js/advancedfind.js:259
 #: php-webclient-ajax/client/layout/js/advancedfind.js:284
-#: php-webclient-ajax/client/layout/js/appointment.js:1280
-#: php-webclient-ajax/client/layout/js/appointment.js:1353
+#: php-webclient-ajax/client/layout/js/appointment.js:1283
+#: php-webclient-ajax/client/layout/js/appointment.js:1356
 #: php-webclient-ajax/client/layout/js/attachitem.js:296
 #: php-webclient-ajax/client/layout/js/attachitem.js:321
 msgid "Tentative"
 msgstr "Feltételesen"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:403
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:50
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:54
 #: php-webclient-ajax/client/modules/itemmodule.js:496
-#: php-webclient-ajax/client/views/table.view.js:1102
+#: php-webclient-ajax/client/views/table.view.js:1074
 #: php-webclient-ajax/client/layout/js/advancedfind.js:287
 #: php-webclient-ajax/client/layout/js/attachitem.js:324
 msgid "Busy"
@@ -994,7 +995,7 @@ msgstr "Foglalt"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:404
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:4
 #: php-webclient-ajax/client/modules/itemmodule.js:499
-#: php-webclient-ajax/client/views/table.view.js:1106
+#: php-webclient-ajax/client/views/table.view.js:1077
 #: php-webclient-ajax/client/layout/js/advancedfind.js:290
 #: php-webclient-ajax/client/layout/js/attachitem.js:327
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.js:14
@@ -1012,7 +1013,7 @@ msgstr "Az alábbi válaszok érkeztek erre a megbeszélésre:"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:134
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:656
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:657
-#: php-webclient-ajax/client/layout/js/appointment.js:1521
+#: php-webclient-ajax/client/layout/js/appointment.js:1524
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
 msgid "Propose New Time"
@@ -1073,7 +1074,7 @@ msgstr "Tagok"
 #: php-webclient-ajax/client/modules/distlistmodule.js:97
 #: php-webclient-ajax/client/modules/contactlistmodule.js:49
 #: php-webclient-ajax/client/layout/js/signatures.js:18
-#: php-webclient-ajax/client/layout/js/appointment.js:1145
+#: php-webclient-ajax/client/layout/js/appointment.js:1148
 #: php-webclient-ajax/client/layout/js/restoreitems.js:138
 #: php-webclient-ajax/client/layout/js/delegates.js:8
 msgid "Name"
@@ -1132,12 +1133,12 @@ msgstr "Levél olvasása"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2481
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2484
 #: php-webclient-ajax/client/layout/js/restoreitems.js:129
-#: php-webclient-ajax/client/layout/js/rule.js:228
+#: php-webclient-ajax/client/layout/js/rule.js:255
 msgid "From"
 msgstr "Feladó"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:86
-#: php-webclient-ajax/server/core/class.operations.php:2771
+#: php-webclient-ajax/server/core/class.operations.php:2739
 #: php-webclient-ajax/server/core/class.tablecolumns.php:177
 #: php-webclient-ajax/server/core/class.tablecolumns.php:203
 #: php-webclient-ajax/client/modules/printmessageitem.js:63
@@ -1149,8 +1150,8 @@ msgstr "Elküldött"
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:466
 #: php-webclient-ajax/client/modules/printmessageitem.js:65
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:58
-#: php-webclient-ajax/client/modules/itemmodule.js:1566
-#: php-webclient-ajax/client/modules/itemmodule.js:1583
+#: php-webclient-ajax/client/modules/itemmodule.js:1568
+#: php-webclient-ajax/client/modules/itemmodule.js:1585
 msgid "CC"
 msgstr "Másolatot kap"
 
@@ -1188,7 +1189,7 @@ msgstr "Befejezési időpont"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:160
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:72
-#: php-webclient-ajax/client/modules/itemmodule.js:1208
+#: php-webclient-ajax/client/modules/itemmodule.js:1210
 msgid "When"
 msgstr "Mikor"
 
@@ -1649,14 +1650,14 @@ msgid "Zoom"
 msgstr "Nagyítás"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:15
-#: php-webclient-ajax/client/modules/freebusymodule.js:378
+#: php-webclient-ajax/client/modules/freebusymodule.js:396
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:96
 msgid "All Attendees"
 msgstr "Résztvevők"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:17
-#: php-webclient-ajax/client/modules/freebusymodule.js:949
-#: php-webclient-ajax/client/modules/freebusymodule.js:959
+#: php-webclient-ajax/client/modules/freebusymodule.js:1001
+#: php-webclient-ajax/client/modules/freebusymodule.js:1011
 msgid "Add a name"
 msgstr "Név hozzáadása"
 
@@ -1664,16 +1665,16 @@ msgstr "Név hozzáadása"
 msgid "AutoPick"
 msgstr "Automatikus választás"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:54
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:58
 msgid "Out of office"
 msgstr "Irodán kívül"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:56
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:60
 msgid "No Information"
 msgstr "Nincs információ"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
-#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:177
+#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 msgid "Reminders"
 msgstr "Emlékeztetők"
 
@@ -1814,7 +1815,7 @@ msgstr "Érzékenység"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:93
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:43
-#: php-webclient-ajax/client/views/table.view.js:1183
+#: php-webclient-ajax/client/views/table.view.js:1154
 #: php-webclient-ajax/client/layout/js/advancedfind.js:309
 #: php-webclient-ajax/client/layout/js/attachitem.js:346
 msgid "Confidential"
@@ -2059,67 +2060,71 @@ msgstr "Szabály hozzáadása vagy módosítása"
 msgid "Rule"
 msgstr "Szabály"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:37
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:39
 msgid "Rule name"
 msgstr "Szabály név"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:41
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:49
 msgid "With the following properties"
 msgstr "A következő tulajdonságokkal"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:43
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:53
 msgid "From field contains"
 msgstr "Feladó mező"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:44
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:64
 msgid "Subject contains"
 msgstr "Tárgy tartalmaz"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:56
-#: php-webclient-ajax/client/layout/js/rule.js:240
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:88
+#: php-webclient-ajax/client/layout/js/rule.js:267
 msgid "Sent to"
 msgstr "Címzett"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:58
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:92
 msgid "Contact or Distribution List"
 msgstr "kapcsolat vagy terjesztési lista"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:59
-#: php-webclient-ajax/client/layout/js/rule.js:242
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:103
+#: php-webclient-ajax/client/layout/js/rule.js:269
 msgid "Sent only to me"
 msgstr "Csak nekem küldte"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:63
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:113
 msgid "Perform the following action"
 msgstr "végezze el a következő tehendőket"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:65
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:118
 msgid "Move to"
 msgstr "Áthelyezés"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:65
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:66
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:120
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:130
 #: php-webclient-ajax/server/modules/class.hierarchymodule.php:139
 msgid "folder"
 msgstr "Mappa"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:66
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:128
 msgid "Copy to"
 msgstr "Másolat"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:67
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:138
 msgid "Delete the message"
 msgstr "Üzenet törlése"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:68
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:144
 msgid "Redirect to"
 msgstr "átirányítás"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:69
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:156
 msgid "Forward to"
 msgstr "Áthelyezés"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:70
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
+msgid "Forward as Attachment to"
+msgstr ""
+
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
 msgstr "feldolgozás megállítva több szabály miatt"
 
@@ -3457,8 +3462,8 @@ msgstr "felhasználó nem tudta megoldani"
 msgid "Multi-user calendar is not available with your license"
 msgstr "multi-felhasználó naptár nem elérhető a licenszével"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:155
-#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:230
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:158
+#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:228
 msgid ""
 "Cannot set a reminder to appear before the previous occurence. Reset "
 "reminder to save the change"
@@ -3466,54 +3471,61 @@ msgstr ""
 "nem lehet beállítani az emlékeztetőt hogy az előző esemény jelenjen meg "
 "elöszőr. Indítsa újra az emlékeztetőt hogy mentse a változásokat"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:160
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:163
 msgid "Two occurrences cannot occur on the same day"
 msgstr "két esemény nem fordulhat elő ugyanazon a napon"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:140
-#: php-webclient-ajax/server/modules/class.itemmodule.php:71
+#: php-webclient-ajax/server/modules/class.listmodule.php:135
+#: php-webclient-ajax/server/modules/class.itemmodule.php:72
 msgid "You have insufficient privileges to save items in this folder"
 msgstr "nincs elég jogosultsága hogy mentse az elemet a mappába"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:206
-#: php-webclient-ajax/server/modules/class.listmodule.php:336
-#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:161
-#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:96
+# 92%
+#: php-webclient-ajax/server/modules/class.listmodule.php:157
+#: php-webclient-ajax/server/modules/class.itemmodule.php:154
+#, fuzzy
+msgid "You have insufficient privileges to delete items in this folder"
+msgstr "nincs elég jogosultsága hogy mentse az elemet a mappába"
+
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
+#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "mappában"
 
 # 81%
-#: php-webclient-ajax/server/modules/class.listmodule.php:206
-#: php-webclient-ajax/server/modules/class.listmodule.php:336
-#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:161
-#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:96
+#: php-webclient-ajax/server/modules/class.listmodule.php:211
+#: php-webclient-ajax/server/modules/class.listmodule.php:341
+#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
+#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "mappa rendezése"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:278
-#: php-webclient-ajax/server/modules/class.listmodule.php:289
-#: php-webclient-ajax/server/modules/class.listmodule.php:317
+#: php-webclient-ajax/server/modules/class.listmodule.php:283
+#: php-webclient-ajax/server/modules/class.listmodule.php:294
+#: php-webclient-ajax/server/modules/class.listmodule.php:322
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "hiba a keresésben, kérem próbálja újra"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:413
+#: php-webclient-ajax/server/modules/class.listmodule.php:418
 msgid "Error in search"
 msgstr "hiba a keresésben"
 
 # 87%
 # 77%
 # 84%
-#: php-webclient-ajax/server/modules/class.listmodule.php:1082
+#: php-webclient-ajax/server/modules/class.listmodule.php:1087
 msgid "Private Appointment"
 msgstr "privát találkozó"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:141
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:140
 msgid "Could not handle this type of object."
 msgstr "nem sikerült kezelni az ilyen típusú objektumot"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:149
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:148
 msgid "Could not open this object."
 msgstr "nem sikerült megnyitni az objektumot"
 
@@ -3552,12 +3564,12 @@ msgstr "ismeretlen felhasználó/csoport"
 msgid "unknown"
 msgstr "ismeretlen"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:221
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
 #, php-format
 msgid "%s's Birthday"
 msgstr "%s-nak születésnapja van"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:245
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
 #, php-format
 msgid "%s's Anniversary"
 msgstr "%s-nak évfordulója van"
@@ -3570,7 +3582,7 @@ msgstr "nem sikerült delegált információt kapni"
 msgid "Unable to set Delegates permissions."
 msgstr "nem lehet beállítani a delegált engedélyeket"
 
-#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:210
+#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:208
 msgid ""
 "Unable to reschedule occurrence: either the new occurrence skips over an "
 "existing occurrence, or an occurrence is already present on this day."
@@ -3585,44 +3597,44 @@ msgid ""
 msgstr ""
 
 # 92%
-#: php-webclient-ajax/server/modules/class.itemmodule.php:38
+#: php-webclient-ajax/server/modules/class.itemmodule.php:39
 msgid "The message store has exceeded its hard quota limit."
 msgstr "az üzenet tároló túllépte az erős kvóta limitet"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:39
-#: php-webclient-ajax/server/modules/class.itemmodule.php:42
+#: php-webclient-ajax/server/modules/class.itemmodule.php:40
+#: php-webclient-ajax/server/modules/class.itemmodule.php:43
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
 msgstr "az üzenettároló kapacitásának növelése érdekében töröljön néhány elemet"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:41
+#: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
 msgstr "az üzenettároló tullépte a gyenge kvóta limitet"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:182
-#: php-webclient-ajax/server/core/class.operations.php:2573
+#: php-webclient-ajax/server/modules/class.itemmodule.php:192
+#: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "feladat elfogadva"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:184
-#: php-webclient-ajax/server/core/class.operations.php:2576
-#: php-webclient-ajax/server/core/class.operations.php:2632
+#: php-webclient-ajax/server/modules/class.itemmodule.php:194
+#: php-webclient-ajax/server/core/class.operations.php:2544
+#: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "feladat elutasítva"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:462
+#: php-webclient-ajax/server/modules/class.itemmodule.php:472
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "ütközik egy másik találkozóval a naptárban"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:464
+#: php-webclient-ajax/server/modules/class.itemmodule.php:474
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
 "appointments on your Calendar."
 msgstr "%s ismétlődő találkozó ütközik más találkozóval a naptárban."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:465
+#: php-webclient-ajax/server/modules/class.itemmodule.php:475
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -3630,103 +3642,103 @@ msgid ""
 msgstr "%s ismétlődő esemény ütközik más eseményekkel a naptárban."
 
 # 77%
-#: php-webclient-ajax/server/core/class.operations.php:971
-#: php-webclient-ajax/server/core/class.operations.php:1004
+#: php-webclient-ajax/server/core/class.operations.php:943
+#: php-webclient-ajax/server/core/class.operations.php:976
 #, fuzzy
 msgid "Organizor"
 msgstr "Szervező"
 
-#: php-webclient-ajax/server/core/class.operations.php:975
-#: php-webclient-ajax/client/layout/js/appointment.js:1264
-#: php-webclient-ajax/client/layout/js/appointment.js:1346
+#: php-webclient-ajax/server/core/class.operations.php:947
+#: php-webclient-ajax/client/layout/js/appointment.js:1267
+#: php-webclient-ajax/client/layout/js/appointment.js:1349
 msgid "Required"
 msgstr "kötelező"
 
 # 75%
-#: php-webclient-ajax/server/core/class.operations.php:979
-#: php-webclient-ajax/client/layout/js/appointment.js:1267
-#: php-webclient-ajax/client/layout/js/appointment.js:1347
+#: php-webclient-ajax/server/core/class.operations.php:951
+#: php-webclient-ajax/client/layout/js/appointment.js:1270
+#: php-webclient-ajax/client/layout/js/appointment.js:1350
 msgid "Optional"
 msgstr "Választható"
 
-#: php-webclient-ajax/server/core/class.operations.php:983
+#: php-webclient-ajax/server/core/class.operations.php:955
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
-#: php-webclient-ajax/client/layout/js/appointment.js:1270
-#: php-webclient-ajax/client/layout/js/appointment.js:1348
+#: php-webclient-ajax/client/layout/js/appointment.js:1273
+#: php-webclient-ajax/client/layout/js/appointment.js:1351
 msgid "Resource"
 msgstr "forrás"
 
-#: php-webclient-ajax/server/core/class.operations.php:1001
+#: php-webclient-ajax/server/core/class.operations.php:973
 #: php-webclient-ajax/client/modules/itemmodule.js:528
-#: php-webclient-ajax/client/views/table.view.js:1058
+#: php-webclient-ajax/client/views/table.view.js:1032
 #: php-webclient-ajax/client/layout/js/advancedfind.js:253
-#: php-webclient-ajax/client/layout/js/appointment.js:1186
-#: php-webclient-ajax/client/layout/js/appointment.js:1293
-#: php-webclient-ajax/client/layout/js/appointment.js:1351
+#: php-webclient-ajax/client/layout/js/appointment.js:1189
+#: php-webclient-ajax/client/layout/js/appointment.js:1296
+#: php-webclient-ajax/client/layout/js/appointment.js:1354
 #: php-webclient-ajax/client/layout/js/attachitem.js:290
 msgid "No Response"
 msgstr "nincs válasz"
 
 # 75%
-#: php-webclient-ajax/server/core/class.operations.php:1010
+#: php-webclient-ajax/server/core/class.operations.php:982
 #: php-webclient-ajax/client/modules/itemmodule.js:537
-#: php-webclient-ajax/client/views/table.view.js:1070
+#: php-webclient-ajax/client/views/table.view.js:1044
 #: php-webclient-ajax/client/layout/js/advancedfind.js:262
-#: php-webclient-ajax/client/layout/js/appointment.js:1283
-#: php-webclient-ajax/client/layout/js/appointment.js:1354
+#: php-webclient-ajax/client/layout/js/appointment.js:1286
+#: php-webclient-ajax/client/layout/js/appointment.js:1357
 #: php-webclient-ajax/client/layout/js/attachitem.js:299
 #, fuzzy
 msgid "Accepted"
 msgstr "Elfogadás"
 
 # 87%
-#: php-webclient-ajax/server/core/class.operations.php:1013
+#: php-webclient-ajax/server/core/class.operations.php:985
 #: php-webclient-ajax/client/modules/itemmodule.js:540
-#: php-webclient-ajax/client/views/table.view.js:1074
+#: php-webclient-ajax/client/views/table.view.js:1048
 #: php-webclient-ajax/client/layout/js/advancedfind.js:265
-#: php-webclient-ajax/client/layout/js/appointment.js:1286
-#: php-webclient-ajax/client/layout/js/appointment.js:1355
+#: php-webclient-ajax/client/layout/js/appointment.js:1289
+#: php-webclient-ajax/client/layout/js/appointment.js:1358
 #: php-webclient-ajax/client/layout/js/attachitem.js:302
 #, fuzzy
 msgid "Declined"
 msgstr "Visszautasít"
 
-#: php-webclient-ajax/server/core/class.operations.php:1016
-#: php-webclient-ajax/client/layout/js/appointment.js:1289
-#: php-webclient-ajax/client/layout/js/appointment.js:1356
+#: php-webclient-ajax/server/core/class.operations.php:988
+#: php-webclient-ajax/client/layout/js/appointment.js:1292
+#: php-webclient-ajax/client/layout/js/appointment.js:1359
 msgid "Not Responded"
 msgstr "nem válaszolt"
 
 # 75%
 # 92%
-#: php-webclient-ajax/server/core/class.operations.php:2579
+#: php-webclient-ajax/server/core/class.operations.php:2547
 msgid "Task Request:"
 msgstr " feladat kiosztása"
 
-#: php-webclient-ajax/server/core/class.operations.php:2589
-#: php-webclient-ajax/server/core/class.operations.php:2633
+#: php-webclient-ajax/server/core/class.operations.php:2557
+#: php-webclient-ajax/server/core/class.operations.php:2601
 msgid "Task Updated:"
 msgstr "feladat frissítve"
 
-#: php-webclient-ajax/server/core/class.operations.php:2589
-#: php-webclient-ajax/server/core/class.operations.php:2633
+#: php-webclient-ajax/server/core/class.operations.php:2557
+#: php-webclient-ajax/server/core/class.operations.php:2601
 msgid "Task Completed:"
 msgstr "feladat teljesítve"
 
-#: php-webclient-ajax/server/core/class.operations.php:2769
+#: php-webclient-ajax/server/core/class.operations.php:2737
 msgid "Your message did not reach some or all of the intended recipients"
 msgstr "az üzenete nem jutott el néhány vagy az összes címzetthez"
 
-#: php-webclient-ajax/server/core/class.operations.php:2772
+#: php-webclient-ajax/server/core/class.operations.php:2740
 msgid "The following recipient(s) could not be reached"
 msgstr "a következő címzettek nem voltak elérhetők"
 
-#: php-webclient-ajax/server/core/class.operations.php:3120
+#: php-webclient-ajax/server/core/class.operations.php:3088
 msgid "Untitled rule"
 msgstr "névtelen szabály"
 
-#: php-webclient-ajax/server/core/class.operations.php:3241
-#: php-webclient-ajax/server/core/class.operations.php:3252
+#: php-webclient-ajax/server/core/class.operations.php:3209
+#: php-webclient-ajax/server/core/class.operations.php:3220
 msgid "Canceled: "
 msgstr "törölve:"
 
@@ -3859,21 +3871,27 @@ msgid "Sort on Contact"
 msgstr "kapcsolat rendezése"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
-#: php-webclient-ajax/client/modules/freebusymodule.js:1041
+#: php-webclient-ajax/client/modules/freebusymodule.js:1093
 #: php-webclient-ajax/client/modules/itemmodule.js:547
 msgid "Required Attendee"
 msgstr "kötelező résztvevő"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
-#: php-webclient-ajax/server/core/class.tablecolumns.php:45
-#: php-webclient-ajax/server/core/class.tablecolumns.php:46
-msgid "Sort on Attendee"
-msgstr "résztvevők rendezése"
+msgid "Sort on Required Attendee"
+msgstr ""
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
-#: php-webclient-ajax/client/modules/freebusymodule.js:1043
+#: php-webclient-ajax/client/modules/freebusymodule.js:1095
 msgid "Optional Attendee"
 msgstr "opcionális Résztvevő "
+
+#: php-webclient-ajax/server/core/class.tablecolumns.php:45
+msgid "Sort on Optional Attendee"
+msgstr ""
+
+#: php-webclient-ajax/server/core/class.tablecolumns.php:46
+msgid "Sort on Resource"
+msgstr ""
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -3890,7 +3908,7 @@ msgstr "foglalt állapot rendezése"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:304
 #: php-webclient-ajax/client/modules/distlistmodule.js:96
 #: php-webclient-ajax/client/modules/stickynotelistmodule.js:22
-#: php-webclient-ajax/client/layout/js/appointment.js:1144
+#: php-webclient-ajax/client/layout/js/appointment.js:1147
 msgid "Icon"
 msgstr "icon"
 
@@ -4579,29 +4597,29 @@ msgstr "új üzenete van a beérkező levelek között"
 msgid "There are %s unread messages in your inbox"
 msgstr "Önnek % olvasatlan levele van a beérkező üzenetek között"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:82
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:99
 #, c-format
 msgid "Do you want to update the location '%s' with new location '%s'"
 msgstr "Szeretné %s helyet frissíteni %s helyre?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:310
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:358
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:343
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:391
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:484
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:1761
 #: php-webclient-ajax/client/views/calendar.day.view.js:2047
 #: php-webclient-ajax/client/views/calendar.month.view.js:533
 #: php-webclient-ajax/client/views/calendar.week.view.js:494
-#: php-webclient-ajax/client/layout/js/appointment.js:483
+#: php-webclient-ajax/client/layout/js/appointment.js:484
 msgid ""
 "Would you like to send an update to the attendees regarding changes to this "
 "meeting?"
 msgstr "szeretne frissítést küldeni a találkozoról a résztvevőknek"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:501
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:537
 msgid "Resources have been planned."
 msgstr "források megtervezve"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:523
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:559
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:535
 #, c-format
 msgid ""
@@ -4615,7 +4633,7 @@ msgstr ""
 "valamelyik  szükséges vagy lehetséges résztvevő nevét vagy beszéljen a "
 "rendszergazdával, hogy adjon jogosultságot, hogy betervezze"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:526
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:562
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:538
 #, c-format
 msgid ""
@@ -4625,7 +4643,7 @@ msgstr ""
 "xy lemondta a találkozót mert... nem autómatikusan fogadja el a találkozó "
 "kérést."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:529
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:541
 #, c-format
 msgid ""
@@ -4635,7 +4653,7 @@ msgstr ""
 "%s lemondta a találkozóját mert ismétlődő. Le kell foglalnia minden "
 "találkozót ezzel az ismétlődéssel szeparálva."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:532
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4645,7 +4663,7 @@ msgstr ""
 "xy már foglalt ebben a meghatározott időben. találjon egy másik időpontot "
 "vagy egy másik lehetőséget"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:535
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 msgid "Meeting was not scheduled."
 msgstr "nem tervezett találkozó"
@@ -4699,7 +4717,7 @@ msgstr "xy kezdődátuma"
 #: php-webclient-ajax/client/modules/itemmodule.js:586
 #: php-webclient-ajax/client/modules/itemmodule.js:615
 #: php-webclient-ajax/client/modules/itemmodule.js:718
-#: php-webclient-ajax/client/views/table.view.js:1217
+#: php-webclient-ajax/client/views/table.view.js:1172
 #: php-webclient-ajax/client/views/table.compact.view.js:264
 #: php-webclient-ajax/client/layout/js/advancedfind.js:370
 #: php-webclient-ajax/client/layout/js/advancedfind.js:372
@@ -4713,7 +4731,7 @@ msgstr "%a %x %X"
 #: php-webclient-ajax/client/modules/printitemmodule.js:78
 #: php-webclient-ajax/client/modules/printitemmodule.js:82
 #: php-webclient-ajax/client/modules/itemmodule.js:664
-#: php-webclient-ajax/client/views/table.view.js:1220
+#: php-webclient-ajax/client/views/table.view.js:1175
 #, c-format
 msgid "%a %x"
 msgstr "%a %x"
@@ -4750,15 +4768,15 @@ msgstr "%a %x"
 #: php-webclient-ajax/client/widgets/datepicker.js:183
 #: php-webclient-ajax/client/layout/js/contact.js:129
 #: php-webclient-ajax/client/layout/js/contact.js:136
-#: php-webclient-ajax/client/layout/js/dialog.js:682
-#: php-webclient-ajax/client/layout/js/dialog.js:683
-#: php-webclient-ajax/client/layout/js/dialog.js:688
+#: php-webclient-ajax/client/layout/js/dialog.js:686
+#: php-webclient-ajax/client/layout/js/dialog.js:687
 #: php-webclient-ajax/client/layout/js/dialog.js:692
-#: php-webclient-ajax/client/layout/js/dialog.js:695
-#: php-webclient-ajax/client/layout/js/dialog.js:969
-#: php-webclient-ajax/client/layout/js/dialog.js:976
-#: php-webclient-ajax/client/layout/js/appointment.js:1068
-#: php-webclient-ajax/client/layout/js/appointment.js:1089
+#: php-webclient-ajax/client/layout/js/dialog.js:696
+#: php-webclient-ajax/client/layout/js/dialog.js:699
+#: php-webclient-ajax/client/layout/js/dialog.js:973
+#: php-webclient-ajax/client/layout/js/dialog.js:980
+#: php-webclient-ajax/client/layout/js/appointment.js:1071
+#: php-webclient-ajax/client/layout/js/appointment.js:1092
 #: php-webclient-ajax/client/layout/js/task.js:96
 #: php-webclient-ajax/client/layout/js/task.js:100
 #: php-webclient-ajax/client/layout/js/task.js:102
@@ -4801,11 +4819,11 @@ msgstr ""
 "Nem találom xy-t. Lehet, hogy törölve lett az eredeti helyéről. Szeretné "
 "levenni a listáról?"
 
-#: php-webclient-ajax/client/modules/freebusymodule.js:69
+#: php-webclient-ajax/client/modules/freebusymodule.js:87
 msgid "Update"
 msgstr "frissít"
 
-#: php-webclient-ajax/client/modules/freebusymodule.js:1045
+#: php-webclient-ajax/client/modules/freebusymodule.js:1097
 msgid "Resource (Room or Equipment)"
 msgstr "forrás (szoba vagy felszerelés)"
 
@@ -4855,17 +4873,17 @@ msgstr "Hónap"
 msgid "List"
 msgstr "lista"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:211
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:217
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:212
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:218
 msgid "RE"
 msgstr "RE"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:221
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:222
 msgid "FW"
 msgstr "FW"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:467
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:478
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:468
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:479
 msgid "Original message"
 msgstr "eredeti Üzenet"
 
@@ -5312,7 +5330,7 @@ msgstr "elutasította"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
 #: php-webclient-ajax/client/core/utils.js:1612
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
-#: php-webclient-ajax/client/layout/js/rule.js:244
+#: php-webclient-ajax/client/layout/js/rule.js:271
 msgid "and"
 msgstr "és"
 
@@ -5366,7 +5384,7 @@ msgid "%d/%m/%Y %H:%M"
 msgstr "%d%m%Y %H:%M"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:671
-#: php-webclient-ajax/client/layout/js/appointment.js:1535
+#: php-webclient-ajax/client/layout/js/appointment.js:1538
 #: php-webclient-ajax/client/layout/js/readmail.js:42
 msgid "Comment"
 msgstr "megjegyzés"
@@ -5463,7 +5481,7 @@ msgid "Would you like to close the window?"
 msgstr "szeretné bezárni az ablakot?"
 
 #: php-webclient-ajax/client/modules/itemmodule.js:531
-#: php-webclient-ajax/client/views/table.view.js:1062
+#: php-webclient-ajax/client/views/table.view.js:1036
 #: php-webclient-ajax/client/layout/js/advancedfind.js:256
 #: php-webclient-ajax/client/layout/js/attachitem.js:293
 msgid "Meeting Organizer"
@@ -5471,40 +5489,40 @@ msgstr "Értekezlet szervező"
 
 # 76%
 #: php-webclient-ajax/client/modules/itemmodule.js:543
-#: php-webclient-ajax/client/views/table.view.js:1078
+#: php-webclient-ajax/client/views/table.view.js:1052
 #: php-webclient-ajax/client/layout/js/advancedfind.js:268
 #: php-webclient-ajax/client/layout/js/attachitem.js:305
 msgid "Not Yet Responded"
 msgstr "Még nem válaszolt"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1139
+#: php-webclient-ajax/client/modules/itemmodule.js:1141
 msgid "New Meeting Time Proposed"
 msgstr "új találkozóidő javasolt"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1140
-#: php-webclient-ajax/client/modules/itemmodule.js:1141
-#: php-webclient-ajax/client/modules/itemmodule.js:1213
-#: php-webclient-ajax/client/modules/itemmodule.js:1214
+#: php-webclient-ajax/client/modules/itemmodule.js:1142
+#: php-webclient-ajax/client/modules/itemmodule.js:1143
+#: php-webclient-ajax/client/modules/itemmodule.js:1215
+#: php-webclient-ajax/client/modules/itemmodule.js:1216
 msgid "%A, %B %e, %Y %H:%M"
 msgstr "%A, %B %e, %Y %H:%M"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1146
+#: php-webclient-ajax/client/modules/itemmodule.js:1148
 msgid "GMT"
 msgstr "GMT"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1217
+#: php-webclient-ajax/client/modules/itemmodule.js:1219
 msgid "Where"
 msgstr "hol"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1263
+#: php-webclient-ajax/client/modules/itemmodule.js:1265
 msgid "You will lose the modified data. Do you want to continue?"
 msgstr "el fogja veszíteni a módosított adatokat. Folytatja?"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1494
+#: php-webclient-ajax/client/modules/itemmodule.js:1496
 msgid "Add to message body"
 msgstr "Üzenet törzshöz Hozzáad"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1663
+#: php-webclient-ajax/client/modules/itemmodule.js:1664
 msgid "This meeting request is out-of-date and will now be deleted."
 msgstr "Ez a találkozó már lejárt és törlődni fog."
 
@@ -5645,8 +5663,8 @@ msgstr "fiók"
 #: php-webclient-ajax/client/widgets/timepicker.js:130
 #: php-webclient-ajax/client/widgets/timepicker.js:169
 #: php-webclient-ajax/client/widgets/timepicker.js:206
-#: php-webclient-ajax/client/layout/js/dialog.js:682
-#: php-webclient-ajax/client/layout/js/dialog.js:683
+#: php-webclient-ajax/client/layout/js/dialog.js:686
+#: php-webclient-ajax/client/layout/js/dialog.js:687
 #: php-webclient-ajax/client/layout/js/task.js:171
 msgid "%H:%M"
 msgstr "%H:%M"
@@ -5715,7 +5733,9 @@ msgstr ""
 #: php-webclient-ajax/client/core/utils.js:599
 #: php-webclient-ajax/client/layout/js/emailaddress.js:5
 #: php-webclient-ajax/client/layout/js/dialog.js:198
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:227
+#: php-webclient-ajax/client/layout/js/rule.js:237
+#: php-webclient-ajax/client/layout/js/rule.js:247
 msgid "Please input a valid email address!"
 msgstr "Kérem adjon meg egy érvényes e-mail címet!"
 
@@ -6077,13 +6097,13 @@ msgid "Not logged on"
 msgstr "Nincs bejelentkezve"
 
 # 97%
-#: php-webclient-ajax/client/views/table.view.js:881
+#: php-webclient-ajax/client/views/table.view.js:855
 #, fuzzy
 msgid "There are no items to show in this view"
 msgstr "Nincsenek tételek megjelenítve ebben a nézetben"
 
 # 75%
-#: php-webclient-ajax/client/views/table.view.js:1066
+#: php-webclient-ajax/client/views/table.view.js:1040
 #, fuzzy
 msgid "Tentatively Accepted"
 msgstr "feltételesen fogadta el"
@@ -6618,7 +6638,7 @@ msgstr "Feladat kiosztása"
 #: php-webclient-ajax/client/widgets/datepicker.js:161
 #: php-webclient-ajax/client/widgets/timepicker.js:203
 #: php-webclient-ajax/client/widgets/timepicker.js:212
-#: php-webclient-ajax/client/layout/js/dialog.js:971
+#: php-webclient-ajax/client/layout/js/dialog.js:975
 msgid ""
 "You must specify a valid date and/or time. Check your entries in this dialog "
 "box to make sure they represent a valid date and/or time."
@@ -6890,11 +6910,15 @@ msgstr ""
 "ez a feladat egynél több címzettnek lett címezve ezért a feladatmásolatod "
 "nem fog frissülni."
 
-#: php-webclient-ajax/client/layout/js/dialog.js:439
+#: php-webclient-ajax/client/layout/js/dialog.js:324
+msgid "You must enter at least one recipient in To field."
+msgstr ""
+
+#: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"
 msgstr "Nincsenek aláírások"
 
-#: php-webclient-ajax/client/layout/js/dialog.js:478
+#: php-webclient-ajax/client/layout/js/dialog.js:482
 msgid "No signature"
 msgstr "nincs aláírás"
 
@@ -6950,11 +6974,11 @@ msgstr "Javasolt befejezési dátum és idő"
 msgid "Proposed by"
 msgstr "Javasolta"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:395
+#: php-webclient-ajax/client/layout/js/appointment.js:396
 msgid "The end date you entered occurs before the start date."
 msgstr "a befejezési dátum a kezdési elött van."
 
-#: php-webclient-ajax/client/layout/js/appointment.js:490
+#: php-webclient-ajax/client/layout/js/appointment.js:489
 msgid ""
 "This meeting request cannot be sent since it has no recipients. Would you "
 "like to save and close this meeting instead?"
@@ -6962,98 +6986,98 @@ msgstr ""
 "Eza az értekezlet összehívás nem küldhető el addig amíg nincsenek címzettek. "
 "Akarja menteni és bezárni ezt az értekezlet kezdeményt?"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:764
-#: php-webclient-ajax/client/layout/js/appointment.js:765
-#: php-webclient-ajax/client/layout/js/appointment.js:785
-#: php-webclient-ajax/client/layout/js/appointment.js:786
+#: php-webclient-ajax/client/layout/js/appointment.js:762
+#: php-webclient-ajax/client/layout/js/appointment.js:763
+#: php-webclient-ajax/client/layout/js/appointment.js:783
+#: php-webclient-ajax/client/layout/js/appointment.js:784
 msgid "Meeting"
 msgstr "Értekezlet"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:821
+#: php-webclient-ajax/client/layout/js/appointment.js:819
 msgid "Meeting has been canceled."
 msgstr "Az értekezlet törlődött."
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1021
+#: php-webclient-ajax/client/layout/js/appointment.js:1024
 msgid "Occurs every"
 msgstr "Minden előfordul"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1025
+#: php-webclient-ajax/client/layout/js/appointment.js:1028
 msgid "workday"
 msgstr "Munkanap"
 
 # 83%
-#: php-webclient-ajax/client/layout/js/appointment.js:1049
+#: php-webclient-ajax/client/layout/js/appointment.js:1052
 #, fuzzy
 msgid "months"
 msgstr "Hónap"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1054
+#: php-webclient-ajax/client/layout/js/appointment.js:1057
 msgid "year"
 msgstr "Év"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1058
+#: php-webclient-ajax/client/layout/js/appointment.js:1061
 msgid "years"
 msgstr "Évek"
 
 # 75%
-#: php-webclient-ajax/client/layout/js/appointment.js:1064
+#: php-webclient-ajax/client/layout/js/appointment.js:1067
 #, fuzzy
 msgid "effective"
 msgstr "ténylegesen %s"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1076
+#: php-webclient-ajax/client/layout/js/appointment.js:1079
 msgid "for 1 occurrence"
 msgstr "1 eseményért"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1078
+#: php-webclient-ajax/client/layout/js/appointment.js:1081
 #, c-format
 msgid "for %d occurrences"
 msgstr "%d eseményért"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1085
+#: php-webclient-ajax/client/layout/js/appointment.js:1088
 msgid "until"
 msgstr "ig"
 
 # 75%
-#: php-webclient-ajax/client/layout/js/appointment.js:1094
+#: php-webclient-ajax/client/layout/js/appointment.js:1097
 #, fuzzy
 msgid "from"
 msgstr "-Tól"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1098
+#: php-webclient-ajax/client/layout/js/appointment.js:1101
 msgid "to"
 msgstr "a"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1146
+#: php-webclient-ajax/client/layout/js/appointment.js:1149
 msgid "Attendance"
 msgstr "Részvétel"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1147
+#: php-webclient-ajax/client/layout/js/appointment.js:1150
 msgid "Response"
 msgstr "Válasz"
 
 # 88%
-#: php-webclient-ajax/client/layout/js/appointment.js:1185
-#: php-webclient-ajax/client/layout/js/appointment.js:1261
-#: php-webclient-ajax/client/layout/js/appointment.js:1277
-#: php-webclient-ajax/client/layout/js/appointment.js:1345
-#: php-webclient-ajax/client/layout/js/appointment.js:1352
+#: php-webclient-ajax/client/layout/js/appointment.js:1188
+#: php-webclient-ajax/client/layout/js/appointment.js:1264
+#: php-webclient-ajax/client/layout/js/appointment.js:1280
+#: php-webclient-ajax/client/layout/js/appointment.js:1348
+#: php-webclient-ajax/client/layout/js/appointment.js:1355
 #, fuzzy
 msgid "Organizer"
 msgstr "Szervező"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 msgid "attendee accepted"
 msgstr "Résztvevő elfogadta"
 
 # 83%
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 #, fuzzy
 msgid "tentatively accepted"
 msgstr "feltételesen fogadta el"
 
 # 75%
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 #, fuzzy
 msgid "declined"
 msgstr "Visszautasít"
@@ -7136,32 +7160,44 @@ msgstr "Nem lehet megmutatni a szabályt egynél több művelettel."
 msgid "Unable to show the rule action"
 msgstr "Nem sikerült megmutatni a művelet szabályát"
 
-#: php-webclient-ajax/client/layout/js/rule.js:200
+#: php-webclient-ajax/client/layout/js/rule.js:207
 msgid "Please select an appropriate action for this rule"
 msgstr "Válasszon egy megfelelő műveletet ehhez a szabályhoz"
 
-#: php-webclient-ajax/client/layout/js/rule.js:205
+#: php-webclient-ajax/client/layout/js/rule.js:212
 msgid "Please select a folder to move the item to"
 msgstr "Válasszon egy mappát a tételnek"
 
-#: php-webclient-ajax/client/layout/js/rule.js:210
+#: php-webclient-ajax/client/layout/js/rule.js:217
 msgid "Please select a folder to copy the item to"
 msgstr " Válasszon egy mappát ahova a tételt lehet másolni"
 
-#: php-webclient-ajax/client/layout/js/rule.js:215
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:223
+#: php-webclient-ajax/client/layout/js/rule.js:227
 msgid "Please specify a forwarding address"
 msgstr "Határozza meg a továbbítandó címet"
 
-#: php-webclient-ajax/client/layout/js/rule.js:234
+#: php-webclient-ajax/client/layout/js/rule.js:233
+#: php-webclient-ajax/client/layout/js/rule.js:237
+msgid "Please specify a forwarding as attachment address"
+msgstr ""
+
+# 77%
+#: php-webclient-ajax/client/layout/js/rule.js:243
+#: php-webclient-ajax/client/layout/js/rule.js:247
+#, fuzzy
+msgid "Please specify a redirecting address"
+msgstr "Határozza meg a továbbítandó címet"
+
+#: php-webclient-ajax/client/layout/js/rule.js:261
 msgid "Low priority"
 msgstr "Alacsony prioritás"
 
-#: php-webclient-ajax/client/layout/js/rule.js:235
+#: php-webclient-ajax/client/layout/js/rule.js:262
 msgid "Normal priority"
 msgstr "Normál prioritás"
 
-#: php-webclient-ajax/client/layout/js/rule.js:236
+#: php-webclient-ajax/client/layout/js/rule.js:263
 msgid "High priority"
 msgstr "Sürgős"
 
@@ -7215,3 +7251,6 @@ msgstr "felfele nyíl"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.js:11
 msgid "DOWN ARROW"
 msgstr "lefele nyíl"
+
+#~ msgid "Sort on Attendee"
+#~ msgstr "résztvevők rendezése"
