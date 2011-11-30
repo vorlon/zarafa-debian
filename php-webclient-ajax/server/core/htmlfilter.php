@@ -654,6 +654,20 @@ function sq_fixatts($tagname,
             }
         }
 
+        if ($attname == 'href' || $attname == 'src' || $attname == 'background') {
+            # If you type \\server\share into Outlook, then it will put
+            # file:/// in front of it, making it file:///\\server\share.
+            # Transform this into file://///server/share.  The extra
+            # slashes are required to make it work for Firefox as well.
+            if (preg_match("/^['\"]file:\\/\\/\\/?\\\\\\\\([^\\\\]+)\\\\([^\\\\]+)(\\\\.*)?['\"]$/", $attvalue, $aMatch)) {
+                $attvalue = "\"file://///" . $aMatch[1] . "/" .
+                    $aMatch[2] . str_replace(Array("\\"), Array("/"),
+                                             $aMatch[3]) . "\"";
+            }
+        }
+
+
+
         /**
          * Workaround for IE quirks
          */
