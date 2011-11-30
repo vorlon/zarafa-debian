@@ -65,7 +65,57 @@
 
 using namespace std;
 
-HRESULT MungeForwardBody(LPMESSAGE lpMessage)
+HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo, std::wstring &wstrCc, std::wstring &wstrBcc)
+{
+	HRESULT hr = hrSuccess;
+	mapi_rowset_ptr ptrRows;
+	MAPITablePtr ptrRecips;
+	SizedSPropTagArray(2, sptaDisplay)  = {2, { PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE } };
+	
+	wstrTo.clear();
+	wstrCc.clear();
+	wstrBcc.clear();
+	
+	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	hr = ptrRecips->SetColumns((LPSPropTagArray)&sptaDisplay, TBL_BATCH);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	while(1) {
+		hr = ptrRecips->QueryRows(1, 0, &ptrRows);
+		if(hr != hrSuccess)
+			goto exit;
+			
+		if(ptrRows.size() == 0)
+			break;
+			
+		if(ptrRows[0].lpProps[0].ulPropTag != PR_DISPLAY_NAME_W || ptrRows[0].lpProps[1].ulPropTag != PR_RECIPIENT_TYPE)
+			continue;
+			
+		switch(ptrRows[0].lpProps[1].Value.ul) {
+			case MAPI_TO:
+				if (!wstrTo.empty()) wstrTo += L"; ";
+				wstrTo += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+			case MAPI_CC:
+				if (!wstrCc.empty()) wstrCc += L"; ";
+				wstrCc += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+			case MAPI_BCC:
+				if (!wstrBcc.empty()) wstrBcc += L"; ";
+				wstrBcc += ptrRows[0].lpProps[0].Value.lpszW;
+				break;
+		}
+	}
+
+exit:	
+	return hr;
+}
+
+HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
@@ -76,13 +126,10 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 			PR_INTERNET_CPID
 		} };
 	SPropArrayPtr ptrInfo;
-	SizedSPropTagArray (6, sInfo) = { 6, {
-			// SENT_REPRESENTING?
-			PR_SENDER_NAME_W,
-			PR_SENDER_EMAIL_ADDRESS_W,
+	SizedSPropTagArray (4, sInfo) = { 4, {
+			PR_SENT_REPRESENTING_NAME_W,
+			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 			PR_MESSAGE_DELIVERY_TIME,
-			PR_RECEIVED_BY_NAME_W,
-			PR_RECEIVED_BY_EMAIL_ADDRESS_W,
 			PR_SUBJECT_W
 		} };
 	ULONG ulCharset;
@@ -94,11 +141,12 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 	string strHTMLForwardText;
 	wstring wstrBody;
 	wstring strForwardText;
+	wstring wstrTo, wstrCc, wstrBcc;
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
+	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
 		goto exit;
-
+		
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)
 		ulCharset = ptrBodies[3].Value.ul;
 	else
@@ -114,11 +162,16 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 
 	// From: <fullname>
 	// Sent: <date>
-	// To: <fullname>
+	// To: <original To:>
+	// Cc: <original Cc:>
 	// Subject: <>
 	// Auto forwarded by a rule
+	
+	hr = GetRecipStrings(lpOrigMessage, wstrTo, wstrCc, wstrBcc);
+	if (FAILED(hr))
+		goto exit;
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
+	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
 	if (FAILED(hr))
 		goto exit;
 
@@ -143,19 +196,19 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		}
 
 		strForwardText += L"\nTo: ";
-		if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[3].Value.lpszW;
-		else if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[4].Value.lpszW;
+		strForwardText += wstrTo;
+
+		strForwardText += L"\nCc: ";
+		strForwardText += wstrCc;
 
 		strForwardText += L"\nSubject: ";
-		if (PROP_TYPE(ptrInfo[5].ulPropTag) != PT_ERROR)
-			strForwardText += ptrInfo[5].Value.lpszW;
+		if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
+			strForwardText += ptrInfo[3].Value.lpszW;
 
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
-			hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
+			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
 			if (hr == hrSuccess) {
 				hr = Util::HrStreamToWString(ptrStream, wstrBody);
 			}
@@ -171,7 +224,7 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 		string strFind("<body");
 		const char* pos;
 
-		hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
+		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
 		if (hr == hrSuccess) {
 			hr = Util::HrStreamToString(ptrStream, strHTML);
 		}
@@ -202,14 +255,14 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage)
 			}
 
 			strHTMLForwardText += "<br><b>To:</b> ";
-			if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[3].Value.lpszW, strHTMLForwardText, ulCharset);
-			else if (PROP_TYPE(ptrInfo[4].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[4].Value.lpszW, strHTMLForwardText, ulCharset);
+			Util::HrTextToHtml(wstrTo.c_str(), strHTMLForwardText, ulCharset);
+
+			strHTMLForwardText += "<br><b>Cc:</b> ";
+			Util::HrTextToHtml(wstrCc.c_str(), strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Subject:</b> ";
-			if (PROP_TYPE(ptrInfo[5].ulPropTag) != PT_ERROR)
-				Util::HrTextToHtml(ptrInfo[5].Value.lpszW, strHTMLForwardText, ulCharset);
+			if (PROP_TYPE(ptrInfo[3].ulPropTag) != PT_ERROR)
+				Util::HrTextToHtml(ptrInfo[3].Value.lpszW, strHTMLForwardText, ulCharset);
 
 			strHTMLForwardText += "<br><b>Auto forwarded by a rule</b><br><hr><br>";
 		}
@@ -482,7 +535,7 @@ exit:
 	return hr;
 }
 
-HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, IMAPIProp *lpOrigMessage, LPADRLIST lpRuleRecipients, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
+HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMESSAGE lpOrigMessage, LPADRLIST lpRuleRecipients, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
@@ -611,7 +664,7 @@ HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigS
 		goto exit;
 
 	if (!bDoNotMunge && !bForwardAsAttachment)
-		MungeForwardBody(lpFwdMsg);
+		MungeForwardBody(lpFwdMsg, lpOrigMessage);
 
 	*lppMessage = lpFwdMsg;
 

@@ -2517,6 +2517,7 @@ HRESULT ECMessage::SyncRTF()
 	// HACK ALERT: we force fModify to TRUE, because even on read-only messages,
 	// we want to be able to create RTF_COMPRESSED or BODY from the other, which
 	// is basically a WRITE to the object
+	
 	fModifySaved = this->fModify;
 	this->fModify = TRUE;
 
