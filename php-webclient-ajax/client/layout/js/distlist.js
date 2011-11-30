@@ -53,11 +53,6 @@ function initdistlist()
 	if(dhtml.getElementById("sensitivity").value == "2") {
 		dhtml.setValue(dhtml.getElementById("checkbox_private"), true);
 	}
-
-	// loop through all distlist items to check if any of them must be deleted
-	module.checkMissing();
-
-
 }
 
 function saveDistList()
@@ -101,10 +96,11 @@ function distlist_addABCallback(result)
 	}
 }
 
-function distlist_addNewCallback(result) 
+function distlist_addNewCallback(result)
 {
 	var name = result.name;
 	var email = result.email;
+	var internalId = result.internalId;
 
 	if (name.length<1)
 		name = email;
@@ -118,6 +114,9 @@ function distlist_addNewCallback(result)
 	item["email_address"] = email;
 	item["entryid"] = false;
 
+	if(internalId != "") {
+		item["internalId"] = internalId;
+	}
 	module.addItem(item);
 }
 /**
