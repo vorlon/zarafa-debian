@@ -2117,7 +2117,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		}
 
 		// create new or reset body
-		if (m_mailState.bodyLevel < BODY_HTML || !bAppendBody)
+		if (m_mailState.bodyLevel < BODY_HTML && !bAppendBody)
 			ulFlags |= MAPI_CREATE;
 
 		hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpHTMLStream);
