@@ -127,7 +127,9 @@ Menu.prototype.buildTopMenu = function(moduleID, mainItem, items, createNewItemF
 	var defaultMenuItem = this.getDefaultMenuItem(mainItem);
 	
 	if(defaultMenuItem) {
-		defaultMenuItem["callbackfunction"] = createNewItemFunction;
+		if(!defaultMenuItem["callbackfunction"])
+            defaultMenuItem["callbackfunction"] = createNewItemFunction;
+
 		defaultMenuItem["shortcut"] = "N";
 		this.menuBarLeft.appendChild(this.buildMenuItem(moduleID, mainItem, defaultMenuItem));
 		
@@ -153,7 +155,12 @@ Menu.prototype.buildDefaultMenu = function(moduleID, mainItem, createNewItemFunc
 		var mainElement = dhtml.addElement(defaultmenu, "div", "menuitem icon_" + mainItem, false, defaultMenuItem["title"]);
 		dhtml.addEvent(-1, mainElement, "mouseover", eventMenuMouseOverMenuItem);
 		dhtml.addEvent(-1, mainElement, "mouseout", eventMenuMouseOutMenuItem);
-		dhtml.addEvent(moduleID, mainElement, "click", createNewItemFunction);
+        /*
+         * For the click event we should check whether a certain callback function is registered.
+         * If it is we should call that one, but by default all the menu items do not use a special
+         * callback function, these use the eventMenuNewDefaultMessage callback function instead.
+         */
+		dhtml.addEvent(moduleID, mainElement, "click", defaultMenuItem["callbackfunction"] ? defaultMenuItem["callbackfunction"] : createNewItemFunction);
 
 		dhtml.addElement(defaultmenu, "div", "icon_menuitemseperator");
 		
@@ -168,7 +175,12 @@ Menu.prototype.buildDefaultMenu = function(moduleID, mainItem, createNewItemFunc
 					var element = dhtml.addElement(defaultmenu, "div", "menuitem icon_" + menuitem["id"], false, menuitem["title"]);
 					dhtml.addEvent(-1, element, "mouseover", eventMenuMouseOverMenuItem);
 					dhtml.addEvent(-1, element, "mouseout", eventMenuMouseOutMenuItem);
-					dhtml.addEvent(-1, element, "click", eventMenuNewDefaultMessage);
+                    /*
+                     * For the click event we should check whether a certain callback function is registered.
+                     * If it is we should call that one, but by default all the menu items do not use a special
+                     * callback function, these use the eventMenuNewDefaultMessage callback function instead.
+                     */
+					dhtml.addEvent(-1, element, "click", menuitem["callbackfunction"] ? menuitem["callbackfunction"] : eventMenuNewDefaultMessage);
 				}
 			}
 		}
