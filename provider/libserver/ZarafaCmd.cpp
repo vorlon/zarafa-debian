@@ -3378,7 +3378,11 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 							goto exit;
 						}
 					} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-						if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true)) {
+						// We allow an archive store to be opened by sysadmins even if it's not supposed
+						// to exist on this server for a particular user.
+						if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
+						   !sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
+						{
 							er = ZARAFA_E_NOT_FOUND;
 							goto exit;
 						}
@@ -7583,7 +7587,11 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		}
 
 		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
-			if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
+			// We allow an archive store to be resolved by sysadmins even if it's not supposed
+			// to exist on this server for a particular user.
+			if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
+				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false))
+			{
 				// No redirect with archive stores because there can be multiple archive stores.
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;
