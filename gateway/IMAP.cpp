@@ -4858,7 +4858,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	size_t ulHeaderBegin;
 	size_t ulHeaderEnd;
 	size_t ulCounter;
-	const char *ptr;
+	const char *ptr, *end;
 
 	if (strPartName.find_first_of("123456789") == 0) {
 		// @todo rewrite without copying strings
@@ -4874,8 +4874,9 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		}
 
 		// Find the correct part
+		end = str_ifind((char*)strMessage.c_str(), "\r\n\r\n");
 		ptr = str_ifind((char*)strMessage.c_str(), "boundary=");
-		if (ptr) {
+		if (ptr && end && ptr < end) {
 			ulHeaderBegin = std::distance(strMessage.c_str(), ptr) + strlen("boundary=");
 			if (strMessage[ulHeaderBegin] == '"') {
 				ulHeaderBegin++;
