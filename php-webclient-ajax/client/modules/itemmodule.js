@@ -817,14 +817,6 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 					xmlValue = content;
 					break;
 			}
-			var recipients = this.generateRecipientStringFromXML(message, false, false);
-			if (recipients){
-				for(var type in recipients){
-					result[type] = new Object;
-					result[type].label = type;
-					result[type].value = recipients[type];
-				}
-			}
 
 			// add data in result
 			if(xmlValue != "") {
@@ -834,6 +826,17 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 			}
 		}
 	}
+
+	var recipients = this.generateRecipientStringFromXML(message, false, false);
+	if (recipients){
+		for(var type in recipients){
+			result[type] = new Object;
+			result[type].label = type;
+			result[type].value = recipients[type];
+		}
+	}
+
+
 	return result;
 }
 
@@ -1398,7 +1401,7 @@ ItemModule.prototype.setInlineAttachmentData = function (attachments)
 			// Only for images files.
 			if (type && type.substring(0, type.indexOf('/')) == "image") {
 				this.inlineattachments[attachments[i]["attach_num"]] = new Object();
-				this.inlineattachments[attachments[i]["attach_num"]]["name"] = attachments[i]["name"];
+				this.inlineattachments[attachments[i]["attach_num"]]["name"] = attachments[i]["name"].htmlEntities();
 				this.inlineattachments[attachments[i]["attach_num"]]["cid"] = attachments[i]["cid"];
 				this.inlineattachments[attachments[i]["attach_num"]]["filetype"] = attachments[i]["filetype"];
 				
