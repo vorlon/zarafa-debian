@@ -76,6 +76,7 @@
 #define dispidStubbed				"stubbed"
 #define dispidDirty					"dirty"
 #define dispidType					"archive-type"
+#define dispidAttachType			"attach-type"
 #define dispidRefStoreEntryId		"ref-store-entryid"
 #define dispidRefItemEntryId		"ref-item-entryid"
 #define dispidRefPrevEntryId		"ref-prev-entryid"

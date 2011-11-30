@@ -121,6 +121,11 @@ public:
 		m_str.append(lpData, cbData);
 		m_bNull = false;
 	}
+
+	void append(const utf8string &str) {
+		m_str.append(str.m_str);
+		m_bNull = false;
+	}
 	
 	void clear() {
 		m_str.clear();

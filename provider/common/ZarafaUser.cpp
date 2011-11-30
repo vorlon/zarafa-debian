@@ -60,6 +60,18 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+template<int(*fnCmp)(const char*, const char*)>
+class StringComparer {
+public:
+	StringComparer(const std::string &str): m_str(str) {}
+	bool operator()(const std::string &other) {
+		return m_str.size() == other.size() && fnCmp(m_str.c_str(), other.c_str()) == 0;
+	}
+
+private:
+	const std::string &m_str;
+};
+
 objectid_t::objectid_t(const std::string &id, objectclass_t objclass)
 {
 	this->id = id;
@@ -227,6 +239,13 @@ property_mv_map objectdetails_t::GetPropMapListAnonymous() const {
 	}
 
 	return anonymous;
+}
+
+bool objectdetails_t::PropListStringContains(const property_key_t &propname, const std::string &value, bool ignoreCase) const {
+	const std::list<std::string> list = GetPropListString(propname);
+	if (ignoreCase)
+		return std::find_if(list.begin(), list.end(), StringComparer<stricmp>(value)) != list.end();
+	return std::find_if(list.begin(), list.end(), StringComparer<strcmp>(value)) != list.end();
 }
 
 void objectdetails_t::ClearPropList(const property_key_t &propname) {

@@ -52,6 +52,8 @@
 #include "archiver-session.h"
 #include "archivectrl.h"
 #include "archivemanage.h"
+#include "archivestatecollector.h"
+#include "archivestateupdater.h"
 
 #include "mapix.h"
 
@@ -98,7 +100,8 @@ public:
 	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags);
 
 	eResult GetControl(ArchiveControlPtr *lpptrControl);
-	eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage);
+	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
+	eResult AutoAttach();
 
 	ECConfig* GetConfig() const;
 	ECLogger* GetLogger() const;
@@ -157,6 +160,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 
 		{ "track_history",	"no" },
 		{ "cleanup_action",	"store" },
+		{ "enable_auto_attach",	"no" },
 
 		// Log options
 		{ "log_method",		"file" },
@@ -200,7 +204,7 @@ exit:
 	return r;
 }
 
-HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const char *lpszUser, ArchiveManagePtr *lpptrManage)
+HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	HRESULT hr = hrSuccess;
 	SessionPtr ptrArchiverSession;
@@ -318,12 +322,32 @@ eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl)
 	return MAPIErrorToArchiveError(ArchiveControlImpl::Create(m_ptrSession, m_lpsConfig, m_lpLogger, lpptrControl));
 }
 
-eResult ArchiverImpl::GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage)
+eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
 		
 	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, lpszUser, m_lpLogger, lpptrManage));
+}
+
+eResult ArchiverImpl::AutoAttach()
+{
+	HRESULT hr = hrSuccess;
+	ArchiveStateCollectorPtr ptrArchiveStateCollector;
+	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrArchiveStateUpdater->UpdateAll();
+
+exit:
+	return MAPIErrorToArchiveError(hr);
 }
 
 ECConfig* ArchiverImpl::GetConfig() const

@@ -163,7 +163,8 @@ enum {
 	OPT_FORCE_RESYNC,
 	OPT_USER_COUNT,
 	OPT_ENABLE_FEATURE,
-	OPT_DISABLE_FEATURE
+	OPT_DISABLE_FEATURE,
+	OPT_SELECT_NODE
 };
 
 struct option long_options[] = {
@@ -221,6 +222,7 @@ struct option long_options[] = {
 		{ "user-count", 0, NULL, OPT_USER_COUNT },
 		{ "enable-feature", 1, NULL, OPT_ENABLE_FEATURE },
 		{ "disable-feature", 1, NULL, OPT_DISABLE_FEATURE },
+		{ "node", 1, NULL, OPT_SELECT_NODE },
 		{ NULL, 0, NULL, 0 }
 };
 
@@ -589,6 +591,8 @@ string getMapiPropertyString(ULONG ulPropTag)
 	PROP_TO_STRING(PR_EMS_AB_MEMBER);
 	PROP_TO_STRING(PR_EC_ENABLED_FEATURES);
 	PROP_TO_STRING(PR_EC_DISABLED_FEATURES);
+	PROP_TO_STRING(PR_EC_ARCHIVE_SERVERS);
+	PROP_TO_STRING(PR_EC_ARCHIVE_COUPLINGS);
 	default:
 		return stringify(ulPropTag, true);
 	}
@@ -855,6 +859,54 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 	
 	if(lpProps)
 		MAPIFreeBuffer(lpProps);
+}
+
+/**
+ * Print archive store details on local server
+ *
+ * @param[in]	lpSession		MAPI session of the internal Zarafa System adminstrator user
+ * @param[in]	lpECMsgStore	The IECUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
+ * @param[in]	lpszName		Name to resolve, using type in ulClass
+ * @return		MAPI error code
+ */
+HRESULT print_archive_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, const char *lpszName)
+{
+	HRESULT hr = hrSuccess;
+	ECServiceAdminPtr ptrServiceAdmin;
+	ULONG cbArchiveId = 0;
+	EntryIdPtr ptrArchiveId;
+	MsgStorePtr ptrArchive;
+	SPropValuePtr ptrArchiveSize;
+
+	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&ptrServiceAdmin);
+	if (hr != hrSuccess) {
+		cerr << "Unable to get admin interface." << endl;
+		goto exit;
+	}
+
+	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &ptrArchiveId);
+	if (hr != hrSuccess) {
+		cerr << "No archive found for user '" << lpszName << "'." << endl;
+		goto exit;
+	}
+
+	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &ptrArchive.iid, 0, &ptrArchive);
+	if (hr != hrSuccess) {
+		cerr << "Unable to open archive." << endl;
+		goto exit;
+	}
+
+	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &ptrArchiveSize);
+	if (hr != hrSuccess) {
+		cerr << "Unable to get archive store size." << endl;
+		goto exit;
+	}
+
+	cout << "Current store size:\t";
+	cout << stringify_double((double)ptrArchiveSize->Value.li.QuadPart /1024.0 /1024.0, 2, true) << " MiB" << endl;
+
+exit:
+	return hr;
 }
 
 /**
@@ -1266,6 +1318,17 @@ exit:
 	return hr;
 }
 
+LPMVPROPMAPENTRY FindMVPropmapEntry(LPECUSER lpUser, ULONG ulPropTag)
+{
+	for (unsigned i = 0; i < lpUser->sMVPropmap.cEntries; ++i) {
+		if (lpUser->sMVPropmap.lpEntries[i].ulPropId == ulPropTag) {
+			return &lpUser->sMVPropmap.lpEntries[i];
+		}
+	}
+
+	return NULL;
+}
+
 /**
  * Print the defaults of any user object (user/group/company)
  *
@@ -1306,6 +1369,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 	LPENTRYID lpObjectId = NULL;
 	ArchiveManagePtr ptrArchiveManage;
 	ArchiveList lstArchives;
+	convert_context converter;
 
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
 	if (hr != hrSuccess) {
@@ -1438,7 +1502,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 
-		hr = Archiver::CreateManage(lpSession, NULL, lpszName, &ptrArchiveManage);
+		hr = Archiver::CreateManage(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
 				cerr << "Error while obtaining archive details, " << getMapiCodeString(hr) << endl;
@@ -1496,6 +1560,41 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 		cout << "Remote viewers (" << cViews << "):" << endl;
 		print_companies(cViews, lpECViews, true);
 		cout << endl;
+	}
+
+	if (lpECUser) {
+		LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
+		if (lpArchiveServers && lpArchiveServers->cValues) {
+			MsgStorePtr ptrAdminStore;
+
+			hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &ptrAdminStore);
+			if (hr != hrSuccess)
+				goto exit;
+
+			for (unsigned i = 0; i < lpArchiveServers->cValues; ++i) {
+				MsgStorePtr ptrRemoteAdminStore;
+				SPropValuePtr ptrPropValue;
+				IECUnknown *lpECRemoteAdminStore = NULL;
+				HRESULT hrTmp;
+
+				cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
+				hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &ptrRemoteAdminStore);
+				if (FAILED(hrTmp)) {
+					cerr << "Unable to access node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "'. Error code: " << stringify(hrTmp, true) << endl;
+					continue;
+				}
+
+				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &ptrPropValue);
+				if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
+					cerr << "Admin object not found." << endl;
+					goto exit;
+				}
+
+				lpECRemoteAdminStore = (IECUnknown *)ptrPropValue->Value.lpszA;
+				print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
+				cout << endl;
+			}
+		}
 	}
 
 exit:
@@ -2129,6 +2228,7 @@ int main(int argc, char* argv[])
 	char *path = NULL;
 	char *lang = NULL;
 	char *feature = NULL;
+	char *node = NULL;
 	bool bFeature = true;
 	set<tstring, ltstr> sEnabled;
 	set<tstring, ltstr> sDisabled;
@@ -2477,6 +2577,9 @@ int main(int argc, char* argv[])
 			cout << "Product version:\t" << PROJECT_VERSION_PROFADMIN_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
 			return 1;
+		case OPT_SELECT_NODE:
+			node = validateInput(my_optarg);
+			break;
 		default:
 			break;
 		};
@@ -2797,6 +2900,34 @@ int main(int argc, char* argv[])
 		goto exit;
 	}
 
+	if (node != NULL && *node != '\0') {
+		MsgStorePtr ptrRemoteStore;
+
+		hr = HrGetRemoteAdminStore(lpSession, lpMsgStore, (LPTSTR)node, 0, &ptrRemoteStore);
+		if (hr != hrSuccess) {
+			cerr << "Unable to connect to node '" << node << "'" << endl;
+			switch (hr) {
+			case MAPI_E_NETWORK_ERROR:
+				cerr << "The server is not running, or not accessable." << endl;
+				break;
+			case MAPI_E_LOGON_FAILED:
+			case MAPI_E_NO_ACCESS:
+				cerr << "Access was denied." << endl;
+				break;
+			case MAPI_E_NOT_FOUND:
+				cerr << "Node '" << node << "' is unknown." << endl;
+				break;
+			default:
+				cerr << "Unknown cause " << stringify(hr,true) << "." << endl;
+				break;
+			};
+			goto exit;
+		}
+
+		lpMsgStore->Release();
+		lpMsgStore = ptrRemoteStore.release();
+	}
+
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &lpPropValue);
 	if(hr != hrSuccess || !lpPropValue || !lpPropValue->Value.lpszA) {
 		cerr << "Admin object not found." << endl;
@@ -2836,13 +2967,16 @@ int main(int argc, char* argv[])
 			ulClass = DISTLIST_GROUP;
 		else if (stricmp(detailstype, "company") == 0)
 			ulClass = CONTAINER_COMPANY;
-		else {
+		else if (stricmp(detailstype, "archive") != 0) {
 			hr = MAPI_E_INVALID_TYPE;
 			cerr << "Unknown userobject type \"" << detailstype << "\"" << endl;
 			goto exit;
 		}
 
-		hr = print_details(lpSession, lpECMsgStore, ulClass, username);
+		if (detailstype && stricmp(detailstype, "archive") == 0)
+			hr = print_archive_details(lpSession, lpECMsgStore, username);
+		else
+			hr = print_details(lpSession, lpECMsgStore, ulClass, username);
 		if (hr != hrSuccess)
 			goto exit;
 		break;
@@ -3032,13 +3166,25 @@ int main(int argc, char* argv[])
 			}
 				
 		} else {
+			ULONG ulStoreType;
+
+			// @todo: Add public store support
+			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+				ulStoreType = ECSTORE_TYPE_PRIVATE;
+			else if (strcmp(detailstype, "archive") == 0)
+				ulStoreType = ECSTORE_TYPE_ARCHIVE;
+			else {
+				cerr << "Unknown store type: '" << detailstype << "'." << endl;
+				goto exit;
+			}
+
 			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 			if (hr != hrSuccess) {
 				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}		
 
-			hr = lpServiceAdmin->HookStore(cbUserId, lpUserId, lpGUID);
+			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
 			if (hr != hrSuccess) {
 				cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
 				goto exit;
@@ -3047,19 +3193,31 @@ int main(int argc, char* argv[])
 		}
 
 		break;
-	case MODE_UNHOOK_STORE:
-		hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
-			goto exit;
-		}		
+	case MODE_UNHOOK_STORE: {
+			ULONG ulStoreType;
 
-		hr = lpServiceAdmin->UnhookStore(cbUserId, lpUserId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+				ulStoreType = ECSTORE_TYPE_PRIVATE;
+			else if (strcmp(detailstype, "archive") == 0)
+				ulStoreType = ECSTORE_TYPE_ARCHIVE;
+			else {
+				cerr << "Unknown store type: '" << detailstype << "'." << endl;
+				goto exit;
+			}
+
+			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
+				goto exit;
+			}		
+
+			hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
+			if (hr != hrSuccess) {
+				cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
+				goto exit;
+			}
+			cout << "Store unhooked." << endl;
 		}
-		cout << "Store unhooked." << endl;
 		break;
 	case MODE_REMOVE_STORE:
 		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (LPBYTE*)&lpGUID);

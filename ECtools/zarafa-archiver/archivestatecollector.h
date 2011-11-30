@@ -47,42 +47,56 @@
  * 
  */
 
-#ifndef PROVIDERUTIL_H
-#define PROVIDERUTIL_H
+#ifndef ArchiveStateCollector_INCLUDED
+#define ArchiveStateCollector_INCLUDED
 
-#include "WSTransport.h"
+#include "archiver-session_fwd.h"
+#include "archiver-common.h"
+#include "archivestateupdater_fwd.h"
+#include "tstring.h"
 
-#define CT_UNSPECIFIED		0x00
-#define CT_ONLINE			0x01
-#define CT_OFFLINE			0x02
+#include <boost/smart_ptr.hpp>
+#include <map>
+#include <mapidefs.h>
 
-typedef struct {
-	IMSProvider *lpMSProviderOnline;
-	IMSProvider *lpMSProviderOffline;
-	IABProvider *lpABProviderOnline;
-	IABProvider *lpABProviderOffline;
-	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
-	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
-}PROVIDER_INFO;
+class ArchiveStateCollector;
+typedef boost::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
-typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
+class ECLogger;
 
-HRESULT GetWrappedSupportObject(IMAPISupport* lpMAPISup, LPPROFSECT lpProfileObj, IMAPISupport** lppWrappedMAPISupport);
-HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
+/**
+ * The ArchiveStateCollector will construct the current archive state, which 
+ * is the set of currently attached archives for each primary store, and the
+ * should-be archive state, which is the set of attached archives for each
+ * primary store as specified in LDAP/ADS.
+ */
+class ArchiveStateCollector {
+public:
+	static HRESULT Create(const SessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector);
 
-HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags, WSTransport* lpTransport,
-							MAPIUID* lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
-							ECMsgStore** lppMsgStore);
+	~ArchiveStateCollector();
+	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);
 
+public:
+	struct ArchiveInfo {
+		tstring userName;
+		entryid_t storeId;
+		std::list<tstring> lstServers;
+		std::list<tstring> lstCouplings;
+		ObjectEntryList lstArchives;
+	};
+	typedef std::map<entryid_t, ArchiveInfo> ArchiveInfoMap;
 
+private:
+	ArchiveStateCollector(const SessionPtr &ptrSession, ECLogger *lpLogger);
+	HRESULT PopulateUserList();
+	HRESULT PopulateFromContainer(LPABCONT lpContainer);
 
-HRESULT RemoveAllProviders(ECMapProvider *lpmapProvider);
-HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider *lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType);
-HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
-HRESULT GetLastConnectionType(IMAPISupport *lpMAPISup, ULONG *lpulType);
+private:
+	SessionPtr	m_ptrSession;
+	ECLogger	*m_lpLogger;
 
-HRESULT GetMAPIUniqueProfileId(LPMAPISUP lpMAPISup, tstring *lpstrUniqueId);
+	ArchiveInfoMap	m_mapArchiveInfo;
+};
 
-HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
-
-#endif // #ifndef PROVIDERUTIL_H
+#endif // ndef ArchiveStateCollector_INCLUDED

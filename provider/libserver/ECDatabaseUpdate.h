@@ -141,5 +141,7 @@ ECRESULT UpdateDatabaseConvertChanges(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseConvertNames(ECDatabase *lpDatabase);
 
 ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase);
+ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase);
+ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase);
 
 #endif // #ifndef ECDATABASEUPDATE_H

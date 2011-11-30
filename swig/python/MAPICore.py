@@ -1308,6 +1308,7 @@ SYNC_W_PROGRESS = _MAPICore.SYNC_W_PROGRESS
 SYNC_W_CLIENT_CHANGE_NEWER = _MAPICore.SYNC_W_CLIENT_CHANGE_NEWER
 ECSTORE_TYPE_PRIVATE = _MAPICore.ECSTORE_TYPE_PRIVATE
 ECSTORE_TYPE_PUBLIC = _MAPICore.ECSTORE_TYPE_PUBLIC
+ECSTORE_TYPE_ARCHIVE = _MAPICore.ECSTORE_TYPE_ARCHIVE
 class IECServiceAdmin(IUnknown):
     __swig_setmethods__ = {}
     for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
@@ -1320,7 +1321,6 @@ class IECServiceAdmin(IUnknown):
     def CreateStore(*args): return _MAPICore.IECServiceAdmin_CreateStore(*args)
     def CreateEmptyStore(*args): return _MAPICore.IECServiceAdmin_CreateEmptyStore(*args)
     def ResolveStore(*args): return _MAPICore.IECServiceAdmin_ResolveStore(*args)
-    def GetStore(*args): return _MAPICore.IECServiceAdmin_GetStore(*args)
     def HookStore(*args): return _MAPICore.IECServiceAdmin_HookStore(*args)
     def UnhookStore(*args): return _MAPICore.IECServiceAdmin_UnhookStore(*args)
     def RemoveStore(*args): return _MAPICore.IECServiceAdmin_RemoveStore(*args)
@@ -1368,6 +1368,7 @@ class IECServiceAdmin(IUnknown):
     def GetServerDetails(*args): return _MAPICore.IECServiceAdmin_GetServerDetails(*args)
     def ResolvePseudoUrl(*args): return _MAPICore.IECServiceAdmin_ResolvePseudoUrl(*args)
     def GetPublicStoreEntryID(*args): return _MAPICore.IECServiceAdmin_GetPublicStoreEntryID(*args)
+    def GetArchiveStoreEntryID(*args): return _MAPICore.IECServiceAdmin_GetArchiveStoreEntryID(*args)
     __swig_destroy__ = _MAPICore.delete_IECServiceAdmin
     __del__ = lambda self : None;
 IECServiceAdmin_swigregister = _MAPICore.IECServiceAdmin_swigregister

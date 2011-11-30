@@ -47,42 +47,12 @@
  * 
  */
 
-#ifndef PROVIDERUTIL_H
-#define PROVIDERUTIL_H
+#ifndef archivestateupdater_fwd_INCLUDED
+#define archivestateupdater_fwd_INCLUDED
 
-#include "WSTransport.h"
+#include <boost/smart_ptr.hpp>
 
-#define CT_UNSPECIFIED		0x00
-#define CT_ONLINE			0x01
-#define CT_OFFLINE			0x02
+class ArchiveStateUpdater;
+typedef boost::shared_ptr<ArchiveStateUpdater> ArchiveStateUpdaterPtr;
 
-typedef struct {
-	IMSProvider *lpMSProviderOnline;
-	IMSProvider *lpMSProviderOffline;
-	IABProvider *lpABProviderOnline;
-	IABProvider *lpABProviderOffline;
-	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
-	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
-}PROVIDER_INFO;
-
-typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
-
-HRESULT GetWrappedSupportObject(IMAPISupport* lpMAPISup, LPPROFSECT lpProfileObj, IMAPISupport** lppWrappedMAPISupport);
-HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
-
-HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags, WSTransport* lpTransport,
-							MAPIUID* lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
-							ECMsgStore** lppMsgStore);
-
-
-
-HRESULT RemoveAllProviders(ECMapProvider *lpmapProvider);
-HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider *lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType);
-HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
-HRESULT GetLastConnectionType(IMAPISupport *lpMAPISup, ULONG *lpulType);
-
-HRESULT GetMAPIUniqueProfileId(LPMAPISUP lpMAPISup, tstring *lpstrUniqueId);
-
-HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
-
-#endif // #ifndef PROVIDERUTIL_H
+#endif // ndef archivestateupdater_fwd_INCLUDED

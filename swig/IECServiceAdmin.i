@@ -6,6 +6,7 @@
 
 #define ECSTORE_TYPE_PRIVATE      			0
 #define ECSTORE_TYPE_PUBLIC               	1
+#define ECSTORE_TYPE_ARCHIVE				2
 
 class IECServiceAdmin : public IUnknown {
 public:
@@ -13,9 +14,8 @@ public:
 	virtual HRESULT CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;
 	virtual HRESULT CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId_oio, LPENTRYID* lppStoreId_oio, ULONG* lpcbRootId_oio, LPENTRYID *lppRootId_oio) = 0;
 	virtual HRESULT ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* OUTPUT, LPENTRYID* OUTPUT) = 0;
-	virtual HRESULT GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId) = 0;
-	virtual HRESULT HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) = 0;
-	virtual HRESULT UnhookStore(ULONG cbUserId, LPENTRYID lpUserId) = 0;
+	virtual HRESULT HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) = 0;
+	virtual HRESULT UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId) = 0;
 	virtual HRESULT RemoveStore(LPGUID lpGuid) = 0;
 
 	// User functions
@@ -78,7 +78,10 @@ public:
 	virtual HRESULT ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer) = 0;
 	
 	// Public store function(s)
-	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG *OUTPUT /*lpcbStoreID*/, LPENTRYID *OUTPUT /*lppStoreID*/);
+	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG *OUTPUT /*lpcbStoreID*/, LPENTRYID *OUTPUT /*lppStoreID*/) = 0;
+
+	// Archive store function(s)
+	virtual HRESULT GetArchiveStoreEntryID(LPTSTR lpszUserName, LPTSTR lpszServerName, ULONG ulFlags, ULONG *OUTPUT /*lpcbStoreID*/, LPENTRYID *OUTPUT /*lppStoreID*/) = 0;
 
 	%extend {
 		~IECServiceAdmin() { self->Release(); }

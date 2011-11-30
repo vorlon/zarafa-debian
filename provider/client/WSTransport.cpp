@@ -644,6 +644,50 @@ exit:
 	return hr;
 }
 
+HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG *lpulStoreType)
+{
+	ECRESULT er = erSuccess;
+	HRESULT hr = hrSuccess;
+	entryId		sEntryId; // Do not free
+	struct getStoreTypeResponse sResponse;
+	LPENTRYID	lpUnWrapStoreID = NULL;
+	ULONG		cbUnWrapStoreID = 0;
+
+	LockSoap();
+
+	if(lpStoreID == NULL || lpulStoreType == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	// Remove the servername
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	if(hr != hrSuccess)
+		goto exit;
+
+	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__size = cbUnWrapStoreID;
+	
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__getStoreType(m_ecSessionId, sEntryId, &sResponse))
+			er = ZARAFA_E_SERVER_NOT_RESPONDING;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
+
+	*lpulStoreType = sResponse.ulStoreType;
+
+exit:
+	UnLockSoap();
+
+	if(lpUnWrapStoreID)
+		ECFreeBuffer(lpUnWrapStoreID);
+
+	return hr;
+}
+
 HRESULT WSTransport::HrLogOff()
 {
 	HRESULT hr = hrSuccess;
@@ -1694,7 +1738,7 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ulFlags, &sResponse))
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC, ulFlags, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1729,8 +1773,56 @@ exit:
 	UnLockSoap();
 
 	return hr;
-	
 }
+
+/**
+ * Resolve a specific store type for a user.
+ *
+ * @param[in]	strUserName		The name of the user for whom to resolve the store. If left
+ *								empty, the store for the current user will be resolved.
+ * @param[in]	ulStoreType		The type of the store to resolve.
+ * @param[out]	lpcbStoreID		The length of the returned entry id.
+ * @param[out]	lppStoreID		The returned store entry id.
+ *
+ * @note	This method should be called on a transport that's already connected to the
+ *			right server as redirection is not supported.
+ */
+HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ulStoreType, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+{
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
+	struct resolveUserStoreResponse sResponse;
+
+	LockSoap();
+
+	// Currently only archive stores are supported.
+	if (ulStoreType != ECSTORE_TYPE_ARCHIVE || lpcbStoreID == NULL || lppStoreID == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), (1 << ulStoreType), 0, &sResponse))
+			er = ZARAFA_E_NETWORK_ERROR;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
+
+	if(lpcbStoreID && lppStoreID) {
+		// Create a client store entry, add the servername
+		hr = WrapServerClientStoreEntry(m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
+		if(hr != hrSuccess)
+			goto exit;
+	}
+
+exit:
+	UnLockSoap();
+
+	return hr;
+}
+
 
 /**
  * Create a new user.
@@ -1976,7 +2068,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
+HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -1999,7 +2091,7 @@ HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGu
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, sUserId, sStoreGuid, ulSyncId, &er))
+		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, ulStoreType, sUserId, sStoreGuid, ulSyncId, &er))
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2010,7 +2102,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrUnhookStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId)
+HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -2029,7 +2121,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulS
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__unhookStore(m_ecSessionId, sUserId, ulSyncId, &er))
+		if(SOAP_OK != m_lpCmd->ns__unhookStore(m_ecSessionId, ulStoreType, sUserId, ulSyncId, &er))
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2062,36 +2154,6 @@ HRESULT WSTransport::HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId)
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	UnLockSoap();
-
-	return hr;
-}
-
-HRESULT WSTransport::HrGetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpulStoreId)
-{
-	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
-	struct getStoreByUserResponse sResponse;
-	entryId sUserId = {0};
-
-	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
-	if (hr != hrSuccess)
-		goto exit;
-
-	START_SOAP_CALL
-	{
-    	if(m_lpCmd->ns__getStoreByUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
-			er = ZARAFA_E_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-	}
-	END_SOAP_CALL
-
-	*lpulStoreId = sResponse.ulStoreId;
 
 exit:
 	UnLockSoap();

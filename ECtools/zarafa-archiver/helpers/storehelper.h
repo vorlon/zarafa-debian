@@ -59,6 +59,7 @@
 
 #include <CommonUtil.h>
 #include <mapi_ptr.h>
+#include "tstring.h"
 
 class ECRestriction;
 class ECAndRestriction;
@@ -79,7 +80,7 @@ public:
 	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
 	~StoreHelper();
 	
-	HRESULT GetFolder(const std::string &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
+	HRESULT GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
 	HRESULT UpdateSearchFolders();
 	
 	HRESULT GetIpmSubtree(LPMAPIFOLDER *lppFolder);
@@ -89,7 +90,7 @@ private:
 	StoreHelper(MsgStorePtr &ptrMsgStore);
 	HRESULT Init();
 	
-	HRESULT GetSubFolder(MAPIFolderPtr &ptrFolder, const std::string &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
+	HRESULT GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
 
 	enum eSearchFolder {esfArchive = 0, esfDelete, esfStub, esfMax};
 	

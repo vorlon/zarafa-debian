@@ -209,6 +209,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 	HRESULT hr = hrSuccess;
 
 	WSTransport		*lpTransport = NULL;
+	WSTransport		*lpAltTransport = NULL;
 	
 	PABEID			pABeid = NULL;
 	
@@ -222,6 +223,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 	SPropValuePtr	ptrPropValueResourceType;
 	SPropValuePtr	ptrPropValueServiceName;
 	SPropValuePtr	ptrPropValueProviderUid;
+	SPropValuePtr	ptrPropValueServerName;
 	WStringPtr		ptrStoreName;
 	std::string		strRedirServer;
 	std::string		strDefStoreServer;
@@ -339,7 +341,14 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
 			}
 			if(hr != hrSuccess) {
-				hr = MAPI_E_UNCONFIGURED;
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty delegate store
+				hr = hrSuccess;
 				goto exit;
 			}
 
@@ -355,6 +364,45 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 				hr = lpTransport->HrResolveUserStore(convstring::from_SPropValue(ptrPropValueName), 0, NULL, &cbEntryId, &ptrEntryId);
 			}
 			if(hr != hrSuccess)
+				goto exit;
+		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &ZARAFA_STORE_ARCHIVE_GUID)) {
+			// We need to get the username and the server name or url from the profsect.
+			// That's enough information to get the entryid from the correct server. There's no redirect
+			// available when resolving archive stores.
+			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
+			if (hr != hrSuccess)
+				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
+			if (hr == hrSuccess) {
+				hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
+				if (hr != hrSuccess)
+					hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_A, &ptrPropValueServerName);
+				if (hr != hrSuccess) {
+					hr = MAPI_E_UNCONFIGURED;
+					goto exit;
+				}
+			}
+			if (hr != hrSuccess) {
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty archive store
+				hr = hrSuccess;
+				goto exit;
+			}
+
+			hr = GetTransportToNamedServer(lpTransport, ptrPropValueServerName->Value.LPSZ, (PROP_TYPE(ptrPropValueServerName->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE), &lpAltTransport);
+			if (hr != hrSuccess)
+				goto exit;
+
+			std::swap(lpTransport, lpAltTransport);
+			lpAltTransport->Release();
+			lpAltTransport = NULL;
+
+			hr = lpTransport->HrResolveTypedStore(convstring::from_SPropValue(ptrPropValueName), ECSTORE_TYPE_ARCHIVE, &cbEntryId, &ptrEntryId);
+			if (hr != hrSuccess)
 				goto exit;
 		} else {
 			ASSERT(FALSE); // unknown GUID?
@@ -521,7 +569,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	ProfSectPtr		ptrGlobalProfSect;
 	ProfSectPtr		ptrProfSect;
 	MAPISessionPtr	ptrSession;
-	SPropValuePtr	ptrProfSectProp;
 
 	WSTransport		*lpTransport = NULL;
 	LPSPropValue	lpsPropValue = NULL;

@@ -164,15 +164,32 @@ exit:
 }
 
 
-
-ECRESULT GetLocalId(ECSession *lpecSession, entryId sUserId, unsigned int ulLegacyUserId, unsigned int *lpulUserId, objectid_t *lpsExternId, bool *lpbHasLocalStore)
+/**
+ * Get the local user id based on the entryid or the user id for old clients.
+ *
+ * When an entryid is provided, the extern id is extracted and the local user id
+ * is resolved based on that. If no entryid is provided the provided legacy user id
+ * is used as local user is and the extern id is resolved based on that. Old clients
+ * that are not multi server aware provide the legacy user id in stead of the entryid.
+ *
+ * @param[in]	sUserId			The entryid of the user for which to obtain the local id
+ * @param[in]	ulLegacyUserId	The legacy user id, which will be used as the entryid when.
+ *								no entryid is provided (old clients).
+ * @param[out]	lpulUserId		The local user id.
+ * @param[out]	lpsExternId		The extern id of the user. This can be NULL if the extern id
+ *								is not required by the caller.
+ *
+ * @retval	ZARAFA_E_INVALID_PARAMATER	One or more parameters are invalid.
+ * @retval	ZARAFA_E_NOT_FOUND			The local is is not found.
+ */
+ECRESULT GetLocalId(entryId sUserId, unsigned int ulLegacyUserId, unsigned int *lpulUserId, objectid_t *lpsExternId)
 {
 	ECRESULT 		er = erSuccess;
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
 	objectdetails_t	sDetails;
 
-	if (lpulUserId == NULL || (lpecSession == NULL && lpbHasLocalStore != NULL))
+	if (lpulUserId == NULL)
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
@@ -180,10 +197,10 @@ ECRESULT GetLocalId(ECSession *lpecSession, entryId sUserId, unsigned int ulLega
 
 	// If no entryid is present, use the 'current' user.
 	if (ulLegacyUserId == 0 && sUserId.__size == 0) {
-		// When lpsExternId or lpbHasLocalStore are requested, the 'current' user will not be
+		// When lpsExternId is requested, the 'current' user will not be
 		// requested in this way. However, to make sure a caller does expect a result in the future 
 		// we'll return an error in that case.
-		if (lpsExternId != NULL || lpbHasLocalStore != NULL)
+		if (lpsExternId != NULL)
 			er = ZARAFA_E_INVALID_PARAMETER;
 		else
 			*lpulUserId = 0;
@@ -204,27 +221,67 @@ ECRESULT GetLocalId(ECSession *lpecSession, entryId sUserId, unsigned int ulLega
 	} else {
 		// use user id from 6.20 and older clients
 		ulUserId = ulLegacyUserId;
-		er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulLegacyUserId, &sExternId, NULL, NULL);
+		if (lpsExternId)
+			er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulLegacyUserId, &sExternId, NULL, NULL);
 	}
 	if (er != erSuccess)
 		goto exit;
 
-	// Optionaly check if the object has a local store. This only makes sense for
-	// user objects. 
-	if (lpbHasLocalStore) {
- 		if (g_lpSessionManager->IsDistributedSupported() /* && !IsLocalId(ulUserId) */) {
-            er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &sDetails);
-			if (er != erSuccess)
-				goto exit;
-
-			*lpbHasLocalStore = (stricmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
-		} else 
-			*lpbHasLocalStore = true;
-	}
-
 	*lpulUserId = ulUserId;
 	if (lpsExternId)
 		*lpsExternId = sExternId;
+
+exit:
+	return er;
+}
+
+/**
+ * Check if a user has a store of a particular type on the local server.
+ *
+ * On a single server configuration this function will return true for
+ * all ECSTORE_TYPE_PRIVATE and ECSTORE_TYPE_PUBLIC requests and false otherwise.
+ *
+ * In single tennant mode, requests for ECSTORE_TYPE_PUBLIC will always return true,
+ * regardless of the server on which the public should exist. This is actually wrong
+ * but is the same behaviour as before.
+ *
+ * @param[in]	lpecSession			The ECSession object for the current session.
+ * @param[in]	ulUserId			The user id of the user for which to check if a
+ *									store is available.
+ * @param[in]	ulStoreType			The store type to check for.
+ * @param[out]	lpbHasLocalStore	The boolean that will contain the result on success.
+ *
+ * @retval	ZARAFA_E_INVALID_PARAMETER	One or more parameters are invalid.
+ * @retval	ZARAFA_E_NOT_FOUND			The user specified by ulUserId was not found.
+ */
+ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId, unsigned ulStoreType, bool *lpbHasLocalStore)
+{
+	ECRESULT er = erSuccess;
+	objectdetails_t	sDetails;
+	bool bPrivateOrPublic;
+
+	if (lpecSession == NULL || lpbHasLocalStore == NULL || !ECSTORE_TYPE_ISVALID(ulStoreType)) {
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	bPrivateOrPublic = (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC);
+
+	if (g_lpSessionManager->IsDistributedSupported()) {
+        er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &sDetails);
+		if (er != erSuccess)
+			goto exit;
+
+		if (bPrivateOrPublic) {
+			// @todo: Check if there's a define or constant for everyone.
+			if (ulUserId == 2)	// Everyone, public in single tennant
+				*lpbHasLocalStore = true;
+			else
+				*lpbHasLocalStore = (stricmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
+		} else	// Archive store
+			*lpbHasLocalStore = sDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
+	} else	// Single tennant
+		*lpbHasLocalStore = bPrivateOrPublic;
 
 exit:
 	return er;
@@ -1258,13 +1315,17 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStoreNameResponse *lpsResponse)
 {
 	unsigned int	ulObjId = 0;
-	USE_DATABASE();
+	unsigned int	ulStoreType = 0;
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
 
-	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, &lpsResponse->lpszStoreName);
+	er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
+	if (er != erSuccess)
+		goto exit;
+
+	er = ECGenProps::GetStoreName(soap, lpecSession, ulObjId, ulStoreType, &lpsResponse->lpszStoreName);
 	if(er != erSuccess)
 		goto exit;
 
@@ -1272,51 +1333,22 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStor
 		lpsResponse->lpszStoreName = STROUT_FIX(lpsResponse->lpszStoreName);
 
 exit:
-    FREE_DBRESULT();
+	;
 }
 SOAP_ENTRY_END()
 
-/**
- * getStoreByUser: return the store ID for a specific user
- * FIXME: this is only called when doing zarafa-admin --delete-store <username>. There should be a better way
- * to do this.
- */
-SOAP_ENTRY_START(getStoreByUser, lpsResponse->er, unsigned int ulUserId, entryId sUserId, struct getStoreByUserResponse *lpsResponse)
+SOAP_ENTRY_START(getStoreType, lpsResponse->er, entryId sEntryId, struct getStoreTypeResponse *lpsResponse)
 {
-	bool bHasLocalStore = false;
+	unsigned int	ulObjId = 0;
 
-    USE_DATABASE();
+	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
+	if (er != erSuccess)
+	    goto exit;
 
-    er = GetLocalId(lpecSession, sUserId, ulUserId, &ulUserId, NULL, &bHasLocalStore);
-    if (er != erSuccess)
-    	goto exit;
-
-	if (!bHasLocalStore) {
-		er = ZARAFA_E_NOT_FOUND;
-		goto exit;
-	}
-
-	strQuery = "SELECT id FROM stores WHERE stores.user_id=" + stringify(ulUserId);
-
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) == 0) {
-		er = ZARAFA_E_NOT_FOUND;
-		goto exit;
-	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if( lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = ZARAFA_E_DATABASE_ERROR; // this should never happen
-		goto exit;
-	}
-
-	lpsResponse->ulStoreId = atoui(lpDBRow[0]);
+	er = GetStoreType(lpecSession, ulObjId, &lpsResponse->ulStoreType);
 
 exit:
-    FREE_DBRESULT();
+	;
 }
 SOAP_ENTRY_END()
 
@@ -3299,17 +3331,31 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 		if (!bIsShortTerm) {
 			if (lpecSession->GetSessionManager()->IsDistributedSupported() && !lpecSession->GetUserManagement()->IsInternalObject(ulOwnerId)) {
 				objectdetails_t sUserDetails;
-				std::string strServerName;
 
 				if (lpecSession->GetUserManagement()->GetObjectDetails(ulOwnerId, &sUserDetails) == erSuccess) {
-					strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
-					if (strServerName.empty()) {
-						er = ZARAFA_E_NOT_FOUND;
+					unsigned int ulStoreType;
+					er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
+					if (er != erSuccess)
 						goto exit;
-					}
 
-					if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
-						er = ZARAFA_E_UNABLE_TO_COMPLETE;	// Reason 2
+					if (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC) {
+						std::string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
+						if (strServerName.empty()) {
+							er = ZARAFA_E_NOT_FOUND;
+							goto exit;
+						}
+
+						if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+							er = ZARAFA_E_UNABLE_TO_COMPLETE;	// Reason 2
+							goto exit;
+						}
+					} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+						if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true)) {
+							er = ZARAFA_E_NOT_FOUND;
+							goto exit;
+						}
+					} else {
+						er = ZARAFA_E_NOT_FOUND;
 						goto exit;
 					}
 				} else {
@@ -5432,7 +5478,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 
 	if (lpsUser->sUserId.__size > 0 && lpsUser->sUserId.__ptr != NULL)
 	{
-		er = GetLocalId(NULL, lpsUser->sUserId, lpsUser->ulUserId, &ulUserId, &sExternId, NULL);
+		er = GetLocalId(lpsUser->sUserId, lpsUser->ulUserId, &ulUserId, &sExternId);
 		if (er != erSuccess) 
 			goto exit;
 	}
@@ -5522,7 +5568,7 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId
 	objectdetails_t	details;
 	entryId			sTmpUserId = {0};
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5572,7 +5618,7 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 	std::list<localobjectdetails_t>::iterator iterUsers;
 	entryId		sUserEid = {0};
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5635,7 +5681,7 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 	list<unsigned int>::iterator iterUserIds;
 	entryId sSenderEid = {0};
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5692,11 +5738,11 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
 {
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sSenderId, ulSenderId, &ulSenderId, NULL, NULL);
+	er = GetLocalId(sSenderId, ulSenderId, &ulSenderId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5726,11 +5772,11 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
 {
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sSenderId, ulSenderId, &ulSenderId, NULL, NULL);
+	er = GetLocalId(sSenderId, ulSenderId, &ulSenderId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5821,7 +5867,11 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	memset(&srightsArray, 0 , sizeof(srightsArray));
 
 
-	er = GetLocalId(lpecSession, sUserId, ulUserId, &ulUserId, NULL, &bHasLocalStore);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
+	if (er != erSuccess)
+		goto exit;
+
+	er = CheckUserStore(lpecSession, ulUserId, ulStoreType, &bHasLocalStore);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5831,7 +5881,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		goto exit;
 	}
 
-	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Started to create store (userid=%d)", ulUserId);
+	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Started to create store (userid=%d, type=%d)", ulUserId, ulStoreType);
 
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
@@ -5867,7 +5917,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 		goto exit;
 
 	// Check if there's already a store for the user or group
-	strQuery = "SELECT 0 FROM stores WHERE user_id="+stringify(ulUserId)+" OR guid="+lpDatabase->EscapeBinary((unsigned char*)&guidStore , sizeof(GUID));
+	strQuery = "SELECT 0 FROM stores WHERE (type="+stringify(ulStoreType)+" AND user_id="+stringify(ulUserId)+") OR guid="+lpDatabase->EscapeBinary((unsigned char*)&guidStore , sizeof(GUID));
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -5954,9 +6004,10 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
     }
 
 	// Couple store with user
-	strQuery = "INSERT INTO stores(hierarchy_id, user_id, user_name, company, guid) VALUES(" +
+	strQuery = "INSERT INTO stores(hierarchy_id, user_id, type, user_name, company, guid) VALUES(" +
 		stringify(ulStoreId) + ", " +
 		stringify(ulUserId) + ", " +
+		stringify(ulStoreType) + ", " +
 		"'" + lpDatabase->Escape(userDetails.GetPropString(OB_PROP_S_LOGIN)) + "', " +
 		stringify(ulCompanyId) + ", " +
 		lpDatabase->EscapeBinary((unsigned char*)&guidStore , sizeof(GUID))+")";
@@ -5987,7 +6038,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 	if (er != erSuccess)
 		goto exit;
 
-	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Finished create store (userid=%d, storeid=%d)", ulUserId, ulStoreId);
+	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Finished create store (userid=%d, storeid=%d, type=%d)", ulUserId, ulStoreId, ulStoreType);
 
 exit:
 	if(er == ZARAFA_E_NO_ACCESS)
@@ -6066,7 +6117,7 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 
 	if (lpsGroup->sGroupId.__size > 0 && lpsGroup->sGroupId.__ptr != NULL)
 	{
-		er = GetLocalId(NULL, lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId, NULL);
+		er = GetLocalId(lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId);
 		if (er != erSuccess) 
 			goto exit;
 	}
@@ -6102,7 +6153,7 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGro
 	objectdetails_t details;
 	entryId			sTmpGroupId = {0};
 
-	er = GetLocalId(NULL, sGroupId, ulGroupId, &ulGroupId, NULL, NULL);
+	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6146,7 +6197,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 
 	entryId	sGroupEid = {0};
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6198,7 +6249,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(groupDelete, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int *result)
 {
-	er = GetLocalId(NULL, sGroupId, ulGroupId, &ulGroupId, NULL, NULL);
+	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6274,7 +6325,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result)
 {
-	er = GetLocalId(NULL, sGroupId, ulGroupId, &ulGroupId, NULL, NULL);
+	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6283,7 +6334,7 @@ SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId, entryId sGrou
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6296,7 +6347,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(addGroupUser, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result)
 {
-	er = GetLocalId(NULL, sGroupId, ulGroupId, &ulGroupId, NULL, NULL);
+	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6305,7 +6356,7 @@ SOAP_ENTRY_START(addGroupUser, *result, unsigned int ulGroupId, entryId sGroupId
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6325,7 +6376,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 	std::list<std::list<localobjectdetails_t> *>::iterator iterSources;
 	entryId		sUserEid = {0};
 
-	er = GetLocalId(NULL, sGroupId, ulGroupId, &ulGroupId, NULL, NULL);
+	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6381,7 +6432,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 
 	entryId sGroupEid = {0};
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6484,7 +6535,7 @@ SOAP_ENTRY_START(deleteCompany, *result, unsigned int ulCompanyId, entryId sComp
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6520,14 +6571,14 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 
 	if (lpsCompany->sCompanyId.__size > 0 && lpsCompany->sCompanyId.__ptr != NULL)
 	{
-		er = GetLocalId(NULL, lpsCompany->sCompanyId, lpsCompany->ulCompanyId, &ulCompanyId, &sExternId, NULL);
+		er = GetLocalId(lpsCompany->sCompanyId, lpsCompany->ulCompanyId, &ulCompanyId, &sExternId);
 		if (er != erSuccess) 
 			goto exit;
 	}
 	else
 		ulCompanyId = lpsCompany->ulCompanyId;
 
-	er = GetLocalId(NULL, lpsCompany->sAdministrator, lpsCompany->ulAdministrator, &ulAdministrator, NULL, NULL);
+	er = GetLocalId(lpsCompany->sAdministrator, lpsCompany->ulAdministrator, &ulAdministrator, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6567,7 +6618,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6717,7 +6768,7 @@ SOAP_ENTRY_START(addCompanyToRemoteViewList, *result, unsigned int ulSetCompanyI
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6726,7 +6777,7 @@ SOAP_ENTRY_START(addCompanyToRemoteViewList, *result, unsigned int ulSetCompanyI
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL, NULL);
+	er = GetLocalId(sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6746,7 +6797,7 @@ SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result, unsigned int ulSetCompan
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6755,7 +6806,7 @@ SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result, unsigned int ulSetCompan
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL, NULL);
+	er = GetLocalId(sSetCompanyId, ulSetCompanyId, &ulSetCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6782,7 +6833,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6849,7 +6900,7 @@ SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId, entry
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6858,7 +6909,7 @@ SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId, entry
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6878,7 +6929,7 @@ SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId, ent
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6887,7 +6938,7 @@ SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId, ent
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6911,7 +6962,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sCompanyId, ulCompanyId, &ulCompanyId, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -7383,7 +7434,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 		"FROM stores AS s "
 		"LEFT JOIN users AS u "
 			"ON s.user_id = u.id "
-		"WHERE s.guid=" + strStoreGuid;
+		"WHERE s.guid=" + strStoreGuid ;
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
@@ -7432,7 +7483,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse)
+SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse)
 {
 	unsigned int		ulObjectId = 0;
 	objectdetails_t		sUserDetails;
@@ -7474,32 +7525,48 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 	if (lpecSession->GetSessionManager()->IsDistributedSupported() && 
 		!lpecSession->GetUserManagement()->IsInternalObject(ulObjectId)) 
 	{
-		/* Check if this is the correct server for its store */
-		string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
-		if (strServerName.empty()) {
+		if (ulStoreTypeMask & (ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC)) {
+			/* Check if this is the correct server for its store */
+			string strServerName = sUserDetails.GetPropString(OB_PROP_S_SERVERNAME);
+			if (strServerName.empty()) {
+				er = ZARAFA_E_NOT_FOUND;
+				goto exit;
+			}
+
+			if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
+					string	strServerPath;
+
+					er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
+					if (er != erSuccess)
+						goto exit;
+
+					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
+					g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Redirecting request to '%s'", lpsResponse->lpszServerPath);
+					g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
+					er = ZARAFA_E_UNABLE_TO_COMPLETE;
+					goto exit;
+				} else
+					bCreateShortTerm = true;
+			}
+		}
+
+		else if (ulStoreTypeMask & ECSTORE_TYPE_MASK_ARCHIVE) {
+			if (!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false)) {
+				// No redirect with archive stores because there can be multiple archive stores.
+				er = ZARAFA_E_NOT_FOUND;
+				goto exit;
+			}
+		}
+
+		else {
+			ASSERT(FALSE);
 			er = ZARAFA_E_NOT_FOUND;
 			goto exit;
 		}
-
-		if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
-			if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-				string	strServerPath;
-
-				er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
-				if (er != erSuccess)
-					goto exit;
-
-				lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
-				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Redirecting request to '%s'", lpsResponse->lpszServerPath);
-				g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
-				er = ZARAFA_E_UNABLE_TO_COMPLETE;
-				goto exit;
-			} else
-				bCreateShortTerm = true;
-		}
 	}
 
-    strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId);
+	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask);
     if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
     	er = ZARAFA_E_DATABASE_ERROR;
     	goto exit;
@@ -8911,7 +8978,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(deleteUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int *result)
 {
-	er = GetLocalId(NULL, sUserId, ulUserId, &ulUserId, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -8929,7 +8996,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(unhookStore, *result, entryId sUserId, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
@@ -8942,7 +9009,7 @@ SOAP_ENTRY_START(unhookStore, *result, entryId sUserId, unsigned int ulSyncId, u
 	if(er != erSuccess)
 		goto exit;
 
-	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || OBJECTCLASS_TYPE(sExternId.objclass) != OBJECTTYPE_MAILUSER)
+	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || OBJECTCLASS_TYPE(sExternId.objclass) != OBJECTTYPE_MAILUSER || !ECSTORE_TYPE_ISVALID(ulStoreType))
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
@@ -8954,7 +9021,7 @@ SOAP_ENTRY_START(unhookStore, *result, entryId sUserId, unsigned int ulSyncId, u
 	if (er != erSuccess)
 		goto exit;
 
-	strQuery = "UPDATE stores SET user_id=0 WHERE user_id=" + stringify(ulUserId);
+	strQuery = "UPDATE stores SET user_id=0 WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
 		goto exit;
@@ -8979,7 +9046,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
@@ -9012,8 +9079,8 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		}
 	}
 
-	// check if store currently is owned
-	strQuery = "SELECT users.id, stores.id, stores.user_id, stores.hierarchy_id FROM stores LEFT JOIN users ON stores.user_id = users.id WHERE guid = ";
+	// check if store currently is owned and the correct type
+	strQuery = "SELECT users.id, stores.id, stores.user_id, stores.hierarchy_id, stores.type FROM stores LEFT JOIN users ON stores.user_id = users.id WHERE guid = ";
 	strQuery += lpDatabase->EscapeBinary(sStoreGuid.__ptr, sStoreGuid.__size);
 	
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -9028,9 +9095,20 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		goto exit;
 	}
 
+	if (lpDBRow[4] == NULL) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+
 	if (lpDBRow[0]) {
 		// this store already belongs to a user
 		er = ZARAFA_E_COLLISION;
+		goto exit;
+	}
+
+	if (atoi(lpDBRow[4]) != ulStoreType) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Requested store type is %u, actual store type is %s", ulStoreType, lpDBRow[4]);
+		er = ZARAFA_E_INVALID_TYPE;
 		goto exit;
 	}
 
@@ -9044,7 +9122,7 @@ SOAP_ENTRY_START(hookStore, *result, entryId sUserId, struct xsd__base64Binary s
 		goto exit;
 
 	// remove previous user of store
-	strQuery = "UPDATE stores SET user_id = " + string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId);
+	strQuery = "UPDATE stores SET user_id = " + string(lpDBRow[2]) + " WHERE user_id = " + stringify(ulUserId) + " AND type = " + stringify(ulStoreType);
 
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
@@ -9317,7 +9395,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 		PR_SMTP_ADDRESS, PR_TRANSMITABLE_DISPLAY_NAME, PR_EMS_AB_HOME_MDB, PR_EMS_AB_HOME_MTA, PR_EMS_AB_PROXY_ADDRESSES,
 		PR_EC_ADMINISTRATOR, PR_EC_NONACTIVE, PR_EC_COMPANY_NAME, PR_EMS_AB_X509_CERT, PR_AB_PROVIDER_ID, PR_EMS_AB_HIERARCHY_PATH,
 		PR_EC_SENDAS_USER_ENTRYIDS, PR_EC_HOMESERVER_NAME, PR_DISPLAY_TYPE_EX, CHANGE_PROP_TYPE(PR_EMS_AB_IS_MEMBER_OF_DL, PT_MV_BINARY),
-		PR_EC_ENABLED_FEATURES, PR_EC_DISABLED_FEATURES, PR_EMS_AB_ROOM_CAPACITY, PR_EMS_AB_ROOM_DESCRIPTION
+		PR_EC_ENABLED_FEATURES, PR_EC_DISABLED_FEATURES, PR_EMS_AB_ROOM_CAPACITY, PR_EMS_AB_ROOM_DESCRIPTION, PR_EC_ARCHIVE_SERVERS, PR_EC_ARCHIVE_COUPLINGS
 	};
 
 	unsigned int sPropsContainerRoot[] = {
@@ -9641,7 +9719,7 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 {
 	quotadetails_t	quotadetails;
 
-	er = GetLocalId(NULL, sUserId, ulUserid, &ulUserid, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserid, &ulUserid, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9672,7 +9750,7 @@ SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid, entryId sUserId, stru
 {
 	quotadetails_t	quotadetails;
 
-	er = GetLocalId(NULL, sUserId, ulUserid, &ulUserid, NULL, NULL);
+	er = GetLocalId(sUserId, ulUserid, &ulUserid, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9699,7 +9777,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
 {
-	er = GetLocalId(NULL, sCompanyId, ulCompanyid, &ulCompanyid, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9708,7 +9786,7 @@ SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid, entryId s
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sRecipientId, ulRecipientId, &ulRecipientId, NULL, NULL);
+	er = GetLocalId(sRecipientId, ulRecipientId, &ulRecipientId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9726,7 +9804,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
 {
-	er = GetLocalId(NULL, sCompanyId, ulCompanyid, &ulCompanyid, NULL, NULL);
+	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9735,7 +9813,7 @@ SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid, entryI
 		goto exit;
 	}
 
-	er = GetLocalId(NULL, sRecipientId, ulRecipientId, &ulRecipientId, NULL, NULL);
+	er = GetLocalId(sRecipientId, ulRecipientId, &ulRecipientId, NULL);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9762,7 +9840,11 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	bool bHasLocalStore = false;
 	entryId		sUserEid = {0};
 
-	er = GetLocalId(lpecSession, sUserId, ulUserid, &ulUserid, &sExternId, &bHasLocalStore);
+	er = GetLocalId(sUserId, ulUserid, &ulUserid, &sExternId);
+	if (er != erSuccess)
+		goto exit;
+
+	er = CheckUserStore(lpecSession, ulUserid, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
 	if (er != erSuccess)
 		goto exit;
 
@@ -9890,7 +9972,11 @@ SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entr
 	//Set defaults
 	lpsQuotaStatus->llStoreSize = 0;
 
-	er = GetLocalId(lpecSession, sUserId, ulUserid, &ulUserid, &sExternId, &bHasLocalStore);
+	er = GetLocalId(sUserId, ulUserid, &ulUserid, &sExternId);
+	if (er != erSuccess)
+		goto exit;
+
+	er = CheckUserStore(lpecSession, ulUserid, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
 	if (er != erSuccess)
 		goto exit;
 

@@ -52,6 +52,7 @@
 
 #include "archiver-session_fwd.h"
 #include "archiver-common.h"
+#include "tstring.h"
 
 #include <mapix.h>
 #include <mapi_ptr.h>
@@ -74,19 +75,22 @@ public:
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, SessionPtr *lpptrSession);
 	~Session();
 	
-	HRESULT OpenStoreByName(const std::string &strUser, LPMDB *lppMsgStore);
+	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
 	HRESULT OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore);
 	HRESULT OpenStore(const entryid_t &sEntryId, LPMDB *lppMsgStore);
 	HRESULT OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lppMsgStore);
-	HRESULT GetUserInfo(const std::string &strUser, entryid_t *lpsEntryId, std::string *lpstrFullname);
-	HRESULT GetUserInfo(const entryid_t &sEntryId, std::string *lpstrUser, std::string *lpstrFullname);
+	HRESULT GetUserInfo(const tstring &strUser, entryid_t *lpsEntryId, tstring *lpstrFullname);
+	HRESULT GetUserInfo(const entryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname);
 	HRESULT GetGAL(LPABCONT *lppAbContainer);
-	HRESULT CompareStoreIds(MsgStorePtr ptrUserStore, MsgStorePtr ptrArchiveStore, bool *lpbResult);
+	HRESULT CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult);
 	HRESULT ServerIsLocal(const std::string &strServername, bool *lpbResult);
 	
 	HRESULT CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, SessionPtr *lpptrSession);
 
 	HRESULT OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp);
+
+	HRESULT OpenOrCreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
+	HRESULT GetArchiveStoreEntryId(const tstring& strUserName, const tstring& strServerName, entryid_t *lpArchiveId);
 
 	IMAPISession *GetMAPISession();
 	const char *GetSSLPath() const;
@@ -97,7 +101,9 @@ private:
 	HRESULT Init(ECConfig *lpConfig);
 	HRESULT Init(const char *lpszServerPath, const char *lpszSslPath, const char *lpszSslPass);
 	HRESULT Init(const MAPISessionPtr &ptrSession);
-	
+
+	HRESULT CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
+
 private:
 	MAPISessionPtr	m_ptrSession;
 	MsgStorePtr		m_ptrAdminStore;

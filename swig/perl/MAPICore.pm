@@ -1176,7 +1176,6 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *CreateStore = *MAPICorec::IECServiceAdmin_CreateStore;
 *CreateEmptyStore = *MAPICorec::IECServiceAdmin_CreateEmptyStore;
 *ResolveStore = *MAPICorec::IECServiceAdmin_ResolveStore;
-*GetStore = *MAPICorec::IECServiceAdmin_GetStore;
 *HookStore = *MAPICorec::IECServiceAdmin_HookStore;
 *UnhookStore = *MAPICorec::IECServiceAdmin_UnhookStore;
 *RemoveStore = *MAPICorec::IECServiceAdmin_RemoveStore;
@@ -1224,6 +1223,7 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *GetServerDetails = *MAPICorec::IECServiceAdmin_GetServerDetails;
 *ResolvePseudoUrl = *MAPICorec::IECServiceAdmin_ResolvePseudoUrl;
 *GetPublicStoreEntryID = *MAPICorec::IECServiceAdmin_GetPublicStoreEntryID;
+*GetArchiveStoreEntryID = *MAPICorec::IECServiceAdmin_GetArchiveStoreEntryID;
 sub DESTROY {
     return unless $_[0]->isa('HASH');
     my $self = tied(%{$_[0]});
@@ -2061,6 +2061,7 @@ sub SYNC_W_PROGRESS () { $MAPICorec::SYNC_W_PROGRESS }
 sub SYNC_W_CLIENT_CHANGE_NEWER () { $MAPICorec::SYNC_W_CLIENT_CHANGE_NEWER }
 sub ECSTORE_TYPE_PRIVATE () { $MAPICorec::ECSTORE_TYPE_PRIVATE }
 sub ECSTORE_TYPE_PUBLIC () { $MAPICorec::ECSTORE_TYPE_PUBLIC }
+sub ECSTORE_TYPE_ARCHIVE () { $MAPICorec::ECSTORE_TYPE_ARCHIVE }
 sub MAPI_ORIG () { $MAPICorec::MAPI_ORIG }
 sub MAPI_TO () { $MAPICorec::MAPI_TO }
 sub MAPI_CC () { $MAPICorec::MAPI_CC }

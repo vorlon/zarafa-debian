@@ -48,6 +48,7 @@
  */
 
 //gsoap ns service name:	ZarafaCmd
+//gsoap ns service name:	ZarafaCmd
 //gsoap ns service style:	rpc
 //gsoap ns service encoding:	encoded
 //gsoap ns service location:	http://localhost:236/zarafa
@@ -207,6 +208,11 @@ struct getStoreResponse {
 
 struct getStoreNameResponse {
 	char			*lpszStoreName;
+	unsigned int	er;
+};
+
+struct getStoreTypeResponse {
+	unsigned int	ulStoreType;
 	unsigned int	er;
 };
 
@@ -715,12 +721,6 @@ struct setCompanyResponse {
 	unsigned int er;
 };
 
-struct getStoreByUserResponse {
-	//entryId	sStoreId;
-	unsigned int	ulStoreId;
-	unsigned int	er;
-};
-
 struct resolveUserStoreResponse {
 	unsigned int ulUserId;
 	entryId	sUserId;
@@ -980,6 +980,7 @@ int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, struct xsd__base64Binary
 
 int ns__getStore(ULONG64 ulSessionId, entryId* lpsEntryId, struct getStoreResponse *lpsResponse);
 int ns__getStoreName(ULONG64 ulSessionId, entryId sEntryId, struct getStoreNameResponse* lpsResponse);
+int ns__getStoreType(ULONG64 ulSessionId, entryId sEntryId, struct getStoreTypeResponse* lpsResponse);
 int ns__getPublicStore(ULONG64 ulSessionId, unsigned int ulFlags, struct getStoreResponse *lpsResponse);
 int ns__logoff(ULONG64 ulSessionId, unsigned int *result);
 
@@ -1044,7 +1045,7 @@ int ns__isMessageInQueue(ULONG64 ulSessionId, entryId sEntryId, unsigned int *re
 
 // Get user ID / store for username (username == NULL for current user)
 int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse);
-int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse);
+int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse);
 
 // Actual user creation/deletion in the external user source
 int ns__createUser(ULONG64 ulSessionId, struct user *lpsUser, struct setUserResponse *lpsUserSetResponse);
@@ -1073,11 +1074,10 @@ int ns__deleteStore(ULONG64 ulSessionId, unsigned int ulStoreId, unsigned int ul
 // Mark store deleted for softdelete to purge from database
 int ns__removeStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
 // Hook a store to a specified user (overrides previous hooked store)
-int ns__hookStore(ULONG64 ulSessionId, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
+int ns__hookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result);
 // Unhook a store from a specific user
-int ns__unhookStore(ULONG64 ulSessionId, entryId sUserId, unsigned int ulSyncId, unsigned int *result);
+int ns__unhookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result);
 
-int ns__getStoreByUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct getStoreByUserResponse *lpsResponse);
 int ns__getOwner(ULONG64 ulSessionId, entryId sEntryId, struct getOwnerResponse *lpsResponse);
 int ns__resolveUsername(ULONG64 ulSessionId,  char *lpszUsername, struct resolveUserResponse *lpsResponse);
 

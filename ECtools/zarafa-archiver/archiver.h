@@ -54,6 +54,8 @@
 #include <list>
 #include <string>
 
+#include "platform.h"
+
 #ifdef ARCHIVER_EXTRA
 #include <mapix.h>
 #endif
@@ -77,10 +79,10 @@ public:
 
 	virtual ~ArchiveControl() {};
 
-	virtual eResult ArchiveAll(bool bLocalOnly) = 0;
-	virtual eResult Archive(const char *lpszUser) = 0;
+	virtual eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach) = 0;
+	virtual eResult Archive(const TCHAR *lpszUser, bool bAutoAttach) = 0;
 	virtual eResult CleanupAll(bool bLocalOnly) = 0;
-	virtual eResult Cleanup(const char *lpszUser) = 0;
+	virtual eResult Cleanup(const TCHAR *lpszUser) = 0;
 
 protected:
 	ArchiveControl() {};
@@ -116,13 +118,14 @@ public:
 
 	virtual ~ArchiveManage() {};
 
-	virtual eResult AttachTo(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder, unsigned int ulFlags) = 0;
-	virtual eResult DetachFrom(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder) = 0;
+	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
+	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
 	virtual eResult DetachFrom(unsigned int ulArchive) = 0;
 	virtual eResult ListArchives(std::ostream &ostr) = 0;
 	virtual eResult ListArchives(ArchiveList *lplstArchives, const char *lpszIpmSubtreeSubstitude = NULL) = 0;
 	virtual eResult ListAttachedUsers(std::ostream &ostr) = 0;
 	virtual eResult ListAttachedUsers(UserList *lplstUsers) = 0;
+	virtual eResult AutoAttach() = 0;
 
 protected:
 	ArchiveManage() {};
@@ -150,7 +153,7 @@ public:
 	static const configsetting_t* ARCHIVER_API GetConfigDefaults();
 	static eResult ARCHIVER_API Create(auto_ptr_type *lpptrArchiver);
 #ifdef ARCHIVER_EXTRA
-	static HRESULT ARCHIVER_API CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const char *lpszUser, ArchiveManagePtr *lpptrManage);
+	static HRESULT ARCHIVER_API CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
 #endif
 
 	virtual ~Archiver() {};
@@ -158,7 +161,8 @@ public:
 	virtual eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings = NULL, unsigned int ulFlags = 0) = 0;
 
 	virtual eResult GetControl(ArchiveControlPtr *lpptrControl) = 0;
-	virtual eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage) = 0;
+	virtual eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage) = 0;
+	virtual eResult AutoAttach() = 0;
 
 	virtual ECConfig* GetConfig() const = 0;
 	virtual ECLogger* GetLogger() const = 0;

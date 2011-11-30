@@ -11112,6 +11112,22 @@
 			  <replaceable>username</replaceable> <option>-l</option></para>
 			</listitem>
 		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--auto-attach</option>
+			</term>
+			<listitem>
+			  <para>When no user is specified with -u, all users
+			  will have their archives attached or detached
+			  based on the LDAP/ADS settings. If a user is
+			  specified only that user's store will be processed.
+			  This option can be combined with <parameter>-A</parameter> to
+			  force an auto-attach run regardless of the
+			  <parameter>enable_auto_attach</parameter> configuration option.
+			  </para>
+			</listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
@@ -11497,6 +11513,17 @@
 			  'Deleted' folder or delete the archived messages respectively.
 			  </para>
 			  <para>Default: <replaceable>store</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
+			<term><option>enable_auto_attach</option></term>
+			<listitem>
+			  <para> Specify whether on each archive run an auto-attach run
+			  is performed in order to match the attached archives to the
+			  requested state as specified in LDAP or ADS.
+			  </para>
+			  <para>Default: <replaceable>no</replaceable></para>
 			</listitem>
 		  </varlistentry>
 		  

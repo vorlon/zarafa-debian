@@ -2369,3 +2369,32 @@ ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase)
 
 	return er;
 }
+
+// 61
+ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase)
+{
+	ECRESULT er = erSuccess;
+	std::string strQuery;
+
+	strQuery = "ALTER TABLE stores "
+					"DROP PRIMARY KEY, "
+					"DROP KEY `user_hierarchy_id`, "
+					"ADD COLUMN `type` smallint(6) unsigned NOT NULL default '0', "
+					"ADD PRIMARY KEY (`user_id`, `hierarchy_id`, `type`), "
+					"ADD UNIQUE KEY `id` (`id`)";
+	er = lpDatabase->DoUpdate(strQuery);
+
+	return er;
+}
+
+// 62
+ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase)
+{
+	ECRESULT er = erSuccess;
+	std::string strQuery;
+	
+	strQuery = "UPDATE stores SET type="+stringify(ECSTORE_TYPE_PUBLIC)+" WHERE user_id=1 OR user_id IN (SELECT id FROM users where objectclass="+stringify(CONTAINER_COMPANY)+")";
+	er = lpDatabase->DoUpdate(strQuery);
+
+	return er;
+}

@@ -2608,6 +2608,8 @@ namespace swig {
 
 
 	#include "../../ECtools/zarafa-archiver/archiver.h"
+	#include "../../common/charset/convert.h"
+	#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
 
 	class ArchiverError : public std::runtime_error {
 	public:
@@ -2755,10 +2757,10 @@ SWIG_AsVal_bool (PyObject *obj, bool *val)
   return SWIG_OK;
 }
 
-SWIGINTERN void ArchiveControl_ArchiveAll(ArchiveControl *self,bool bLocalOnly){
+SWIGINTERN void ArchiveControl_ArchiveAll__SWIG_0(ArchiveControl *self,bool bLocalOnly,bool bAutoAttach=false){
 			eResult e = Success;
 
-			e = self->ArchiveAll(bLocalOnly);
+			e = self->ArchiveAll(bLocalOnly, bAutoAttach);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -2830,10 +2832,11 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
-SWIGINTERN void ArchiveControl_Archive(ArchiveControl *self,char const *lpszUser){
+SWIGINTERN void ArchiveControl_Archive__SWIG_0(ArchiveControl *self,char const *lpszUser,bool bAutoAttach=false){
 			eResult e = Success;
+			convert_context converter;
 
-			e = self->Archive(lpszUser);
+			e = self->Archive(TO_LPTST(lpszUser), bAutoAttach);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -2846,8 +2849,9 @@ SWIGINTERN void ArchiveControl_CleanupAll(ArchiveControl *self,bool bLocalOnly){
 		}
 SWIGINTERN void ArchiveControl_Cleanup(ArchiveControl *self,char const *lpszUser){
 			eResult e = Success;
+			convert_context converter;
 
-			e = self->Cleanup(lpszUser);
+			e = self->Cleanup(TO_LPTST(lpszUser));
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -2948,15 +2952,17 @@ SWIG_From_int  (int value)
 
 SWIGINTERN void ArchiveManage_AttachTo(ArchiveManage *self,char const *lpszArchiveServer,char const *lpszArchive,char const *lpszFolder,unsigned int ulFlags){
 			eResult e = Success;
+			convert_context converter;
 
-			e = self->AttachTo(lpszArchiveServer, lpszArchive, lpszFolder, ulFlags);
+			e = self->AttachTo(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder), ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
 SWIGINTERN void ArchiveManage_DetachFrom__SWIG_0(ArchiveManage *self,char const *lpszArchiveServer,char const *lpszArchive,char const *lpszFolder){
 			eResult e = Success;
+			convert_context converter;
 
-			e = self->DetachFrom(lpszArchiveServer, lpszArchive, lpszFolder);
+			e = self->DetachFrom(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder));
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -2987,6 +2993,13 @@ SWIGINTERN UserList ArchiveManage_ListAttachedUsers(ArchiveManage *self){
 
 			return lst;
 		}
+SWIGINTERN void ArchiveManage_AutoAttach(ArchiveManage *self){
+			eResult e = Success;
+
+			e = self->AutoAttach();
+			if (e != Success)
+				throw ArchiverError(e, "Method returned an error!");
+		}
 SWIGINTERN Archiver *Archiver_Create__SWIG_0(char const *lpszAppName,char const *lpszConfig,unsigned int ulFlags=0){
 			eResult r = Success;
 			ArchiverPtr ptr;
@@ -3014,17 +3027,77 @@ SWIGINTERN ArchiveControl *Archiver_GetControl(Archiver *self){
 SWIGINTERN ArchiveManage *Archiver_GetManage(Archiver *self,char const *lpszUser){
 			eResult r = Success;
 			ArchiveManagePtr ptr;
+			convert_context converter;
 
-			r = self->GetManage(lpszUser, &ptr);
+			r = self->GetManage(TO_LPTST(lpszUser), &ptr);
 			if (r != Success)
 				throw ArchiverError(r, "Failed to get object!");
 
 			return ptr.release();
 		}
+SWIGINTERN void Archiver_AutoAttach(Archiver *self){
+			eResult e = Success;
+
+			e = self->AutoAttach();
+			if (e != Success)
+				throw ArchiverError(e, "Method returned an error!");
+		}
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_ArchiveControl_ArchiveAll(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ArchiveControl_ArchiveAll__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ArchiveControl *arg1 = (ArchiveControl *) 0 ;
+  bool arg2 ;
+  bool arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  bool val2 ;
+  int ecode2 = 0 ;
+  bool val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:ArchiveControl_ArchiveAll",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ArchiveControl, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ArchiveControl_ArchiveAll" "', argument " "1"" of type '" "ArchiveControl *""'"); 
+  }
+  arg1 = reinterpret_cast< ArchiveControl * >(argp1);
+  ecode2 = SWIG_AsVal_bool(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ArchiveControl_ArchiveAll" "', argument " "2"" of type '" "bool""'");
+  } 
+  arg2 = static_cast< bool >(val2);
+  ecode3 = SWIG_AsVal_bool(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ArchiveControl_ArchiveAll" "', argument " "3"" of type '" "bool""'");
+  } 
+  arg3 = static_cast< bool >(val3);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        ArchiveControl_ArchiveAll__SWIG_0(arg1,arg2,arg3);
+      } catch (const ArchiverError &ae) {
+        SWIG_exception(SWIG_RuntimeError, ae.what());
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ArchiveControl_ArchiveAll__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ArchiveControl *arg1 = (ArchiveControl *) 0 ;
   bool arg2 ;
@@ -3051,7 +3124,7 @@ SWIGINTERN PyObject *_wrap_ArchiveControl_ArchiveAll(PyObject *SWIGUNUSEDPARM(se
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
       try {
-        ArchiveControl_ArchiveAll(arg1,arg2);
+        ArchiveControl_ArchiveAll__SWIG_0(arg1,arg2);
       } catch (const ArchiverError &ae) {
         SWIG_exception(SWIG_RuntimeError, ae.what());
       }
@@ -3067,7 +3140,122 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ArchiveControl_Archive(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ArchiveControl_ArchiveAll(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[4];
+  int ii;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 3); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ArchiveControl, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_bool(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        SWIG_PYTHON_THREAD_END_BLOCK;
+        return _wrap_ArchiveControl_ArchiveAll__SWIG_1(self, args);
+      }
+    }
+  }
+  if (argc == 3) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ArchiveControl, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_bool(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_bool(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          SWIG_PYTHON_THREAD_END_BLOCK;
+          return _wrap_ArchiveControl_ArchiveAll__SWIG_0(self, args);
+        }
+      }
+    }
+  }
+  
+  SWIG_PYTHON_THREAD_END_BLOCK;
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'ArchiveControl_ArchiveAll'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    ArchiveAll(ArchiveControl *,bool,bool)\n"
+    "    ArchiveAll(ArchiveControl *,bool)\n");
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ArchiveControl_Archive__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ArchiveControl *arg1 = (ArchiveControl *) 0 ;
+  char *arg2 = (char *) 0 ;
+  bool arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  bool val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:ArchiveControl_Archive",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ArchiveControl, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ArchiveControl_Archive" "', argument " "1"" of type '" "ArchiveControl *""'"); 
+  }
+  arg1 = reinterpret_cast< ArchiveControl * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ArchiveControl_Archive" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  ecode3 = SWIG_AsVal_bool(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ArchiveControl_Archive" "', argument " "3"" of type '" "bool""'");
+  } 
+  arg3 = static_cast< bool >(val3);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        ArchiveControl_Archive__SWIG_0(arg1,(char const *)arg2,arg3);
+      } catch (const ArchiverError &ae) {
+        SWIG_exception(SWIG_RuntimeError, ae.what());
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ArchiveControl_Archive__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ArchiveControl *arg1 = (ArchiveControl *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -3095,7 +3283,7 @@ SWIGINTERN PyObject *_wrap_ArchiveControl_Archive(PyObject *SWIGUNUSEDPARM(self)
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
       try {
-        ArchiveControl_Archive(arg1,(char const *)arg2);
+        ArchiveControl_Archive__SWIG_0(arg1,(char const *)arg2);
       } catch (const ArchiverError &ae) {
         SWIG_exception(SWIG_RuntimeError, ae.what());
       }
@@ -3109,6 +3297,62 @@ SWIGINTERN PyObject *_wrap_ArchiveControl_Archive(PyObject *SWIGUNUSEDPARM(self)
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ArchiveControl_Archive(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[4];
+  int ii;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 3); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ArchiveControl, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        SWIG_PYTHON_THREAD_END_BLOCK;
+        return _wrap_ArchiveControl_Archive__SWIG_1(self, args);
+      }
+    }
+  }
+  if (argc == 3) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ArchiveControl, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        {
+          int res = SWIG_AsVal_bool(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          SWIG_PYTHON_THREAD_END_BLOCK;
+          return _wrap_ArchiveControl_Archive__SWIG_0(self, args);
+        }
+      }
+    }
+  }
+  
+  SWIG_PYTHON_THREAD_END_BLOCK;
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'ArchiveControl_Archive'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    Archive(ArchiveControl *,char const *,bool)\n"
+    "    Archive(ArchiveControl *,char const *)\n");
   return NULL;
 }
 
@@ -4160,6 +4404,40 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_ArchiveManage_AutoAttach(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ArchiveManage *arg1 = (ArchiveManage *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ArchiveManage_AutoAttach",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ArchiveManage, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ArchiveManage_AutoAttach" "', argument " "1"" of type '" "ArchiveManage *""'"); 
+  }
+  arg1 = reinterpret_cast< ArchiveManage * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        ArchiveManage_AutoAttach(arg1);
+      } catch (const ArchiverError &ae) {
+        SWIG_exception(SWIG_RuntimeError, ae.what());
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_delete_ArchiveManage(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ArchiveManage *arg1 = (ArchiveManage *) 0 ;
@@ -4446,6 +4724,40 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Archiver_AutoAttach(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Archiver *arg1 = (Archiver *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:Archiver_AutoAttach",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Archiver, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Archiver_AutoAttach" "', argument " "1"" of type '" "Archiver *""'"); 
+  }
+  arg1 = reinterpret_cast< Archiver * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        Archiver_AutoAttach(arg1);
+      } catch (const ArchiverError &ae) {
+        SWIG_exception(SWIG_RuntimeError, ae.what());
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_delete_Archiver(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   Archiver *arg1 = (Archiver *) 0 ;
@@ -4514,11 +4826,13 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ArchiveManage_DetachFrom", _wrap_ArchiveManage_DetachFrom, METH_VARARGS, NULL},
 	 { (char *)"ArchiveManage_ListArchives", _wrap_ArchiveManage_ListArchives, METH_VARARGS, NULL},
 	 { (char *)"ArchiveManage_ListAttachedUsers", _wrap_ArchiveManage_ListAttachedUsers, METH_VARARGS, NULL},
+	 { (char *)"ArchiveManage_AutoAttach", _wrap_ArchiveManage_AutoAttach, METH_VARARGS, NULL},
 	 { (char *)"delete_ArchiveManage", _wrap_delete_ArchiveManage, METH_VARARGS, NULL},
 	 { (char *)"ArchiveManage_swigregister", ArchiveManage_swigregister, METH_VARARGS, NULL},
 	 { (char *)"Archiver_Create", _wrap_Archiver_Create, METH_VARARGS, NULL},
 	 { (char *)"Archiver_GetControl", _wrap_Archiver_GetControl, METH_VARARGS, NULL},
 	 { (char *)"Archiver_GetManage", _wrap_Archiver_GetManage, METH_VARARGS, NULL},
+	 { (char *)"Archiver_AutoAttach", _wrap_Archiver_AutoAttach, METH_VARARGS, NULL},
 	 { (char *)"delete_Archiver", _wrap_delete_Archiver, METH_VARARGS, NULL},
 	 { (char *)"Archiver_swigregister", Archiver_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }

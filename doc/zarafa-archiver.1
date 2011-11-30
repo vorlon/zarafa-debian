@@ -77,6 +77,15 @@ option\&. The archive to detach is indicated by archiveno and can be obtained by
 \fIusername\fR
 \fB\-l\fR
 .RE
+.PP
+\fB\-\-auto\-attach\fR
+.RS 4
+When no user is specified with \-u, all users will have their archives attached or detached based on the LDAP/ADS settings\&. If a user is specified only that user\'s store will be processed\&. This option can be combined with
+\fI\-A\fR
+to force an auto\-attach run regardless of the
+\fIenable_auto_attach\fR
+configuration option\&.
+.RE
 .SH "OPTIONS"
 .PP
 The options used by actions are as follows:

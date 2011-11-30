@@ -963,6 +963,24 @@ exit:
 	return hr;
 }
 
+HRESULT	Util::HrCopyPropTagArray(LPSPropTagArray lpSrc, LPSPropTagArray *lppDest)
+{
+	HRESULT hr = hrSuccess;
+	SPropTagArrayPtr ptrPropTagArray;
+
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &ptrPropTagArray);
+	if (hr != hrSuccess)
+		goto exit;
+
+	memcpy(ptrPropTagArray->aulPropTag, lpSrc->aulPropTag, lpSrc->cValues * sizeof *lpSrc->aulPropTag);
+	ptrPropTagArray->cValues = lpSrc->cValues;
+
+	*lppDest = ptrPropTagArray.release();
+
+exit:
+	return hr;
+}
+
 /**
  * Copies a LPSPropTagArray while forcing all string types to either
  * PT_STRING8 or PT_UNICODE according to the MAPI_UNICODE flag in

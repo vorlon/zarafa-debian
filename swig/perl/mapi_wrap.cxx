@@ -18542,140 +18542,81 @@ XS(_wrap_IECServiceAdmin_ResolveStore) {
 }
 
 
-XS(_wrap_IECServiceAdmin_GetStore) {
-  {
-    IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
-    ULONG arg2 ;
-    LPENTRYID arg3 ;
-    ULONG *arg4 = (ULONG *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    size_t size2 ;
-    int alloc2 = 0 ;
-    ULONG temp4 ;
-    int res4 = SWIG_TMPOBJ ;
-    int argvi = 0;
-    HRESULT result;
-    dXSARGS;
-    
-    arg4 = &temp4;
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: IECServiceAdmin_GetStore(self,cbUserId,lpUserId);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
-    }
-    arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-    {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, &size2, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetStore" "', argument " "2"" of type '" "ULONG""'");
-      }
-      if(buf2 == NULL) {
-        arg2 = 0;
-        arg3 = NULL;
-      } else {
-        arg2 = static_cast< ULONG >(size2 - 1);
-        arg3 = reinterpret_cast< LPENTRYID >(buf2);
-      }
-    }
-    result = (arg1)->GetStore(arg2,arg3,arg4);
-    {
-      if(FAILED(result)) {
-        Do_Exception(result);
-      }
-    }
-    if (SWIG_IsTmpObj(res4)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_unsigned_SS_int  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_ULONG, new_flags); argvi++  ;
-    }
-    
-    {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    }
-    
-    SWIG_croak_null();
-  }
-}
-
-
 XS(_wrap_IECServiceAdmin_HookStore) {
   {
     IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
     ULONG arg2 ;
-    LPENTRYID arg3 ;
-    LPGUID arg4 ;
+    ULONG arg3 ;
+    LPENTRYID arg4 ;
+    LPGUID arg5 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    size_t size2 ;
-    int alloc2 = 0 ;
-    int res4 ;
-    char *buf4 ;
-    size_t size4 ;
-    int alloc4 ;
+    unsigned int val2 ;
+    int ecode2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    size_t size3 ;
+    int alloc3 = 0 ;
+    int res5 ;
+    char *buf5 ;
+    size_t size5 ;
+    int alloc5 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: IECServiceAdmin_HookStore(self,cbUserId,lpUserId,lpGuid);");
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: IECServiceAdmin_HookStore(self,ulStoreType,cbUserId,lpUserId,lpGuid);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_HookStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
     }
     arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+    ecode2 = SWIG_AsVal_unsigned_SS_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_HookStore" "', argument " "2"" of type '" "ULONG""'");
+    } 
+    arg2 = static_cast< ULONG >(val2);
     {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, &size2, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_HookStore" "', argument " "2"" of type '" "ULONG""'");
+      res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, &size3, &alloc3);
+      if (!SWIG_IsOK(res3)) {
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_HookStore" "', argument " "3"" of type '" "ULONG""'");
       }
-      if(buf2 == NULL) {
-        arg2 = 0;
-        arg3 = NULL;
+      if(buf3 == NULL) {
+        arg3 = 0;
+        arg4 = NULL;
       } else {
-        arg2 = static_cast< ULONG >(size2 - 1);
-        arg3 = reinterpret_cast< LPENTRYID >(buf2);
+        arg3 = static_cast< ULONG >(size3 - 1);
+        arg4 = reinterpret_cast< LPENTRYID >(buf3);
       }
     }
     {
-      alloc4 = SWIG_OLDOBJ;
-      res4 = SWIG_AsCharPtrAndSize(ST(2), &buf4, &size4, &alloc4);
-      if (!SWIG_IsOK(res4) || (size4 != 0 && (size4-1) != sizeof(MAPIUID))) {
-        // size4-1 because we get \0 terminated string
-        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_HookStore" "', argument " "4"" of type '" "LPGUID""'");
+      alloc5 = SWIG_OLDOBJ;
+      res5 = SWIG_AsCharPtrAndSize(ST(3), &buf5, &size5, &alloc5);
+      if (!SWIG_IsOK(res5) || (size5 != 0 && (size5-1) != sizeof(MAPIUID))) {
+        // size5-1 because we get \0 terminated string
+        SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_HookStore" "', argument " "5"" of type '" "LPGUID""'");
       }
-      arg4 = reinterpret_cast< LPGUID >(buf4);
+      arg5 = reinterpret_cast< LPGUID >(buf5);
     }
-    result = (arg1)->HookStore(arg2,arg3,arg4);
+    result = (arg1)->HookStore(arg2,arg3,arg4,arg5);
     {
       if(FAILED(result)) {
         Do_Exception(result);
       }
     }
     
+    
     {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+      if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     }
     XSRETURN(argvi);
   fail:
     
+    
     {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+      if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     }
     SWIG_croak_null();
   }
@@ -18686,53 +18627,63 @@ XS(_wrap_IECServiceAdmin_UnhookStore) {
   {
     IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
     ULONG arg2 ;
-    LPENTRYID arg3 ;
+    ULONG arg3 ;
+    LPENTRYID arg4 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    size_t size2 ;
-    int alloc2 = 0 ;
+    unsigned int val2 ;
+    int ecode2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    size_t size3 ;
+    int alloc3 = 0 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: IECServiceAdmin_UnhookStore(self,cbUserId,lpUserId);");
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: IECServiceAdmin_UnhookStore(self,ulStoreType,cbUserId,lpUserId);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
     }
     arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+    ecode2 = SWIG_AsVal_unsigned_SS_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "2"" of type '" "ULONG""'");
+    } 
+    arg2 = static_cast< ULONG >(val2);
     {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, &size2, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "2"" of type '" "ULONG""'");
+      res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, &size3, &alloc3);
+      if (!SWIG_IsOK(res3)) {
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "3"" of type '" "ULONG""'");
       }
-      if(buf2 == NULL) {
-        arg2 = 0;
-        arg3 = NULL;
+      if(buf3 == NULL) {
+        arg3 = 0;
+        arg4 = NULL;
       } else {
-        arg2 = static_cast< ULONG >(size2 - 1);
-        arg3 = reinterpret_cast< LPENTRYID >(buf2);
+        arg3 = static_cast< ULONG >(size3 - 1);
+        arg4 = reinterpret_cast< LPENTRYID >(buf3);
       }
     }
-    result = (arg1)->UnhookStore(arg2,arg3);
+    result = (arg1)->UnhookStore(arg2,arg3,arg4);
     {
       if(FAILED(result)) {
         Do_Exception(result);
       }
     }
     
+    
     {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+      if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     }
     XSRETURN(argvi);
   fail:
     
+    
     {
-      if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+      if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     }
     SWIG_croak_null();
   }
@@ -22129,6 +22080,138 @@ XS(_wrap_IECServiceAdmin_GetPublicStoreEntryID) {
 }
 
 
+XS(_wrap_IECServiceAdmin_GetArchiveStoreEntryID) {
+  {
+    IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
+    LPTSTR arg2 ;
+    LPTSTR arg3 ;
+    ULONG arg4 ;
+    ULONG *arg5 = (ULONG *) 0 ;
+    LPENTRYID *arg6 = (LPENTRYID *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    unsigned int fl4 ;
+    int ecode4 ;
+    ULONG cbEntryID5 = 0 ;
+    LPENTRYID lpEntryID5 = NULL ;
+    std::string strInput2 ;
+    std::string strInput3 ;
+    int argvi = 0;
+    HRESULT result;
+    dXSARGS;
+    
+    ULONG ulFlags = 0;
+    {
+      arg5 = &cbEntryID5; arg6 = &lpEntryID5;
+    }
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: IECServiceAdmin_GetArchiveStoreEntryID(self,lpszUserName,lpszServerName,ulFlags,OUTPUT);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
+    }
+    arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+    {
+      arg2 = (LPTSTR)ST(1);
+    }
+    {
+      arg3 = (LPTSTR)ST(2);
+    }
+    {
+      ecode4 = SWIG_AsVal_unsigned_SS_int SWIG_PERL_CALL_ARGS_2(ST(3), &fl4);
+      if (!SWIG_IsOK(ecode4)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "4"" of type '" "ULONG""'");
+      } 
+      arg4 = fl4;
+      ulFlags = fl4;
+    }
+    {
+      SV *entry = (SV*)arg2;
+      if (!SvOK(entry))
+      arg2 = NULL;
+      else {
+        if (!SvUTF8(entry) && !(ulFlags & MAPI_UNICODE))
+        arg2 = (LPTSTR)SvPV_nolen(entry);
+        
+        else {
+          const char *lpszFrom = "";
+          if (SvUTF8(entry))
+          lpszFrom = "UTF-8";
+          const char *lpszTo = (ulFlags & MAPI_UNICODE ? "WCHAR_T" : "//TRANSLIT");
+          
+          STRLEN len = 0;
+          const char *lpsz = SvPV(entry, len);
+          strInput2.assign(convert_to<std::string>(lpszTo, lpsz, len, lpszFrom));
+          
+          arg2 = (LPTSTR)strInput2.c_str();
+        }
+      }
+    }
+    {
+      SV *entry = (SV*)arg3;
+      if (!SvOK(entry))
+      arg3 = NULL;
+      else {
+        if (!SvUTF8(entry) && !(ulFlags & MAPI_UNICODE))
+        arg3 = (LPTSTR)SvPV_nolen(entry);
+        
+        else {
+          const char *lpszFrom = "";
+          if (SvUTF8(entry))
+          lpszFrom = "UTF-8";
+          const char *lpszTo = (ulFlags & MAPI_UNICODE ? "WCHAR_T" : "//TRANSLIT");
+          
+          STRLEN len = 0;
+          const char *lpsz = SvPV(entry, len);
+          strInput3.assign(convert_to<std::string>(lpszTo, lpsz, len, lpszFrom));
+          
+          arg3 = (LPTSTR)strInput3.c_str();
+        }
+      }
+    }
+    result = (arg1)->GetArchiveStoreEntryID(arg2,arg3,arg4,arg5,arg6);
+    {
+      if(FAILED(result)) {
+        Do_Exception(result);
+      }
+    }
+    {
+      if (*arg6) {
+        if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_FromCharPtrAndSize((const char *)*arg6,*arg5); argvi++  ;
+      }
+    }
+    
+    {
+      
+    }
+    {
+      
+    }
+    
+    {
+      if(*arg6)
+      MAPIFreeBuffer(*arg6);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      
+    }
+    {
+      
+    }
+    
+    {
+      if(*arg6)
+      MAPIFreeBuffer(*arg6);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_delete_IECServiceAdmin) {
   {
     IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
@@ -24657,7 +24740,6 @@ static swig_command_info swig_commands[] = {
 {"MAPICorec::IECServiceAdmin_CreateStore", _wrap_IECServiceAdmin_CreateStore},
 {"MAPICorec::IECServiceAdmin_CreateEmptyStore", _wrap_IECServiceAdmin_CreateEmptyStore},
 {"MAPICorec::IECServiceAdmin_ResolveStore", _wrap_IECServiceAdmin_ResolveStore},
-{"MAPICorec::IECServiceAdmin_GetStore", _wrap_IECServiceAdmin_GetStore},
 {"MAPICorec::IECServiceAdmin_HookStore", _wrap_IECServiceAdmin_HookStore},
 {"MAPICorec::IECServiceAdmin_UnhookStore", _wrap_IECServiceAdmin_UnhookStore},
 {"MAPICorec::IECServiceAdmin_RemoveStore", _wrap_IECServiceAdmin_RemoveStore},
@@ -24705,6 +24787,7 @@ static swig_command_info swig_commands[] = {
 {"MAPICorec::IECServiceAdmin_GetServerDetails", _wrap_IECServiceAdmin_GetServerDetails},
 {"MAPICorec::IECServiceAdmin_ResolvePseudoUrl", _wrap_IECServiceAdmin_ResolvePseudoUrl},
 {"MAPICorec::IECServiceAdmin_GetPublicStoreEntryID", _wrap_IECServiceAdmin_GetPublicStoreEntryID},
+{"MAPICorec::IECServiceAdmin_GetArchiveStoreEntryID", _wrap_IECServiceAdmin_GetArchiveStoreEntryID},
 {"MAPICorec::delete_IECServiceAdmin", _wrap_delete_IECServiceAdmin},
 {"MAPICorec::IECSpooler_GetMasterOutgoingTable", _wrap_IECSpooler_GetMasterOutgoingTable},
 {"MAPICorec::IECSpooler_DeleteFromMasterOutgoingTable", _wrap_IECSpooler_DeleteFromMasterOutgoingTable},
@@ -27761,6 +27844,11 @@ XS(SWIG_init) {
   /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,64,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ECSTORE_TYPE_PUBLIC", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,64,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ECSTORE_TYPE_ARCHIVE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   SWIG_TypeClientData(SWIGTYPE_p_IECServiceAdmin, (void*) "MAPICore::IECServiceAdmin");

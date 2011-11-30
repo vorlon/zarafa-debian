@@ -25543,143 +25543,71 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetStore(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
-  ULONG arg2 ;
-  LPENTRYID arg3 ;
-  ULONG *arg4 = (ULONG *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  size_t size2 ;
-  int alloc2 = 0 ;
-  ULONG temp4 ;
-  int res4 = SWIG_TMPOBJ ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  HRESULT result;
-  
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  arg4 = &temp4;
-  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_GetStore",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
-  }
-  arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  {
-    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetStore" "', argument " "2"" of type '" "ULONG""'");
-    }
-    if(buf2 == NULL) {
-      arg2 = 0;
-      arg3 = NULL;
-    } else {
-      arg2 = static_cast< ULONG >(size2 - 1);
-      arg3 = reinterpret_cast< LPENTRYID >(buf2);
-    }
-  }
-  {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    {
-      try {
-        mark_call_from_python();
-        result = (arg1)->GetStore(arg2,arg3,arg4);
-        unmark_call_from_python();
-      } catch (const Swig::DirectorException &) {
-        unmark_call_from_python();
-        SWIG_fail;
-      }
-    }
-    SWIG_PYTHON_THREAD_END_ALLOW;
-  }
-  {
-    resultobj = Py_None;
-    Py_INCREF(Py_None);
-    if(FAILED(result)) {
-      DoException(result);
-      SWIG_fail;
-    }
-  }
-  if (SWIG_IsTmpObj(res4)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_int((*arg4)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_ULONG, new_flags));
-  }
-  {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  }
-  SWIG_PYTHON_THREAD_END_BLOCK;
-  return resultobj;
-fail:
-  {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  }
-  SWIG_PYTHON_THREAD_END_BLOCK;
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_IECServiceAdmin_HookStore(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
   ULONG arg2 ;
-  LPENTRYID arg3 ;
-  LPGUID arg4 ;
+  ULONG arg3 ;
+  LPENTRYID arg4 ;
+  LPGUID arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  size_t size2 ;
-  int alloc2 = 0 ;
-  int res4 ;
-  char *buf4 ;
-  size_t size4 ;
-  int alloc4 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  size_t size3 ;
+  int alloc3 = 0 ;
+  int res5 ;
+  char *buf5 ;
+  size_t size5 ;
+  int alloc5 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_HookStore",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_HookStore",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_HookStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_HookStore" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
   {
-    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_HookStore" "', argument " "2"" of type '" "ULONG""'");
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, &size3, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_HookStore" "', argument " "3"" of type '" "ULONG""'");
     }
-    if(buf2 == NULL) {
-      arg2 = 0;
-      arg3 = NULL;
+    if(buf3 == NULL) {
+      arg3 = 0;
+      arg4 = NULL;
     } else {
-      arg2 = static_cast< ULONG >(size2 - 1);
-      arg3 = reinterpret_cast< LPENTRYID >(buf2);
+      arg3 = static_cast< ULONG >(size3 - 1);
+      arg4 = reinterpret_cast< LPENTRYID >(buf3);
     }
   }
   {
-    alloc4 = SWIG_OLDOBJ;
-    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
-    if (!SWIG_IsOK(res4) || (size4 != 0 && (size4-1) != sizeof(MAPIUID))) {
-      // size4-1 because we get \0 terminated string
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_HookStore" "', argument " "4"" of type '" "LPGUID""'");
+    alloc5 = SWIG_OLDOBJ;
+    res5 = SWIG_AsCharPtrAndSize(obj3, &buf5, &size5, &alloc5);
+    if (!SWIG_IsOK(res5) || (size5 != 0 && (size5-1) != sizeof(MAPIUID))) {
+      // size5-1 because we get \0 terminated string
+      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_HookStore" "', argument " "5"" of type '" "LPGUID""'");
     }
-    arg4 = reinterpret_cast< LPGUID >(buf4);
+    arg5 = reinterpret_cast< LPGUID >(buf5);
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
       try {
         mark_call_from_python();
-        result = (arg1)->HookStore(arg2,arg3,arg4);
+        result = (arg1)->HookStore(arg2,arg3,arg4,arg5);
         unmark_call_from_python();
       } catch (const Swig::DirectorException &) {
         unmark_call_from_python();
@@ -25697,13 +25625,13 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_HookStore(PyObject *SWIGUNUSEDPARM(se
     }
   }
   {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -25714,35 +25642,44 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_UnhookStore(PyObject *SWIGUNUSEDPARM(
   PyObject *resultobj = 0;
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
   ULONG arg2 ;
-  LPENTRYID arg3 ;
+  ULONG arg3 ;
+  LPENTRYID arg4 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  size_t size2 ;
-  int alloc2 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  size_t size3 ;
+  int alloc3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_UnhookStore",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_UnhookStore",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
   {
-    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "2"" of type '" "ULONG""'");
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, &size3, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_UnhookStore" "', argument " "3"" of type '" "ULONG""'");
     }
-    if(buf2 == NULL) {
-      arg2 = 0;
-      arg3 = NULL;
+    if(buf3 == NULL) {
+      arg3 = 0;
+      arg4 = NULL;
     } else {
-      arg2 = static_cast< ULONG >(size2 - 1);
-      arg3 = reinterpret_cast< LPENTRYID >(buf2);
+      arg3 = static_cast< ULONG >(size3 - 1);
+      arg4 = reinterpret_cast< LPENTRYID >(buf3);
     }
   }
   {
@@ -25750,7 +25687,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_UnhookStore(PyObject *SWIGUNUSEDPARM(
     {
       try {
         mark_call_from_python();
-        result = (arg1)->UnhookStore(arg2,arg3);
+        result = (arg1)->UnhookStore(arg2,arg3,arg4);
         unmark_call_from_python();
       } catch (const Swig::DirectorException &) {
         unmark_call_from_python();
@@ -25768,13 +25705,13 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_UnhookStore(PyObject *SWIGUNUSEDPARM(
     }
   }
   {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -29827,6 +29764,172 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetArchiveStoreEntryID(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
+  LPTSTR arg2 ;
+  LPTSTR arg3 ;
+  ULONG arg4 ;
+  ULONG *arg5 = (ULONG *) 0 ;
+  LPENTRYID *arg6 = (LPENTRYID *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int fl4 ;
+  int ecode4 ;
+  ULONG cbEntryID5 = 0 ;
+  LPENTRYID lpEntryID5 = NULL ;
+  std::string strInput2 ;
+  std::wstring wstrInput2 ;
+  std::string strInput3 ;
+  std::wstring wstrInput3 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  ULONG ulFlags = 0;
+  {
+    arg5 = &cbEntryID5; arg6 = &lpEntryID5;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_GetArchiveStoreEntryID",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
+  }
+  arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  {
+    arg2 = (LPTSTR)obj1;
+  }
+  {
+    arg3 = (LPTSTR)obj2;
+  }
+  {
+    ecode4 = SWIG_AsVal_unsigned_SS_int (obj3, &fl4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "4"" of type '" "ULONG""'");
+    } 
+    arg4 = fl4;
+    ulFlags = fl4;
+  }
+  {
+    PyObject *o = (PyObject *)arg2;
+    if(o == Py_None)
+    arg2 = NULL;
+    else {
+      if(ulFlags & MAPI_UNICODE) {
+        if(PyUnicode_Check(o)) {
+          wstrInput2.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
+          arg2 = (LPTSTR)wstrInput2.c_str();
+        } else {
+          PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
+        }
+      } else {
+        if(PyUnicode_Check(o)) {
+          PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag not passed but passed parameter is a unicode string");
+        }
+        char *input;
+        Py_ssize_t size;
+        
+        PyString_AsStringAndSize(o, &input, &size);
+        strInput2.assign(input, size);
+        
+        arg2 = (LPTSTR)strInput2.c_str();
+      }
+    }
+    
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "2"" of type '" "LPTSTR""'");
+    }
+    
+  }
+  {
+    PyObject *o = (PyObject *)arg3;
+    if(o == Py_None)
+    arg3 = NULL;
+    else {
+      if(ulFlags & MAPI_UNICODE) {
+        if(PyUnicode_Check(o)) {
+          wstrInput3.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
+          arg3 = (LPTSTR)wstrInput3.c_str();
+        } else {
+          PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
+        }
+      } else {
+        if(PyUnicode_Check(o)) {
+          PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag not passed but passed parameter is a unicode string");
+        }
+        char *input;
+        Py_ssize_t size;
+        
+        PyString_AsStringAndSize(o, &input, &size);
+        strInput3.assign(input, size);
+        
+        arg3 = (LPTSTR)strInput3.c_str();
+      }
+    }
+    
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_GetArchiveStoreEntryID" "', argument " "3"" of type '" "LPTSTR""'");
+    }
+    
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->GetArchiveStoreEntryID(arg2,arg3,arg4,arg5,arg6);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    if (*arg6) {
+      resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize((const char *)*arg6,*arg5));
+    }
+  }
+  {
+    
+  }
+  {
+    
+  }
+  {
+    if(*arg6)
+    MAPIFreeBuffer(*arg6);
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  {
+    
+  }
+  {
+    
+  }
+  {
+    if(*arg6)
+    MAPIFreeBuffer(*arg6);
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_delete_IECServiceAdmin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
@@ -32254,7 +32357,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IECServiceAdmin_CreateStore", _wrap_IECServiceAdmin_CreateStore, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_CreateEmptyStore", _wrap_IECServiceAdmin_CreateEmptyStore, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_ResolveStore", _wrap_IECServiceAdmin_ResolveStore, METH_VARARGS, NULL},
-	 { (char *)"IECServiceAdmin_GetStore", _wrap_IECServiceAdmin_GetStore, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_HookStore", _wrap_IECServiceAdmin_HookStore, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_UnhookStore", _wrap_IECServiceAdmin_UnhookStore, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_RemoveStore", _wrap_IECServiceAdmin_RemoveStore, METH_VARARGS, NULL},
@@ -32302,6 +32404,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IECServiceAdmin_GetServerDetails", _wrap_IECServiceAdmin_GetServerDetails, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_ResolvePseudoUrl", _wrap_IECServiceAdmin_ResolvePseudoUrl, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_GetPublicStoreEntryID", _wrap_IECServiceAdmin_GetPublicStoreEntryID, METH_VARARGS, NULL},
+	 { (char *)"IECServiceAdmin_GetArchiveStoreEntryID", _wrap_IECServiceAdmin_GetArchiveStoreEntryID, METH_VARARGS, NULL},
 	 { (char *)"delete_IECServiceAdmin", _wrap_delete_IECServiceAdmin, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_swigregister", IECServiceAdmin_swigregister, METH_VARARGS, NULL},
 	 { (char *)"IECSpooler_GetMasterOutgoingTable", _wrap_IECSpooler_GetMasterOutgoingTable, METH_VARARGS, NULL},
@@ -34348,6 +34451,7 @@ SWIGEXPORT void SWIG_init(void) {
   SWIG_Python_SetConstant(d, "SYNC_W_CLIENT_CHANGE_NEWER",SWIG_From_unsigned_SS_int(static_cast< unsigned int >(0x00040821)));
   SWIG_Python_SetConstant(d, "ECSTORE_TYPE_PRIVATE",SWIG_From_int(static_cast< int >(0)));
   SWIG_Python_SetConstant(d, "ECSTORE_TYPE_PUBLIC",SWIG_From_int(static_cast< int >(1)));
+  SWIG_Python_SetConstant(d, "ECSTORE_TYPE_ARCHIVE",SWIG_From_int(static_cast< int >(2)));
   SWIG_Python_SetConstant(d, "MAPI_ORIG",SWIG_From_int(static_cast< int >(0x00000000)));
   SWIG_Python_SetConstant(d, "MAPI_TO",SWIG_From_int(static_cast< int >(0x00000001)));
   SWIG_Python_SetConstant(d, "MAPI_CC",SWIG_From_int(static_cast< int >(0x00000002)));

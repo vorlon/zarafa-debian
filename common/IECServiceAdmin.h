@@ -62,9 +62,8 @@ public:
 	virtual HRESULT __stdcall CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;
 	virtual HRESULT __stdcall CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;
 	virtual HRESULT __stdcall ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID) = 0;
-	virtual HRESULT __stdcall GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId) = 0;
-	virtual HRESULT __stdcall HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) = 0;
-	virtual HRESULT __stdcall UnhookStore(ULONG cbUserId, LPENTRYID lpUserId) = 0;
+	virtual HRESULT __stdcall HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid) = 0;
+	virtual HRESULT __stdcall UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId) = 0;
 	virtual HRESULT __stdcall RemoveStore(LPGUID lpGuid) = 0;
 
 	// User functions
@@ -132,6 +131,9 @@ public:
 
 	// Public store function(s)
 	virtual HRESULT __stdcall GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID) = 0;
+
+	// Archive store function(s)
+	virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID) = 0;
 };
 
 #endif // #ifndef IECSERVICEADMIN

@@ -148,6 +148,11 @@ public:
 		return lpTmp;
 	}
 
+	void reset(pointer lpObject) {
+		free();
+		m_lpMemory = lpObject;
+	}
+
 	operator void*() { return m_lpMemory; }
 	operator const void*() const { return m_lpMemory; }
 
