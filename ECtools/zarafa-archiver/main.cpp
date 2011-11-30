@@ -425,9 +425,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (mode != MODE_ARCHIVE)
-		ulFlags |= Archiver::AttachStdErr;
-		
+	ulFlags |= Archiver::AttachStdErr;
 	r = ptrArchiver->Init(argv[0], lpszConfig, lpDefaults, ulFlags);
 	if (r == FileNotFound) {
 		cerr << "Unable to open configuration file " << lpszConfig << endl;
