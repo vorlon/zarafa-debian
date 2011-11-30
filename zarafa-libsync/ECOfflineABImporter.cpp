@@ -96,6 +96,8 @@ OfflineABImporter::~OfflineABImporter()
 		m_lpDstServiceAdmin->Release();
 	if(m_lpSrcServiceAdmin)
 		m_lpSrcServiceAdmin->Release();
+	if (m_lpLogger)
+		m_lpLogger->Release();
 }
 	
 ULONG __stdcall OfflineABImporter::AddRef() { return 0; }

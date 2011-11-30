@@ -145,6 +145,20 @@ ECExchangeExportChanges::~ECExchangeExportChanges(){
 		
 	if(m_lpRestrict)
 		MAPIFreeBuffer(m_lpRestrict);
+		
+	if(m_lpLogger)
+		m_lpLogger->Release();
+}
+
+HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
+{
+	if(m_lpLogger)
+		m_lpLogger->Release();
+		
+	m_lpLogger = lpLogger;
+	m_lpLogger->AddRef();
+	
+	return hrSuccess;
 }
 
 HRESULT ECExchangeExportChanges::Create(ECMAPIFolder *lpFolder, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
@@ -252,13 +266,16 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	
 	if(m_bConfiged){
 		hr = MAPI_E_UNCONFIGURED;
+		LOG_DEBUG(m_lpLogger, "%s", "Config() called twice");
 		goto exit;
 	}
 	
 	if(lpRestriction) {
 		hr = Util::HrCopySRestriction(&m_lpRestrict, lpRestriction);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Invalid restriction");
 	    	goto exit;
+		}
 	} else {
 		m_lpRestrict = NULL;
 	}
@@ -267,6 +284,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	
 	if(! (ulFlags & SYNC_CATCHUP)) {
 		if(lpCollector == NULL) {
+			LOG_DEBUG(m_lpLogger, "%s", "No importer to export to");
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
@@ -309,23 +327,29 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 		LOG_DEBUG(m_lpLogger, "%s", "Creating new exporter stream");
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &m_lpStream);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to create new exporter stream");
 			goto exit;
+		}
 
 		m_lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
 		m_lpStream->Write(tmp, sizeof(tmp), &ulSize);
 	} else {
 		hr = lpStream->QueryInterface(IID_IStream, (LPVOID*)&m_lpStream);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Passed state stream does not support IStream interface");
 			goto exit;
+		}
 	}
 
 
 	//include PR_MESSAGE_SIZE or MAPI PR_ENTRYID
 	if(lpIncludeProps){
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpIncludeProps->cValues + ulDefaultSize), (LPVOID *) &m_lpChangePropTagArray);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Out of memory allocating property tag array");
 			goto exit;
+		}
 		m_lpChangePropTagArray->cValues = 0;
 		for(ulStep = 0; ulStep < lpIncludeProps->cValues; ulStep++){
 			m_lpChangePropTagArray->aulPropTag[m_lpChangePropTagArray->cValues++] = lpIncludeProps->aulPropTag[ulStep];
@@ -334,8 +358,10 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		m_lpChangePropTagArray = NULL;
 	}else{
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(ulDefaultSize + 1), (LPVOID *) &m_lpChangePropTagArray);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Out of memory allocating default property tag array");
 			goto exit;
+		}
 		m_lpChangePropTagArray->cValues = 0;
 	}
 
@@ -357,8 +383,10 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "%s", "Unable to decode sync state stream");
 		goto exit;
+	}
 
 	LOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, m_setProcessedChanges.size());
 
@@ -370,8 +398,10 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 		// Ignore any trailing garbage in the stream
 		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source key of folder");
 			goto exit;
+		}
 
 		if((lpPropSourceKey->Value.bin.cb < 24) && (lpPropSourceKey->Value.bin.lpb[lpPropSourceKey->Value.bin.cb-1] & 0x80)) {
 			// If we're getting a truncated sourcekey, untruncate it now so we can pass it to GetChanges()
@@ -391,8 +421,10 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 		// Register our sync with the server, get a sync ID
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(lpPropSourceKey->Value.bin , 0, 0, m_ulSyncType, 0, &ulSyncId);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to update sync status on server");
 			goto exit;
+		}
 
 		LOG_DEBUG(m_lpLogger, "New sync id for %s folder '%ls': %u", (m_lpFolder->GetMsgStore()->IsOfflineStore() ? "offline" : "online"), (lpPropDisplayName)?lpPropDisplayName->Value.lpszW:L"<Unknown>", ulSyncId);
 
@@ -405,8 +437,10 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	hr = m_lpFolder->GetMsgStore()->lpTransport->HrGetChanges(lpPropSourceKey ? lpPropSourceKey->Value.bin : sbNull, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &m_lpChanges);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "%s", "Unable to get changes from server");
 		goto exit;
+	}
 
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
@@ -574,6 +608,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 	LPSPropValue lpPropSourceKey = NULL;
 
 	if(!m_bConfiged){
+		LOG_DEBUG(m_lpLogger, "%s", "Config() not called before Synchronize()");
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
@@ -631,8 +666,10 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 		}else{
 			hr = m_lpImportHierarchy->UpdateState(NULL);
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Importer state update failed");
 			goto exit;
+		}
 	}
 
 progress:
@@ -642,8 +679,10 @@ progress:
 		// change ID and the (large) change list. This allows us always to have a state, even when we can't
 		// communicate with the server.
 		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder's source key");
 			goto exit;
+		}
 
 		if(m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(lpPropSourceKey->Value.bin , m_ulSyncId, m_ulMaxChangeId, m_ulSyncType, 0, &m_ulSyncId) == hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "Done: syncid=%u, changeid=%u/%u", m_ulSyncId, m_ulChangeId, m_ulMaxChangeId);
@@ -686,6 +725,7 @@ HRESULT ECExchangeExportChanges::UpdateState(LPSTREAM lpStream){
 	HRESULT hr = hrSuccess;
 	
 	if(!m_bConfiged){
+		LOG_DEBUG(m_lpLogger, "%s", "Config() not called before UpdateState()");
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
@@ -708,6 +748,7 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 	ULONG cChanges = 0;
 	
 	if(!m_bConfiged){
+		LOG_DEBUG(m_lpLogger, "%s", "Config() not called before GetChangeCount()");
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
@@ -820,6 +861,13 @@ HRESULT ECExchangeExportChanges::xECExportChanges::SetMessageInterface(REFIID re
 	return hr;
 }
 
+HRESULT ECExchangeExportChanges::xECExportChanges::SetLogger(ECLogger *lpLogger)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::SetLogger", "");
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
+	return pThis->SetLogger(lpLogger);
+}
+
 
 HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 	ASSERT(m_lpImportContents != NULL);
@@ -876,22 +924,28 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 		
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 			goto exit;
+		}
 		
 		hr = m_lpFolder->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
 		if(hr == MAPI_E_NOT_FOUND){
 			hr = hrSuccess;
 			goto next;
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, (unsigned char *)lpEntryID).c_str());
 			goto exit;
+		}
 
 		hr = lpSourceMessage->GetProps((LPSPropTagArray) m_lpChangePropTagArray, 0, &ulCount, &lpPropArray);
 		if(hr == MAPI_W_ERRORS_RETURNED){
 			hr = hrSuccess;
-		}else if(hr != hrSuccess)
+		}else if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get properties from source message");
 			goto exit;
+		}
 
 		ulFlags = 0;
 		lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_MESSAGE_FLAGS);
@@ -923,34 +977,45 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		// TODO handle SYNC_E_OBJECT_DELETED, SYNC_E_CONFLICT, SYNC_E_NO_PARENT, SYNC_E_INCEST, SYNC_E_UNSYNCHRONIZED
 		}else if(hr != hrSuccess){
 			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
+			LOG_DEBUG(m_lpLogger, "%s", "Error during message import");
 			goto exit;
 		} 
 
 		if(lpDestMessage == NULL) {
-			// Import succeeded, but we have not message to export to. Treat this the same as
+			// Import succeeded, but we have no message to export to. Treat this the same as
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
 		}
 
 		hr = lpSourceMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptMessageExcludes, 0, NULL, &IID_IMessage, lpDestMessage, 0, NULL);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to copy to imported message");
 			goto exit;
+		}
 
 		hr = lpSourceMessage->GetRecipientTable(0, &lpTable);
-		if(hr !=  hrSuccess)
+		if(hr !=  hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to read source message's recipient table");
 			goto exit;
+		}
 
 		hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &lpPropTagArray);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get column set from source message's recipient table");
 			goto exit;
+		}
 
 		hr = lpTable->SetColumns(lpPropTagArray, 0);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to set column set for source message's recipient table");
 			goto exit;
+		}
 
 		hr = lpTable->QueryRows(0xFFFF, 0, &lpRows);
-		if(hr !=  hrSuccess)
+		if(hr !=  hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to read recipients from source message");
 			goto exit;
+		}
 		
 		//FIXME: named property in the recipienttable ?
 
@@ -971,21 +1036,29 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 		//delete every attachment
 		hr = lpDestMessage->GetAttachmentTable(0, &lpTable);
-		if(hr !=  hrSuccess)
+		if(hr !=  hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get destination's attachment table");
 			goto exit;
+		}
 
 		hr = lpTable->SetColumns((LPSPropTagArray)&sptAttach, 0);
-		if(hr !=  hrSuccess)
+		if(hr !=  hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to set destination's attachment table's column set");
 			goto exit;
+		}
 
 		hr = lpTable->QueryRows(0xFFFF, 0, &lpRows);
-		if(hr !=  hrSuccess)
+		if(hr !=  hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to read destination's attachment list");
 			goto exit;
+		}
 
 		for(ulCount = 0; ulCount < lpRows->cRows; ulCount++){
 			hr = lpDestMessage->DeleteAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, 0, NULL, 0);
-			if(hr != hrSuccess)
+			if(hr != hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "Unable to delete destination's attachment number %d", lpRows->aRow[ulCount].lpProps[0].Value.ul);
 				goto exit;
+			}
 		}
 
 		if(lpRows){
@@ -1013,20 +1086,28 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 		for(ulCount = 0; ulCount < lpRows->cRows; ulCount++){
 			hr = lpSourceMessage->OpenAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &lpSourceAttach);
-			if(hr !=  hrSuccess)
+			if(hr !=  hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "Unable to open attachment %d in source message", lpRows->aRow[ulCount].lpProps[0].Value.ul);
 				goto exit;
+			}
 
 			hr = lpDestMessage->CreateAttach(&IID_IAttachment, 0, &ulObjType, &lpDestAttach);
-			if(hr !=  hrSuccess)
+			if(hr !=  hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "%s", "Unable to create attachment");
 				goto exit;
+			}
 
 			hr = lpSourceAttach->CopyTo(0, NULL, (LPSPropTagArray)&sptAttach, 0, NULL, &IID_IAttachment, lpDestAttach, 0, NULL);
-			if(hr !=  hrSuccess)
+			if(hr !=  hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "%s", "Unable to copy attachment");
 				goto exit;
+			}
 			
 			hr = lpDestAttach->SaveChanges(0);
-			if(hr !=  hrSuccess)
+			if(hr !=  hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "%s", "SaveChanges() failed for destination attachment");
 				goto exit;
+			}
 
 			if(lpSourceAttach){
 				lpSourceAttach->Release();
@@ -1055,16 +1136,22 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		}
 
 		hr = lpSourceMessage->GetPropList(0, &lpPropTagArray);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get property list of source message");
 			goto exit;
+		}
 
 		hr = Util::HrDeleteResidualProps(lpDestMessage, lpSourceMessage, lpPropTagArray);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to remove old properties from destination message");
 			goto exit;
+		}
 
 		hr = lpDestMessage->SaveChanges(0);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "SaveChanges failed for destination message");
 			goto exit;
+		}
 
 
 next:
@@ -1281,6 +1368,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		break;
 
 	default:
+		LOG_DEBUG(m_lpLogger, "%s", "Import failed");
 		goto exit;
 	}
 
@@ -1362,8 +1450,10 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 		if (hr == SYNC_E_IGNORE){
 			hr = hrSuccess;
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Read state change failed");
 			goto exit;
+		}
 
 		// Mark the flag changes as processed
 		for(lpChange = m_lstFlag.begin(); lpChange != m_lstFlag.end(); lpChange++){
@@ -1395,12 +1485,16 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 		if (hr == SYNC_E_IGNORE){
 			hr = hrSuccess;	
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Message deletion import failed");
 			goto exit;
+		}
 
 		hr = AddProcessedChanges(m_lstSoftDelete);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to add processed soft deletion changes");
 			goto exit;
+		}
 	}
 	
 	if(lpEntryList){
@@ -1410,19 +1504,25 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 
 	if(!m_lstHardDelete.empty()){
 		hr = ChangesToEntrylist(&m_lstHardDelete, &lpEntryList);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to create entry list");
 			goto exit;
+		}
 
 		hr = m_lpImportContents->ImportMessageDeletion(0, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
 			hr = hrSuccess;	
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Message hard deletion failed");
 			goto exit;
+		}
 
 		hr = AddProcessedChanges(m_lstHardDelete);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to add processed hard deletion changes");
 			goto exit;
+		}
 	}
 	
 exit:
@@ -1458,8 +1558,10 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	//SizedSPropTagArray(6, sptFolder) = { 6, {PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_DISPLAY_NAME, PR_LAST_MODIFICATION_TIME} };
 
 	hr = m_lpFolder->GetProps((LPSPropTagArray)&sptSK, 0, &ulCount, &lpPropSK);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "%s", "Unable to get parent folder properties");
 		goto exit;
+	}
 
 	if(!lpPropSK){
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1490,8 +1592,10 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 		hr = lpFolder->GetProps(m_lpChangePropTagArray /*NULL*/, 0, &ulCount, &lpPropArray);
 		if(hr == MAPI_W_ERRORS_RETURNED){
 			hr = hrSuccess;
-		}else if(hr != hrSuccess)
+		}else if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
 			goto exit;
+		}
 
 		// if NULL is given for include props in config function, we don't support large properties for now
 		if(m_lpChangePropTagArray){
@@ -1637,19 +1741,25 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 
 	if(!m_lstSoftDelete.empty()){
 		hr = ChangesToEntrylist(&m_lstSoftDelete, &lpEntryList);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to create folder deletion entry list");
 			goto exit;
+		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(SYNC_SOFT_DELETE, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
 			hr = hrSuccess;	
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to import folder deletions");
 			goto exit;
+		}
 
 		hr = AddProcessedChanges(m_lstSoftDelete);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to add processed folder soft deletions");
 			goto exit;
+		}
 	}
 	
 	if(lpEntryList){
@@ -1659,19 +1769,25 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 
 	if(!m_lstHardDelete.empty()){
 		hr = ChangesToEntrylist(&m_lstHardDelete, &lpEntryList);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to create folder hard delete entry list");
 			goto exit;
+		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(0, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
 			hr = hrSuccess;	
 		}
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Hard delete folder import failed");
 			goto exit;
+		}
 
 		hr = AddProcessedChanges(m_lstHardDelete);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "%s", "Unable to add processed folder hard deletions");
 			goto exit;
+		}
 	}
 	
 exit:
@@ -1741,6 +1857,9 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 
 exit:
+	if(hr != hrSuccess)
+		LOG_DEBUG(m_lpLogger, "%s", "Stream operation failed");
+		
 	return hr;
 }
 
@@ -1892,3 +2011,4 @@ exit:
 
 	return hr;
 }
+

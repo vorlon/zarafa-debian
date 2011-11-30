@@ -82,6 +82,7 @@ public:
 	
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
 	virtual HRESULT SetMessageInterface(REFIID refiid);
+	virtual HRESULT SetLogger(ECLogger *lpLogger);
 
 private:
 	static HRESULT CloseAndGetAsyncResult(IStream *lpStream, HRESULT *lphrResult);
@@ -108,6 +109,7 @@ private:
 
 		virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges);
 		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid);
+		virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger);
 	} m_xECExportChanges;
 	
 	HRESULT ExportMessageChanges();
