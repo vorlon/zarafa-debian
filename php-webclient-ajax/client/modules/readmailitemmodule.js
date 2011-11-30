@@ -280,6 +280,15 @@ readmailitemmodule.prototype.setBody = function(message)
 			dhtml.addEvent(webclient.inputmanager, html_body.contentWindow.document, "keyup", eventInputManagerKeyControlKeyUp);
 			dhtml.addEvent(webclient.inputmanager, html_body.contentWindow.document, "keydown", eventInputManagerKeyControlKeyDown);
 
+			// Register the touch functions to make scrolling work within the scroller-element for iPad users
+			this.touch = {
+				startY: 0,
+				startX: 0,
+				scroller: document.getElementById("scroller")
+			};
+			dhtml.addEvent(this, html_body.contentWindow.document.body, "touchstart", eventReadmailScrollBodyTouchStart);
+			dhtml.addEvent(this, html_body.contentWindow.document.body, "touchmove", eventReadmailScrollBodyTouchMove);
+
 			var data = new Object();
 			data["iframedocument"] = html_body.contentWindow.document;
 			webclient.pluginManager.triggerHook("client.module.readmailitemmodule.setbody.postdisplay", data);
@@ -665,4 +674,37 @@ function eventReadmailClickEmail(moduleObject, element, event)
 function eventReadmailSendMailFromPlainText(emailaddress)
 {
 	webclient.openWindow(this, "createmail", DIALOG_URL+"task=createmail_standard&to=" + emailaddress);
+}
+
+/**
+ * Called when a touchstart event was triggered. Used to set the base coordinates for scrolling through the body.
+ * @param moduleObject Object Module Object
+ * @param element HTMLElement touched element
+ * @param event Object Event object
+ */
+function eventReadmailScrollBodyTouchStart(moduleObj, element, event){
+	moduleObj.touch.startY = event.targetTouches[0].pageY;
+	moduleObj.touch.startX = event.targetTouches[0].pageX;
+}
+
+/**
+ * Called when a touchnmove event was triggered. Used to scrol through the body.
+ * @param moduleObject Object Module Object
+ * @param element HTMLElement touched element
+ * @param event Object Event object
+ */
+function eventReadmailScrollBodyTouchMove(moduleObj, element, event){
+		event.preventDefault();
+		var posy = event.targetTouches[0].pageY;
+		var scroller = moduleObj.touch.scroller;
+		var sty = scroller.scrollTop;
+
+		var posx = event.targetTouches[0].pageX;
+		var stx = scroller.scrollLeft;
+		// Scroll the scroller DIV to the new position
+		scroller.scrollTop = sty - (posy - moduleObj.touch.startY);
+		scroller.scrollLeft = stx - (posx - moduleObj.touch.startX);
+		// Store the new touch coordinates to use that as base for the next move
+		moduleObj.touch.startY = posy;
+		moduleObj.touch.startX = posx;
 }
