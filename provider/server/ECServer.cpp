@@ -1148,11 +1148,12 @@ int running_server(char *szName, const char *szConfig)
 	if (restart_searches) // restart_searches if specified
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
+	 g_Quit = 0;
 
 	// Create scheduler system
 	g_lpScheduler = new ECScheduler(g_lpLogger);
 	// Add a task on the scheduler
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover);
+	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, (void*)&g_Quit);
 
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
@@ -1169,8 +1170,6 @@ int running_server(char *szName, const char *szConfig)
 	// high loglevel to always see when server is started.
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Startup succeeded on pid %d", getpid() );
 	g_lpStatsCollector->SetTime(SCN_SERVER_STARTTIME, time(NULL));
-
-	g_Quit = 0;
 
 	// Enter main accept loop
 	while(!g_Quit) {
@@ -1197,6 +1196,8 @@ exit:
 
 	delete g_lpSoapServerConn;
 
+	delete g_lpScheduler;
+
 	delete lpLicense;
 	if(st.ss_sp)
 		free(st.ss_sp);
@@ -1204,7 +1205,6 @@ exit:
 	delete lpDatabaseFactory;
 
 	delete g_lpConfig;
-	delete g_lpScheduler;
 
 	zarafa_exit();
 

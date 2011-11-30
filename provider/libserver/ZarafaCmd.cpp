@@ -913,7 +913,7 @@ exit:
     return er;
 }
 
-ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsigned int *lpulMessages, unsigned int *lpulFolders, unsigned int *lpulStores)
+ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsigned int *lpulMessages, unsigned int *lpulFolders, unsigned int *lpulStores, bool *lpbExit)
 {
 	ECRESULT 		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
@@ -927,6 +927,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 	ECListIntIterator	iterObjectId;
 	unsigned int	ulFolders = 0, ulMessages = 0;
 	unsigned int	ulStores = 0;
+	bool 			bExitDummy = false;
 
 	if (g_bPurgeSoftDeleteStatus) {
 		er = ZARAFA_E_BUSY;
@@ -934,6 +935,9 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 	}
 	
 	g_bPurgeSoftDeleteStatus = TRUE;
+
+	if (!lpbExit)
+		lpbExit = &bExitDummy;
 
 	lpDatabase = lpecSession->GetDatabase();
 	if (!lpDatabase) {
@@ -971,9 +975,14 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 		// free before we call DeleteObjects()
 		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
 
+		if (*lpbExit) {
+			er = ZARAFA_E_USER_CANCEL;
+			goto exit;
+		}
+
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d stores", lObjectIds.size());
 
-		for(iterObjectId = lObjectIds.begin(); iterObjectId != lObjectIds.end(); iterObjectId++)
+		for(iterObjectId = lObjectIds.begin(); iterObjectId != lObjectIds.end() && !(*lpbExit); iterObjectId++)
 		{
 			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, " purge store (%d)", *iterObjectId);
 
@@ -989,6 +998,10 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 	}
 	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
 
+	if (*lpbExit) {
+		er = ZARAFA_E_USER_CANCEL;
+		goto exit;
+	}
 
 	// Select softdeleted folders
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND p.val_hi<="+stringify(ft.dwHighDateTime)+" AND h.type="+stringify(MAPI_FOLDER);
@@ -1012,6 +1025,11 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 		// free before we call DeleteObjects()
 		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
 
+		if (*lpbExit) {
+			er = ZARAFA_E_USER_CANCEL;
+			goto exit;
+		}
+
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d folders", lObjectIds.size());
 
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
@@ -1024,6 +1042,11 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 
 	}
 	if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
+
+	if (*lpbExit) {
+		er = ZARAFA_E_USER_CANCEL;
+		goto exit;
+	}
 
 	// Select softdeleted messages
 	strQuery = "SELECT h.id FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND p.type="+stringify(PROP_TYPE(PR_DELETED_ON))+" WHERE (h.flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND h.type="+stringify(MAPI_MESSAGE)+" AND p.val_hi<="+stringify(ft.dwHighDateTime);
@@ -1046,6 +1069,11 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 		}
 		// free before we call DeleteObjects()
 		if(lpDBResult){	lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
+
+		if (*lpbExit) {
+			er = ZARAFA_E_USER_CANCEL;
+			goto exit;
+		}
 
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d messages", lObjectIds.size());
 
@@ -5817,7 +5845,7 @@ SOAP_ENTRY_START(purgeSoftDelete, *result, unsigned int ulDays, unsigned int *re
 
     g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start forced softdelete clean up");
 
-    er = PurgeSoftDelete(lpecSession, ulDays * 24 * 60 * 60, &ulMessages, &ulFolders, &ulStores);
+    er = PurgeSoftDelete(lpecSession, ulDays * 24 * 60 * 60, &ulMessages, &ulFolders, &ulStores, NULL);
 
     if (er == erSuccess)
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Softdelete done: removed stores: %d, removed folders: %d, removed messages: %d", ulStores, ulFolders, ulMessages);
@@ -9313,7 +9341,7 @@ void* SoftDeleteRemover(void* lpTmpMain)
 
 	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start scheduled softdelete clean up");
 
-	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores);
+	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores, (bool*)lpTmpMain);
 
 exit:
 	if(ulDeleteTime > 0) {
