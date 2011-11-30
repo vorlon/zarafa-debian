@@ -2623,6 +2623,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['requestsent']] = (count($recipients) > 0) || ($this->includesResources && !$this->errorSetResource);
 		$props[$this->proptags['attendee_critical_change']] = time();
 		$props[$this->proptags['owner_critical_change']] = time();
+		$props[$this->proptags['meetingtype']] = mtgRequest;
 		mapi_setprops($message, $props);
 	}
 
