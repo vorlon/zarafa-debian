@@ -421,6 +421,11 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 	struct timeval tstart, tend;
 	LONGLONG	llelapsedtime;
 
+	if (!lpDatabase) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+
 	if(parseBool(lpConfig->GetSetting("index_services_enabled")) == true &&
 		strlen(lpConfig->GetSetting("index_services_path")) > 0)
 	{
