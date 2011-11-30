@@ -784,8 +784,8 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 			break;
 
 		case sfDeleted:
-			lpszName = _("Deleted Items");
-			lpszDesc = _("This folder contains archived of messages that have been deleted.");
+			lpszName = _("Deleted");
+			lpszDesc = _("This folder contains archives of messages that have been deleted.");
 			break;
 
 		default:
