@@ -594,7 +594,7 @@ ItemModule.prototype.createAppointmentTemplate= function(message, htmlFormat)
 						}
 						result["required_attendee"] = new Object;
 						result["required_attendee"].label = _("Required Attendee");
-						result["required_attendee"].value = this.generateRecipientStringFromXML(message, "to");
+						result["required_attendee"].value = this.generateRecipientStringFromXML(message, "to", false);
 
 					} else {
 						xmlValue = NBSP;
@@ -767,7 +767,7 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
 				case "sent_representing_email_address":
-					xmlValue = nameAndEmailToString(dhtml.getXMLValue(message, "sent_representing_name", ""), xmlValue, MAPI_MAILUSER , htmlFormat);;
+					xmlValue = nameAndEmailToString(dhtml.getXMLValue(message, "sent_representing_name", ""), xmlValue, MAPI_MAILUSER , false);
 					break;
 				case "attachment":
 					xmlValue = this.generateAttachmentStringFromXML(message);
@@ -817,7 +817,7 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 					xmlValue = content;
 					break;
 			}
-			var recipients = this.generateRecipientStringFromXML(message, false, htmlFormat);
+			var recipients = this.generateRecipientStringFromXML(message, false, false);
 			if (recipients){
 				for(var type in recipients){
 					result[type] = new Object;
