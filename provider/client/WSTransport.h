@@ -65,7 +65,6 @@
 #include "WSStoreTableView.h"
 //#include "WSTableOutGoingQueue.h"
 #include "WSMAPIFolderOps.h"
-#include "WSStreamOps.h"
 #include "WSMAPIPropStorage.h"
 #include "ECParentStorage.h"
 #include "ECABLogon.h"
@@ -73,6 +72,8 @@
 #include <ECCache.h>
 
 class utf8string;
+class WSMessageStreamExporter;
+class WSMessageStreamImporter;
 
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *lpParam, ECSESSIONID newSessionId);
 typedef std::map<ULONG, std::pair<void *, SESSIONRELOADCALLBACK> > SESSIONRELOADLIST;
@@ -133,7 +134,8 @@ public:
 
 	// Interface for folder operations (create/delete)
 	virtual HRESULT HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps);
-	virtual HRESULT HrOpenStreamOps(ULONG cbFolderEntryId, LPENTRYID lpFolderEntryId, WSStreamOps **lppStreamOps);
+	virtual HRESULT HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter);
+	virtual HRESULT HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter);
 
 	// Interface for table operations
 	virtual HRESULT HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableOps);
@@ -353,6 +355,9 @@ protected:
 private:
 	pthread_mutex_t					m_ResolveResultCacheMutex;
 	ECCache<ECMapResolveResults>	m_ResolveResultCache;
+
+friend class WSMessageStreamExporter;
+friend class WSMessageStreamImporter;
 };
 
 #endif // WSTRANSPORT_H

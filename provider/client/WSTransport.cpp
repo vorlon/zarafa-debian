@@ -88,6 +88,9 @@
 #include "charset/convstring.h"
 
 #include "SOAPSock.h"
+#include "mapi_ptr.h"
+#include "WSMessageStreamExporter.h"
+#include "WSMessageStreamImporter.h"
 
 using namespace std;
 
@@ -1176,34 +1179,95 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrOpenStreamOps(ULONG cbFolderEntryId, LPENTRYID lpFolderEntryId, WSStreamOps **lppStreamOps)
+/**
+ * Export a set of messages as stream.
+ * If this call succeeds, the returned exporter is responsible for flushing all streams from the network and
+ * unlock this WSTransport object when done.
+ *
+ * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
+ * @param[in]	lpChanges	The complete set of changes available.
+ * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
+ * @param[in]	ulChanges	The number of messages to export, starting at ulStart. ulStart and ulCount must not me larger than the amount of available changes.
+ * @param[in]	lpsProps	The set of proptags that will be returned as regular properties outside the stream.
+ * @param[out]	lppsStreamExporter	The streamexporter that must be used to get the individual streams.
+ *
+ * @retval	MAPI_E_INVALID_PARAMETER	lpChanges or lpsProps == NULL
+ * @retval	MAPI_E_NETWORK_ERROR		The actual call to the server failed or no streams are returned
+ */
+HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	HRESULT		hr = hrSuccess;
-	ZarafaCmd	*lpCmd = NULL;
+	typedef mapi_memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
+
+	HRESULT hr = hrSuccess;
+	sourceKeyPairArrayPtr ptrsSourceKeyPairs;
+	WSMessageStreamExporterPtr ptrStreamExporter;
+	propTagArray sPropTags = {0, NULL};
+	exportMessageChangesAsStreamResponse sResponse = {{0}};
+
+	if (lpChanges == NULL || lpsProps == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if ((m_ulServerCapabilities & ZARAFA_CAP_ENHANCED_ICS) == 0) {
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
 
-	hr = CreateSoapTransport(MDB_NO_DIALOG, m_sProfileProps, &lpCmd);
+	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &ptrsSourceKeyPairs);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = WSStreamOps::Create(lpCmd, m_ecSessionId, cbFolderEntryId, lpFolderEntryId, m_ulServerCapabilities, lppStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
+	sPropTags.__size = lpsProps->cValues;
+	sPropTags.__ptr = (unsigned int*)lpsProps->aulPropTag;
 
-	soap_set_omode(lpCmd->soap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);
-	if (m_ulServerCapabilities & ZARAFA_CAP_COMPRESSION) {
-		soap_set_imode(lpCmd->soap, SOAP_ENC_ZLIB);	// also autodetected
-		soap_set_omode(lpCmd->soap, SOAP_ENC_ZLIB);
+	LockSoap();
+
+	// Make sure to get the mime attachments ourselves
+	soap_post_check_mime_attachments(m_lpCmd->soap);
+
+	if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, &sResponse) != SOAP_OK) {
+		UnLockSoap();
+		hr = MAPI_E_NETWORK_ERROR;
+		goto exit;
 	}
 
-exit:
-	if (hr != hrSuccess && lpCmd)
-		DestroySoapTransport(lpCmd);
+	if (sResponse.sMsgStreams.__size > 0 && !soap_check_mime_attachments(m_lpCmd->soap)) {
+		UnLockSoap();
+		hr = MAPI_E_NETWORK_ERROR;
+		goto exit;
+	}
 
+	hr = WSMessageStreamExporter::Create(ulStart, ulChanges, sResponse.sMsgStreams, this, &ptrStreamExporter);
+	if (hr != hrSuccess) {
+		UnLockSoap();
+		goto exit;
+	}
+
+	// From here one, the MessageStreamExporter is responsible for unlocking soap.
+	*lppsStreamExporter = ptrStreamExporter.release();
+
+exit:
+	return hr;
+}
+
+HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter)
+{
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr ptrStreamImporter;
+
+	if ((m_ulServerCapabilities & ZARAFA_CAP_ENHANCED_ICS) == 0) {
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &ptrStreamImporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppStreamImporter = ptrStreamImporter.release();
+
+exit:
 	return hr;
 }
 

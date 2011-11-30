@@ -401,13 +401,7 @@ bool ECWaitableTask::wait(unsigned timeout) const
 		
 	default: 
 		{
-			struct timeval tv;
-			struct timespec ts;
-			
-			gettimeofday(&tv, NULL);
-			
-			ts.tv_sec = tv.tv_sec + (((tv.tv_usec + (timeout * 1000)) * 1000) / 1000000000);
-			ts.tv_nsec = ((tv.tv_usec + (timeout * 1000)) * 1000) % 1000000000;
+			struct timespec ts = GetDeadline(timeout);
 			
 			while (m_bDone == false) {
 				if (pthread_cond_timedwait(&m_hCondition, &m_hMutex, &ts) == ETIMEDOUT)

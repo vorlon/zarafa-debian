@@ -47,23 +47,56 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,0,4,30806
-#define PROJECT_VERSION_SERVER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_CLIENT		7,0,4,30806
-#define PROJECT_VERSION_CLIENT_STR	"7,0,4,30806"
-#define PROJECT_VERSION_EXT_STR		"7,0,4,30806"
-#define PROJECT_VERSION_SPOOLER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_GATEWAY_STR	"7,0,4,30806"
-#define PROJECT_VERSION_CALDAV_STR	"7,0,4,30806"
-#define PROJECT_VERSION_DAGENT_STR	"7,0,4,30806"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,0,4,30806"
-#define PROJECT_VERSION_MONITOR_STR	"7,0,4,30806"
-#define PROJECT_VERSION_PASSWD_STR	"7,0,4,30806"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_INDEXER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_DOT_STR		"7.0.4"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"30806"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			0
-#define PROJECT_VERSION_REVISION			30806
+#ifndef WSMessageStreamExporter_INCLUDED
+#define WSMessageStreamExporter_INCLUDED
+
+#include "ECUnknown.h"
+#include "soapStub.h"
+#include "mapi_ptr.h"
+
+#include <string>
+#include <map>
+
+class WSTransport;
+class WSSerializedMessage;
+
+/**
+ * This object encapsulates an set of exported streams. It allows the user to request each individual stream. The
+ * streams must be requested in the correct sequence.
+ */
+class WSMessageStreamExporter : public ECUnknown
+{
+public:
+	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
+
+	bool IsDone() const;
+	HRESULT GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage);
+
+private:
+	WSMessageStreamExporter();
+	~WSMessageStreamExporter();
+
+	// Inhibit copying
+	WSMessageStreamExporter(const WSMessageStreamExporter&);
+	WSMessageStreamExporter& operator=(const WSMessageStreamExporter&);
+
+private:
+	typedef mapi_object_ptr<WSTransport> WSTransportPtr;
+
+	struct StreamInfo {
+		std::string	id;
+		unsigned long	cbPropVals;
+		SPropArrayPtr	ptrPropVals;
+	};
+	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
+
+
+	ULONG			m_ulExpectedIndex;
+	ULONG			m_ulMaxIndex;
+	WSTransportPtr	m_ptrTransport;
+	StreamInfoMap	m_mapStreamInfo;
+};
+
+typedef mapi_object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
+
+#endif // ndef ECMessageStreamExporter_INCLUDED

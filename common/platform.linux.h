@@ -140,6 +140,7 @@ typedef int	LONG;
 typedef int	BOOL;
 
 typedef void* LPVOID;
+typedef const void* LPCVOID;
 typedef char* LPSTR;
 typedef const char* LPCSTR;
 

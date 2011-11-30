@@ -76,9 +76,6 @@ public:
 	unsigned long Size();
 	
 private:
-	static void GetDeadline(unsigned int ulTimeoutMs, struct timespec *lptsDeadline);
-
-private:
 	// prohibit copy
 	ECFifoBuffer(const ECFifoBuffer &);
 	ECFifoBuffer& operator=(const ECFifoBuffer &);

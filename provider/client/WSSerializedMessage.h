@@ -47,23 +47,48 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,0,4,30806
-#define PROJECT_VERSION_SERVER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_CLIENT		7,0,4,30806
-#define PROJECT_VERSION_CLIENT_STR	"7,0,4,30806"
-#define PROJECT_VERSION_EXT_STR		"7,0,4,30806"
-#define PROJECT_VERSION_SPOOLER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_GATEWAY_STR	"7,0,4,30806"
-#define PROJECT_VERSION_CALDAV_STR	"7,0,4,30806"
-#define PROJECT_VERSION_DAGENT_STR	"7,0,4,30806"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,0,4,30806"
-#define PROJECT_VERSION_MONITOR_STR	"7,0,4,30806"
-#define PROJECT_VERSION_PASSWD_STR	"7,0,4,30806"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_INDEXER_STR	"7,0,4,30806"
-#define PROJECT_VERSION_DOT_STR		"7.0.4"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"30806"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			0
-#define PROJECT_VERSION_REVISION			30806
+#ifndef WSSerializedMessage_INCLUDED
+#define WSSerializedMessage_INCLUDED
+
+#include "ECUnknown.h"
+#include "soapStub.h"
+#include "mapi_ptr.h"
+#include <string>
+
+/**
+ * This object represents one exported message stream. It is responsible for requesting the MTOM attachments from soap.
+ */
+class WSSerializedMessage : public ECUnknown
+{
+public:
+	WSSerializedMessage(soap *lpSoap, const std::string strStreamId, ULONG cbProps, LPSPropValue lpProps);
+
+	HRESULT GetProps(ULONG *lpcbProps, LPSPropValue *lppProps);
+	HRESULT CopyData(LPSTREAM lpDestStream);
+	HRESULT DiscardData();
+
+private:
+	HRESULT DoCopyData(LPSTREAM lpDestStream);
+
+	static void*	StaticMTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
+	static int		StaticMTOMWrite(struct soap *soap, void *handle, const char *buf, size_t len);
+	static void		StaticMTOMWriteClose(struct soap *soap, void *handle);
+
+	void*	MTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
+	int		MTOMWrite(struct soap *soap, void *handle, const char *buf, size_t len);
+	void	MTOMWriteClose(struct soap *soap, void *handle);
+
+private:
+	soap				*m_lpSoap;
+	const std::string	m_strStreamId;
+	ULONG				m_cbProps;
+	LPSPropValue		m_lpProps;	//	Points to data from parent object.
+
+	bool				m_bUsed;
+	StreamPtr			m_ptrDestStream;
+	HRESULT				m_hr;
+};
+
+typedef mapi_object_ptr<WSSerializedMessage> WSSerializedMessagePtr;
+
+#endif // ndef WSSerializedMessage_INCLUDED

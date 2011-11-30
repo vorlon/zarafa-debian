@@ -105,15 +105,20 @@ public:
 private:
 	bool	IsProcessed(LPSPropValue lpRemoteCK, LPSPropValue lpLocalPCL);
 	bool	IsConflict(LPSPropValue lpLocalCK, LPSPropValue lpRemotePCL);
+
 	HRESULT CreateConflictMessage(LPMESSAGE lpMessage);
 	HRESULT CreateConflictMessageOnly(LPMESSAGE lpMessage, LPSPropValue *lppConflictItems);
 	HRESULT CreateConflictFolders();
 	HRESULT CreateConflictFolder(LPTSTR lpszName, LPSPropValue lpAdditionalREN, ULONG ulMVPos, LPMAPIFOLDER lpParentFolder, LPMAPIFOLDER * lppConflictFolder);
 
+	HRESULT ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
+	HRESULT ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
+
 	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, LPSPropValue lpAdditionalREN);
 	friend class ECExchangeImportHierarchyChanges;
 
 private:
+	ECLogger*		m_lpLogger;
 	ECMAPIFolder*	m_lpFolder;
 	LPSTREAM		m_lpStream;
 	ULONG			m_ulFlags;
