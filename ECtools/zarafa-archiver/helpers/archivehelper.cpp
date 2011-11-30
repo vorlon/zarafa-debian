@@ -837,6 +837,58 @@ exit:
 	return hr;
 }
 
+HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntryID, LPENTRYID lpEntryID)
+{
+	HRESULT hr = hrSuccess;
+	MAPIFolderPtr ptrArchiveRoot;
+	SPropValuePtr ptrSFEntryIDs;
+
+	hr = GetArchiveFolder(false, &ptrArchiveRoot);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetOneProp(ptrArchiveRoot, PROP_SPECIAL_FOLDER_ENTRYIDS, &ptrSFEntryIDs);
+	if (hr == MAPI_E_NOT_FOUND) {
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrSFEntryIDs);
+		if (hr != hrSuccess)
+			goto exit;
+
+		ptrSFEntryIDs->ulPropTag = PROP_SPECIAL_FOLDER_ENTRYIDS;
+		ptrSFEntryIDs->Value.MVbin.cValues = 0;
+		ptrSFEntryIDs->Value.MVbin.lpbin = NULL;
+	}
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ptrSFEntryIDs->Value.MVbin.cValues <= ULONG(sfWhich)) {
+		LPSBinary lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
+
+		hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, (LPVOID*)&ptrSFEntryIDs->Value.MVbin.lpbin);
+		if (hr != hrSuccess)
+			goto exit;
+
+		// Copy old entries
+		for (ULONG i = 0; i < ptrSFEntryIDs->Value.MVbin.cValues; ++i)
+			ptrSFEntryIDs->Value.MVbin.lpbin[i] = lpbinPrev[i];		// Shallow copy
+
+		// Pad entries
+		for (ULONG i = ptrSFEntryIDs->Value.MVbin.cValues; i < ULONG(sfWhich); ++i) {
+			ptrSFEntryIDs->Value.MVbin.lpbin[i].cb = 0;
+			ptrSFEntryIDs->Value.MVbin.lpbin[i].lpb = NULL;
+		}
+
+		ptrSFEntryIDs->Value.MVbin.cValues = sfWhich + 1;
+	}
+
+	ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].cb = cbEntryID;
+	ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].lpb = (LPBYTE)lpEntryID;	// Shallow copy
+
+	hr = HrSetOneProp(ptrArchiveRoot, ptrSFEntryIDs);
+
+exit:
+	return hr;
+}
+
 HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder)
 {
 	HRESULT hr = hrSuccess;
@@ -850,58 +902,8 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSp
 		hr = m_ptrArchiveStore->OpenEntry(ulSpecialFolderID, ptrSpecialFolderID, &ptrSpecialFolder.iid, MAPI_MODIFY, &ulType, &ptrSpecialFolder);
 		if (hr != hrSuccess)
 			goto exit;
-	}
-
-	else {
-		SPropValuePtr ptrEntryID;
-		SPropValuePtr ptrSFEntryIDs;
-		MAPIFolderPtr ptrArchiveRoot;
-
+	} else {
 		hr = CreateSpecialFolder(sfWhich, &ptrSpecialFolder);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = HrGetOneProp(ptrSpecialFolder, PR_ENTRYID, &ptrEntryID);
-		if (hr != hrSuccess)
-			goto exit;
-
-		if (!ptrSFEntryIDs) {
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrSFEntryIDs);
-			if (hr != hrSuccess)
-				goto exit;
-
-			ptrSFEntryIDs->ulPropTag = PROP_SPECIAL_FOLDER_ENTRYIDS;
-			ptrSFEntryIDs->Value.MVbin.cValues = 0;
-			ptrSFEntryIDs->Value.MVbin.lpbin = NULL;
-		}
-
-		if (ptrSFEntryIDs->Value.MVbin.cValues <= ULONG(sfWhich)) {
-			LPSBinary lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
-
-			hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, (LPVOID*)&ptrSFEntryIDs->Value.MVbin.lpbin);
-			if (hr != hrSuccess)
-				goto exit;
-
-			// Copy old entries
-			for (ULONG i = 0; i < ptrSFEntryIDs->Value.MVbin.cValues; ++i)
-				ptrSFEntryIDs->Value.MVbin.lpbin[i] = lpbinPrev[i];		// Shallow copy
-
-			// Pad entries
-			for (ULONG i = ptrSFEntryIDs->Value.MVbin.cValues; i < ULONG(sfWhich); ++i) {
-				ptrSFEntryIDs->Value.MVbin.lpbin[i].cb = 0;
-				ptrSFEntryIDs->Value.MVbin.lpbin[i].lpb = NULL;
-			}
-
-			ptrSFEntryIDs->Value.MVbin.cValues = sfWhich + 1;
-		}
-
-		ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich] = ptrEntryID->Value.bin;	// Shallow copy
-
-		hr = GetArchiveFolder(true, &ptrArchiveRoot);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = HrSetOneProp(ptrArchiveRoot, ptrSFEntryIDs);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -921,6 +923,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 	LPTSTR lpszDesc = NULL;
 	ULONG ulCreateFlags = OPEN_IF_EXISTS;
 	ULONG ulCollisionCount = 0;
+	SPropValuePtr ptrEntryID;
 
 	if (sfWhich == sfBase) {
 		// We need to get the archive root to create the special root folder in
@@ -974,6 +977,14 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 
 		++ulCollisionCount;
 	} while (hr == MAPI_E_COLLISION && ulCollisionCount < 0xffff);	// We need to stop counting at some point.
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetOneProp(ptrSpecialFolder, PR_ENTRYID, &ptrEntryID);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = SetSpecialFolderEntryID(sfWhich, ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb);
 	if (hr != hrSuccess)
 		goto exit;
 
