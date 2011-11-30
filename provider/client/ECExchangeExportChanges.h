@@ -167,6 +167,8 @@ private:
 	ECLogger			*m_lpLogger;
 	clock_t				m_clkStart;
 	struct tms			m_tmsStart;
+	
+	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 };
 
 #endif // ECEXCHANGEEXPORTCHANGES_H

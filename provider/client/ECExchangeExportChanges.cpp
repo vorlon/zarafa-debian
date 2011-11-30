@@ -1397,6 +1397,10 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 		}
 		if(hr != hrSuccess)
 			goto exit;
+
+		hr = AddProcessedChanges(m_lstSoftDelete);
+		if (hr != hrSuccess)
+			goto exit;
 	}
 	
 	if(lpEntryList){
@@ -1414,6 +1418,10 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 			hr = hrSuccess;	
 		}
 		if(hr != hrSuccess)
+			goto exit;
+
+		hr = AddProcessedChanges(m_lstHardDelete);
+		if (hr != hrSuccess)
 			goto exit;
 	}
 	
@@ -1638,6 +1646,10 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		}
 		if(hr != hrSuccess)
 			goto exit;
+
+		hr = AddProcessedChanges(m_lstSoftDelete);
+		if (hr != hrSuccess)
+			goto exit;
 	}
 	
 	if(lpEntryList){
@@ -1655,6 +1667,10 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 			hr = hrSuccess;	
 		}
 		if(hr != hrSuccess)
+			goto exit;
+
+		hr = AddProcessedChanges(m_lstHardDelete);
+		if (hr != hrSuccess)
 			goto exit;
 	}
 	
@@ -1744,7 +1760,6 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	}
 	ulCount = 0;
 	for(lpChange = lpLstChanges->begin(); lpChange != lpLstChanges->end(); lpChange++){
-		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(lpChange->ulChangeId, std::string((char *)lpChange->sSourceKey.lpb, lpChange->sSourceKey.cb)));
 
 		lpEntryList->lpbin[ulCount].cb = lpChange->sSourceKey.cb;
 		MAPIAllocateMore(lpChange->sSourceKey.cb, lpEntryList, (void **)&lpEntryList->lpbin[ulCount].lpb);
@@ -1760,6 +1775,22 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 		MAPIFreeBuffer(lpEntryList);
 
 	return hr;
+}
+
+/**
+ * Add processed changes to the precessed changes list
+ *
+ * @param[in] lstChanges	List with changes
+ *
+ */
+HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
+{
+	ChangeListIter iterChange;
+
+	for(iterChange = lstChanges.begin(); iterChange != lstChanges.end(); iterChange++) 
+		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(iterChange->ulChangeId, std::string((char *)iterChange->sSourceKey.lpb, iterChange->sSourceKey.cb)));
+
+	return hrSuccess;
 }
 
 HRESULT ECExchangeExportChanges::UpdateProgress(ULONG ulNewStep)
