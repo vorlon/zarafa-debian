@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-30 00:02+0100\n"
-"PO-Revision-Date: 2011-11-29 16:11+0200\n"
-"Last-Translator: Krisztián <czako.krisztian@linuxakademia.hu>\n"
+"POT-Creation-Date: 2011-12-01 00:02+0100\n"
+"PO-Revision-Date: 2011-11-30 23:33+0200\n"
+"Last-Translator: Tibor <balazs.tibor@linuxakademia.hu>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr "Ezt az üzenetet nem lehet fájlként menteni"
 #: php-webclient-ajax/client/download_message.php:81
 #: php-webclient-ajax/server/core/class.operations.php:3528
 #: php-webclient-ajax/server/core/class.operations.php:3544
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:543
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:552
 #: php-webclient-ajax/client/modules/itemmodule.js:1618
 msgid "Untitled"
 msgstr "Névtelen"
@@ -161,7 +161,7 @@ msgstr "Mentés"
 #: php-webclient-ajax/client/layout/dialogs/standard/stickynote.php:102
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:705
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:610
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:315
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:318
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:618
 #: php-webclient-ajax/client/layout/dialogs/modal/fieldchooser.php:35
 #: php-webclient-ajax/client/layout/dialogs/modal/deletetaskoccurrence.php:66
@@ -249,7 +249,7 @@ msgstr "esedékesség"
 #: php-webclient-ajax/client/layout/dialogs/modal/signatures.php:136
 #: php-webclient-ajax/client/layout/dialogs/modal/flag.php:70
 #: php-webclient-ajax/client/modules/taskitemmodule.js:178
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:347
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:351
 #: php-webclient-ajax/client/modules/itemmodule.js:581
 #: php-webclient-ajax/client/views/table.view.js:1088
 #: php-webclient-ajax/client/views/today.task.view.js:213
@@ -282,14 +282,14 @@ msgid "Status"
 msgstr "Állapot"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:314
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:357
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:361
 #: php-webclient-ajax/client/modules/itemmodule.js:679
 msgid "Not Started"
 msgstr "Nincs elkezdve"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:315
 #: php-webclient-ajax/client/modules/printmessageitem.js:81
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:358
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:362
 #: php-webclient-ajax/client/modules/itemmodule.js:682
 msgid "In Progress"
 msgstr "Folyamatban"
@@ -301,20 +301,20 @@ msgstr "Folyamatban"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:217
 #: php-webclient-ajax/client/modules/printmessageitem.js:84
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:105
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:359
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:363
 #: php-webclient-ajax/client/modules/itemmodule.js:685
 msgid "Complete"
 msgstr "Befejezve"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:317
 #: php-webclient-ajax/client/modules/printmessageitem.js:87
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:360
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:364
 msgid "Wait for other person"
 msgstr "Várakozás másik személyre"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:318
 #: php-webclient-ajax/client/modules/printmessageitem.js:90
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:361
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:365
 #: php-webclient-ajax/client/modules/itemmodule.js:691
 msgid "Deferred"
 msgstr "Elhalasztott"
@@ -345,7 +345,7 @@ msgstr "Fontosság"
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:78
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:28
 #: php-webclient-ajax/client/modules/listmodule.js:153
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:366
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:370
 #: php-webclient-ajax/client/modules/itemmodule.js:509
 #: php-webclient-ajax/client/views/table.view.js:939
 msgid "Low"
@@ -358,7 +358,7 @@ msgstr "Alacsony"
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:29
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:40
 #: php-webclient-ajax/client/modules/listmodule.js:154
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:367
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:371
 #: php-webclient-ajax/client/views/table.view.js:949
 #: php-webclient-ajax/client/views/table.view.js:1142
 #: php-webclient-ajax/client/layout/js/advancedfind.js:300
@@ -372,7 +372,7 @@ msgstr "Átlagos"
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:80
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:30
 #: php-webclient-ajax/client/modules/listmodule.js:155
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:368
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:372
 #: php-webclient-ajax/client/modules/itemmodule.js:512
 #: php-webclient-ajax/client/views/table.view.js:955
 msgid "High"
@@ -505,9 +505,9 @@ msgstr "Vissza a feladat listába"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:609
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:477
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:478
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:212
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:213
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:130
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:215
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:216
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:134
 msgid "Accept"
 msgstr "Elfogad"
 
@@ -515,9 +515,9 @@ msgstr "Elfogad"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:615
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:489
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:490
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:224
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:225
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:132
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:227
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:228
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:136
 msgid "Decline"
 msgstr "Visszautasít"
 
@@ -724,7 +724,7 @@ msgstr "Követés"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:90
 #: php-webclient-ajax/client/modules/freebusymodule.js:19
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:660
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:668
 #: php-webclient-ajax/client/layout/js/appointment.js:1527
 #: php-webclient-ajax/client/layout/js/readmail.js:31
 msgid "Start time"
@@ -732,7 +732,7 @@ msgstr "Kezdési idő"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:91
 #: php-webclient-ajax/client/modules/freebusymodule.js:18
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:661
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:669
 #: php-webclient-ajax/client/layout/js/appointment.js:1528
 #: php-webclient-ajax/client/layout/js/readmail.js:32
 msgid "End time"
@@ -967,11 +967,11 @@ msgstr "Szabad"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:402
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:483
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:484
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:218
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:219
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:221
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:222
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:56
 #: php-webclient-ajax/server/core/class.operations.php:979
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:131
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:135
 #: php-webclient-ajax/client/modules/itemmodule.js:493
 #: php-webclient-ajax/client/modules/itemmodule.js:534
 #: php-webclient-ajax/client/views/table.view.js:1071
@@ -1009,11 +1009,11 @@ msgstr "Az alábbi válaszok érkeztek erre a találkozóra:"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:495
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:496
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:230
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:231
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:134
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:656
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:657
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:233
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:234
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:138
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:664
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:665
 #: php-webclient-ajax/client/layout/js/appointment.js:1524
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
@@ -1021,7 +1021,7 @@ msgid "Propose New Time"
 msgstr "Ajánlj új időpontot"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:520
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:297
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:300
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:535
 #: php-webclient-ajax/client/layout/dialogs/modal/printitem.php:74
 #: php-webclient-ajax/client/layout/dialogs/modal/printitem.php:75
@@ -1199,30 +1199,30 @@ msgstr "Mikor"
 msgid "Proposed"
 msgstr "Javasolt"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:200
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:201
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:203
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:204
 msgid "Accept Proposal"
 msgstr "Javaslat elfogadása"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:206
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:207
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:209
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:210
 msgid "View All Proposals"
 msgstr "Összes javaslat megtekintése"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:236
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:237
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:133
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:239
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:240
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:137
 msgid "Remove from Calendar"
 msgstr "Eltávolítás a naptárból"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:242
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:243
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:135
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:245
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:246
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:139
 msgid "Not Current"
 msgstr "Nem aktuális"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:254
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:255
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:257
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:258
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:160
 #: php-webclient-ajax/client/modules/maillistmodule.js:17
 #: php-webclient-ajax/client/modules/maillistmodule.js:41
@@ -1231,8 +1231,8 @@ msgstr "Nem aktuális"
 msgid "Reply"
 msgstr "Válasz"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:266
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:267
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:269
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:270
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:164
 #: php-webclient-ajax/client/modules/maillistmodule.js:18
 #: php-webclient-ajax/client/modules/maillistmodule.js:42
@@ -1241,8 +1241,8 @@ msgstr "Válasz"
 msgid "Reply All"
 msgstr "Válasz mindenkinek"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:278
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:279
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:281
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:282
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:168
 #: php-webclient-ajax/client/modules/maillistmodule.js:19
 #: php-webclient-ajax/client/modules/maillistmodule.js:43
@@ -1252,15 +1252,15 @@ msgstr "Válasz mindenkinek"
 msgid "Forward"
 msgstr "Továbbít"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:290
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:291
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:293
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:294
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:612
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:613
 #: php-webclient-ajax/client/modules/maillistmodule.js:60
 msgid "Options"
 msgstr "Beállítások"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:303
+#: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:306
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:619
 #: php-webclient-ajax/client/layout/dialogs/modal/flag.php:4
 msgid "Flag"
@@ -2882,9 +2882,8 @@ msgstr "az alapvető navigálásért"
 
 # 94%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:26
-#, fuzzy
 msgid "Open Shared Folder"
-msgstr "Megosztott mappák megnyitása"
+msgstr "Megosztott mappa megnyitása"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:30
 msgid "Open Shared Store"
@@ -4712,8 +4711,8 @@ msgstr "xy kezdődátuma"
 #: php-webclient-ajax/client/modules/printitemmodule.js:186
 #: php-webclient-ajax/client/modules/printitemmodule.js:190
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:102
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:215
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:216
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:219
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:220
 #: php-webclient-ajax/client/modules/itemmodule.js:233
 #: php-webclient-ajax/client/modules/itemmodule.js:586
 #: php-webclient-ajax/client/modules/itemmodule.js:618
@@ -4793,20 +4792,20 @@ msgid "%d-%m-%Y"
 msgstr "%d-%m-%Y"
 
 #: php-webclient-ajax/client/modules/taskitemmodule.js:173
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:340
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:344
 #, c-format
 msgid "Starts on %s"
 msgstr "kezdés xy-kor"
 
 #: php-webclient-ajax/client/modules/taskitemmodule.js:175
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:342
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:345
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:346
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:349
 #, c-format
 msgid "Due on %s"
 msgstr "esedékes xy-kor"
 
 #: php-webclient-ajax/client/modules/taskitemmodule.js:176
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:343
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:347
 #, c-format
 msgid "due on %s"
 msgstr "esedékes xy-kor"
@@ -5031,14 +5030,14 @@ msgid "No matches found for '%s'."
 msgstr "nincs találat erre..."
 
 #: php-webclient-ajax/client/modules/listmodule.js:1045
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:547
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:555
 msgid ""
 "The sender of this message has asked to be notified when you read this "
 "message."
 msgstr "Az üzenet küldő értesítést kért az üzenet elolvasásáról."
 
 #: php-webclient-ajax/client/modules/listmodule.js:1045
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:547
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:555
 msgid "Do you wish to notify the sender?"
 msgstr "Kapjon értesítést a küldő?"
 
@@ -5106,7 +5105,7 @@ msgid "Purple Flag"
 msgstr "lila Zászló"
 
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:41
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:416
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:420
 msgid "Received for"
 msgstr "kapott"
 
@@ -5166,8 +5165,8 @@ msgstr "névtelen melléklet"
 msgid "Download all attachments"
 msgstr "összes Melléklet Letöltése"
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:272
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:274
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:281
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:278
 msgid ""
 "This meeting request was updated after this message was sent. You should "
 "open the latest update or open the item from the calendar."
@@ -5175,28 +5174,28 @@ msgstr ""
 "A találkozót az üzenet küldése után frissíteni kell. Meg kellene nyitnia az "
 "utolsó frissítést vagy ezt a tételt a naptárban."
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:285
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:280
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:294
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:284
 msgid "As the meeting organizer, you do not need to respond to the meeting"
 msgstr "Mint az értekezlet szervezője nem szükséges reagálnia az értekezletre"
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:349
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:289
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:358
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:293
 msgid "This meeting is not in the Calendar; it may have been moved or deleted."
 msgstr ""
 "ez a találkozó nincs a naptárban, lehet, hogy máshova került vagy törölve "
 "lett."
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:433
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:442
 msgid "on behalf of"
 msgstr "nevében"
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:580
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:589
 #, c-format
 msgid "Send mail (%s)"
 msgstr "Levél Küldés"
 
-#: php-webclient-ajax/client/modules/readmailitemmodule.js:582
+#: php-webclient-ajax/client/modules/readmailitemmodule.js:591
 msgid "Add to Contacts"
 msgstr "Hozzáad a Névjegyalbumhoz"
 
@@ -5317,75 +5316,75 @@ msgstr "több"
 msgid "Due date"
 msgstr "esedékesség"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:297
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:301
 msgid "has accepted"
 msgstr "elfogadta"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:300
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:304
 msgid "has tentatively accepted"
 msgstr "feltételesen fogadta el"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:303
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:307
 msgid "has declined"
 msgstr "elutasította"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:312
 #: php-webclient-ajax/client/core/utils.js:1618
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
 #: php-webclient-ajax/client/layout/js/rule.js:271
 msgid "and"
 msgstr "és"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:310
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:314
 msgid "proposed a new time for this meeting"
 msgstr "új időpontot javasol a találkozóra"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:377
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:382
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:381
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:386
 #: php-webclient-ajax/client/layout/js/task.js:488
 #: php-webclient-ajax/client/layout/js/task.js:493
 #, c-format
 msgid "Accepted by %u on %d"
 msgstr "elfogadva xy álltal -kor"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:378
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:383
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:382
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:387
 #: php-webclient-ajax/client/layout/js/task.js:489
 #: php-webclient-ajax/client/layout/js/task.js:494
 #, c-format
 msgid "Declined by %u on %d"
 msgstr "elutasítva xy álltal -kor"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:379
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:383
 #: php-webclient-ajax/client/layout/js/task.js:490
 #, c-format
 msgid "Last update was sent by %u on %d"
 msgstr "az utolsó frissítést xy küldte -kor"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:380
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:384
 #: php-webclient-ajax/client/layout/js/task.js:491
 #, c-format
 msgid "Assigned by %u on %d"
 msgstr "kijelölve xy álltal -kor"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:384
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:388
 #: php-webclient-ajax/client/layout/js/task.js:495
 #, c-format
 msgid "Last update was received from %u on %d"
 msgstr "utolsó frissítést xy-tól kapta -kor"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:385
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:389
 #: php-webclient-ajax/client/layout/js/task.js:496
 msgid "Waiting for response from recipient"
 msgstr "válaszra várok az átvevőtől"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:394
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:398
 #: php-webclient-ajax/client/views/print.view.js:298
 #: php-webclient-ajax/client/layout/js/task.js:505
 msgid "%d/%m/%Y %H:%M"
 msgstr "%d%m%Y %H:%M"
 
-#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:671
+#: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:679
 #: php-webclient-ajax/client/layout/js/appointment.js:1538
 #: php-webclient-ajax/client/layout/js/readmail.js:42
 msgid "Comment"
