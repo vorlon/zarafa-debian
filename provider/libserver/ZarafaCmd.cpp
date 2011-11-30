@@ -9311,7 +9311,7 @@ exit:
 		if(lpDatabase)
 			lpDatabase->Rollback();
 
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Failed to remove store (%s), errorcode=0x%08X", bin2hex(lpDBLen[1], (unsigned char*)lpDBRow[1]).c_str(), er);
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Failed to remove store, errorcode=0x%08X", er);
 	}
 }
 SOAP_ENTRY_END()
