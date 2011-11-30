@@ -111,6 +111,8 @@ exit:
  * @param[in]	ptrSession
  *					MAPISessionPtr that points to the MAPISession to contruct a
  *					Session object for.
+ * @param[in]	lpLogger
+ * 					An ECLogger instance.
  * @param[out]	lppSession
  *					Pointer to a Session pointer that will be assigned the address of the returned
  *					Session object.
@@ -119,15 +121,43 @@ exit:
  */
 HRESULT Session::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, SessionPtr *lpptrSession)
 {
+	return Session::Create(ptrSession, NULL, lpLogger, lpptrSession);
+}
+
+/**
+ * Create a Session object based on an existing MAPISession.
+ *
+ * @param[in]	ptrSession
+ *					MAPISessionPtr that points to the MAPISession to contruct a
+ *					Session object for.
+ * @param[in]	lpConfig
+ * 					An ECConfig instance containing sslkey_file and sslkey_pass.
+ * @param[in]	lpLogger
+ * 					An ECLogger instance.
+ * @param[out]	lppSession
+ *					Pointer to a Session pointer that will be assigned the address of the returned
+ *					Session object.
+ *
+ * @return HRESULT
+ */
+HRESULT Session::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, SessionPtr *lpptrSession)
+{
 	HRESULT hr = hrSuccess;
 	Session *lpSession = NULL;
 	ECLogger *lpLocalLogger = lpLogger;
+	const char *lpszSslKeyFile = NULL;
+	const char *lpszSslKeyPass = NULL;
 
 	if (!lpLocalLogger)
 		lpLocalLogger = new ECLogger_Null();
 
+	if (lpConfig) {
+		lpszSslKeyFile = lpConfig->GetSetting("sslkey_file", "", NULL);
+		lpszSslKeyPass = lpConfig->GetSetting("sslkey_pass", "", NULL);
+	}
+
 	lpSession = new Session(lpLocalLogger);
-	hr = lpSession->Init(ptrSession);
+	hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
 	if (FAILED(hr)) {
 		delete lpSession;
 		goto exit;
@@ -235,7 +265,7 @@ exit:
  *
  * @return HRESULT
  */
-HRESULT Session::Init(const MAPISessionPtr &ptrSession)
+HRESULT Session::Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass)
 {
 	HRESULT hr = hrSuccess;
 
@@ -244,6 +274,12 @@ HRESULT Session::Init(const MAPISessionPtr &ptrSession)
 	hr = HrOpenDefaultStore(m_ptrSession, &m_ptrAdminStore);
 	if (hr != hrSuccess)
 		goto exit;
+
+	if (lpszSslPath)
+		m_strSslPath = lpszSslPath;
+
+	if (lpszSslPass)
+		m_strSslPass = lpszSslPass;
 
 exit:
 	return hr;

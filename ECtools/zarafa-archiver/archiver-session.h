@@ -73,6 +73,7 @@ class Session
 public:
 	static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, SessionPtr *lpptrSession);
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, SessionPtr *lpptrSession);
+	static HRESULT Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, SessionPtr *lpptrSession);
 	~Session();
 	
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
@@ -100,7 +101,7 @@ private:
 	Session(ECLogger *lpLogger);
 	HRESULT Init(ECConfig *lpConfig);
 	HRESULT Init(const char *lpszServerPath, const char *lpszSslPath, const char *lpszSslPass);
-	HRESULT Init(const MAPISessionPtr &ptrSession);
+	HRESULT Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass);
 
 	HRESULT CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
 
