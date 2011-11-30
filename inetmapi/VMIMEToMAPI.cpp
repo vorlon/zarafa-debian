@@ -1644,6 +1644,14 @@ HRESULT VMIMEToMAPI::disectBody(vmime::ref<vmime::header> vmHeader, vmime::ref<v
 		// find body type
 		if (mt->getType() == "multipart") {
 			if (vmBody->getPartCount() > 0) {
+				/*
+				 * reset selected states:
+				 * - new multipart, so disable append mode (bmixed)
+				 * - new bodyLevel: if we previously had written any body (mixed or alternative),
+				 *   this multipart _may_ override this current body
+				 */
+				bMixed = false;
+				m_mailState.bodyLevel = BODY_NONE;
 				if (mt->getSubType() == "appledouble")
 					bFilterDouble = true;
 				else if (mt->getSubType() == "mixed")
@@ -2117,7 +2125,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		}
 
 		// create new or reset body
-		if (m_mailState.bodyLevel < BODY_HTML || !bAppendBody)
+		if (m_mailState.bodyLevel == BODY_NONE || (m_mailState.bodyLevel < BODY_HTML && !bAppendBody))
 			ulFlags |= MAPI_CREATE;
 
 		hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpHTMLStream);
