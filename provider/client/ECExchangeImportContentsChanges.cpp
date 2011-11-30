@@ -179,10 +179,12 @@ HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lp
 HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	HRESULT		hr = hrSuccess;
 	LPMAPIERROR	lpMapiError = NULL;
-	LPCTSTR		lpszErrorMsg = NULL;
+	LPTSTR		lpszErrorMsg = NULL;
 	
 	//FIXME: give synchronization errors messages
-	lpszErrorMsg = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult);
+	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &lpszErrorMsg);
+	if (hr != hrSuccess)
+		goto exit;
 
 	MAPIAllocateBuffer(sizeof(MAPIERROR),(void **)&lpMapiError);
 	
@@ -212,6 +214,10 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	lpMapiError->ulVersion		= 0;
 
 	*lppMAPIError = lpMapiError;
+
+exit:
+	if (lpszErrorMsg)
+		MAPIFreeBuffer(lpszErrorMsg);
 
 	return hr;
 }

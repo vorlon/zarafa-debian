@@ -826,7 +826,13 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 		goto exit;
 	}
 
-	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &IID_IECMessageRaw, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
+	/**
+	 * We used to get the raw message here to ensure we're not getting the extra destubbing layer here. However, the messages
+	 * in the archive should never be stubbed, so there's no problem.
+	 * The main reason to not try to get the raw message through IID_IECMessageRaw is that archive stores don't support it.
+	 * @todo Should we verify if the item is really not stubbed?
+	 */
+	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchivedMsg.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open existing archived message. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;

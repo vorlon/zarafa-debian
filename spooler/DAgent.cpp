@@ -367,9 +367,9 @@ void sigsegv(int signr) {
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 exit:
@@ -2260,6 +2260,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
 			MAPISessionPtr ptrAdminSession;
+			ArchivePtr ptrArchive;
 
 			if (bIsAdmin)
 				hr = lpSession->QueryInterface(ptrAdminSession.iid, &ptrAdminSession);
@@ -2275,7 +2276,13 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 				goto exit;
 			}
 
-			hr = HrArchiveMessageForDelivery(ptrAdminSession, lpDeliveryMessage, g_lpLogger);
+			hr = Archive::Create(ptrAdminSession, g_lpLogger, &ptrArchive);
+			if (hr != hrSuccess) {
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate archive object: 0x%08X", hr);
+				goto exit;
+			}
+
+			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to archive message: 0x%08X", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);

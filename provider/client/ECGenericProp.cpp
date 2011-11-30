@@ -504,9 +504,11 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 {
 	HRESULT		hr = hrSuccess;
 	LPMAPIERROR	lpMapiError = NULL;
-	LPCTSTR		lpszErrorMsg = NULL;
+	LPTSTR		lpszErrorMsg = NULL;
 	
-	lpszErrorMsg = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult);
+	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &lpszErrorMsg);
+	if (hr != hrSuccess)
+		goto exit;
 
 	hr = ECAllocateBuffer(sizeof(MAPIERROR),(void **)&lpMapiError);
 	if(hr != hrSuccess)
@@ -540,6 +542,9 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 	*lppMAPIError = lpMapiError;
 
 exit:
+	if (lpszErrorMsg)
+		MAPIFreeBuffer(lpszErrorMsg);
+
 	if( hr != hrSuccess && lpMapiError)
 		ECFreeBuffer(lpMapiError);
 

@@ -836,40 +836,45 @@ exit:
 		*lppMapiError = NULL;
 
 		if(hr != hrSuccess) {
-			// Set Error
-			strError = _T("EntryPoint: ");
-			strError += Util::HrMAPIErrorToText(hr);
+			LPTSTR lpszErrorMsg;
 
-			// Some outlook 2007 clients can't allocate memory so check it
-			if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
+			if (Util::HrMAPIErrorToText(hr, &lpszErrorMsg) == hrSuccess) {
+				// Set Error
+				strError = _T("EntryPoint: ");
+				strError += lpszErrorMsg;
+				MAPIFreeBuffer(lpszErrorMsg);
 
-				memset(lpMapiError, 0, sizeof(MAPIERROR));				
+				// Some outlook 2007 clients can't allocate memory so check it
+				if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
 
-				if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
-					std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
-					std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+					memset(lpMapiError, 0, sizeof(MAPIERROR));				
+
+					if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+						std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
+						std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+							
+						MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError);
+						wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 						
-					MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError);
-					wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-					
-					MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent);
-					wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
-				} else {
-					std::string strErrorMsg = convert_to<std::string>(strError);
-					std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
+						MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent);
+						wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+					} else {
+						std::string strErrorMsg = convert_to<std::string>(strError);
+						std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
-					MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError);
-					strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
-					
-					MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent);
-					strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
+						MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError);
+						strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+						
+						MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent);
+						strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
+					}
+				
+					lpMapiError->ulVersion = 0;
+					lpMapiError->ulLowLevelError = 0;
+					lpMapiError->ulContext = 0;
+
+					*lppMapiError = lpMapiError;
 				}
-			
-				lpMapiError->ulVersion = 0;
-				lpMapiError->ulLowLevelError = 0;
-				lpMapiError->ulContext = 0;
-
-				*lppMapiError = lpMapiError;
 			}
 		}
 	}

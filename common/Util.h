@@ -106,7 +106,7 @@ public:
 
 	static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
 
-	static LPCTSTR	HrMAPIErrorToText(HRESULT hr);
+	static HRESULT HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase = NULL);
 
 	static bool ValidatePropTagArray(LPSPropTagArray lpPropTagArray);
 
