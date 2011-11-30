@@ -1260,11 +1260,13 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				// This is normal meeting
 				$resourceRecipData = $this->bookResources($this->message, $cancel, $prefix);
 
-				if (!$this->errorSetResource) $this->submitMeetingRequest($this->message, $cancel, $prefix, false, false, false, $deletedRecips);
+				if (!$this->errorSetResource) {
+					$this->submitMeetingRequest($this->message, $cancel, $prefix, false, false, false, $deletedRecips);
+				}
 			}
 		}
 
-		if($this->errorSetResource){
+		if(isset($this->errorSetResource) && $this->errorSetResource){
 			return Array(
 				'error' => $this->errorSetResource,
 				'displayname' => $this->recipientDisplayname
@@ -2503,7 +2505,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			}
 		}
 
-		if (isset($newmessageprops[$this->proptags['counter_proposal']])) unset($newmessageprops[$this->proptags['counter_proposal']]);
+		if (isset($newmessageprops[$this->proptags['counter_proposal']])) {
+			unset($newmessageprops[$this->proptags['counter_proposal']]);
+		}
 
 		// Prefix the subject if needed
 		if ($prefix && isset($newmessageprops[PR_SUBJECT]))
