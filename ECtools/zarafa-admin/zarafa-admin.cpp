@@ -1998,7 +1998,7 @@ HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrSystemTable->QueryRows(6, 0, &ptrRows);
+	hr = ptrSystemTable->QueryRows(0xffff, 0, &ptrRows);
 	if (hr != hrSuccess)
 		goto exit;
 
