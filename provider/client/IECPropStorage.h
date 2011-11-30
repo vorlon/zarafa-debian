@@ -70,6 +70,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 #include <list>
+#include <set>
 #include "ECPropertyEntry.h"
 #include "Zarafa.h"
 #include "Util.h"
@@ -77,6 +78,22 @@
 typedef struct MAPIOBJECT {
 	MAPIOBJECT() {
 		/* see AllocNewMapiObject :: Mem.cpp */
+	};
+	
+	MAPIOBJECT(unsigned int ulType, unsigned int ulId) : ulUniqueId(ulId), ulObjType(ulType) {
+	}
+
+	bool operator < (const MAPIOBJECT &other) const {
+		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);
+		
+		return me < him;
+	};
+
+	struct CompareMAPIOBJECT {
+		bool operator()(const MAPIOBJECT *a, const MAPIOBJECT *b) const
+		{
+			return *a < *b;
+		}
 	};
 
 	/* copy constructor */
@@ -91,7 +108,7 @@ typedef struct MAPIOBJECT {
 		Util::HrCopyEntryId(lpSource->cbInstanceID, (LPENTRYID)lpSource->lpInstanceID,
 							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
 
-		this->lstChildren = new std::list<MAPIOBJECT*>;
+		this->lstChildren = new std::set<MAPIOBJECT*, CompareMAPIOBJECT>;
 		this->lstDeleted = new std::list<ULONG>;
 		this->lstAvailable = new std::list<ULONG>;
 		this->lstModified = new std::list<ECProperty>;
@@ -102,13 +119,13 @@ typedef struct MAPIOBJECT {
 		*this->lstProperties = *lpSource->lstProperties;
 		*this->lstAvailable = *lpSource->lstAvailable;
 
-		for (std::list<MAPIOBJECT*>::iterator i = lpSource->lstChildren->begin(); i != lpSource->lstChildren->end(); i++) {
-			this->lstChildren->push_back(new MAPIOBJECT(*i));
+		for (std::set<MAPIOBJECT*, CompareMAPIOBJECT>::iterator i = lpSource->lstChildren->begin(); i != lpSource->lstChildren->end(); i++) {
+			this->lstChildren->insert(new MAPIOBJECT(*i));
 		}
 	};
 
 	/* data */
-	std::list<MAPIOBJECT*>	*lstChildren;	/* ECSavedObjects */
+	std::set<MAPIOBJECT*, CompareMAPIOBJECT>	*lstChildren;	/* ECSavedObjects */
 	std::list<ULONG>		*lstDeleted;	/* proptags client->server only */
 	std::list<ULONG>		*lstAvailable;	/* proptags server->client only */
 	std::list<ECProperty>	*lstModified;	/* propval client->server only */
@@ -123,7 +140,8 @@ typedef struct MAPIOBJECT {
 	ULONG					ulObjType;
 } MAPIOBJECT;
 
-typedef std::list<MAPIOBJECT*>	ECMapiObjects;
+typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
+
 
 class IECPropStorage : public IECUnknown
 {

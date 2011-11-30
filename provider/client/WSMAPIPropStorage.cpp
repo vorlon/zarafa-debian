@@ -313,7 +313,7 @@ exit:
 HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpsSaveObj, convert_context *lpConverter)
 {
 	HRESULT hr = hrSuccess;
-	std::list<MAPIOBJECT*>::iterator iter;
+	ECMapiObjects::iterator iter;
 	std::list<ECProperty>::iterator iterProps;
 	SPropValue sData;
 	ULONG ulPropId = 0;
@@ -362,23 +362,17 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 		ASSERT(!(iterProps == lpsMapiObject->lstModified->end()) );
 	}
 
-
-	for(iter = lpsMapiObject->lstChildren->begin(); iter!= lpsMapiObject->lstChildren->end(); iter++) 
-	{
-		for (i = 0; i < lpsSaveObj->__size; i++) {
-			if ((*iter)->ulUniqueId == lpsSaveObj->__ptr[i].ulClientId && (*iter)->ulObjType == lpsSaveObj->__ptr[i].ulObjType)
-				break;
+	for (i = 0; i < lpsSaveObj->__size; i++) {
+		MAPIOBJECT find(lpsSaveObj->__ptr[i].ulObjType, lpsSaveObj->__ptr[i].ulClientId);
+		iter = lpsMapiObject->lstChildren->find(&find);
+		
+		if(iter != lpsMapiObject->lstChildren->end()) {
+			hr = HrUpdateSoapObject(*iter, &lpsSaveObj->__ptr[i], lpConverter);
+			if (hr != hrSuccess)
+				goto exit;
 		}
-
-		if (i == lpsSaveObj->__size) {
-			continue;
-		}
-
-		hr = HrUpdateSoapObject(*iter, &lpsSaveObj->__ptr[i], lpConverter);
-		if (hr != hrSuccess)
-			goto exit;
 	}
-
+	
 exit:
 	return hr;
 }
@@ -601,7 +595,7 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveO
 		}
 
 		ECSoapObjectToMapiObject(&lpsSaveObj->__ptr[i], mo);
-		lpsMapiObject->lstChildren->push_back(mo);
+		lpsMapiObject->lstChildren->insert(mo);
 	}
 
 	if (lpsMapiObject->lpInstanceID) {

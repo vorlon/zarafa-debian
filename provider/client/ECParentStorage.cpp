@@ -189,18 +189,15 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		goto exit;
 	}
 
-	// find myself
-	for (iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->begin(); iterSObj != m_lpParentObject->m_sMapiObject->lstChildren->end(); iterSObj++) {
-		// type is either attachment or message-in-message
-		// when it's a message, there can only be one possibility, and 1st should always match
-		if ((*iterSObj)->ulObjType != MAPI_MESSAGE && (*iterSObj)->ulObjType != MAPI_ATTACH)
-			continue;
-
-		// object type not needed, unique id is unique for complete structure
-		if ((*iterSObj)->ulUniqueId == m_ulUniqueId)
-			break;
+	// type is either attachment or message-in-message
+	{
+		MAPIOBJECT find(MAPI_MESSAGE, m_ulUniqueId);
+		MAPIOBJECT findAtt(MAPI_ATTACH, m_ulUniqueId);
+	    iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->find(&find);
+	    if(iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->end())
+    		iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->find(&findAtt);
 	}
-
+    	
 	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->end()) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;

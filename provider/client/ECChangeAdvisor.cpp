@@ -110,6 +110,9 @@ ECChangeAdvisor::~ECChangeAdvisor()
 
 	if (m_lpChangeAdviseSink)
 		m_lpChangeAdviseSink->Release();
+		
+	if (m_lpLogger)
+		m_lpLogger->Release();
 
 	pthread_mutex_destroy(&m_hConnectionLock);
 	m_lpMsgStore->Release();

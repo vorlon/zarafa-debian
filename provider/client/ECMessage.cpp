@@ -1423,15 +1423,13 @@ HRESULT ECMessage::SaveRecips()
 		}
 
 		// find old recipient in child list, and remove if present
-		for (iterSObj = m_sMapiObject->lstChildren->begin(); iterSObj != m_sMapiObject->lstChildren->end(); iterSObj++) {
-			if ((*iterSObj)->ulObjType == mo->ulObjType && (*iterSObj)->ulUniqueId == mo->ulUniqueId) {
-				FreeMapiObject(*iterSObj);
-				m_sMapiObject->lstChildren->erase(iterSObj);
-				break;
-			}
+		iterSObj = m_sMapiObject->lstChildren->find(mo);
+		if (iterSObj != m_sMapiObject->lstChildren->end()) {
+			FreeMapiObject(*iterSObj);
+			m_sMapiObject->lstChildren->erase(iterSObj);
 		}
-
-		m_sMapiObject->lstChildren->push_back(mo);
+		
+		m_sMapiObject->lstChildren->insert(mo);
 	}
 
 	hr = lpRecips->HrSetClean();
@@ -1537,11 +1535,11 @@ HRESULT ECMessage::SyncAttachments()
 		}
 
 		// delete complete attachment
-		for (iterSObj = m_sMapiObject->lstChildren->begin(); iterSObj != m_sMapiObject->lstChildren->end(); iterSObj++) {
-			if ((*iterSObj)->ulObjType == lpObjType->Value.ul && (*iterSObj)->ulUniqueId == lpAttachNum->Value.ul) {
-				RecursiveMarkDelete(*iterSObj);
-				break;
-			}
+		MAPIOBJECT find(lpObjType->Value.ul, lpAttachNum->Value.ul);
+		iterSObj = m_sMapiObject->lstChildren->find(&find);
+		if (iterSObj != m_sMapiObject->lstChildren->end()) {
+			RecursiveMarkDelete(*iterSObj);
+			break;
 		}
 	}
 
@@ -1628,10 +1626,6 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 				if (hr != hrSuccess)
 					goto exit;
 
-				hr = lpTable->HrSetClean();
-				if (hr != hrSuccess)
-					goto exit;
-
 				MAPIFreeBuffer(lpNewProps);
 				lpNewProps = NULL;
 
@@ -1643,6 +1637,10 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 			}
 		}
 	}
+
+	hr = lpTable->HrSetClean();
+	if (hr != hrSuccess)
+		goto exit;
 
 exit:
 	if (lpAllProps)
@@ -2357,8 +2355,7 @@ HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, MAPIOBJECT *lpSrc)
     lpDest->ulObjId = lpSrc->ulObjId;
 
     for(iterSrc = lpSrc->lstChildren->begin(); iterSrc != lpSrc->lstChildren->end(); iterSrc++) {
-        iterDest = find_if(lpDest->lstChildren->begin(), lpDest->lstChildren->end(), findobject_if((*iterSrc)->ulObjType, (*iterSrc)->ulUniqueId));
-        
+    	iterDest = lpDest->lstChildren->find(*iterSrc);
         if(iterDest != lpDest->lstChildren->end()) {
             hr = HrCopyObjIDs(*iterDest, *iterSrc);
             if(hr != hrSuccess)
@@ -2415,24 +2412,19 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	// Replace the attachment in the object hierarchy with this one, but preserve server object id. This is needed
 	// if the entire object has been saved to the server in the mean time.
-	for (iterSObj = m_sMapiObject->lstChildren->begin(); iterSObj != m_sMapiObject->lstChildren->end(); iterSObj++) {
-		if ((*iterSObj)->ulObjType != MAPI_ATTACH)
-			continue;
-
-		if ((*iterSObj)->ulUniqueId == lpsMapiObject->ulUniqueId) {
-		    // Preserve server IDs
-		    hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
-		    if(hr != hrSuccess)
-		        goto exit;
-		        
-		    // Remove item
-			FreeMapiObject(*iterSObj);
-			m_sMapiObject->lstChildren->erase(iterSObj);
-			break;
-		}
+	iterSObj = m_sMapiObject->lstChildren->find(lpsMapiObject);
+	if (iterSObj != m_sMapiObject->lstChildren->end()) {
+		// Preserve server IDs
+		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
+		if(hr != hrSuccess)
+			goto exit;
+			
+		// Remove item
+		FreeMapiObject(*iterSObj);
+		m_sMapiObject->lstChildren->erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren->push_back(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
 
 	// Update the attachment table. The attachment table contains all properties of the attachments
 	ulProps = lpsMapiObject->lstProperties->size();
