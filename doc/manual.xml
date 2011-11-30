@@ -12041,7 +12041,7 @@
 		  <varlistentry>
 			<term>
 			  <option>-h</option>
-			  <replaceable>username</replaceable>
+			  <replaceable>serverpath</replaceable>
 			</term>
 			<listitem>
 			  <para>Host to connect with.</para>
