@@ -90,6 +90,7 @@ protected:
 	virtual ~ECMsgStore();
 
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
 
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);

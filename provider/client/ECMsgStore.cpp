@@ -164,6 +164,8 @@ ECMsgStore::ECMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpT
 	HrAddPropHandlers(PR_TEST_LINE_SPEED,			GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EMSMDB_SECTION_UID,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 
+	HrAddPropHandlers(PR_ACL_DATA,					GetPropHandler,		SetPropHandler,			(void*) this, FALSE, TRUE);
+
 	// Basically a workaround because we can't pass 'this' in the superclass constructor.
 	SetProvider(this);
 
@@ -444,6 +446,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	} else if(ulPropTag == PR_EC_STATSTABLE_COMPANY) {
 		if (*lpiid == IID_IMAPITable)
 			hr = OpenStatsTable(TABLETYPE_STATS_COMPANY, (LPMAPITABLE*)lppUnk);
+	} else if(ulPropTag == PR_ACL_TABLE) {
+		if(*lpiid == IID_IExchangeModifyTable)
+			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
 	} else if(ulPropTag == PR_ACL_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
 			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
@@ -1386,6 +1391,15 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			lpsPropValue->Value.bin.lpb = NULL;
 			lpsPropValue->Value.bin.cb = 0;
 			break;
+		case PROP_ID(PR_ACL_DATA):
+			hr = lpStore->GetSerializedACLData(lpBase, lpsPropValue);
+			if (hr == hrSuccess)
+				lpsPropValue->ulPropTag = PR_ACL_DATA;
+			else {
+				lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_ACL_DATA, PT_ERROR);
+				lpsPropValue->Value.err = hr;
+			}
+			break;
 
 		default:
 			hr = MAPI_E_NOT_FOUND;
@@ -1398,6 +1412,23 @@ exit:
 
 	if(lpProp)
 		MAPIFreeBuffer(lpProp);
+
+	return hr;
+}
+
+HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+{
+	HRESULT hr = hrSuccess;
+	ECMsgStore *lpStore = (ECMsgStore *)lpParam;
+
+	switch(ulPropTag) {
+	case PR_ACL_DATA:
+		hr = lpStore->SetSerializedACLData(lpsPropValue);
+		break;
+	default:
+		hr = MAPI_E_NOT_FOUND;
+		break;
+	}
 
 	return hr;
 }
