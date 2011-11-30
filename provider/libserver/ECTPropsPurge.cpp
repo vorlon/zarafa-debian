@@ -364,6 +364,9 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	*lpulCount = ulCount;
 	
 exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+		
 	return er;
 }
 
