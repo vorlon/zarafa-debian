@@ -102,6 +102,9 @@ struct ArchiveEntry {
 };
 typedef std::list<ArchiveEntry> ArchiveList;
 
+#define ARCHIVE_RIGHTS_ERROR	(unsigned)-1
+#define ARCHIVE_RIGHTS_NONE		(unsigned)-2
+
 struct UserEntry {
 	std::string UserName;
 };
