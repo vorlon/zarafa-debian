@@ -56,6 +56,8 @@
 #include "mapi_ptr/mapi_memory_ptr.h"
 #include "mapi_ptr/mapi_object_ptr.h"
 
+#include <string>
+
 class ECArchiveAwareMsgStore;
 
 class ECArchiveAwareMessage : public ECMessage {
@@ -109,6 +111,7 @@ protected:
 
 private:
 	HRESULT MapNamedProps();
+	std::string CreateErrorBodyUtf8(HRESULT hResult);
 
 private:
 	bool	m_bLoading;

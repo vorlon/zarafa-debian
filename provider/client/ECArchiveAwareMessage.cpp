@@ -59,7 +59,12 @@
 #include <mapiext.h>
 #include "mapiguidext.h"
 #include "ECArchiveAwareMessage.h"
+#include "ECGetText.h"
+#include "stringutil.h"
 
+#include <sstream>
+#include "ECDebug.h"
+#include "charset/convert.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -155,9 +160,39 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 			}
 
 			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &m_ptrArchiveMsg);
-			// @todo: Handle MAPI_E_NO_SUPPORT and other errors and inform the user of the failure.
-			if (hr != hrSuccess)
+			if (hr != hrSuccess) {
+				HRESULT hResult = hr;
+				StreamPtr ptrHtmlStream;
+
+				this->fModify = TRUE;
+
+				hr = DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
+				if (hr == hrSuccess) {
+					SPropValue sPropVal;
+					sPropVal.ulPropTag = PR_INTERNET_CPID;
+					sPropVal.Value.l = 65001;
+					hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
+				}
+
+				if (hr == hrSuccess) 
+					hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid, 0, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
+
+				if (hr == hrSuccess) {
+					ULARGE_INTEGER liZero = {0, 0};
+					hr = ptrHtmlStream->SetSize(liZero);
+				}
+
+				if (hr == hrSuccess) {
+					const std::string strBodyHtml = CreateErrorBodyUtf8(hResult);	
+					hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
+				}
+
+				if (hr == hrSuccess)
+					hr = ptrHtmlStream->Commit(0);
+
+				this->fModify = FALSE;
 				goto exit;
+			}
 		}
 
 		// Now merge the properties and reconstruct the attachment table.
@@ -443,4 +478,61 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 
 exit:
 	return hr;
+}
+
+std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
+	std::basic_ostringstream<TCHAR> ossHtmlBody;
+
+	ossHtmlBody << _T("<HTML><HEAD><STYLE type=\"text/css\">")
+				   _T("BODY {font-family: \"sans-serif\";margin-left: 1em;}")
+				   _T("P {margin: .1em 0;}")
+				   _T("P.spacing {margin: .8em 0;}")
+				   _T("H1 {margin: .3em 0;}")
+				   _T("SPAN#errcode {display: inline;font-weight: bold;}")
+				   _T("SPAN#errmsg {display: inline;font-style: italic;}")
+				   _T("DIV.indented {margin-left: 4em;}")
+				   _T("</STYLE></HEAD><BODY><H1>")
+				<< _("Zarafa Archiver")
+				<< _T("</H1><P>")
+				<< _("An error has occurred while fetching the message from the archive.")
+				<< _T(" ")
+				<< _("Please contact your system administrator.")
+				<< _T("</P><P class=\"spacing\"></P>")
+				   _T("<P>")
+				<< _("Error code:")
+				<< _T("<SPAN id=\"errcode\">")
+				<< tstringify(hResult, true)
+				<< _T("</SPAN> (<SPAN id=\"errmsg\">")
+				<< convert_to<tstring>(GetMAPIErrorDescription(hResult))
+				<< _T("</SPAN>)</P>");
+
+	if (hResult == MAPI_E_NO_SUPPORT) {
+		ossHtmlBody << _T("<P class=\"spacing\"></P><P>")
+				    << _("It seems no valid archiver license is installed.")
+					<< _T("</P>");
+	} else if (hResult == MAPI_E_NOT_FOUND) {
+		ossHtmlBody << _T("<P class=\"spacing\"></P><P>")
+				    << _("The archive could not be found.")
+					<< _T("</P>");
+	} else if (hResult == MAPI_E_NO_ACCESS) {
+		ossHtmlBody << _T("<P class=\"spacing\"></P><P>")
+				    << _("You don't have sufficient access to the archive.")
+					<< _T("</P>");
+	} else {
+		LPTSTR	lpszDescription = NULL;
+		HRESULT hr = Util::HrMAPIErrorToText(hResult, &lpszDescription);
+		if (hr == hrSuccess) {
+			ossHtmlBody << _T("<P>")
+						<< _("Error description:")
+						<< _T("<DIV class=\"indented\">")
+						<< lpszDescription
+						<< _T("</DIV></P>");
+			MAPIFreeBuffer(lpszDescription);
+		}
+	}
+
+	ossHtmlBody << _T("</BODY></HTML>");
+
+	tstring strHtmlBody = ossHtmlBody.str();
+	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
 }
