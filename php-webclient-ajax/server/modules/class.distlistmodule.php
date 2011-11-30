@@ -164,6 +164,12 @@
 						}
 
 						switch($parts["type"]){
+							case 0:
+								$item["missing"] = "0";
+								$item["distlisttype"] = "ONEOFF";
+								$item["icon_index"] = 512;
+								$item["message_class"] = "IPM.DistListItem.OneOffContact";
+								break;
 							case DL_USER:
 								$item["distlisttype"] = "DL_USER";
 								$item["icon_index"] = 512;
