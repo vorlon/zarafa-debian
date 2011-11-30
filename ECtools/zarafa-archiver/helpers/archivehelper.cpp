@@ -884,6 +884,10 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 	ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].lpb = (LPBYTE)lpEntryID;	// Shallow copy
 
 	hr = HrSetOneProp(ptrArchiveRoot, ptrSFEntryIDs);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrArchiveRoot->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
 	return hr;
