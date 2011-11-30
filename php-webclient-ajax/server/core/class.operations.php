@@ -1375,6 +1375,7 @@
 			$basedate = false;	// Flag for MeetingRequest Class whether to send an exception or not.
 			$isReminderTimeAllowed = true;	// Flag to check reminder minutes is in range of the occurences
 			$properties = $GLOBALS["properties"]->getAppointmentProperties();
+			$oldProps = array();
 
 			if($store && $parententryid) {
 				if(isset($action["props"])) {
@@ -1412,20 +1413,14 @@
 									// As the reminder minutes occurs before other occurences don't modify the item.
 									if($isReminderTimeAllowed){
 										if($recurrence->isException($basedate)){
-											$oldExceptionProps = $recurrence->getExceptionProperties($recurrence->getChangeException($basedate));
+											$oldProps = $recurrence->getExceptionProperties($recurrence->getChangeException($basedate));
 											$isExceptionAllowed = $recurrence->modifyException(Conversion::mapXML2MAPI($properties, $action["props"]), $basedate, $exception_recips);
-
-
-											$attach = $recurrence->getExceptionAttachment($basedate);
-											if ($attach) {
-												$exceptionMsg = mapi_attach_openobj($attach, MAPI_MODIFY);
-												$this->checkSignificantChanges($exceptionMsg, $oldExceptionProps);
-												mapi_savechanges($exceptionMsg);
-												mapi_savechanges($attach);
-											}
 										} else {
+											$oldProps[$properties['startdate']] = $recurrence->getOccurrenceStart($basedate);
+											$oldProps[$properties['duedate']] = $recurrence->getOccurrenceEnd($basedate);
 											$isExceptionAllowed = $recurrence->createException(Conversion::mapXML2MAPI($properties, $action["props"]), $basedate, false, $exception_recips);
 										}
+										mapi_savechanges($message);
 									}
 								}
 							} else {
@@ -1454,12 +1449,6 @@
 									// Act like the 'props' are the recurrence pattern; it has more information but that
 									// is ignored
 									$recur->setRecurrence($tz, $action['props']);
-
-									// Recurrence pattern has been changed, so clear all attendees response
-									$this->clearRecipientResponse($message);
-								} else {
-									// Check of significant changes, maybe we want to clear responses
-									$this->checkSignificantChanges($message, $oldProps);
 								}
 							}
 							// Get the properties of the main object of which the exception was changed, and post
@@ -1497,6 +1486,9 @@
 			if(isset($action["send"]) && $action["send"] && $isExceptionAllowed) {
 				$request = new Meetingrequest($store, $message, $GLOBALS["mapisession"]->getSession(), ENABLE_DIRECT_BOOKING);
 				$request->updateMeetingRequest($basedate);
+
+				$isRecurrenceChanged = isset($action['props']['recurring_reset']) && $action['props']['recurring_reset'] == 1;
+				$request->checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged);
 
 				// Update extra body information
 				if(isset($action['props']['meetingTimeInfo']) && strlen($action['props']['meetingTimeInfo']))
@@ -1545,44 +1537,6 @@
 			}
 
 			return $result;
-		}
-
-		/**
-		 * Checks if there has been any significant changes on appointment/meeting item.
-		 * Significant changes be:
-		 * 1) startdate has been changed
-		 * 2) duedate has been changed OR
-		 * 3) recurrence pattern has been created, modified or removed
-		 *
-		 * @param MAPI_MESSAGE $message
-		 * @param Array $oldProps old props before an update
-		 */
-		function checkSignificantChanges($message, $oldProps)
-		{
-			$properties = $GLOBALS["properties"]->getAppointmentProperties();
-			$newProps = mapi_getprops($message, array($properties['startdate'], $properties['duedate']));
-
-			if (($newProps[$properties['startdate']] != $oldProps[$properties['startdate']])
-				|| ($newProps[$properties['duedate']] != $oldProps[$properties['duedate']])) {
-
-				$this->clearRecipientResponse($message);
-			}
-			
-		}
-
-		/**
-		 * Clear responses of all attendee who have replied in past.
-		 * @param MAPI_MESSAGE $message on which responses should be cleared
-		 */
-		function clearRecipientResponse($message)
-		{
-			$recipTable = mapi_message_getrecipienttable($message);
-			$recipsRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY));
-
-			foreach($recipsRows as $recipient) {
-				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
-				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
-			}
 		}
 
 		/**

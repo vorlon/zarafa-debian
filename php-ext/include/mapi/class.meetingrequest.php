@@ -2734,6 +2734,77 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	}
 
 	/**
+	 * Checks if there has been any significant changes on appointment/meeting item.
+	 * Significant changes be:
+	 * 1) startdate has been changed
+	 * 2) duedate has been changed OR
+	 * 3) recurrence pattern has been created, modified or removed
+	 *
+	 * @param Array oldProps old props before an update
+	 * @param Number basedate basedate
+	 * @param Boolean isRecurrenceChanged for change in recurrence pattern.
+	 * isRecurrenceChanged true means Recurrence pattern has been changed, so clear all attendees response
+	 */
+	function checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged = false)
+	{
+		// If basedate is specified then we need to open exception message to clear recipient responses
+		if($basedate) {
+			$recurrence = new Recurrence($this->store, $this->message);
+			if($recurrence->isException($basedate)){
+				$attach = $recurrence->getExceptionAttachment($basedate);
+				if ($attach) {
+					$message = mapi_attach_openobj($attach, MAPI_MODIFY);
+				}
+			}
+		} else {
+			// use normal message or recurring series message
+			$message = $this->message;
+		}
+
+		if(!$message) {
+			return;
+		}
+
+		$newProps = mapi_getprops($message, array($this->proptags['startdate'], $this->proptags['duedate'], $this->proptags['updatecounter']));
+
+		// Check whether message is updated or not.
+		if(isset($newProps[$this->proptags['updatecounter']]) && $newProps[$this->proptags['updatecounter']] == 0) {
+			return;
+		}
+
+		if (($newProps[$this->proptags['startdate']] != $oldProps[$this->proptags['startdate']])
+			|| ($newProps[$this->proptags['duedate']] != $oldProps[$this->proptags['duedate']])
+			|| $isRecurrenceChanged) {
+			$this->clearRecipientResponse($message);
+
+			mapi_setprops($message, array($this->proptags['owner_critical_change'] => time()));
+
+			mapi_savechanges($message);
+			if ($attach) { // Also save attachment Object.
+				mapi_savechanges($attach);
+			}
+		}
+	}
+
+	/**
+	 * Clear responses of all attendees who have replied in past.
+	 * @param MAPI_MESSAGE $message on which responses should be cleared
+	 */
+	function clearRecipientResponse($message)
+	{
+		$recipTable = mapi_message_getrecipienttable($message);
+		$recipsRows = mapi_table_queryallrows($recipTable, $this->recipprops);
+
+		foreach($recipsRows as $recipient) {
+			// Probably recipient is an organizer, not possible at the moment but for safety reasons.
+			if(($recipient[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer){
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
+				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
+			}
+		}
+	}
+
+	/**
 	 * Function which checks whether received meeting request is either conflicting with other appointments or not.
 	 *@return mixed(boolean/integer) true if normal meeting is conflicting or an integer which specifies no of instances
 	 * conflict of recurring meeting and false if meeting is not conflicting.
