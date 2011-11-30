@@ -176,8 +176,8 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECLogger *lpLogger, int ulAge, bo
  * The property array lpProps contains at least the entryid of the message to open and the entryid of the parent
  * folder of the message to open.
  *
- * @param[in]	ptrFolder
- *					A MAPIFolderPtr that points to the parent folder.
+ * @param[in]	lpFolder
+ *					A MAPIFolder pointer that points to the parent folder.
  * @param[in]	cProps
  *					The number op properties pointed to by lpProps.
  * @param[in]	lpProps
@@ -185,12 +185,18 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECLogger *lpLogger, int ulAge, bo
  *
  * @return HRESULT
  */
-HRESULT ArchiveOperationBaseEx::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps)
+HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpFolderEntryId;
 	bool bReloadFolder = false;
 	ULONG ulType = 0;
+
+	ASSERT(lpFolder != NULL);
+	if (lpFolder == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 	
 	lpFolderEntryId = PpropFindProp(lpProps, cProps, PR_PARENT_ENTRYID);
 	if (lpFolderEntryId == NULL) {
@@ -223,7 +229,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(MAPIFolderPtr &ptrFolder, ULONG cPr
 	if (m_ptrCurFolderEntryId.is_null() || bReloadFolder) {	
 		Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());
 	
-		hr = ptrFolder->OpenEntry(lpFolderEntryId->Value.bin.cb, (LPENTRYID)lpFolderEntryId->Value.bin.lpb, &m_ptrCurFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &m_ptrCurFolder);
+		hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb, (LPENTRYID)lpFolderEntryId->Value.bin.lpb, &m_ptrCurFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &m_ptrCurFolder);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
