@@ -58,6 +58,8 @@ using namespace std;
 #include <initguid.h>
 #include "archiver.h"
 
+#include "UnixUtil.cpp"
+
 enum modes {
 	MODE_INVALID = 0, 
 	MODE_ATTACH, 
@@ -200,6 +202,13 @@ int main(int argc, char *argv[])
     ULONG ulFlags = 0;
     
 	const char *lpszConfig = Archiver::GetConfigPath();
+
+	const configsetting_t lpDefaults[] = {
+		{ "pid_file", "/var/run/zarafa-archiver.pid" },
+		{ NULL, NULL }
+	};
+
+	setlocale(LC_CTYPE, "");
 
 	int c;
 	while (1) {
@@ -386,7 +395,7 @@ int main(int argc, char *argv[])
 	if (mode != MODE_ARCHIVE)
 		ulFlags |= Archiver::AttachStdErr;
 		
-	r = ptrArchiver->Init(argv[0], lpszConfig, ulFlags);
+	r = ptrArchiver->Init(argv[0], lpszConfig, lpDefaults, ulFlags);
 	if (r == FileNotFound) {
 		cerr << "Unable to open configuration file " << lpszConfig << endl;
 		return 1;
@@ -395,8 +404,11 @@ int main(int argc, char *argv[])
 		cerr << "Failed to initialize" << endl;
 		return 1;
 	}
-	
-	
+
+	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
+		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
+			return 1;
+
 	switch (mode) {
 	case MODE_ATTACH: {
 		ArchiveManagePtr ptr;

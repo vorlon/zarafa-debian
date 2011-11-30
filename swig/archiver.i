@@ -167,7 +167,7 @@ public:
 			if (r != Success)
 				throw ArchiverError(r, "Failed to instantiate object!");
 
-			r = ptr->Init(lpszAppName, lpszConfig, ulFlags);
+			r = ptr->Init(lpszAppName, lpszConfig, NULL, ulFlags);
 			if (r != Success)
 				throw ArchiverError(r, "Failed to initialize object!");
 

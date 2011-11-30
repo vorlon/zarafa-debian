@@ -56,8 +56,9 @@
 
 #ifdef ARCHIVER_EXTRA
 #include <mapix.h>
-class ECLogger;
 #endif
+class ECLogger;
+class ECConfig;
 
 enum eResult {
 	Success = 0,
@@ -154,10 +155,13 @@ public:
 
 	virtual ~Archiver() {};
 
-	virtual eResult Init(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags = 0) = 0;
+	virtual eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings = NULL, unsigned int ulFlags = 0) = 0;
 
 	virtual eResult GetControl(ArchiveControlPtr *lpptrControl) = 0;
 	virtual eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage) = 0;
+
+	virtual ECConfig* GetConfig() const = 0;
+	virtual ECLogger* GetLogger() const = 0;
 
 protected:
 	Archiver() {};
