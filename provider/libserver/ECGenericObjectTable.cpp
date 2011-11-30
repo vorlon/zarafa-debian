@@ -2982,6 +2982,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
     struct sortOrderArray *lpsSortOrderArray = this->lpsSortOrderArray;
     struct sortOrder sSortHierarchy = { PR_EC_HIERARCHYID, EC_TABLE_SORT_DESCEND };
     struct sortOrderArray sSortSimple = { &sSortHierarchy, 1 };
+    int n = 0;
     
     ASSERT(cValues <= (unsigned int)lpsSortOrderArray->__size);
 
@@ -3012,29 +3013,30 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 
 	for(unsigned int i = 0; i < cValues; i++) {
 		if (ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder)) {
-			ASSERT(lpCategory);
-			if(i == 0) {
-				er = ZARAFA_E_INVALID_PARAMETER;
-				goto exit;
+			if(n == 0 || !lpCategory) {
+				// Min/max ignored if the row is not in a category
+				continue;
 			}
 			
 			// Swap around the current and the previous sorting order
-			lpOrderedProps[i] = lpOrderedProps[i-1];
+			lpOrderedProps[n] = lpOrderedProps[n-1];
 			// Get actual sort order from category
-			if(lpCategory->GetProp(NULL, lpsSortOrderArray->__ptr[i].ulPropTag, &lpOrderedProps[i-1]) != erSuccess) {
-				lpOrderedProps[i-1].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsSortOrderArray->__ptr[i].ulPropTag));
-				lpOrderedProps[i-1].Value.ul = ZARAFA_E_NOT_FOUND;
-				lpOrderedProps[i-1].__union = SOAP_UNION_propValData_ul;
+			if(lpCategory->GetProp(NULL, lpsSortOrderArray->__ptr[n].ulPropTag, &lpOrderedProps[n-1]) != erSuccess) {
+				lpOrderedProps[n-1].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsSortOrderArray->__ptr[n].ulPropTag));
+				lpOrderedProps[n-1].Value.ul = ZARAFA_E_NOT_FOUND;
+				lpOrderedProps[n-1].__union = SOAP_UNION_propValData_ul;
 			}
 		} else {
-			er = CopyPropVal(&lpProps[i], &lpOrderedProps[i], NULL, false);
+			er = CopyPropVal(&lpProps[n], &lpOrderedProps[n], NULL, false);
 			if(er != erSuccess)
 				goto exit;
 		}
+		
+		n++;
 	}
 	
     // Build binary sort keys from updated data
-    for(unsigned int i=0; i < cValues; i++) {
+    for(unsigned int i=0; i < n; i++) {
         if(GetBinarySortKey(&lpOrderedProps[i], &lpSortLen[i], &lppSortKeys[i]) != erSuccess)
         	lppSortKeys[i] = NULL;
         if(GetSortFlags(lpOrderedProps[i].ulPropTag, &lpSortFlags[i]) != erSuccess)
