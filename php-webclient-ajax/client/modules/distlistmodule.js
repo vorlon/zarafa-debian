@@ -335,7 +335,7 @@ distlistmodule.prototype.checkMissing = function()
 				delete member.missing;
 				delete member.message_class;
 				member.entryid.value = "oneoff_"+member.internalid.value;
-				member.distlisttype.value = "ONEOFF";
+				member.distlisttype = {value: "ONEOFF"};
 			}
 		}
 	}
