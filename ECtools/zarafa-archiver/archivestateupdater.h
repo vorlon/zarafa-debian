@@ -97,7 +97,7 @@ private:
 	SessionPtr	m_ptrSession;
 	ECLogger	*m_lpLogger;
 
-	std::map<entryid_t, ArchiveInfo>	m_mapArchiveInfo;
+	ArchiveInfoMap	m_mapArchiveInfo;
 };
 
 #endif // ndef archivestateupdater_INCLUDED
