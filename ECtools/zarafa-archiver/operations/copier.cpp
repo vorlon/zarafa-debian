@@ -464,6 +464,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	LPSPropValue lpEntryId = NULL;
 	LPSPropValue lpStoreEntryId = NULL;
 	SObjectEntry refObjectEntry;
+	MessagePtr ptrMessageRaw;
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
@@ -499,13 +500,13 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	refObjectEntry.sItemEntryId.assign(lpEntryId->Value.bin);
 
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
-	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &ptrMessage);
+	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &ptrMessageRaw);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
 
-	hr = VerifyRestriction(ptrMessage);
+	hr = VerifyRestriction(ptrMessageRaw);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring message because it doesn't match the criteria for begin archived.");
 		Logger()->Log(EC_LOGLEVEL_WARNING, "This can happen when huge amounts of message are being processed.");
@@ -520,7 +521,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		goto exit;
 	}
 	
-	hr = MAPIPropHelper::Create(ptrMessage.as<MAPIPropPtr>(), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(ptrMessageRaw.as<MAPIPropPtr>(), &ptrMsgHelper);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -543,8 +544,10 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to reopen message. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
 		}
-	}
+	} else
+		ptrMessage = ptrMessageRaw;
 
+	// From here on we work on ptrMessage, except for ExecuteSubOperations.
 	if (!state.isCopy()) {		// Include state.isMove()
 		hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);
 		if (hr != hrSuccess) {
@@ -662,7 +665,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
 	}
 	
-	hrTemp = ExecuteSubOperations(ptrMessage, CurrentFolder(), cProps, lpProps);
+	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), cProps, lpProps);
 	if (hrTemp != hrSuccess)
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Unable to execute next operation, hr=%08x. The operation is postponed, not cancelled", hrTemp);
 
