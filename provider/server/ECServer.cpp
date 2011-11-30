@@ -661,6 +661,7 @@ int running_server(char *szName, const char *szConfig)
 	
 	bool			hosted = false;
 	bool			distributed = false;
+	bool			mslicense = false;
 
 	// SIGSEGV backtrace support
 	stack_t st = {0};
@@ -986,10 +987,22 @@ int running_server(char *szName, const char *szConfig)
 	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
 	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
 	} else {
-		if (!strSerial.empty())
+		if (!strSerial.empty()) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
-		else
+
+			if (distributed) {
+				vector<string> lCaps;
+				lpLicense->GetCapabilities(0 /*SERVICE_TYPE_ZCP*/, lCaps);
+				mslicense = find(lCaps.begin(), lCaps.end(), string("MULTISERVER")) != lCaps.end();
+			}
+		} else {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
+		}
+	}
+	if (!mslicense && distributed) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
+		retval = -1;
+		goto exit;
 	}
 
 
