@@ -2292,8 +2292,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 		if (cdf->hasParameter("filename")) {
 			strLongFilename = getWideFromVmimeText(vmime::text(cdf->getFilename()));
 		} else if (ctf->hasParameter("name")) {
-			strTmp = ctf->getParameter("name")->getValue().generate();
-			strLongFilename = m_converter.convert_to<wstring>(strTmp, rawsize(strTmp), MAPI_CHARSET_STRING);
+			strLongFilename = getWideFromVmimeText(vmime::text(ctf->getParameter("name")->getValue()));
 		} else if (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT &&
 				   ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == "calendar") {
 			strLongFilename = L"calendar.ics";
