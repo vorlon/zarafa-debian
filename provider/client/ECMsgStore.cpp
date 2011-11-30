@@ -611,6 +611,35 @@ HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 	return hr;
 }
 
+HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+{
+	HRESULT hr = hrSuccess;
+	ECMsgStore* lpMsgStore = (ECMsgStore*)lpProvider;
+
+	switch (lpsPropValSrc->ulPropTag) {
+		case PR_ENTRYID:
+		{				
+			ULONG cbWrapped = 0;
+			LPENTRYID lpWrapped = NULL;
+
+			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &lpWrapped);
+			if (hr == hrSuccess) {
+				ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+				memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
+				lpsPropValDst->Value.bin.cb = cbWrapped;
+				lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+				MAPIFreeBuffer(lpWrapped);
+			}
+			break;
+		}	
+		default:
+			hr = MAPI_E_NOT_FOUND;
+			break;
+	}
+
+	return hr;
+}
+
 /**
  * Compares two entry identifiers.
  *
