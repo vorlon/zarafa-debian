@@ -63,6 +63,7 @@
 #include "helpers/archivehelper.h"
 
 class ECLogger;
+class ECConfig;
 
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
@@ -70,7 +71,7 @@ class ECLogger;
 class ArchiveManageImpl : public ArchiveManage
 {
 public:
-	static HRESULT Create(SessionPtr ptrSession, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
+	static HRESULT Create(SessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
 
 	eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags);
 	eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder);
@@ -79,7 +80,7 @@ public:
 	eResult ListArchives(ArchiveList *lplstArchives, const char *lpszIpmSubtreeSubstitude);
 	eResult ListAttachedUsers(std::ostream &ostr);
 	eResult ListAttachedUsers(UserList *lplstUsers);
-	eResult AutoAttach();
+	eResult AutoAttach(unsigned int ulFlags);
 
 	HRESULT AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags, za::helpers::AttachType attachType);
 	HRESULT AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const entryid_t &sUserEntryId, unsigned ulFlags, za::helpers::AttachType attachType);
@@ -87,7 +88,7 @@ public:
 	~ArchiveManageImpl();
 	
 private:
-	ArchiveManageImpl(SessionPtr ptrSession, const tstring &strUser, ECLogger *lpLogger);
+	ArchiveManageImpl(SessionPtr ptrSession, ECConfig *lpConfig, const tstring &strUser, ECLogger *lpLogger);
 	HRESULT Init();
 
 	static UserEntry MakeUserEntry(const std::string &strUser);
@@ -96,6 +97,7 @@ private:
 
 private:
 	SessionPtr	m_ptrSession;
+	ECConfig	*m_lpConfig;
 	tstring	m_strUser;
 	ECLogger	*m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;

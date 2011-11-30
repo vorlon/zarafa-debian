@@ -101,7 +101,7 @@ public:
 
 	eResult GetControl(ArchiveControlPtr *lpptrControl);
 	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
-	eResult AutoAttach();
+	eResult AutoAttach(unsigned int ulFlags);
 
 	ECConfig* GetConfig() const;
 	ECLogger* GetLogger() const;
@@ -161,6 +161,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "track_history",	"no" },
 		{ "cleanup_action",	"store" },
 		{ "enable_auto_attach",	"no" },
+		{ "auto_attach_writable",	"yes" },
 
 		// Log options
 		{ "log_method",		"file" },
@@ -213,7 +214,7 @@ HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, cons
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ArchiveManageImpl::Create(ptrArchiverSession, lpszUser, lpLogger, lpptrManage);
+	hr = ArchiveManageImpl::Create(ptrArchiverSession, NULL, lpszUser, lpLogger, lpptrManage);
 
 exit:
 	return hr;
@@ -327,14 +328,19 @@ eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrMa
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
 		
-	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, lpszUser, m_lpLogger, lpptrManage));
+	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, m_lpsConfig, lpszUser, m_lpLogger, lpptrManage));
 }
 
-eResult ArchiverImpl::AutoAttach()
+eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
@@ -344,7 +350,14 @@ eResult ArchiverImpl::AutoAttach()
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrArchiveStateUpdater->UpdateAll();
+	if (ulFlags == 0) {
+		if (parseBool(m_lpsConfig->GetSetting("auto_attach_writable")))
+			ulFlags = ArchiveManage::Writable;
+		else
+			ulFlags = ArchiveManage::ReadOnly;
+	}
+
+	hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
 
 exit:
 	return MAPIErrorToArchiveError(hr);

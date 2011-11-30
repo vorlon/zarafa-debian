@@ -124,7 +124,10 @@ void print_help(ostream &ostr, const char *name)
 	ostr << "                                     of the archive. This implies that only one" << endl;
 	ostr << "                                     archive can be made in the specified archive" << endl;
 	ostr << "                                     store." << endl;
-	ostr << "  -w|--writable                    : Grant write permissions on the archive." << endl;
+	ostr << "  -w                               : Grant write permissions on the archive. This will" << endl;
+	ostr << "                                     override the auto_attach_writable config option." << endl;
+	ostr << "     --writable <yes|no>           : Enable or disable write permissions. This will" << endl;
+	ostr << "                                     override the auto_attach_writable config option." << endl;
 	ostr << "  -c|--config                      : Use alternate config file." << endl;
 	ostr << "                                     Default: archiver.cfg" << endl;
 	ostr << "     --help                        : Show this help message." << endl;
@@ -184,7 +187,7 @@ struct option long_options[] = {
 		{ "local-only",		no_argument,		NULL, OPT_LOCAL		},
 		{ "help", 			no_argument, 		NULL, OPT_HELP		},
 		{ "config", 		required_argument, 	NULL, OPT_CONFIG 	},
-		{ "writable",		no_argument,		NULL, OPT_WRITABLE	},
+		{ "writable",		required_argument,	NULL, OPT_WRITABLE	},
 		{ NULL, 			no_argument, 		NULL, 0				}
 };
 
@@ -355,8 +358,14 @@ int main(int argc, char *argv[])
 			break;
 			
 		case 'w':
-		case OPT_WRITABLE:
 			ulAttachFlags |= ArchiveManage::Writable;
+			break;
+			
+		case OPT_WRITABLE:
+			if (parseBool(my_optarg))
+				ulAttachFlags |= ArchiveManage::Writable;
+			else
+				ulAttachFlags |= ArchiveManage::ReadOnly;
 			break;
 			
 		case OPT_HELP:
@@ -461,9 +470,9 @@ int main(int argc, char *argv[])
 			if (r != Success)
 				goto exit;
 
-			r = ptr->AutoAttach();
+			r = ptr->AutoAttach(ulAttachFlags);
 		} else
-			r = ptrArchiver->AutoAttach();
+			r = ptrArchiver->AutoAttach(ulAttachFlags);
 	} break;
 	
 	case MODE_LIST: {
@@ -491,9 +500,9 @@ int main(int argc, char *argv[])
 			goto exit;
 			
 		if (lpszUser)
-			r = ptr->Archive(TO_LPTST(lpszUser), bAutoAttach);
+			r = ptr->Archive(TO_LPTST(lpszUser), bAutoAttach, ulAttachFlags);
 		else
-			r = ptr->ArchiveAll(bLocalOnly, bAutoAttach);
+			r = ptr->ArchiveAll(bLocalOnly, bAutoAttach, ulAttachFlags);
 	} break;
 		
 	case MODE_CLEANUP: {

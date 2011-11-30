@@ -704,7 +704,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	ECAndRestriction resArchiveCheck;
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
-	SPropValue sPropStubbed;
 	EntryListPtr ptrEntryList;
 	ECAndRestriction resDeleteFolder;
 	SRestrictionPtr ptrRestriction;
@@ -748,9 +747,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
 	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
 
-
-	sPropStubbed.ulPropTag = PROP_STUBBED; 
-	sPropStubbed.Value.b = 1;
 
 	// Create/Update the search folder that tracks all archived message that are not flagged to be never deleted or never stubbed
 	resDeleteFolder.append(

@@ -37,19 +37,19 @@
 class ArchiveControl {
 public:
 	%extend {
-		void ArchiveAll(bool bLocalOnly, bool bAutoAttach = false) {
+		void ArchiveAll(bool bLocalOnly, bool bAutoAttach = false, unsigned int ulFlags = ArchiveManage::Writable) {
 			eResult e = Success;
 
-			e = self->ArchiveAll(bLocalOnly, bAutoAttach);
+			e = self->ArchiveAll(bLocalOnly, bAutoAttach, ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
 		
-		void Archive(const char *lpszUser, bool bAutoAttach = false) {
+		void Archive(const char *lpszUser, bool bAutoAttach = false, unsigned int ulFlags = ArchiveManage::Writable) {
 			eResult e = Success;
 			convert_context converter;
 
-			e = self->Archive(TO_LPTST(lpszUser), bAutoAttach);
+			e = self->Archive(TO_LPTST(lpszUser), bAutoAttach, ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -97,7 +97,8 @@ class ArchiveManage {
 public:
 	enum {
 		UseIpmSubtree = 1,
-		Writable = 2
+		Writable = 2,
+		ReadOnly = 4
 	};
 
 	%extend {
@@ -149,10 +150,10 @@ public:
 			return lst;
 		}
 
-		void AutoAttach() {
+		void AutoAttach(unsigned int ulFlags = ArchiveManage::Writable) {
 			eResult e = Success;
 
-			e = self->AutoAttach();
+			e = self->AutoAttach(ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
@@ -211,10 +212,10 @@ public:
 			return ptr.release();
 		}
 
-		void AutoAttach() {
+		void AutoAttach(unsigned int ulFlags = ArchiveManage::Writable) {
 			eResult e = Success;
 
-			e = self->AutoAttach();
+			e = self->AutoAttach(ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}

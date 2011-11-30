@@ -183,12 +183,12 @@ ArchiveStateUpdater::~ArchiveStateUpdater()
 /**
  * Update all users to the required state.
  */
-HRESULT ArchiveStateUpdater::UpdateAll()
+HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 
 	for (ArchiveInfoMap::const_iterator i = m_mapArchiveInfo.begin(); i != m_mapArchiveInfo.end(); ++i) {
-		HRESULT hrTmp = UpdateOne(i->first, i->second);
+		HRESULT hrTmp = UpdateOne(i->first, i->second, ulAttachFlags);
 		if (hrTmp != hrSuccess)
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", i->second.userName.c_str(), hrTmp);
 	}
@@ -200,7 +200,7 @@ HRESULT ArchiveStateUpdater::UpdateAll()
  * Update a single user to the required state.
  * @param[in]	userName	The username of the user to update.
  */
-HRESULT ArchiveStateUpdater::Update(const tstring &userName)
+HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 
@@ -223,7 +223,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName)
 		}
 	}
 
-	hr = UpdateOne(i->first, i->second);
+	hr = UpdateOne(i->first, i->second, ulAttachFlags);
 	if (hr != hrSuccess)
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), hr);
 
@@ -237,7 +237,7 @@ exit:
  * @param[in[	info		The ArchiveInfo object containing the current and
  * 							required state.
  */
-HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInfo& info)
+HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	
@@ -250,13 +250,13 @@ HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInf
 	else if (info.storeId.empty()) {
 		// Found a user in the GAB that has at least one archive- server or coupling
 		// defined but has no archives attached.
-		hr = AddCouplingBased(info.userName, info.lstCouplings);
+		hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
 		if (hr == hrSuccess)
-			hr = AddServerBased(info.userName, userId, info.lstServers);
+			hr = AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
 	}
 
 	else {
-		hr = VerifyAndUpdate(userId, info);
+		hr = VerifyAndUpdate(userId, info, ulAttachFlags);
 	}
 
 return hr;
@@ -429,7 +429,7 @@ exit:
  * 								archives to.
  * @param[in]	lstCouplings	The list of couplings to attach to the store.
  */
-HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings)
+HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveManagePtr ptrManage;
@@ -442,7 +442,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 		goto exit;
 	}
 
-	hr = ArchiveManageImpl::Create(m_ptrSession, userName.c_str(), m_lpLogger, &ptrManage);
+	hr = ArchiveManageImpl::Create(m_ptrSession, NULL, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -463,7 +463,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = lpManage->AttachTo(NULL, strArchive.c_str(), strFolder.c_str(), 0, ImplicitAttach);
+		hr = lpManage->AttachTo(NULL, strArchive.c_str(), strFolder.c_str(), ulAttachFlags, ImplicitAttach);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to store '" TSTRING_PRINTF "' in folder '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), strFolder.c_str(), hr);
 			goto exit;
@@ -484,7 +484,7 @@ exit:
  * 								should be created or opened and attached to the
  * 								primary store.
  */
-HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entryid_t &userId, const std::list<tstring> &lstServers)
+HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveManagePtr ptrManage;
@@ -497,7 +497,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entry
 		goto exit;
 	}
 
-	hr = ArchiveManageImpl::Create(m_ptrSession, userName.c_str(), m_lpLogger, &ptrManage);
+	hr = ArchiveManageImpl::Create(m_ptrSession, NULL, userName.c_str(), m_lpLogger, &ptrManage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -519,7 +519,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entry
 			goto exit;
 		}
 
-		hr = lpManage->AttachTo(ptrArchive, L"", NULL, userId, 0, ImplicitAttach);
+		hr = lpManage->AttachTo(ptrArchive, L"", NULL, userId, ulAttachFlags, ImplicitAttach);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to archive store for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i->c_str(), hr);
 			goto exit;
@@ -537,7 +537,7 @@ exit:
  * @param[in]	info		ArchiveInfo instance containing the current and
  * 							requried state.
  */
-HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const ArchiveInfo& info)
+HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	std::list<tstring> lstServers;
@@ -614,11 +614,11 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const Arch
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = AddCouplingBased(info.userName, lstCouplings);
+	hr = AddCouplingBased(info.userName, lstCouplings, ulAttachFlags);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = AddServerBased(info.userName, userId, lstServers);
+	hr = AddServerBased(info.userName, userId, lstServers, ulAttachFlags);
 	if (hr != hrSuccess)
 		goto exit;
 

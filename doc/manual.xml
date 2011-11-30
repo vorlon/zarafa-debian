@@ -11197,11 +11197,27 @@
 
 		  <varlistentry>
 			<term><option>-w</option></term>
-			<term><option>--writable</option></term>
 			<listitem>
 			  <para>By default zarafa-archiver makes an archive read-only
 			  for the user. By passing this option, the user will get
 			  read/write permissions in the attached archive.</para>
+			  <para>This will override the <replaceable>auto_attach_writable
+			  </replaceable> configuration options when auto attaching
+			  archives.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--writable</option>
+			  <replaceable>yes|no</replaceable>
+			</term>
+			<listitem>
+			  <para>Explicitly enable or disable write permissions when
+			  (auto) attaching archives.</para>
+			  <para>This will override the <replaceable>auto_attach_writable
+			  </replaceable> configuration options when auto attaching
+			  archives.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -11524,6 +11540,16 @@
 			  requested state as specified in LDAP or ADS.
 			  </para>
 			  <para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
+			<term><option>auto_attach_writable</option></term>
+			<listitem>
+			  <para> Specify whether an auto attached archive will be granted
+			  write permissions for the user it's attached to.
+			  </para>
+			  <para>Default: <replaceable>yes</replaceable></para>
 			</listitem>
 		  </varlistentry>
 		  
