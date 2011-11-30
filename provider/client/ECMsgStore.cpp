@@ -2974,6 +2974,15 @@ HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSe
 	return hr;
 }
 
+HRESULT ECMsgStore::GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+	HRESULT hr = hrSuccess;
+
+	hr = lpTransport->HrGetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
+
+	return hr;
+}
+
 HRESULT ECMsgStore::RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
 {
 	HRESULT hr = hrSuccess;
@@ -4100,6 +4109,15 @@ HRESULT ECMsgStore::xECServiceAdmin::DelSendAsUser(ULONG cbUserId, LPENTRYID lpU
 	HRESULT hr = pThis->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DelSendAsUser", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
+}
+
+HRESULT ECMsgStore::xECServiceAdmin::GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+    TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUserClientUpdateStatus", "");
+    METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
+    HRESULT hr = pThis->GetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
+    TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUserClientUpdateStatus", "%s", GetMAPIErrorDescription(hr).c_str());
+    return hr;
 }
 
 HRESULT ECMsgStore::xECServiceAdmin::RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)

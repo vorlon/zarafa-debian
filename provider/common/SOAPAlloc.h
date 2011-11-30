@@ -47,26 +47,45 @@
  * 
  */
 
-#ifndef ECCLIENTUPDATE_H
-#define ECCLIENTUPDATE_H
+#ifndef SOAPALLOC_H
+#define SOAPALLOC_H
 
-struct ClientVersion
-{
-	unsigned int nMajorVersion;
-	unsigned int nMinorVersion;
-	unsigned int nUpdateNumber;
-	unsigned int nBuildNumber;
-};
+#include "soapH.h"
 
+// The automatic soap/non-soap allocator
+template<typename Type>
+Type* s_alloc(struct soap *soap, size_t size) {
+	if(soap == NULL) {
+		return (Type*)new Type[size];
+	} else {
+		return (Type*)soap_malloc(soap, sizeof(Type) * size);
+	}
+}
 
-/* entry point */
-int HandleClientUpdate(struct soap *soap);
+template<typename Type>
+Type* s_alloc(struct soap *soap) {
+	if(soap == NULL) {
+		return (Type*)new Type;
+	} else {
+		return (Type*)soap_malloc(soap, sizeof(Type));
+	}
+}
 
-bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile);
-bool GetVersionFromString(char *szVersion, ClientVersion *lpClientVersion);
-bool GetVersionFromMSIName(const char *szVersion, ClientVersion *lpClientVersion);
-int  CompareVersions(ClientVersion Version1, ClientVersion Version2);
-bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, ClientVersion *lpLatestVersion);
-bool GetClientMSINameFromVersion(const ClientVersion &clientVersion, std::string *lpstrMSIName);
+inline char *s_strcpy(struct soap *soap, const char *str) {
+	char *s = s_alloc<char>(soap, strlen(str)+1);
+
+	strcpy(s, str);
+
+	return s;
+}
+
+inline char *s_memcpy(struct soap *soap, const char *str, unsigned int len) {
+	char *s = s_alloc<char>(soap, len);
+
+	memcpy(s, str, len);
+
+	return s;
+}
+
 
 #endif

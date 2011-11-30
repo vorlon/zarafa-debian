@@ -2370,6 +2370,12 @@ ECRESULT UpdateDatabaseReceiveFolderToUnicode(ECDatabase *lpDatabase)
 	return er;
 }
 
+// 60
+ECRESULT UpdateDatabaseClientUpdateStatus(ECDatabase *lpDatabase)
+{
+	return lpDatabase->DoInsert(Z_TABLEDEF_CLIENTUPDATESTATUS);
+}
+
 // 61
 ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase)
 {

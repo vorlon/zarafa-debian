@@ -62,6 +62,7 @@
 #include "StreamTypes.h"
 
 #include "ECDebug.h"
+#include "SOAPSock.h"
 
 
 #include <algorithm>	// std::copy

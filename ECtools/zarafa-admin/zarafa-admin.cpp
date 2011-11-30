@@ -412,6 +412,20 @@ std::string FiletimeToString(FILETIME ft)
 	return d;
 }
 
+std::string UnixtimeToString(time_t timestamp)
+{
+	
+	tm local;
+	char d[64];
+	
+	memset(d, 0, sizeof(d));
+
+	localtime_r(&timestamp, &local);
+	strftime(d, sizeof(d), "%c", &local);
+
+	return d;
+}
+
 /**
  * Print quota levels and/or store size.
  *
@@ -794,7 +808,7 @@ string ClassToString(objectclass_t eClass)
  * @param[in]	bDeclineRecurring	Meeting request settings of user
  * @param[in]	lstArchives			List of attached archives
  */
-void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur, const ArchiveList &lstArchives)
+void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur, const ArchiveList &lstArchives, LPECUSERCLIENTUPDATESTATUS lpECUCUS)
 {
 	LPSPropValue lpProps = NULL;
 	SizedSPropTagArray(2, sptaProps) = {2, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME } };
@@ -857,6 +871,22 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 
 			cout << endl;
 		}
+	}
+	
+	if (lpECUCUS && lpECUCUS->ulTrackId > 0) {
+		 cout << "Client update Information:" << endl;
+
+		 cout << " Trackid:\t\t" << ((lpECUCUS->ulTrackId != 0 ) ? stringify(lpECUCUS->ulTrackId, true).c_str() : "-" ) << endl;
+		 cout << " Last update:\t\t" << ( (lpECUCUS->tUpdatetime>0) ? UnixtimeToString(lpECUCUS->tUpdatetime) : "-" ) << endl;
+		 cout << " From version:\t\t" << ( (lpECUCUS->lpszCurrentversion) ? (LPSTR)lpECUCUS->lpszCurrentversion : "-" ) << endl;
+		 cout << " To version:\t\t" << ( (lpECUCUS->lpszLatestversion) ? (LPSTR)lpECUCUS->lpszLatestversion : "-" ) << endl;
+		 cout << " Computername:\t\t" << ( (lpECUCUS->lpszComputername) ? (LPSTR)lpECUCUS->lpszComputername : "-" ) << endl;
+
+		 if (lpECUCUS->ulStatus == UPDATE_STATUS_SUCCESS) cout << " Update:\t\tSucceed" << endl;
+		 else if (lpECUCUS->ulStatus == UPDATE_STATUS_PENDING) cout << " Update:\t\tPending" << endl;
+		 else if (lpECUCUS->ulStatus == UPDATE_STATUS_UNKNOWN) cout << " Update: \t\tUnknown" << endl;
+		 else cout << " Update:\t\tFailed" << endl;
+
 	}
 	
 	if(lpProps)
@@ -1371,6 +1401,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 	LPENTRYID lpObjectId = NULL;
 	ArchiveManagePtr ptrArchiveManage;
 	ArchiveList lstArchives;
+	LPECUSERCLIENTUPDATESTATUS lpECUCUS = NULL;
 	convert_context converter;
 
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
@@ -1519,7 +1550,12 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 			}
 		}
 
-		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives);
+		hr = lpServiceAdmin->GetUserClientUpdateStatus(cbObjectId, lpObjectId, 0, &lpECUCUS);
+		if (hr != hrSuccess) {
+			cerr << "Unable to get auto update status. Error code: " << stringify(hr, true) << endl;
+			hr = hrSuccess;
+		}
+		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives, lpECUCUS);
 
 		break;
 	}

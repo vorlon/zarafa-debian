@@ -47,26 +47,32 @@
  * 
  */
 
-#ifndef ECCLIENTUPDATE_H
-#define ECCLIENTUPDATE_H
-
-struct ClientVersion
-{
-	unsigned int nMajorVersion;
-	unsigned int nMinorVersion;
-	unsigned int nUpdateNumber;
-	unsigned int nBuildNumber;
-};
+#ifndef SOAPSOCK_H
+#define SOAPSOCK_H
 
 
-/* entry point */
-int HandleClientUpdate(struct soap *soap);
+#include "soapZarafaCmdProxy.h"
 
-bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile);
-bool GetVersionFromString(char *szVersion, ClientVersion *lpClientVersion);
-bool GetVersionFromMSIName(const char *szVersion, ClientVersion *lpClientVersion);
-int  CompareVersions(ClientVersion Version1, ClientVersion Version2);
-bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, ClientVersion *lpLatestVersion);
-bool GetClientMSINameFromVersion(const ClientVersion &clientVersion, std::string *lpstrMSIName);
+int ssl_verify_callback_zarafa_silent(int ok, X509_STORE_CTX *store);
+int ssl_verify_callback_zarafa(int ok, X509_STORE_CTX *store);
+int ssl_verify_callback_zarafa_control(int ok, X509_STORE_CTX *store, BOOL bShowDlg);
 
+HRESULT LoadCertificatesFromRegistry();
+
+HRESULT CreateSoapTransport(ULONG ulUIFlags,
+							const std::string &strServerPath,
+							const std::string &strSSLKeyFile,
+							const std::string &strSSLKeyPass,
+							ULONG ulConnectionTimeOut,
+							const std::string &strProxyHost,
+							const WORD		&wProxyPort,
+							const std::string &strProxyUserName,
+							const std::string &strProxyPassword,
+							const ULONG		&ulProxyFlags,
+							int				iSoapiMode,
+							int				iSoapoMode,
+							ZarafaCmd **lppCmd);
+
+
+VOID DestroySoapTransport(ZarafaCmd *lpCmd);
 #endif

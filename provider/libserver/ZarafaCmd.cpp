@@ -4593,6 +4593,7 @@ ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionI
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
 	if(er == erSuccess){
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 	}
 
@@ -11329,6 +11330,54 @@ SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned
 
 exit:
 	;
+}
+SOAP_ENTRY_END()
+
+SOAP_ENTRY_START(getUserClientUpdateStatus, lpsResponse->er, entryId sUserId, struct userClientUpdateStatusResponse *lpsResponse)
+{
+	USE_DATABASE();
+	objectid_t sExternId;
+	unsigned int ulUserId = 0;
+	bool bHasLocalStore = false;
+
+	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("client_update_enabled"))) {
+		er = ZARAFA_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	er = GetLocalId(sUserId, 0, &ulUserId, &sExternId);
+	if (er != erSuccess)
+		goto exit;
+
+	er = CheckUserStore(lpecSession, ulUserId, ECSTORE_TYPE_PRIVATE, &bHasLocalStore);
+	if (er != erSuccess)
+		goto exit;
+
+	if (!bHasLocalStore) {
+		er = ZARAFA_E_NOT_FOUND;
+		goto exit;
+	}
+
+	strQuery = "SELECT trackid, UNIX_TIMESTAMP(updatetime), currentversion, latestversion, computername, status FROM clientupdatestatus WHERE userid="+stringify(ulUserId);
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (!lpDBRow) {
+		er = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
+	if(lpDBRow[0]) lpsResponse->ulTrackId = atoui(lpDBRow[0]);
+	if(lpDBRow[1]) lpsResponse->tUpdatetime = atoui(lpDBRow[1]);
+	if(lpDBRow[2]) lpsResponse->lpszCurrentversion = s_strcpy(soap, lpDBRow[2]);
+	if(lpDBRow[3]) lpsResponse->lpszLatestversion =  s_strcpy(soap, lpDBRow[3]);
+	if(lpDBRow[4]) lpsResponse->lpszComputername =  s_strcpy(soap, lpDBRow[4]);
+	if(lpDBRow[5]) lpsResponse->ulStatus = atoui(lpDBRow[5]);
+
+exit:
+	FREE_DBRESULT();
 }
 SOAP_ENTRY_END()
 

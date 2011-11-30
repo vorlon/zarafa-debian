@@ -227,6 +227,21 @@ typedef struct _sECCompany {
 	MVPROPMAP		sMVPropmap;		// Extra anonymous MV properties for addressbook
 } ECCOMPANY, *LPECCOMPANY;
 
+
+typedef struct _sUserClientUpdateStatus {
+	unsigned int	ulTrackId;
+	time_t			tUpdatetime;
+	LPTSTR			lpszCurrentversion;
+	LPTSTR			lpszLatestversion;
+	LPTSTR			lpszComputername;
+	unsigned int 	ulStatus;
+}ECUSERCLIENTUPDATESTATUS, *LPECUSERCLIENTUPDATESTATUS;
+
+#define UPDATE_STATUS_UNKNOWN	0
+#define UPDATE_STATUS_SUCCESS   1
+#define UPDATE_STATUS_PENDING   2
+#define UPDATE_STATUS_FAILED    3
+
 typedef struct _sECPermission {
 	unsigned int	ulType;
 	unsigned int	ulRights;

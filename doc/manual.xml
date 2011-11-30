@@ -4209,6 +4209,25 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>client_update_log_level</option></term>
+			<listitem>
+			  <para>Receive the log information from the client auto update service.</para>
+			  <para>Options: 0 disable, 1 sent only with errors, 2 always sent</para>
+			  <para>Default: <replaceable>1</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>client_update_log_path</option></term>
+			<listitem>
+				<para>Log location for the client auto update files</para>
+				<para>You need the <option>client_update_log_level</option> option set to non-zero
+						value to receive log files from the client.</para>
+				<para>Default: <replaceable>/var/log/zarafa/autoupdate</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>index_services_enabled</option></term>
 			<listitem>
 			  <para>Use Indexing service for faster searching. Enabling this option

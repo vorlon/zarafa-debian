@@ -47,26 +47,69 @@
  * 
  */
 
-#ifndef ECCLIENTUPDATE_H
-#define ECCLIENTUPDATE_H
+#include "SOAPHelpers.h"
 
-struct ClientVersion
-{
-	unsigned int nMajorVersion;
-	unsigned int nMinorVersion;
-	unsigned int nUpdateNumber;
-	unsigned int nBuildNumber;
-};
-
-
-/* entry point */
-int HandleClientUpdate(struct soap *soap);
-
-bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile);
-bool GetVersionFromString(char *szVersion, ClientVersion *lpClientVersion);
-bool GetVersionFromMSIName(const char *szVersion, ClientVersion *lpClientVersion);
-int  CompareVersions(ClientVersion Version1, ClientVersion Version2);
-bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, ClientVersion *lpLatestVersion);
-bool GetClientMSINameFromVersion(const ClientVersion &clientVersion, std::string *lpstrMSIName);
-
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
 #endif
+
+void *mime_file_read_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description) 
+{
+	return handle;
+}
+
+void mime_file_read_close(struct soap *soap, void *handle) 
+{
+	if (handle)
+		fclose((FILE*)handle);
+}
+
+size_t mime_file_read(struct soap *soap, void *handle, char *buf, size_t len) 
+{
+	return fread(buf, 1, len, (FILE*)handle); 
+}
+
+void *mime_file_write_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
+{
+	char *lpFilename = (char *)handle;
+
+	if (!lpFilename) {
+		soap->error = SOAP_EOF;
+		soap->errnum = errno;
+
+		return NULL;
+	}
+
+	FILE *fHandle = fopen(lpFilename, "wb");
+
+	if (!fHandle) {
+		soap->error = SOAP_EOF;
+		soap->errnum = errno;
+	}
+
+	return (void*)fHandle;
+}
+
+void mime_file_write_close(struct soap *soap, void *handle)
+{
+	fclose((FILE*)handle);
+}
+
+int mime_file_write(struct soap *soap, void *handle, const char *buf, size_t len)
+{ 
+	size_t nwritten;
+	while (len)
+	{
+		nwritten = fwrite(buf, 1, len, (FILE*)handle);
+		if (!nwritten)
+		{
+			soap->errnum = errno;
+			return SOAP_EOF;
+		}
+		len -= nwritten;
+		buf += nwritten;
+	}
+	return SOAP_OK;
+}

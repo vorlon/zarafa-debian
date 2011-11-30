@@ -995,6 +995,28 @@ Default:
 \fI/var/lib/zarafa/client\fR
 .RE
 .PP
+\fBclient_update_log_level\fR
+.RS 4
+Receive the log information from the client auto update service\&.
+.sp
+Options: 0 disable, 1 sent only with errors, 2 always sent
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
+\fBclient_update_log_path\fR
+.RS 4
+Log location for the client auto update files
+.sp
+You need the
+\fBclient_update_log_level\fR
+option set to non\-zero value to receive log files from the client\&.
+.sp
+Default:
+\fI/var/log/zarafa/autoupdate\fR
+.RE
+.PP
 \fBindex_services_enabled\fR
 .RS 4
 Use Indexing service for faster searching\&. Enabling this option requires the

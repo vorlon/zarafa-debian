@@ -87,6 +87,8 @@
 #include "charset/utf8string.h"
 #include "charset/convstring.h"
 
+#include "SOAPSock.h"
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -2557,6 +2559,42 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 	END_SOAP_CALL
 
 exit:	
+	UnLockSoap();
+
+	return hr;
+}
+
+HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+	ECRESULT er = erSuccess;
+	HRESULT hr = hrSuccess;
+	entryId sUserId = {0};
+	struct userClientUpdateStatusResponse sResponse;
+
+    LockSoap();
+
+    if (cbUserId < CbNewABEID("") || lpUserId == NULL) {
+        hr = MAPI_E_INVALID_PARAMETER;
+        goto exit;
+    }
+
+	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
+    if (hr != hrSuccess)
+        goto exit;
+
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__getUserClientUpdateStatus(m_ecSessionId, sUserId, &sResponse) )
+			er = ZARAFA_E_NETWORK_ERROR;
+	}
+	END_SOAP_CALL
+
+
+	hr = CopyUserClientUpdateStatusFromSOAP(sResponse, ulFlags, lppECUCUS);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
 	UnLockSoap();
 
 	return hr;

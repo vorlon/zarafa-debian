@@ -957,6 +957,15 @@ struct purgeDeferredUpdatesResponse {
     unsigned int er;
 };
 
+struct userClientUpdateStatusResponse {
+	unsigned int ulTrackId;
+	time_t tUpdatetime;
+	char *lpszCurrentversion;
+	char *lpszLatestversion;
+	char *lpszComputername;
+	unsigned int ulStatus;
+	unsigned int er;
+};
 
 //TableType flags for function ns__tableOpen
 #define TABLETYPE_MS				1	// MessageStore tables
@@ -1059,6 +1068,7 @@ int ns__getUserList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sComp
 int ns__getSendAsList(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct userListResponse *lpsUserList);
 int ns__addSendAsUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result);
 int ns__delSendAsUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result);
+int ns__getUserClientUpdateStatus(ULONG64 ulSessionId, entryId sUserId, struct userClientUpdateStatusResponse *lpsResponse);
 
 // Start softdelete purge
 int ns__purgeSoftDelete(ULONG64 ulSessionId, unsigned int ulDays, unsigned int *result);
@@ -1167,3 +1177,46 @@ struct testGetResponse {
 int ns__testPerform(ULONG64 ulSessionId, char *szCommand, struct testPerformArgs sPerform, unsigned int *result);
 int ns__testSet(ULONG64 ulSessionId, char *szVarName, char *szValue, unsigned int *result);
 int ns__testGet(ULONG64 ulSessionId, char *szVarName, struct testGetResponse *lpsResponse);
+
+struct attachment {
+	char	*lpszAttachmentName;
+	struct xsd__Binary sData;
+};
+
+struct attachmentArray {
+	int __size;
+	struct attachment *__ptr;
+};
+
+struct clientUpdateResponse {
+	unsigned int ulLogLevel;
+	char *lpszServerPath;
+	struct xsd__base64Binary sLicenseResponse;
+	struct xsd__Binary sStreamData;
+	unsigned int er;
+};
+
+struct clientUpdateInfoRequest {
+	unsigned int ulTrackId;
+	char *szUsername;
+	char *szClientIPList;
+	char *szClientVersion;
+	char *szWindowsVersion;
+	char *szComputerName;
+
+	struct xsd__base64Binary sLicenseReq;
+};
+
+struct clientUpdateStatusRequest {
+	unsigned int ulTrackId;
+	unsigned int ulLastErrorCode;
+	unsigned int ulLastErrorAction;
+	struct attachmentArray sFiles;
+};
+
+struct clientUpdateStatusResponse {
+	unsigned int er;
+};
+
+int ns__getClientUpdate(struct clientUpdateInfoRequest sClientUpdateInfo, struct clientUpdateResponse* lpsResponse);
+int ns__setClientUpdateStatus(struct clientUpdateStatusRequest sClientUpdateStatus, struct clientUpdateStatusResponse* lpsResponse);

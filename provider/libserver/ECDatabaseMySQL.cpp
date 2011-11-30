@@ -184,6 +184,8 @@ sUpdateList_t	sUpdateList[] = {
 	{ Z_UPDATE_CONVERT_RF_TOUNICODE, 0, "Converting receivefolder table to Unicode", UpdateDatabaseReceiveFolderToUnicode },
 
 	// Update from 6.40.13 / 7.0.3
+	{ Z_UPDATE_CREATE_CLIENTUPDATE_TABLE, 0, "Creating client update status table", UpdateDatabaseClientUpdateStatus },
+
 	{ Z_UPDATE_CONVERT_STORES, 0, "Converting stores table", UpdateDatabaseConvertStores },
 	{ Z_UPDATE_UPDATE_STORES, 0, "Updating stores table", UpdateDatabaseUpdateStores },
 };
@@ -1038,6 +1040,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		{"singleinstances", Z_TABLEDEF_REFERENCES },
 		{"abchanges", Z_TABLEDEF_ABCHANGES },
 		{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES },
+		{"clientupdatestatus", Z_TABLEDEF_CLIENTUPDATESTATUS },
 	};
 
 	// Zarafa database default data

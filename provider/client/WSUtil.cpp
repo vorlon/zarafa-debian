@@ -77,6 +77,7 @@
 
 
 #include "threadutil.h"
+#include "SOAPSock.h"
 
 using namespace std;
 
@@ -2205,167 +2206,21 @@ exit:
 	return hr;
 }
 
-// This function wraps the GSOAP fopen call to support "file:///var/run/socket" unix-socket URI's
-int gsoap_connect_pipe(struct soap *soap, const char *endpoint, const char *host, int port)
-{
-	int fd;
-	struct sockaddr_un saddr;
-	memset(&saddr, 0, sizeof(struct sockaddr_un));
-
-	// See stdsoap2.cpp:tcp_connect() function
-	if (soap_valid_socket(soap->socket))
-	    return SOAP_OK;
-
-	soap->socket = SOAP_INVALID_SOCKET;
-
-	if (strncmp(endpoint, "file://", 7) || strchr(endpoint+7,'/') == NULL)
-   	{
-      	return SOAP_EOF;
-	}
-
-	fd = socket(PF_UNIX, SOCK_STREAM, 0);
-
-	saddr.sun_family = AF_UNIX;
-	strcpy(saddr.sun_path, strchr(endpoint+7,'/'));
-
-	connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un));
-
- 	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;
-	soap->socket = fd;
-
-	// Because 'file:///var/run/file' will be parsed into host='', path='/var/run/file',
-	// the gSOAP code doesn't set the soap->status variable. (see soap_connect_command in
-	// stdsoap2.cpp:12278) This could possibly lead to
-	// soap->status accidentally being set to SOAP_GET, which would break things. The
-	// chances of this happening are, of course, small, but also very real.
-
-	soap->status = SOAP_POST;
-
-   	return SOAP_OK;
-}
-
-static int ssl_zvcb_index = -1;	// the index to get our custom data
-
-
-
-int ssl_verify_callback_zarafa_silent(int ok, X509_STORE_CTX *store)
-{
-	int sslerr;
-
-	if (ok == 0)
-	{
-		// Get the last ssl error
-		sslerr = X509_STORE_CTX_get_error(store);
-		switch (sslerr)
-		{
-			case X509_V_ERR_CERT_HAS_EXPIRED:
-			case X509_V_ERR_CERT_NOT_YET_VALID:
-			case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-				// always ignore these errors
-				X509_STORE_CTX_set_error(store, X509_V_OK);
-				ok = 1;
-				break;
-			default:
-				break;
-		}
-	}
-
-	if(!ok)
-		TRACE_RELEASE("Server certificate rejected. Connect once with Outlook to verify the authenticity and select the option to remember the choice. Please make sure you do this for each server in your cluster.");
-	return ok;
-}
-
-
 HRESULT CreateSoapTransport(ULONG ulUIFlags, sGlobalProfileProps sProfileProps, ZarafaCmd **lppCmd)
 {
-	HRESULT		hr = hrSuccess;
-	ZarafaCmd*	lpCmd = NULL;
-
-	if (sProfileProps.strServerPath.empty() || lppCmd == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	lpCmd = new ZarafaCmd();
-
-	soap_set_imode(lpCmd->soap, SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING);
-	soap_set_omode(lpCmd->soap, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
-
-	lpCmd->endpoint = strdup(sProfileProps.strServerPath.c_str());
-
-#ifdef WITH_OPENSSL
-	if (strncmp("https:", lpCmd->endpoint, 6) == 0) {
-		// no need to add certificates to call, since soap also calls SSL_CTX_set_default_verify_paths()
-		if(soap_ssl_client_context(lpCmd->soap,
-								SOAP_SSL_DEFAULT | SOAP_SSL_SKIP_HOST_CHECK,
-								sProfileProps.strSSLKeyFile.empty()? NULL : sProfileProps.strSSLKeyFile.c_str(), 
-								sProfileProps.strSSLKeyPass.empty()? NULL : sProfileProps.strSSLKeyPass.c_str(),
-								NULL, NULL,
-								NULL)) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
-		// set connection string as callback information
-		if (ssl_zvcb_index == -1) {
-			ssl_zvcb_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-		}
-		// callback data will be set right before tcp_connect()
-
-		// set our own certificate check function
-		lpCmd->soap->fsslverify = ssl_verify_callback_zarafa_silent;
-		SSL_CTX_set_verify(lpCmd->soap->ctx, SSL_VERIFY_PEER, lpCmd->soap->fsslverify);
-	}
-#endif
-
-	if(strncmp("file:", lpCmd->endpoint, 5) == 0) {
-		lpCmd->soap->fconnect = gsoap_connect_pipe;
-	}else {
-		if ((sProfileProps.ulProxyFlags&EC_PROFILE_PROXY_FLAGS_USE_PROXY) && !sProfileProps.strProxyHost.empty()) {
-			lpCmd->soap->proxy_host = strdup(sProfileProps.strProxyHost.c_str());
-			lpCmd->soap->proxy_port = sProfileProps.ulProxyPort;
-
-			if (!sProfileProps.strProxyUserName.empty())
-				lpCmd->soap->proxy_userid = strdup(sProfileProps.strProxyUserName.c_str());
-
-			if (!sProfileProps.strProxyPassword.empty())
-				lpCmd->soap->proxy_passwd = strdup(sProfileProps.strProxyPassword.c_str());
-		}
-
-		lpCmd->soap->connect_timeout = sProfileProps.ulConnectionTimeOut;
-	}
-
-
-	*lppCmd = lpCmd;
-
-exit:
-	if (hr != hrSuccess && lpCmd) {
-		free((void*)lpCmd->endpoint);	// because of strdup()
-		delete lpCmd;
-		lpCmd = NULL;
-	}
-
-	return hr;
-}
-
-VOID DestroySoapTransport(ZarafaCmd *lpCmd)
-{
-	if (!lpCmd)
-		return;
-
-	if (lpCmd->endpoint)
-		free((void *)lpCmd->endpoint);   // because of strdup()
-
-	if (lpCmd->soap->proxy_host)
-		free((void *)lpCmd->soap->proxy_host);
-
-	if (lpCmd->soap->proxy_userid)
-		free((void *)lpCmd->soap->proxy_userid);
-
-	if (lpCmd->soap->proxy_passwd)
-		free((void *)lpCmd->soap->proxy_passwd);
-
-	delete lpCmd;
+	return CreateSoapTransport(ulUIFlags,
+							sProfileProps.strServerPath,
+							sProfileProps.strSSLKeyFile,
+							sProfileProps.strSSLKeyPass,
+							sProfileProps.ulConnectionTimeOut,
+							sProfileProps.strProxyHost,
+							sProfileProps.ulProxyPort,
+							sProfileProps.strProxyUserName,
+							sProfileProps.strProxyPassword,
+							sProfileProps.ulProxyFlags,
+							SOAP_IO_KEEPALIVE | SOAP_C_UTFSTRING,
+							SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING,
+							lppCmd);
 }
 
 // Wrap the server store entryid to client store entry. (Add a servername)
@@ -2724,6 +2579,44 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, so
 exit:
 	if (lpsSKPA)
 		MAPIFreeBuffer(lpsSKPA);
+
+	return hr;
+}
+
+HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+	HRESULT hr = hrSuccess;
+	LPECUSERCLIENTUPDATESTATUS lpECUCUS = NULL;
+	convert_context converter;
+
+	hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), (void**)&lpECUCUS);
+	if (hr != hrSuccess)
+		goto exit;
+
+	memset(lpECUCUS, 0, sizeof(ECUSERCLIENTUPDATESTATUS));
+	lpECUCUS->ulTrackId = sUCUS.ulTrackId;
+	lpECUCUS->tUpdatetime = sUCUS.tUpdatetime;
+	lpECUCUS->ulStatus = sUCUS.ulStatus;
+
+	if (sUCUS.lpszCurrentversion)
+		hr = Utf8ToTString(sUCUS.lpszCurrentversion, ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszCurrentversion);
+
+	if (hr == hrSuccess && sUCUS.lpszLatestversion)
+		hr = Utf8ToTString(sUCUS.lpszLatestversion, ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszLatestversion);
+
+	if (hr == hrSuccess && sUCUS.lpszComputername)
+		hr = Utf8ToTString(sUCUS.lpszComputername,  ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszComputername);
+
+	if (hr != hrSuccess)
+		goto exit;
+
+
+	*lppECUCUS = lpECUCUS;
+	lpECUCUS = NULL;
+
+exit:
+	if (lpECUCUS)
+		MAPIFreeBuffer(lpECUCUS);
 
 	return hr;
 }

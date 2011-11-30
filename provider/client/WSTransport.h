@@ -201,6 +201,8 @@ public:
 	
 	virtual HRESULT HrRemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId);
 
+	virtual HRESULT HrGetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS);
+
 	// Quota
 	virtual HRESULT GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota);
 	virtual HRESULT SetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA lpsQuota);

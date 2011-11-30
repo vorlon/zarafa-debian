@@ -47,26 +47,18 @@
  * 
  */
 
-#ifndef ECCLIENTUPDATE_H
-#define ECCLIENTUPDATE_H
+#ifndef SOAPHELPERS_H
+#define SOAPHELPERS_H
 
-struct ClientVersion
-{
-	unsigned int nMajorVersion;
-	unsigned int nMinorVersion;
-	unsigned int nUpdateNumber;
-	unsigned int nBuildNumber;
-};
+#include "soapH.h"
 
+void *mime_file_read_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description);
+void mime_file_read_close(struct soap *soap, void *handle);
+size_t mime_file_read(struct soap *soap, void *handle, char *buf, size_t len);
 
-/* entry point */
-int HandleClientUpdate(struct soap *soap);
+void *mime_file_write_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
+void mime_file_write_close(struct soap *soap, void *handle);
+int mime_file_write(struct soap *soap, void *handle, const char *buf, size_t len);
 
-bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile);
-bool GetVersionFromString(char *szVersion, ClientVersion *lpClientVersion);
-bool GetVersionFromMSIName(const char *szVersion, ClientVersion *lpClientVersion);
-int  CompareVersions(ClientVersion Version1, ClientVersion Version2);
-bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, ClientVersion *lpLatestVersion);
-bool GetClientMSINameFromVersion(const ClientVersion &clientVersion, std::string *lpstrMSIName);
 
 #endif

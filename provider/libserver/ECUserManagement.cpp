@@ -3438,6 +3438,12 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	if(er != erSuccess)
 		goto exit;
 
+	// Remove client update history
+	strQuery = "DELETE FROM clientupdatestatus where userid=" + stringify(ulObjectId);
+	er = lpDatabase->DoDelete(strQuery);
+	if(er != erSuccess)
+		goto exit;
+
 	// Object didn't exist locally, so no delete has occured
 	if (ulDeletedRows == 0) {
 		er = lpDatabase->Commit();

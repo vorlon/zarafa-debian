@@ -58,6 +58,9 @@ dist_bin_SCRIPTS = zarafa-autorespond zarafa-mr-accept
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = zarafa.logrotate
 
+sysconf_crondir = ${sysconfdir}/cron.daily
+dist_sysconf_cron_SCRIPTS = zarafa-client-update.cron
+
 sysconf_certdir = ${sysconfdir}/zarafa/report-ca
 if ! OSS_ONLY
 BUILT_SOURCES += ldapms.openldap.cfg ldapms.active-directory.cfg
@@ -80,6 +83,9 @@ install-data-hook:
 	install -d -m 755 ${DESTDIR}/${localstatedir}/lib/zarafa/report
 	for f in ${DESTDIR}/${sysconf_rotatedir}/*.logrotate; do \
 		mv $$f $${f%.logrotate}; \
+	done
+	for f in ${DESTDIR}/${sysconf_crondir}/*.cron; do \
+		mv $$f $${f%.cron}; \
 	done
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.suse ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.zarafa || true; \
