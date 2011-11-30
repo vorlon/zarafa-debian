@@ -1812,7 +1812,7 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 
 	if(lpcbStoreID && lppStoreID) {
 		// Create a client store entry, add the servername
-		hr = WrapServerClientStoreEntry(m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
+		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
 		if(hr != hrSuccess)
 			goto exit;
 	}
