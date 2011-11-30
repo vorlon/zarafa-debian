@@ -168,12 +168,16 @@ previewreadmailitemmodule.prototype.initializeView = function()
 	// So innerHTML used to create an iFrame.
 	// The javascript in the src attribute is to suppress the security warning in IE
 	
+
+	// Adding a scroller element to the page for iPad users
+	var scrollerStartHTML = '<div id="scroller" class="ipadscroller">';
+	var scrollerEndHTML = '</div>';
 	// WARNING THIS MEANS THAT ALL ELEMENT REFERENCES BEFORE THIS POINT BECOME INVALID
 	if (window.BROWSER_IE){
 		// SSL fix for IE
-		this.element.innerHTML += "<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' frameborder='0' src=\"javascript:document.open();document.write('<html></html>');document.close();\"></iframe>";
+		this.element.innerHTML += scrollerStartHTML + "<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' frameborder='0' src=\"javascript:document.open();document.write('<html></html>');document.close();\"></iframe>" + scrollerEndHTML;
 	}else{
-		this.element.innerHTML += "<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' frameborder='0'></iframe>";
+		this.element.innerHTML += scrollerStartHTML + "<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' frameborder='0'></iframe>" + scrollerEndHTML;
 	}	
 
 	var accept = dhtml.addElement(dhtml.getElementById("meetingrequest"), "span", "menubutton icon icon_accept", "accept", _("Accept"));
@@ -570,8 +574,11 @@ previewreadmailitemmodule.prototype.resize = function()
 
 	this.element.style.height = docHeight - dhtml.getElementTop(this.element) - 10 + "px";
 
+	// Both the body as the scroller element need to be resized.
 	var html_body = dhtml.getElementById("html_body");
+	var scrollerElem = document.getElementById('scroller');
 	if (html_body){
+		scrollerElem.style.width = (this.element.offsetWidth - 30) + "px";
 		html_body.style.width = (this.element.offsetWidth - 30) + "px";
 
 		var height = (this.element.offsetHeight - html_body.offsetTop) - 40;
@@ -579,6 +586,7 @@ previewreadmailitemmodule.prototype.resize = function()
 			height = 3;
 		}
 
+		scrollerElem.style.height = height + "px";
 		html_body.style.height = height + "px";
 	}
 }
