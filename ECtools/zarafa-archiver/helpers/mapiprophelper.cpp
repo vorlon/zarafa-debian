@@ -243,50 +243,58 @@ HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpS
 		}
 
 		if (!ptrArchiveMsg) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-
-		hr = MAPIPropHelper::Create(ptrArchiveMsg.as<MAPIPropPtr>(), &ptrArchiveHelper);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = ptrArchiveHelper->GetReference(&refEntry);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = ptrSession->OpenReadOnlyStore(refEntry.sStoreEntryId, &ptrStore);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(), refEntry.sItemEntryId, &ptrArchiveMsg.iid, 0, &ulType, &ptrMessage);
-		if (hr == hrSuccess) {
-			/*
-			 * One would expect that if the message was opened properly here, the message that's being
-			 * processed was copied because we were able to open the original reference, which should
-			 * have been removed either way.
-			 * However, because of a currently (13-07-2011) unknown issue, the moved message can be
-			 * opened with it's old entryid. This is probably a cache issue.
-			 * If this happens, the message just opened is the same message as the one that's being
-			 * processed. That can be easily verified by comparing the record key.
-			 */
-			SPropValuePtr ptrRecordKey;
-
-			hr = HrGetOneProp(ptrMessage, PR_RECORD_KEY, &ptrRecordKey);
+			if (ulState & MessageState::msStubbed) {
+				hr = MAPI_E_NOT_FOUND;
+				goto exit;
+			} else {
+				/*
+				 * We were unable to open any archived message, but the message is
+				 * not stubbed anyway. Just mark it as a copy.
+				 */
+				ulState |= MessageState::msCopy;
+			}
+		} else {
+			hr = MAPIPropHelper::Create(ptrArchiveMsg.as<MAPIPropPtr>(), &ptrArchiveHelper);
 			if (hr != hrSuccess)
 				goto exit;
 
-			if (Util::CompareSBinary(ptrMessageProps[IDX_RECORD_KEY].Value.bin, ptrRecordKey->Value.bin) == 0) {
-				// We opened the same message through the reference, which shouldn't be possible. This
-				// must have been a move operation.
+			hr = ptrArchiveHelper->GetReference(&refEntry);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = ptrSession->OpenReadOnlyStore(refEntry.sStoreEntryId, &ptrStore);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(), refEntry.sItemEntryId, &ptrArchiveMsg.iid, 0, &ulType, &ptrMessage);
+			if (hr == hrSuccess) {
+				/*
+				 * One would expect that if the message was opened properly here, the message that's being
+				 * processed was copied because we were able to open the original reference, which should
+				 * have been removed either way.
+				 * However, because of a currently (13-07-2011) unknown issue, the moved message can be
+				 * opened with it's old entryid. This is probably a cache issue.
+				 * If this happens, the message just opened is the same message as the one that's being
+				 * processed. That can be easily verified by comparing the record key.
+				 */
+				SPropValuePtr ptrRecordKey;
+
+				hr = HrGetOneProp(ptrMessage, PR_RECORD_KEY, &ptrRecordKey);
+				if (hr != hrSuccess)
+					goto exit;
+
+				if (Util::CompareSBinary(ptrMessageProps[IDX_RECORD_KEY].Value.bin, ptrRecordKey->Value.bin) == 0) {
+					// We opened the same message through the reference, which shouldn't be possible. This
+					// must have been a move operation.
+					ulState |= MessageState::msMove;
+				} else
+					ulState |= MessageState::msCopy;
+			} else if (hr == MAPI_E_NOT_FOUND) {
+				hr = hrSuccess;
 				ulState |= MessageState::msMove;
 			} else
-				ulState |= MessageState::msCopy;
-		} else if (hr == MAPI_E_NOT_FOUND) {
-			hr = hrSuccess;
-			ulState |= MessageState::msMove;
-		} else
-			goto exit;
+				goto exit;
+		}
 	}
 
 	lpState->m_ulState = ulState;
