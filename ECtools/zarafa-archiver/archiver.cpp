@@ -211,7 +211,12 @@ HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, cons
 	ECConfig *lpsConfig = NULL; 
 	SessionPtr ptrArchiverSession;
 
-	lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+	lpsConfig = ECConfig::Create(GetConfigDefaults());
+	if (!lpsConfig->LoadSettings(GetConfigPath())) {
+		// Just log warnings and errors and continue with default.
+		if (lpLogger)
+			LogConfigErrors(lpsConfig, lpLogger);
+	}
 
 	hr = Session::Create(MAPISessionPtr(lpSession, true), lpsConfig, lpLogger, &ptrArchiverSession);
 	if (hr != hrSuccess)
