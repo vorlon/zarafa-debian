@@ -2064,8 +2064,10 @@
 			  folders. Use the <option>--copyto-public</option> to
 			  copy the store to the public folder 'Admin/deleted
 			  stores'.</para><para>To hook a public store, use the
-			  --type group/company option to influence the name type
-			  in the -u switch.</para>
+			  <option>--type</option> group/company option to
+			  influence the name type in the -u switch.</para><para>To
+			  hook an archive store, use <option>--type</option>
+			  <replaceable>archive</replaceable>.</para>
 		    </listitem>
 		  </varlistentry>
 
@@ -2106,10 +2108,13 @@
 		      remove the store and create a new one. Use the
 		      <option>-u</option> <replaceable>username</replaceable>
 		      to specify the user to unhook the store
-		      from.</para><para>To hook a public store, use the --type
-		      group/company option to influence the name type in the
-		      -u switch. Use a companyname or Everyone with type group
-		      to unhook the public.</para>
+		      from.</para><para>To unhook a public store, use the
+		      <option>--type</option> group/company option to
+		      influence the name type in the <option>-u</option>
+		      switch. Use a companyname with type company or Everyone
+		      with type group to unhook the public.</para><para>To
+			  unhook an archive store, use <option>--type</option>
+			  <replaceable>archive</replaceable>.</para>
 		    </listitem>
 		  </varlistentry>
 

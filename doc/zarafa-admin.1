@@ -381,7 +381,13 @@ You can copy an orphaned store to the public store, so you can read the store in
 \fB\-\-copyto\-public\fR
 to copy the store to the public folder \'Admin/deleted stores\'\&.
 .sp
-To hook a public store, use the \-\-type group/company option to influence the name type in the \-u switch\&.
+To hook a public store, use the
+\fB\-\-type\fR
+group/company option to influence the name type in the \-u switch\&.
+.sp
+To hook an archive store, use
+\fB\-\-type\fR
+\fIarchive\fR\&.
 .RE
 .PP
 \fB\-\-remove\-store\fR \fIstore\-guid\fR
@@ -403,7 +409,15 @@ You can unhook a store from a user, so you can remove the store and create a new
 \fIusername\fR
 to specify the user to unhook the store from\&.
 .sp
-To hook a public store, use the \-\-type group/company option to influence the name type in the \-u switch\&. Use a companyname or Everyone with type group to unhook the public\&.
+To unhook a public store, use the
+\fB\-\-type\fR
+group/company option to influence the name type in the
+\fB\-u\fR
+switch\&. Use a companyname with type company or Everyone with type group to unhook the public\&.
+.sp
+To unhook an archive store, use
+\fB\-\-type\fR
+\fIarchive\fR\&.
 .RE
 .PP
 \fB\-\-force\-resync\fR \fIusernames\fR

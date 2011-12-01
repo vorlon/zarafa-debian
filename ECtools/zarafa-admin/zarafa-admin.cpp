@@ -328,10 +328,10 @@ void print_help(char *name) {
 	ct.AddColumn(0, "--remove-store storeguid"); ct.AddColumn(1, "Delete orphaned store of user that is deleted from external source.");
 	ct.AddColumn(0, "--hook-store storeguid"); ct.AddColumn(1, "Hook orphaned store to a user or copy to a public.");
 	ct.AddColumn(0, "  -u username"); ct.AddColumn(1, "Update user to received orphaned store given in --hook-store.");
-	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store.");
+	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store. Use 'archive' for archive stores.");
 	ct.AddColumn(0, "  --copyto-public"); ct.AddColumn(1, "Copy the orphan store to the public folder.");
 	ct.AddColumn(0, "--unhook-store username"); ct.AddColumn(1, "Unhook store from user.");
-	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store.");
+	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store. Use 'archive' for archive stores.");
 	ct.AddColumn(0, ""); ct.AddColumn(1, "Use 'Everyone' as username with type 'group' to unhook the public store, or use the company name and type 'company'.");
 	ct.AddColumn(0, "--force-resync [username [username [...]]]"); ct.AddColumn(1, "Force a resynchronisation of offline profiles for specified users.");
 	ct.PrintTable();
