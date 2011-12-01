@@ -895,6 +895,29 @@ int running_server(char *szName, const char *szConfig)
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
 
+	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
+
+	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
+	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
+	} else {
+		if (!strSerial.empty()) {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
+
+			if (distributed) {
+				vector<string> lCaps;
+				lpLicense->GetCapabilities(0 /*SERVICE_TYPE_ZCP*/, lCaps);
+				mslicense = find(lCaps.begin(), lCaps.end(), string("MULTISERVER")) != lCaps.end();
+			}
+		} else {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
+		}
+	}
+	if (!mslicense && distributed) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
+		retval = -1;
+		goto exit;
+	}
+
 
 	zarafa_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"), g_lpLogger);
 
@@ -981,29 +1004,6 @@ int running_server(char *szName, const char *szConfig)
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
-
-	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
-
-	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
-	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
-	} else {
-		if (!strSerial.empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
-
-			if (distributed) {
-				vector<string> lCaps;
-				lpLicense->GetCapabilities(0 /*SERVICE_TYPE_ZCP*/, lCaps);
-				mslicense = find(lCaps.begin(), lCaps.end(), string("MULTISERVER")) != lCaps.end();
-			}
-		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
-		}
-	}
-	if (!mslicense && distributed) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
-		retval = -1;
-		goto exit;
-	}
 
 
 	// Set max open file descriptors to FD_SETSIZE .. higher than this number
