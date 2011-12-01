@@ -146,7 +146,6 @@ ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *
 
 ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned char *lpData, unsigned int cbSize);
 
-ECRESULT LockFolder(ECDatabase *lpDatabase, unsigned int ulFolderId);
 
 #endif//ZARAFACMD_UTIL_H
 

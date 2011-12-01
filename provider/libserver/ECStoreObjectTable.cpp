@@ -1014,10 +1014,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 	for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
 		for(iterObjIds = mapObjIds.begin(); iterObjIds != mapObjIds.end(); iterObjIds++) {
 			if(setDone.count(std::make_pair(iterObjIds->second, iterColumns->second)) == 0) {
-				// We may be overwriting a value that was retrieved from the cache before.
-				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
-					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
-				}
+				ASSERT(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag == 0);
 				CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 			}

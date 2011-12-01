@@ -559,10 +559,8 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 	
 	if (lppResult)
 		*lppResult = lpResult;
-	else {
-		if(lpResult)
-			FreeResult(lpResult);
-	}
+	else
+		FreeResult(lpResult);
 
 exit:
 	if (er != erSuccess) {
