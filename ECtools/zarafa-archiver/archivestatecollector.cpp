@@ -174,14 +174,14 @@ namespace details {
 	}
 }
 
-bool ArchiveStateCollector::abeidLess::operator()(const entryid_t &lhs, const entryid_t &rhs) {
+bool ArchiveStateCollector::abeidLess::operator()(const entryid_t &lhs, const entryid_t &rhs) const {
 	if (lhs.size() < rhs.size())
 		return true;
 
 	if (lhs.size() == rhs.size()) {
 		if (lhs.size() <= 32) {
 			// Too small, just compare the whole thing
-			return memcmp(LPBYTE(lhs), LPBYTE(rhs), lhs.size());
+			return memcmp(LPBYTE(lhs), LPBYTE(rhs), lhs.size()) < 0;
 		}
 
 		// compare the part before the legacy user id.

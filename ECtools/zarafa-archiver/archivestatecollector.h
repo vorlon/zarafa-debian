@@ -87,7 +87,7 @@ public:
 		ObjectEntryList lstArchives;
 	};
 	struct abeidLess {
-		bool operator()(const entryid_t &lhs, const entryid_t &rhs);
+		bool operator()(const entryid_t &lhs, const entryid_t &rhs) const;
 	};
 	typedef std::map<entryid_t, ArchiveInfo, abeidLess> ArchiveInfoMap;
 
