@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-01 00:02+0100\n"
-"PO-Revision-Date: 2011-11-29 18:27+0200\n"
+"POT-Creation-Date: 2011-12-02 00:02+0100\n"
+"PO-Revision-Date: 2011-12-01 10:19+0200\n"
 "Last-Translator: Michal <formanek.michal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: cs\n"
@@ -287,14 +287,14 @@ msgstr "Stav"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:361
 #: php-webclient-ajax/client/modules/itemmodule.js:679
 msgid "Not Started"
-msgstr ""
+msgstr "Nezačal"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:315
 #: php-webclient-ajax/client/modules/printmessageitem.js:81
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:362
 #: php-webclient-ajax/client/modules/itemmodule.js:682
 msgid "In Progress"
-msgstr ""
+msgstr "Probíhá"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:316
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:343
@@ -306,7 +306,7 @@ msgstr ""
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:363
 #: php-webclient-ajax/client/modules/itemmodule.js:685
 msgid "Complete"
-msgstr ""
+msgstr "Dokončený"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:317
 #: php-webclient-ajax/client/modules/printmessageitem.js:87
@@ -318,7 +318,6 @@ msgstr "Čekat na ostatní"
 #: php-webclient-ajax/client/modules/printmessageitem.js:90
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:365
 #: php-webclient-ajax/client/modules/itemmodule.js:691
-#, fuzzy
 msgid "Deferred"
 msgstr "Odložený"
 
@@ -485,11 +484,11 @@ msgstr ""
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:556
 #: php-webclient-ajax/client/modules/printmessageitem.js:143
 msgid "Billing information"
-msgstr ""
+msgstr "Fakturační údaje"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:567
 msgid "Companies"
-msgstr ""
+msgstr "Firmy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:580
 msgid "Update List"
@@ -1207,29 +1206,29 @@ msgstr "Kdy"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:168
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:77
 msgid "Proposed"
-msgstr ""
+msgstr "Navrhovaný"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:203
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:204
 msgid "Accept Proposal"
-msgstr ""
+msgstr "Přijmout návrh"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:209
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:210
 msgid "View All Proposals"
-msgstr ""
+msgstr "Zobrazit všechny návrhy"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:239
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:240
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:137
 msgid "Remove from Calendar"
-msgstr ""
+msgstr "Odebrat z kalendáře"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:245
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:246
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:139
 msgid "Not Current"
-msgstr ""
+msgstr "Neaktuální"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:257
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:258
@@ -1239,7 +1238,7 @@ msgstr ""
 #: php-webclient-ajax/client/modules/journallistmodule.js:18
 #: php-webclient-ajax/client/modules/journallistmodule.js:28
 msgid "Reply"
-msgstr ""
+msgstr "Odpověď"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:269
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:270
@@ -1249,7 +1248,7 @@ msgstr ""
 #: php-webclient-ajax/client/modules/journallistmodule.js:19
 #: php-webclient-ajax/client/modules/journallistmodule.js:29
 msgid "Reply All"
-msgstr ""
+msgstr "Odpovědět všem"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:281
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:282
@@ -1260,7 +1259,7 @@ msgstr ""
 #: php-webclient-ajax/client/modules/journallistmodule.js:20
 #: php-webclient-ajax/client/modules/journallistmodule.js:30
 msgid "Forward"
-msgstr ""
+msgstr "Předat"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:293
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:294
@@ -1268,7 +1267,7 @@ msgstr ""
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:613
 #: php-webclient-ajax/client/modules/maillistmodule.js:60
 msgid "Options"
-msgstr ""
+msgstr "Možnosti"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:306
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:619
@@ -1283,7 +1282,7 @@ msgstr "Vytvořit e-mail"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:293
 msgid "You can lose changes when you continue."
-msgstr ""
+msgstr "Můžete přijít o změny, když budete pokračovat."
 
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:516
 msgid "Send new Mail"
@@ -1446,11 +1445,11 @@ msgstr "Zobraz jméno"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:397
 #: php-webclient-ajax/server/core/class.tablecolumns.php:88
 msgid "Webpage"
-msgstr ""
+msgstr "Webová stránka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:405
 msgid "IM - Address"
-msgstr ""
+msgstr "IM - Adresa"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:415
 msgid "Additional Information"
@@ -1587,10 +1586,13 @@ msgstr ""
 msgid "Business 2"
 msgstr "Pracovní"
 
+# 80%
+# 83%
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:174
 #: php-webclient-ajax/client/modules/contactitemmodule.js:48
+#, fuzzy
 msgid "Home 2"
-msgstr ""
+msgstr "Domů"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:178
 #: php-webclient-ajax/server/core/class.tablecolumns.php:139
@@ -2418,9 +2420,11 @@ msgstr ""
 msgid "Folder contains"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:74
+#, fuzzy
 msgid "E-Mail"
-msgstr ""
+msgstr "E-mail"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:81
 msgid "Select where to place the new folder"
@@ -5779,17 +5783,23 @@ msgstr ""
 msgid "E-mail Display As"
 msgstr ""
 
+# 83%
+# 75%
 #: php-webclient-ajax/client/core/properties.js:75
+#, fuzzy
 msgid "E-mail 2"
-msgstr ""
+msgstr "E-mail"
 
 #: php-webclient-ajax/client/core/properties.js:76
 msgid "E-mail2 Display As"
 msgstr ""
 
+# 83%
+# 75%
 #: php-webclient-ajax/client/core/properties.js:77
+#, fuzzy
 msgid "E-mail 3"
-msgstr ""
+msgstr "E-mail"
 
 #: php-webclient-ajax/client/core/properties.js:78
 msgid "E-mail3 Display As"
