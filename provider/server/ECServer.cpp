@@ -895,6 +895,9 @@ int running_server(char *szName, const char *szConfig)
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
 
+	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
+	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
+
 	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
 
 	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
@@ -1001,9 +1004,6 @@ int running_server(char *szName, const char *szConfig)
 		goto exit;
 	}
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
-
-	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
-	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
 
 
 	// Set max open file descriptors to FD_SETSIZE .. higher than this number
