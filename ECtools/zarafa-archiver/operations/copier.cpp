@@ -277,7 +277,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	}
 
 	if (ulSourceRows == 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "No attachments in source message, nothing to do.");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No attachments in source message, nothing to do.");
 		goto exit;
 	}
 

@@ -378,8 +378,17 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		goto exit;
 	}
 
-	if (ulDetachCount > 0)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
+	if (ulDetachCount > 0) {
+		if (!userName.empty())
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
+		else {
+			tstring strUserName;
+			if (m_ptrSession->GetUserInfo(userId, &strUserName, NULL) == hrSuccess)
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, strUserName.c_str());
+			else
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
+		}
+	}
 
 	hr = ptrUserStoreHelper->UpdateSearchFolders();
 
