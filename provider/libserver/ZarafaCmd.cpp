@@ -2156,13 +2156,14 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 						// Only on first write, unless sent by ICS
 						continue;
                     break;
-				case PR_SOURCE_KEY:
-					if(ulParentType == MAPI_FOLDER)
-						// Only on first write, unless message-in-message
-						continue;
-                    break;
 			}
 		}
+
+		if(ulParentType == MAPI_FOLDER && lpPropValArray->__ptr[i].ulPropTag == PR_SOURCE_KEY) {
+		    // PR_SOURCE_KEY may only be set if it is a first write and we're using ICS
+		    if(!fNewItem || ulSyncId == 0)
+                continue;
+        }
 
 		if(lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_NAME_W || lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_ENTRYID) {
 			if(!fNewItem && ulSyncId == 0)
@@ -2180,12 +2181,10 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 		{
 		    // Remove any old (deleted) indexed property if it's there
 		    er = RemoveStaleIndexedProp(lpDatabase, PR_SOURCE_KEY, lpPropValArray->__ptr[i].Value.bin->__ptr, lpPropValArray->__ptr[i].Value.bin->__size);
-		    if(er != erSuccess) {
-		        // Unable to remove the (old) sourcekey in use. This means that it is in use by some other object. We just skip
-		        // the property so that it is generated later as a new random sourcekey
-		        er = erSuccess;
-				continue;
-            }
+		    if(er != erSuccess)
+                // In ICS, it is important that the sourcekey remains intact on the destination server. A collision is a real problem since otherwise updates
+                // to the object later would not be copied to the correct object. Worse, the entryid may be equal to the source message while the sourcekey is not
+                goto exit;
 				
 			// Insert sourcekey, use REPLACE because createfolder already created a sourcekey.
 			// Because there is a non-primary unique key on the
@@ -2971,6 +2970,10 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 				goto exit;
 
 			fNewItem = true;
+			
+			er = LockFolder(lpDatabase, ulParentObjId);
+			if(er != erSuccess)
+			    goto exit;
 		} else {
 			// existing item, search parent ourselves cause the client just sent it's store entryid (see ECMsgStore::OpenEntry())
 			er = g_lpSessionManager->GetCacheManager()->GetObject(lpsSaveObj->ulServerId, &ulParentObjId, NULL, &ulObjFlags, &ulObjType);
@@ -2982,20 +2985,12 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
                 goto exit;
             }
 
+			er = LockFolder(lpDatabase, ulParentObjId);
+			if(er != erSuccess)
+			    goto exit;
+
 			fNewItem = false;
 			
-            // We are modifying an existing item. Lock the record in the hierarchy table so that others will have to wait before handling
-            // this object. The idea here is that you should always first try to lock the hierarchy record, which causes interfering threads
-            // to wait for eachother on the hierarchy. This should serialize access to single objects, and therefore remove any deadlocks
-            // we may have. This is currently done here, in setReadFlags(), and in PurgeDeferredTableUpdate(), which are the main culprits for
-            // deadlocks in this respect.
-            strQuery = "SELECT id FROM hierarchy WHERE id = " + stringify(lpsSaveObj->ulServerId) + " FOR UPDATE";
-            er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess)
-			    goto exit;
-			    
-            FREE_DBRESULT();
-            
             // We also need the old read flags so we can compare the new read flags to see if we need to update the unread counter. Note
             // that the read flags can only be modified through saveObject() when using ICS.
             
@@ -5170,6 +5165,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	std::list<std::pair<unsigned int, unsigned int>	> lObjectIds;
 	std::list<std::pair<unsigned int, unsigned int> >::iterator iObjectid;
 	std::string		strQueryCache;
+	std::set<unsigned int> setParents;
+	std::set<unsigned int>::iterator iterParent;
 	USE_DATABASE();
 
 	unsigned int	i = 0;
@@ -5228,10 +5225,6 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		goto exit;
 	}
 
-	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		goto exit;
-
 	if(lpMessageList == NULL) {
 	    // No message list passed, so 'mark all items (un)read'
         er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulFolderId);
@@ -5242,14 +5235,20 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
         if(er != erSuccess)
             goto exit;
+            
+        er = lpDatabase->Begin();
+        if(er != erSuccess)
+            goto exit;
+
+        er = LockFolder(lpDatabase, ulFolderId);
+        if(er != erSuccess)
+            goto exit;
 
 		// Purge changes
 		ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
 
 		// Get all items MAPI_MESSAGE exclude items with flags MSGFLAG_DELETED AND MSGFLAG_ASSOCIATED of which we will be changing flags
-		
-		// Note we use FOR UPDATE which locks the records in the hierarchy (and in tproperties as a sideeffect), which serializes access to the rows, avoiding deadlocks
-		strQueryCache = "SELECT id, tproperties.val_ulong FROM hierarchy FORCE INDEX(parenttypeflags) JOIN tproperties FORCE INDEX(PRIMARY) ON tproperties.hierarchyid=hierarchy.id AND tproperties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND tproperties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE parent="+ stringify(ulFolderId) + " AND hierarchy.type=5 AND flags = 0 AND (tproperties.val_ulong & " + stringify(ulFlagsRemove) + " OR tproperties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND tproperties.folderid = " + stringify(ulFolderId) + " FOR UPDATE";
+		strQueryCache = "SELECT id, tproperties.val_ulong FROM hierarchy FORCE INDEX(parenttypeflags) JOIN tproperties FORCE INDEX(PRIMARY) ON tproperties.hierarchyid=hierarchy.id AND tproperties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND tproperties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE parent="+ stringify(ulFolderId) + " AND hierarchy.type=5 AND flags = 0 AND (tproperties.val_ulong & " + stringify(ulFlagsRemove) + " OR tproperties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND tproperties.folderid = " + stringify(ulFolderId);
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
 			goto exit;
@@ -5286,8 +5285,22 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			    continue;
 			}
 
-            // Check permission (may be the same folder over and over)
-            er = lpecSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
+            setParents.insert(ulParent);
+        }
+        
+        for(iterParent = setParents.begin(); iterParent != setParents.end(); iterParent++) {
+            // Check permission for each folder
+            er = lpecSession->GetSecurity()->CheckPermission(*iterParent, ecSecurityRead);
+            if(er != erSuccess)
+                    goto exit;
+        }
+        
+        er = lpDatabase->Begin();
+        if(er != erSuccess)
+            goto exit;
+
+        for(iterParent = setParents.begin(); iterParent != setParents.end(); iterParent++) {                
+            er = LockFolder(lpDatabase, *iterParent);
             if(er != erSuccess)
                 goto exit;
         }
@@ -5301,7 +5314,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				
 			strQueryCache += stringify(*iterHierarchyIDs);
 		}
-		strQueryCache += ") FOR UPDATE"; // See comment above about FOR UPDATE
+		strQueryCache += ")";
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
 			goto exit;

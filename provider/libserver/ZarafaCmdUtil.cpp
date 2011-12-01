@@ -258,13 +258,8 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
 		if(er != erSuccess)
 		    goto exit;
-		    
-        er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParent) + " FOR UPDATE", NULL);
-        if(er != erSuccess)
-            goto exit;
 
-        // Lock the root records to make sure that we don't interfere with modifies or deletes on the same record
-        er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(*iListObjectId) + " FOR UPDATE", NULL);
+        er = LockFolder(lpDatabase, ulParent);		    
         if(er != erSuccess)
             goto exit;
                 
@@ -1793,16 +1788,13 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
 	if(er != erSuccess)
 		goto exit;
 
-    // Lock the counters now since the locking order is normally counters/foldercontent/storesize/localcommittimemax. So our lock order
-    // is now counters/foldercontent/counters which is compatible (*cough* in theory *cough*)
-    strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " FOR UPDATE";
-    er = lpDatabase->DoSelect(strQuery, NULL); // don't care about the result
+    er = LockFolder(lpDatabase, ulObjId);
     if (er != erSuccess)
         goto exit;
 	
 	// Gets counters from hierarchy: cc, acc, dmc, cfc, dfc
 	// use for update, since the update query below must see the same values, mysql should already block here.
-	strQuery = "SELECT count(if(flags & 0x440 = 0 && type = 5, 1, null)) AS cc, count(if(flags & 0x440 = 0x40 and type = 5, 1, null)) AS acc, count(if(flags & 0x440 = 0x400 and type = 5, 1, null)) AS dmc, count(if(flags & 0x440 = 0x440 and type = 5, 1, null)) AS dac, count(if(flags & 0x400 = 0 and type = 3, 1, null)) AS cfc, count(if(flags & 0x400 and type = 3, 1, null)) AS dfc from hierarchy where parent=" + stringify(ulObjId) + " FOR UPDATE";
+	strQuery = "SELECT count(if(flags & 0x440 = 0 && type = 5, 1, null)) AS cc, count(if(flags & 0x440 = 0x40 and type = 5, 1, null)) AS acc, count(if(flags & 0x440 = 0x400 and type = 5, 1, null)) AS dmc, count(if(flags & 0x440 = 0x440 and type = 5, 1, null)) AS dac, count(if(flags & 0x400 = 0 and type = 3, 1, null)) AS cfc, count(if(flags & 0x400 and type = 3, 1, null)) AS dfc from hierarchy where parent=" + stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
@@ -1826,10 +1818,10 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
 	// Gets unread counters from hierarchy / properties / tproperties
 	strQuery = "SELECT "
 	          // Part one, unread count from non-deferred rows (get the flags from tproperties)
-	          "(SELECT count(if(tproperties.val_ulong & 1,null,1)) from hierarchy left join tproperties on tproperties.folderid=" + stringify(ulObjId) + " and tproperties.tag = 0x0e07 and tproperties.type = 3 and tproperties.hierarchyid=hierarchy.id left join deferredupdate on deferredupdate.hierarchyid=hierarchy.id where parent=" + stringify(ulObjId) + " and hierarchy.type=5 and hierarchy.flags = 0 and deferredupdate.hierarchyid is null FOR UPDATE)"
+	          "(SELECT count(if(tproperties.val_ulong & 1,null,1)) from hierarchy left join tproperties on tproperties.folderid=" + stringify(ulObjId) + " and tproperties.tag = 0x0e07 and tproperties.type = 3 and tproperties.hierarchyid=hierarchy.id left join deferredupdate on deferredupdate.hierarchyid=hierarchy.id where parent=" + stringify(ulObjId) + " and hierarchy.type=5 and hierarchy.flags = 0 and deferredupdate.hierarchyid is null)"
 	          " + "
 	          // Part two, unread count from deferred rows (get the flags from properties)
-	          "(SELECT count(if(properties.val_ulong & 1,null,1)) from hierarchy left join properties on properties.tag = 0x0e07 and properties.type = 3 and properties.hierarchyid=hierarchy.id join deferredupdate on deferredupdate.hierarchyid=hierarchy.id and deferredupdate.folderid = parent where parent=" + stringify(ulObjId) + " and hierarchy.type=5 and hierarchy.flags = 0 FOR UPDATE)"
+	          "(SELECT count(if(properties.val_ulong & 1,null,1)) from hierarchy left join properties on properties.tag = 0x0e07 and properties.type = 3 and properties.hierarchyid=hierarchy.id join deferredupdate on deferredupdate.hierarchyid=hierarchy.id and deferredupdate.folderid = parent where parent=" + stringify(ulObjId) + " and hierarchy.type=5 and hierarchy.flags = 0)"
 	          ;
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
@@ -2030,4 +2022,9 @@ exit:
 		lpDatabase->FreeResult(lpDBResult);
 
 	return er;
+}
+
+ECRESULT LockFolder(ECDatabase *lpDatabase, unsigned int ulObjId)
+{
+    return lpDatabase->DoSelect("SELECT id FROM hierarchy WHERE id=" + stringify(ulObjId) + " FOR UPDATE", NULL);
 }

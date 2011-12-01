@@ -624,6 +624,11 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		// Treat MVI as normal property
 		type &= ~MVI_FLAG;
 	}
+	
+	if(lpRow[GetColOffset(type)] == NULL) {
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	lpPropVal->ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
 
