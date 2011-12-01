@@ -172,8 +172,12 @@ namespace details {
 	exit:
 		return hr;
 	}
+
 }
 
+// SortCompareABEID from provider/common/ZarafaUtil.cpp would be nicer. However, that's
+// not intended to be used in client applications. Client applications shouldn't be aware
+// of entryid formats at all...
 bool ArchiveStateCollector::abeidLess::operator()(const entryid_t &lhs, const entryid_t &rhs) const {
 	if (lhs.size() < rhs.size())
 		return true;
