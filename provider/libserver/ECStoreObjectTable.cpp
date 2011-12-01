@@ -558,7 +558,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				
                 if(lpODStore->ulFolderId == 0) {
                     // Get parent folder
-                    lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId);
+                    if(lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId) != erSuccess)
+                    	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
+                    	 * the only thing we can do is return NOT_FOUND for each cell.*/
+                    	ulFolderId = 0;
                 } else {
                 	ulFolderId = lpODStore->ulFolderId;
                 }
@@ -788,6 +791,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
 
 
                 if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
+                	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
                     iterColumns++;
                     continue;
                 }
@@ -814,6 +818,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
 
 
     for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
+    	ASSERT(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 	}
@@ -1009,6 +1014,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 	for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
 		for(iterObjIds = mapObjIds.begin(); iterObjIds != mapObjIds.end(); iterObjIds++) {
 			if(setDone.count(std::make_pair(iterObjIds->second, iterColumns->second)) == 0) {
+				ASSERT(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag == 0);
 				CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 			}
