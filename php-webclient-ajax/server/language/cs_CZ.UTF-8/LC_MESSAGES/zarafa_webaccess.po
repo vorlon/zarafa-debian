@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 00:02+0100\n"
+"POT-Creation-Date: 2011-12-03 00:02+0100\n"
 "PO-Revision-Date: 2011-12-01 10:19+0200\n"
 "Last-Translator: Michal <formanek.michal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3661,11 +3661,13 @@ msgstr "Organizátor"
 msgid "Required"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/server/core/class.operations.php:951
 #: php-webclient-ajax/client/layout/js/appointment.js:1270
 #: php-webclient-ajax/client/layout/js/appointment.js:1350
+#, fuzzy
 msgid "Optional"
-msgstr ""
+msgstr "Možnosti"
 
 #: php-webclient-ajax/server/core/class.operations.php:955
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
@@ -5194,19 +5196,23 @@ msgstr ""
 msgid "Job Title"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/modules/printmessageitem.js:124
 #: php-webclient-ajax/client/core/properties.js:51
+#, fuzzy
 msgid "IM Address"
-msgstr ""
+msgstr "IM - Adresa"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:130
 msgid "Home address"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/modules/printmessageitem.js:139
 #: php-webclient-ajax/client/core/properties.js:85
+#, fuzzy
 msgid "Web Page"
-msgstr ""
+msgstr "Webová stránka"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:147
 msgid "Recurrence Type"
@@ -5819,9 +5825,11 @@ msgstr "Datum dokončení"
 msgid "Requested By"
 msgstr ""
 
+# 78%
 #: php-webclient-ajax/client/core/properties.js:109
+#, fuzzy
 msgid "Bill Information"
-msgstr ""
+msgstr "Fakturační údaje"
 
 #: php-webclient-ajax/client/core/layoutmanager.js:283
 msgid "you are logged on as"
@@ -6328,17 +6336,23 @@ msgstr ""
 msgid "doesn't matter"
 msgstr ""
 
+# 81%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1791
+#, fuzzy
 msgid "not started"
-msgstr ""
+msgstr "Nezačal"
 
+# 81%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1792
+#, fuzzy
 msgid "in progress"
-msgstr ""
+msgstr "Probíhá"
 
+# 77%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1793
+#, fuzzy
 msgid "completed"
-msgstr ""
+msgstr "Dokončený"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1794
 msgid "waiting on someone else"
