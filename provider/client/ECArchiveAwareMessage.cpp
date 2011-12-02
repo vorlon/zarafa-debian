@@ -294,6 +294,11 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 			else if (lpsPropValue->ulPropTag == PROP_STUBBED) {
 				if (lpsPropValue->Value.b != FALSE)
 					m_mode = MODE_STUBBED;
+
+				// The message is not stubbed once destubbed.
+				// This fixes all kind of weird copy issues where the stubbed property does not
+				// represent the actual state of the message.
+				lpsPropValue->Value.b = FALSE;
 			}
 
 			else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
