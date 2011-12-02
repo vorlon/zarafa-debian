@@ -960,7 +960,7 @@ exit:
 	return hr;
 }
 
-HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName, LPCWSTR lpszServerName)
+HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName, LPCWSTR lpszServerName, LPMAPIUID lpProviderUID)
 {
 	HRESULT		hr = hrSuccess;
 	MAPIUID		sNewProfileUID;
@@ -983,6 +983,11 @@ HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserNam
 		goto exit;
 
 	hr = HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (lpProviderUID)
+		*lpProviderUID = sNewProfileUID;
 
 exit:
 	return hr;
