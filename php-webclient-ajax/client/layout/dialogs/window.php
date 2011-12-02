@@ -82,6 +82,13 @@
 		<link rel="stylesheet" type="text/css" href="client/layout/css/style.ie.css">
 		<![endif]-->
 <?php
+	// Apply an iPad specific stylesheet when needed
+	if(strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') !== false){
+?>
+		<link rel="stylesheet" type="text/css" href="client/layout/css/style.ipad.css">
+<?php
+	}
+
 	$pluginCSSFiles = $GLOBALS['PluginManager']->getClientFiles('css', Array('all','dialog'));
 	if(count($pluginCSSFiles) > 0){
 		includeFiles('css', $pluginCSSFiles);
