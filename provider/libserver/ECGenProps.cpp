@@ -240,6 +240,8 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_INSTANCE_KEY):
 		case PROP_ID(PR_RECORD_KEY):
 		case PROP_ID(PR_OBJECT_TYPE):
+		case PROP_ID(PR_SOURCE_KEY):
+		case PROP_ID(PR_PARENT_SOURCE_KEY):
 		case PROP_ID(PR_CONTENT_COUNT):
 		case PROP_ID(PR_CONTENT_UNREAD):
 		case PROP_ID(PR_RIGHTS):
