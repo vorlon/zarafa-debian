@@ -54,6 +54,7 @@
 #include "archiver-common.h"
 #include "archivestateupdater_fwd.h"
 #include "tstring.h"
+#include "mapi_ptr.h"
 
 #include <boost/smart_ptr.hpp>
 #include <map>
@@ -85,7 +86,10 @@ public:
 		std::list<tstring> lstCouplings;
 		ObjectEntryList lstArchives;
 	};
-	typedef std::map<entryid_t, ArchiveInfo> ArchiveInfoMap;
+	struct abeidLess {
+		bool operator()(const entryid_t &lhs, const entryid_t &rhs) const;
+	};
+	typedef std::map<entryid_t, ArchiveInfo, abeidLess> ArchiveInfoMap;
 
 private:
 	ArchiveStateCollector(const SessionPtr &ptrSession, ECLogger *lpLogger);

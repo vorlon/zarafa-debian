@@ -172,7 +172,35 @@ namespace details {
 	exit:
 		return hr;
 	}
+
 }
+
+// SortCompareABEID from provider/common/ZarafaUtil.cpp would be nicer. However, that's
+// not intended to be used in client applications. Client applications shouldn't be aware
+// of entryid formats at all...
+bool ArchiveStateCollector::abeidLess::operator()(const entryid_t &lhs, const entryid_t &rhs) const {
+	if (lhs.size() < rhs.size())
+		return true;
+
+	if (lhs.size() == rhs.size()) {
+		if (lhs.size() <= 32) {
+			// Too small, just compare the whole thing
+			return memcmp(LPBYTE(lhs), LPBYTE(rhs), lhs.size()) < 0;
+		}
+
+		// compare the part before the legacy user id.
+		int res = memcmp(LPBYTE(lhs), LPBYTE(rhs), 28);
+		if (res < 0)
+			return true;
+		if (res == 0) {
+			// compare the part after the legacy user id.
+			return memcmp(LPBYTE(lhs) + 32, LPBYTE(rhs) + 32, lhs.size() - 32) < 0;
+		}
+	}
+
+	return false;
+}
+
 
 /**
  * Create an ArchiveStateCollector instance.
@@ -338,7 +366,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			break;
 
 		for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
-			std::map<entryid_t, ArchiveInfo>::iterator iterator;
+			ArchiveInfoMap::iterator iterator;
 			
 			if (ptrRows[i].lpProps[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get entryid from address list. hr=0x%08x", ptrRows[i].lpProps[IDX_ACCOUNT].Value.err);
