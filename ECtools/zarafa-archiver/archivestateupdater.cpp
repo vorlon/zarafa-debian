@@ -280,6 +280,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrUserStoreHelper;
 	ObjectEntryList lstCurrentArchives;
+	ULONG ulDetachCount = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
 
@@ -366,6 +367,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		if (attachType == ImplicitAttach) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was implicitly attached, detaching.");
 			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(*i));
+			ulDetachCount++;
 		} else
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was explicitly attached");
 	}
@@ -374,6 +376,18 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
 		goto exit;
+	}
+
+	if (ulDetachCount > 0) {
+		if (!userName.empty())
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
+		else {
+			tstring strUserName;
+			if (m_ptrSession->GetUserInfo(userId, &strUserName, NULL) == hrSuccess)
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, strUserName.c_str());
+			else
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
+		}
 	}
 
 	hr = ptrUserStoreHelper->UpdateSearchFolders();

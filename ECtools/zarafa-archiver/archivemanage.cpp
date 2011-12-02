@@ -267,6 +267,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	SObjectEntry objectEntry;
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
+	SPropValuePtr ptrArchiveName;
 
 	hr = ArchiveHelper::Create(lpArchiveStore, strFoldername, lpszArchiveServer, &ptrArchiveHelper);
 	if (hr != hrSuccess) {
@@ -396,7 +397,12 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		goto exit;	
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully attached archive.");
+	hr = HrGetOneProp(lpArchiveStore, PR_DISPLAY_NAME, &ptrArchiveName);
+	if (hr != hrSuccess) {
+		hr = hrSuccess;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully attached '" TSTRING_PRINTF "' in 'Unknown' for user '" TSTRING_PRINTF "'.", strFoldername.empty() ? _T("Root") : strFoldername.c_str(), m_strUser.c_str());
+	} else
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully attached '" TSTRING_PRINTF "' in '" TSTRING_PRINTF "' for user '" TSTRING_PRINTF "'.", strFoldername.empty() ? _T("Root") : strFoldername.c_str(), ptrArchiveName->Value.LPSZ, m_strUser.c_str());
 
 exit:
 	return hr;
@@ -537,8 +543,11 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		goto exit;	
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully detached archive.");
-	
+	if (lpszFolder)
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully detached '" TSTRING_PRINTF "' in '" TSTRING_PRINTF "' from '" TSTRING_PRINTF "'.", lpszFolder, lpszArchive, m_strUser.c_str());
+	else
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully detached '" TSTRING_PRINTF "' from '" TSTRING_PRINTF "'.", lpszArchive, m_strUser.c_str());
+
 exit:
 	return MAPIErrorToArchiveError(hr);
 }
@@ -593,7 +602,7 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		goto exit;	
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully detached archive.");
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully detached archive %u from '" TSTRING_PRINTF "'.", ulArchive, m_strUser.c_str());
 	
 exit:
 	return MAPIErrorToArchiveError(hr);
