@@ -441,7 +441,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
             	continue;
             }
 
-			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == hrSuccess) {
+			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
 				if (ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
 					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
 				setCellDone.insert(std::make_pair(i,k));
