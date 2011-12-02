@@ -1382,10 +1382,3 @@ div.listview_topbar button {
 	width: 10px;
 	height: 10px;
 }
-
-/* The @media and screen width check is to enable the scroller DIV to fix iPad's scrolling in an Iframe. */
-@media only screen and (device-width: 768px) {
-	.ipadscroller {
-		overflow: auto;
-	}
-}
