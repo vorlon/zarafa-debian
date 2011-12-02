@@ -632,7 +632,7 @@ eResult ArchiveManageImpl::ListArchives(ostream &ostr)
 			 << ": Store: " << iArchive->StoreName
 			 << ", Folder: " << iArchive->FolderName;
 
-		if (iArchive->Rights != ARCHIVE_RIGHTS_NONE) {
+		if (iArchive->Rights != ARCHIVE_RIGHTS_ABSENT) {
 			 ostr << ", Rights: ";
 			if (iArchive->Rights == ROLE_OWNER)
 				ostr << "Read Write";
@@ -753,7 +753,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			if (hrTmp != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive rights (hr=%s)", stringify(hrTmp, true).c_str());
 		} else
-			entry.Rights = ARCHIVE_RIGHTS_NONE;
+			entry.Rights = ARCHIVE_RIGHTS_ABSENT;
 
 		lstEntries.push_back(entry);
 	}
