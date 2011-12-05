@@ -52,6 +52,15 @@ elif [ -d /etc/pki/tls/misc ]; then
 		# --
 		CADIR=`grep -w ^dir /etc/ssl/openssl.cnf | awk {'print $3'}`
 	fi
+elif [ -d /var/lib/ssl/misc ]; then
+	# ALTLinux
+	if [ -x /var/lib/ssl/misc/CA ]; then
+		CASCRIPT=/var/lib/ssl/misc/CA
+	fi
+	if [ -f /etc/openssl/openssl.cnf ]; then
+		# ALTLinux
+		CADIR=`grep -w ^dir /etc/openssl/openssl.cnf | awk {'print $3'}`
+	fi
 fi
 
 if [ -z "$CASCRIPT" ]; then
@@ -80,7 +89,7 @@ fi
 
 set -e
 
-if [ ! -d $CADIR ]; then
+if [ ! -d "$CADIR" ]; then
 	echo "No Certificate Authority Root found in current directory."
 	echo "Press enter to create, or ctrl-c to exit."
 	read dummy
