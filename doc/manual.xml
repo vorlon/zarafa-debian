@@ -3145,7 +3145,7 @@
 			  anymore.
 			  Administrators will still be able to see and use the user.
 	  		  </para>
-			  <para>Default: <replaceable>no</replaceable></para>
+			  <para>Default: <replaceable>yes</replaceable></para>
 	 		</listitem>
 		  </varlistentry>
 
@@ -3403,7 +3403,7 @@
 			  attachment will push usefull data from the MySQL
 			  cache. The drawback of separate files is that a
 			  mysqldump is not enough for a full disaster recovery.</para>
-			  <para>Default: <replaceable>database</replaceable></para>
+			  <para>Default: <replaceable>files</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3633,7 +3633,7 @@
 				<para>Synchronization clean cycle, in days. 0 means
 				never. Synchronizations older than this setting will be
 				removed	from the database.</para>
-				<para>Default: <replaceable>365</replaceable></para>
+				<para>Default: <replaceable>90</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3769,7 +3769,7 @@
 			  it, set this value as high as possible, up to 50%
 			  of your total RAM capacity. Make sure this doesn't
 			  lead to swapping though.</para>
-			  <para>Default: <replaceable>16777216</replaceable> (16
+			  <para>Default: <replaceable>268435456</replaceable> (256
 			  Mb)</para>
 			</listitem>
 		  </varlistentry>
@@ -3866,7 +3866,7 @@
 			  from the cache making room for more often requested user details.
 			  Set to 0 to never expire, or -1 to disable this cache.
 			  </para>
-			  <para>Default: <replaceable>5</replaceable> (5 minutes)</para>
+			  <para>Default: <replaceable>0</replaceable> (never expire)</para>
 			</listitem>
 		  </varlistentry>
 
