@@ -50,6 +50,8 @@
 
 ?>
 <?php
+	include_once('mapi/class.recurrence.php');
+
 	/**
 	 * Contact ItemModule
 	 * Module which openes, creates, saves and deletes an item. It 
@@ -337,7 +339,8 @@
 			// here the start of appointment is always set in localtime, so the unixtime is added with timezone value. 
 			// (-1) is used for the correct direction ie. as we move eastward from GMT the timezone value is in positive and vicaversa when
 			// moving westward.
-			$startDate_localtime = $action["appointment_unixtime"] + ($action["timezone"]["timezone"] * 60 * (-1));
+			$recur = new Recurrence(null, null);
+			$startDate_localtime = $action["appointment_unixtime"] + ($recur->getTimezone($action["timezone"], $action["appointment_unixtime"]) * 60 * (-1));
 			
 			// comment it properly why
 			switch(strftime("%m", $startDate_localtime)){
