@@ -1227,5 +1227,5 @@ define('PR_EMS_AB_REPORTS'                    ,mapi_prop_tag(PT_BINARY,     0x80
 define('PR_EMS_AB_REPORTS_MV'                 ,mapi_prop_tag(PT_MV_BINARY,  0x800E));
 define('PR_EMS_AB_IS_MEMBER_OF_DL'            ,mapi_prop_tag(PT_MV_BINARY,  0x8008));
 define('PR_EMS_AB_OWNER'                      ,mapi_prop_tag(PT_BINARY,     0x800C));
-define('PR_EMS_AB_ROOM_CAPACITY.'			  ,mapi_prop_tag(PT_LONG,		0x0807));
+define('PR_EMS_AB_ROOM_CAPACITY'			  ,mapi_prop_tag(PT_LONG,		0x0807));
 ?>
