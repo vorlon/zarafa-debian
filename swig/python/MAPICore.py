@@ -1435,6 +1435,23 @@ class IECLicense(IUnknown):
 IECLicense_swigregister = _MAPICore.IECLicense_swigregister
 IECLicense_swigregister(IECLicense)
 
+class IECExportChanges(IUnknown):
+    __swig_setmethods__ = {}
+    for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, IECExportChanges, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IUnknown]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, IECExportChanges, name)
+    def __init__(self, *args, **kwargs): raise AttributeError, "No constructor defined"
+    __repr__ = _swig_repr
+    def GetChangeCount(*args): return _MAPICore.IECExportChanges_GetChangeCount(*args)
+    def SetMessageInterface(*args): return _MAPICore.IECExportChanges_SetMessageInterface(*args)
+    def SetLogger(*args): return _MAPICore.IECExportChanges_SetLogger(*args)
+    __swig_destroy__ = _MAPICore.delete_IECExportChanges
+    __del__ = lambda self : None;
+IECExportChanges_swigregister = _MAPICore.IECExportChanges_swigregister
+IECExportChanges_swigregister(IECExportChanges)
+
 UnwrapObject = _MAPICore.UnwrapObject
 class IECChangeAdvisor(IUnknown):
     __swig_setmethods__ = {}
@@ -1579,5 +1596,56 @@ MAPI_SUPPRESS_ATTACH = _MAPICore.MAPI_SUPPRESS_ATTACH
 MAPI_ENVELOPE_ONLY = _MAPICore.MAPI_ENVELOPE_ONLY
 MAPI_BODY_AS_FILE = _MAPICore.MAPI_BODY_AS_FILE
 MAPI_AB_NOMODIFY = _MAPICore.MAPI_AB_NOMODIFY
+class ECSimpleLogger(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSimpleLogger, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSimpleLogger, name)
+    __repr__ = _swig_repr
+    def Log(*args): return _MAPICore.ECSimpleLogger_Log(*args)
+    def __init__(self, *args): 
+        if self.__class__ == ECSimpleLogger:
+            args = (None,) + args
+        else:
+            args = (self,) + args
+        this = _MAPICore.new_ECSimpleLogger(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_ECSimpleLogger
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_ECSimpleLogger(self)
+        return weakref_proxy(self)
+ECSimpleLogger_swigregister = _MAPICore.ECSimpleLogger_swigregister
+ECSimpleLogger_swigregister(ECSimpleLogger)
+
+class Stream(IStream):
+    __swig_setmethods__ = {}
+    for _s in [IStream]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Stream, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IStream]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, Stream, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == Stream:
+            args = (None,) + args
+        else:
+            args = (self,) + args
+        this = _MAPICore.new_Stream(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def Read(*args): return _MAPICore.Stream_Read(*args)
+    def Write(*args): return _MAPICore.Stream_Write(*args)
+    __swig_destroy__ = _MAPICore.delete_Stream
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_Stream(self)
+        return weakref_proxy(self)
+Stream_swigregister = _MAPICore.Stream_swigregister
+Stream_swigregister(Stream)
+
 
 

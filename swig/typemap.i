@@ -384,6 +384,30 @@
 		MAPIFreeBuffer((void *)$2);
 }
 
+///////////////////////////////////
+// ECLogger director
+///////////////////////////////////
+#if SWIGPYTHON
+#ifdef WIN32
+
+%typemap(in) ECLogger * (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
+{
+	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+	if(!SWIG_IsOK(res))
+		%argument_fail(res,"ECSimpleLogger",$symname, $argnum);
+
+	ECLoggerProxy::Create(EC_LOGLEVEL_DEBUG, sl, &proxy);
+	$1 = proxy;
+}
+
+%typemap(freearg) ECLogger *
+{
+	$1->Release();
+}
+
+#endif
+#endif
+
 // Pull in the language-specific typemap
 #if SWIGPERL
 %include "perl/typemap_perl.i"
