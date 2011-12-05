@@ -441,10 +441,12 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
             	continue;
             }
 
-    	    if(ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) == erSuccess) {
-    	        setCellDone.insert(std::make_pair(i,k));
-    	        continue;
-    	    }
+			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
+				if (ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
+					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
+				setCellDone.insert(std::make_pair(i,k));
+				continue;
+			}
 
 			// Handle PR_DEPTH
 			if(ulPropTag == PR_DEPTH) {
@@ -558,7 +560,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				
                 if(lpODStore->ulFolderId == 0) {
                     // Get parent folder
-                    lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId);
+                    if(lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId) != erSuccess)
+                    	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
+                    	 * the only thing we can do is return NOT_FOUND for each cell.*/
+                    	ulFolderId = 0;
                 } else {
                 	ulFolderId = lpODStore->ulFolderId;
                 }
@@ -783,6 +788,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for(iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag)); iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
                 if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
+                	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
                     iterColumns++;
                     continue;
                 }
@@ -809,6 +815,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
 
 
     for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
+    	ASSERT(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 	}
@@ -997,6 +1004,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 	for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
 		for(iterObjIds = mapObjIds.begin(); iterObjIds != mapObjIds.end(); iterObjIds++) {
 			if(setDone.count(std::make_pair(iterObjIds->second, iterColumns->second)) == 0) {
+				// We may be overwriting a value that was retrieved from the cache before.
+				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
+				}
 				CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 			}
