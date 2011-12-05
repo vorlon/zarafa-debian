@@ -208,15 +208,24 @@ exit:
 HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	HRESULT hr = hrSuccess;
+	ECConfig *lpsConfig = NULL; 
 	SessionPtr ptrArchiverSession;
 
-	hr = Session::Create(MAPISessionPtr(lpSession, true), lpLogger, &ptrArchiverSession);
+	lpsConfig = ECConfig::Create(GetConfigDefaults());
+	if (!lpsConfig->LoadSettings(GetConfigPath())) {
+		// Just log warnings and errors and continue with default.
+		if (lpLogger)
+			LogConfigErrors(lpsConfig, lpLogger);
+	}
+
+	hr = Session::Create(MAPISessionPtr(lpSession, true), lpsConfig, lpLogger, &ptrArchiverSession);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = ArchiveManageImpl::Create(ptrArchiverSession, NULL, lpszUser, lpLogger, lpptrManage);
 
 exit:
+	delete lpsConfig;
 	return hr;
 }
 
