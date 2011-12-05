@@ -242,8 +242,6 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_OBJECT_TYPE):
 		case PROP_ID(PR_SOURCE_KEY):
 		case PROP_ID(PR_PARENT_SOURCE_KEY):
-		case PROP_ID(PR_CONTENT_COUNT):
-		case PROP_ID(PR_CONTENT_UNREAD):
 		case PROP_ID(PR_RIGHTS):
 		case PROP_ID(PR_ACCESS_LEVEL):
 		case PROP_ID(PR_ACCESS):
@@ -257,6 +255,12 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
     			er = erSuccess;
             else
                 er = ZARAFA_E_NOT_FOUND;
+			break;
+		case PROP_ID(PR_CONTENT_COUNT):
+			if (ulObjType == MAPI_MESSAGE)
+				er = erSuccess;
+			else
+				er = ZARAFA_E_NOT_FOUND;
 			break;
         default:
             er = ZARAFA_E_NOT_FOUND;
