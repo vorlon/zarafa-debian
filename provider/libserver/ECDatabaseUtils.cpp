@@ -625,8 +625,6 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		type &= ~MVI_FLAG;
 	}
 
-	lpPropVal->ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
-
 	switch(type) {
 	case PT_I2:
 		if(lpRow[FIELD_NR_ULONG] == NULL) {
@@ -881,7 +879,10 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		break;
 	default:
 		er = ZARAFA_E_INVALID_TYPE;
+		goto exit;
 	}
+
+	lpPropVal->ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
 
 exit:
 	freelocale(loc);
