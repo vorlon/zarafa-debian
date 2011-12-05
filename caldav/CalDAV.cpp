@@ -611,15 +611,12 @@ void *HandlerClient(void *lpArg)
 
 		//Save mapi session between Requests
 		hr = HrHandleRequest(lpChannel, &lpSession);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request done: 0x%08X", hr);
+		if (hr != hrSuccess)
 			break;
-		}
 	}
 
 exit:
-	if (hr == hrSuccess)
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection closed");
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection closed");
 		
 	if(lpChannel)
 		delete lpChannel;
@@ -647,7 +644,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 	if(lpSessionSave)
 		lpSession = *lpSessionSave;
 
-	g_lpLogger->Log(EC_LOGLEVEL_WARNING, "New Request");
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "New Request");
 
 	hr = lpRequest->HrReadHeaders();
 	if(hr != hrSuccess) {
@@ -662,34 +659,19 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 		goto exit;
 	}
 
-	//ignore Empty Body
+	// ignore Empty Body
 	lpRequest->HrReadBody();
 
-	hr = lpRequest->HrGetCharSet(&strCharset);
-	if (hr != hrSuccess) {
-		// @todo: may be parsed from the xml body, since it contains: encoding="utf-8" in the xml header
-		strCharset = g_lpConfig->GetSetting("default_charset");
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset specified in http request. Using default charset: %s", strCharset.c_str());
-	}
-	
-	//ignore Empty User field.
+	// no error, defaults to utf-8
+	lpRequest->HrGetCharSet(&strCharset);
+	// ignore Empty User field.
 	lpRequest->HrGetUser(&wstrUser);
-
-	//ignore Empty Password field
+	// ignore Empty Password field
 	lpRequest->HrGetPass(&wstrPass);
-
 	// no checks required as HrValidateReq() checks Method
 	lpRequest->HrGetMethod(&strMethod);
-
+	// 
 	lpRequest->HrSetKeepAlive(KEEP_ALIVE_TIME);
-
-	if(!strMethod.compare("OPTIONS"))
-	{
-		lpRequest->HrResponseHeader(200, "OK");
-		lpRequest->HrResponseHeader("Allow", "OPTIONS, GET, POST, PUT, DELETE, MOVE");
-		lpRequest->HrResponseHeader("Allow", "PROPFIND, PROPPATCH, REPORT, MKCALENDAR");
-		goto exit;
-	}
 
 	hr = lpRequest->HrGetUrl(&wstrUrl);
 	if (hr != hrSuccess) {
@@ -698,8 +680,24 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 		lpRequest->HrResponseBody("Bad Request");
 		goto exit;
 	}
+
+	// ignore error here
+	HrParseURL(wstrUrl, &ulFlag);
+
+	if (ulFlag & SERVICE_CALDAV)
+		// this header is always present in a caldav response, but not in ical.
+		lpRequest->HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
+
+	if(!strMethod.compare("OPTIONS"))
+	{
+		lpRequest->HrResponseHeader(200, "OK");
+		lpRequest->HrResponseHeader("Allow", "OPTIONS, GET, POST, PUT, DELETE, MOVE");
+		lpRequest->HrResponseHeader("Allow", "PROPFIND, PROPPATCH, REPORT, MKCALENDAR");
+		// most clients do not login with this action, no need to complain.
+		hr = hrSuccess;
+		goto exit;
+	}
 	
-	hr = HrParseURL(wstrUrl, &ulFlag);
 	if(!lpSession && (wstrUser.empty() || wstrPass.empty() || HrAuthenticate(wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession) != hrSuccess )) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Sending authentication request");
 		
@@ -728,6 +726,17 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 		goto exit;
 	}
 
+	hr = lpBase->HrInitializeClass();
+	if (hr != hrSuccess) {
+		if (hr == MAPI_E_NOT_FOUND)
+			lpRequest->HrResponseHeader(404, "Folder not found");
+		else {
+			string strcode = stringify(hr, true);
+			lpRequest->HrResponseHeader(500, "Error "+strcode);
+		}
+		goto exit;
+	}
+
 	hr = lpBase->HrHandleCommand(strMethod);
 
 exit:
@@ -737,13 +746,17 @@ exit:
 	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.
 		hr = lpRequest->HrFinalize();
 
-	g_lpLogger->Log(EC_LOGLEVEL_WARNING, "End Of Request");
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "End Of Request");
 
 	if(lpRequest)
 		delete lpRequest;
 	
-	if(lpSession)
-		*lpSessionSave = lpSession;
+	if(lpSession) {
+		// do not keep the session alive, can do inbetween different (or missing) Auth headers!
+		lpSession->Release();
+		// @todo remove lpSessionSave parameter
+		*lpSessionSave = NULL;
+	}
 
 	if(lpBase)
 		delete lpBase;

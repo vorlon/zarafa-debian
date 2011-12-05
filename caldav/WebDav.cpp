@@ -201,76 +201,6 @@ exit:
 	return hr;
 }
 
-/**
- * Extended in CalDAV::HrHandlePropfind()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-
-HRESULT WebDav::HrHandlePropfind(WEBDAVREQSTPROPS *sProp,WEBDAVMULTISTATUS *lpsDavMulStatus)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrHandleReport()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrListCalEntries()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry, WEBDAVMULTISTATUS *sWebMStatus)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrHandlePropPatch()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrHandlePropPatch(WEBDAVPROP *lpsDavProp)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrHandleMkCal()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrHandlePropertySearch()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus)
-{
-	return E_NOTIMPL;
-}
-
-/**
- * Extended in CalDAV::HrHandlePropertySearchSet()
- * @return	HRESULT
- * @retval	E_NOTIMPL	Not implemented
- */
-HRESULT WebDav::HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus)
-{
-	return E_NOTIMPL;
-}
 
 /**
  * Converts WEBDAVMULTISTATUS response structure to xml data
@@ -325,8 +255,11 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 		goto exit;
 	}
 
+	// @todo move this default to sDavMStatus constructor, never different.
 	if(sDavMStatus->sPropName.strNS.empty())
 		sDavMStatus->sPropName.strNS = "DAV:";
+	if (sDavMStatus->sPropName.strPropname.empty())
+		sDavMStatus->sPropName.strPropname = "multistatus";
 
 	strNsPrefix = "C";
 	m_mapNs[sDavMStatus->sPropName.strNS.c_str()] = "C";
@@ -585,6 +518,8 @@ HRESULT WebDav::HrHandleRptCalQry()
 		}
 		lpXmlNode = lpXmlNode->next;
 	}
+
+	// @todo, load depth 0 ? .. see propfind version.
 
 	//Retrieve Data from the server & return WEBMULTISTATUS structure.
 	hr = HrListCalEntries(&sReptQuery, &sWebMStatus);
@@ -867,7 +802,7 @@ exit:
  * @param[in]	lpsWebFbInfo	WEBDAVFBINFO structure, contains all freebusy information
  * @return		HRESULT 
  */
-HRESULT WebDav::HrPost(WEBDAVFBINFO *lpsWebFbInfo)
+HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 {
 	HRESULT hr = hrSuccess;
 	std::list<WEBDAVFBUSERINFO>::iterator itFbUserInfo;
@@ -1493,6 +1428,20 @@ exit:
  * @retval	MAPI_E_COLLISION		Folder with same name exists
  * @retval	MAPI_E_NO_ACCESS		Not enough permissions to create a folder
  */
+// input url: /caldav/username/7F2A8EB0-5E2C-4EB7-8B46-6ECBFE91BA3F/
+/* input xml:
+	  <x0:mkcalendar xmlns:x1="DAV:" xmlns:x2="http://apple.com/ns/ical/" xmlns:x0="urn:ietf:params:xml:ns:caldav">
+	   <x1:set>
+	    <x1:prop>
+		 <x1:displayname>Untitled</x1:displayname>
+		 <x2:calendar-color>#492BA1FF</x2:calendar-color>
+		 <x2:calendar-order>9</x2:calendar-order>
+		 <x0:calendar-free-busy-set><YES/></x0:calendar-free-busy-set>
+		 <x0:calendar-timezone> ... ical timezone data snipped ... </x0:calendar-timezone>
+		</x1:prop>
+	   </x1:set>
+	  </x0:mkcalendar>
+*/
 HRESULT WebDav::HrMkCalendar()
 {
 	HRESULT hr = hrSuccess;

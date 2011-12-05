@@ -47,16 +47,11 @@
  * 
  */
 
-#ifndef BASE_H
-#define BASE_H
+#ifndef PROTOCOLBASE_H
+#define PROTOCOLBASE_H
 
 #include <mapi.h>
 #include "Http.h"
-
-#include <map>
-
-using namespace std;
-
 
 class ProtocolBase
 {
@@ -64,43 +59,44 @@ public:
 	ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~ProtocolBase();
 
-	virtual HRESULT HrHandleCommand(const std::string &strMethod);
+	HRESULT HrInitializeClass();
+
+	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;
 	
 protected:
 	Http *m_lpRequest;
 	IMAPISession *m_lpSession;
 	ECLogger *m_lpLogger;
-	IMAPIFolder *m_lpUsrFld;
-	IMAPIFolder *m_lpRootFld;
-	IMsgStore *m_lpDefStore;
-	IMsgStore *m_lpSharedStore;
-	IMsgStore *m_lpPubStore;
-	IMsgStore *m_lpActiveStore;
+	std::string m_strSrvTz;
+	std::string m_strCharset;
+
+	IMsgStore *m_lpDefStore;		//!< We always need the store of the user that is logged in.
+	IMsgStore *m_lpActiveStore;		//!< The store we're acting on
 	IAddrBook *m_lpAddrBook;
-	IMailUser *m_lpImailUser;
-	SPropTagArray *m_lpNamedProps;
+	IMailUser *m_lpImailUser;		//!< the logged in user
+	IMAPIFolder *m_lpUsrFld;		//!< The active folder (calendar, inbox, outbox)
+	IMAPIFolder *m_lpIPMSubtree;	//!< IPMSubtree of active store, used for CopyFolder/CreateFolder
+
+	SPropTagArray *m_lpNamedProps; //!< named properties of the active store
 	std::wstring m_wstrFldName;
 	std::wstring m_wstrFldOwner;
+
 	std::string m_strUserEmail;
 	std::wstring m_wstrUserFullName;
-	std::string m_strCharset;
-	std::string m_strSrvTz;
 	std::wstring m_wstrUser;
-	bool m_blFolderAccess;
-	bool m_blIsCLMAC;
-	bool m_blIsCLEVO;
+
+	bool m_blFolderAccess;		//!< can we delete the current folder
 	ULONG m_ulUrlFlag;
 	ULONG m_ulFolderFlag;
+
 	convert_context m_converter;
 
-	HRESULT HrGetFolder();
 	bool CheckFolderAccess(IMsgStore *lpStore, IMAPIFolder *lpRootFolder, IMAPIFolder *lpCurrentFolder) const;
 	
-	// convert widestring to utf-8
-	std::string W2U(std::wstring);
-	// convert utf-8 to widestring
-	std::wstring U2W(std::string);
+	std::string W2U(std::wstring); //!< convert widestring to utf-8
+	std::wstring U2W(std::string); //!< convert utf-8 to widestring
 	std::string SPropValToString(SPropValue * lpSprop);
 	std::wstring SPropValToWString(SPropValue * lpSprop);
 };
+
 #endif

@@ -74,9 +74,8 @@ static char THIS_FILE[] = __FILE__;
 /**
  * Default constructor
  */
-iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset):ProtocolBase(lpRequest, lpSession, lpLogger, strSrvTz, strCharset)
+iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset) : ProtocolBase(lpRequest, lpSession, lpLogger, strSrvTz, strCharset)
 {
-
 }
 
 /**
@@ -84,16 +83,11 @@ iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::st
  */
 iCal::~iCal()
 {
-
 }
 
 HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
-
-	hr = ProtocolBase::HrHandleCommand(strMethod);
-	if (hr != hrSuccess)
-		goto exit;
 
 	if (!strMethod.compare("GET") || !strMethod.compare("HEAD"))
 		hr = HrHandleIcalGet(strMethod);
@@ -104,7 +98,6 @@ HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 	else
 		hr = MAPI_E_CALL_FAILED;
 
-exit:
 	return hr;	
 }
 
@@ -131,17 +124,17 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorFlag = true;
 	
-	// retrive table and restrict as per request
+	// retrieve table and restrict as per request
 	hr = HrGetContents(&lpContents);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error unable to retrieve contents of folder, error code: 0x%08X", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to retrieve contents of folder, error code: 0x%08X", hr);
 		goto exit;
 	}
 
 	// convert table to ical data
 	hr = HrGetIcal(lpContents, blCensorFlag, &strIcal);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error unable to retrieve ical data, error code: 0x%08X", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to retrieve ical data, error code: 0x%08X", hr);
 		goto exit;
 	}
 	
@@ -262,7 +255,7 @@ HRESULT iCal::HrHandleIcalPost()
 		mpIcalEntries[strUidString] = i;
 	}
 
-	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpSharedStore))
+	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorPrivate = true;
 	
 	hr = m_lpUsrFld->GetContentsTable( 0, &lpContTable);
@@ -787,7 +780,7 @@ HRESULT iCal::HrDelFolder()
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = m_lpRootFld->CopyFolder(lpFldEid->Value.bin.cb, (LPENTRYID)lpFldEid->Value.bin.lpb, NULL, lpWasteBoxFld, NULL, 0, NULL, MAPI_MOVE);
+	hr = m_lpIPMSubtree->CopyFolder(lpFldEid->Value.bin.cb, (LPENTRYID)lpFldEid->Value.bin.lpb, NULL, lpWasteBoxFld, NULL, 0, NULL, MAPI_MOVE);
 	if (hr != hrSuccess)
 		goto exit;
 

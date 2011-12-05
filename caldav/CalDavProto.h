@@ -74,31 +74,31 @@ public:
 protected:
 	std::wstring m_wstrCalHome;
 
-	HRESULT HrPropfind();
-	HRESULT HrReport();
-	HRESULT HrMkCalendar();
-	HRESULT HrDelete();
+	/* entry points in webdav class */
+	/* HRESULT HrPropfind(); */
+	/* HRESULT HrReport(); */
+	/* HRESULT HrMkCalendar(); */
+	/* HRESULT HrPropPatch(); */
 	HRESULT HrPut();
-	HRESULT HrPropPatch();
-	HRESULT HrPost();
 	HRESULT HrMove();
 	HRESULT HrHandleMeeting(ICalToMapi *lpIcalToMapi);
 	HRESULT HrHandleFreebusy(ICalToMapi *lpIcalToMapi);
 
+	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus);
+	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus);	// Used By both PROPFIND & Report Calendar-query
+	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
+	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp);
+	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp);
+	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
+	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus);
+	virtual HRESULT HrHandleDelete();
+	HRESULT HrHandlePost();
+
+private:
 	HRESULT HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolder);
-	HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp,WEBDAVMULTISTATUS *lpsDavMulStatus);
+
 	HRESULT HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus);	
-	HRESULT HrHandleReport();
-	HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-	HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *lpsWebMStatus);
-	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-
-	//Used By both PROPFIND & Report Calendar-query
-	HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry, WEBDAVMULTISTATUS *sWebMStatus);
-	HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp);
-	HRESULT HrHandleMkCal(std::string strFldName,std::string strFldComment);
-	HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp);
-
+	
 	HRESULT CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::wstring *lpwstrGuid);
 	HRESULT HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsMulStatus);
 

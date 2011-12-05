@@ -62,11 +62,10 @@ class iCal: public ProtocolBase
 public:
 	iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	~iCal();
+
 	HRESULT HrHandleCommand(const std::string &strMethod);
 	
 private:
-
-	/* internal only */
 	HRESULT HrHandleIcalGet(const std::string &strMethod);
 	HRESULT HrHandleIcalPost();
 	HRESULT HrDelFolder();
@@ -76,7 +75,6 @@ private:
 	HRESULT HrModify(ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, bool blCensor);
 	HRESULT HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos);
 	HRESULT HrDelMessage(SBinary sbEid, bool blCensor);
-
 };
 
 #endif

@@ -68,7 +68,7 @@
 
 #define HTTP_CHUNK_SIZE 10000
 
-#define SERVICE_UNKN	0x00
+#define SERVICE_UNKNOWN	0x00
 #define SERVICE_ICAL	0x01
 #define SERVICE_CALDAV	0x02
 #define REQ_PUBLIC		0x04
@@ -88,6 +88,9 @@ public:
 	HRESULT HrValidateReq();
 	HRESULT HrReadBody();
 
+	HRESULT HrGetHeaderValue(const std::string &strHeader, std::string *strValue);
+
+	/* @todo, remove and use HrGetHeaderValue() */
 	HRESULT HrGetMethod(std::string *strMethod);
 	HRESULT HrGetUserAgent(std::string *strAgent);
 	HRESULT HrGetUser(std::wstring *strUser);	
@@ -113,29 +116,28 @@ private:
 	ECConfig *m_lpConfig;
 
 	/* request */
-	std::string m_strReqHeaders;
+	std::string m_strAction;
 	std::string m_strMethod;
 	std::string m_strPath;
+	std::string m_strHttpVer;
+	std::map<std::string, std::string> mapHeaders;
+
 	std::string m_strUser;
 	std::string m_strPass;
 	std::string m_strReqBody;
 	std::string m_strCharSet;
-	std::string m_strConnection; //Keep-Alive or Close
-	std::string m_strHttpVer;
 	
 	
 	/* response */
-	std::string m_strRespHeader;			// first header with http status code
-	std::list<std::string> m_lstHeaders;	// other headers
+	std::string m_strRespHeader;			//!< first header with http status code
+	std::list<std::string> m_lstHeaders;	//!< other headers
 	std::string m_strRespBody;
-
+	ULONG m_ulRetCode;
 	int m_ulKeepAlive;
-	int m_ulContLength;
 
 	convert_context m_converter;
 
 	HRESULT HrParseHeaders();
-	HRESULT HrGetElementValue(const std::string &strElement, const std::string &strInput,std::string *strValue);
 
 	HRESULT HrFlushHeaders();
 

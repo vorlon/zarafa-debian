@@ -381,7 +381,7 @@ std::string shell_escape(std::wstring wstr)
 	return shell_escape(strLocale);
 }
 
-std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep) {
+std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty) {
 	const WCHAR *begin, *end = NULL;
 	std::vector<std::wstring> vct;
 
@@ -392,14 +392,15 @@ std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep
 			vct.push_back(begin);
 			break;
 		}
-		vct.push_back(std::wstring(begin,end));
+		if (!bFilterEmpty || std::distance(begin,end) > 0)
+			vct.push_back(std::wstring(begin,end));
 		begin = end+1;
 	}
 
 	return vct;
 }
 
-std::vector<std::string> tokenize(const std::string &strInput, const char sep) {
+std::vector<std::string> tokenize(const std::string &strInput, const char sep, bool bFilterEmpty) {
 	const char *begin, *last, *end = NULL;
 	std::vector<std::string> vct;
 
@@ -411,7 +412,8 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep) {
 			vct.push_back(begin);
 			break;
 		}
-		vct.push_back(std::string(begin,end));
+		if (!bFilterEmpty || std::distance(begin,end) > 0)
+			vct.push_back(std::string(begin,end));
 		begin = end+1;
 	}
 

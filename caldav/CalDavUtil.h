@@ -47,8 +47,8 @@
  * 
  */
 
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef CALDAV_UTIL_H_
+#define CALDAV_UTIL_H_
 
 #include "WebDav.h"
 #include "mapiext.h"
@@ -79,18 +79,14 @@
 //Performs login to the Zarafa server and returns Session.
 HRESULT HrAuthenticate(const std::wstring &wstrUser, const std::wstring &wstrPass, std::string strPath, IMAPISession **lpSession);
 
-//Opens user's folder specified in path.
-//lpSharedStore can be NULL for accessing users own folders.
-HRESULT HrOpenUserFld(IMsgStore *lpSharedStore, std::wstring wstrFolderPath, bool blCreateIfNF, bool blIsPublic, ECLogger *lpLogger, IMAPIFolder **lpUsrFld);
-
 //Adds property FolderID to the folder if not present else returns it.
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
 
 //Adds property FolderID && dispidApptTsRef to the folder & message respectively, if not present else returns it.
 HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
 
-//Finds folder from hierarchy table refering to the Folder ID
-HRESULT HrFindFolder(IMsgStore *lpMsgStore, LPSPropTagArray lpNamedProps, ECLogger *lpLogger, bool blIsPublic, std::wstring wstrFldId,IMAPIFolder **lppUsrFld);
+//Finds folder from hierarchy table refering to the Folder ID, entryid or folder name
+HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTagArray lpNamedProps, ECLogger *lpLogger, std::wstring wstrFldId,IMAPIFolder **lppUsrFld);
 
 //Adds data to structure for acl request.
 HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty);
@@ -101,29 +97,23 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty);
 //Retrieve the User's Email address.
 HRESULT HrGetUserInfo(IMAPISession *lpSession, IMsgStore *lpDefStore, std::string *strEmailaddresss, std::wstring *strUserName, IMailUser **lppMailUser);
 
-//Check if the input value is a Timestamp
-//eg. 20092020T121212Z
-bool IsValueTs(std::string strValue);
-
 //Strip the input to get Guid Value
 //eg input: caldav/Calendar/ai-43873034lakljk403-3245.ics
 //return: ai-43873034lakljk403-3245
 std::string StripGuid(const std::wstring &wstrInput);
+
 //Returns Calendars of Folder and sorted by PR_ENTRY_ID.
 HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBinary *lpsbEid, IMAPITable **lppTable);
-//Open Shared Folders
-HRESULT HrGetSharedFolder(IMAPISession *lpSession, IMsgStore *lpUsrStore, std::wstring wstrUser, std::wstring wstrFolderPath, bool blIsClMac, bool blCreateIfNF, ECLogger *lpLogger, ULONG *ulFolderFlag, IMsgStore **lppSharedStore, IMAPIFolder **lppUsrFld);
+
 // Checks for private message.
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate);
 
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore);
 
-HRESULT HrMakeRestriction (const std::string &strGuid, LPSPropTagArray lpNamedProps, LPSRestriction *lpsRectrict);
+HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedProps, LPSRestriction *lpsRectrict);
 
 HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropTagArray lpNamedProps, IMessage **lppMessage);
 
-HRESULT HrGetUserEid(IMAPITable *lpGabTable, const std::wstring &wstrUser, SBinary *lpsbEid);
-
-HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IMAPITable *lpGabTable, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo);
+HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo);
 
 #endif

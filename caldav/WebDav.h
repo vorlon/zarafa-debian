@@ -146,37 +146,40 @@ typedef struct {
 
 class WebDav: public ProtocolBase
 {
-
 public:
 	WebDav(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~WebDav();
 
-	HRESULT HrPropfind();
-	HRESULT HrDelete();
-	HRESULT HrPut();
-	HRESULT HrPropPatch();
-	HRESULT HrMkCalendar();
-	HRESULT HrPost(WEBDAVFBINFO *lpsWebFbInfo);
-
 protected:
+	/* preprocesses xml for HrHandle* functions */
+	HRESULT HrPropfind();
+	HRESULT HrReport();
+	HRESULT HrPut();
+	HRESULT HrMkCalendar();
+	HRESULT HrPropPatch();
+	HRESULT HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo);
+
+	/* caldav implements real processing */
+	virtual	HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sProp,WEBDAVMULTISTATUS *lpsDavMulStatus) = 0;
+	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus) = 0;
+	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) = 0;
+	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp) = 0;
+	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp) = 0;
+	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) = 0;
+	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus) = 0;
+	virtual HRESULT HrHandleDelete() = 0;
+
+private:
 	xmlDoc *m_lpXmlDoc;
 	std::map <std::string,std::string> m_mapNs;
 
-
 	HRESULT HrParseXml();
-	virtual	HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sProp,WEBDAVMULTISTATUS *lpsDavMulStatus);
-	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus);
-	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp);
-	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp);
-	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus);
-	HRESULT HrReport();
+
+	/* more processing xml, but not as direct entrypoint */
 	HRESULT HrHandleRptMulGet();
 	HRESULT HrPropertySearch();
 	HRESULT HrPropertySearchSet();
 	HRESULT HrHandleRptCalQry();
-	HRESULT HrHandleDelete();
 
 	HRESULT RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *strXml);
 	HRESULT GetNs(std::string *szPrefx, std::string *strNs);
@@ -189,6 +192,7 @@ protected:
 	HRESULT HrWriteItems(xmlTextWriterPtr xmlWriter, std::string *lpstrNsPrefix,WEBDAVPROPERTY *lpsWebProprty);
 
 	HRESULT HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,xmlNode *lpXmlNode);
+protected:
 	HRESULT HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,std::string strPropName,std::string strNs);
 	HRESULT HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,std::string strPropName, std::string strPropAttribName, std::string strPropAttribValue, std::string strNs);
 

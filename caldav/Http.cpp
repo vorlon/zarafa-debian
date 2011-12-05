@@ -68,12 +68,10 @@ static char THIS_FILE[] = __FILE__;
  * username: open store of this user, "public" for public folders. optional: default comes from HTTP Authenticate header.
  * foldername: folder name in store to open. multiple forms possible (normal name, prefix_guid, prefix_entryid).
  * 
- * @todo move to http class so we can always retrun lpwstrUrlUser from auth header
- *
  * @param[in] wstrUrl incoming url
- * @param[out] lpulFlag 
- * @param[out] lpwstrUrlUser 
- * @param[out] lpwstrFolder 
+ * @param[out] lpulFlag url flags (service type and public marker)
+ * @param[out] lpwstrUrlUser owner of lpwstrFolder
+ * @param[out] lpwstrFolder folder id or name
  * 
  * @return 
  */
@@ -86,12 +84,12 @@ HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *l
 	vector<std::wstring>::iterator iterToken;
 	ULONG ulFlag = 0;
 	
-	vcUrlTokens = tokenize(wstrUrl.substr(1,wstrUrl.length()), L'/');
+	vcUrlTokens = tokenize(wstrUrl.substr(1,wstrUrl.length()), L'/', true);
 	if (vcUrlTokens.empty())
 		goto exit;
 
 	if (vcUrlTokens.back().rfind(L".ics") != string::npos) {
-		// Guid is retrived using StripGuid().
+		// Guid is retrieved using StripGuid().
 		vcUrlTokens.pop_back();
 	} else {
 		// request is for folder not a calendar entry
@@ -113,7 +111,7 @@ HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *l
 	else if (!wstrService.compare(L"caldav"))
 		ulFlag |= SERVICE_CALDAV;
 	else
-		ulFlag |= SERVICE_UNKN;
+		ulFlag |= SERVICE_UNKNOWN;
 
 	if (iterToken == vcUrlTokens.end())
 		goto exit;
@@ -131,6 +129,7 @@ HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *l
 	if (iterToken == vcUrlTokens.end())
 		goto exit;
 
+	// @todo subfolder/folder/ is not allowed! only subfolder/item.ics
 	for ( ;iterToken != vcUrlTokens.end(); iterToken++) 
 			wstrFolder = wstrFolder + *iterToken + L"/";
 
@@ -156,8 +155,8 @@ Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
 	m_lpLogger = lpLogger;
 	m_lpConfig = lpConfig;
 
-	m_ulContLength = 0;
 	m_ulKeepAlive = 0;
+	m_ulRetCode = 0;
 
 	m_strRespHeader.clear();
 }
@@ -167,8 +166,8 @@ Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
  */
 Http::~Http()
 {
-	
 }
+
 /**
  * Reads the http headers from the channel and Parses them
  *
@@ -179,6 +178,8 @@ HRESULT Http::HrReadHeaders()
 {
 	HRESULT hr = hrSuccess;
 	std::string strBuffer;
+	ULONG n = 0;
+	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Receiving headers:");
 	do
@@ -190,7 +191,25 @@ HRESULT Http::HrReadHeaders()
 		if (strBuffer.empty())
 			break;
 
-		m_strReqHeaders.append(strBuffer+"\n");
+		if (n == 0)
+			m_strAction = strBuffer;
+		else {
+			std::string::size_type pos = strBuffer.find(':');
+			std::string::size_type start = 0;
+			std::pair<std::map<std::string, std::string>::iterator, bool> r;
+
+			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
+				if (iHeader == mapHeaders.end())
+					continue;
+				// continue header
+				while (strBuffer[start] == ' ' || strBuffer[start] == '\t') start++;
+				iHeader->second += strBuffer.substr(start);
+			} else {
+				// new header
+				r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
+				iHeader = r.first;
+			}
+		}
 
 		if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
 			if (strBuffer.find("Authorization") != string::npos)
@@ -198,10 +217,9 @@ HRESULT Http::HrReadHeaders()
 			else
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< "+strBuffer);
 		}
+		n++;
 
 	} while(hr == hrSuccess);
-
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "-- headers done --");
 
 	hr = HrParseHeaders();
 
@@ -214,92 +232,69 @@ exit:
  * @return	HRESULT
  * @retval	MAPI_E_INVALID_PARAMETER	The http headers are invalid
  */
+// @todo this does way too much.
 HRESULT Http::HrParseHeaders()
 {
 	HRESULT hr = hrSuccess;
 	std::string strAuthdata;
-	std::string strBase64Data;
 	std::string strLength;
-	std::string strTrail;
-	size_t ulStart = 0;
-	size_t ulEnd = 0;
-	size_t ulLength = 0;
 	char *lpURI = NULL;
 
-	// find the http method
-	m_strMethod = m_strReqHeaders.substr(0, m_strReqHeaders.find(" "));
+	std::vector<std::string> items;
+	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
 
-	// find the path
-	ulStart = m_strReqHeaders.find("/");
-	if(ulStart == string::npos)
-	{
+	items = tokenize(m_strAction, ' ', true);
+	if (items.size() != 3) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
+	m_strMethod = items[0];
+	m_strHttpVer = items[2];
 
-	ulEnd = m_strReqHeaders.find("HTTP");
-	if(ulEnd == string::npos)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	m_strHttpVer = m_strReqHeaders.substr(ulEnd + 5, 3);
-	
-	// -1 to include the '/' in the url
-	ulLength = ulEnd - ulStart -1;
-	m_strPath = m_strReqHeaders.substr(ulStart, ulLength);
-	
-	lpURI = xmlURIUnescapeString(( const char *)m_strPath.c_str(), m_strPath.size(), NULL);
+	// converts %20 -> ' '
+	lpURI = xmlURIUnescapeString((const char *)items[1].c_str(), items[1].size(), NULL);
 	if (lpURI) {
 		m_strPath = lpURI;
 		xmlFree(lpURI);
 		lpURI = NULL;
+	} else {
+		m_strPath = items[1];
 	}
 
 	// find the content-type
 	// Content-Type: text/xml;charset=UTF-8
-	hr = HrGetElementValue("Content-Type: ", m_strReqHeaders, &m_strCharSet);
+	hr = HrGetHeaderValue("Content-Type", &m_strCharSet);
 	if (hr == hrSuccess && m_strCharSet.find("charset") != std::string::npos)
 		m_strCharSet = m_strCharSet.substr(m_strCharSet.find("charset")+ strlen("charset") + 1, m_strCharSet.length());
 	else
-		m_strCharSet.clear();
-
-	//Find The connection type
-	HrGetElementValue("Connection: ", m_strReqHeaders, &m_strConnection);
-
-	// find the Content-Length
-	hr = HrGetElementValue("Content-Length: ", m_strReqHeaders, &strLength);
-	if (hr != hrSuccess)
-		m_ulContLength = 0;
-	else
-		m_ulContLength = atoi( (char*)strLength.c_str());
+		m_strCharSet = m_lpConfig->GetSetting("default_charset"); // really should be utf-8
 
 	// find the Authorisation data (Authorization: Basic wr8y273yr2y3r87y23ry7=)
-	hr = HrGetElementValue("Authorization: ", m_strReqHeaders, &strAuthdata);
+	hr = HrGetHeaderValue("Authorization", &strAuthdata);
 	if (hr != hrSuccess) {
-		hr = HrGetElementValue("WWW-Authenticate: ", m_strReqHeaders, &strAuthdata);
+		hr = HrGetHeaderValue("WWW-Authenticate", &strAuthdata);
 		if (hr != hrSuccess) {
 			hr = S_OK;	// ignore empty Authorization
 			goto exit;
 		}
 	}
 
+	items = tokenize(strAuthdata, ' ', true);
 	// we only support basic authentication
-	hr = HrGetElementValue("Basic ", strAuthdata, &strBase64Data);
-	if (hr != hrSuccess)
-		goto exit;
-
-	strAuthdata = base64_decode(strBase64Data);
-	ulEnd = strAuthdata.find(":");
-	if (ulEnd == string::npos) {
-		hr = MAPI_E_NOT_FOUND;
+	if (items.size() != 2 || items[0].compare("Basic") != 0) {
+		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
 	}
 
-	m_strUser.reserve(ulEnd);	// pre allocate memory
-	std::transform(strAuthdata.begin(), (strAuthdata.begin() + ulEnd), std::back_inserter(m_strUser), (int(*)(int)) std::tolower);
-	m_strPass = strAuthdata.substr(ulEnd + 1, strAuthdata.find("^\n"));
+
+	items = tokenize(base64_decode(items[1]), ':');
+	if (items.size() != 2) {
+		hr = MAPI_E_LOGON_FAILED;
+		goto exit;
+	}
+
+	m_strUser = items[0];
+	m_strPass = items[1];
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Request from User : %s", m_strUser.c_str());
 
@@ -307,41 +302,6 @@ exit:
 	return hr;
 }
 
-/**
- * Returns the Element Value in Header
- * 
- * for e.g. Host: zarafa.com:8080
- * HrGetElementValue("Host: ",strInput,strReturn) returns zarafa.com:8080
- *
- * @param[in]	strElement	The name of the element whose value is needed
- * @param[in]	strInput	The Input headers which has to be searched for element
- * @param[out]	strValue	Return string for the value of the element
- *
- * @return		HRESULT
- * @retval		MAPI_E_NOT_FOUND	The element not in the input headers
- */
-HRESULT Http::HrGetElementValue(const std::string &strElement, const std::string &strInput, std::string *strValue)
-{
-	HRESULT hr = hrSuccess;
-	int ulEnd = -1;//initialized with -1 as 0 indicates first string element
-	int ulStart = -1;//initialized with -1 as 0 indicates first string element
-	int ulLength = 0;
-
-	ulStart = strInput.find(strElement);
-	if(ulStart < 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	ulStart = strInput.find(strElement) + strElement.length();
-	ulEnd = strInput.find("\n", strInput.find(strElement));
-	ulLength = ulEnd - ulStart ;
-
-	strValue->assign(strInput.substr(ulStart, ulLength));
-
-exit:
-	return hr;
-}
 /**
  * Returns the user name set in the request
  * @param[in]	strUser		Return string for username in request
@@ -376,6 +336,7 @@ HRESULT Http::HrGetMethod(std::string *strMethod)
 
 	return hr;
 }
+
 /**
  * Returns the password sent by user
  * @param[out]	strPass		The password is returned
@@ -417,9 +378,10 @@ HRESULT Http::HrGetUrl(std::wstring *wstrUrl)
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	No user-agent string present in request
  */
+// @todo remove
 HRESULT Http::HrGetUserAgent(std::string *strAgent)
 {
-	return HrGetElementValue("User-Agent: ", m_strReqHeaders, strAgent);
+	return HrGetHeaderValue("User-Agent", strAgent);
 }
 
 /**
@@ -450,14 +412,23 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 	HRESULT hr = hrSuccess;
 	std::string strDepth;
 
-	hr = HrGetElementValue("Depth: ", m_strReqHeaders, &strDepth);
+	/*
+	 * Valid input: [0, 1, infinity]
+	 */
+	hr = HrGetHeaderValue("Depth", &strDepth);
 	if (hr != hrSuccess)
-		strDepth = "0";		// default is no subfolders
-
-	*ulDepth = atoi(strDepth.c_str());
+		*ulDepth = 0;		// default is no subfolders. default should become a parameter .. is action dependant
+	else if (strDepth.compare("infinity") == 0)
+		*ulDepth = 2;
+	else {
+		*ulDepth = atoi(strDepth.c_str());
+		if (*ulDepth > 1)
+			*ulDepth = 1;
+	}
 
 	return hr;
 }
+
 /**
  * Returns Match, If-Match value of request
  * 
@@ -475,26 +446,30 @@ HRESULT Http::HrGetIfMatch(std::string *strIfMatch)
 	ULONG ulStart = 0;
 	ULONG ulEnd = 0;
 
-	// Find If-Match or If Condition
-	hr = HrGetElementValue("If-Match: ", m_strReqHeaders, &strData);
-	if(hr != hrSuccess) {
-		hr = HrGetElementValue("If: ", m_strReqHeaders, &strData);
-		if(hr == hrSuccess) {
-			ulStart = strData.find("[") + 1;
-			ulEnd = strData.find("]");
-			strIfMatch->assign(strData.substr(ulStart, ulEnd - ulStart));
-		} else
-			goto exit;
+	hr = HrGetHeaderValue("If-Match", &strData);
+	if (hr == hrSuccess) {
+		szLength = strData.size();
+		if ( (strData.at(0) == '\"' && strData.at (szLength - 1) == '\"') ||
+			 (strData.at(0) == '\'' && strData.at (szLength - 1) == '\'')) {
+			strIfMatch->assign(strData.substr( 1, szLength - 2));
+		}
+
+		goto exit;
 	}
 
-	szLength = strData.size();
-	if ( (strData.at(0) == '\"' && strData.at (szLength - 1) == '\"') ||
-		(strData.at(0) == '\'' && strData.at (szLength - 1) == '\'')) {
-			strIfMatch->assign(strData.substr( 1, szLength - 2));
+	hr = HrGetHeaderValue("If", &strData);
+	if (hr == hrSuccess) {
+		ulStart = strData.find("[") + 1;
+		ulEnd = strData.find("]");
+		strIfMatch->assign(strData.substr(ulStart, ulEnd - ulStart));
+
+		goto exit;
 	}
+
 exit:
 	return hr;
 }
+
 /**
  * Returns Charset of the request
  * @param[out]	strCharset	Return string Charset of the request
@@ -534,11 +509,12 @@ HRESULT Http::HrGetDestination(std::wstring *wstrDestination)
 	std::string strHost;
 	std::string strDest;
 
-	hr = HrGetElementValue("Host: ", m_strReqHeaders, &strHost);;
+	// @todo what if destination host is different than this host?
+	hr = HrGetHeaderValue("Host", &strHost);
 	if(hr != hrSuccess)
 		goto exit;
 	
-	hr = HrGetElementValue("Destination: ", m_strReqHeaders, &strDest);
+	hr = HrGetHeaderValue("Destination", &strDest);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -560,15 +536,20 @@ exit:
 HRESULT Http::HrReadBody()
 {
 	HRESULT hr = hrSuccess;
+	int ulContLength;
+	std::string strLength;
 
-	if(m_ulContLength != 0)
-	{
-		hr = m_lpChannel->HrReadBytes(&m_strReqBody, m_ulContLength);
+	// find the Content-Length
+	if (HrGetHeaderValue("Content-Length", &strLength) != hrSuccess)
+		return MAPI_E_NOT_FOUND;
+
+	ulContLength = atoi((char*)strLength.c_str());
+	if (ulContLength <= 0)
+		return MAPI_E_NOT_FOUND;
+
+	hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
+	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG) && !m_strUser.empty())
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request body:\n%s\n", m_strReqBody.c_str());
-		
-	}
-	else
-		hr = MAPI_E_NOT_FOUND;
 	
 	return hr;
 }
@@ -614,7 +595,7 @@ HRESULT Http::HrValidateReq()
 	if (m_strUser.empty() || m_strPass.empty())
 	{
 		// hr still success, since http request is valid
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request Missing Authorization Data");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request missing authorization data");
 	}
 
 exit:
@@ -663,9 +644,8 @@ HRESULT Http::HrFinalize()
 		
 		if (!m_strRespBody.empty()) {
 			m_lpChannel->HrWriteString(m_strRespBody);
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Response body:\n%s", m_strRespBody.c_str());
-		} else {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Response body is empty");
+			if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
+				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Response body:\n%s", m_strRespBody.c_str());
 		}
 	}
 	else 
@@ -719,6 +699,8 @@ exit:
 HRESULT Http::HrResponseHeader(unsigned int ulCode, std::string strResponse)
 {
 	HRESULT hr = hrSuccess;
+
+	m_ulRetCode = ulCode;
 	
 	// do not set headers if once set
 	if (m_strRespHeader.empty()) 
@@ -728,6 +710,7 @@ HRESULT Http::HrResponseHeader(unsigned int ulCode, std::string strResponse)
 
 	return hr;
 }
+
 /**
  * Adds response header to the list of headers
  * @param[in]	strHeader	Name of the header eg. Connection, Host, Date
@@ -782,6 +765,7 @@ HRESULT Http::HrRequestAuth(std::string strMsg)
 exit:
 	return hr;
 }
+
 /**
  * Write all http headers to ECChannel
  * @retrun	HRESULT
@@ -794,13 +778,15 @@ HRESULT Http::HrFlushHeaders()
 	std::string strOutput;
 	char lpszChar[128];
 	time_t tmCurrenttime = time(NULL);
+	std::string strConnection;
+
+	HrGetHeaderValue("Connection", &strConnection);
 
 	// Add misc. headers
 	HrResponseHeader("Server","Zarafa");
 	strftime(lpszChar, 127, "%a, %d %b %Y %H:%M:%S GMT", gmtime(&tmCurrenttime));
 	HrResponseHeader("Date", lpszChar);
-	HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
-	if (m_ulKeepAlive != 0 && stricmp(m_strConnection.c_str(), "keep-alive") == 0) {
+	if (m_ulKeepAlive != 0 && stricmp(strConnection.c_str(), "keep-alive") == 0) {
 		HrResponseHeader("Connection", "Keep-Alive");
 		HrResponseHeader("Keep-Alive", stringify(m_ulKeepAlive, false));
 	}
@@ -811,12 +797,14 @@ HRESULT Http::HrFlushHeaders()
 	}
 
 	// create headers packet
+	ASSERT(m_ulRetCode != 0);
+	if (m_ulRetCode == 0)
+		HrResponseHeader(500, "Request handled incorrectly");
 
-	if (!m_strRespHeader.empty()) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Response header: " + m_strRespHeader);
-		strOutput += m_strRespHeader + "\r\n";
-		m_strRespHeader.clear();
-	}
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + m_strRespHeader);
+	strOutput += m_strRespHeader + "\r\n";
+	m_strRespHeader.clear();
+	m_ulRetCode = 0;
 
 	for (h = m_lstHeaders.begin(); h != m_lstHeaders.end(); h++) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + *h);
@@ -836,3 +824,13 @@ HRESULT Http::X2W(const std::string &strIn, std::wstring *lpstrOut)
 	const char *lpszCharset = (m_strCharSet.empty() ? "UTF-8" : m_strCharSet.c_str());
 	return TryConvert(m_converter, strIn, rawsize(strIn), lpszCharset, *lpstrOut);
 }
+
+HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strValue)
+{
+	std::map<std::string, std::string>::iterator iHeader = mapHeaders.find(strHeader);
+	if (iHeader == mapHeaders.end())
+		return MAPI_E_NOT_FOUND;
+	*strValue = iHeader->second;
+	return hrSuccess;
+}
+

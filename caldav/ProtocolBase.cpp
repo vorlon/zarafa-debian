@@ -52,6 +52,9 @@
 #include "stringutil.h"
 #include "CommonUtil.h"
 #include "CalDavUtil.h"
+#include "mapi_ptr.h"
+
+using namespace std;
 
 ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset) {
 	m_lpRequest = lpRequest;
@@ -59,11 +62,9 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *l
 	m_lpLogger  = lpLogger;
 
 	m_lpUsrFld = NULL;
-	m_lpRootFld = NULL;
+	m_lpIPMSubtree = NULL;
 	m_lpDefStore = NULL;
 	m_lpAddrBook = NULL;
-	m_lpSharedStore = NULL;
-	m_lpPubStore = NULL;
 	m_lpActiveStore = NULL;
 	m_lpImailUser = NULL;
 	m_lpNamedProps = NULL;
@@ -71,8 +72,6 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *l
 	m_ulFolderFlag = 0;
 	m_strSrvTz = strSrvTz;
 	m_strCharset = strCharset;
-	m_blIsCLMAC = false;
-	m_blIsCLEVO = false;
 }
 
 ProtocolBase::~ProtocolBase()
@@ -83,8 +82,8 @@ ProtocolBase::~ProtocolBase()
 	if (m_lpImailUser)
 		m_lpImailUser->Release();
 
-	if (m_lpRootFld)
-		m_lpRootFld->Release();
+	if (m_lpIPMSubtree)
+		m_lpIPMSubtree->Release();
 
 	if (m_lpUsrFld)
 		m_lpUsrFld->Release();
@@ -95,64 +94,58 @@ ProtocolBase::~ProtocolBase()
 	if (m_lpDefStore)
 		m_lpDefStore->Release();
 
-	if (m_lpSharedStore)
-		m_lpSharedStore->Release();
-
-	if(m_lpPubStore)
-		m_lpPubStore->Release();
-}
-
-HRESULT ProtocolBase::HrHandleCommand(const std::string &strMethod)
-{
-	HRESULT hr = hrSuccess;
-	std::string strAgent;
-
-	m_lpRequest->HrGetUserAgent(&strAgent);
-
-	// @todo we really need to get rid of this
-	if (strAgent.find("CalendarStore") != string::npos)	// ical4 and 5 client
-		m_blIsCLMAC = true;
-	else if (strAgent.find("iOS") != string::npos)		// iphone
-		m_blIsCLMAC = true;
-	else if (strAgent.find("CoreDAV") != string::npos)	// found when listing calendars
-		m_blIsCLMAC = true;
-
-	if(strAgent.find("Evolution") != string::npos)
-		m_blIsCLEVO = true;
-
-	hr = HrGetFolder();
-
-	return hr;
+	if (m_lpActiveStore)
+		m_lpActiveStore->Release();
 }
 
 /**
- * Open Store and folders required for the Request
+ * Opens the store and folders required for the Request. Also checks
+ * if DELETE or RENAME actions are allowed on the folder.
  *
  * @return	MAPI error code
  * @retval	MAPI_E_NO_ACCESS	Not enough permissions to open the folder or store
  * @retval	MAPI_E_NOT_FOUND	Folder requested by client not found
  */
-HRESULT ProtocolBase::HrGetFolder()
+HRESULT ProtocolBase::HrInitializeClass()
 {
 	HRESULT hr = hrSuccess;
 	std::wstring wstrUrl;
 	std::string strMethod;
+	std::string strAgent;
 	LPSPropValue lpDefaultProp = NULL;
 	LPSPropValue lpFldProp = NULL;
-	IMAPIFolder *lpRootCont = NULL;
 	bool blCreateIFNf = false;
 	bool bIsPublic = false;
+	ULONG ulType = 0;
+	ULONG ulDepth = 0;
+	MAPIFolderPtr lpRoot;
+
+	/* URLs
+	 * 
+	 * /caldav/							| depth: 0 results in root props, depth: 1 results in 0 + calendar FOLDER list current user. eg: the same happens /caldav/self/
+	 * /caldav/self/					| depth: 0 results in root props, depth: 1 results in 0 + calendar FOLDER list current user. see ^^
+	 * /caldav/self/Calendar/			| depth: 0 results in root props, depth: 1 results in 0 + _GIVEN_ calendar CONTENTS list current user.
+	 * /caldav/self/_NAMED_FOLDER_ID_/ (evo has date? still??) (we also do hexed entryids?)
+	 * /caldav/other/[...]
+	 * /caldav/public/[...]
+	 *
+	 * /caldav/user/folder/folder/		| subfolders are not allowed!
+	 * /caldav/user/folder/id.ics		| a message (note: not ending in /)
+	 */
 
 	m_lpRequest->HrGetUrl(&wstrUrl);
 	m_lpRequest->HrGetUser(&m_wstrUser);
+	m_lpRequest->HrGetMethod(&strMethod);	
 
 	HrParseURL(wstrUrl, &m_ulUrlFlag, &m_wstrFldOwner, &m_wstrFldName);
 	bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
 	if (m_wstrFldOwner.empty())
 		m_wstrFldOwner = m_wstrUser;
 
-	m_lpRequest->HrGetMethod(&strMethod);	
-	
+	// we may (try to) create the folder on new ical data writes
+	if ( (!strMethod.compare("PUT")) && (m_ulUrlFlag & SERVICE_ICAL))
+		blCreateIFNf = true;
+
 	hr = m_lpSession->OpenAddressBook(0, NULL, 0, &m_lpAddrBook);
 	if(hr != hrSuccess)
 	{
@@ -167,146 +160,172 @@ HRESULT ProtocolBase::HrGetFolder()
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening default store of user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
 		goto exit;
 	}
-	
-	m_lpActiveStore = m_lpDefStore;
-	
-	if(bIsPublic)
-	{
-		hr = HrOpenECPublicStore(m_lpSession, &m_lpPubStore);
-		if (hr != hrSuccess)
-			goto exit;
-				
-		m_lpActiveStore = m_lpPubStore;
-		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, true, false, &m_lpRootFld);
-		if(hr != hrSuccess)
-		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM_SUBTREE Folder of user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
-			goto exit;
-		}
-	}
 
-	// Retreive named properties
-	hr = HrLookupNames(m_lpActiveStore, &m_lpNamedProps);
-	if (hr != hrSuccess)
-		goto exit;
-
-	if ( (!strMethod.compare("PUT")) && (m_ulFolderFlag & SERVICE_ICAL) )
-		blCreateIFNf = true;
-
-
-	// @todo this block of if/else needs to be rewritten .. it should be much easier than it is now.
-	if(m_wstrFldOwner != m_wstrUser && !bIsPublic)
-	{
-		hr = HrGetSharedFolder(m_lpSession, m_lpDefStore, m_wstrFldOwner, m_wstrFldName, m_blIsCLMAC, false, m_lpLogger, &m_ulFolderFlag, &m_lpSharedStore, &m_lpUsrFld);
-		if(hr == hrSuccess && m_lpSharedStore)
-		{
-			m_lpActiveStore = m_lpSharedStore;
-			hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, false, false, &m_lpRootFld);
-			if(hr != hrSuccess)
-			{
-				hr = hrSuccess;
-				m_lpRootFld = NULL;
-			}
-		}
-
-		if(hr == MAPI_E_NO_ACCESS)
-		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Not enough permissions to user %ls to access Folder for user %ls", m_wstrUser.c_str(), m_wstrFldOwner.c_str());
-			goto exit;
-		}
-		else if(hr != hrSuccess)
-		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while accessing shared folder by user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
-			goto exit;
-		}
-		
-	}	
-	else if(m_blIsCLMAC ) //For Ical Client The folders are opened according to Folder_ID.
-	{
-		if(!m_wstrFldName.empty())
-		{
-			hr = HrFindFolder(m_lpActiveStore, m_lpNamedProps, m_lpLogger, bIsPublic, m_wstrFldName, &m_lpUsrFld);
-			if(hr != hrSuccess)
-			{
-				hr = HrOpenUserFld(m_lpActiveStore, m_wstrFldName, blCreateIFNf, bIsPublic, m_lpLogger, &m_lpUsrFld);
-				if(hr == hrSuccess) // do not exit , need to set the m_lpRootfolder if not set.
-					m_ulFolderFlag |= SINGLE_FOLDER;
-			}
-		}
-	}
-	//For other Clients the Folder name is used to refer to folders.
-	else
-	{
-		if (strMethod.compare("MKCALENDAR"))
-		{
-			hr = HrOpenUserFld(m_lpActiveStore, m_wstrFldName, blCreateIFNf, bIsPublic, m_lpLogger, &m_lpUsrFld);
-			if(hr != hrSuccess)
-			{
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening folder of user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
-				goto exit;
-			}
-		}
-	}
-	
 	hr = HrGetUserInfo(m_lpSession, m_lpDefStore, &m_strUserEmail, &m_wstrUserFullName, &m_lpImailUser);
 	if(hr != hrSuccess)
 		goto exit;
 
-	if(!m_lpRootFld)
+	/*
+	 * Set m_lpActiveStore
+	 */
+	if (bIsPublic)
 	{
-		//Open IPM_SUBTREE
-		hr = OpenSubFolder(m_lpDefStore, NULL, '/', m_lpLogger, false, false, &m_lpRootFld);
+		// open public
+		hr = HrOpenECPublicStore(m_lpSession, &m_lpActiveStore);
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open public store with user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+			goto exit;
+		}
+	} else if (m_wstrUser != m_wstrFldOwner) {
+		// open shared store
+		hr = HrOpenUserMsgStore(m_lpSession, (WCHAR*)m_wstrFldOwner.c_str(), &m_lpActiveStore);
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of user %ls with user %ls, error code : 0x%08X", m_wstrFldOwner.c_str(), m_wstrUser.c_str(), hr);
+			goto exit;
+		}
+		m_ulFolderFlag |= SHARED_FOLDER;
+	} else {
+		// @todo, make auto pointers
+		hr = m_lpDefStore->QueryInterface(IID_IMsgStore, (void**)&m_lpActiveStore);
+	}
+
+	// Retrieve named properties
+	hr = HrLookupNames(m_lpActiveStore, &m_lpNamedProps);
+	if (hr != hrSuccess)
+		goto exit;
+
+
+	/*
+	 * Set m_lpIPMSubtree, used for CopyFolder, CreateFolder, DeleteFolder
+	 */
+	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, bIsPublic, false, &m_lpIPMSubtree);
+	if(hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM SUBTREE, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+		goto exit;
+	}
+
+
+	// Get active store default calendar to prevent delete action on this folder
+	hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulType, &lpRoot);
+	if(hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening root container, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+		goto exit;
+	}
+
+	hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
+	if(hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+		goto exit;
+	}
+
+	/*
+	 * Set m_lpUsrFld
+	 */
+	if (strMethod.compare("MKCALENDAR") == 0 && (m_ulUrlFlag & SERVICE_CALDAV))
+	{
+		// created in the IPM_SUBTREE
+		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, bIsPublic, false, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM_SUBTREE Folder of user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 			goto exit;
 		}
 	}
-
-	//Set Limited Access to Default Calendar Folder
-	//Block Rename & Deletion of this folder.
-	if( (!strMethod.compare("PROPPATCH") || !strMethod.compare("DELETE") || !strMethod.compare("PUT")) && !bIsPublic)
+	else if(!m_wstrFldName.empty())
 	{
-		int ulCmp = 0;
-		ULONG ulType = 0;
-
-		hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulType, (LPUNKNOWN*)&lpRootCont);
-		if (hr != hrSuccess || ulType != MAPI_FOLDER)
-		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening root Container of user %ls, error code: (0x%08X)", m_wstrUser.c_str(), hr);
-			goto exit;
-		}
-
-		m_blFolderAccess = CheckFolderAccess(m_lpActiveStore, lpRootCont, m_lpUsrFld);
-
-		hr = HrGetOneProp(lpRootCont, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
+		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use id's, I'm not usre we want to.
+		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_lpLogger, m_wstrFldName, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening named folder of user %ls, folder %ls, error code: 0x%08X", m_wstrUser.c_str(), m_wstrFldName.c_str(), hr);
 			goto exit;
 		}
+		m_ulFolderFlag |= SINGLE_FOLDER;
+	} else {
+		// default calendar
+		if (bIsPublic) {
+			hr = m_lpIPMSubtree->QueryInterface(IID_IMAPIFolder, (void**)&m_lpUsrFld);
+			if (hr != hrSuccess)
+				goto exit;
+		} else {
+			// open default calendar
+			hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
+			if (hr != hrSuccess)
+			{
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default calender for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+				goto exit;
+			}
 
-		if(m_lpUsrFld)
-			hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
-		else
-		{
-			m_blFolderAccess = false;
-			goto exit;
-		}
-
-		if(hr != hrSuccess)
-			goto exit;
-		
-		
-		ulCmp = memcmp(lpDefaultProp->Value.bin.lpb, lpFldProp->Value.bin.lpb, lpFldProp->Value.bin.cb);
-		if(!ulCmp) {
+			// we already know we don't want to delete this folder
 			m_blFolderAccess = false;
 			m_ulFolderFlag |= DEFAULT_FOLDER;
 		}
-		
-		MAPIFreeBuffer(lpFldProp);
-		lpFldProp = NULL;
+	}
 
+
+	/*
+	 * Workaround for old users with sunbird / lightning on old url base.
+	 */
+	{
+		vector<wstring> parts;
+		parts = tokenize(wstrUrl, '/', true);
+
+		m_lpRequest->HrGetDepth(&ulDepth);
+		m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
+
+		// /caldav/ depth 0 or 1 == redirect
+		// /caldav/username (which we add in XML!) only depth 1 == redirect
+		if ((strAgent.find("Sunbird/1") != string::npos || strAgent.find("Lightning/1") != string::npos) && (ulDepth >= 1 || parts.size() <= 1)) {
+			// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
+			// We therefore redirect them to the default calendar url.
+			if (parts.empty())
+				parts.push_back(L"caldav");
+			if (parts.size() == 1)
+				parts.push_back(m_wstrUser);
+			if (parts.size() < 3) {
+				SPropValuePtr ptrDisplayName;
+				wstring strLocation = L"/" + parts[0] + L"/" + parts[1];
+
+				if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &ptrDisplayName) == hrSuccess) {
+					strLocation += L"/" + urlEncode(ptrDisplayName->Value.lpszW) + L"/";
+				} else {
+					// return 404 ?
+					strLocation += L"/Calendar/";
+				}
+
+				m_lpRequest->HrResponseHeader(301, "Moved Permanently");
+				m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<string>(strLocation));
+				hr = MAPI_E_NOT_ME;
+				goto exit;
+			}
+		}
+	}
+
+	/*
+	 * Check delete / rename access on folder, if not already blocked.
+	 */
+	if (m_blFolderAccess) {
+		// lpDefaultProp already should contain PR_IPM_APPOINTMENT_ENTRYID
+		if (lpDefaultProp) {
+			ULONG ulCmp;
+
+			hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
+											  lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
+			if (hr != hrSuccess || ulCmp == TRUE)
+				m_blFolderAccess = false;
+
+			MAPIFreeBuffer(lpFldProp);
+			lpFldProp = NULL;
+		}
+	}
+	if (m_blFolderAccess) {
 		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &lpFldProp);
 		if(hr != hrSuccess)
 			goto exit;
@@ -315,15 +334,13 @@ HRESULT ProtocolBase::HrGetFolder()
 			m_blFolderAccess = false;
 	}
 
+
 exit:
 	if(lpFldProp)
 		MAPIFreeBuffer(lpFldProp);
 
 	if(lpDefaultProp)
 		MAPIFreeBuffer(lpDefaultProp);
-
-	if(lpRootCont)
-		lpRootCont->Release();
 
 	return hr;
 }
@@ -369,7 +386,6 @@ std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 		ft = lpSprop->Value.ft;
 		FileTimeToUnixTime(ft, &tmUnixTime);
 		strRetVal = stringify_int64(tmUnixTime, false);
-
 	}
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)
 	{
@@ -413,7 +429,6 @@ std::wstring ProtocolBase::SPropValToWString(SPropValue * lpSprop)
 		ft = lpSprop->Value.ft;
 		FileTimeToUnixTime(ft, &tmUnixTime);
 		strRetVal = wstringify_int64(tmUnixTime, false);
-
 	}
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)
 	{
