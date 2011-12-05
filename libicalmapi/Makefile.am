@@ -4,10 +4,13 @@ AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX $(ICAL_CFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common  -I${top_srcdir}/common \
 	-I$(top_srcdir)/libfreebusy
 
-libicalmapi_la_LDFLAGS = -version-info $(ECCLIENT_LIBRARY_VERSION) \
-	${top_builddir}/mapi4linux/src/libmapi.la \
+libicalmapi_la_LDFLAGS = -version-info $(ECCLIENT_LIBRARY_VERSION)
+
+libicalmapi_la_LIBADD = \
+	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/libfreebusy/libfreebusy.la \
+	${top_builddir}/mapi4linux/src/libmapi.la \
 	$(ICAL_LIBS)
 
 libicalmapidir = $(includedir)/icalmapi

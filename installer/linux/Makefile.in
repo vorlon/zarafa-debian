@@ -38,6 +38,7 @@ host_triplet = @host@
 @OSS_ONLY_FALSE@am__append_3 = zarafa-licensed.init.rhel
 @OSS_ONLY_FALSE@am__append_4 = zarafa-licensed.init.suse
 @OSS_ONLY_FALSE@am__append_5 = zarafa-licensed.init.cbs4
+@OSS_ONLY_FALSE@am__append_6 = zarafa-licensed.init.alt
 subdir = installer/linux
 DIST_COMMON = $(am__dist_data_config_DATA_DIST) \
 	$(am__dist_sysconf_cert_DATA_DIST) \
@@ -300,9 +301,14 @@ cbs4_initscript_files = zarafa-server.init.cbs4 \
 	zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 \
 	zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4 \
 	$(am__append_5)
+alt_initscript_files = zarafa-server.init.alt zarafa-spooler.init.alt \
+	zarafa-gateway.init.alt zarafa-monitor.init.alt \
+	zarafa-ical.init.alt zarafa-dagent.init.alt \
+	zarafa-indexer.init.alt $(am__append_6)
 rhel_sysconfig_files = sysconfig.rhel
 suse_sysconfig_files = sysconfig.suse
 sles_sysconfig_files = ${suse_sysconfig_files}
+alt_sysconfig_files = sysconfig.alt
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files}
 sysconf_configdir = ${sysconfdir}/zarafa
@@ -314,6 +320,7 @@ suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
 sysconf_sysconfig_DATA = ${@DISTRO@_sysconfig_files}
+alt_sysconfig_path = ${sysconfdir}/sysconfig
 dist_data_DATA = \
 	db-convert-4.1-to-4.2 db-convert-4.20-to-4.21 db-convert-4.20-to-innodb.sql db-calc-storesize db-convert-attachments-to-files \
 	createuser.dotforward db-convert-4.2x-to-5.00 ssl-certificates.sh db-upgrade-objectsid-to-objectguid.pl ldap-switch-sendas.pl \
@@ -329,8 +336,8 @@ dist_sysconf_cron_SCRIPTS = zarafa-client-update.cron
 sysconf_certdir = ${sysconfdir}/zarafa/report-ca
 @OSS_ONLY_FALSE@dist_sysconf_cert_DATA = addtrust.crt
 EXTRA_DIST = $(BUILT_SOURCES) ldap.m4 \
-	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
-	$(rhel_sysconfig_files) $(suse_sysconfig_files)
+	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
+	$(rhel_sysconfig_files) $(suse_sysconfig_files) $(alt_sysconfig_files)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -711,7 +718,7 @@ install-data-hook:
 	done
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.suse ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.zarafa || true; \
-	elif test ${DISTRO} = "rhel"; then \
+	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.${DISTRO} ${DESTDIR}${sysconf_sysconfigdir}/zarafa || true; \
 	else \
 		true; \
