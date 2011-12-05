@@ -112,7 +112,21 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	return hr;
 }
 
+HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
+{
+	pthread_mutex_lock(&s_hMutex);
 
+	if (s_lpLogger)
+		s_lpLogger->Release();
+
+	s_lpLogger = lpLogger;
+	if (s_lpLogger)
+		s_lpLogger->AddRef();
+
+	pthread_mutex_unlock(&s_hMutex);
+
+	return hrSuccess;
+}
 
 pthread_mutex_t	ECSyncLog::s_hMutex;
 ECLogger		*ECSyncLog::s_lpLogger = NULL;

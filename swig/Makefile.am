@@ -17,7 +17,7 @@ libswigcommon_la_LDFLAGS = -static
 
 libswigcommon_la_SOURCES = MAPINotifSink.cpp MAPINotifSink.h 
 
-EXTRA_DIST = edkmdb.i mapi.i mapiutil.i mapidefs.i mapicode.i mapix.i mapinotifsink.i typemap.i helpers.i IECExportChanges.i IECMultiStoreTable.i IECServiceAdmin.i IECSpooler.i IECTestProtocol.i IECLicense.i inetmapi.i icalmapi.i swig_iunknown.h ecdefs.i libcommon.i archiver.i licenseclient.i libfreebusy.i
+EXTRA_DIST = edkmdb.i mapi.i mapiutil.i mapidefs.i mapicode.i mapix.i mapinotifsink.i typemap.i helpers.i IECExportChanges.i IECMultiStoreTable.i IECServiceAdmin.i IECSpooler.i IECTestProtocol.i IECLicense.i inetmapi.i icalmapi.i swig_iunknown.h ecdefs.i libcommon.i archiver.i licenseclient.i libfreebusy.i zarafasync.i ECLogger.i
 
 if ! OSS_ONLY
 EXTRA_DIST += licensereq.i

@@ -388,7 +388,7 @@
 // ECLogger director
 ///////////////////////////////////
 #if SWIGPYTHON
-#ifdef WIN32
+#ifndef WIN32
 
 %typemap(in) ECLogger * (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {

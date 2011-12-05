@@ -63,6 +63,11 @@ public:
 	IUnknownImplementor(ULONG cInterfaces, LPCIID lpInterfaces)
 	: m_interfaces(lpInterfaces, lpInterfaces + cInterfaces, &IIDLess)
 	{ }
+
+	IUnknownImplementor()
+	: m_interfaces(&IID_IUnknown, &IID_IUnknown + 1, &IIDLess)
+	{ }
+
 	virtual ~IUnknownImplementor() { 
 	}
 

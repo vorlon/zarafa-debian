@@ -815,24 +815,34 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	ULONG ulCount = 0;
 
 	hr = m_lpFolder->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpRootFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder((TCHAR*)"IPM", 0, &cbEntryId, &lpEntryId, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpInbox);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = HrGetOneProp(&m_lpFolder->GetMsgStore()->m_xMsgStore, PR_IPM_SUBTREE_ENTRYID, &lpIPMSubTree);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, (LPENTRYID)lpIPMSubTree->Value.bin.lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpParentFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open ipm subtree folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &lpAdditionalREN);
 
@@ -855,20 +865,28 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	}
 
 	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &lpConflictFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Sync Issues' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Conflicts' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Local Failures' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Server Failures' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = HrSetOneProp(lpRootFolder, lpNewAdditionalREN);
 	if(hr != hrSuccess)
@@ -879,8 +897,13 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		goto exit;
 
 	hr = HrUpdateSearchReminders(lpRootFolder, lpNewAdditionalREN);
-	if (hr != hrSuccess)
+	if (hr == MAPI_E_NOT_FOUND) {
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "No reminder searchfolder found, nothing to update");
+		hr = hrSuccess;
+	} else if (hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to update search reminders, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 exit:
 	if(lpRootFolder)
