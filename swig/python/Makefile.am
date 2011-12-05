@@ -1,4 +1,4 @@
-pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la
+pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la _libfreebusy.la
 noinst_LTLIBRARIES = _libcommon.la _archiver.la
 
 if ! OSS_ONLY
@@ -67,6 +67,15 @@ _libcommon_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 					   ${top_builddir}/swig/libswigcommon.la \
 				  	   $(PROG_LIBS) $(PYTHON_LIBS)
 
+_libfreebusy_la_CXXFLAGS = -I${top_srcdir}/libfreebusy
+_libfreebusy_la_LDFLAGS = -module -avoid-version 
+_libfreebusy_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+						 ${top_builddir}/libfreebusy/libfreebusy.la \
+						 ${top_builddir}/common/libcommon_mapi.la \
+                         ${top_builddir}/common/libcommon_util.la \
+                         ${top_builddir}/swig/libswigcommon.la \
+                         $(PROG_LIBS) $(PYTHON_LIBS)
+
 
 BUILT_SOURCES = mapi_wrap.cxx \
 				mapi_wrap.h \
@@ -74,7 +83,8 @@ BUILT_SOURCES = mapi_wrap.cxx \
 				icalmapi_wrap.cxx \
 				archiver_wrap.cxx \
 				libcommon_wrap.cxx \
-				licenseclient_wrap.cxx
+				licenseclient_wrap.cxx \
+				libfreebusy_wrap.cxx
 
 if ! OSS_ONLY
 BUILT_SOURCES += licensereq_wrap.cxx
@@ -86,7 +96,8 @@ CLEANFILES = $(BUILT_SOURCES) \
 			 icalmapi.py \
 			 archiver.py \
 			 libcommon.py \
-			 licenseclient.py
+			 licenseclient.py \
+			 libfreebusy.py
 
 if ! OSS_ONLY
 CLEANFILES += licensereq.py
@@ -99,6 +110,7 @@ icalmapi.py: $(BUILT_SOURCES)
 archiver.py: $(BUILT_SOURCES)
 libcommon.py: $(BUILT_SOURCES)
 licenseclient.py: $(BUILT_SOURCES)
+libfreebusy.py: $(BUILT_SOURCES)
 
 if ! OSS_ONLY
 licensereq.py: $(BUILT_SOURCES)
@@ -110,6 +122,7 @@ _icalmapi_la_SOURCES = conversion.h conversion.cpp icalmapi_wrap.cxx
 _archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
 _libcommon_la_SOURCES = libcommon_wrap.cxx
 _licenseclient_la_SOURCES = licenseclient_wrap.cxx licenseclient_conv.cpp licenseclient_conv.h
+_libfreebusy_la_SOURCES = conversion.h conversion.cpp libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
 
 if ! OSS_ONLY
 _licensereq_la_SOURCES = licensereq_wrap.cxx
@@ -148,6 +161,9 @@ licenseclient_wrap.cxx: ../licenseclient.i
 # make dist seems to want to create this file regardless of the OSS_ONLY flag.
 licensereq_wrap.cxx: ../licensereq.i
 	$(SWIG_EXEC) -I${top_srcdir}/liblicense -I${top_srcdir/swig} -Wall -python -c++ -threads -o ${top_builddir}/swig/python/licensereq_wrap.cxx ${top_srcdir}/swig/licensereq.i
+
+libfreebusy_wrap.cxx: ../libfreebusy.i
+	$(SWIG_EXEC) -I${top_srcdir}/libfreebusy -I${top_srcdir/swig}  -Wall -python -c++ -threads -o ${top_builddir}/swig/python/libfreebusy_wrap.cxx ${top_srcdir}/swig/libfreebusy.i
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

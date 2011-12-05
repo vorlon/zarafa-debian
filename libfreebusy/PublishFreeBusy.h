@@ -63,7 +63,7 @@ typedef struct{
 	ULONG ulStatus;
 }TSARRAY;
 
-HRESULT HrPublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger);
+HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger);
 
 class PublishFreeBusy
 {

@@ -386,7 +386,7 @@ HRESULT iCal::HrHandleIcalPost()
 	}//while
 
 	if(m_ulFolderFlag & DEFAULT_FOLDER)
-		hr = HrPublishFreeBusy(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
+		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
 
 	if(hr != hrSuccess) {
 		hr = hrSuccess;

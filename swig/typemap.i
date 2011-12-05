@@ -161,7 +161,7 @@
 //////////////////////////
 
 // Input
-%typemap(in)	LPMAPIUID (int res, char *buf, size_t size, int alloc),
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf, size_t size, int alloc),
 				LPCIID (int res, char *buf, size_t size, int alloc),
 				LPGUID (int res, char *buf, size_t size, int alloc)
 {
@@ -172,7 +172,7 @@
   }
   $1 = %reinterpret_cast(buf, $1_ltype);
 }
-%typemap(in)	const IID& (int res, char *buf, size_t size, int alloc)
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res, char *buf, size_t size, int alloc)
 {
   alloc = SWIG_OLDOBJ;
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -185,11 +185,11 @@
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 // Used for LPUNKNOWN *
-%typemap(arginit,noblock=1) LPCIID USE_IID_FOR_OUTPUT
+%typemap(arginit,noblock=1,fragment="SWIG_AsCharPtrAndSize") LPCIID USE_IID_FOR_OUTPUT
 {
   LPCIID &__lpiid = $1;
 }
-%typemap(arginit,noblock=1) const IID& USE_IID_FOR_OUTPUT
+%typemap(arginit,noblock=1,fragment="SWIG_AsCharPtrAndSize") const IID& USE_IID_FOR_OUTPUT
 {
   LPIID &__lpiid = $1;
 }

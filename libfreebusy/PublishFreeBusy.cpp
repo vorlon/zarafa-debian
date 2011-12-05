@@ -54,6 +54,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "ECLogger.h"
 #include "recurrence.h"
 
 #include "restrictionutil.h"
@@ -83,13 +84,19 @@ static char THIS_FILE[] = __FILE__;
  * 
  * @return MAPI Error code
  */
-HRESULT HrPublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger)
+HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger)
 {
 	HRESULT hr = hrSuccess;
 	PublishFreeBusy *lpFreeBusy = NULL;
 	IMAPITable *lpTable = NULL;
 	FBBlock_1 *lpFBblocks = NULL;
 	ULONG cValues = 0;
+	ECLogger *lpNullLogger = NULL;
+
+	if (!lpLogger) {
+		lpNullLogger = new ECLogger_Null();
+		lpLogger = lpNullLogger;
+	}
 
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "current time %d", (int)tsStart);
 
@@ -138,6 +145,9 @@ exit:
 
 	if(lpFBblocks)
 		MAPIFreeBuffer(lpFBblocks);
+
+	if(lpNullLogger)
+		lpNullLogger->Release();
 
 	return hr;
 }

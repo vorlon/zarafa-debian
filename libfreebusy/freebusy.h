@@ -183,7 +183,7 @@ typedef struct tagFBBlock_1
 	FBStatus m_fbstatus;	/**< Free/busy status for this block, indicating whether the user is 
 								out-of-office, busy, tentative, or free, during the time period 
 								between m_tmStart and m_tmEnd. */
-} FBBlock_1;
+} FBBlock_1, *LPFBBlock_1;
 
 /**
  * Extends the free/busy block of data. It also stores the basedate of occurrence
@@ -204,7 +204,7 @@ typedef struct tagFBUser
 	LPENTRYID m_lpEid;		/**< The entry ID of the mail user as represented by the IMailUser interface. */
 	ULONG m_ulReserved;		/**< This parameter is reserved for Outlook internal use and is not supported. */
 	LPWSTR m_pwszReserved;	/**< This parameter is reserved for Outlook internal use and is not supported.*/
-} FBUser;
+} FBUser, *LPFBUser;
 
 /**
  * @interface IFreeBusyUpdate

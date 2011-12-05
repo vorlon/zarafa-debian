@@ -3270,17 +3270,6 @@ namespace swig {
 
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
 
-SWIGINTERN void delete_IUnknown(IUnknown *self){ self->Release(); }
-
-  #define SWIG_From_long   PyInt_FromLong 
-
-
-SWIGINTERNINLINE PyObject *
-SWIG_From_int  (int value)
-{    
-  return SWIG_From_long  (value);
-}
-
 
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
@@ -3344,6 +3333,17 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
     }
   }
   return SWIG_TypeError;
+}
+
+SWIGINTERN void delete_IUnknown(IUnknown *self){ self->Release(); }
+
+  #define SWIG_From_long   PyInt_FromLong 
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_int  (int value)
+{    
+  return SWIG_From_long  (value);
 }
 
 
