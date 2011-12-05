@@ -58,6 +58,27 @@ Password for the SSL key specified with sslkey_file\&.
 .sp
 Default: value not set\&.
 .RE
+.PP
+\fBbidirectional\fR
+.RS 4
+If yes, then perform bidirectional synchronization between source and destination stores\&. If no, then only unidirectional (migration) replication is used (from source to dest)
+.sp
+Default: yes
+.RE
+.PP
+\fBworkers\fR
+.RS 4
+Specifies the number of parallel workers to use to migrate the stores\&.
+.sp
+Default: 4
+.RE
+.PP
+\fBforce_source\fR
+.RS 4
+Normally, the source server is only used to provide an entry point into the source cluster; If the store of the user to be migrated is on a different host, then zarafa\-msr automatically redirects to the correct source server\&. If this option is \'yes\', then no such redirection is performed\&. This is useful if the user has already been migrated to the new (destination) server, and a final MSR sync is required between the old store and the new (active) store\&. If you fail to set force_source to \'yes\' in this case, MSR will fail since source and destination store will be the same\&.
+.sp
+Default: no
+.RE
 .SH "THE SERVERS SECTION"
 .PP
 The servers section has no predefined options\&. Instead the format is
