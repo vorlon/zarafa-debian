@@ -117,7 +117,7 @@ public:
         virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
         virtual HRESULT Merge(void *) = 0;
         virtual HRESULT GetDeligateInfo(void *) = 0;
-        virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, void *) = 0;
+        virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
         virtual HRESULT InterSect(void *, LONG, void *) = 0;
         virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd) = 0;
         virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) = 0;

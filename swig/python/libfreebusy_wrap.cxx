@@ -3991,7 +3991,7 @@ SWIGINTERN PyObject *_wrap_IFreeBusyData_FindFreeBlock(PyObject *SWIGUNUSEDPARM(
   LONG arg6 ;
   LONG arg7 ;
   LONG arg8 ;
-  void *arg9 = (void *) 0 ;
+  FBBlock_1 *arg9 = (FBBlock_1 *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
@@ -4008,7 +4008,8 @@ SWIGINTERN PyObject *_wrap_IFreeBusyData_FindFreeBlock(PyObject *SWIGUNUSEDPARM(
   int ecode7 = 0 ;
   int val8 ;
   int ecode8 = 0 ;
-  int res9 ;
+  void *argp9 = 0 ;
+  int res9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4062,10 +4063,11 @@ SWIGINTERN PyObject *_wrap_IFreeBusyData_FindFreeBlock(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "IFreeBusyData_FindFreeBlock" "', argument " "8"" of type '" "LONG""'");
   } 
   arg8 = static_cast< LONG >(val8);
-  res9 = SWIG_ConvertPtr(obj8,SWIG_as_voidptrptr(&arg9), 0, 0);
+  res9 = SWIG_ConvertPtr(obj8, &argp9,SWIGTYPE_p_FBBlock_1, 0 |  0 );
   if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "IFreeBusyData_FindFreeBlock" "', argument " "9"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "IFreeBusyData_FindFreeBlock" "', argument " "9"" of type '" "FBBlock_1 *""'"); 
   }
+  arg9 = reinterpret_cast< FBBlock_1 * >(argp9);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     result = (arg1)->FindFreeBlock(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
