@@ -64,6 +64,7 @@ typedef struct {
 	std::string		strGuessname;	// "guess" from user_name column in stores table
 	unsigned int	ulCompanyId;	// company id of store (or user if store is not found)
 	GUID			sGuid;			// The GUID of the store
+	unsigned int	ulStoreType;	// Type of the store (private, public, archive)
 	unsigned int	ulObjId;		// Hierarchyid of the store
 	std::string		strCompanyName;	// Company name of the store. (can be empty)
 	time_t			tModTime;		// Modification time of the store

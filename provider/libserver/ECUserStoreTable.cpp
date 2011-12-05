@@ -167,6 +167,12 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, (unsigned char*)&pThis->m_mapUserStoreData[iterRowList->ulObjId].sGuid, sizeof(GUID));
 				}
 				break;
+			case PROP_ID(PR_EC_STORETYPE):
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[iterRowList->ulObjId].ulStoreType;
+				break;
 			case PROP_ID(PR_EC_COMPANYID):
 				if (pThis->m_mapUserStoreData[iterRowList->ulObjId].ulCompanyId != 0) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -239,7 +245,7 @@ ECRESULT ECUserStoreTable::Load() {
 	objectclass_t objclass;
 	objectdetails_t sDetails;
 
-	enum cols { USERID = 0, EXTERNID, OBJCLASS, UCOMPANY, STOREGUID, USERNAME, SCOMPANY, HIERARCHYID, STORESIZE, MODTIME_HI, MODTIME_LO };
+	enum cols { USERID = 0, EXTERNID, OBJCLASS, UCOMPANY, STOREGUID, STORETYPE, USERNAME, SCOMPANY, HIERARCHYID, STORESIZE, MODTIME_HI, MODTIME_LO };
 
 	if (!lpDatabase) {
 		er = ZARAFA_E_DATABASE_ERROR;
@@ -250,12 +256,12 @@ ECRESULT ECUserStoreTable::Load() {
 
 	// we can't use WHERE to exclude wrong user types, because of NULL when there is a store, but not a user object
 	strQuery =
-		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
+		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
 		"  LEFT JOIN stores AS s ON s.user_id=u.id LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
 		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
 		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=0x3008 and m.type=0x40"
 		" UNION"
-		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
+		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
 		"  RIGHT JOIN stores AS s ON s.user_id=u.id LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
 		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
 		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=0x3008 and m.type=0x40";
@@ -320,6 +326,11 @@ ECRESULT ECUserStoreTable::Load() {
 		if (lpDBRow[STOREGUID])
 			memcpy(&sUserStore.sGuid, lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
 
+		if (lpDBRow[STORETYPE])
+			sUserStore.ulStoreType = atoi(lpDBRow[STORETYPE]);
+		else
+			sUserStore.ulStoreType = ECSTORE_TYPE_PRIVATE; // or invalid value?
+			
 		if (lpDBRow[USERNAME])
 			sUserStore.strGuessname = lpDBRow[USERNAME];
 		else

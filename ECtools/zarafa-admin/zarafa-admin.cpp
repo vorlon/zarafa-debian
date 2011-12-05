@@ -323,13 +323,16 @@ void print_help(char *name) {
 	ct.PrintTable();
 	cout << endl;
 	cout << "The following functions are to control stores of users:" << endl;
-	ct.Resize(7,2);
+	ct.Resize(10,2);
 	ct.AddColumn(0, "--list-orphans"); ct.AddColumn(1, "List all users without stores and stores without users.");
 	ct.AddColumn(0, "--remove-store storeguid"); ct.AddColumn(1, "Delete orphaned store of user that is deleted from external source.");
 	ct.AddColumn(0, "--hook-store storeguid"); ct.AddColumn(1, "Hook orphaned store to a user or copy to a public.");
 	ct.AddColumn(0, "  -u username"); ct.AddColumn(1, "Update user to received orphaned store given in --hook-store.");
+	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store. Use 'archive' for archive stores.");
 	ct.AddColumn(0, "  --copyto-public"); ct.AddColumn(1, "Copy the orphan store to the public folder.");
-	ct.AddColumn(0, "  --unhook-store"); ct.AddColumn(1, "Unhook store from user.");
+	ct.AddColumn(0, "--unhook-store username"); ct.AddColumn(1, "Unhook store from user.");
+	ct.AddColumn(0, "  --type"); ct.AddColumn(1, "Type of the user to hook. Defaults to 'user', can be 'group' or 'company' for public store. Use 'archive' for archive stores.");
+	ct.AddColumn(0, ""); ct.AddColumn(1, "Use 'Everyone' as username with type 'group' to unhook the public store, or use the company name and type 'company'.");
 	ct.AddColumn(0, "--force-resync [username [username [...]]]"); ct.AddColumn(1, "Force a resynchronisation of offline profiles for specified users.");
 	ct.PrintTable();
 	cout << endl;
@@ -553,6 +556,8 @@ string getMapiCodeString(HRESULT hr, const char* object = "object")
 		return string(object) + " already exists";
 	case MAPI_E_NO_ACCESS:
 		return "no access to " + string(object);
+	case MAPI_E_INVALID_TYPE:
+		return "invalid type combination";
 	};
 
 	return "unknown error (" + stringify(hr, true) + ")";
@@ -1227,6 +1232,20 @@ exit:
 	return hr;
 }
 
+const char* StoreTypeToString(ULONG ulStoreType)
+{
+	switch (ulStoreType) {
+	case ECSTORE_TYPE_PRIVATE:
+		return "private";
+	case ECSTORE_TYPE_ARCHIVE:
+		return "archive";
+	case ECSTORE_TYPE_PUBLIC:
+		return "public";
+	default:
+		return "unknown";
+	};
+}
+
 /**
  * List users without a store, and stores without a user.
  *
@@ -1248,9 +1267,10 @@ HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	LPSPropValue lpUserName = NULL;
 	LPSPropValue lpModTime;
 	LPSPropValue lpStoreSize;
+	LPSPropValue lpStoreType;
 	std::string strUsername;
 	bool bHeader = true;
-	ConsoleTable ct(50, 4);
+	ConsoleTable ct(50, 5);
 	const static SizedSSortOrderSet(2, tableSort) =
 		{ 2, 0, 0,
 		  {
@@ -1275,6 +1295,7 @@ HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	ct.SetHeader(1, "Guessed username");
 	ct.SetHeader(2, "Last modified");
 	ct.SetHeader(3, "Store size");
+	ct.SetHeader(4, "Store type");
 
 	// Because of the sort, we start with these stores
 	cout << "Stores without users:" << endl;
@@ -1294,6 +1315,7 @@ HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			lpUserName = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
 			lpModTime = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_LAST_MODIFICATION_TIME);
 			lpStoreSize = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
+			lpStoreType = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STORETYPE);
 
 			if (lpStoreGuid && lpUserName)
 				continue;
@@ -1326,9 +1348,13 @@ HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 				else
 					ct.AddColumn(2, "<unknown>");
 				if (lpStoreSize)
-					ct.AddColumn(3, str_storage(lpStoreSize->Value.li.QuadPart));
+					ct.AddColumn(3, str_storage(lpStoreSize->Value.li.QuadPart, false));
 				else
 					ct.AddColumn(3, "<unknown>");
+				if (lpStoreType)
+					ct.AddColumn(4, StoreTypeToString(lpStoreType->Value.ul));
+				else
+					ct.AddColumn(4, "<unknown>");
 			} else {
 				ct.AddColumn(0, strUsername);
 			}
@@ -3206,22 +3232,31 @@ int main(int argc, char* argv[])
 		} else {
 			ULONG ulStoreType;
 
-			// @todo: Add public store support
-			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+			if (detailstype == NULL)
+				detailstype = "user";
+
+			if (strcmp(detailstype, "user") == 0) {
 				ulStoreType = ECSTORE_TYPE_PRIVATE;
-			else if (strcmp(detailstype, "archive") == 0)
+				hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "archive") == 0) {
 				ulStoreType = ECSTORE_TYPE_ARCHIVE;
-			else {
+				hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "group") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "company") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else {
 				cerr << "Unknown store type: '" << detailstype << "'." << endl;
 				goto exit;
 			}
-
-			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 			if (hr != hrSuccess) {
-				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
+				cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}		
 
+			// the server won't let you hook public stores to users and vice-versa.
 			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
 			if (hr != hrSuccess) {
 				cerr << "Unable to hook store, " << getMapiCodeString(hr) << endl;
@@ -3234,18 +3269,27 @@ int main(int argc, char* argv[])
 	case MODE_UNHOOK_STORE: {
 			ULONG ulStoreType;
 
-			if (detailstype == NULL || strcmp(detailstype, "user") == 0)
+			if (detailstype == NULL)
+				detailstype = "user";
+
+			if (strcmp(detailstype, "user") == 0) {
 				ulStoreType = ECSTORE_TYPE_PRIVATE;
-			else if (strcmp(detailstype, "archive") == 0)
+				hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "archive") == 0) {
 				ulStoreType = ECSTORE_TYPE_ARCHIVE;
-			else {
+				hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "group") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else if (strcmp(detailstype, "company") == 0) {
+				ulStoreType = ECSTORE_TYPE_PUBLIC;
+				hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			} else {
 				cerr << "Unknown store type: '" << detailstype << "'." << endl;
 				goto exit;
 			}
-
-			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 			if (hr != hrSuccess) {
-				cerr << "Unable to find user, " << getMapiCodeString(hr, username) << endl;
+				cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}		
 

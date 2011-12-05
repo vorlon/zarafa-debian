@@ -9051,13 +9051,13 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 	if(er != erSuccess)
 		goto exit;
 
-	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || OBJECTCLASS_TYPE(sExternId.objclass) != OBJECTTYPE_MAILUSER || !ECSTORE_TYPE_ISVALID(ulStoreType))
+	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhooking store from user %d", ulUserId);
+	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhooking store (type %d) from userobject %d", ulStoreType, ulUserId);
 
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
@@ -9102,7 +9102,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	if(er != erSuccess)
 		goto exit;
 
-	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || OBJECTCLASS_TYPE(sExternId.objclass) != OBJECTTYPE_MAILUSER)
+	if (ulUserId == 0 || ulUserId == ZARAFA_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
@@ -9148,7 +9148,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 		goto exit;
 	}
 
-	if (atoi(lpDBRow[4]) != ulStoreType) {
+	if (atoui(lpDBRow[4]) != ulStoreType) {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Requested store type is %u, actual store type is %s", ulStoreType, lpDBRow[4]);
 		er = ZARAFA_E_INVALID_TYPE;
 		goto exit;
