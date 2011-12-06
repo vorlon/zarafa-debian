@@ -507,6 +507,7 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	if(err) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL Failed: %s, Query Size: %u, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
+		ASSERT(false);
 	}
 
 exit:
@@ -559,8 +560,10 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 	
 	if (lppResult)
 		*lppResult = lpResult;
-	else
-		FreeResult(lpResult);
+	else {
+		if(lpResult)
+			FreeResult(lpResult);
+	}
 
 exit:
 	if (er != erSuccess) {
