@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-06 00:02+0100\n"
+"POT-Creation-Date: 2011-12-06 15:24+0100\n"
 "PO-Revision-Date: 2011-12-05 09:35+0200\n"
 "Last-Translator: Michal <formanek.michal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2044,9 +2044,11 @@ msgstr ""
 msgid "Confirm Delete"
 msgstr ""
 
+# 90%
 #: php-webclient-ajax/client/layout/dialogs/modal/deletetaskoccurrence.php:54
+#, fuzzy
 msgid "Delete all"
-msgstr ""
+msgstr "Smazat vše"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/deletetaskoccurrence.php:55
 msgid "Delete this one"
@@ -2118,11 +2120,13 @@ msgstr ""
 msgid "Move to"
 msgstr ""
 
+# 83%
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:120
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:130
 #: php-webclient-ajax/server/modules/class.hierarchymodule.php:139
+#, fuzzy
 msgid "folder"
-msgstr ""
+msgstr "Adresář"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:128
 msgid "Copy to"
@@ -4047,9 +4051,11 @@ msgstr ""
 msgid "Sort on Profession"
 msgstr ""
 
+# 91%
 #: php-webclient-ajax/server/core/class.tablecolumns.php:78
+#, fuzzy
 msgid "Manager name"
-msgstr ""
+msgstr "Jméno manažera"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:78
 msgid "Sort on Manager Name"
@@ -6520,9 +6526,11 @@ msgstr ""
 msgid "Go to the last page"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/widgets/pagination.js:61
+#, fuzzy
 msgid "Page"
-msgstr ""
+msgstr "Pager"
 
 #: php-webclient-ajax/client/widgets/tablewidget.js:964
 msgid "Loading..."
