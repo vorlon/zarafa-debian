@@ -65,11 +65,9 @@ def GetPublicStore(session):
         if(row[0].ulPropTag == PR_MDB_PROVIDER and row[0].Value == ZARAFA_STORE_PUBLIC_GUID):
             return session.OpenMsgStore(0, row[1].Value, None, MDB_WRITE)
 
-def GetUserList(session):
+def _GetUserList(container):
     users = []
-    ab = session.OpenAddressBook(0, None, 0)
-    gab = ab.OpenEntry(ab.GetDefaultDir(), None, 0)
-    table = gab.GetContentsTable(0)
+    table = container.GetContentsTable(0)
     table.SetColumns([MAPI.Tags.PR_EMAIL_ADDRESS], MAPI.TBL_BATCH)
     while True:
         rows = table.QueryRows(50, 0)
@@ -77,4 +75,19 @@ def GetUserList(session):
             break
         [users.append(row[0].Value) for row in rows]
     return users
-   
+
+def GetUserList(session):
+    ab = session.OpenAddressBook(0, None, 0)
+    gab = ab.OpenEntry(ab.GetDefaultDir(), None, 0)
+    table = gab.GetHierarchyTable(0)
+    companyCount = table.GetRowCount(0)
+    if companyCount == 0:
+        return _GetUserList(gab)
+
+    table.SetColumns([MAPI.Tags.PR_ENTRYID], MAPI.TBL_BATCH)
+    users = []
+    for row in table.QueryRows(companyCount, 0):
+        company = gab.OpenEntry(row[0].Value, None, 0)
+        companyUsers = _GetUserList(company)
+        users.extend(companyUsers)
+    return users
