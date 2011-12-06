@@ -2971,6 +2971,12 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 				goto exit;
 
 			fNewItem = true;
+
+			// Lock folder counters now
+            strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParentObjId) + " FOR UPDATE";
+            er = lpDatabase->DoSelect(strQuery, NULL);
+			if (er != erSuccess)
+			    goto exit;
 		} else {
 			// existing item, search parent ourselves cause the client just sent it's store entryid (see ECMsgStore::OpenEntry())
 			er = g_lpSessionManager->GetCacheManager()->GetObject(lpsSaveObj->ulServerId, &ulParentObjId, NULL, &ulObjFlags, &ulObjType);
@@ -2984,17 +2990,11 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 
 			fNewItem = false;
 			
-            // We are modifying an existing item. Lock the record in the hierarchy table so that others will have to wait before handling
-            // this object. The idea here is that you should always first try to lock the hierarchy record, which causes interfering threads
-            // to wait for eachother on the hierarchy. This should serialize access to single objects, and therefore remove any deadlocks
-            // we may have. This is currently done here, in setReadFlags(), and in PurgeDeferredTableUpdate(), which are the main culprits for
-            // deadlocks in this respect.
-            strQuery = "SELECT id FROM hierarchy WHERE id = " + stringify(lpsSaveObj->ulServerId) + " FOR UPDATE";
-            er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+			// Lock folder counters now
+            strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParentObjId) + " FOR UPDATE";
+            er = lpDatabase->DoSelect(strQuery, NULL);
 			if (er != erSuccess)
 			    goto exit;
-			    
-            FREE_DBRESULT();
             
             // We also need the old read flags so we can compare the new read flags to see if we need to update the unread counter. Note
             // that the read flags can only be modified through saveObject() when using ICS.
@@ -5184,6 +5184,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	// List of unique parents
 	std::map<unsigned int, int> mapParents;
 	std::map<unsigned int, int>::iterator iterParents;
+	std::set<unsigned int> setParents;
+	std::set<unsigned int>::iterator iParents;
 
 	//NOTE: either lpMessageList may be NULL or lpsEntryId may be NULL
 
@@ -5237,6 +5239,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulFolderId);
         if(er != erSuccess)
             goto exit;
+            
+        er = lpDatabase->DoSelect("SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(ulFolderId) + " FOR UPDATE", NULL);
+        if(er != erSuccess)
+            goto exit;
 
         // Check permission
         er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
@@ -5285,8 +5291,19 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			if(g_lpSessionManager->GetCacheManager()->GetObject(*iterHierarchyIDs, &ulParent, NULL, NULL) != erSuccess) {
 			    continue;
 			}
+			
+			setParents.insert(ulParent);
+        }
 
-            // Check permission (may be the same folder over and over)
+        // Lock parent folders        
+        for(iParents = setParents.begin(); iParents != setParents.end(); iParents++) {
+            er = lpDatabase->DoSelect("SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(*iParents) + " FOR UPDATE", NULL);
+            if(er != erSuccess)
+                goto exit;
+        }
+
+        // Check permission
+        for(iParents = setParents.begin(); iParents != setParents.end(); iParents++) {
             er = lpecSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
             if(er != erSuccess)
                 goto exit;

@@ -1877,6 +1877,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
     
     // Trigger an assertion since in practice this should never happen
     ASSERT(false);
+	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
 
 	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
 	if(er != erSuccess) {
@@ -1911,8 +1912,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
     if(er != erSuccess)
     	goto exit;
     	
-	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
-	
 	
 exit:
 	if(er != erSuccess)
