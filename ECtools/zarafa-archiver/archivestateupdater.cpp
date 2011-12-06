@@ -372,13 +372,13 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was explicitly attached");
 	}
 
-	hr = ptrUserStoreHelper->SetArchiveList(lstCurrentArchives, true);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
-		goto exit;
-	}
-
 	if (ulDetachCount > 0) {
+		hr = ptrUserStoreHelper->SetArchiveList(lstCurrentArchives, true);
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
+			goto exit;
+		}
+
 		if (!userName.empty())
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s) from '" TSTRING_PRINTF "'.", ulDetachCount, userName.c_str());
 		else {
@@ -388,9 +388,11 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			else
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Auto detached %u archive(s).", ulDetachCount);
 		}
-	}
 
-	hr = ptrUserStoreHelper->UpdateSearchFolders();
+		hr = ptrUserStoreHelper->UpdateSearchFolders();
+		if (hr != hrSuccess)
+			goto exit;
+	}
 
 exit:
 	return hr;
