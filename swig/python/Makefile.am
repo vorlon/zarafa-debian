@@ -130,7 +130,7 @@ if ! OSS_ONLY
 _licensereq_la_SOURCES = licensereq_wrap.cxx
 endif
 
-EXTRA_DIST = typemap_python.i helpers_python.i setup.py $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py licenseclient.py MAPI/Defs.py  MAPI/__init__.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py archiver_python.i
+EXTRA_DIST = typemap_python.i helpers_python.i setup.py $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py licenseclient.py MAPI/Defs.py  MAPI/__init__.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py MAPI/Util/AddressBook.py archiver_python.i
 datadir = $(pythonexeclibdir)
 data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py
 noinst_datadir = libcommon.py 
