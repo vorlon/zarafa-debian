@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-05 00:02+0100\n"
-"PO-Revision-Date: 2011-12-01 10:19+0200\n"
+"POT-Creation-Date: 2011-12-06 00:02+0100\n"
+"PO-Revision-Date: 2011-12-05 09:35+0200\n"
 "Last-Translator: Michal <formanek.michal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: cs\n"
@@ -1453,48 +1453,48 @@ msgstr "IM - Adresa"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:415
 msgid "Additional Information"
-msgstr ""
+msgstr "Další informace"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:472
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:113
 #: php-webclient-ajax/server/core/class.tablecolumns.php:136
 #: php-webclient-ajax/client/core/properties.js:45
 msgid "Department"
-msgstr ""
+msgstr "Oddělení"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:479
 msgid "Manager Name"
-msgstr ""
+msgstr "Jméno manažera"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:487
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:119
 msgid "Office"
-msgstr ""
+msgstr "Kancelář"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:494
 msgid "Assistant Name"
-msgstr ""
+msgstr "Jméno asistenta"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:502
 #: php-webclient-ajax/server/core/class.tablecolumns.php:77
 #: php-webclient-ajax/client/core/properties.js:83
 msgid "Profession"
-msgstr ""
+msgstr "Profese"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:515
 #: php-webclient-ajax/server/core/class.tablecolumns.php:80
 msgid "Nickname"
-msgstr ""
+msgstr "Přezdívka"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:522
 msgid "Partner Name"
-msgstr ""
+msgstr "Jméno partnera"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:530
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:103
 #: php-webclient-ajax/client/layout/js/contact.js:436
 msgid "Title"
-msgstr ""
+msgstr "Titul"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:548
 #: php-webclient-ajax/client/layout/js/contact.js:464
@@ -1503,20 +1503,21 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:555
 msgid "Special Date"
-msgstr ""
+msgstr "Významné datum"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:606
 #: php-webclient-ajax/client/layout/dialogs/modal/addressbook.php:211
+#, fuzzy
 msgid "New Message for Contact"
-msgstr ""
+msgstr "Nová zpráva pro kontakt"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:32
 msgid "Organization"
-msgstr ""
+msgstr "Organizace"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:33
 msgid "Phone/Notes"
-msgstr ""
+msgstr "Telefon/Poznámky"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:78
 #: php-webclient-ajax/client/layout/js/contact.js:443
@@ -1582,37 +1583,34 @@ msgstr ""
 # 80%
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:172
 #: php-webclient-ajax/client/modules/contactitemmodule.js:45
-#, fuzzy
 msgid "Business 2"
-msgstr "Pracovní"
+msgstr "Práce 2"
 
 # 80%
 # 83%
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:174
 #: php-webclient-ajax/client/modules/contactitemmodule.js:48
-#, fuzzy
 msgid "Home 2"
-msgstr "Domů"
+msgstr "Doma 2"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:178
 #: php-webclient-ajax/server/core/class.tablecolumns.php:139
 msgid "Fax"
-msgstr ""
+msgstr "Fax"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/gab_detail_mailuser.php:186
 #: php-webclient-ajax/client/modules/contactitemmodule.js:51
 #: php-webclient-ajax/client/core/properties.js:62
 msgid "Pager"
-msgstr ""
+msgstr "Pager"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:11
 #: php-webclient-ajax/client/modules/listmodule.js:136
 msgid "Restore deleted Items"
-msgstr ""
+msgstr "Obnovení odstraněných položek"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:49
 #: php-webclient-ajax/server/core/class.tablecolumns.php:25
-#, fuzzy
 msgid "Message"
 msgstr "Zpráva"
 
@@ -1620,39 +1618,39 @@ msgstr "Zpráva"
 #: php-webclient-ajax/client/layout/dialogs/modal/copyfolder.php:61
 #: php-webclient-ajax/client/widgets/menu.js:8
 msgid "Folder"
-msgstr ""
+msgstr "Adresář"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:63
 msgid "Restore"
-msgstr ""
+msgstr "Obnovit"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:64
 msgid "Restore the selected items"
-msgstr ""
+msgstr "Obnovit vybrané položky"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:69
 msgid "Restore All"
-msgstr ""
+msgstr "Obnovit vše"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:70
 msgid "Restore all"
-msgstr ""
+msgstr "Obnovit vše"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:80
 msgid "Permanent Delete"
-msgstr ""
+msgstr "Nenávratně smazat"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:81
 msgid "Permanent delete selected items"
-msgstr ""
+msgstr "Nenávratně smazat vybrané položky"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:86
 msgid "Delete All"
-msgstr ""
+msgstr "Smazat vše"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:87
 msgid "Permanent delete All"
-msgstr ""
+msgstr "Nenávratně smazat vše"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:108
 #: php-webclient-ajax/client/layout/dialogs/standard/restoreitems.php:109
@@ -1663,54 +1661,53 @@ msgstr ""
 #: php-webclient-ajax/client/layout/dialogs/utils.php:52
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:118
 msgid "Close"
-msgstr ""
+msgstr "Zavřít"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:5
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:63
 msgid "Zoom"
-msgstr ""
+msgstr "Přiblížit"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:15
 #: php-webclient-ajax/client/modules/freebusymodule.js:402
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:96
 msgid "All Attendees"
-msgstr ""
+msgstr "Všichni účastníci"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:17
 #: php-webclient-ajax/client/modules/freebusymodule.js:1040
 #: php-webclient-ajax/client/modules/freebusymodule.js:1050
 msgid "Add a name"
-msgstr ""
+msgstr "Přidat jméno"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:29
+#, fuzzy
 msgid "AutoPick"
-msgstr ""
+msgstr "AutoPick"
 
 # 92%
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:58
-#, fuzzy
 msgid "Out of office"
 msgstr "Mimo kancelář"
 
 # 78%
 # 75%
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:60
-#, fuzzy
 msgid "No Information"
-msgstr "Fakturační údaje"
+msgstr "Žádné informace"
 
 # 88%
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
 #: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 #, fuzzy
 msgid "Reminders"
-msgstr "Připomínka"
+msgstr "Připomínky"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:36
 #: php-webclient-ajax/client/modules/reminderlistmodule.js:246
 #, c-format, php-format
 msgid "%d reminders are selected"
-msgstr ""
+msgstr "%d připomínky jsou vybrány"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:41
 msgid "Dismiss All"
@@ -3577,12 +3574,12 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:225
 #, php-format
 msgid "%s's Birthday"
 msgstr ""
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:249
 #, php-format
 msgid "%s's Anniversary"
 msgstr ""
