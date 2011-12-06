@@ -296,20 +296,25 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId, unsigned
 {
 	ECRESULT er = erSuccess;
 	list<localobjectdetails_t> *lpObjects = NULL;
+	ECSecurity *lpSecurity = lpSession->GetSecurity();
 
-	er = lpSession->GetSecurity()->GetViewableCompanyIds(m_ulUserManagementFlags, &lpObjects);
+	er = lpSecurity->GetViewableCompanyIds(m_ulUserManagementFlags, &lpObjects);
 	if (er != erSuccess)
 		goto exit;
 
 	/*
 	 * This looks a bit hackish, and it probably can be considered as such.
 	 * If the size of lpObjects is 1 then the user can only view a single company space (namely his own).
-	 * There are 2 reasons this could happen, either when working in a non-hosted environment or
-	 * when the company does not have enough permissions to view any other company spaces.
+	 * There are 3 reasons this could happen.
+	 * 1. When working in a non-hosted environment.
+	 * 2. When the company does not have enough permissions to view any other company spaces.
+	 * 3. There's only one company.
+	 * 
 	 * Having a Global Address Book _and_ a container for the company will only look strange and
-	 * confusing for the user. So lets delete the entry altogether.
+	 * confusing for the user. So lets delete the entry altogether for everybody except SYSTEM
+	 * and SYSADMIN users.
 	 */
-	if (lpObjects->size() == 1)
+	if (lpObjects->size() == 1 && lpSecurity->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN)
 		lpObjects->clear();
 
 	if (lppObjects) {
