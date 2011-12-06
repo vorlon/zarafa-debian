@@ -409,38 +409,38 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	ULONG ulRead = 0;
 
 	struct StatusOL2K3 {
-		ULONG ulReserved0;			/* always 0 */
-		ULONG ulReserved1;			/* always 1 */
+		ULONG ulResourceType;		/* 0x68410003 PR_SCHDINFO_RESOURCE_TYPE always 0*/
+		ULONG ulReserved1;			/* always 1? olk 2007 = 0 */
 
 		char **lppszFullname;		/* PR_MAILBOX_OWNER_NAME, but allocation method is unknown */
 		SBinary *lpUserEntryID;		/* PR_MAILBOX_OWNER_ENTRYID, but allocation method is unknown  */
-		ULONG *lpUnknown4;			/* pointer to NULL */
-		ULONG *lpUnknown5;			/* pointer to NULL -- not present in OL2K */
+		ULONG *lpUnknown4;			/* pointer to NULL, -- not present in OL2K */
+		ULONG ulBossWantCopy;		/* olk2007=PR_SCHDINFO_BOSS_WANTS_COPY default 1, olk2003 pointer to NULL? */
 
-		ULONG ulReserved6;			/* always 1 */
-		ULONG ulReserved7;			/* always 1 */
+		ULONG ulBossWantInfo;		/* 0x684B000B PR_SCHDINFO_BOSS_WANTS_INFO always 1 */
+		ULONG ulDontEmailDelegates;	/* 0x6843000B  PR_SCHDINFO_DONT_MAIL_DELEGATES always 1 */
 
 		ULONG fDoesAutoAccept;
-		ULONG fDoesRejectConflict;	/* no effect? */
-		ULONG fDoesRejectRecurring;	/* no effect? */
+		ULONG fDoesRejectRecurring;
+		ULONG fDoesRejectConflict;
 
 		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
 	} *lpStatus;
 
 	struct StatusOL2K {
-		ULONG ulReserved0;			/* always 0 */
+		ULONG ulResourceType;		/* always 0 */
 		ULONG ulReserved1;			/* always 1 */
 
 		char **lppszFullname;		/* PR_MAILBOX_OWNER_NAME, but allocation method is unknown */
 		SBinary *lpUserEntryID;		/* PR_MAILBOX_OWNER_ENTRYID, but allocation method is unknown  */
-		ULONG *lpUnknown4;			/* pointer to a value 01000000 */
+		ULONG ulBossWantCopy;		/* pointer to a value 01000000 */
 
-		ULONG ulReserved6;			/* always 1 */
-		ULONG ulReserved7;			/* always 1 */
+		ULONG ulBossWantInfo;		/* always 1 */
+		ULONG ulDontEmailDelegates;	/* always 1 */
 
 		ULONG fDoesAutoAccept;
-		ULONG fDoesRejectConflict;	/* no effect? */
-		ULONG fDoesRejectRecurring;	/* no effect? */
+		ULONG fDoesRejectRecurring;
+		ULONG fDoesRejectConflict;
 	} *lpStatusOlk2K;
 
 	bool bAutoAccept = true, bDeclineConflict = true, bDeclineRecurring = true;
@@ -465,8 +465,9 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		memset(lpStatusOlk2K, 0, sizeof(StatusOL2K));
 
 		lpStatusOlk2K->ulReserved1 = 1;
-		lpStatusOlk2K->ulReserved6 = 1;
-		lpStatusOlk2K->ulReserved7 = 1;
+		lpStatusOlk2K->ulBossWantCopy = 1;
+		lpStatusOlk2K->ulBossWantInfo = 1;
+		lpStatusOlk2K->ulDontEmailDelegates = 1;
 
 		// They don't seem to have much effect, as outlook will always plan the resource.
 		lpStatusOlk2K->fDoesAutoAccept = bAutoAccept;
@@ -478,8 +479,10 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		lpStatus = (StatusOL2K3*)lpulStatus;
 		memset(lpStatus, 0, sizeof(StatusOL2K3));
 
-		lpStatus->ulReserved6 = 1;
-		lpStatus->ulReserved7 = 1;
+		lpStatus->ulReserved1 = 1;
+		lpStatus->ulBossWantCopy = 1;
+		lpStatus->ulBossWantInfo = 1;
+		lpStatus->ulDontEmailDelegates = 1;
 
 		// Atleast Outlook 2007 should be able to correctly use these, if you restart outlook.
 		lpStatus->fDoesAutoAccept = bAutoAccept;
