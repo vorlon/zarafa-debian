@@ -327,6 +327,7 @@
 			$storestables = mapi_getmsgstorestable($this->session);
 			$result = mapi_last_hresult();
 			$entryid = false;
+			$this->getArchivedStores($this->getUserEntryID());
 			
 			if ($result == NOERROR){
 				$rows = mapi_table_queryallrows($storestables, array(PR_ENTRYID));
@@ -352,6 +353,8 @@
                         if($hresult == NOERROR) {
                             $this->userstores[$username] = $user_entryid;
                             $this->openMessageStore($user_entryid);
+							// Accessing delegate archived stores presents problems at this time
+							//$this->getArchivedStores($this->resolveStrictUserName($username));
                         }
                     }
 				}
@@ -380,7 +383,37 @@
 			
 			return $store;
 		}
-	
+
+		/**
+		 * Searches for the PR_EC_ARCHIVE_SERVERS property of the user of the passed entryid in the 
+		 * Addressbook. It will get all his archive store objects and add those to the $this->stores
+		 * list. It will return an array with the list of archive stores where the key is the 
+		 * entryid of the store and the value the store resource.
+		 * @param String $userEntryid Binary entryid of the user
+		 * @return MAPIStore[] List of store resources with the key being the entryid of the store
+		 */
+		function getArchivedStores($userEntryid)
+		{
+			$ab = $this->getAddressbook();
+			$abitem = mapi_ab_openentry($ab, $userEntryid);
+			$userData = mapi_getprops($abitem, Array(PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS));
+
+			// Get the store of the user, need this for the call to mapi_msgstore_getarchiveentryid()
+			$userStoreEntryid = mapi_msgstore_createentryid($this->getDefaultMessageStore(), $userData[PR_ACCOUNT]);
+			$userStore = mapi_openmsgstore($GLOBALS['mapisession']->getSession(), $userStoreEntryid);
+
+			$archiveStores = Array();
+			if(isset($userData[PR_EC_ARCHIVE_SERVERS]) && count($userData[PR_EC_ARCHIVE_SERVERS]) > 0){
+				for($i=0;$i<count($userData[PR_EC_ARCHIVE_SERVERS]);$i++){
+					$archiveStoreEntryid = mapi_msgstore_getarchiveentryid($userStore, $userData[PR_ACCOUNT], $userData[PR_EC_ARCHIVE_SERVERS][$i]);
+					$archiveStores[$archiveStoreEntryid] = mapi_openmsgstore($GLOBALS['mapisession']->getSession(), $archiveStoreEntryid);
+					// Add the archive store to the list
+					$this->stores[$archiveStoreEntryid] = $archiveStores[$archiveStoreEntryid];
+				}
+			}
+			return $archiveStores;
+		}
+
 		/**
 		 * Resolve a username to its entryid
 		 *
@@ -393,6 +426,26 @@
 			$result = mapi_last_hresult();
 			if ($result == NOERROR){
 				$result = $ret[0][PR_ENTRYID];
+			}
+			return $result;
+		}
+
+		/**
+		 * Resolve the username strictly by opening that user's store and returning the 
+		 * PR_MAILBOX_OWNER_ENTRYID. This can be used for resolving an username without the risk of 
+		 * ambiguity since mapi_ab_resolve() does not strictly resolve on the username.
+		 * It is a hackish solution, but it is the only one that works.
+		 * @param String $username The username
+		 * @return Binary|Integer Entryid of the user on success otherwise the hresult error code
+		 */
+		function resolveStrictUserName($username)
+		{
+			$storeEntryid = mapi_msgstore_createentryid($this->getDefaultMessageStore(), $username);
+			$store = mapi_openmsgstore($this->getSession(), $storeEntryid);
+			$storeProps = mapi_getprops($store, Array(PR_MAILBOX_OWNER_ENTRYID));
+			$result = mapi_last_hresult();
+			if ($result == NOERROR){
+				$result = $storeProps[PR_MAILBOX_OWNER_ENTRYID];
 			}
 			return $result;
 		}
