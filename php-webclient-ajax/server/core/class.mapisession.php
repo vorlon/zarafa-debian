@@ -434,6 +434,7 @@
 		 * Resolve the username strictly by opening that user's store and returning the 
 		 * PR_MAILBOX_OWNER_ENTRYID. This can be used for resolving an username without the risk of 
 		 * ambiguity since mapi_ab_resolve() does not strictly resolve on the username.
+		 * It is a hackish solution, but it is the only one that works.
 		 * @param String $username The username
 		 * @return Binary|Integer Entryid of the user on success otherwise the hresult error code
 		 */
