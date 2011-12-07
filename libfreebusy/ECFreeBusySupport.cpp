@@ -465,7 +465,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		memset(lpStatusOlk2K, 0, sizeof(StatusOL2K));
 
 		lpStatusOlk2K->ulReserved1 = 1;
-		lpStatusOlk2K->ulBossWantsCopy = 1;
+		lpStatusOlk2K->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
 		lpStatusOlk2K->ulBossWantsInfo = 1;
 		lpStatusOlk2K->ulDontEmailDelegates = 1;
 
@@ -479,8 +479,8 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		lpStatus = (StatusOL2K3*)lpulStatus;
 		memset(lpStatus, 0, sizeof(StatusOL2K3));
 
-		lpStatus->ulReserved1 = 1;
-		lpStatus->ulBossWantsCopy = 1;
+		lpStatus->ulReserved1 = 0;
+		lpStatus->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
 		lpStatus->ulBossWantsInfo = 1;
 		lpStatus->ulDontEmailDelegates = 1;
 
