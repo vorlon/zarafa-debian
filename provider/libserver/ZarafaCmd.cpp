@@ -4593,7 +4593,6 @@ ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionI
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
 	if(er == erSuccess){
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 	}
 
