@@ -140,6 +140,8 @@
 					case ZARAFA_STORE_DELEGATE_GUID:
 						$storeType = "other";
 						break;
+					case ZARAFA_STORE_ARCHIVER_GUID:
+						$storeType = 'archive';
 				}
 
 				/**
