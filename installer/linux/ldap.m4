@@ -470,17 +470,6 @@ ifelse(MULTISERVER,`1',,`m4exit(0)')dnl
 # Optional, default zarafaUserServer
 ldap_user_server_attribute = zarafaUserServer
 
-# Users will have a private archive store on these names servers.
-# Optional, default zarafaUserArchiveServers
-ldap_user_archive_servers_attribute = zarafaUserArchiveServers
-
-# Users will have a many-to-one archive on these store:folder pairs.
-# The expected result is a list of <username>:<foldername> pairs, where each
-# username will be used to resolve the store in which the folder named
-# foldername will be used as the archive.
-# Optional, default zarafaUserArchiveCouplings
-ldap_user_archive_couplings_attribute = zarafaUserArchiveCouplings
-
 # The public store of the company will be created on this named server
 # Optional, default zarafaCompanyServer
 ldap_company_server_attribute = zarafaCompanyServer
