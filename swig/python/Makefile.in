@@ -479,7 +479,7 @@ EXTRA_DIST = typemap_python.i helpers_python.i setup.py \
 	licenseclient.py MAPI/Defs.py MAPI/__init__.py MAPI/Struct.py \
 	MAPI/Tags.py MAPI/Time.py MAPI/Util/__init__.py \
 	MAPI/Util/Generators.py MAPI/Util/Iterators.py \
-	archiver_python.i $(am__append_4)
+	MAPI/Util/AddressBook.py archiver_python.i $(am__append_4)
 data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py \
 	$(am__append_5)
 noinst_datadir = libcommon.py 
