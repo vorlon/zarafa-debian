@@ -1542,7 +1542,6 @@ HRESULT ECMessage::SyncAttachments()
 		iterSObj = m_sMapiObject->lstChildren->find(&find);
 		if (iterSObj != m_sMapiObject->lstChildren->end()) {
 			RecursiveMarkDelete(*iterSObj);
-			break;
 		}
 	}
 
