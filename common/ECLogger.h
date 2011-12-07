@@ -293,6 +293,7 @@ public:
 	virtual void LogVA(int loglevel, const char *format, va_list& va);
 
 	int GetFileDescriptor();
+	void Disown();
 };
 
 ECLogger* StartLoggerProcess(ECConfig *lpConfig, ECLogger *lpFileLogger);
