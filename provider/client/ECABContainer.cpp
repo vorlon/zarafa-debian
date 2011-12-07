@@ -98,6 +98,7 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE(IID_ECABProp, this);
 	REGISTER_INTERFACE(IID_ECUnknown, this);
 	REGISTER_INTERFACE(IID_IABContainer, &this->m_xABContainer);
+	REGISTER_INTERFACE(IID_IMAPIContainer, &this->m_xABContainer);
 	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xABContainer);
 	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABContainer);
 
