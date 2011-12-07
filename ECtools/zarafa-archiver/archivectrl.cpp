@@ -674,6 +674,10 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 			if (hr != hrSuccess) {
 				bHaveErrors = true;
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to process entry. (hr=%s)", stringify(hr, true).c_str());
+				if (hr == MAPI_E_STORE_FULL) {
+					m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disk full or over quota.");
+					goto exit;
+				}
 				continue;
 			}
 		}
