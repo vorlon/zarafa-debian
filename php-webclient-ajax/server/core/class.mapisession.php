@@ -353,8 +353,10 @@
                         if($hresult == NOERROR) {
                             $this->userstores[$username] = $user_entryid;
                             $this->openMessageStore($user_entryid);
-							// Accessing delegate archived stores presents problems at this time
-							//$this->getArchivedStores($this->resolveStrictUserName($username));
+							// Check if an entire store will be loaded, if so load the archive store as well
+							if(isset($folder['all']) && $folder['all']['type'] == 'all'){
+								$this->getArchivedStores($this->resolveStrictUserName($username));
+							}
                         }
                     }
 				}

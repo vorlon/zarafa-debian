@@ -96,8 +96,8 @@
 		* - folder: array of folders with each an array of properties (see Operations::setFolder() for properties)
 		*
 		* @param array $properties MAPI property mapping for folders
-		* @param int $type Which stores to fetch (HIERARCHY_GET_ALL | HIERARCHY_GET_DEFAULT | HIERARCHY_GET_ONE)
-		* @param object $store Only when $type == HIERARCHY_GET_ONE
+		* @param int $type Which stores to fetch (HIERARCHY_GET_ALL | HIERARCHY_GET_DEFAULT | HIERARCHY_GET_SPECIFIC )
+		* @param object $store Only when $type == HIERARCHY_GET_SPECIFIC
 		*
 		* @return array Return structure
 		*/
@@ -114,8 +114,8 @@
 					$storelist = array($GLOBALS["mapisession"]->getDefaultMessageStore());
 					break;
 					
-				case HIERARCHY_GET_ONE:
-					$storelist = array($store);
+				case HIERARCHY_GET_SPECIFIC:
+					$storelist = (is_array($store))?$store:array($store);
 					break;
 			}
 						

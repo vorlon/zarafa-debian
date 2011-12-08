@@ -346,6 +346,11 @@ hierarchymodule.prototype.sortStores = function(storeA, storeB)
 	if(storeA["type"]=="public") return 1;
 	if(storeB["type"]=="public") return -1;
 
+	// sort archive at the end just before the public store
+	// When comparing two archive stores we want them to sort on name
+	if(storeA["type"]=="archive" && storeB["type"]!="archive") return 1;
+	if(storeA["type"]!="archive" && storeB["type"]=="archive") return -1;
+
 	// sort other folders after other stores
 	if(storeA["foldertype"]!="all" && storeB["foldertype"]=="all") return 1;
 	if(storeA["foldertype"]=="all" && storeB["foldertype"]!="all") return -1;
