@@ -216,7 +216,7 @@ void *Handler(void *lpArg) {
 	// not required anymore
 	delete lpHandlerArgs;
 
-	// make sure the pipe logger does not exit when this handler exists, but only frees the memory.
+	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
 	if (dynamic_cast<ECLogger_Pipe*>(lpLogger) != NULL)
 		dynamic_cast<ECLogger_Pipe*>(lpLogger)->Disown();
 
