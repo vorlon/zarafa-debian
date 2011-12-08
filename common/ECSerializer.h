@@ -58,7 +58,7 @@ class ECFifoBuffer;
 #ifdef DEBUG
 #define STR_DEF_TIMEOUT 0
 #else
-#define STR_DEF_TIMEOUT 60000
+#define STR_DEF_TIMEOUT 600000
 #endif
 
 class ECSerializer

@@ -108,13 +108,13 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 
 	pthread_mutex_lock(&m_hMutex);
 
-	if (m_bClosed) {
-		er = ZARAFA_E_CALL_FAILED;
-		goto exit;
-	}
-
 	while (cbWritten < cbBuf) {
 		while (IsFull()) {
+			if (m_bClosed) {
+				er = ZARAFA_E_CALL_FAILED;
+				goto exit;
+			}
+
 			if (ulTimeoutMs > 0) {
 				if (pthread_cond_timedwait(&m_hCondNotFull, &m_hMutex, &deadline) == ETIMEDOUT) {
 					er = ZARAFA_E_TIMEOUT;
@@ -221,6 +221,7 @@ ECRESULT ECFifoBuffer::Close()
 	pthread_mutex_lock(&m_hMutex);
 	m_bClosed = true;
 	pthread_cond_signal(&m_hCondNotEmpty);
+	pthread_cond_signal(&m_hCondNotFull);
 	pthread_mutex_unlock(&m_hMutex);
 	return erSuccess;
 }
