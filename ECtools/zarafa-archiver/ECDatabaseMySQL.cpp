@@ -611,7 +611,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Create database %s", lpDatabase);
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Create database %s", lpDatabase);
 
 	er = IsInnoDBSupported();
 	if(er != erSuccess)
@@ -632,13 +632,13 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 	// Database tables
 	for (unsigned int i=0; i < arraySize(sDatabaseTables); i++)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Create table: %s", sDatabaseTables[i].lpComment);
+		m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Create table: %s", sDatabaseTables[i].lpComment);
 		er = DoInsert(sDatabaseTables[i].lpSQL);
 		if(er != erSuccess)
 			goto exit;	
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Database is created");
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Database is created");
 
 exit:
 	return er;
