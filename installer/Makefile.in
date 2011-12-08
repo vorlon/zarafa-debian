@@ -254,8 +254,8 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = linux userscripts quotamail indexerscripts
-dist_data_DATA = ldap/zarafa.schema ldap/zarafa.ldif licenseagreement/eula.txt licenseagreement/AGPL-3
-BUILT_SOURCES = ldap/zarafa.ldif
+dist_data_DATA = ldap/zarafa.schema zarafa.ldif licenseagreement/eula.txt licenseagreement/AGPL-3
+BUILT_SOURCES = zarafa.ldif
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -595,7 +595,7 @@ uninstall-am: uninstall-dist_dataDATA
 
 
 $(BUILT_SOURCES): ldap/zarafa.schema ldap/ol-schema-migrate.pl
-	ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ldap/zarafa.ldif
+	ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ${top_srcdir}/installer/zarafa.ldif
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
