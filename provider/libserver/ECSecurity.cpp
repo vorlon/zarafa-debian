@@ -433,7 +433,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	// Is the current user the owner of the store
 	if(GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
 		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityRead) {
+			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
 				er = erSuccess;
 				goto exit;
 			}
