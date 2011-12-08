@@ -159,6 +159,7 @@ ZEND_FUNCTION(mapi_ab_resolvename);
 ZEND_FUNCTION(mapi_ab_getdefaultdir);
 
 ZEND_FUNCTION(mapi_msgstore_createentryid);
+ZEND_FUNCTION(mapi_msgstore_getarchiveentryid);
 ZEND_FUNCTION(mapi_msgstore_openentry);
 ZEND_FUNCTION(mapi_msgstore_getreceivefolder);
 ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey);
