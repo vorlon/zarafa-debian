@@ -313,8 +313,6 @@ HRESULT ZarafaFsck::ValidateMessage(LPMESSAGE lpMessage,
 	this->ulEntries++;
 	hr = this->ValidateItem(lpMessage, strClass);
 
-	cout << "Validating of entry \"" << strName << "\" ended" << endl;
-
 	return hr;
 }
 
@@ -326,8 +324,6 @@ HRESULT ZarafaFsck::ValidateFolder(LPMAPIFOLDER lpFolder, string strName)
 
 	this->ulFolders++;
 	hr = ProcessFolder(this, lpFolder, strName);
-
-	cout << "Validating of folder \"" << strName << "\" ended" << endl;
 
 	return hr;
 }
