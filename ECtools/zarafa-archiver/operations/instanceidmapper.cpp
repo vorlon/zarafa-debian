@@ -123,6 +123,11 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpLengths = NULL;
 
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
 	strQuery =
 		"SELECT m_dst.val_binary FROM za_mappings AS m_dst "
 			"JOIN za_mappings AS m_src ON m_dst.instance_id = m_src.instance_id AND m_dst.tag = m_src.tag AND m_src.val_binary = " + m_ptrDatabase->EscapeBinary((LPBYTE)lpSourceInstanceID, cbSourceInstanceID) + " "
@@ -180,6 +185,11 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	string strQuery;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpDBRow = NULL;
+
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL || cbDestInstanceID == 0 || lpDestInstanceID == NULL) {
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	er = m_ptrDatabase->Begin();
 	if (er != erSuccess)

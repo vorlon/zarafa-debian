@@ -254,7 +254,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	}
 
 	if (Util::CompareSBinary(ptrSourceServerUID->Value.bin, ptrDestServerUID->Value.bin) == 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Source and destination live on the same server. Nothing to do.");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Source and destination live on the same server, no explicit deduplication required.");
 		goto exit;
 	}
 
@@ -277,7 +277,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	}
 
 	if (ulSourceRows == 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No attachments in source message, nothing to do.");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No attachments in source message, nothing to deduplicate.");
 		goto exit;
 	}
 
@@ -330,6 +330,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		for (mapi_rowset_ptr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
 			HRESULT hrTmp = hrSuccess;
 			AttachPtr ptrSourceAttach;
+			SPropValuePtr ptrAttachMethod;
 			AttachPtr ptrDestAttach;
 			ECSingleInstancePtr ptrInstance;
 			ULONG cbSourceSIID;
@@ -343,6 +344,20 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				continue;
 			}
 
+			hrTmp = HrGetOneProp(ptrSourceAttach, PR_ATTACH_METHOD, &ptrAttachMethod);
+			if (hrTmp == MAPI_E_NOT_FOUND) {
+				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u, assuming NO_ATTACHMENT. So nothing to deduplicate.", i);
+				continue;
+			}
+			if (hrTmp != hrSuccess) {
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get PR_ATTACH_METHOD for attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				continue;
+			}
+			if (ptrAttachMethod->Value.ul != ATTACH_BY_VALUE) {
+				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attachment method for attachment %u is not ATTACH_BY_VALUE. So nothing to deduplicate.", i);
+				continue;
+			}
+
 			hrTmp = ptrSourceAttach->QueryInterface(ptrInstance.iid, &ptrInstance);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
@@ -352,6 +367,10 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			hrTmp = ptrInstance->GetSingleInstanceId(&cbSourceSIID, &ptrSourceSIID);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				continue;
+			}
+			if (cbSourceSIID == 0 || !ptrSourceSIID) {
+				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got empty single instance ID for attachment %u. That's not suitable for deduplication.", i);
 				continue;
 			}
 
