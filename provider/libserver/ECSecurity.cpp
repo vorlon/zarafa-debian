@@ -497,7 +497,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 			nCheckType = 1;
 			break;
 		case ecSecurityFolderAccess: // 7
-			if(bOwnerFound == false)
+			if(bOwnerFound == false || ulStoreType == ECSTORE_TYPE_ARCHIVE)
 				ulACL |= ecRightsFolderAccess;
 			nCheckType = 1;
 			break;

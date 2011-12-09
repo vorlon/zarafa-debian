@@ -635,12 +635,16 @@ bool ECExchangeImportContentsChanges::IsConflict(LPSPropValue lpLocalCK, LPSProp
 
 			// We have a conflict if we have a newer change locally than the remove server is sending us.
 			bConflict = ulLocalChangeNumber > ulRemoteChangeNumber;
+			if (bConflict)
+				LOG_DEBUG(m_lpLogger, "CONFLICT: ulLocalChangeNumber: %u > ulRemoteChangeNumber: %u", ulLocalChangeNumber, ulRemoteChangeNumber);
 		}
 		ulPos += ulSize;
 	}
 
-	if (!bGuidFound)
+	if (!bGuidFound) {
 		bConflict = true;
+		LOG_DEBUG(m_lpLogger, "CONFLICT: Local GUID not found in remote change list. Remote PCL size: %u", strChangeList.size());
+	}
 
 	return bConflict;
 }
