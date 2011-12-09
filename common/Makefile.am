@@ -20,10 +20,13 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h auto_free.h ECCache.h		\
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
-				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h \
+				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h
+noinst_libcommon_mapi_la_include_HEADERS = \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
+# for some reason, automake still wants to know a directory where not to install files.
+noinst_libcommon_mapi_la_includedir = 
 
 data_DATA = zarafa.pc
 datadir = $(libdir)/pkgconfig
