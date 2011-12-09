@@ -769,12 +769,14 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 	ECRESULT	er = erSuccess;
 	ECSession 	*lpecSession = NULL;
 
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, false);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
 	if(er != erSuccess)
 		goto exit;
 
     if(lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
         SaveLogonTime(lpecSession, false);
+
+	lpecSession->Unlock();
 
     // lpecSession is discarded. It is not locked, so we can do that. We only did the 'validatesession'
     // call to see if the session id existed in the first place, and the request is coming from the correct
