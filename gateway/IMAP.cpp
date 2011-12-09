@@ -5708,6 +5708,10 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		goto exit;
 	}
 
+	// no need to search in empty folders, won't find anything
+	if (lstFolderMailEIDs.size() == 0)
+		goto exit;
+
 	// don't search if only search for uid, sequence set, all, recent, new or old
 	strSearchCriterium = lstSearchCriteria[ulStartCriteria];
 	ToUpper(strSearchCriterium);
