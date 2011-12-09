@@ -109,15 +109,6 @@ HRESULT ZarafaFsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	hr = hrSuccess;
 
 exit:
-	if (lppTagArray)
-		freeNamedIdList(lppTagArray);
-
-	if (lpPropertyArray)
-		MAPIFreeBuffer(lpPropertyArray);
-
-	if (lpPropertyTagArray)
-		MAPIFreeBuffer(lpPropertyTagArray);
-
 	return hr;
 }
 
@@ -184,15 +175,6 @@ HRESULT ZarafaFsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 		hr = hrSuccess;
 
 exit:
-	if (lppTagArray)
-		freeNamedIdList(lppTagArray);
-
-	if (lpPropertyArray)
-		MAPIFreeBuffer(lpPropertyArray);
-
-	if (lpPropertyTagArray)
-		MAPIFreeBuffer(lpPropertyTagArray);
-
 	return hr;
 }
 
