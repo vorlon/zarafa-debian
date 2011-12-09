@@ -608,6 +608,8 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		*lprtmEnd = 0;
 
 exit:
+	if (lpPropArrayFBData)
+		MAPIFreeBuffer(lpPropArrayFBData);
 
 	return hr;
 }

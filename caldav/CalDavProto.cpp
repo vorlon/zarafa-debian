@@ -465,11 +465,10 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			else
 				wstrConvVal.clear();
 
-			// On some items, outlook never created the uid, so we need to create one for ical
+			// On some items, webaccess never created the uid, so we need to create one for ical
 			if (wstrConvVal.empty())
 			{
-				// this really shouldn't happen, every item has a guid.
-				ASSERT(FALSE);
+				// this really shouldn't happen, every item should have a guid.
 
 				hr = CreateAndGetGuid(lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin, ulTagGOID, &wstrConvVal);
 				if(hr == E_ACCESSDENIED)
@@ -786,7 +785,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	ULONG ulTagPrivate = 0;
 	std::list<WEBDAVPROPERTY>::iterator iter;
 	std::list<WEBDAVVALUE>::iterator iterWebVal;
-	SBinary sbEid = {0};
+	SBinary sbEid = {0, NULL};
 	WEBDAVPROP sDavProp;
 	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
@@ -911,6 +910,8 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	hr = hrSuccess;
 
 exit:
+	if (lpValRows)
+		FreeProws(lpValRows);
 	
 	if (lpMtIcal)
 		delete lpMtIcal;
@@ -923,6 +924,12 @@ exit:
 
 	if (lpPropTagArr)
 		MAPIFreeBuffer(lpPropTagArr);
+
+	if (sbEid.lpb)
+		MAPIFreeBuffer(sbEid.lpb);
+
+	if (lpAbCont)
+		lpAbCont->Release();
 
 	return hr;
 }
@@ -1880,13 +1887,13 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	LPSPropValue lpsGetPropVal = NULL;
 	LPMAPIFOLDER lpOutbox = NULL;
 	LPMESSAGE lpNewMsg = NULL;
-	LPSPropTagArray lpsPropArray = NULL;
-	LPSPropValue lpsSetPropVals = NULL;
+	SPropValue lpsSetPropVals[2] = {{0}};
 	ULONG cValues = 0;
 	ULONG ulObjType = 0;
 	time_t tModTime = 0;
 	SBinary sbEid = {0};
 	eIcalType etype = VEVENT;	
+	SizedSPropTagArray(2, sPropTagArr) = {2, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID}};
 
 	hr = lpIcalToMapi->GetItemInfo( 0, &etype, &tModTime, &sbEid);
 	if ( hr != hrSuccess || etype != VEVENT)
@@ -1895,16 +1902,7 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		goto exit;
 	}
 
-	cValues = 2;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void **)&lpsPropArray);
-	if (hr != hrSuccess)
-		goto exit;
-
-	lpsPropArray->cValues = cValues;
-	lpsPropArray->aulPropTag[0] = PR_IPM_OUTBOX_ENTRYID;
-	lpsPropArray->aulPropTag[1] = PR_IPM_SENTMAIL_ENTRYID;
-
-	hr = m_lpDefStore->GetProps(lpsPropArray, 0, &cValues, &lpsGetPropVal);
+	hr = m_lpDefStore->GetProps((LPSPropTagArray)&sPropTagArr, 0, &cValues, &lpsGetPropVal);
 	if (hr != hrSuccess && cValues != 2)
 		goto exit;
 
@@ -1920,18 +1918,13 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	if (hr != hrSuccess)
 		goto exit;
 
-	cValues = 2;
-	hr = MAPIAllocateBuffer(cValues * sizeof(SPropValue), (void**)&lpsSetPropVals);
-	if (hr != hrSuccess)
-		goto exit;
-
 	lpsSetPropVals[0].ulPropTag = PR_SENTMAIL_ENTRYID;
 	lpsSetPropVals[0].Value.bin = lpsGetPropVal[1].Value.bin;
 
 	lpsSetPropVals[1].ulPropTag = PR_DELETE_AFTER_SUBMIT;
 	lpsSetPropVals[1].Value.b = false;
 
-	hr = lpNewMsg->SetProps(cValues, lpsSetPropVals, NULL);
+	hr = lpNewMsg->SetProps(2, lpsSetPropVals, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1958,9 +1951,6 @@ exit:
 
 	if (lpsGetPropVal)
 		MAPIFreeBuffer(lpsGetPropVal);
-
-	if (lpsSetPropVals)
-		MAPIFreeBuffer(lpsSetPropVals);
 
 	return hr;
 }
