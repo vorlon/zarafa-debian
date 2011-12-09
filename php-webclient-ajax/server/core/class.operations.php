@@ -125,7 +125,7 @@
 			
 			foreach($storelist as $store)
 			{
-				$msgstore_props = mapi_getprops($store, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID));
+				$msgstore_props = mapi_getprops($store, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID, PR_MAILBOX_OWNER_ENTRYID));
 				
 				$inboxProps = array();
 
@@ -155,6 +155,7 @@
 				$storeData["attributes"] = array(	"id" => bin2hex($msgstore_props[PR_ENTRYID]), 
 													"name" => windows1252_to_utf8($msgstore_props[PR_DISPLAY_NAME]), 
 													"subtree" => bin2hex($msgstore_props[PR_IPM_SUBTREE_ENTRYID]),
+													'mailbox_owner' => bin2hex($msgstore_props[PR_MAILBOX_OWNER_ENTRYID]),
 													"type" => $storeType,
 													"foldertype" => "all"
 												);
