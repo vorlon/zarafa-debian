@@ -68,7 +68,7 @@ bool entryid_t::operator<(const entryid_t &other) const
 
 bool entryid_t::operator>(const entryid_t &other) const
 {
-	return getUnwrapped().m_vEntryId < other.getUnwrapped().m_vEntryId;
+	return getUnwrapped().m_vEntryId > other.getUnwrapped().m_vEntryId;
 }
 
 bool entryid_t::wrap(const std::string &strPath)

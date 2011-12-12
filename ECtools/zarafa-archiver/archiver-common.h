@@ -461,7 +461,7 @@ public:
 	 * @return true if a binary compare of the entryids results in the current entryid being smaller.
 	 */
 	bool operator<(const abentryid_t &other) const {
-		return compare(other) > 0;
+		return compare(other) < 0;
 	}
 	
 	/**
