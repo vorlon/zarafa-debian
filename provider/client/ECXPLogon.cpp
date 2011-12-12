@@ -144,8 +144,7 @@ HRESULT ECXPLogon::AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR **
 
 	if(m_lppszAdrTypeArray == NULL) {
 
-		hr = ECAllocateBuffer(sizeof(TCHAR *) * 2, (LPVOID *)&m_lppszAdrTypeArray);
-
+		hr = ECAllocateBuffer(sizeof(TCHAR *) * 3, (LPVOID *)&m_lppszAdrTypeArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -160,12 +159,18 @@ HRESULT ECXPLogon::AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR **
 			goto exit;
 
 		_tcscpy(m_lppszAdrTypeArray[1], TRANSPORT_ADDRESS_TYPE_ZARAFA);
+
+		hr = ECAllocateMore((_tcslen(TRANSPORT_ADDRESS_TYPE_FAX)+1) * sizeof(TCHAR), m_lppszAdrTypeArray, (LPVOID *)&m_lppszAdrTypeArray[2]);
+		if(hr != hrSuccess)
+			goto exit;
+
+		_tcscpy(m_lppszAdrTypeArray[2], TRANSPORT_ADDRESS_TYPE_FAX);
 	}
 
 	*lpulFlags = fMapiUnicode;
 	*lpcMAPIUID = 0;
 	*lpppUIDArray = NULL; // We could specify the Zarafa addressbook's UID here to stop the MAPI spooler doing expansions on them (IE EntryID -> Email address)
-	*lpcAdrType = 2;
+	*lpcAdrType = 3;
 	*lpppszAdrTypeArray = m_lppszAdrTypeArray;
 
 exit:
@@ -557,7 +562,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 
 		// Accept all SMTP-type addresses and set PR_RESPONSIBILITY set to TRUE
 		if(	_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_SMTP) == 0 ||
-			_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA) == 0)
+			_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA) == 0 ||
+			_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_FAX) == 0)
 		{
 			lpsResponsibility->Value.b = TRUE;
 			bRecipUpdate = true;
