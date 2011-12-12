@@ -41,8 +41,7 @@ host_triplet = @host@
 
 subdir = common
 DIST_COMMON = $(charset_HEADERS) $(libcommon_mapi_la_include_HEADERS) \
-	$(mapiptr_HEADERS) $(noinst_libcommon_mapi_la_include_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(mapiptr_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(srcdir)/zarafa.pc.in \
 	$(ustringutil_HEADERS) $(utf8_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -63,9 +62,8 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" \
 	"$(DESTDIR)$(charsetdir)" \
 	"$(DESTDIR)$(libcommon_mapi_la_includedir)" \
-	"$(DESTDIR)$(mapiptrdir)" \
-	"$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)" \
-	"$(DESTDIR)$(ustringutildir)" "$(DESTDIR)$(utf8dir)"
+	"$(DESTDIR)$(mapiptrdir)" "$(DESTDIR)$(ustringutildir)" \
+	"$(DESTDIR)$(utf8dir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcommon_mapi_la_LIBADD =
@@ -132,12 +130,10 @@ DATA = $(data_DATA)
 charsetHEADERS_INSTALL = $(INSTALL_HEADER)
 libcommon_mapi_la_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 mapiptrHEADERS_INSTALL = $(INSTALL_HEADER)
-noinst_libcommon_mapi_la_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 ustringutilHEADERS_INSTALL = $(INSTALL_HEADER)
 utf8HEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(charset_HEADERS) $(libcommon_mapi_la_include_HEADERS) \
-	$(mapiptr_HEADERS) $(noinst_libcommon_mapi_la_include_HEADERS) \
-	$(ustringutil_HEADERS) $(utf8_HEADERS)
+	$(mapiptr_HEADERS) $(ustringutil_HEADERS) $(utf8_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -347,14 +343,10 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h auto_free.h ECCache.h		\
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
-				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h
-
-noinst_libcommon_mapi_la_include_HEADERS = \
+				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
-# for some reason, automake still wants to know a directory where not to install files.
-noinst_libcommon_mapi_la_includedir = 
 data_DATA = zarafa.pc
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
@@ -692,23 +684,6 @@ uninstall-mapiptrHEADERS:
 	  echo " rm -f '$(DESTDIR)$(mapiptrdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(mapiptrdir)/$$f"; \
 	done
-install-noinst_libcommon_mapi_la_includeHEADERS: $(noinst_libcommon_mapi_la_include_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(noinst_libcommon_mapi_la_includedir)" || $(MKDIR_P) "$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)"
-	@list='$(noinst_libcommon_mapi_la_include_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(noinst_libcommon_mapi_la_includeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)/$$f'"; \
-	  $(noinst_libcommon_mapi_la_includeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)/$$f"; \
-	done
-
-uninstall-noinst_libcommon_mapi_la_includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(noinst_libcommon_mapi_la_include_HEADERS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)/$$f"; \
-	done
 install-ustringutilHEADERS: $(ustringutil_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(ustringutildir)" || $(MKDIR_P) "$(DESTDIR)$(ustringutildir)"
@@ -821,7 +796,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS) config.h
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(charsetdir)" "$(DESTDIR)$(libcommon_mapi_la_includedir)" "$(DESTDIR)$(mapiptrdir)" "$(DESTDIR)$(noinst_libcommon_mapi_la_includedir)" "$(DESTDIR)$(ustringutildir)" "$(DESTDIR)$(utf8dir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(charsetdir)" "$(DESTDIR)$(libcommon_mapi_la_includedir)" "$(DESTDIR)$(mapiptrdir)" "$(DESTDIR)$(ustringutildir)" "$(DESTDIR)$(utf8dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -871,9 +846,10 @@ info-am:
 
 install-data-am: install-charsetHEADERS install-dataDATA \
 	install-libcommon_mapi_la_includeHEADERS \
-	install-mapiptrHEADERS \
-	install-noinst_libcommon_mapi_la_includeHEADERS \
-	install-ustringutilHEADERS install-utf8HEADERS
+	install-mapiptrHEADERS install-ustringutilHEADERS \
+	install-utf8HEADERS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-dvi: install-dvi-am
 
@@ -912,39 +888,37 @@ ps-am:
 uninstall-am: uninstall-charsetHEADERS uninstall-dataDATA \
 	uninstall-libLTLIBRARIES \
 	uninstall-libcommon_mapi_la_includeHEADERS \
-	uninstall-mapiptrHEADERS \
-	uninstall-noinst_libcommon_mapi_la_includeHEADERS \
-	uninstall-ustringutilHEADERS uninstall-utf8HEADERS
+	uninstall-mapiptrHEADERS uninstall-ustringutilHEADERS \
+	uninstall-utf8HEADERS
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-data-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-charsetHEADERS \
-	install-data install-data-am install-dataDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES \
+	install-data install-data-am install-data-hook \
+	install-dataDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES \
 	install-libcommon_mapi_la_includeHEADERS install-man \
-	install-mapiptrHEADERS \
-	install-noinst_libcommon_mapi_la_includeHEADERS install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	install-ustringutilHEADERS install-utf8HEADERS installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-charsetHEADERS \
-	uninstall-dataDATA uninstall-libLTLIBRARIES \
+	install-mapiptrHEADERS install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip install-ustringutilHEADERS \
+	install-utf8HEADERS installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-charsetHEADERS uninstall-dataDATA \
+	uninstall-libLTLIBRARIES \
 	uninstall-libcommon_mapi_la_includeHEADERS \
-	uninstall-mapiptrHEADERS \
-	uninstall-noinst_libcommon_mapi_la_includeHEADERS \
-	uninstall-ustringutilHEADERS uninstall-utf8HEADERS
+	uninstall-mapiptrHEADERS uninstall-ustringutilHEADERS \
+	uninstall-utf8HEADERS
 
 
-# pkgconfigdir = $(libdir)/pkgconfig
-# pkgconfig_DATA = zarafa.pc
+# remove double installed headers
+install-data-hook:
+	for f in $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS); do rm ${DESTDIR}/$(includedir)/zarafa/`basename $$f`; done
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
