@@ -69,7 +69,7 @@
 	// used in operations->getHierarchyList
 	define("HIERARCHY_GET_ALL",			0);
 	define("HIERARCHY_GET_DEFAULT",		1);
-	define("HIERARCHY_GET_ONE",			2);
+	define("HIERARCHY_GET_SPECIFIC",	2);
 
 	// check to see if the HTML editor is installled
 	if (is_dir(FCKEDITOR_PATH.'/editor') && is_file(FCKEDITOR_PATH.'/editor/fckeditor.html')){
