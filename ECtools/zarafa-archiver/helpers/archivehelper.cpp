@@ -252,7 +252,7 @@ ArchiveHelper::~ArchiveHelper()
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::GetAttachedUser(entryid_t *lpsUserEntryId)
+HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 {
 	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrFolder;
@@ -281,7 +281,7 @@ exit:
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::SetAttachedUser(const entryid_t &sUserEntryId)
+HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
 {
 	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrFolder;
@@ -460,7 +460,7 @@ exit:
  *
  * @return HRESULT
  */
-HRESULT ArchiveHelper::SetPermissions(const entryid_t &sUserEntryId, bool bWritable)
+HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWritable)
 {
 	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrFolder;

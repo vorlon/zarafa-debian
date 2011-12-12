@@ -94,7 +94,7 @@
 #define _DAY    (24 * _HOUR)
 
 /**
- * Utility class for easy handling of entryids.
+ * Utility class for easy handling of non-addressbook entryids.
  */
 class entryid_t
 {
@@ -253,7 +253,7 @@ public:
 	 *					The other entryid to compare content with.
 	 * @return true if a binary compare of the entryids results in the current entryid being smaller.
 	 */
-	bool operator>(const entryid_t &other) const { return !operator<(other); }
+	bool operator>(const entryid_t &other) const;
 
 	/**
 	 * Convert the entryid to a human readable hexadecimal format.
@@ -303,6 +303,207 @@ public:
 	entryid_t getUnwrapped() const;
 	
 private:
+	std::vector<BYTE> m_vEntryId;
+};
+
+/**
+ * Utility class for easy handling of addressbook entryids.
+ */
+class abentryid_t
+{
+public:
+	/**
+	 * Constructs an empty entryid.
+	 */
+	abentryid_t() {}
+	
+	/**
+	 * Construct an entryid based on a length and pointer argument.
+	 *
+	 * @param[in]	cbEntryId
+	 *					The length in bytes of the entryid.
+	 * @param[in]	lpEntryId
+	 *					Pointer to the entryid.
+	 */
+	abentryid_t(ULONG cbEntryId, LPENTRYID lpEntryId)
+	: m_vEntryId((LPBYTE)lpEntryId, (LPBYTE)lpEntryId + cbEntryId)
+	{ }
+	
+	/**
+	 * Construct an entryid based on a SBinary structure.
+	 *
+	 * @param[in]	sBin
+	 *					The SBinary structure from which the data will be extracted.
+	 */
+	abentryid_t(const SBinary &sBin)
+	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
+	{ }
+	
+	/**
+	 * Copy constructor.
+	 *
+	 * @param[in]	other
+	 *					The entryid to copy.
+	 */
+	abentryid_t(const abentryid_t &other)
+	: m_vEntryId(other.m_vEntryId)
+	{ }
+	
+	/**
+	 * Assign a new entryid based on a length and pointer argument.
+	 *
+	 * @param[in]	cbEntryId
+	 *					The length in bytes of the entryid.
+	 * @param[in]	lpEntryId
+	 *					Pointer to the entryid.
+	 */
+	void assign(ULONG cbEntryId, LPENTRYID lpEntryId) {
+		m_vEntryId.assign((LPBYTE)lpEntryId, (LPBYTE)lpEntryId + cbEntryId);
+	}
+	
+	/**
+	 * Assign a new entryid based on a SBinary structure.
+	 *
+	 * @param[in]	sBin
+	 *					The SBinary structure from which the data will be extracted.
+	 */
+	void assign(const SBinary &sBin) {
+		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
+	}
+	
+	/**
+	 * Assign a new entryid based on another entryid.
+	 *
+	 * @param[in]	other
+	 *					The entryid to copy.
+	 */
+	void assign(const abentryid_t &other) {
+		m_vEntryId = other.m_vEntryId;
+	}
+	
+	/**
+	 * Returns the size in bytes of the entryid.
+	 * @return The size in bytes of the entryid.
+	 */
+	ULONG size() const { return m_vEntryId.size(); }
+	
+	/**
+	 * Returns true if the entryid is empty.
+	 * @return true or false
+	 */
+	bool empty() const { return m_vEntryId.empty(); }
+	
+	/**
+	 * Return a pointer to the data as a BYTE pointer.
+	 * @return The entryid data.
+	 */
+	operator LPBYTE() const { return (LPBYTE)&m_vEntryId.front(); }
+	
+	/**
+	 * Return a pointer to the data as an ENTRYID pointer.
+	 * @return The entryid data.
+	 */
+	operator LPENTRYID() const { return (LPENTRYID)&m_vEntryId.front(); }
+	
+	/**
+	 * Return a pointer to the data as a VOID pointer.
+	 * @return The entryid data.
+	 */
+	operator LPVOID() const { return (LPVOID)&m_vEntryId.front(); }
+	
+	/**
+	 * Copy operator
+	 * @param[in]	other
+	 *					The entryid to copy.
+	 * @return Reference to itself.
+	 */
+	abentryid_t &operator=(const abentryid_t &other) {
+		if (&other != this) {
+			abentryid_t tmp(other);
+			swap(tmp);
+		}
+		return *this;
+	}
+	
+	/**
+	 * Swap the content of the current entryid with the content of another entryid
+	 * @param[in,out]	other
+	 *						The other entryid to swap content with.
+	 */
+	void swap(abentryid_t &other) {
+		std::swap(m_vEntryId, other.m_vEntryId);
+	}
+	
+	/**
+	 * Compare the content of the current entryid with the content of another entryid.
+	 * @param[in]	other
+	 *					The other entryid to compare content with.
+	 * @return true if the entryids are equal.
+	 */
+	bool operator==(const abentryid_t &other) const {
+		return compare(other) == 0;
+	}
+	
+	/**
+	 * Compare the content of the current entryid with the content of another entryid.
+	 * @param[in]	other
+	 *					The other entryid to compare content with.
+	 * @return true if the entryids are not equal.
+	 */
+	bool operator!=(const abentryid_t &other) const {
+		return !(*this == other);
+	}
+	
+	/**
+	 * Compare the content of the current entryid with the content of another entryid.
+	 * @param[in]	other
+	 *					The other entryid to compare content with.
+	 * @return true if a binary compare of the entryids results in the current entryid being smaller.
+	 */
+	bool operator<(const abentryid_t &other) const {
+		return compare(other) > 0;
+	}
+	
+	/**
+	 * Compare the content of the current entryid with the content of another entryid.
+	 * @param[in]	other
+	 *					The other entryid to compare content with.
+	 * @return true if a binary compare of the entryids results in the current entryid being smaller.
+	 */
+	bool operator>(const abentryid_t &other) const {
+		return compare(other) > 0;
+	}
+
+	/**
+	 * Convert the entryid to a human readable hexadecimal format.
+	 * @return The entryid in hexadecimal format.
+	 */
+	std::string tostring() const {
+		return bin2hex(m_vEntryId.size(), &m_vEntryId.front());
+	}
+
+private:
+	/**
+	 * Compare the entryid with another entryid.
+	 * A shorter entryid will always compare less to a longer entryid.
+	 * Entryids shorter or equal to 32 bytes will simply be memcmp'd.
+	 * Longer entryids will be compared in two steps, leaving out the
+	 * legacy user id (which differs, depending on the server the entryid
+	 * was obtained from).
+	 * No attempt is made to match v0 and v1 entryids.
+	 * 
+	 * @param[in]	other	The other entryid.
+	 * 
+	 * @returns < 0	This entryid compares less to the other entryid.
+	 * @returns 0	This entryid equals the other entryid.
+	 * @returns >0	This entryid compared greater to the other entryid.
+	 * 
+	 * @note: SortCompareABEID from provider/common/ZarafaUtil.cpp would be nicer. However, that's
+	 * not intended to be used in client applications. Client applications shouldn't be aware
+	 * of entryid formats at all...
+	 */ 
+	int compare(const abentryid_t &other) const;
+
 	std::vector<BYTE> m_vEntryId;
 };
 

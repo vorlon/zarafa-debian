@@ -208,7 +208,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 	ArchiveInfoMap::const_iterator i = std::find_if(m_mapArchiveInfo.begin(), m_mapArchiveInfo.end(), Predicates::MapInfo_contains_userName(userName));
 	if (i == m_mapArchiveInfo.end()) {
 		// Resolve the username and search by entryid.
-		entryid_t userId;
+		abentryid_t userId;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to find entry for user '" TSTRING_PRINTF "', trying to resolve.", userName.c_str());
 		hr = m_ptrSession->GetUserInfo(userName, &userId, NULL);
@@ -237,7 +237,7 @@ exit:
  * @param[in[	info		The ArchiveInfo object containing the current and
  * 							required state.
  */
-HRESULT ArchiveStateUpdater::UpdateOne(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
+HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	
@@ -274,7 +274,7 @@ return hr;
  * @param[in]	lstArchives	The list of archives to remove the implicit attached
  * 							archives from.
  */
-HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const entryid_t &userId, const ObjectEntryList &lstArchives)
+HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives)
 {
 	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrUserStore;
@@ -500,7 +500,7 @@ exit:
  * 								should be created or opened and attached to the
  * 								primary store.
  */
-HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const entryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
+HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abentryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveManagePtr ptrManage;
@@ -553,7 +553,7 @@ exit:
  * @param[in]	info		ArchiveInfo instance containing the current and
  * 							requried state.
  */
-HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
+HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
 	std::list<tstring> lstServers;
@@ -626,7 +626,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const entryid_t &userId, const Arch
 		}
 	}
 
-	hr = RemoveImplicit(info.storeId, info.userName, entryid_t(), lstArchives);
+	hr = RemoveImplicit(info.storeId, info.userName, abentryid_t(), lstArchives);
 	if (hr != hrSuccess)
 		goto exit;
 

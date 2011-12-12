@@ -424,7 +424,7 @@ HRESULT Session::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lppMsgStore
  *
  * @return HRESULT
  */
-HRESULT Session::GetUserInfo(const tstring &strUser, entryid_t *lpsEntryId, tstring *lpstrFullname)
+HRESULT Session::GetUserInfo(const tstring &strUser, abentryid_t *lpsEntryId, tstring *lpstrFullname)
 {
 	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrStore;
@@ -478,7 +478,7 @@ exit:
 	return hr;
 }
 
-HRESULT Session::GetUserInfo(const entryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
+HRESULT Session::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulType = 0;
@@ -773,7 +773,7 @@ HRESULT Session::CreateArchiveStore(const tstring& strUserName, const tstring& s
 	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrRemoteAdminStore;
 	ECServiceAdminPtr ptrRemoteServiceAdmin;
-	entryid_t userId;
+	abentryid_t userId;
 	ULONG cbStoreId = 0;
 	EntryIdPtr ptrStoreId;
 	ULONG cbRootId = 0;

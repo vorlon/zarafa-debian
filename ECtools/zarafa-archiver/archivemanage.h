@@ -83,7 +83,7 @@ public:
 	eResult AutoAttach(unsigned int ulFlags);
 
 	HRESULT AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags, za::helpers::AttachType attachType);
-	HRESULT AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const entryid_t &sUserEntryId, unsigned ulFlags, za::helpers::AttachType attachType);
+	HRESULT AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const abentryid_t &sUserEntryId, unsigned ulFlags, za::helpers::AttachType attachType);
 
 	~ArchiveManageImpl();
 	

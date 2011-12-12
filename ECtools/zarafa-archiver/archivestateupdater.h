@@ -83,13 +83,13 @@ private:
 	HRESULT PopulateUserList();
 	HRESULT PopulateFromContainer(LPABCONT lpContainer);
 
-	HRESULT UpdateOne(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags);
-	HRESULT RemoveImplicit(const entryid_t &storeId, const tstring &userName, const entryid_t &userId, const ObjectEntryList &lstArchives);
+	HRESULT UpdateOne(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags);
+	HRESULT RemoveImplicit(const entryid_t &storeId, const tstring &userName, const abentryid_t &userId, const ObjectEntryList &lstArchives);
 
 	HRESULT ParseCoupling(const tstring &strCoupling, tstring *lpstrArchive, tstring *lpstrFolder);
 	HRESULT AddCouplingBased(const tstring &userName, const std::list<tstring> &lstCouplings, unsigned int ulAttachFlags);
-	HRESULT AddServerBased(const tstring &userName, const entryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags);
-	HRESULT VerifyAndUpdate(const entryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags);
+	HRESULT AddServerBased(const tstring &userName, const abentryid_t &userId, const std::list<tstring> &lstServers, unsigned int ulAttachFlags);
+	HRESULT VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags);
 
 	HRESULT FindArchiveEntry(const tstring &strArchive, const tstring &strFolder, SObjectEntry *lpObjEntry);
 

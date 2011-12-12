@@ -197,7 +197,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	HRESULT	hr = hrSuccess;
 	MsgStorePtr ptrArchiveStore;
 	tstring strFoldername;
-	entryid_t sUserEntryId;
+	abentryid_t sUserEntryId;
 	SessionPtr ptrArchiveSession(m_ptrSession);
 	SessionPtr ptrRemoteSession;
 	unsigned int ulArchivedUsers = 0;
@@ -257,11 +257,11 @@ exit:
 	return hr;
 }
 
-HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const entryid_t &sUserEntryId, unsigned ulFlags, AttachType attachType)
+HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const abentryid_t &sUserEntryId, unsigned ulFlags, AttachType attachType)
 {
 	HRESULT hr = hrSuccess;
 	ArchiveHelperPtr ptrArchiveHelper;
-	entryid_t sAttachedUserEntryId;
+	abentryid_t sAttachedUserEntryId;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	SObjectEntry objectEntry;
