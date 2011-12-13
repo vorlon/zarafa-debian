@@ -2372,8 +2372,9 @@ namespace charsetHelper {
 		const char *original;
 		const char *update;
 	} fixes[] = {
-		{"gb2312", "gb18030"},		// gb18030 is an extended version of gb2312
-		{"ks_c_5601-1987", "cp949"}	// cp949 is euc-kr with UHC extensions
+		{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
+		{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
+		{"iso-8859-8-i", "iso-8859-8"}	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
 	};
 }
 vmime::charset VMIMEToMAPI::getCompatibleCharset(const vmime::charset &vmCharset)
