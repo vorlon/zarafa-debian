@@ -1982,8 +1982,8 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 			}
 
 			if (HrGetCPByCharset(bodyCharset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess) {
-				// we have no matching win32 codepage, so choose iso-8859-15
-				sCodepage.Value.ul = 28605;
+				// we have no matching win32 codepage, so convert the HTML from plaintext in utf-8 for compatibility.
+				sCodepage.Value.ul = 65001;
 			}
 			sCodepage.ulPropTag = PR_INTERNET_CPID;
 			HrSetOneProp(lpMessage, &sCodepage);
@@ -2102,8 +2102,10 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			
 			// write codepage for PR_HTML property
 			if (HrGetCPByCharset(bodyCharset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess) {
-				// we have no matching win32 codepage, so choose iso-8859-15
-				sCodepage.Value.ul = 28605;
+				// we have no matching win32 codepage, so choose utf-8 and convert body using iconv, (note: HTML is already "charset-sanitized", should not throw error here)
+				sCodepage.Value.ul = 65001;
+				strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				lpLogger->Log(EC_LOGLEVEL_INFO, "Changing HTML charset to UTF-8 for compatibility");
 			}
 			sCodepage.ulPropTag = PR_INTERNET_CPID;
 			HrSetOneProp(lpMessage, &sCodepage);
