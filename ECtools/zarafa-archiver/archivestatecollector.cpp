@@ -131,7 +131,7 @@ namespace details {
 			for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 				std::pair<ArchiveStateCollector::ArchiveInfoMap::iterator, bool> res;
 				bool bComplete = true;
-				entryid_t userId;
+				abentryid_t userId;
 
 				for (unsigned j = 0; bComplete && j < IDX_MAX; ++j) {
 					if (PROP_TYPE(ptrRows[i].lpProps[j].ulPropTag) == PT_ERROR) {
@@ -173,32 +173,6 @@ namespace details {
 		return hr;
 	}
 
-}
-
-// SortCompareABEID from provider/common/ZarafaUtil.cpp would be nicer. However, that's
-// not intended to be used in client applications. Client applications shouldn't be aware
-// of entryid formats at all...
-bool ArchiveStateCollector::abeidLess::operator()(const entryid_t &lhs, const entryid_t &rhs) const {
-	if (lhs.size() < rhs.size())
-		return true;
-
-	if (lhs.size() == rhs.size()) {
-		if (lhs.size() <= 32) {
-			// Too small, just compare the whole thing
-			return memcmp(LPBYTE(lhs), LPBYTE(rhs), lhs.size()) < 0;
-		}
-
-		// compare the part before the legacy user id.
-		int res = memcmp(LPBYTE(lhs), LPBYTE(rhs), 28);
-		if (res < 0)
-			return true;
-		if (res == 0) {
-			// compare the part after the legacy user id.
-			return memcmp(LPBYTE(lhs) + 32, LPBYTE(rhs) + 32, lhs.size() - 32) < 0;
-		}
-	}
-
-	return false;
 }
 
 
@@ -379,7 +353,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			}
 
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Inserting row for user '" TSTRING_PRINTF "'", ptrRows[i].lpProps[IDX_ACCOUNT].Value.LPSZ);
-			iterator = m_mapArchiveInfo.insert(std::make_pair(entryid_t(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin), ArchiveInfo())).first;
+			iterator = m_mapArchiveInfo.insert(std::make_pair(abentryid_t(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin), ArchiveInfo())).first;
 
 			iterator->second.userName.assign(ptrRows[i].lpProps[IDX_ACCOUNT].Value.LPSZ);
 

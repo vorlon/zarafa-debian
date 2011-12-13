@@ -66,6 +66,11 @@ bool entryid_t::operator<(const entryid_t &other) const
 	return getUnwrapped().m_vEntryId < other.getUnwrapped().m_vEntryId;
 }
 
+bool entryid_t::operator>(const entryid_t &other) const
+{
+	return getUnwrapped().m_vEntryId > other.getUnwrapped().m_vEntryId;
+}
+
 bool entryid_t::wrap(const std::string &strPath)
 {
 	if (!ba::istarts_with(strPath, "file://") &&
@@ -111,6 +116,25 @@ entryid_t entryid_t::getUnwrapped() const
 	entryid_t tmp(*this);
 	tmp.unwrap(NULL);
 	return tmp;
+}
+
+int abentryid_t::compare(const abentryid_t &other) const
+{
+	if (size() != other.size())
+		return int(size()) - int(other.size());
+
+	if (size() <= 32) {
+		// Too small, just compare the whole thing
+		return memcmp(LPBYTE(*this), LPBYTE(other), size());
+	}
+
+	// compare the part before the legacy user id.
+	int res = memcmp(LPBYTE(*this), LPBYTE(other), 28);
+	if (res != 0)
+		return res;
+
+	// compare the part after the legacy user id.
+	return memcmp(LPBYTE(*this) + 32, LPBYTE(other) + 32, size() - 32);
 }
 
 eResult MAPIErrorToArchiveError(HRESULT hr)

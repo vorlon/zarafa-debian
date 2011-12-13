@@ -91,14 +91,14 @@ public:
 	static HRESULT Create(SessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
 	~ArchiveHelper();
 	
-	HRESULT GetAttachedUser(entryid_t *lpsUserEntryId);
-	HRESULT SetAttachedUser(const entryid_t &sUserEntryId);
+	HRESULT GetAttachedUser(abentryid_t *lpsUserEntryId);
+	HRESULT SetAttachedUser(const abentryid_t &sUserEntryId);
 	HRESULT GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry);
 
 	HRESULT GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType);
 	HRESULT SetArchiveType(ArchiveType archType, AttachType attachType);
 	
-	HRESULT SetPermissions(const entryid_t &sUserEntryId, bool bWritable);
+	HRESULT SetPermissions(const abentryid_t &sUserEntryId, bool bWritable);
 	
 	HRESULT GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, SessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);

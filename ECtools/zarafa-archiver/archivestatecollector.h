@@ -86,10 +86,7 @@ public:
 		std::list<tstring> lstCouplings;
 		ObjectEntryList lstArchives;
 	};
-	struct abeidLess {
-		bool operator()(const entryid_t &lhs, const entryid_t &rhs) const;
-	};
-	typedef std::map<entryid_t, ArchiveInfo, abeidLess> ArchiveInfoMap;
+	typedef std::map<abentryid_t, ArchiveInfo> ArchiveInfoMap;
 
 private:
 	ArchiveStateCollector(const SessionPtr &ptrSession, ECLogger *lpLogger);
