@@ -1073,6 +1073,7 @@ HRESULT ECMAPIFolder::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<IC
 {
 	HRESULT hr = hrSuccess;
 	WSMessageStreamExporterPtr ptrStreamExporter;
+	WSTransportPtr ptrTransport;
 
 	if (ulStart > sChanges.size()) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1087,7 +1088,15 @@ HRESULT ECMAPIFolder::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<IC
 		goto exit;
 	}
 
-	hr = GetMsgStore()->lpTransport->HrExportMessageChangesAsStream(ulFlags, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
+	// Need to clone the transport since we want to be able to use our own transport for other things
+	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
+	// with other MAPI calls which would normally be impossible since the stream is kept open between
+	// Synchronize() calls.
+	hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
 	if (hr != hrSuccess)
 		goto exit;
 
