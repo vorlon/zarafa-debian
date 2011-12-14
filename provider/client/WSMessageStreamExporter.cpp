@@ -176,11 +176,13 @@ WSMessageStreamExporter::WSMessageStreamExporter()
 WSMessageStreamExporter::~WSMessageStreamExporter()
 {
 	// Discard data of all remaining streams so all data is read from the network
-	m_ptrTransport->m_lpCmd->soap->fmimewriteopen = NULL;
-	m_ptrTransport->m_lpCmd->soap->fmimewrite = NULL;
-	m_ptrTransport->m_lpCmd->soap->fmimewriteclose = NULL;
+	if(m_ptrTransport->m_lpCmd) {
+		m_ptrTransport->m_lpCmd->soap->fmimewriteopen = NULL;
+		m_ptrTransport->m_lpCmd->soap->fmimewrite = NULL;
+		m_ptrTransport->m_lpCmd->soap->fmimewriteclose = NULL;
 
-	while (soap_get_mime_attachment(m_ptrTransport->m_lpCmd->soap, NULL));	// This is a loop!
+		while (soap_get_mime_attachment(m_ptrTransport->m_lpCmd->soap, NULL));	// This is a loop!
+	}
 
 	if (m_ptrTransport)
 		m_ptrTransport->UnLockSoap();
