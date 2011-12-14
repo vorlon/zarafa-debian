@@ -317,8 +317,8 @@
 						} else {
 							$this->getSubFoldersPublic($folder, $store, $properties, $storeData);
 						}
+						array_push($data["store"], $storeData);
 					}
-					array_push($data["store"], $storeData);
 				}
 			}
 

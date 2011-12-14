@@ -195,7 +195,8 @@
 									$stores = array_merge($stores, array_values( $GLOBALS["mapisession"]->getArchivedStores($GLOBALS["mapisession"]->resolveStrictUserName($action["username"])) ));
 								}
 								$data = $GLOBALS["operations"]->getHierarchyList($this->columns, HIERARCHY_GET_SPECIFIC, $stores);
-								if(!mapi_is_error(mapi_last_hresult()) && (is_array($data["store"]) && count($data["store"]) > 0)) {
+								// TODO: Perhaps some more error handling could be done here
+								if(is_array($data["store"]) && count($data["store"]) > 0) {
 									array_push($this->responseData["action"], $data);
 									$GLOBALS["bus"]->addData($this->responseData);	
 									$result = true;
