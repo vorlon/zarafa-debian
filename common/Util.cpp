@@ -4213,6 +4213,10 @@ next_stream_prop:
 	// set destination proptags in orignal properties
 	for (ULONG i=0; i < cValues; i++) {
 		lpProps[i].ulPropTag = lpsDestTagArray->aulPropTag[i];
+
+		// Reset PT_ERROR properties because outlook xp pst doesn't support to set props this.
+		if (PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR)
+			lpProps[i].ulPropTag = PR_NULL;
 	}
 
 	hr = lpDestProp->SetProps(cValues, lpProps, NULL);
