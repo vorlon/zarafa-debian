@@ -12282,7 +12282,7 @@
 		no need to restore anything. If the message exists but is stubbed, it
 		will be destubbed. If the primary message does not exist, a new message
 		is created based on the archived copy. In this case the archived copy
-		is updated so it will refference the newly created message. This is
+		is updated so it will reference the newly created message. This is
 		needed to make sure a subsequent run of za-restore won't create another
 		copy.</para>
 
