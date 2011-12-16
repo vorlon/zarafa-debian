@@ -307,7 +307,7 @@ def UpdateDatabaseCreateTProperties(db, cursor, progress_callback):
                        `val_longint` bigint(20) default NULL,
                        `val_hi` int(11) default NULL,
                        `val_lo` int(11) unsigned default NULL,
-                       PRIMARY KEY `ht` (`folderid`,`tag`,`type`,`hierarchyid`),
+                       PRIMARY KEY `ht` (`folderid`,`tag`,`hierarchyid`,`type`),
                        KEY `hi` (`hierarchyid`)
                    ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"""
 
