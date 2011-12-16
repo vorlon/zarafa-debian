@@ -423,7 +423,16 @@ HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable, LPSPropTagArray lpPropTags
 			goto exit;
 	}
 
-	hr = lpTable->QueryRows(0x7FFFFFFF, 0, lppRows);
+	if (lpSortOrderSet) {
+		hr = lpTable->SortTable(lpSortOrderSet, TBL_BATCH);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	if (crowsMax == 0)
+		crowsMax = 0x7FFFFFFF;
+
+	hr = lpTable->QueryRows(crowsMax, 0, lppRows);
 
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "HrQueryAllRows", "0x%08x", hr);

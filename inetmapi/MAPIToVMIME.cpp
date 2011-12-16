@@ -757,6 +757,7 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 	HRESULT		hr					= hrSuccess;
 	LPSRowSet	pRows				= NULL;
 	LPMAPITABLE	lpAttachmentTable	= NULL;
+	SizedSSortOrderSet(1, sosRTFSeq) = {1, 0, 0, { {PR_RENDERING_POSITION, TABLE_SORT_ASCEND} } };
 
 	// get attachment table
 	hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
@@ -765,7 +766,7 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 		goto exit;
 	}
 
-	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, NULL, 0, &pRows);
+	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &pRows);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to fetch rows of attachment table. Error: 0x%08X", hr);
 		goto exit;
@@ -2332,14 +2333,15 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	LPSRowSet		lpAttachRows = NULL;
 	SizedSPropTagArray(2, sptaAttachProps) = {2, {PR_ATTACH_METHOD, PR_ATTACH_NUM }};
 	SizedSPropTagArray(5, sptaOLEAttachProps) = {5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME, PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
-	
+	SizedSSortOrderSet(1, sosRTFSeq) = {1, 0, 0, { {PR_RENDERING_POSITION, TABLE_SORT_ASCEND} } };
+
 	try {
 	    // Find all ATTACH_OLE attachments and put them in lstOLEAttach
 	    hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
 	    if(hr != hrSuccess)
 	        goto exit;
 	    
-        hr = HrQueryAllRows(lpAttachTable, (LPSPropTagArray)&sptaAttachProps, NULL, NULL, -1, &lpAttachRows);
+        hr = HrQueryAllRows(lpAttachTable, (LPSPropTagArray)&sptaAttachProps, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &lpAttachRows);
         if(hr != hrSuccess)
             goto exit;
             
