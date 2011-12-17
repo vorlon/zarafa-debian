@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-17 00:02+0100\n"
-"PO-Revision-Date: 2011-12-17 00:53+0200\n"
+"POT-Creation-Date: 2011-12-18 00:02+0100\n"
+"PO-Revision-Date: 2011-12-17 11:06+0200\n"
 "Last-Translator: Michal <formanek@roxit.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: cs\n"
@@ -46,7 +46,7 @@ msgstr "Hledat"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:73
 msgid "Any type of item"
-msgstr ""
+msgstr "Jakýkoli typ položky"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/advancedfind.php:74
 msgid "Appointments and Meetings"
@@ -269,7 +269,6 @@ msgstr "Termín splnění"
 #: php-webclient-ajax/client/layout/js/task.js:176
 #: php-webclient-ajax/client/layout/js/task.js:335
 #: php-webclient-ajax/client/layout/js/task.js:349
-#, fuzzy
 msgid "None"
 msgstr "Žádný"
 
@@ -479,7 +478,7 @@ msgstr "Ujeté kilometry"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:549
 msgid "Actual work"
-msgstr ""
+msgstr "Aktuální práce"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:556
 #: php-webclient-ajax/client/modules/printmessageitem.js:143
@@ -495,8 +494,9 @@ msgid "Update List"
 msgstr "Aktualizovat seznam"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:588
+#, fuzzy
 msgid "Create Unassigned Copy"
-msgstr ""
+msgstr "Vytvořit nepřiřazené kopie"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:602
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:603
@@ -2460,9 +2460,11 @@ msgid ""
 "this one?"
 msgstr ""
 
+# 77%
 #: php-webclient-ajax/client/layout/dialogs/modal/deleteoccurrence.php:61
+#, fuzzy
 msgid "Delete this occurrence"
-msgstr ""
+msgstr "Otevřít tento výskyt"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/deleteoccurrence.php:62
 msgid "Delete the series"
@@ -2678,11 +2680,13 @@ msgstr ""
 msgid "4th"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:201
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:252
 #: php-webclient-ajax/client/core/utils.js:1666
+#, fuzzy
 msgid "last"
-msgstr ""
+msgstr "Příjmení"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:205
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:256
@@ -4827,11 +4831,13 @@ msgstr ""
 msgid "Month"
 msgstr "měsíc"
 
+# 75%
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:29
 #: php-webclient-ajax/client/modules/contactlistmodule.js:28
 #: php-webclient-ajax/client/modules/stickynotelistmodule.js:23
+#, fuzzy
 msgid "List"
-msgstr ""
+msgstr "Příjmení"
 
 #: php-webclient-ajax/client/modules/createmailitemmodule.js:212
 #: php-webclient-ajax/client/modules/createmailitemmodule.js:218
@@ -5181,10 +5187,12 @@ msgstr ""
 msgid "Percent Complete"
 msgstr ""
 
+# 90%
 #: php-webclient-ajax/client/modules/printmessageitem.js:103
 #: php-webclient-ajax/client/core/properties.js:102
+#, fuzzy
 msgid "Total Work"
-msgstr ""
+msgstr "Celková práce"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:107
 #: php-webclient-ajax/client/core/properties.js:103
@@ -5739,9 +5747,11 @@ msgstr ""
 msgid "Due %d years"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/core/utils.js:1662
+#, fuzzy
 msgid "first"
-msgstr ""
+msgstr "Jméno"
 
 #: php-webclient-ajax/client/core/utils.js:1663
 msgid "second"
@@ -5872,130 +5882,131 @@ msgstr ""
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:67
 msgid "Jan"
-msgstr ""
+msgstr "Leden"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:68
 msgid "Feb"
-msgstr ""
+msgstr "Únor"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:69
 msgid "Mar"
-msgstr ""
+msgstr "Březen"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:70
 msgid "Apr"
-msgstr ""
+msgstr "Duben"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:72
 msgid "Jun"
-msgstr ""
+msgstr "Červen"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:73
 msgid "Jul"
-msgstr ""
+msgstr "Červenec"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:74
 msgid "Aug"
-msgstr ""
+msgstr "Srpen"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:75
 msgid "Sep"
-msgstr ""
+msgstr "Září"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:76
 msgid "Oct"
-msgstr ""
+msgstr "Říjen"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:77
 msgid "Nov"
-msgstr ""
+msgstr "Listopad"
 
 #: php-webclient-ajax/client/core/constants.js:56
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:78
 msgid "Dec"
-msgstr ""
+msgstr "Prosinec"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:37
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:44
 msgid "Sun"
-msgstr ""
+msgstr "Neděle"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:38
 msgid "Mon"
-msgstr ""
+msgstr "Pondělí"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:39
 msgid "Tue"
-msgstr ""
+msgstr "Úterý"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:40
 msgid "Wed"
-msgstr ""
+msgstr "Středa"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:41
 msgid "Thu"
-msgstr ""
+msgstr "Čtvrtek"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:42
 msgid "Fri"
-msgstr ""
+msgstr "Pátek"
 
 #: php-webclient-ajax/client/core/constants.js:58
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:43
 msgid "Sat"
-msgstr ""
+msgstr "Sobota"
 
 #: php-webclient-ajax/client/core/constants.js:96
+#, fuzzy
 msgid "Full control"
-msgstr ""
+msgstr "Plná kontrola"
 
 #: php-webclient-ajax/client/core/constants.js:98
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:18
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:54
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:107
 msgid "Secretary"
-msgstr ""
+msgstr "Sekretářka"
 
 #: php-webclient-ajax/client/core/constants.js:99
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:19
 msgid "Only read"
-msgstr ""
+msgstr "Pouze ke čtení"
 
 #: php-webclient-ajax/client/core/constants.js:100
 msgid "No rights"
-msgstr ""
+msgstr "žádná práva"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:132
 msgid "HTTP Error"
-msgstr ""
+msgstr "Chyba HTTP"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:136
 #: php-webclient-ajax/client/core/xmlrequest.js:179
 msgid "Unknown Error"
-msgstr ""
+msgstr "Neznámá chyba"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:138
 msgid "Connection to server lost"
-msgstr ""
+msgstr "Připojení k serveru bylo ztraceno"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:154
 msgid "Unknown server or connection problem"
-msgstr ""
+msgstr "Neznámý problém s připojením nebo serverem"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:182
 msgid "Not logged on"
@@ -6031,20 +6042,19 @@ msgstr ""
 
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:185
 msgid "Move user up"
-msgstr ""
+msgstr "Posunout uživatele nahoru"
 
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:189
 msgid "Move user down"
-msgstr ""
+msgstr "Posunout uživatele dolu"
 
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:214
 msgid "You don't have permission to view this user's calendar."
-msgstr ""
+msgstr "Nemáte oprávnění k zobrazení tohoto kalendáře."
 
 # 84%
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:694
 #: php-webclient-ajax/client/views/today.calendar.view.js:216
-#, fuzzy
 msgid "All day event"
 msgstr "Celodenní událost"
 
@@ -6055,29 +6065,29 @@ msgstr ""
 
 #: php-webclient-ajax/client/views/today.calendar.view.js:219
 msgid "Multi-day event"
-msgstr ""
+msgstr "Vícedenní událost"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:113
 msgid "Previous day"
-msgstr ""
+msgstr "Předchozí den"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:114
 msgid "Next day"
-msgstr ""
+msgstr "Další den"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:117
 #: php-webclient-ajax/client/views/calendar.week.view.js:118
 msgid "Previous week"
-msgstr ""
+msgstr "Předchozí týden"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:118
 #: php-webclient-ajax/client/views/calendar.week.view.js:123
 msgid "Next week"
-msgstr ""
+msgstr "Další týden"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:233
 msgid "%a %e %h"
-msgstr ""
+msgstr "%a %e %h"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:1941
 msgid ""
@@ -6085,42 +6095,48 @@ msgid ""
 "the meeting organizer. If the organizer sends a meeting update, your changes "
 "will be lost. Do you want to continue?"
 msgstr ""
+"Měníte detaily schůzky v kalendáři a nejste organizátor schůzky. Pokud "
+"pořadatel zašle aktualizace schůzky, budou vaše změny budou ztraceny. "
+"Přejete si pokračovat?"
 
 #: php-webclient-ajax/client/views/print.calendar.weekview.js:41
 msgid "%A %d %B"
-msgstr ""
+msgstr "%A %d %B"
 
 #: php-webclient-ajax/client/views/print.calendar.weekview.js:186
 #: php-webclient-ajax/client/views/print.calendar.weekview.js:227
 #: php-webclient-ajax/client/views/print.calendar.monthview.js:515
 msgid "More items..."
-msgstr ""
+msgstr "Další položky ..."
 
+# žádné/ý/á
 #: php-webclient-ajax/client/views/table.compact.view.js:262
 msgid "(none)"
-msgstr ""
+msgstr "(žádné)"
 
 #: php-webclient-ajax/client/views/calendar.month.view.js:256
 #: php-webclient-ajax/client/views/calendar.week.view.js:215
+#, fuzzy
 msgid "There is one more item"
-msgstr ""
+msgstr "Je tu ještě jedna položka"
 
 #: php-webclient-ajax/client/views/calendar.month.view.js:258
 #: php-webclient-ajax/client/views/calendar.week.view.js:217
 #, c-format
+#, c-format, fuzzy
 msgid "There are %s more items"
-msgstr ""
+msgstr "Jsou tu %s položek"
 
 #: php-webclient-ajax/client/views/print.calendar.listview.js:44
 #: php-webclient-ajax/client/views/print.view.js:247
 msgid "%d %B %Y"
-msgstr ""
+msgstr "%d %B %Y"
 
 #: php-webclient-ajax/client/views/print.calendar.listview.js:45
 #: php-webclient-ajax/client/views/print.view.js:248
 #, c-format
 msgid "%A"
-msgstr ""
+msgstr "%A"
 
 #: php-webclient-ajax/client/views/print.view.js:251
 #: php-webclient-ajax/client/views/print.view.js:252
@@ -6129,11 +6145,11 @@ msgstr ""
 #: php-webclient-ajax/client/views/print.view.js:259
 #: php-webclient-ajax/client/views/print.view.js:260
 msgid "%d %B"
-msgstr ""
+msgstr "%d %B"
 
 #: php-webclient-ajax/client/views/print.view.js:263
 msgid "%B %Y"
-msgstr ""
+msgstr "%B %Y"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:41
 #: php-webclient-ajax/client/widgets/searchcriteria.js:50
@@ -6144,22 +6160,22 @@ msgstr ""
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1843
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1980
 msgid "anytime"
-msgstr ""
+msgstr "kdykoliv"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:42
 #: php-webclient-ajax/client/widgets/searchcriteria.js:51
 msgid "yesterday"
-msgstr ""
+msgstr "včera"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:42
 #: php-webclient-ajax/client/widgets/searchcriteria.js:51
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:107
 msgid "today"
-msgstr ""
+msgstr "dnes"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:42
 msgid "tomorrow"
-msgstr ""
+msgstr "zítra"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:43
 #: php-webclient-ajax/client/widgets/searchcriteria.js:52
