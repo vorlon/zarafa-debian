@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-18 00:02+0100\n"
+"POT-Creation-Date: 2011-12-19 00:02+0100\n"
 "PO-Revision-Date: 2011-12-17 11:06+0200\n"
 "Last-Translator: Michal <formanek@roxit.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2751,19 +2751,23 @@ msgstr ""
 msgid "May"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:235
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:273
 #: php-webclient-ajax/client/core/constants.js:55
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:57
+#, fuzzy
 msgid "June"
-msgstr ""
+msgstr "Červen"
 
+# 75%
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:236
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:274
 #: php-webclient-ajax/client/core/constants.js:55
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:58
+#, fuzzy
 msgid "July"
-msgstr ""
+msgstr "Červenec"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:237
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:275
@@ -3100,15 +3104,19 @@ msgstr ""
 msgid "Previous Period"
 msgstr ""
 
+# 91%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:244
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:56
+#, fuzzy
 msgid "Previous Day"
-msgstr ""
+msgstr "Předchozí den"
 
+# 87%
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:248
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:57
+#, fuzzy
 msgid "Next Day"
-msgstr ""
+msgstr "Další den"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:252
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:58
@@ -4661,6 +4669,7 @@ msgstr ""
 msgid "Startdate: %s"
 msgstr ""
 
+# 75%
 #: php-webclient-ajax/client/modules/reminderlistmodule.js:258
 #: php-webclient-ajax/client/modules/printitemmodule.js:86
 #: php-webclient-ajax/client/modules/printitemmodule.js:99
@@ -4692,8 +4701,9 @@ msgstr ""
 #: php-webclient-ajax/client/layout/js/attachitem.js:407
 #: php-webclient-ajax/client/layout/js/attachitem.js:409
 #, c-format
+#, c-format, fuzzy
 msgid "%a %x %X"
-msgstr ""
+msgstr "%a %e %h"
 
 #: php-webclient-ajax/client/modules/taskitemmodule.js:43
 #: php-webclient-ajax/client/modules/printitemmodule.js:78
@@ -4804,12 +4814,14 @@ msgstr ""
 msgid "Select"
 msgstr ""
 
+# 80%
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:21
 #: php-webclient-ajax/client/core/webclient.js:575
 #: php-webclient-ajax/client/views/today.calendar.view.js:90
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:119
+#, fuzzy
 msgid "Today"
-msgstr ""
+msgstr "dnes"
 
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:24
 msgid "Workweek"
@@ -5194,10 +5206,12 @@ msgstr ""
 msgid "Total Work"
 msgstr "Celková práce"
 
+# 90%
 #: php-webclient-ajax/client/modules/printmessageitem.js:107
 #: php-webclient-ajax/client/core/properties.js:103
+#, fuzzy
 msgid "Actual Work"
-msgstr ""
+msgstr "Aktuální práce"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:118
 #: php-webclient-ajax/client/core/properties.js:42
@@ -6026,9 +6040,11 @@ msgstr ""
 msgid "wk"
 msgstr ""
 
+# 87%
 #: php-webclient-ajax/client/views/print.calendar.dayview.js:165
+#, fuzzy
 msgid "%a %d %h"
-msgstr ""
+msgstr "%a %e %h"
 
 #: php-webclient-ajax/client/views/addresscards.view.js:89
 msgid ""
@@ -6196,9 +6212,11 @@ msgstr ""
 msgid "this week"
 msgstr ""
 
+# 88%
 #: php-webclient-ajax/client/widgets/searchcriteria.js:44
+#, fuzzy
 msgid "next week"
-msgstr ""
+msgstr "Další týden"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:45
 #: php-webclient-ajax/client/widgets/searchcriteria.js:54
