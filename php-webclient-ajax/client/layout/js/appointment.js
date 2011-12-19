@@ -1174,7 +1174,22 @@ function categoriesCallBack(categories) {
 }
 
 function abCallBackRecipients(recips) {
-	dhtml.getElementById("to").value = recips['to'].value;
+	var attendees = recips['to'];
+
+	// if user has selected resource then automatically mark it as resource instead of required attendee
+	if(attendees.multiple){
+		for(var key in attendees){
+			if(key != 'multiple' && key != 'value'){
+				var recipientType = parseInt(attendees[key]['display_type'], 10);
+				if(recipientType === DT_EQUIPMENT || recipientType === DT_ROOM) {
+					dhtml.getElementById('bcc').value += attendees[key].value + '; ';
+				} else {
+					dhtml.getElementById('to').value += attendees[key].value + '; ';
+				}
+			}
+		}
+	}
+
 	syncRecipientFields(true);
 }
 
