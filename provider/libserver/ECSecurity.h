@@ -109,7 +109,6 @@ public:
 	virtual ECRESULT CheckUserQuota(unsigned int ulUserId, long long llStoreSize, eQuotaStatus *lpQuotaStatus);
 	virtual ECRESULT GetStoreSize(unsigned int ulObjId, long long* lpllStoreSize);
 	virtual ECRESULT GetUserSize(unsigned int ulUserId, long long* lpllUserSize);
-	virtual ECRESULT GetCompanySize(unsigned int ulCompanyId, long long* lpllCompanySize);
 	virtual ECRESULT GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails);
 
 	// information for ECSessionStatsTable

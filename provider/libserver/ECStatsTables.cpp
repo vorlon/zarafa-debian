@@ -865,7 +865,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 			bNoQuotaDetails = true;
 
 
-		if (lpSession->GetSecurity()->GetCompanySize(iterRowList->ulObjId, &llStoreSize) != erSuccess)
+		if (lpSession->GetSecurity()->GetUserSize(iterRowList->ulObjId, &llStoreSize) != erSuccess)
 			llStoreSize = 0;
 
 		for (k = 0; k < lpsPropTagArray->__size; k++) {
