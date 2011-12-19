@@ -105,6 +105,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->fNew = fNew;
 	this->m_bEmbedded = bEmbedded;
 	this->m_bExplicitSubjectPrefix = FALSE;
+	this->m_bSyncRecips = TRUE;
 	this->m_ulLastChange = syncChangeNone;
 	this->m_bBusySyncRTF = FALSE;
 	this->m_ulBodyType = bodyTypeUnknown;
@@ -895,6 +896,15 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			goto exit;
 	}
 
+	if (m_bSyncRecips) {
+		hr = SaveRecips();
+		if (hr != hrSuccess)
+			goto exit;
+
+		// Synchronize PR_DISPLAY_*, required for rules processing (eg. "Sent only to me" rule requires this property)
+		SyncRecips();
+	}
+
 exit:
 	if(lpRecipProps)
 		ECFreeBuffer(lpRecipProps);
@@ -971,6 +981,9 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	if (hr != hrSuccess)
 		goto exit;
 
+	// no need to keep syncing recipients to PR_DISPLAY_* properties
+	this->m_bSyncRecips = FALSE;
+
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
 	while(TRUE){
 		hr = lpRecipientTable->QueryRows(1, 0L, &lpsRow);
@@ -1009,6 +1022,9 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	
 	lpRecipientTable->Release();
 	lpRecipientTable = NULL;
+
+	// make sure the savechanges sync the recipients again
+	this->m_bSyncRecips = TRUE;
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME 
     GetSystemTimeAsFileTime(&ft);
@@ -1689,7 +1705,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		if (hr != hrSuccess)
 			goto exit;
 
-		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
+		// Synchronize PR_DISPLAY_*
 		SyncRecips();
 	}
 
