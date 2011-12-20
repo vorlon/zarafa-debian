@@ -86,13 +86,17 @@ namespace priv {
 	 */
 	template <>
 	void conv_out<LPTSTR>(PyObject* value, LPVOID lpBase, ULONG ulFlags, LPTSTR *lppResult) {
-		if ((ulFlags & MAPI_UNICODE) == 0)
-			*(LPSTR*)lppResult = PyString_AsString(value);
-		else {
-			int len = PyUnicode_GetSize(value);
-			MAPIAllocateMore((len + 1) * sizeof(WCHAR), lpBase, (LPVOID*)lppResult);
-			len = PyUnicode_AsWideChar((PyUnicodeObject*)value, *(LPWSTR*)lppResult, len);
-			(*(LPWSTR*)lppResult)[len] = L'\0';
+		if(value == Py_None) {
+			*lppResult = NULL;
+		} else {
+			if ((ulFlags & MAPI_UNICODE) == 0)
+				*(LPSTR*)lppResult = PyString_AsString(value);
+			else {
+				int len = PyUnicode_GetSize(value);
+				MAPIAllocateMore((len + 1) * sizeof(WCHAR), lpBase, (LPVOID*)lppResult);
+				len = PyUnicode_AsWideChar((PyUnicodeObject*)value, *(LPWSTR*)lppResult, len);
+				(*(LPWSTR*)lppResult)[len] = L'\0';
+			}
 		}
 	}
 
@@ -109,6 +113,30 @@ namespace priv {
 	}
 
 	/**
+	 * Specialization for extracting a boolean from a script value.
+	 *
+	 * @tparam		_Type	The type of the resulting value.
+	 * @param[in]	Value	The scripted value to convert.
+	 * @param[out]	result	The native value.
+	 */
+	template <>
+	void conv_out<bool>(PyObject* value, LPVOID /*lpBase*/, ULONG /*ulFlags*/, bool *lpResult) {
+		*lpResult = (bool)PyLong_AsUnsignedLong(value);
+	}
+
+	/**
+	 * Specialization for extracting a long long from a script value.
+	 *
+	 * @tparam		_Type	The type of the resulting value.
+	 * @param[in]	Value	The scripted value to convert.
+	 * @param[out]	result	The native value.
+	 */
+	template <>
+	void conv_out<long long>(PyObject* value, LPVOID /*lpBase*/, ULONG /*ulFlags*/, long  long *lpResult) {
+		*lpResult = (long long)PyLong_AsUnsignedLong(value);
+	}
+
+	/**
 	 * Specialization for extracting an ECENTRYID from a script value.
 	 *
 	 * @tparam		_Type	The type of the resulting value.
@@ -119,10 +147,15 @@ namespace priv {
 	void conv_out<ECENTRYID>(PyObject* value, LPVOID lpBase, ULONG /*ulFlags*/, ECENTRYID *lpResult) {
 		char *data;
 		Py_ssize_t size;
-		PyString_AsStringAndSize(value, &data, &size);
-		lpResult->cb = size;
-		MAPIAllocateMore(size, lpBase, (LPVOID*)&lpResult->lpb);
-		memcpy(lpResult->lpb, data, size);
+		if(value == Py_None) {
+			lpResult->cb = 0;
+			lpResult->lpb = NULL;
+		} else {
+			PyString_AsStringAndSize(value, &data, &size);
+			lpResult->cb = size;
+			MAPIAllocateMore(size, lpBase, (LPVOID*)&lpResult->lpb);
+			memcpy(lpResult->lpb, data, size);
+		}
 	}
 
 	/**
