@@ -50,6 +50,16 @@
 #ifndef ECLIBSYNC_INCLUDED
 #define ECLIBSYNC_INCLUDED
 
+#if defined(WIN32) && !defined(SWIG)
+	#ifdef ZARAFALIBSYNC_EXPORTS
+		#define ECLIBSYNC_API __declspec(dllexport)
+	#else
+		#define ECLIBSYNC_API __declspec(dllimport)
+	#endif
+#endif
+
+#ifndef ECLIBSYNC_API
 	#define ECLIBSYNC_API
+#endif
 
 #endif // ndef ECLIBSYNC_INCLUDED
