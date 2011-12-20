@@ -1579,7 +1579,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
             goto exit;
 
 		// Quota information
-		if (lpecSession->GetSecurity()->GetUserQuota(ulStoreOwner, &sDetails) == erSuccess)
+		if (lpecSession->GetSecurity()->GetUserQuota(ulStoreOwner, false, &sDetails) == erSuccess)
 		{
 			// PR_QUOTA_WARNING_THRESHOLD
 			sPropVal.ulPropTag = PR_QUOTA_WARNING_THRESHOLD;
@@ -9775,7 +9775,7 @@ SOAP_ENTRY_END()
 // Quota
 //
 
-SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, struct quotaResponse* lpsQuota)
+SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota)
 {
 	quotadetails_t	quotadetails;
 
@@ -9791,7 +9791,7 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 		goto exit;
 	}
 
-	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, &quotadetails);
+	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, bGetUserDefault, &quotadetails);
 	if(er != erSuccess)
 	    goto exit;
 

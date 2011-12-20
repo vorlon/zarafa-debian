@@ -1404,7 +1404,7 @@ ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize
 		goto exit;
 	}
 
-	er = GetUserQuota(ulUserId, &quotadetails);
+	er = GetUserQuota(ulUserId, false, &quotadetails);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1430,7 +1430,7 @@ exit:
  * 
  * @return Zarafa error code
  */
-ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails)
+ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, quotadetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;
 	char* lpszWarnQuota = NULL;
@@ -1449,13 +1449,15 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetai
 	if (er != erSuccess)
 		goto exit;
 
+	ASSERT(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
+
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
 		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
 		(sExternId.objclass == CONTAINER_ADDRESSLIST))
 			goto exit;
 
-	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails);
+	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
 	if (er != erSuccess)
 		goto exit;
 

@@ -3808,7 +3808,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota)
+HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefault, LPECQUOTA* lppsQuota)
 {
 	ECRESULT				er = erSuccess;
 	HRESULT					hr = hrSuccess;
@@ -3829,7 +3829,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lpp
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__GetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
+    	if(SOAP_OK != m_lpCmd->ns__GetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, bGetUserDefault, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = (ECRESULT) sResponse.er;

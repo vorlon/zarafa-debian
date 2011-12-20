@@ -3195,11 +3195,11 @@ HRESULT ECMsgStore::SyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 	return hr;
 }
 
-HRESULT ECMsgStore::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota)
+HRESULT ECMsgStore::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefault, LPECQUOTA* lppsQuota)
 {
 	HRESULT	hr = hrSuccess;
 
-	hr = lpTransport->GetQuota(cbUserId, lpUserId, lppsQuota);
+	hr = lpTransport->GetQuota(cbUserId, lpUserId, bGetUserDefault, lppsQuota);
 
 	return hr;
 }
@@ -4349,11 +4349,11 @@ HRESULT ECMsgStore::xECServiceAdmin::SyncUsers(ULONG cbCompanyId, LPENTRYID lpCo
 	return hr;
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota)
+HRESULT ECMsgStore::xECServiceAdmin::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefault, LPECQUOTA* lppsQuota)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetQuota", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetQuota(cbUserId, lpUserId, lppsQuota);
+	HRESULT hr = pThis->GetQuota(cbUserId, lpUserId, bGetUserDefault, lppsQuota);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetQuota", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
