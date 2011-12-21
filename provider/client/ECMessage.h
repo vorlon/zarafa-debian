@@ -223,6 +223,7 @@ private:
 	BOOL			fNew;
 	BOOL			m_bEmbedded;
 	BOOL			m_bExplicitSubjectPrefix;
+	BOOL			m_bRecipsDirty;
 
 	eSyncChange		m_ulLastChange;
 	BOOL            m_bBusySyncRTF; 
