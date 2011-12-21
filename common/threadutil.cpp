@@ -50,8 +50,13 @@
 #include "platform.h"
 #include "threadutil.h"
 
-CPthreadMutex::CPthreadMutex() {
-	pthread_mutex_init(&m_hMutex, NULL);
+CPthreadMutex::CPthreadMutex(bool bRecurse) {
+	pthread_mutexattr_t a;
+	pthread_mutexattr_init(&a);
+	if (bRecurse)
+		pthread_mutexattr_settype(&a, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&m_hMutex, &a);
+	pthread_mutexattr_destroy(&a);
 }
 
 CPthreadMutex::~CPthreadMutex() {
