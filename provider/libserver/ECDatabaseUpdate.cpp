@@ -2382,9 +2382,17 @@ ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
+	// user_hierarchy_id does not exist on all servers, depends on upgrade path
+	strQuery = "ALTER TABLE stores "
+					"DROP KEY `user_hierarchy_id` ";
+	er = lpDatabase->DoUpdate(strQuery);
+	if (er != erSuccess) {
+		lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Ignoring optional index error, and continuing database upgrade");
+		er = erSuccess;
+	}
+
 	strQuery = "ALTER TABLE stores "
 					"DROP PRIMARY KEY, "
-					"DROP KEY `user_hierarchy_id`, "
 					"ADD COLUMN `type` smallint(6) unsigned NOT NULL default '0', "
 					"ADD PRIMARY KEY (`user_id`, `hierarchy_id`, `type`), "
 					"ADD UNIQUE KEY `id` (`id`)";
