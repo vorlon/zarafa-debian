@@ -3926,6 +3926,16 @@
 			</listitem>
 		  </varlistentry>
 
+		  <varlistentry>
+			<term><option>companyquota_warn</option></term>
+			<listitem>
+			  <para>Size in Mb of de default quota warning level for
+			  multitenant public stores. Use 0
+			  to disable this quota level.</para>
+			  <para>Default: <replaceable>0</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
 		</variablelist>
 	  </refsection>
 
