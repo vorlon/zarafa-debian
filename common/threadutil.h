@@ -54,7 +54,7 @@
 
 class CPthreadMutex {
 public:
-	CPthreadMutex();
+	CPthreadMutex(bool bRecurse = false);
 	~CPthreadMutex();
 
 	void Lock();
