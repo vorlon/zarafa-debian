@@ -6,5 +6,5 @@ BUILT_SOURCES = zarafa.ldif
 EXTRA_DIST = ldap/ol-schema-migrate.pl
 
 $(BUILT_SOURCES): ldap/zarafa.schema ldap/ol-schema-migrate.pl
-	ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ${top_srcdir}/installer/zarafa.ldif
+	${top_srcdir}/installer/ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ${top_srcdir}/installer/zarafa.ldif
 	

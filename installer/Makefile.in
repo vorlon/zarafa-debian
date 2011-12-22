@@ -596,7 +596,7 @@ uninstall-am: uninstall-dist_dataDATA
 
 
 $(BUILT_SOURCES): ldap/zarafa.schema ldap/ol-schema-migrate.pl
-	ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ${top_srcdir}/installer/zarafa.ldif
+	${top_srcdir}/installer/ldap/ol-schema-migrate.pl -b ldap/zarafa.schema > ${top_srcdir}/installer/zarafa.ldif
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
