@@ -1091,8 +1091,10 @@ int running_server(char *szName, const char *szConfig)
 	er = lpDatabaseFactory->UpdateDatabase(m_bForceDatabaseUpdate, dbError);
 
 	// remove lock file
-	fclose(tmplock);
-	unlink("/tmp/zarafa-upgrade-lock");
+	if (tmplock) {
+		fclose(tmplock);
+		unlink("/tmp/zarafa-upgrade-lock");
+	}
 
 	if(er == ZARAFA_E_INVALID_VERSION) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: %s", dbError.c_str());
