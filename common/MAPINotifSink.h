@@ -47,23 +47,37 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,31264
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,31264"
-#define PROJECT_VERSION_CLIENT		7,1,0,31264
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,31264"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,31264"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,31264"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,31264"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,31264"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,31264"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,31264"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,31264"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,31264"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,31264"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,31264"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"31264"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			31264
+#ifndef MAPINOTIFSINK_H
+#define MAPINOTIFSINK_H
+
+#include <list>
+#include <mapi.h>
+#include <mapix.h>
+#include <mapidefs.h>
+#include <pthread.h>
+#include "ECUnknown.h"
+
+class MAPINotifSink : public ECUnknown, public IMAPIAdviseSink {
+public:
+    static HRESULT Create(MAPINotifSink **lppSink);
+    
+    ULONG __stdcall AddRef() { return ECUnknown::AddRef(); };
+    ULONG __stdcall Release() { return ECUnknown::Release(); }; 
+    
+    virtual HRESULT __stdcall	QueryInterface(REFIID iid, void **lpvoid);
+    
+    virtual ULONG 	__stdcall 	OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications);
+    virtual HRESULT __stdcall 	GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNotifications, BOOL fNonBlock, ULONG timeout);
+
+private:
+    MAPINotifSink();
+    virtual ~MAPINotifSink();
+
+    pthread_mutex_t m_hMutex;
+    pthread_cond_t 	m_hCond;
+    bool			m_bExit;
+    std::list<NOTIFICATION *> m_lstNotifs;
+};
+
+#endif
+

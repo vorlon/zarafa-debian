@@ -6,7 +6,11 @@ class MAPINotifSink : public IMAPIAdviseSink {
 public:
 	HRESULT GetNotifications(ULONG *OUTPUT, LPNOTIFICATION *OUTPUT, BOOL fNonBlock, ULONG timeout_msec);
 	%extend {
-		MAPINotifSink() { return new MAPINotifSink(); };
-		~MAPINotifSink() { delete self; }
+		MAPINotifSink() { 
+			MAPINotifSink *lpSink = NULL;
+			MAPINotifSink::Create(&lpSink); 
+			return lpSink; 
+		};
+		~MAPINotifSink() { self->Release(); }
 	}
 };
