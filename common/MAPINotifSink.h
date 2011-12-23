@@ -57,12 +57,12 @@
 #include <pthread.h>
 #include "ECUnknown.h"
 
-class MAPINotifSink : public ECUnknown, public IMAPIAdviseSink {
+class MAPINotifSink : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
     
-    ULONG __stdcall AddRef() { return ECUnknown::AddRef(); };
-    ULONG __stdcall Release() { return ECUnknown::Release(); }; 
+    virtual ULONG 	__stdcall 	AddRef();
+    virtual ULONG 	__stdcall 	Release();
     
     virtual HRESULT __stdcall	QueryInterface(REFIID iid, void **lpvoid);
     
@@ -77,6 +77,8 @@ private:
     pthread_cond_t 	m_hCond;
     bool			m_bExit;
     std::list<NOTIFICATION *> m_lstNotifs;
+    
+    unsigned int	m_cRef;
 };
 
 #endif

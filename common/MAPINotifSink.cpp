@@ -323,3 +323,18 @@ HRESULT MAPINotifSink::QueryInterface(REFIID iid, void **lpvoid) {
 	}
     return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
+
+ULONG MAPINotifSink::AddRef()
+{
+    return ++m_cRef;
+}
+
+ULONG MAPINotifSink::Release()
+{
+    ULONG ref = --m_cRef;
+    
+    if(ref == 0)
+        delete this;
+        
+    return ref;
+}
