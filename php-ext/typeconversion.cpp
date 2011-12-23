@@ -2268,7 +2268,7 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **p
 					add_assoc_stringl(zvalNotif, "oldparentid", (char *)lpNotifs[i].info.obj.lpOldParentID, lpNotifs[i].info.obj.cbOldParentID, 1);
 	
 				if(lpNotifs[i].info.obj.lpPropTagArray) {
-					MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps);
+					MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps TSRMLS_CC);
 					if(MAPI_G(hr) != hrSuccess)
 						goto exit;
 					add_assoc_zval(zvalNotif, "proptagarray", zvalProps);
