@@ -4056,10 +4056,6 @@ SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrict
 	if(er != erSuccess)
 		goto exit;
 
-	// NOTE: This is a workaround for version 4.1 backward compatibility
-	if(lpsRestrict)
-		BackwardCompRestrict4_1(lpsRestrict);
-
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
 		if (er != erSuccess)
@@ -4187,10 +4183,6 @@ SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulB
 
 	if(er != erSuccess)
 		goto exit;
-
-	// NOTE: This is a workaround for version 4.1 backward compatibility
-	if(lpsRestrict)
-		BackwardCompRestrict4_1(lpsRestrict);
 
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);

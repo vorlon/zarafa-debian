@@ -188,11 +188,6 @@ ECRESULT FixRestrictionEncoding(struct soap *soap, const ECStringCompat &stringC
 	case RES_COMPAREPROPS:
 		break;
 	case RES_CONTENT:
-		if (type == In)
-			lpRestrict->lpContent->szSearchString = stringCompat.to_UTF8(soap, lpRestrict->lpContent->szSearchString);
-		else
-			lpRestrict->lpContent->szSearchString = stringCompat.from_UTF8(soap, lpRestrict->lpContent->szSearchString);
-
 		er = FixPropEncoding(soap, stringCompat, type, lpRestrict->lpContent->lpProp);
 		break;
 	case RES_EXIST:

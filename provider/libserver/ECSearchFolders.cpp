@@ -1518,10 +1518,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 
 		// We now have the object, allocated by xmlsoap object,
 		soap_end_recv(&xmlsoap);
-
-		// Do backward-compatibility fixup
-		if(lpSearchCriteria->lpRestrict)
-    		BackwardCompRestrict4_1(lpSearchCriteria->lpRestrict);
 		
         er = CopySearchCriteria(NULL, lpSearchCriteria, lppSearchCriteria);
 

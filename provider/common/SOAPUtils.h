@@ -115,8 +115,6 @@ ECRESULT			FreeUserObjectArray(struct userobjectArray *lpUserobjectArray, bool b
 ECRESULT			FreeRightsArray(struct rightsArray *lpRights);
 ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst);
 
-ECRESULT 			BackwardCompRestrict4_1(struct restrictTable *lpsRestrict);
-
 // userobjects
 ECRESULT			CopyUserObjectDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details,
 												struct soap *soap, struct userobject *lpObject);

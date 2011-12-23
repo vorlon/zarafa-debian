@@ -1247,7 +1247,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst, struct restri
 		break;
 
 	case RES_CONTENT:
-		if(lpSrc->lpContent == NULL || (lpSrc->lpContent->lpProp == NULL && lpSrc->lpContent->szSearchString == NULL))  {
+		if(lpSrc->lpContent == NULL || lpSrc->lpContent->lpProp == NULL)  {
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
@@ -1259,21 +1259,9 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst, struct restri
 		if(hr != hrSuccess)
 			goto exit;
 
-		if(lpSrc->lpContent->lpProp != NULL)
-		{
-			hr = CopySOAPPropValToMAPIPropVal(lpDst->res.resContent.lpProp, lpSrc->lpContent->lpProp, lpBase, lpConverter);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-		else // NOTE: This is a workaround for version <=4.1 backward compatibility
-		{
-			hr = ECAllocateMore(strlen(lpSrc->lpContent->szSearchString)+1, lpBase, (void **) &lpDst->res.resContent.lpProp->Value.lpszA);
-			if(hr != hrSuccess)
-				goto exit;
-
-			strcpy(lpDst->res.resContent.lpProp->Value.lpszA, lpSrc->lpContent->szSearchString);
-			lpDst->res.resContent.lpProp->ulPropTag = lpSrc->lpContent->ulPropTag&~MVI_FLAG;
-		}
+		hr = CopySOAPPropValToMAPIPropVal(lpDst->res.resContent.lpProp, lpSrc->lpContent->lpProp, lpBase, lpConverter);
+		if(hr != hrSuccess)
+			goto exit;
 		break;
 
 	case RES_EXIST:
@@ -1449,11 +1437,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst, LPSR
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
 
-		// NOTE: This is a workaround for version 4.1 backward compatibility
-		if(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_STRING8) {
-			lpDst->lpContent->szSearchString = new char [strlen(lpSrc->res.resContent.lpProp->Value.lpszA)+1];
-			strcpy(lpDst->lpContent->szSearchString, lpSrc->res.resContent.lpProp->Value.lpszA);
-		}
 		lpDst->lpContent->lpProp = new struct propVal;
 		memset(lpDst->lpContent->lpProp, 0, sizeof(propVal));
 
