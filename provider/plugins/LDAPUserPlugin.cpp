@@ -131,6 +131,9 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 	\
 	ldap_page_size = (ldap_page_size == 0) ? 1000 : ldap_page_size; \
 	do { \
+		if (m_ldap == NULL) \
+			/* this either returns a connection or throws an exception */ \
+			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd")); \
 		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
 		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &pageControl); \
 		if (rc != LDAP_SUCCESS) {										\
