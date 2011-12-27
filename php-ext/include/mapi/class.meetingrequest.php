@@ -188,6 +188,17 @@ class Meetingrequest {
 	}
 
 	/**
+	 * Sets the direct booking property. This is an alternative to the setting of the direct booking
+	 * property through the constructor. However, setting it in the constructor is prefered.
+	 * @param Boolean $directBookingSetting
+	 * 
+	 */
+	function setDirectBooking($directBookingSetting)
+	{
+		$this->enableDirectBooking = $directBookingSetting;
+	}
+
+	/**
 	 * Returns TRUE if the message pointed to is an incoming meeting request and should
 	 * therefore be replied to with doAccept or doDecline()
 	 */
