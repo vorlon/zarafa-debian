@@ -1188,6 +1188,14 @@ function abCallBackRecipients(recips) {
 				}
 			}
 		}
+	} else {
+		// this is not going to happen as we always use multiple recipients in meeting request dialog
+		var recipientType = parseInt(attendees['display_type'], 10);
+		if(recipientType === DT_EQUIPMENT || recipientType === DT_ROOM) {
+			dhtml.getElementById('bcc').value += attendees.value + '; ';
+		} else {
+			dhtml.getElementById('to').value += attendees.value + '; ';
+		}
 	}
 
 	syncRecipientFields(true);
