@@ -102,21 +102,11 @@
 			if($this->loaded)
 				return;
 
-			if(defined('ENABLED_LANGUAGES')) {
-				$languages = explode(";", ENABLED_LANGUAGES);
-			}
-			if($languages === false) {
-				unset($languages);
-			}
+			$languages = explode(";", ENABLED_LANGUAGES);
 			$dh = opendir(LANGUAGE_DIR);
 			while (($entry = readdir($dh))!==false){
-				$pos = stripos($entry, ".UTF-8");
-				if ($pos !== false) {
-					$langcode = substr_replace($entry, "", $pos);
-				} else {
-					$langcode = $entry;
-				}
-				if(!isset($languages) || in_array($langcode, $languages) || in_array($entry, $languages)) {
+				$langcode = str_ireplace(".UTF-8", "", $entry);
+				if(in_array($langcode, $languages) || in_array($entry, $languages)) {
 					if (is_dir(LANGUAGE_DIR.$entry."/LC_MESSAGES") && is_file(LANGUAGE_DIR.$entry."/language.txt")){
 						$fh = fopen(LANGUAGE_DIR.$entry."/language.txt", "r");
 						$lang_title = fgets($fh);
