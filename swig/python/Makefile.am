@@ -14,7 +14,6 @@ _MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
 						${top_builddir}/zarafa-libsync/libzarafasync.la \
-						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
 _inetmapi_la_CXXFLAGS = -I${top_srcdir}/inetmapi
@@ -22,7 +21,6 @@ _inetmapi_la_LDFLAGS = -module -avoid-version
 _inetmapi_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						${top_builddir}/inetmapi/libinetmapi.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -32,7 +30,6 @@ _icalmapi_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/libicalmapi/libicalmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						${top_builddir}/libfreebusy/libfreebusy.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -66,7 +63,6 @@ _libcommon_la_LDFLAGS = -module -avoid-version -rpath '$(libdir)'
 _libcommon_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 					   ${top_builddir}/common/libcommon_mapi.la \
 					   ${top_builddir}/common/libcommon_util.la \
-					   ${top_builddir}/swig/libswigcommon.la \
 				  	   $(PROG_LIBS) $(PYTHON_LIBS)
 
 _libfreebusy_la_CXXFLAGS = -I${top_srcdir}/libfreebusy
@@ -75,7 +71,6 @@ _libfreebusy_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						 ${top_builddir}/libfreebusy/libfreebusy.la \
 						 ${top_builddir}/common/libcommon_mapi.la \
                          ${top_builddir}/common/libcommon_util.la \
-                         ${top_builddir}/swig/libswigcommon.la \
                          $(PROG_LIBS) $(PYTHON_LIBS)
 
 

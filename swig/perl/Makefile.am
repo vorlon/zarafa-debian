@@ -10,7 +10,6 @@ MAPICore_la_LDFLAGS = -module -avoid-version
 MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS)
 
 CLEANFILES = mapi_wrap.cxx MAPICore.pm

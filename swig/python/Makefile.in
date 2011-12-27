@@ -64,8 +64,7 @@ _MAPICore_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/zarafa-libsync/libzarafasync.la \
-	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__MAPICore_la_OBJECTS = _MAPICore_la-conversion.lo \
 	_MAPICore_la-mapi_wrap.lo _MAPICore_la-director_util.lo
 _MAPICore_la_OBJECTS = $(am__MAPICore_la_OBJECTS)
@@ -85,7 +84,6 @@ _icalmapi_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/libicalmapi/libicalmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/swig/libswigcommon.la \
 	${top_builddir}/libfreebusy/libfreebusy.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__icalmapi_la_OBJECTS = _icalmapi_la-conversion.lo \
@@ -97,7 +95,6 @@ _icalmapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 _inetmapi_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/swig/libswigcommon.la \
 	${top_builddir}/inetmapi/libinetmapi.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__inetmapi_la_OBJECTS = _inetmapi_la-conversion.lo \
@@ -109,8 +106,7 @@ _inetmapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 _libcommon_la_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1) \
+	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__libcommon_la_OBJECTS = libcommon_wrap.lo conversion.lo
 _libcommon_la_OBJECTS = $(am__libcommon_la_OBJECTS)
@@ -121,8 +117,7 @@ _libfreebusy_la_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/libfreebusy/libfreebusy.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1) \
+	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__libfreebusy_la_OBJECTS = _libfreebusy_la-conversion.lo \
 	_libfreebusy_la-libfreebusy_wrap.lo \
@@ -397,7 +392,6 @@ _MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
 						${top_builddir}/zarafa-libsync/libzarafasync.la \
-						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
 _inetmapi_la_CXXFLAGS = -I${top_srcdir}/inetmapi
@@ -405,7 +399,6 @@ _inetmapi_la_LDFLAGS = -module -avoid-version
 _inetmapi_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						${top_builddir}/inetmapi/libinetmapi.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -415,7 +408,6 @@ _icalmapi_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/libicalmapi/libicalmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						${top_builddir}/libfreebusy/libfreebusy.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -448,7 +440,6 @@ _libcommon_la_LDFLAGS = -module -avoid-version -rpath '$(libdir)'
 _libcommon_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 					   ${top_builddir}/common/libcommon_mapi.la \
 					   ${top_builddir}/common/libcommon_util.la \
-					   ${top_builddir}/swig/libswigcommon.la \
 				  	   $(PROG_LIBS) $(PYTHON_LIBS)
 
 _libfreebusy_la_CXXFLAGS = -I${top_srcdir}/libfreebusy
@@ -457,7 +448,6 @@ _libfreebusy_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						 ${top_builddir}/libfreebusy/libfreebusy.la \
 						 ${top_builddir}/common/libcommon_mapi.la \
                          ${top_builddir}/common/libcommon_util.la \
-                         ${top_builddir}/swig/libswigcommon.la \
                          $(PROG_LIBS) $(PYTHON_LIBS)
 
 BUILT_SOURCES = mapi_wrap.cxx mapi_wrap.h inetmapi_wrap.cxx \
