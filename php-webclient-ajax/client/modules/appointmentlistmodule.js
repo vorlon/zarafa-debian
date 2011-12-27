@@ -390,6 +390,8 @@ appointmentlistmodule.prototype.deleteAppointment = function(entryid, basedate, 
 	var selectedElement = dhtml.getElementById(elementId);
 	var send = false;
 
+	var appointmentItem = this.itemProps[entryid];
+
 	if(basedate) {
 		//occurrence end date
 		var end = (selectedElement.end)? selectedElement.end: (selectedElement.getAttribute("end"))? selectedElement.getAttribute("end"): (selectedElement.getAttribute("duedate"))? selectedElement.getAttribute("duedate") : selectedElement.duedate;
@@ -412,7 +414,7 @@ appointmentlistmodule.prototype.deleteAppointment = function(entryid, basedate, 
 				send = confirm(_("Would you like to send an update to the attendees regarding cancellation of this meeting?"));
 				//if user does not want to cancel/delete the meeting,we want like to ignore this action
 				if(send == false) return true;
-			} else if (selectedElement.meetingrequest && parseInt(selectedElement.meetingrequest, 10) != 0) {
+			} else if (selectedElement.meetingrequest && parseInt(selectedElement.meetingrequest, 10) != 0 && !isMeetingCanceled(appointmentItem)) {
 				sendConfirmationDeleteAppointmentList(this, selectedElement, basedate);
 				return true;
 			}
@@ -458,7 +460,7 @@ appointmentlistmodule.prototype.deleteAppointment = function(entryid, basedate, 
 				send = confirm(_("Would you like to send an update to the attendees regarding cancellation of this meeting?"));
 				//if user does not want to cancel/delete the meeting,we want like to ignore this action
 				if(send == false) return true;
-			} else if (selectedElement.meetingrequest && parseInt(selectedElement.meetingrequest, 10) != 0) {
+			} else if (selectedElement.meetingrequest && parseInt(selectedElement.meetingrequest, 10) != 0 && !isMeetingCanceled(appointmentItem)) {
 				sendConfirmationDeleteAppointmentList(this, selectedElement, false);
 				return true;
 			}
@@ -505,6 +507,8 @@ appointmentlistmodule.prototype.deleteAppointments = function(messages, promptoc
 	var messageClass = false;
 	var classNames = itemEl.className.split(" ");
 	var entryid = this.entryids[itemEl.id];
+	
+	var appointmentItem = this.itemProps[entryid];
 
 	//basedate for normal meetings is set as '0' i.e basedate doesn't exist, typecast it to integer so that later is doesn't break any IF statement
 	var basedate = itemEl.attributes["basedate"] ? parseInt(itemEl.attributes["basedate"].value, 10) : false;
@@ -537,7 +541,7 @@ appointmentlistmodule.prototype.deleteAppointments = function(messages, promptoc
 				// don't ask for meeting requests which are occuring in past
 				send = confirm(_("Would you like to send an update to the attendees regarding changes to this meeting?"));
 				deleteMessage = false;
-			} else if (MRResponseStatusOrganizer != olResponseNone && MRResponseStatusOrganizer != olResponseOrganized) {	//its attendee
+			} else if (MRResponseStatusOrganizer != olResponseNone && MRResponseStatusOrganizer != olResponseOrganized && !isMeetingCanceled(appointmentItem)) {	//its attendee
 				sendConfirmationDeleteAppointmentList(this, itemEl, false, softDelete);
 				return true;
 			}

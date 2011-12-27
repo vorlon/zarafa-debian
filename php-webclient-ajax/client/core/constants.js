@@ -285,6 +285,7 @@ var olNonMeeting				= 0;
 var olMeeting					= 1;
 var olMeetingReceived			= 3;
 var olMeetingCanceled			= 5;
+var olMeetingReceivedAndCanceled= 7;
 
 // Free/busy status
 var fbFree						= 0;

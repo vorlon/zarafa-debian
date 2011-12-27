@@ -1775,3 +1775,32 @@ function appointmentItemSendMRMailConfirmation_callback(moduleObject, sendRespon
 	}
 	window.close();
 }
+
+/**
+ * Function will return true if meeting is in past.
+ *
+ * @param Date endtime of the meeting.
+ * @return boolean will return true if meeting is in past, false otherwise.
+ */
+function isMeetingInPast(endtime) {
+	if(endtime)
+		return endtime.getTime() < (new Date().getTime())
+
+	return false;
+}
+
+/**
+ * Function will return true if meeting is canceled by organizer.
+ *
+ * @param Object meetingItem item object of the meeting.
+ * @return boolean will return true if meeting is canceled, false otherwise.
+ */
+function isMeetingCanceled(meetingItem) {
+	if(meetingItem && typeof meetingItem.meeting != 'undefined') {
+		var meetingStatus = parseInt(meetingItem.meeting, 10);
+		if (meetingStatus === olMeetingCanceled || meetingStatus === olMeetingReceivedAndCanceled)
+			return true;
+	}
+
+	return false;
+}
