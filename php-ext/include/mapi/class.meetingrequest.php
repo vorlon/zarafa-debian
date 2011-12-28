@@ -113,7 +113,13 @@ class Meetingrequest {
 	 
 	// All properties for a recipient that are interesting
 	var $recipprops = Array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME, PR_RECIPIENT_FLAGS, PR_ROWID, PR_OBJECT_TYPE, PR_SEARCH_KEY);
-	 
+	
+	/**
+	 * Indication whether the setting of resources in a Meeting Request is success (false) or if it 
+	 * has failed (integer).
+	 */
+	var $errorSetResource;
+	
 	/**
 	 * Constructor
 	 *
