@@ -749,7 +749,7 @@ function folderCallBack(result, callBackData)
     
     var element = dhtml.getElementById(elementId);
     
-    element.innerHTML = result.foldername;
+    element.innerHTML = result.foldername.htmlEntities();
     element.folderentryid = result.folderentryid;
     element.storeentryid = result.storeentryid;
     
