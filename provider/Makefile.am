@@ -1,1 +1,1 @@
-SUBDIRS = tools include soap common libserver server client plugins
+SUBDIRS = tools include soap common libserver server client plugins contacts

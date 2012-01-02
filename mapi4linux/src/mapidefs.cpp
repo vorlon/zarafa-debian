@@ -68,6 +68,8 @@
 #include "ECConfig.h"
 #include "CommonUtil.h"
 
+#include <set>
+
 // ---
 // IMAPIProp
 // ---
@@ -144,24 +146,69 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 			for (i = properties.begin(); i != properties.end(); i++) {
 				if (PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropTagArray->aulPropTag[c])) {
 					// perform unicode conversion if required
-					if ((PROP_TYPE((*i)->ulPropTag) == PT_STRING8 && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNICODE) ||
-						((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED))
+					if (PROP_TYPE((*i)->ulPropTag) == PT_STRING8 && 
+						(PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNICODE ||
+						 ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
 					{
+						// string8 to unicode
 						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
 						unicode = converter.convert_to<wstring>((*i)->Value.lpszA);
 						sConvert.Value.lpszW = (WCHAR*)unicode.c_str();
 
 						lpCopy = &sConvert;
 					}
-					else if ((PROP_TYPE((*i)->ulPropTag) == PT_UNICODE && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_STRING8) ||
-							 (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED))
+					else if (PROP_TYPE((*i)->ulPropTag) == PT_UNICODE &&
+							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_STRING8 ||
+							  (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
 					{
+						// unicode to string8
 						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
 						ansi = converter.convert_to<string>((*i)->Value.lpszW);
 						sConvert.Value.lpszA = (char*)ansi.c_str();
 
 						lpCopy = &sConvert;
+					}
+					else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_STRING8 && 
+							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_UNICODE ||
+							  ((ulFlags & MAPI_UNICODE) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+					{
+						// mv string8 to mv unicode
+						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_UNICODE);
+						sConvert.Value.MVszW.cValues = (*i)->Value.MVszA.cValues;
+						hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
+						if (hr != hrSuccess)
+							goto exit;
+						for (ULONG c = 0; c < (*i)->Value.MVszA.cValues; c++) {
+							unicode = converter.convert_to<wstring>((*i)->Value.MVszA.lppszA[c]);
+							hr = MAPIAllocateMore(unicode.length() * sizeof(WCHAR) + sizeof(WCHAR), props, (void**)&sConvert.Value.MVszW.lppszW[c]);
+							if (hr != hrSuccess)
+								goto exit;
+							wcscpy(sConvert.Value.MVszW.lppszW[c], unicode.c_str());
+						}
+
+						lpCopy = &sConvert;
+					}
+					else if (PROP_TYPE((*i)->ulPropTag) == PT_MV_UNICODE &&
+							 (PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_MV_STRING8 ||
+							  (((ulFlags & MAPI_UNICODE) == 0) && PROP_TYPE(lpPropTagArray->aulPropTag[c]) == PT_UNSPECIFIED)))
+					{
+						// mv string8 to mv unicode
+						sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_MV_STRING8);
+						sConvert.Value.MVszA.cValues = (*i)->Value.MVszW.cValues;
+						hr = MAPIAllocateMore((*i)->Value.MVszW.cValues * sizeof(char*), props, (void**)&sConvert.Value.MVszA.lppszA);
+						if (hr != hrSuccess)
+							goto exit;
+						for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; c++) {
+							ansi = converter.convert_to<string>((*i)->Value.MVszW.lppszW[c]);
+							hr = MAPIAllocateMore(ansi.length() * sizeof(char) + sizeof(char), props, (void**)&sConvert.Value.MVszA.lppszA[c]);
+							if (hr != hrSuccess)
+								goto exit;
+							strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());
+						}
+
+						lpCopy = &sConvert;
 					} else {
+						// memory property is requested property
 						lpCopy = *i;
 					}
 
@@ -237,6 +284,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPr
 				del = i++;
 				MAPIFreeBuffer(*del);
 				properties.erase(del);
+				break;
 			} else {
 				i++;
 			}
@@ -254,7 +302,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPr
 		if (hr != hrSuccess)
 			goto exit;
 
-		memset(pv, 0, sizeof(pv));
+		memset(pv, 0, sizeof(SPropValue));
 		hr = Util::HrCopyProperty(pv, &lpPropArray[c], (void *)pv);
 		if (hr != hrSuccess) {
 			MAPIFreeBuffer(pv);
@@ -270,8 +318,25 @@ exit:
 
 HRESULT M4LMAPIProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
 	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::DeleteProps", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::DeleteProps", "0x%08x", MAPI_E_NO_SUPPORT);
-	return MAPI_E_NO_SUPPORT;
+
+	HRESULT hr = hrSuccess;
+	list<LPSPropValue>::iterator i;
+
+	for (ULONG c = 0; c < lpPropTagArray->cValues; c++) {
+		for (i = properties.begin(); i != properties.end(); i++) {
+			// @todo check PT_STRING8 vs PT_UNICODE
+			if ((*i)->ulPropTag == lpPropTagArray->aulPropTag[c] ||
+				(PROP_TYPE((*i)->ulPropTag) == PT_UNSPECIFIED && PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropTagArray->aulPropTag[c])) )
+			{
+				MAPIFreeBuffer(*i);
+				properties.erase(i);
+				break;
+			}
+		}
+	}
+
+	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::DeleteProps", "0x%08x", hr);
+	return hr;
 }
 
 HRESULT M4LMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
@@ -708,18 +773,30 @@ exit:
 	return hr;
 }
 
+/** 
+ * Add a provider to a MAPI service
+ * 
+ * @param[in] lpszProvider name of the provider to add, must be known through mapisvc.inf
+ * @param[in] cValues number of properties in lpProps
+ * @param[in] lpProps properties to set on the provider context (properties from mapisvc.inf)
+ * @param[in] ulUIParam Unused in linux
+ * @param[in] ulFlags must be 0
+ * @param[out] lpUID a uid which will identify this added provider in the service context
+ * 
+ * @return MAPI Error code
+ */
 HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam,
 										 ULONG ulFlags, MAPIUID* lpUID) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
-	// from client.iss file, should be read from a mapisvc.inf file
-	unsigned char privateGuid[] =   { 0xCA, 0x3D, 0x25, 0x3C, 0x27, 0xD2, 0x3C, 0x44, 0x94, 0xFE, 0x42, 0x5F, 0xAB, 0x95, 0x8C, 0x19 };
-	unsigned char publicGuid[] = 	{ 0x09, 0x4A, 0x7F, 0xD4, 0xBD, 0xD3, 0x3C, 0x49, 0xB2, 0xFC, 0x3C, 0x90, 0xBB, 0xCB, 0x48, 0xD4 };
-	unsigned char abGuid[] =		{ 0xAC, 0x21, 0xA9, 0x50, 0x40, 0xD3, 0xEE, 0x48, 0xB3, 0x19, 0xFB, 0xA7, 0x53, 0x30, 0x44, 0x25 };
-
+	ULONG nProps = 0;
+	LPSPropValue lpResource = NULL;
 	LPSPropValue lpsPropValProfileName = NULL;
 	providerEntry *entry = NULL;
 	serviceEntry* lpService = NULL;
+	SVCProvider* lpProvider = NULL;
+	ULONG cProviderProps = 0;
+	LPSPropValue lpProviderProps = NULL;
 	HRESULT hr = hrSuccess;
 
 	pthread_mutex_lock(&msa->m_mutexserviceadmin);
@@ -730,12 +807,14 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	}
 
 	lpService = msa->findServiceAdmin((LPTSTR)szService);
+	if (!lpService) {
+		hr = MAPI_E_NO_ACCESS;
+		goto exit;
+	}
 
-	// @todo According to MSDN, ulFlags may contain MAPI_UNICODE, but I don't think we'll ever see and/or use this.
-	if(stricmp((char *)lpszProvider, "ZARAFA6_MSMDB_private") != 0 &&
-	   stricmp((char *)lpszProvider, "ZARAFA6_MSMDB_public") != 0 &&
-	   stricmp((char *)lpszProvider, "ZARAFA6_ABP") != 0) {
-		hr = MAPI_E_NOT_FOUND;
+	lpProvider = lpService->service->GetProvider(lpszProvider, ulFlags);
+	if (!lpProvider) {
+		hr = MAPI_E_NO_ACCESS;
 		goto exit;
 	}
 
@@ -760,122 +839,65 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	CoCreateGuid((LPGUID)&entry->uid);
 	entry->profilesection->AddRef();
 
-	// This is actually the mapisvc.ini file
-	if(stricmp((char *)lpszProvider,"ZARAFA6_MSMDB_private") == 0) {
-		sProps[0].ulPropTag = PR_MDB_PROVIDER;
-		sProps[0].Value.bin.lpb = (BYTE *)&privateGuid;
-		sProps[0].Value.bin.cb = sizeof(GUID);
+	// no need to free this, not a copy!
+	lpProvider->GetProps(&cProviderProps, &lpProviderProps);
+	hr = entry->profilesection->SetProps(cProviderProps, lpProviderProps, NULL);
+	if (hr != hrSuccess)
+		goto exit;
 
-		sProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-		sProps[1].Value.lpszA = "Zarafa private store";
-		
-		sProps[2].ulPropTag = PR_RESOURCE_TYPE;
-		sProps[2].Value.ul = MAPI_STORE_PROVIDER;
-		
-		sProps[3].ulPropTag = PR_INSTANCE_KEY;
-		sProps[3].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[3].Value.bin.cb = sizeof(GUID);
-
-		sProps[4].ulPropTag = PR_PROVIDER_UID;
-		sProps[4].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[4].Value.bin.cb = sizeof(GUID);
-		
-		sProps[5].ulPropTag = PR_RESOURCE_FLAGS;
-		sProps[5].Value.ul = STATUS_PRIMARY_STORE | STATUS_DEFAULT_STORE;
-
-		sProps[6].ulPropTag = PR_DEFAULT_STORE;
-		sProps[6].Value.b = TRUE;
-
-		sProps[7].ulPropTag = PR_OBJECT_TYPE;
-		sProps[7].Value.ul = MAPI_STORE;
-
-		sProps[8].ulPropTag = PR_PROVIDER_DISPLAY_A;
-		sProps[8].Value.lpszA = "Zarafa private store";
-
-		sProps[9].ulPropTag = PR_SERVICE_UID;
-		sProps[9].Value.bin.lpb = (BYTE *)&lpService->muid;
-		sProps[9].Value.bin.cb = sizeof(GUID);
-
-		entry->profilesection->SetProps(10, sProps, NULL);
-		
-	} else if(stricmp((char *)lpszProvider,"ZARAFA6_MSMDB_public") == 0) {
-		sProps[0].ulPropTag = PR_MDB_PROVIDER;
-		sProps[0].Value.bin.lpb = (BYTE *)&publicGuid;
-		sProps[0].Value.bin.cb = sizeof(GUID);
-
-		sProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-		sProps[1].Value.lpszA = "Zarafa public store";
-		
-		sProps[2].ulPropTag = PR_RESOURCE_TYPE;
-		sProps[2].Value.ul = MAPI_STORE_PROVIDER;
-
-		sProps[3].ulPropTag = PR_INSTANCE_KEY;
-		sProps[3].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[3].Value.bin.cb = sizeof(GUID);
-
-		sProps[4].ulPropTag = PR_PROVIDER_UID;
-		sProps[4].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[4].Value.bin.cb = sizeof(GUID);
-
-		sProps[5].ulPropTag = PR_RESOURCE_FLAGS;
-		sProps[5].Value.ul = STATUS_NO_DEFAULT_STORE;
-
-		sProps[6].ulPropTag = PR_DEFAULT_STORE;
-		sProps[6].Value.b = FALSE;
-
-		sProps[7].ulPropTag = PR_OBJECT_TYPE;
-		sProps[7].Value.ul = MAPI_STORE;
-		
-		sProps[8].ulPropTag = PR_PROVIDER_DISPLAY_A;
-		sProps[8].Value.lpszA = "Zarafa public store";
-
-		sProps[9].ulPropTag = PR_SERVICE_UID;
-		sProps[9].Value.bin.lpb = (BYTE *)&lpService->muid;
-		sProps[9].Value.bin.cb = sizeof(GUID);
-
-		entry->profilesection->SetProps(10, sProps, NULL);
-
-	} else if(stricmp((char *)lpszProvider,"ZARAFA6_ABP") == 0) {
- 		sProps[0].ulPropTag = PR_AB_PROVIDER_ID;
- 		sProps[0].Value.bin.lpb = (BYTE *)&abGuid;
- 		sProps[0].Value.bin.cb = sizeof(GUID);
-
-		sProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-		sProps[1].Value.lpszA = "Zarafa Addressbook";
-		
-		sProps[2].ulPropTag = PR_RESOURCE_TYPE;
-		sProps[2].Value.ul = MAPI_AB_PROVIDER;
-
-		sProps[3].ulPropTag = PR_INSTANCE_KEY;
-		sProps[3].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[3].Value.bin.cb = sizeof(GUID);
-
-		sProps[4].ulPropTag = PR_PROVIDER_UID;
-		sProps[4].Value.bin.lpb = (BYTE *)&entry->uid;
-		sProps[4].Value.bin.cb = sizeof(GUID);
-
-		sProps[5].ulPropTag = PR_OBJECT_TYPE;
-		sProps[5].Value.ul = MAPI_ADDRBOOK;
-		
-		sProps[6].ulPropTag = PR_PROVIDER_DISPLAY_A;
-		sProps[6].Value.lpszA = "Zarafa Addressbook";
-
-		sProps[7].ulPropTag = PR_SERVICE_UID;
-		sProps[7].Value.bin.lpb = (BYTE *)&lpService->muid;
-		sProps[7].Value.bin.cb = sizeof(GUID);
-
-		entry->profilesection->SetProps(8, sProps, NULL);
+	if (cValues && lpProps) {
+		hr = entry->profilesection->SetProps(cValues, lpProps, NULL);
+		if (hr != hrSuccess)
+			goto exit;
 	}
-	
+
+	sProps[nProps].ulPropTag = PR_INSTANCE_KEY;
+	sProps[nProps].Value.bin.lpb = (BYTE *)&entry->uid;
+	sProps[nProps].Value.bin.cb = sizeof(GUID);
+	nProps++;
+
+	sProps[nProps].ulPropTag = PR_PROVIDER_UID;
+	sProps[nProps].Value.bin.lpb = (BYTE *)&entry->uid;
+	sProps[nProps].Value.bin.cb = sizeof(GUID);
+	nProps++;
+
+	lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
+	if (!lpResource || lpResource->Value.ul == MAPI_STORE_PROVIDER) {
+		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;
+		sProps[nProps].Value.ul = MAPI_STORE;
+		nProps++;
+
+		lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
+
+		sProps[nProps].ulPropTag = PR_DEFAULT_STORE;
+		sProps[nProps].Value.b = (lpResource && (lpResource->Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE);
+		nProps++;
+	} else if (lpResource->Value.ul == MAPI_AB_PROVIDER) {
+		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;
+		sProps[nProps].Value.ul = MAPI_ADDRBOOK;
+		nProps++;
+	}
+
+	sProps[nProps].ulPropTag = PR_SERVICE_UID;
+	sProps[nProps].Value.bin.lpb = (BYTE *)&lpService->muid;
+	sProps[nProps].Value.bin.cb = sizeof(GUID);
+	nProps++;
+
+	hr = entry->profilesection->SetProps(nProps, sProps, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
 	entry->servicename = szService;
 		
 	msa->providers.push_back(entry);
 
 	if(lpUID)
 		*lpUID = entry->uid;
+
+	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
+	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
+	// another rumor is that that is only called once per service, not once per created provider. huh?
 	
-	// We should really call the MSGServiceEntry with MAPI_CREATE_PROVIDER, but there
-	// isn't much use at the moment.
 exit:
 	pthread_mutex_unlock(&msa->m_mutexserviceadmin);
 
@@ -990,6 +1012,376 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::QueryInterface", "0x%08x", hr);
+	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPIAdviseSink::QueryInterface", "0x%08x", hr);
+	return hr;
+}
+
+// 
+// IMAPIContainer
+// 
+
+M4LMAPIContainer::M4LMAPIContainer() {
+}
+
+M4LMAPIContainer::~M4LMAPIContainer() {
+}
+
+HRESULT M4LMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LMAPIContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LMAPIContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LMAPIContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+// imapiprop passthru
+HRESULT M4LMAPIContainer::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
+	return M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
+}
+
+HRESULT M4LMAPIContainer::SaveChanges(ULONG ulFlags) {
+	return M4LMAPIProp::SaveChanges(ulFlags);
+}
+
+HRESULT M4LMAPIContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
+}
+
+HRESULT M4LMAPIContainer::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
+	return M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
+}
+
+HRESULT M4LMAPIContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
+	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+}
+
+HRESULT M4LMAPIContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+}
+
+HRESULT M4LMAPIContainer::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+}
+
+HRESULT M4LMAPIContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
+								 LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
+								 LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
+
+HRESULT M4LMAPIContainer::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+									LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
+
+HRESULT M4LMAPIContainer::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
+										  LPMAPINAMEID** lpppPropNames) {
+	return M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
+}
+
+HRESULT M4LMAPIContainer::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
+	return M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
+}
+
+// iunknown passthru
+ULONG M4LMAPIContainer::AddRef() {
+	return M4LUnknown::AddRef();
+}
+ULONG M4LMAPIContainer::Release() {
+	return M4LUnknown::Release();
+}
+HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
+	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPIContainer::QueryInterface", "");
+	HRESULT hr = hrSuccess;
+	if ((refiid == IID_IMAPIContainer) || (refiid == IID_IMAPIProp) || (refiid == IID_IUnknown)) {
+		AddRef();
+		*lpvoid = (IMAPIContainer *)this;
+		hr = hrSuccess;
+	} else
+		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+
+	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPIContainer::QueryInterface", "0x%08x", hr);
+	return hr;
+}
+
+// 
+// IABContainer
+// 
+
+M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
+}
+
+M4LABContainer::~M4LABContainer() {
+}
+
+HRESULT M4LABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LABContainer::CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+// 
+// imapicontainer passthru
+//
+HRESULT M4LABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+/** 
+ * Merges all HierarchyTables from the providers passed in the constructor.
+ * 
+ * @param[in] ulFlags MAPI_UNICODE
+ * @param[out] lppTable ECMemTable with combined contents from all providers
+ * 
+ * @return 
+ */
+HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
+	HRESULT hr = hrSuccess;
+	ECMemTable *lpTable = NULL;
+	ECMemTableView *lpTableView = NULL;
+	std::list<abEntry>::const_iterator iter;
+	ULONG n = 0;
+
+	// make a list of all hierarchy tables, and create the combined column list
+	std::list<LPMAPITABLE> lHierarchies;
+	std::set<ULONG> stProps;
+	LPSPropTagArray lpColumns = NULL;
+	for (iter = m_lABEntries.begin(); iter != m_lABEntries.end(); iter++) {
+		ULONG ulObjType;
+		LPABCONT lpABContainer = NULL;
+		LPMAPITABLE lpABHierarchy = NULL;
+		LPSPropTagArray lpPropArray = NULL;
+
+		hr = iter->lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, (IUnknown**)&lpABContainer);
+		if (hr != hrSuccess)
+			goto next_container;
+
+		hr = lpABContainer->GetHierarchyTable(ulFlags, &lpABHierarchy);
+		if (hr != hrSuccess)
+			goto next_container;
+
+		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &lpPropArray);
+		if (hr != hrSuccess)
+			goto next_container;
+
+		std::copy(lpPropArray->aulPropTag, lpPropArray->aulPropTag + lpPropArray->cValues, std::inserter(stProps, stProps.begin()));
+		lpABHierarchy->AddRef();
+		lHierarchies.push_back(lpABHierarchy);
+
+	next_container:
+		if (lpABContainer)
+			lpABContainer->Release();
+		lpABContainer = NULL;
+
+		if (lpABHierarchy)
+			lpABHierarchy->Release();
+		lpABHierarchy = NULL;
+
+		if (lpPropArray)
+			MAPIFreeBuffer(lpPropArray);
+		lpPropArray = NULL;
+	}
+
+	// remove key row
+	stProps.erase(PR_ROWID);
+
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), (void**)&lpColumns);
+	if (hr != hrSuccess)
+		goto exit;
+
+	lpColumns->cValues = stProps.size();
+	std::copy(stProps.begin(), stProps.end(), lpColumns->aulPropTag);
+	lpColumns->aulPropTag[lpColumns->cValues] = PR_NULL; // will be used for PR_ROWID
+
+	hr = ECMemTable::Create(lpColumns, PR_ROWID, &lpTable);
+	if(hr != hrSuccess)
+		goto exit;
+
+	// get enough columns from queryrows to add the PR_ROWID
+	lpColumns->cValues++;
+
+	n = 0;
+	for (std::list<LPMAPITABLE>::iterator i = lHierarchies.begin(); i != lHierarchies.end(); i++) {
+		LPSRowSet lpsRows = NULL;
+
+		hr = (*i)->SetColumns(lpColumns, 0);
+		if (hr != hrSuccess)
+			goto exit;
+
+		while (true) {
+			hr = (*i)->QueryRows(1, 0, &lpsRows);
+			if (hr != hrSuccess)
+				goto exit;
+			if (lpsRows->cRows == 0)
+				break;
+
+			lpsRows->aRow[0].lpProps[stProps.size()].ulPropTag = PR_ROWID;
+			lpsRows->aRow[0].lpProps[stProps.size()].Value.ul = n++;
+
+			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRows->aRow[0].lpProps, lpsRows->aRow[0].cValues);
+
+			FreeProws(lpsRows);
+			lpsRows = NULL;
+
+			if(hr != hrSuccess)
+				goto exit;
+		}
+		if (lpsRows)
+			FreeProws(lpsRows);
+	}
+
+	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &lpTableView);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
+
+exit:
+	for (std::list<LPMAPITABLE>::iterator i = lHierarchies.begin(); i != lHierarchies.end(); i++)
+		(*i)->Release();
+
+	if (lpColumns)
+		MAPIFreeBuffer(lpColumns);
+
+	if (lpTableView)
+		lpTableView->Release();
+
+	if (lpTable)
+		lpTable->Release();
+
+	return hr;
+}
+
+HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
+	HRESULT hr = hrSuccess;
+	std::list<abEntry>::const_iterator iter;
+	LPABLOGON lpABLogon = NULL;
+	MAPIUID muidEntry;
+
+	if (cbEntryID < sizeof(MAPIUID) + 4 || !lpEntryID) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	// get the provider muid
+	memcpy(&muidEntry, (LPBYTE)lpEntryID + 4, sizeof(MAPIUID));
+
+	// locate provider
+	for (iter = m_lABEntries.begin(); iter != m_lABEntries.end(); iter++) {
+		if (memcmp(&muidEntry, &iter->muid, sizeof(MAPIUID)) == 0)
+		{
+			lpABLogon = iter->lpABLogon;
+			break;
+		}
+	}
+	if (!lpABLogon) {
+		hr = MAPI_E_UNKNOWN_ENTRYID;
+		goto exit;
+	}
+
+	// open root container of provider
+	hr = lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+
+exit:
+	return hr;
+}
+
+HRESULT M4LABContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+HRESULT M4LABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState) {
+	return MAPI_E_NO_SUPPORT;
+}
+
+// imapiprop passthru
+HRESULT M4LABContainer::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
+	return M4LMAPIProp::GetLastError(hResult, ulFlags, lppMAPIError);
+}
+
+HRESULT M4LABContainer::SaveChanges(ULONG ulFlags) {
+	return M4LMAPIProp::SaveChanges(ulFlags);
+}
+
+HRESULT M4LABContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
+}
+
+HRESULT M4LABContainer::GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) {
+	return M4LMAPIProp::GetPropList(ulFlags, lppPropTagArray);
+}
+
+HRESULT M4LABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) {
+	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+}
+
+HRESULT M4LABContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+}
+
+HRESULT M4LABContainer::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+}
+
+HRESULT M4LABContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
+								 LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
+								 LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
+
+HRESULT M4LABContainer::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+									LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
+}
+
+HRESULT M4LABContainer::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
+										  LPMAPINAMEID** lpppPropNames) {
+	return M4LMAPIProp::GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
+}
+
+HRESULT M4LABContainer::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) {
+	return M4LMAPIProp::GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
+}
+
+// iunknown passthru
+ULONG M4LABContainer::AddRef() {
+	return M4LUnknown::AddRef();
+}
+ULONG M4LABContainer::Release() {
+	return M4LUnknown::Release();
+}
+HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
+	TRACE_MAPILIB(TRACE_ENTRY, "M4LABContainer::QueryInterface", "");
+	HRESULT hr = hrSuccess;
+	if ((refiid == IID_IABContainer) || (refiid == IID_IMAPIContainer) || (refiid == IID_IMAPIProp) || (refiid == IID_IUnknown)) {
+		AddRef();
+		*lpvoid = (IABContainer *)this;
+		hr = hrSuccess;
+	} else
+		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+
+	TRACE_MAPILIB1(TRACE_RETURN, "M4LABContainer::QueryInterface", "0x%08x", hr);
 	return hr;
 }

@@ -1132,6 +1132,7 @@ typedef struct _flaglist
 #define AB_UNMODIFIABLE         ((ULONG) 0x00000008)
 #define AB_FIND_ON_OPEN         ((ULONG) 0x00000010)
 #define AB_NOT_DEFAULT          ((ULONG) 0x00000020)
+#define AB_UNICODE_OK           ((ULONG) 0x00000040)
 #define CREATE_CHECK_DUP_STRICT ((ULONG) 0x00000001)
 #define CREATE_CHECK_DUP_LOOSE  ((ULONG) 0x00000002)
 #define CREATE_REPLACE          ((ULONG) 0x00000004)

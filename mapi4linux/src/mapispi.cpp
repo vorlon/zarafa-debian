@@ -59,9 +59,11 @@
 #include "ECGuid.h"
 
 #include <algorithm>
+#include "mapi_ptr.h"
 
-M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid) {
+M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid, SVCService* lpService) {
 	session = new_session;
+	service = lpService;
 
 	pthread_mutex_init(&m_advises_mutex, NULL);
 	m_connections = 0;
@@ -462,7 +464,6 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 		goto exit;
 
 	if (!lpszNewFolderName) {
-		// @todo GetProps with PR_COMMENT_W too
 		hr = HrGetOneProp(lpFolder, PR_DISPLAY_NAME_W, &lpSourceName);
 		if (hr != hrSuccess)
 			goto exit;
@@ -543,17 +544,113 @@ HRESULT M4LMAPISupport::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPME
 HRESULT M4LMAPISupport::PrepareSubmit(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::PrepareSubmit", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::PrepareSubmit", "0x%08x", MAPI_E_NO_SUPPORT);
+	// for every recipient,
+	// if mapi_submitted flag, clear flag, responsibility == false
+	// else set recipient type P1, responsibility == true
     return MAPI_E_NO_SUPPORT;
 }
 
+/** 
+ * Should perform the following tasks:
+ *
+ * 1 Expand certain personal distribution lists to their component recipients.
+ * 2 Replace all display names that have been changed with the original names.
+ * 3 Mark any duplicate entries.
+ * 4 Resolve all one-off addresses. 
+ * 5 Check whether the message needs preprocessing and, if it does,
+ *   set the flag pointed to by lpulFlags to NEEDS_PREPROCESSING.
+ * 
+ * Currently we only do step 1. The rest is done by the spooler and inetmapi.
+ *
+ * @param[in] lpMessage The message to process
+ * @param[out] lpulFlags Return flags for actions required by the caller.
+ * 
+ * @return MAPI Error code
+ */
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::ExpandRecips", "");
+	HRESULT hr = hrSuccess;
+	MAPITablePtr ptrRecipientTable;
+	mapi_rowset_ptr ptrRow;
+	AddrBookPtr ptrAddrBook;
+	std::set<std::vector<unsigned char> > setFilter;
+
+	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &ptrAddrBook);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpMessage->GetRecipientTable(fMapiUnicode, &ptrRecipientTable);
+	if (hr != hrSuccess)
+		goto exit;
+
+	while (true) {
+		LPSPropValue lpAddrType = NULL;
+		LPSPropValue lpDLEntryID = NULL;
+		ULONG ulObjType;
+		DistListPtr ptrDistList;
+		MAPITablePtr ptrTable;
+		mapi_rowset_ptr ptrRecips;
+
+		hr = ptrRecipientTable->QueryRows(1, 0L, &ptrRow);
+		if (hr != hrSuccess)
+			goto exit;
+
+		if (ptrRow.size() == 0)
+			break;
+
+		lpAddrType = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ADDRTYPE);
+		if (!lpAddrType)
+			continue;
+
+		if (_tcscmp(lpAddrType->Value.LPSZ, _T("MAPIPDL")))
+			continue;
+
+
+		lpDLEntryID = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
+		if (!lpDLEntryID)
+			continue;
+
+		if (setFilter.find(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb)) != setFilter.end()) {
+			// already expanded this group so continue without opening
+			hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
+			if (hr != hrSuccess)
+				goto exit;
+			continue;
+		}
+		setFilter.insert(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
+
+		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb, (LPENTRYID)lpDLEntryID->Value.bin.lpb, NULL, 0, &ulObjType, &ptrDistList);
+		if (hr != hrSuccess)
+			continue;
+
+		// remove MAPIPDL entry when distlist is opened
+		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrDistList->GetContentsTable(fMapiUnicode, &ptrTable);
+		if (hr != hrSuccess)
+			continue;
+
+		// Get all recipients in distlist, and add to message.
+		// If another distlist is here, it will expand in the next loop.
+		hr = ptrTable->QueryRows(-1, fMapiUnicode, &ptrRecips);
+		if (hr != hrSuccess)
+			continue;
+
+		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)ptrRecips.get());
+		if (hr != hrSuccess)
+			goto exit;
+	}
+	hr = hrSuccess;
+
 	// Return 0 (no spooler needed, no preprocessing needed)
 	if(lpulFlags)
 		*lpulFlags = 0;
 
+exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::ExpandRecips", "0x%08x", hrSuccess);
-    return hrSuccess;
+	return hr;
 }
 
 HRESULT M4LMAPISupport::UpdatePAB(ULONG ulFlags, LPMESSAGE lpMessage) {
@@ -601,9 +698,27 @@ HRESULT M4LMAPISupport::StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList)
 
 HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG * lpcbWrappedEntry,
 										 LPENTRYID * lppWrappedEntry) {
+	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::WrapStoreEntryID", "");
+	// get the dll name from SVCService
+	HRESULT hr = hrSuccess;
+	LPSPropValue lpDLLName = NULL;
+
+	if (!service) {
+		// addressbook provider doesn't have the SVCService object
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+
+	lpDLLName = service->GetProp(PR_SERVICE_DLL_NAME_A);
+	if (!lpDLLName || !lpDLLName->Value.lpszA) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
 	// call mapiutil version
-    TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::WrapStoreEntryID", "");
-	HRESULT hr = ::WrapStoreEntryID(0, (TCHAR*)"zarafa6client.dll", cbOrigEntry, lpOrigEntry, lpcbWrappedEntry, lppWrappedEntry);
+	hr = ::WrapStoreEntryID(0, (TCHAR*)lpDLLName->Value.lpszA, cbOrigEntry, lpOrigEntry, lpcbWrappedEntry, lppWrappedEntry);
+
+exit:	
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::WrapStoreEntryID", "0x%08x", hr);
 	return hr;
 }

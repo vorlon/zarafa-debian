@@ -109,6 +109,10 @@ HRESULT mapi_util_createprof(char *szProfName, char *szServiceName, ULONG cValue
 		goto exit;
 	}
 
+	// optional, ignore error
+	if (strcmp(szServiceName, "ZARAFA6") == 0)
+		lpServiceAdmin->CreateMsgService((LPTSTR)"ZCONTACTS", (LPTSTR)"", 0, 0);
+
 	// Strangely we now have to get the SERVICE_UID for the service we just added from
 	// the table. (see MSDN help page of CreateMsgService at the bottom of the page)
 	hr = lpServiceAdmin->GetMsgServiceTable(0, &lpTable);

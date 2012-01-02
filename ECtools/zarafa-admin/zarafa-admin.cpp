@@ -2985,7 +2985,7 @@ int main(int argc, char* argv[])
 
 	hr = HrOpenDefaultStore(lpSession,&lpMsgStore);
 	if(hr != hrSuccess) {
-		cerr << "Unable to open Admin store." << endl;
+		cerr << "Unable to open Admin store, " << stringify(hr,true) << endl;
 		goto exit;
 	}
 

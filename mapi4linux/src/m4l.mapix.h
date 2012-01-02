@@ -54,6 +54,7 @@
 
 #include "m4l.common.h"
 #include "m4l.mapidefs.h"
+#include "m4l.mapisvc.h"
 #include <mapix.h>
 #include <mapispi.h>
 #include <string>
@@ -78,6 +79,7 @@ typedef struct _s_serviceentry {
 	string displayname;
 	M4LProviderAdmin *provideradmin;
 	bool bInitialize;
+	SVCService* service;
 } serviceEntry;
 
 typedef struct _s_profentry {
@@ -274,14 +276,13 @@ private:
 	M4LMsgServiceAdmin *serviceAdmin; /* from session object */
 	LPMAPISUP m_lpMAPISup;
 
-	// should be implemented in a list
-	LPABPROVIDER m_lpABProvider;
-	LPABLOGON m_lpABLogon;
+	std::list<abEntry> m_lABProviders;
+
+	LPSRowSet m_lpSavedSearchPath;
+	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);
 
 public:
-	void __stdcall addProvider(LPABPROVIDER newProvider);
-	void __stdcall logonProvider();
-
+	HRESULT __stdcall addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider);
 };
 
 extern ECConfig *m4l_lpConfig;

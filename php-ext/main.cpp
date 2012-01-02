@@ -292,6 +292,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_openmsgstore, NULL)
 	ZEND_FE(mapi_openmsgstore_zarafa, NULL)
 	ZEND_FE(mapi_openmsgstore_zarafa_other, NULL) // ATTN: see comment by function
+	ZEND_FE(mapi_openprofilesection, NULL)
 
 	ZEND_FE(mapi_openaddressbook, NULL)
 	ZEND_FE(mapi_openentry, NULL)
@@ -1524,6 +1525,47 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	}
 
 	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
+exit:
+	THROW_ON_ERROR();
+	return;
+}
+
+/** 
+ * Open the profile section of given guid, and returns the php-usable IMAPIProp object
+ * 
+ * @param[in] Resource mapi session
+ * @param[in] String mapi uid of profile section
+ * 
+ * @return IMAPIProp interface of IProfSect object
+ */
+ZEND_FUNCTION(mapi_openprofilesection)
+{
+	// params
+	zval *res;
+	Session *lpSession = NULL;
+	int uidlen;
+	LPMAPIUID lpUID = NULL;
+	// return value
+	IMAPIProp *lpProfSectProp = NULL;
+	// local
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUID, &uidlen) == FAILURE) return;
+
+	if (uidlen != sizeof(MAPIUID))
+		goto exit;
+
+	ZEND_FETCH_RESOURCE(lpSession, Session*, &res, -1, name_mapi_session, le_mapi_session);
+
+	// yes, you can request any compatible interface, but the return pointer is LPPROFSECT .. ohwell.
+	MAPI_G(hr) = lpSession->GetIMAPISession()->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, (LPPROFSECT*)&lpProfSectProp);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+
+	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
+
 exit:
 	THROW_ON_ERROR();
 	return;
@@ -3324,6 +3366,8 @@ ZEND_FUNCTION(mapi_setprops)
 		ZEND_FETCH_RESOURCE(lpMapiProp, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
 	} else if (type == le_mapi_msgstore) {
 		ZEND_FETCH_RESOURCE(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
+	} else if (type == le_mapi_property) {
+		ZEND_FETCH_RESOURCE(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown resource type");
 		goto exit;
@@ -3463,6 +3507,8 @@ ZEND_FUNCTION(mapi_savechanges)
 			ZEND_FETCH_RESOURCE(lpMapiProp, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
 		} else if (type == le_mapi_msgstore) {
 			ZEND_FETCH_RESOURCE(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
+		} else if (type == le_mapi_property) {
+			ZEND_FETCH_RESOURCE(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
 		} else {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource does not exist...");
 			RETURN_FALSE;
@@ -3693,6 +3739,8 @@ ZEND_FUNCTION(mapi_getprops)
 		ZEND_FETCH_RESOURCE(lpMapiProp, LPDISTLIST, &res, -1, name_mapi_distlist, le_mapi_distlist);
 	} else if( type == le_mapi_abcont) {
 		ZEND_FETCH_RESOURCE(lpMapiProp, LPABCONT, &res, -1, name_mapi_abcont, le_mapi_abcont);
+	} else if( type == le_mapi_property) {
+		ZEND_FETCH_RESOURCE(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid MAPI resource");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;

@@ -86,6 +86,13 @@
 #define PR_EC_SERVERNAME_A				PROP_TAG(PT_STRING8,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
 #define PR_EC_SERVERNAME_W				PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
 
+/* same as properties below, but on different objects */
+#define PR_ZC_CONTACT_STORE_ENTRYIDS	PROP_TAG(PT_MV_BINARY, PR_EC_BASE+0x11)
+#define PR_ZC_CONTACT_FOLDER_ENTRYIDS	PROP_TAG(PT_MV_BINARY, PR_EC_BASE+0x12)
+#define PR_ZC_CONTACT_FOLDER_NAMES		PROP_TAG(PT_MV_TSTRING, PR_EC_BASE+0x13)
+#define PR_ZC_CONTACT_FOLDER_NAMES_A	PROP_TAG(PT_MV_STRING8, PR_EC_BASE+0x13)
+#define PR_ZC_CONTACT_FOLDER_NAMES_W	PROP_TAG(PT_MV_UNICODE, PR_EC_BASE+0x13)
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // The property under which we actually save the PR_ENTRYID in recipient tables
