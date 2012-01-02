@@ -268,6 +268,35 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
 	SPropValuePtr ptrArchiveName;
+	SPropValuePtr ptrArchiveStoreId;
+
+	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &ptrArchiveStoreId);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive store entryid (hr=%s).", stringify(hr, true).c_str());
+		goto exit;
+	}
+
+	hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=%s).", stringify(hr, true).c_str());
+		goto exit;
+	}
+	
+	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive list (hr=%s).", stringify(hr, true).c_str());
+		goto exit;	
+	}
+
+	// Find ptrArchiveStoreId in lstArchives
+	for (ObjectEntryList::iterator i = lstArchives.begin(); i != lstArchives.end(); ++i) {
+		bool bEqual;
+		if (m_ptrSession->CompareStoreIds(i->sStoreEntryId, ptrArchiveStoreId->Value.bin, &bEqual) == hrSuccess && bEqual) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "An archive for this '" TSTRING_PRINTF "' is already present in this store.", m_strUser.c_str());
+			hr = MAPI_E_UNABLE_TO_COMPLETE;
+			goto exit;
+		}
+	}
 
 	hr = ArchiveHelper::Create(lpArchiveStore, strFoldername, lpszArchiveServer, &ptrArchiveHelper);
 	if (hr != hrSuccess) {
@@ -344,19 +373,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive entry (hr=%s).", stringify(hr, true).c_str());
 		goto exit;	
 	}
-	
-	hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=%s).", stringify(hr, true).c_str());
-		goto exit;
-	}
-	
-	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive list (hr=%s).", stringify(hr, true).c_str());
-		goto exit;	
-	}
-	
+
 	lstArchives.push_back(objectEntry);
 	lstArchives.sort();
 	lstArchives.unique();

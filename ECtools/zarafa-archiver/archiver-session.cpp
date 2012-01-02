@@ -630,6 +630,36 @@ exit:
 }
 
 /**
+ * Compare two store entryids to see if they reference the same store.
+ *
+ * @param[in]	sEntryId1
+ *					Entryid 1.
+ * @param[in]	sEntryId2
+ *					Entryid 2.
+ * @param[out]	lpbResult
+ *					Pointer to a boolean that will be set to true if the two ids
+ *					reference the same store.
+ *
+ * @return HRESULT
+ */					
+HRESULT Session::CompareStoreIds(const entryid_t &sEntryId1, const entryid_t &sEntryId2, bool *lpbResult)
+{
+	HRESULT hr = hrSuccess;
+	ULONG ulResult = 0;
+
+	hr = m_ptrSession->CompareEntryIDs(sEntryId1.size(), sEntryId1,
+									   sEntryId2.size(), sEntryId2,
+									   0, &ulResult);
+	if (hr != hrSuccess)
+		goto exit;
+		
+	*lpbResult = (ulResult == TRUE);
+	
+exit:
+	return hr;
+}
+
+/**
  * Check if the server specified by strServername is the server we're currently connected with.
  *
  * @param[in]	strServername

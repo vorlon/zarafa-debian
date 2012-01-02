@@ -84,6 +84,7 @@ public:
 	HRESULT GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname);
 	HRESULT GetGAL(LPABCONT *lppAbContainer);
 	HRESULT CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult);
+	HRESULT CompareStoreIds(const entryid_t &sEntryId1, const entryid_t &sEntryId2, bool *lpbResult);
 	HRESULT ServerIsLocal(const std::string &strServername, bool *lpbResult);
 	
 	HRESULT CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, SessionPtr *lpptrSession);
