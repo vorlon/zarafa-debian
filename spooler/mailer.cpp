@@ -1849,7 +1849,7 @@ HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore, IMAPISessio
 									lpAddrBook, ulOwnerCB, lpOwnerEID,
 									lpDelegates->Value.MVbin.cValues, lpDelegates->Value.MVbin.lpbin, &ulObjType, &bAllowed);
 	if (bAllowed) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Mail for user '%ls' is allowed on behalve of user '%ls'%s",
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Mail for user '%ls' is allowed on behalf of user '%ls'%s",
 						lpUserOwnerName ? lpUserOwnerName->Value.lpszW : L"<no name>",
 						lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>",
 						(ulObjType != MAPI_DISTLIST)?"":" because of group");
@@ -2465,7 +2465,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, char *szSMTP, int ulPort
 	SPropValue		*lpsProp = NULL;
 	IMessage		*lpMessage = NULL;
 	LPECUSER		lpUserAdmin = NULL;	// for error message
-
+	
 	lpMailer = CreateSender(g_lpLogger, szSMTP, ulPort);
 	if (!lpMailer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
