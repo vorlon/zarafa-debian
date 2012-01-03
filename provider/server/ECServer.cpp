@@ -433,7 +433,7 @@ ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	strTable.erase(0, start+1);
 
 	// if not correct...
-	if (strTable.compare("`hierarchyid`,`type `") != 0) {
+	if (strTable.compare("`hierarchyid`,`type`") != 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "**** WARNING: Installation is not optimal! ****");
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  The primary key of the tproperties table is incorrect.");
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
