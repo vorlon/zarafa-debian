@@ -1090,14 +1090,8 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 			goto exit;
 		}
 		
-		hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strRepName, strRepType, strRepEmailAdd);
-		if(hr != hrSuccess) {
-			hr = hrSuccess;
-			// Not an error
-			strRepName = L"";
-			strRepEmailAdd = L"";
-			strRepType = L"";
-		}
+		// Ignore errors here and let strRep* untouched
+		HrGetAddress(m_lpAdrBook, lpMessage, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strRepName, strRepType, strRepEmailAdd);
 
 		expeditor.setEmail(m_converter.convert_to<string>(strEmailAdd));
 		if(!strName.empty())
