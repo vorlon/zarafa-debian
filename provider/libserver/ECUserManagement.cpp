@@ -91,6 +91,9 @@ namespace bpt = boost::posix_time;
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+#ifndef AB_UNICODE_OK
+#define AB_UNICODE_OK ((ULONG) 0x00000040)
+#endif
 
 extern ECSessionManager*	g_lpSessionManager;
 
