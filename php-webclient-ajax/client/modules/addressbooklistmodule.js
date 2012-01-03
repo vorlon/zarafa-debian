@@ -67,7 +67,10 @@ addressbooklistmodule.prototype.init = function(id, element, title, data)
 	this.action = "list";
 
 	this.enableVariableColumns = false;
-	
+
+	// disable message selection when loading addressbook
+	this.preserveSelectionOnReload = false;
+
 	// We don't want rowcolumn/quick_edit events since it makes it slower
     delete this.events["rowcolumn"];
     delete this.events["insertcolumn"];
@@ -121,9 +124,6 @@ addressbooklistmodule.prototype.execute = function(type, action)
 			// Content in addressbook is loaded and table widget is added so call resize function.
 			if (window.onresize)
 				window.onresize();
-			// empty old selected messages if there was any.
-			if(this.selectedMessages)
-				this.selectedMessages = new Array();
 			break;
 		case "hierarchy":
 			this.updateHierarchy(action);
