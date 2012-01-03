@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-18 00:03+0100\n"
+"POT-Creation-Date: 2012-01-03 15:33+0100\n"
 "PO-Revision-Date: 2011-06-10 18:08+0200\n"
 "Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
 "Language-Team: it_IT <it@li.org>\n"
@@ -14,95 +14,95 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:503 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:506 provider/ECProps/SyncBar.cpp:322
 msgid "Configure"
 msgstr "Configura"
 
-#: provider/ECProps/Addin.cpp:505 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:508 provider/ECProps/SyncBar.cpp:314
 msgid "Synchronize"
 msgstr "Sincronizza"
 
-#: provider/ECProps/Addin.cpp:507
+#: provider/ECProps/Addin.cpp:510
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Apri le cartelle condivise..."
 
-#: provider/ECProps/Addin.cpp:509 provider/ECProps/Addin.cpp:550
+#: provider/ECProps/Addin.cpp:512 provider/ECProps/Addin.cpp:553
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Ripristina Messaggi Cancellati..."
 
-#: provider/ECProps/Addin.cpp:511 provider/ECProps/Addin.cpp:552
+#: provider/ECProps/Addin.cpp:514 provider/ECProps/Addin.cpp:555
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Risponditore automatico Fuori Sede..."
 
-#: provider/ECProps/Addin.cpp:515
+#: provider/ECProps/Addin.cpp:518
 msgid "Offline"
 msgstr "Fuori Rete"
 
-#: provider/ECProps/Addin.cpp:544 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:547 provider/ECProps/SyncBar.cpp:324
 msgid "Configure offline synchronization"
 msgstr "Configura sincronizzazione offline"
 
-#: provider/ECProps/Addin.cpp:546 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:316
 msgid "Start offline synchronization"
 msgstr "Avvia sincronizzazione offline"
 
-#: provider/ECProps/Addin.cpp:548
+#: provider/ECProps/Addin.cpp:551
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Apri cartelle condivise Outlook di un altro utente (Calendario, E-mail, ecc)"
 
-#: provider/ECProps/Addin.cpp:660
+#: provider/ECProps/Addin.cpp:663
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "Il risponditore automatico Fuori Sede è attivo. Vuoi disattivarlo?"
 
-#: provider/ECProps/Addin.cpp:660
+#: provider/ECProps/Addin.cpp:663
 msgid "Out Of Office Turned On"
 msgstr "Risponditore automatico Fuori Sede attivo"
 
-#: provider/ECProps/Addin.cpp:666
+#: provider/ECProps/Addin.cpp:669
 msgid "Unable to save Out of Office status"
 msgstr "Impossibile salvare lo stato Fuori Ufficio"
 
-#: provider/ECProps/Addin.cpp:763
+#: provider/ECProps/Addin.cpp:764
 msgid "Delegates"
 msgstr "Delegati"
 
-#: provider/ECProps/Addin.cpp:887 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:888 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Preferiti"
 
-#: provider/ECProps/Addin.cpp:899 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:900 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Permessi"
 
-#: provider/ECProps/Addin.cpp:1103 provider/ECProps/Addin.cpp:1104
+#: provider/ECProps/Addin.cpp:1104 provider/ECProps/Addin.cpp:1105
 msgid "Add to Public Favorites Folder"
 msgstr "Aggiungi alla cartella pubblica Preferiti"
 
-#: provider/ECProps/Addin.cpp:1188
+#: provider/ECProps/Addin.cpp:1189
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:106
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Impossibile aprire la sessione MAPI."
 
-#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2374
 msgid "Shortcut"
 msgstr "Collegamento"
 
-#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Collegamento a cartella"
 
-#: provider/ECProps/Addin.cpp:1194
+#: provider/ECProps/Addin.cpp:1195
 msgid "Unable to get shortcut folder."
 msgstr "Impossibile ottenere la cartella shortcut."
 
@@ -299,7 +299,7 @@ msgstr "Aggiungi"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:252
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
-#: provider/client/ECABContainer.cpp:243 provider/client/ECABContainer.cpp:298
+#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:229
 msgid "Global Address Book"
 msgstr "Global Address Book"
@@ -613,7 +613,7 @@ msgid "Tasks"
 msgstr "Attività"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:858 provider/client/ECMsgStore.cpp:2391
+#: provider/libserver/ECGenProps.cpp:876 provider/client/ECMsgStore.cpp:2391
 msgid "Inbox"
 msgstr "Posta in arrivo"
 
@@ -780,17 +780,17 @@ msgstr "Aggiornamento cache in corso..."
 msgid "Upgrade: "
 msgstr "Aggiorno: "
 
-#: provider/libserver/ECGenProps.cpp:816
+#: provider/libserver/ECGenProps.cpp:834
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Cartelle pubbliche"
 
-#: provider/libserver/ECGenProps.cpp:860
+#: provider/libserver/ECGenProps.cpp:878
 msgid "Archive"
 msgstr ""
 
-#: provider/client/ECMSProvider.cpp:246
+#: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:279
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
@@ -801,7 +801,7 @@ msgstr ""
 "limite di licenza. Per continuare è necessario acquistare una licenza "
 "client addizionale."
 
-#: provider/client/ECMSProvider.cpp:250
+#: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:284
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
@@ -812,13 +812,13 @@ msgstr ""
 "il server delle licenze. Contattare il proprio amministratore di sistema."
 
 # 75%
-#: provider/client/ECABContainer.cpp:245 provider/client/ECABContainer.cpp:300
+#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Liste indirizzi globali"
 
 # 75%
 # 80%
-#: provider/client/ECABContainer.cpp:247 provider/client/ECABContainer.cpp:302
+#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Tutte le liste indirizzi"
 
@@ -969,35 +969,35 @@ msgstr "Rimuovi"
 msgid "User already exists."
 msgstr "Utente già esistente."
 
-#: provider/client/ECArchiveAwareMessage.cpp:446
+#: provider/client/ECArchiveAwareMessage.cpp:451
 msgid "Zarafa Archiver"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:448
+#: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:450
+#: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:462
+#: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:466
+#: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:470
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr ""
 
@@ -1261,19 +1261,19 @@ msgstr ""
 "connessioni finchè non verrà disabilitata l'opzione 'Fuori Rete' dal menù "
 "'File'."
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:808
+#: provider/client/ECExchangeImportContentsChanges.cpp:818
 msgid "Sync Issues"
 msgstr "Problemi di sincronizzazione"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:812
+#: provider/client/ECExchangeImportContentsChanges.cpp:824
 msgid "Conflicts"
 msgstr "Conflitti"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:816
+#: provider/client/ECExchangeImportContentsChanges.cpp:830
 msgid "Local Failures"
 msgstr "Errori locali"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:820
+#: provider/client/ECExchangeImportContentsChanges.cpp:836
 msgid "Server Failures"
 msgstr "Errori server"
 
@@ -1319,6 +1319,10 @@ msgstr ""
 "utilizzare la funzionalità offline, si prega di utilizzare Outlook 2000, "
 "2003, 2007 o successive."
 
+#: provider/contacts/ZCABContainer.cpp:645
+msgid "Zarafa Contacts Folders"
+msgstr ""
+
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
 msgstr "Impossibile ottenere l'oggetto SSL dall'archivio"
@@ -1352,38 +1356,38 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr "Vuoi continuare?"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:782
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr ""
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:783
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
 msgstr ""
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:787
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
 msgstr ""
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:788
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr ""
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:792
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
 msgid "Outgoing"
 msgstr ""
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:793
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
 msgid "This folder contains archives of all outgoing messages."
 msgstr ""
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:797
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
 #, fuzzy
 msgid "Deleted"
 msgstr "Elimina"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:798
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
 msgid "This folder contains archives of messages that have been deleted."
 msgstr ""
 

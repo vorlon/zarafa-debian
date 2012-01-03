@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-26 00:02+0100\n"
+"POT-Creation-Date: 2012-01-03 15:33+0100\n"
 "PO-Revision-Date: 2011-11-25 13:17+0200\n"
 "Last-Translator: Alexandre <a.paraguassu@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
@@ -296,7 +296,7 @@ msgstr "Adicionar"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:252
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
-#: provider/client/ECABContainer.cpp:243 provider/client/ECABContainer.cpp:298
+#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:229
 msgid "Global Address Book"
 msgstr "Livro Global de Endereços"
@@ -609,7 +609,7 @@ msgid "Tasks"
 msgstr "Tarefas"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:869 provider/client/ECMsgStore.cpp:2391
+#: provider/libserver/ECGenProps.cpp:876 provider/client/ECMsgStore.cpp:2391
 msgid "Inbox"
 msgstr "Caixa de Entrada"
 
@@ -772,17 +772,17 @@ msgstr "Seu cache está sendo atualizado..."
 msgid "Upgrade: "
 msgstr "Atualizar:"
 
-#: provider/libserver/ECGenProps.cpp:827
+#: provider/libserver/ECGenProps.cpp:834
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Pastas Públicas"
 
-#: provider/libserver/ECGenProps.cpp:871
+#: provider/libserver/ECGenProps.cpp:878
 msgid "Archive"
 msgstr "Arquivo"
 
-#: provider/client/ECMSProvider.cpp:246
+#: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:279
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
@@ -792,7 +792,7 @@ msgstr ""
 "Não foi possivel iniciar o perfil porque o limite licenciado foi "
 "ultrapassado. Para continuar é necessário adiqurir licenças adicionais."
 
-#: provider/client/ECMSProvider.cpp:250
+#: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:284
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
@@ -803,13 +803,13 @@ msgstr ""
 "serviço de licenciamento. Favor consultar o administrador do sistema."
 
 # 75%
-#: provider/client/ECABContainer.cpp:245 provider/client/ECABContainer.cpp:300
+#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Livro Global de Endereços"
 
 # 75%
 # 80%
-#: provider/client/ECABContainer.cpp:247 provider/client/ECABContainer.cpp:302
+#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Lista Global de Endereços"
 
@@ -959,35 +959,35 @@ msgid "User already exists."
 msgstr "Usuário já existe."
 
 # 93%
-#: provider/client/ECArchiveAwareMessage.cpp:446
+#: provider/client/ECArchiveAwareMessage.cpp:451
 msgid "Zarafa Archiver"
 msgstr "Zarafa Archiver"
 
-#: provider/client/ECArchiveAwareMessage.cpp:448
+#: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:450
+#: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr "Código de erro:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:462
+#: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:466
+#: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:470
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Descrição de erro:"
 
@@ -1249,19 +1249,19 @@ msgstr ""
 "nenhuma nova tentativa de conexão até que você desative a opção 'Trabalhar "
 "offline' em 'Arquivo'."
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:808
+#: provider/client/ECExchangeImportContentsChanges.cpp:818
 msgid "Sync Issues"
 msgstr "Problemas de sincronização"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:812
+#: provider/client/ECExchangeImportContentsChanges.cpp:824
 msgid "Conflicts"
 msgstr "Conflitos"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:816
+#: provider/client/ECExchangeImportContentsChanges.cpp:830
 msgid "Local Failures"
 msgstr "Erros locais"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:820
+#: provider/client/ECExchangeImportContentsChanges.cpp:836
 msgid "Server Failures"
 msgstr "Erros no servidor"
 
@@ -1307,6 +1307,10 @@ msgstr ""
 "usar a funcionalidade offline, por favor usar Outlook 2000, 2003, 2007 ou "
 "mais recente."
 
+#: provider/contacts/ZCABContainer.cpp:645
+msgid "Zarafa Contacts Folders"
+msgstr ""
+
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
 msgstr "Não foi possível ler o certificado SSL da caixa"
@@ -1339,37 +1343,37 @@ msgstr "Este certificado é confiável mas não pôde ser verificado corretament
 msgid "Do you wish to continue?"
 msgstr "Deseja continuar?"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:782
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr "Zarafa Archive"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:783
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
 msgstr "Essa pasta contém pastas especiais de arquivação."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:787
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
 msgstr "Histórico"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:788
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr "Essa pasta contém arquivos que foram substituídas por uma nova versão."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:792
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
 msgid "Outgoing"
 msgstr "Sendo enviado"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:793
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Esta pasta contém mensagens arquivadas de todas as mensagens enviadas."
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:797
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
 msgid "Deleted"
 msgstr "Excluído"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:798
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Esta pasta contém mensagens arquivadas de todas as mensagens apagadas."
 
