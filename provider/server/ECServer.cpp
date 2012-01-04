@@ -438,7 +438,7 @@ ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  The primary key of the tproperties table is incorrect.");
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Please read the following page on how to update your installation to get much better performance:");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  http://www.zarafa.com/wiki/index.php/Zarafa_Alerts/");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  http://www.zarafa.com/wiki/index.php/Zarafa_Alerts");
 	}
 
 	er = erSuccess;
