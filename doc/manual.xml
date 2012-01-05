@@ -1818,7 +1818,7 @@
 			  <replaceable>companyname</replaceable>
 			</term>
 			<listitem>
-			  <para>Set system administrator for the tentant specified by <parameter>-I</parameter>.</para>
+			  <para>Set system administrator for the tenant specified by <parameter>-I</parameter>.</para>
 			  <para>Please be aware that this option does not provide the user with administrator privileges.
 			  The system administrator is considered the main contact person for a company, it will for example
 			  be used as default sender for quota warning emails.</para>
@@ -1857,7 +1857,7 @@
 			  <option>--list-view</option>
 			</term>
 			<listitem>
-			  <para>List all tentants in the remote-view list of the tenant specified by <parameter>-I</parameter>.
+			  <para>List all tenants in the remote-view list of the tenant specified by <parameter>-I</parameter>.
 			  The tenants in this list are able to view all members of the specified tenant in their Address Book.</para>
 			  <para>This option is only available in multi-tenancy Zarafa.</para>
 			</listitem>
@@ -2334,7 +2334,7 @@
 			  <replaceable>value in Mb</replaceable>
 			</term>
 			<listitem>
-			  <para>Set the warning quota level for all users within the specified tentant.
+			  <para>Set the warning quota level for all users within the specified tenant.
 			  The user may receive a warning email when this level is reached. See
 			  <citerefentry><refentrytitle>zarafa-monitor</refentrytitle>
 			  <manvolnum>1</manvolnum></citerefentry>
@@ -2348,7 +2348,7 @@
 			  <replaceable>value in Mb</replaceable>
 			</term>
 			<listitem>
-			  <para>Set the soft quota level for all users within the specified tentant.
+			  <para>Set the soft quota level for all users within the specified tenant.
 			  The user will be unable to receive new emails, bouncing the email back
 			  to the sender. See <citerefentry><refentrytitle>zarafa-monitor</refentrytitle>
 			  <manvolnum>1</manvolnum></citerefentry> for warning emails.</para>
@@ -5039,7 +5039,7 @@
 			<listitem>
 			  <para>This is the unique attribute of a tenant which is never going to change,
 			  unless the tenant is removed from LDAP. When this value changes, Zarafa
-			  will remove the previous tenant from the database, and create a new tentant with
+			  will remove the previous tenant from the database, and create a new tenant with
 			  this unique value.</para>
 			  <para>Default for OpenLDAP: <replaceable>ou</replaceable></para>
 			  <para>Default for ADS: <replaceable>objectSid</replaceable></para>
@@ -7668,7 +7668,7 @@
 				  <term><parameter>${ZARAFA_QUOTA_COMPANY}</parameter></term>
 				  <listitem>
 				    <para>userquota template: The name of the tenant to which the user belongs</para>
-					<para>tentantquota template: The name of the tenant which exceeded its quota</para>
+					<para>tenantquota template: The name of the tenant which exceeded its quota</para>
 				  </listitem>
 				</varlistentry>
 				<varlistentry>
@@ -10934,9 +10934,9 @@
 		  <varlistentry>
 			<term><option>index_block_companies</option></term>
 			<listitem>
-			  <para>A list of tentants which should not
+			  <para>A list of tenants which should not
 			  be indexed by the indexing service. All users and the public
-			  store belonging to these tentants will not be indexed. Fields in the list
+			  store belonging to these tenants will not be indexed. Fields in the list
 			  are seperated by a SPACE.
 			  </para>
 			  <para>Default: empty</para>
