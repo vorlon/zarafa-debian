@@ -1154,7 +1154,7 @@ ECRESULT CopyPropVal(struct propVal *lpSrc, struct propVal *lpDst, struct soap *
 		}
 
 		if (bTruncate)
-			len = u8_cappedbytes(lpSrc->Value.lpszA, 255);
+			len = u8_cappedbytes(lpSrc->Value.lpszA, TABLE_CAP_STRING);
 		else
 			len = strlen(lpSrc->Value.lpszA);
 		
@@ -1174,8 +1174,8 @@ ECRESULT CopyPropVal(struct propVal *lpSrc, struct propVal *lpDst, struct soap *
 		lpDst->Value.bin->__size = lpSrc->Value.bin->__size;
 		
 		if(bTruncate) {
-			if(lpDst->Value.bin->__size > 255)
-				lpDst->Value.bin->__size = 255;
+			if(lpDst->Value.bin->__size > TABLE_CAP_BINARY)
+				lpDst->Value.bin->__size = TABLE_CAP_BINARY;
 		}
 		
 		lpDst->Value.bin->__ptr = s_alloc<unsigned char>(soap, lpSrc->Value.bin->__size);

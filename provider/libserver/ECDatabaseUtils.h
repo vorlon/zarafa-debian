@@ -93,7 +93,6 @@ enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALU
 
 enum { FIELD_NR_ID=0, FIELD_NR_TAG, FIELD_NR_TYPE, FIELD_NR_ULONG, FIELD_NR_STRING, FIELD_NR_BINARY, FIELD_NR_DOUBLE, FIELD_NR_LONGINT, FIELD_NR_HI, FIELD_NR_LO, FIELD_NR_MAX };
 
-std::string GetColName(ULONG type, std::string table, BOOL bTableLimit);
 ULONG GetColOffset(ULONG ulPropTag);
 std::string GetPropColOrder(unsigned int ulPropTag, std::string strSubQuery);
 unsigned int GetColWidth(unsigned int ulPropType);
@@ -111,4 +110,3 @@ unsigned int NormalizeDBPropTag(unsigned int ulPropTag);
 bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2);
 
 #endif // ECDATABASEUTILS_H
-

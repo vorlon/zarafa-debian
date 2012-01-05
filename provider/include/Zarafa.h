@@ -319,6 +319,10 @@ typedef EID * PEID;
 // Default freebusy publish months
 #define ECFREEBUSY_DEFAULT_PUBLISH_MONTHS		6
 
+#define TABLE_CAP_STRING	(255)
+#define TABLE_CAP_STRING_W	(255*sizeof(wchar_t))
+#define TABLE_CAP_BINARY	(511)
+
 //
 // Capabilities bitmask, sent with ns__logon()
 //

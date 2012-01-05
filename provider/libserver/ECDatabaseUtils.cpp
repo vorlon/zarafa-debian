@@ -52,6 +52,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 
+#include "Zarafa.h"
 #include "soapH.h"
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
@@ -104,79 +105,6 @@ ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 
 	*lpulSize = ulSize;
 	return er;
-}
-
-std::string GetColName(ULONG type, std::string table, BOOL bTableLimit) {
-	switch(type) {
-	default:
-	case PT_I2:
-	case PT_LONG:
-	case PT_BOOLEAN:
-	case PT_MV_I2:
-	case PT_MV_LONG:
-		return table + "." + PROPCOL_ULONG;
-		break;
-	case PT_R4:
-	case PT_DOUBLE:
-	case PT_APPTIME:
-	case PT_MV_R4:
-	case PT_MV_DOUBLE:
-	case PT_MV_APPTIME:
-		return table + "." + PROPCOL_DOUBLE;
-		break;
-	case PT_CURRENCY:
-	case PT_SYSTIME:
-	case PT_MV_CURRENCY:
-	case PT_MV_SYSTIME:
-		return table + "." + PROPCOL_HI + "," + table + "." + PROPCOL_LO;
-		break;
-	case PT_I8:
-	case PT_MV_I8:
-		return table + "." + PROPCOL_LONGINT;
-		break;
-	case PT_UNICODE:
-	case PT_STRING8:
-	case PT_MV_STRING8:
-	case PT_MV_UNICODE:
-		if (bTableLimit)
-			return "LEFT (" + table + "." + PROPCOL_STRING + ", 255)";
-		else
-			return table + "." + PROPCOL_STRING;
-		break;
-	case PT_BINARY:
-	case PT_CLSID:
-	case PT_MV_BINARY:
-	case PT_MV_CLSID:
-		return table + "." + PROPCOL_BINARY;
-		break;
-	case (PT_MV_I2|MV_INSTANCE):
-	case (PT_MV_LONG|MV_INSTANCE):
-		return table + "." + PROPCOL_ULONG + ", "+table + ".orderid";
-		break;
-	case (PT_MV_R4|MV_INSTANCE):
-	case (PT_MV_DOUBLE|MV_INSTANCE):
-	case (PT_MV_APPTIME|MV_INSTANCE):
-		return table + "." + PROPCOL_DOUBLE + ", "+table + ".orderid";
-		break;
-	case (PT_MV_CURRENCY|MV_INSTANCE):
-	case (PT_MV_SYSTIME|MV_INSTANCE):
-		return table + "." + PROPCOL_HI + "," + table + "." + PROPCOL_LO + ", "+table + ".orderid";
-		break;
-	case (PT_MV_I8|MV_INSTANCE):
-		return table + "." + PROPCOL_LONGINT + ", "+table + ".orderid";
-		break;
-	case (PT_MV_STRING8|MV_INSTANCE):
-	case (PT_MV_UNICODE|MV_INSTANCE):
-		return table + "." + PROPCOL_STRING + ", "+table + ".orderid";
-		break;
-	case (PT_MV_BINARY|MV_INSTANCE):
-	case (PT_MV_CLSID|MV_INSTANCE):
-		return table + "." + PROPCOL_BINARY + ", "+table + ".orderid";
-		break;
-	case PT_NULL:
-		return "null";
-		break;
-	}
 }
 
 ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase, bool bTruncate)
@@ -265,7 +193,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 			goto exit;
 		}
 		if(bTruncate) {
-			u8_ncpy(lpPropVal->Value.lpszA, 255, &strData);
+			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
 		} else {
 			strData = lpPropVal->Value.lpszA;
 		}
@@ -281,8 +209,8 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 			goto exit;
 		}
 
-		if(bTruncate && lpPropVal->Value.bin->__size > 255) {
-			ulSize = 255;
+		if(bTruncate && lpPropVal->Value.bin->__size > TABLE_CAP_BINARY) {
+			ulSize = TABLE_CAP_BINARY;
 		} else {
 			ulSize = lpPropVal->Value.bin->__size;
 		}
