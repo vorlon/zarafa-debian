@@ -2504,8 +2504,13 @@
 	  <refsection>
 		<title>Config</title>
 
-		<para>Normally, no configuration file is used or required. The
-		following options can be set in the configuation file:</para>
+		<para>Normally, no configuration file is used or required. If
+		the file <replaceable>/etc/zarafa/admin.cfg</replaceable>
+		exists, it is used as configuration file, but no error
+		checking is performed. This way, you can use any config file
+		from a zarafa program, eg. zarafa-spooler or zarafa-dagent, to
+		load SSL settings.</para><para>The following options can be set in the
+		configuation file:</para>
 
 		<variablelist>
 		  <varlistentry>
