@@ -166,13 +166,13 @@ function showAction(action, state)
 	        dhtml.getElementById("action_move").checked = true;
 	        dhtml.getElementById("action_move_folder").folderentryid = action.folderentryid.value;
 	        dhtml.getElementById("action_move_folder").storeentryid = action.storeentryid.value;
-	        dhtml.getElementById("action_move_folder").innerHTML = action.foldername.value;
+	        dhtml.getElementById("action_move_folder").innerHTML = action.foldername.value.htmlEntities();
 		}
     } else if(action.action.value == "OP_COPY") {
         dhtml.getElementById("action_copy").checked = true;
         dhtml.getElementById("action_copy_folder").folderentryid = action.folderentryid.value;
         dhtml.getElementById("action_copy_folder").storeentryid = action.storeentryid.value;
-        dhtml.getElementById("action_copy_folder").innerHTML = action.foldername.value;
+        dhtml.getElementById("action_copy_folder").innerHTML = action.foldername.value.htmlEntities();
     } else if(action.action.value == "OP_FORWARD") {
 		var smtpaddress = "";
 		var emailaddress = "";
@@ -571,7 +571,7 @@ function getAction()
         action.storeentryid = new Object;
         action.storeentryid.value = action_move_folder.storeentryid;
         action.foldername = new Object;
-        action.foldername.value = action_move_folder.innerHTML;
+        action.foldername.value = html_entity_decode(action_move_folder.innerHTML);
     } else if(action_copy) {
         action.action = new Object;
         action.action.value = "OP_COPY";
@@ -580,7 +580,7 @@ function getAction()
         action.storeentryid = new Object;
         action.storeentryid.value = action_copy_folder.storeentryid;
         action.foldername = new Object;
-        action.foldername.value = action_copy_folder.innerHTML;
+        action.foldername.value = html_entity_decode(action_copy_folder.innerHTML);
     } else if(action_delete) {
         action.action = new Object;
         action.action.value = "OP_MOVE";
@@ -749,7 +749,7 @@ function folderCallBack(result, callBackData)
     
     var element = dhtml.getElementById(elementId);
     
-    element.innerHTML = result.foldername;
+    element.innerHTML = result.foldername.htmlEntities();
     element.folderentryid = result.folderentryid;
     element.storeentryid = result.storeentryid;
     
