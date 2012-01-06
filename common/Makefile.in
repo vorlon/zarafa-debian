@@ -848,6 +848,8 @@ install-data-am: install-charsetHEADERS install-dataDATA \
 	install-libcommon_mapi_la_includeHEADERS \
 	install-mapiptrHEADERS install-ustringutilHEADERS \
 	install-utf8HEADERS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-dvi: install-dvi-am
 
@@ -889,17 +891,17 @@ uninstall-am: uninstall-charsetHEADERS uninstall-dataDATA \
 	uninstall-mapiptrHEADERS uninstall-ustringutilHEADERS \
 	uninstall-utf8HEADERS
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-data-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-charsetHEADERS \
-	install-data install-data-am install-dataDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES \
+	install-data install-data-am install-data-hook \
+	install-dataDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES \
 	install-libcommon_mapi_la_includeHEADERS install-man \
 	install-mapiptrHEADERS install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip install-ustringutilHEADERS \
@@ -914,8 +916,9 @@ uninstall-am: uninstall-charsetHEADERS uninstall-dataDATA \
 	uninstall-utf8HEADERS
 
 
-# pkgconfigdir = $(libdir)/pkgconfig
-# pkgconfig_DATA = zarafa.pc
+# remove double installed headers
+install-data-hook:
+	for f in $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS); do rm ${DESTDIR}/$(includedir)/zarafa/`basename $$f`; done
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

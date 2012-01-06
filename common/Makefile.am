@@ -97,9 +97,9 @@ libcommon_ssl_la_SOURCES = 							\
 			SSLUtil.cpp								\
 			ECChannel.cpp
 
-
-# pkgconfigdir = $(libdir)/pkgconfig
-# pkgconfig_DATA = zarafa.pc
+# remove double installed headers
+install-data-hook:
+	for f in $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS); do rm ${DESTDIR}/$(includedir)/zarafa/`basename $$f`; done
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
