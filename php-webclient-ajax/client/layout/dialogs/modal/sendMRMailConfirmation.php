@@ -75,7 +75,7 @@ function getJavaScript_onload(){ ?>
 
 			var delete_info_bar = dhtml.getElementById("delete_info_bar");
 			var subjectString = (window.windowData["subject"].length > 30) ? window.windowData["subject"].substr(0, 30)+"..." : window.windowData["subject"];
-			delete_info_bar.innerHTML = _("The meeting \"%s\" was already accepted").sprintf(subjectString);
+			delete_info_bar.innerHTML = _("The meeting \"%s\" was already accepted").sprintf(subjectString).htmlEntities();
 		} else {
 			confirmDeleteEle.style.display = 'none';
 		}

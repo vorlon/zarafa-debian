@@ -10059,13 +10059,9 @@ SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entr
 			goto exit;
 	}
 
-	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER) {
+	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER || sExternId.objclass == CONTAINER_COMPANY) {
 		er = lpecSession->GetSecurity()->GetUserSize(ulUserid, &llStoreSize);
 		if(er != erSuccess)
-			goto exit;
-	} else if (sExternId.objclass == CONTAINER_COMPANY) {
-		er = lpecSession->GetSecurity()->GetCompanySize(ulUserid, &llStoreSize);
-		if (er != erSuccess)
 			goto exit;
 	} else {
 		er = ZARAFA_E_INVALID_PARAMETER;

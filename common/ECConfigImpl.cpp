@@ -634,10 +634,13 @@ bool ECConfigImpl::WriteSettingToFile(const char *szName, const char *szValue, c
 
 bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 {
-	string strOutFileName;
 	string strName;
+	fs::path pathOutFile;
+	fs::path pathBakFile;
 
-	strOutFileName = "config_out.cfg";
+	pathOutFile = pathBakFile = szFileName;
+	pathOutFile.remove_filename() /= "config_out.cfg";
+	pathBakFile.remove_filename() /= "config_bak.cfg";
 
 	ifstream in(szFileName);
 
@@ -656,7 +659,7 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 	}
 
 	// open temp output file
-	ofstream out(strOutFileName.c_str());
+	ofstream out(pathOutFile.file_string().c_str());
 
 	settingmap_t::iterator iterSettings;
 	const char* szName = NULL;
@@ -677,7 +680,7 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 
 // the stdio functions does not work in win release mode in some cases
 	remove(szFileName);
-	rename(strOutFileName.c_str(),szFileName);
+	rename(pathOutFile.file_string().c_str(),szFileName);
 
 	return true;
 }
