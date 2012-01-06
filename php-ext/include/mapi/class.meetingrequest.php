@@ -769,9 +769,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				mapi_setprops($calendarItem, $props);
 
 				// Copy attachments too
-				$this->copyAttachments($this->message, $calendarItem);
+				$this->replaceAttachments($this->message, $calendarItem);
 				// Copy recipients too
-				$this->copyRecipients($this->message, $calendarItem, $isDelegate);
+				$this->replaceRecipients($this->message, $calendarItem, $isDelegate);
 
 				// Find all occurrences based on CleanGlobalID (0x23)
 				$items = $this->findCalendarItems($messageprops[$this->proptags['goid2']], $calFolder, true);
@@ -1963,19 +1963,34 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		return hex2bin(strtoupper(substr($hexguid, 0, 32) . $year . $month . $day . substr($hexguid, 40)));
 	}
 	/**
-	 * Function which copy attachments.
+	 * Function which replaces attachments with copy_from in copy_to.
 	 *@param resource $copy_from MAPI_message from which attachments are to be copied.
 	 *@param resource $copy_to MAPI_message to which attachment are to be copied.
 	 *@param boolean $copyExceptions if true then all exceptions should also be sent as attachments
 	 */
-	function copyAttachments($copy_from, $copy_to, $copyExceptions = true)
+	function replaceAttachments($copy_from, $copy_to, $copyExceptions = true)
 	{
-		$attachmentTable = mapi_message_getattachmenttable($copy_from);
+		/* remove all old attachments */
+		$attachmentTable = mapi_message_getattachmenttable($copy_to);
 		if($attachmentTable) {
-			$attachments = mapi_table_queryallrows($attachmentTable, array(PR_ATTACH_NUM, PR_ATTACH_SIZE, PR_ATTACH_LONG_FILENAME, PR_ATTACHMENT_HIDDEN, PR_DISPLAY_NAME, PR_ATTACH_METHOD));
+			$attachments = mapi_table_queryallrows($attachmentTable, array(PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_EXCEPTION_STARTTIME));
 
 			foreach($attachments as $attach_props){
-				if (!$copyExceptions && $attach_props[PR_ATTACH_METHOD] == 5)
+				/* remove exceptions too? */
+				if (!$copyExceptions && $attach_props[PR_ATTACH_METHOD] == 5 && isset($attach_props[PR_EXCEPTION_STARTTIME]))
+					continue;
+				mapi_message_deleteattach($copy_to, $attach_props[PR_ATTACH_NUM]);
+			}
+		}
+		$attachmentTable = false;
+
+		/* copy new attachments */
+		$attachmentTable = mapi_message_getattachmenttable($copy_from);
+		if($attachmentTable) {
+			$attachments = mapi_table_queryallrows($attachmentTable, array(PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_EXCEPTION_STARTTIME));
+
+			foreach($attachments as $attach_props){
+				if (!$copyExceptions && $attach_props[PR_ATTACH_METHOD] == 5 && isset($attach_props[PR_EXCEPTION_STARTTIME]))
 					continue;
 
 				$attach_old = mapi_message_openattach($copy_from, (int) $attach_props[PR_ATTACH_NUM]);
@@ -1986,11 +2001,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		}
 	}
 	/**
-	 * Function which copy recipients.
+	 * Function which replaces recipients in copy_to with recipients from copy_from.
 	 *@param resource $copy_from MAPI_message from which recipients are to be copied.
 	 *@param resource $copy_to MAPI_message to which recipients are to be copied.
 	 */
-	function copyRecipients($copy_from, $copy_to, $isDelegate = false)
+	function replaceRecipients($copy_from, $copy_to, $isDelegate = false)
 	{
 		$recipienttable = mapi_message_getrecipienttable($copy_from);
 
@@ -2256,10 +2271,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					mapi_setprops($newResourceMsg, $messageprops);
 
 					// Copy attachments
-					$this->copyAttachments($message, $newResourceMsg);
+					$this->replaceAttachments($message, $newResourceMsg);
 
 					// Copy all recipients too
-					$this->copyRecipients($message, $newResourceMsg);
+					$this->replaceRecipients($message, $newResourceMsg);
 
 					// Now add organizer also to recipient table
 					$recips = Array();
@@ -2533,7 +2548,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		mapi_setprops($new, $newmessageprops);
 
 		// Copy attachments
-		$this->copyAttachments($message, $new, $copyExceptions);
+		$this->replaceAttachments($message, $new, $copyExceptions);
 
 		// Retrieve only those recipient who should receive this meeting request.
 		$stripResourcesRestriction = Array(RES_AND,
