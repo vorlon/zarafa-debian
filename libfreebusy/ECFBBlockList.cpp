@@ -140,6 +140,9 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 	}
 
 	*pblk = (*m_FBIter).second;
+	// blocks before the start time get capped on the start time
+	if (pblk->m_tmStart < m_tmRestictStart)
+		pblk->m_tmStart = m_tmRestictStart;
 
 	m_FBIter++;
 
