@@ -59,10 +59,10 @@ function getJavaScript_onload(){ ?>
 	if (window.windowData) {
 		var subject = (window.windowData['subject'].length > 25) ? window.windowData['subject'].substr(0, 25) +"..." : window.windowData['subject'];
 		if (window.windowData["taskrequest"]) {
-			dhtml.getElementById("delete_info_bar_taskreq").innerHTML = _("The task \"%s\" has not been completed. What do you want to do?").sprintf(subject);
+			dhtml.getElementById("delete_info_bar_taskreq").innerHTML = _("The task \"%s\" has not been completed. What do you want to do?").sprintf(subject).htmlEntities();
 			dhtml.getElementById("taskrecurr").style.display = "none";
 		} else {
-			dhtml.getElementById("delete_info_bar").innerHTML = _("The task \"%s\" is set to recur in the future. Do you want to delete all future occurrences of the task or just this occurrence?").sprintf(subject);
+			dhtml.getElementById("delete_info_bar").innerHTML = _("The task \"%s\" is set to recur in the future. Do you want to delete all future occurrences of the task or just this occurrence?").sprintf(subject).htmlEntities();
 			dhtml.getElementById("taskrequest").style.display = "none";
 		}
 	}
