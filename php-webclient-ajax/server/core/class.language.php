@@ -101,15 +101,20 @@
 		{
 			if($this->loaded)
 				return;
+
+			$languages = explode(";", ENABLED_LANGUAGES);
 			$dh = opendir(LANGUAGE_DIR);
 			while (($entry = readdir($dh))!==false){
-				if (is_dir(LANGUAGE_DIR.$entry."/LC_MESSAGES") && is_file(LANGUAGE_DIR.$entry."/language.txt")){
-					$fh = fopen(LANGUAGE_DIR.$entry."/language.txt", "r");
-					$lang_title = fgets($fh);
-					$lang_table = fgets($fh);
-					fclose($fh);
-					$this->languages[$entry] = $lang_title;
-					$this->languagetable[$entry] = $lang_table;
+				$langcode = str_ireplace(".UTF-8", "", $entry);
+				if(in_array($langcode, $languages) || in_array($entry, $languages)) {
+					if (is_dir(LANGUAGE_DIR.$entry."/LC_MESSAGES") && is_file(LANGUAGE_DIR.$entry."/language.txt")){
+						$fh = fopen(LANGUAGE_DIR.$entry."/language.txt", "r");
+						$lang_title = fgets($fh);
+						$lang_table = fgets($fh);
+						fclose($fh);
+						$this->languages[$entry] = $lang_title;
+						$this->languagetable[$entry] = $lang_table;
+					}
 				}
 			}
 			$this->loaded = true;		
