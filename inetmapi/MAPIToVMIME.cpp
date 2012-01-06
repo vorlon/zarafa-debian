@@ -1000,6 +1000,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 
 	// sender information
 	std::wstring strEmailAdd, strName, strType;
+	std::wstring strRepEmailAdd, strRepName, strRepType;
 
 	if (lpMessage == NULL || m_lpAdrBook == NULL || lpvmMessage == NULL) {
 		hr = MAPI_E_INVALID_OBJECT;
@@ -1087,6 +1088,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get MDN sender information. Error: 0x%08X", hr);
 			goto exit;
 		}
+		
+		// Ignore errors here and let strRep* untouched
+		HrGetAddress(m_lpAdrBook, lpMessage, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strRepName, strRepType, strRepEmailAdd);
 
 		expeditor.setEmail(m_converter.convert_to<string>(strEmailAdd));
 		if(!strName.empty())
@@ -1104,6 +1108,15 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 			strOut = lpSubject->Value.lpszW;
 
 			vmMessage->getHeader()->Subject()->setValue(getVmimeTextFromWide(strOut));
+		}
+		
+		if (!strRepEmailAdd.empty()) {
+			vmMessage->getHeader()->Sender()->setValue(expeditor);
+
+			if (strRepName.empty() || strRepName == strRepEmailAdd) 
+				vmMessage->getHeader()->From()->setValue(vmime::mailbox(m_converter.convert_to<string>(strRepEmailAdd)));
+			else
+				vmMessage->getHeader()->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strRepName), m_converter.convert_to<string>(strRepEmailAdd)));
 		}
 
 	}

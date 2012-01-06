@@ -1203,7 +1203,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			if (hr != hrSuccess)
 				goto exit;
 
-			//hr = GetMsgStore()->lpSupport->ReadReceipt(0, lpThisMessage, &lpNewMessage); //Use Mapi support object
 			hr = ClientUtil::ReadReceipt(0, lpThisMessage, &lpNewMessage);
 			if(hr != hrSuccess)
 				goto exit;
