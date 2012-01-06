@@ -216,8 +216,6 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   }
 
   /**
-   * MAGIC ALERT
-   *
    * We use a referencing system in which the director object (the c++ interface) forwards
    * all addref() and release() calls to the python object, and the python object remains
    * the owner of the c++ director object; this means that when the python object gets to a refcount
@@ -230,15 +228,9 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
    *
    * To put it a different way, although the object always had a c++ part, it was not referenced from c++
    * until we returned it to the realm of c++ from here, so we have to addref it now.
-   *
-   * For non-director objects, we will just have a reference to a c++-only interface here, so no special
-   * handling is needed since the refcount will be correct already.
    */
 
-  if(dynamic_cast<Swig::Director *>(*$result) != NULL) {
-	IUnknown *lpUnk = dynamic_cast<IUnknown *>(*$result);
-	lpUnk->AddRef();
-  }
+	(*$result)->AddRef();
 }
 
 %typemap(directorin)	MAPICLASS

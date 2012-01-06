@@ -4597,6 +4597,18 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>ldap_page_size</option></term>
+			<listitem>
+			  <para>Limit result sets in pages of this size,
+			  downloading fewer results at a time from the LDAP
+			  server.
+			  </para>
+			  <para>Default:
+			  <replaceable>1000</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>ldap_search_base</option></term>
 			<listitem>
 			  <para>This is the subtree entry where all objects are

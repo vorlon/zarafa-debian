@@ -4334,8 +4334,6 @@ HRESULT SwigDirector_ExchangeImportContentsChanges::ImportMessageChange(ULONG cV
       }
       
       /**
-         * MAGIC ALERT
-         *
          * We use a referencing system in which the director object (the c++ interface) forwards
          * all addref() and release() calls to the python object, and the python object remains
          * the owner of the c++ director object; this means that when the python object gets to a refcount
@@ -4348,15 +4346,9 @@ HRESULT SwigDirector_ExchangeImportContentsChanges::ImportMessageChange(ULONG cV
          *
          * To put it a different way, although the object always had a c++ part, it was not referenced from c++
          * until we returned it to the realm of c++ from here, so we have to addref it now.
-         *
-         * For non-director objects, we will just have a reference to a c++-only interface here, so no special
-         * handling is needed since the refcount will be correct already.
          */
       
-      if(dynamic_cast<Swig::Director *>(*lppMessage) != NULL) {
-        IUnknown *lpUnk = dynamic_cast<IUnknown *>(*lppMessage);
-        lpUnk->AddRef();
-      }
+      (*lppMessage)->AddRef();
     }
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
@@ -5341,8 +5333,6 @@ HRESULT SwigDirector_ECImportContentsChanges::ImportMessageChange(ULONG cValues,
       }
       
       /**
-         * MAGIC ALERT
-         *
          * We use a referencing system in which the director object (the c++ interface) forwards
          * all addref() and release() calls to the python object, and the python object remains
          * the owner of the c++ director object; this means that when the python object gets to a refcount
@@ -5355,15 +5345,9 @@ HRESULT SwigDirector_ECImportContentsChanges::ImportMessageChange(ULONG cValues,
          *
          * To put it a different way, although the object always had a c++ part, it was not referenced from c++
          * until we returned it to the realm of c++ from here, so we have to addref it now.
-         *
-         * For non-director objects, we will just have a reference to a c++-only interface here, so no special
-         * handling is needed since the refcount will be correct already.
          */
       
-      if(dynamic_cast<Swig::Director *>(*lppMessage) != NULL) {
-        IUnknown *lpUnk = dynamic_cast<IUnknown *>(*lppMessage);
-        lpUnk->AddRef();
-      }
+      (*lppMessage)->AddRef();
     }
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
@@ -5664,8 +5648,6 @@ HRESULT SwigDirector_ECImportContentsChanges::ImportMessageChangeAsAStream(ULONG
       }
       
       /**
-         * MAGIC ALERT
-         *
          * We use a referencing system in which the director object (the c++ interface) forwards
          * all addref() and release() calls to the python object, and the python object remains
          * the owner of the c++ director object; this means that when the python object gets to a refcount
@@ -5678,15 +5660,9 @@ HRESULT SwigDirector_ECImportContentsChanges::ImportMessageChangeAsAStream(ULONG
          *
          * To put it a different way, although the object always had a c++ part, it was not referenced from c++
          * until we returned it to the realm of c++ from here, so we have to addref it now.
-         *
-         * For non-director objects, we will just have a reference to a c++-only interface here, so no special
-         * handling is needed since the refcount will be correct already.
          */
       
-      if(dynamic_cast<Swig::Director *>(*lppStream) != NULL) {
-        IUnknown *lpUnk = dynamic_cast<IUnknown *>(*lppStream);
-        lpUnk->AddRef();
-      }
+      (*lppStream)->AddRef();
     }
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
@@ -6316,8 +6292,6 @@ HRESULT SwigDirector_Stream::Clone(IStream **ppstm) {
       }
       
       /**
-         * MAGIC ALERT
-         *
          * We use a referencing system in which the director object (the c++ interface) forwards
          * all addref() and release() calls to the python object, and the python object remains
          * the owner of the c++ director object; this means that when the python object gets to a refcount
@@ -6330,15 +6304,9 @@ HRESULT SwigDirector_Stream::Clone(IStream **ppstm) {
          *
          * To put it a different way, although the object always had a c++ part, it was not referenced from c++
          * until we returned it to the realm of c++ from here, so we have to addref it now.
-         *
-         * For non-director objects, we will just have a reference to a c++-only interface here, so no special
-         * handling is needed since the refcount will be correct already.
          */
       
-      if(dynamic_cast<Swig::Director *>(*ppstm) != NULL) {
-        IUnknown *lpUnk = dynamic_cast<IUnknown *>(*ppstm);
-        lpUnk->AddRef();
-      }
+      (*ppstm)->AddRef();
     }
   }
   SWIG_PYTHON_THREAD_END_BLOCK;

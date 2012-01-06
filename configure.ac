@@ -489,6 +489,7 @@ AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
 LIBS=$LDAP_LIBS
 CXXFLAGS="$CXXFLAGS $LDAP_FLAGS"
 AC_CHECK_FUNCS([ldap_start_tls_s])
+AC_CHECK_FUNCS([ldap_create_page_control])
 LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
