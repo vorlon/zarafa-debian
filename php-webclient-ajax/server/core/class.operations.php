@@ -2601,6 +2601,7 @@
 				if ($message) {
 					if ($action['deleteFlag'] == 'occurrence') {
 						$recur = new TaskRecurrence($store, $message);
+						$action['deleteOccurrence'] = true;
 						$occurrenceDeleted = $recur->deleteOccurrence($action);
 					} else if ($action['deleteFlag'] == 'decline' || $action['deleteFlag'] == 'complete') {
 						$taskReq = new TaskRequest($store, $message, $GLOBALS["mapisession"]->getSession());
