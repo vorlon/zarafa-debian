@@ -1289,7 +1289,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	    
     	    if(lpSession->GetSessionManager()->GetCacheManager()->GetObjectFromEntryId(&lpIndexerResults->__ptr[i].sEntryId, &ulObjectId) == erSuccess) {
     	        setMatches.insert(ulObjectId);
-    	    }
+    	    }	
     	}
     	
     	// Set up sPropTagArray

@@ -457,8 +457,12 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 		// The message is synced!
 		if (ulMsgFlags & MSGFLAG_DELETED)		// Deleted
 			*lpulChangeType = ICS_HARD_DELETE;
-		else if (iterMessage->second.ulLastChangeId > m_ulChangeId && iterMessage->second.ulLastSourceSync != m_ulSyncId)		// Modified (but not by the requestee)
-			*lpulChangeType = ICS_MESSAGE_CHANGE;
+		else if (iterMessage->second.ulChangeTypes) {		// Modified
+			if(iterMessage->second.ulChangeTypes & (ICS_CHANGE_FLAG_NEW | ICS_CHANGE_FLAG_CHANGE))
+				*lpulChangeType = ICS_MESSAGE_CHANGE;
+			else if(iterMessage->second.ulChangeTypes & ICS_CHANGE_FLAG_FLAG)
+				*lpulChangeType = ICS_MESSAGE_FLAG;
+		}
 		else
 			*lpulChangeType = 0;	// Ignore
 		
@@ -785,7 +789,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRow(DB_ROW lpDBRow, DB_LENGTHS lpDBLe
 	if (fMatch) {
 		er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType);
 		if (m_lpsRestrict)
-			m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]), SAuxMessageData(SOURCEKEY(lpDBLen[icsParentSourceKey], lpDBRow[icsParentSourceKey]), 0, m_ulSyncId)));
+			m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]), SAuxMessageData(SOURCEKEY(lpDBLen[icsParentSourceKey], lpDBRow[icsParentSourceKey]), ICS_CHANGE_FLAG_NEW)));
 	} else
 		er = m_lpMsgProcessor->ProcessRejected(lpDBRow, lpDBLen, &ulChangeType);
 	
@@ -923,7 +927,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	 * at all is rare, having all messages isn't.
 	 **/
 	if (m_lpsRestrict && m_setNewMessages.empty())
-		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, m_ulSyncId)));
+		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0)));
 
 
 	if (!m_setNewMessages.empty()) {
@@ -1079,10 +1083,10 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	DB_LENGTHS		lpDBLen;
 	
 	strQuery = 
-		"SELECT m.sourcekey, m.parentsourcekey, c.id, c.sourcesync "
+		"SELECT m.sourcekey, m.parentsourcekey, c.change_type "
 		"FROM syncedmessages as m "
 			"LEFT JOIN changes as c "
-				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey "
+				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey AND c.id > " + stringify(ulChangeId) + " AND c.sourcesync != " + stringify(ulSyncId) + " "
 		"WHERE sync_id=" + stringify(ulSyncId) + " AND change_id=" + stringify(ulChangeId);
 	ASSERT(m_lpDatabase);
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1098,13 +1102,9 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			goto exit;
 		}
 
-		iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), (lpDBRow[2]?atoui(lpDBRow[2]):0), (lpDBRow[3]?atoui(lpDBRow[3]):0))));
+		iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0))));
 		if (iResult.second == false && lpDBRow[2]) {
-			unsigned int ulLastChangeId = atoui(lpDBRow[2]);
-			if (ulLastChangeId > iResult.first->second.ulLastChangeId) {
-				iResult.first->second.ulLastChangeId = ulLastChangeId;
-				iResult.first->second.ulLastSourceSync = (lpDBRow[3]?atoui(lpDBRow[3]):0);
-			}
+			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 		}
 	}
 	
