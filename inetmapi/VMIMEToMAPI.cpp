@@ -2306,9 +2306,11 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 		attProps[nProps].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
 		attProps[nProps++].Value.lpszW = (WCHAR*)strLongFilename.c_str();
 
-		// i get the impression this doesn't work... so do we really need to set this?
+		// outlook internal rendering sequence in RTF bodies. When set
+		// to -1, outlook will ignore it, when set to 0 or higher,
+		// outlook (mapi) will regenerate the numbering
 		attProps[nProps].ulPropTag = PR_RENDERING_POSITION;
-		attProps[nProps++].Value.ul = -1;
+		attProps[nProps++].Value.ul = 0;
 
 		try {
 			vmime::ref<vmime::mediaType> mt = ctf->getValue().dynamicCast<vmime::mediaType>();

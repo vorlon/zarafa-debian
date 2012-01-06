@@ -108,6 +108,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->m_ulLastChange = syncChangeNone;
 	this->m_bBusySyncRTF = FALSE;
 	this->m_ulBodyType = bodyTypeUnknown;
+	this->m_bRecipsDirty = FALSE;
 
 	this->HrAddPropHandlers(PR_RTF_IN_SYNC,				GetPropHandler       ,DefaultSetPropIgnore,		(void*) this, TRUE,  FALSE);
 	this->HrAddPropHandlers(PR_HASATTACH,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -892,6 +893,8 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			goto exit;
 	}
 
+	m_bRecipsDirty = TRUE;
+
 exit:
 	if(lpRecipProps)
 		ECFreeBuffer(lpRecipProps);
@@ -1346,6 +1349,8 @@ HRESULT ECMessage::SyncRecips()
 			lpRows = NULL;
 		}
 	}
+
+	m_bRecipsDirty = FALSE;
 
 exit:
 	if(lpRows)
@@ -2030,7 +2035,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	case PROP_ID(PR_DISPLAY_TO):
 	case PROP_ID(PR_DISPLAY_CC):
 	case PROP_ID(PR_DISPLAY_BCC):
-		if(lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != erSuccess) {
+		if((lpMessage->m_bRecipsDirty && lpMessage->SyncRecips() != erSuccess) || lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != erSuccess) {
 			lpsPropValue->ulPropTag = ulPropTag;
 			if(PROP_TYPE(ulPropTag) == PT_UNICODE)
 				lpsPropValue->Value.lpszW = L"";
