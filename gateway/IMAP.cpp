@@ -5211,7 +5211,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 	ULONG ulMailnr;
 	ULONG ulBeginMailnr;
 
-	if(lstFolderMailEIDs.size() == 0) {
+	if(lstFolderMailEIDs.empty()) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -5701,6 +5701,10 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
+
+	// no need to search in empty folders, won't find anything
+	if (lstFolderMailEIDs.empty())
+		goto exit;
 
 	// don't search if only search for uid, sequence set, all, recent, new or old
 	strSearchCriterium = lstSearchCriteria[ulStartCriteria];
