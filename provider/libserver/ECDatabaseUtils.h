@@ -82,6 +82,9 @@
 #define _PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
 
 /* make string of define value */
+#ifndef __STRING
+#define __STRING(x) #x
+#endif
 #define STR(macro) __STRING(macro)
 
 // Warning! Code references the ordering of these values! Do not change unless you know what you're doing!
