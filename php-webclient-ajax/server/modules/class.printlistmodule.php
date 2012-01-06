@@ -57,22 +57,22 @@
 	class PrintListModule extends ListModule
 	{
 		/**
+		 * @var Array properties of appointemnt item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		 * Constructor
 		 * @param int $id unique id.
 		 * @param array $data list of all actions.
 		 */
 		function PrintListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getAppointmentProperties();
-
 			// tablecolumns of appointmentlistmodule is used here
 			$this->tablecolumns = $GLOBALS["TableColumns"]->getAppointmentListTableColumns();
 
 			parent::ListModule($id, $data);
 
-			$this->sort = array();
-			$this->sort[$this->properties["startdate"]] = TABLE_SORT_ASCEND;
-			
 			$this->start = 0;
 		}
 
@@ -211,6 +211,22 @@
 		       return 0;
 		   }
 		   return ($start_a < $start_b) ? -1 : 1;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getAppointmentProperties($store);
+
+			$this->sort = array();
+			$this->sort[$this->properties["startdate"]] = TABLE_SORT_ASCEND;
 		}
 	}
 ?>

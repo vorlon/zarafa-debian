@@ -158,7 +158,9 @@
 					$store = $this->getActionStore($action);
 					$parententryid = $this->getActionParentEntryID($action);
 					$entryid = $this->getActionEntryID($action);
-				
+
+					$this->generatePropertyTags($store, $entryid, $action);
+
 					switch($action["attributes"]["type"])
 					{
 						case "list":
@@ -1156,7 +1158,14 @@
 		 * @param object $store MAPI Message Store Object
 		 */
 		function getDelegateFolderInfo($store)
-		{	
+		{
+			$this->localFreeBusyFolder = false;
+
+			if(!(isset($store) && $store)) {
+				// only continue if store is passed
+				return;
+			}
+
 			$this->storeProviderGuid = mapi_getprops($store, array(PR_MDB_PROVIDER));
 
 			// open localfreebusy folder for delegate permissions

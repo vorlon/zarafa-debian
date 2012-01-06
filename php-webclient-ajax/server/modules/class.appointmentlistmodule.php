@@ -77,6 +77,11 @@
 		 * @var date end interval of view visible
 		 */
 		var $enddate;
+
+		/**
+		 * @var Array properties of appointment item that will be used to get data
+		 */
+		var $properties = null;
 		
 		/**
 		 * Constructor
@@ -85,14 +90,9 @@
 		 */
 		function AppointmentListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getAppointmentProperties();
-
 			$this->tablecolumns = $GLOBALS["TableColumns"]->getAppointmentListTableColumns();
 
 			parent::ListModule($id, $data, array(OBJECT_SAVE, TABLE_SAVE, TABLE_DELETE));
-
-			$this->sort = array();
-			$this->sort[$this->properties["subject"]] = TABLE_SORT_ASCEND;
 
 			$this->startdate = false;
 			$this->enddate = false;
@@ -467,8 +467,20 @@
 		   return ($start_a < $start_b) ? -1 : 1;
 		}
 
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getAppointmentProperties($store);
 
-		
+			$this->sort = array();
+			$this->sort[$this->properties["subject"]] = TABLE_SORT_ASCEND;
+		}
 	}
-	
 ?>

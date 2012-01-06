@@ -23528,12 +23528,13 @@ XS(_wrap_IECImportContentsChanges_ConfigForConversionStream) {
     int ecode3 ;
     unsigned int val4 ;
     int ecode4 = 0 ;
+    void *argp5 ;
+    int res5 = 0 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
     ULONG ulFlags = 0;
-    arg5 = NULL;
     if ((items < 5) || (items > 5)) {
       SWIG_croak("Usage: IECImportContentsChanges_ConfigForConversionStream(self,lpStream,ulFlags,cValuesConversion,lpPropArrayConversion);");
     }
@@ -23561,10 +23562,14 @@ XS(_wrap_IECImportContentsChanges_ConfigForConversionStream) {
     } 
     arg4 = static_cast< ULONG >(val4);
     {
-      if(!SvOK(ST(4))) {
-        arg5 = NULL;
+      res5 = SWIG_ConvertPtr(ST(4), &argp5, SWIGTYPE_p_LPSPropValue,  0 );
+      if (!SWIG_IsOK(res5)) {
+        SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'"); 
+      }  
+      if (!argp5) {
+        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'");
       } else {
-        arg5 = HV_to_LPSPropValue((HV *)SvRV(ST(4)));
+        arg5 = *(reinterpret_cast< LPSPropValue * >(argp5));
       }
     }
     result = (arg1)->ConfigForConversionStream(arg2,arg3,arg4,arg5);
@@ -23577,20 +23582,12 @@ XS(_wrap_IECImportContentsChanges_ConfigForConversionStream) {
     
     
     
-    {
-      if(arg5)
-      MAPIFreeBuffer(arg5);
-    }
     XSRETURN(argvi);
   fail:
     
     
     
     
-    {
-      if(arg5)
-      MAPIFreeBuffer(arg5);
-    }
     SWIG_croak_null();
   }
 }

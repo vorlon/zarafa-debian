@@ -59,22 +59,22 @@
 	class ReminderListModule extends ListModule
 	{
 		/**
+		 * @var Array properties of reminder item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		* Constructor
 		* @param int $id unique id.
 		* @param array $data list of all actions.
 		*/
 		function ReminderListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getReminderProperties();
-		
 			// Default Columns
 			$this->tablecolumns = $GLOBALS["TableColumns"]->getReminderListTableColumns();
 
 			parent::ListModule($id, $data, array());
 
-			$this->sort = array();
-			$this->sort[$this->properties["remindertime"]] = TABLE_SORT_DESCEND;
-			
 			$store = $GLOBALS["mapisession"]->getDefaultMessageStore();
 			$this->reminderEntryId = $this->getReminderFolderEntryId($store);
 
@@ -88,6 +88,8 @@
 			$result = false;
 			foreach($this->data as $action)
 			{
+				$this->generatePropertyTags($store, false, $action);
+
 				if(isset($action["attributes"]) && isset($action["attributes"]["type"])) {
 					switch($action["attributes"]["type"])
 					{
@@ -413,6 +415,22 @@
 				$GLOBALS["bus"]->notify(bin2hex($props[PR_PARENT_ENTRYID]), TABLE_SAVE, $props);
 			}
 			return $result;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getReminderProperties($store);
+
+			$this->sort = array();
+			$this->sort[$this->properties["remindertime"]] = TABLE_SORT_DESCEND;
 		}
 	}
 ?>

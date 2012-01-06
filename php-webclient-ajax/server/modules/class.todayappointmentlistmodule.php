@@ -54,14 +54,17 @@
 	class TodayAppointmentListModule extends ListModule
 	{
 		/**
+		 * @var Array properties of appointment item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		 * Constructor
 		 * @param int $id unique id.
 		 * @param array $data list of all actions.
 		 */
 		function TodayAppointmentListModule($id, $data)
-		{			
-			$this->properties = $GLOBALS["properties"]->getAppointmentProperties();
-			
+		{
 			$this->start = 0;
 			parent::ListModule($id, $data, array(OBJECT_SAVE, TABLE_SAVE, TABLE_DELETE));	
 		}	
@@ -80,6 +83,8 @@
 					$store = $this->getActionStore($action);
 					$parententryid = $this->getActionParentEntryID($action);
 					$entryid = $this->getActionEntryID($action);
+
+					$this->generatePropertyTags($store, $entryid, $action);
 				
 					switch($action["attributes"]["type"])
 					{
@@ -238,6 +243,19 @@
 		       return 0;
 		   }
 		   return ($start_a < $start_b) ? -1 : 1;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getAppointmentProperties($store);
 		}
 	}
 ?>

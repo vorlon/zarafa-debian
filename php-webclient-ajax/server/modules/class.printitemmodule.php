@@ -57,35 +57,17 @@
 	class PrintItemModule extends ItemModule
 	{
 		/**
+		 * @var Array properties of item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		 * Constructor
 		 * @param int $id unique id.
 		 * @param array $data list of all actions.
 		 */
 		function PrintItemModule($id, $data)
-		{		
-			$store = $GLOBALS["mapisession"]->openMessageStore(hex2bin($data[0]["store"]));
-			$message = mapi_msgstore_openentry($store,hex2bin($data[0]["entryid"]));
-			$props = mapi_getprops($message,Array(PR_MESSAGE_CLASS));
-			switch($props[PR_MESSAGE_CLASS]){
-				case "IPM.Task":
-					$this->properties = $GLOBALS["properties"]->getTaskProperties();
-					break;
-				case "IPM.Appointment":
-					$this->properties = $GLOBALS["properties"]->getAppointmentProperties();
-					break;
-				case "IPM.Contact":
-					$this->properties = $GLOBALS["properties"]->getContactProperties();
-					break;
-				case "IPM.StickyNote":
-					$this->properties = $GLOBALS["properties"]->getStickyNoteProperties();
-					break;
-				case "IPM.DistList":
-					$this->properties = $GLOBALS["properties"]->getDistListProperties();
-					break;
-				case "IPM.Note":
-				default:
-					$this->properties = $GLOBALS["properties"]->getMailProperties();
-			}
+		{
 			parent::ItemModule($id, $data);
 		}
 
@@ -193,6 +175,42 @@
 				}
 			}
 			return $result;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$message = $GLOBALS["operations"]->openMessage($store, $entryid);
+
+			$props = mapi_getprops($message, Array(PR_MESSAGE_CLASS));
+
+			switch($props[PR_MESSAGE_CLASS]){
+				case "IPM.Task":
+					$this->properties = $GLOBALS["properties"]->getTaskProperties($store);
+					break;
+				case "IPM.Appointment":
+					$this->properties = $GLOBALS["properties"]->getAppointmentProperties($store);
+					break;
+				case "IPM.Contact":
+					$this->properties = $GLOBALS["properties"]->getContactProperties($store);
+					break;
+				case "IPM.StickyNote":
+					$this->properties = $GLOBALS["properties"]->getStickyNoteProperties($store);
+					break;
+				case "IPM.DistList":
+					$this->properties = $GLOBALS["properties"]->getDistListProperties($store);
+					break;
+				case "IPM.Note":
+				default:
+					$this->properties = $GLOBALS["properties"]->getMailProperties($store);
+			}
 		}
 	}
 ?>

@@ -32397,6 +32397,8 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   int ecode3 ;
   unsigned int val4 ;
   int ecode4 = 0 ;
+  void *argp5 ;
+  int res5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -32406,7 +32408,6 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
-  arg5 = NULL;
   if (!PyArg_ParseTuple(args,(char *)"OOOOO:IECImportContentsChanges_ConfigForConversionStream",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECImportContentsChanges, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -32432,8 +32433,17 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   } 
   arg4 = static_cast< ULONG >(val4);
   {
-    arg5 = Object_to_LPSPropValue(obj4);
-    if(PyErr_Occurred()) goto fail;
+    res5 = SWIG_ConvertPtr(obj4, &argp5, SWIGTYPE_p_LPSPropValue,  0  | 0);
+    if (!SWIG_IsOK(res5)) {
+      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'"); 
+    }  
+    if (!argp5) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'");
+    } else {
+      LPSPropValue * temp = reinterpret_cast< LPSPropValue * >(argp5);
+      arg5 = *temp;
+      if (SWIG_IsNewObj(res5)) delete temp;
+    }
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -32457,17 +32467,9 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
       SWIG_fail;
     }
   }
-  {
-    if(arg5)
-    MAPIFreeBuffer(arg5);
-  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
-  {
-    if(arg5)
-    MAPIFreeBuffer(arg5);
-  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }

@@ -54,7 +54,17 @@
 	 * Addressbook Module
 	 */
 	class AddressbookListModule extends ListModule
-	{	
+	{
+		/**
+		 * @var Array properties used to get data from addressbook contact folders
+		 */
+		var $properties = null;
+
+		/**
+		 * @var Array properties used to get data from global address book
+		 */
+		var $ab_properties = null;
+
 		/**
 		 * Constructor
 		 * @param int $id unique id.
@@ -62,17 +72,11 @@
 		 */
 		function AddressbookListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getContactABProperties();
-			$this->ab_properties = $GLOBALS["properties"]->getAddressBookProperties();
-		
 			// Default Columns
 			$this->tablecolumns = $GLOBALS["TableColumns"]->getContactABListTableColumns();
 			$this->ab_tablecolumns = $GLOBALS["TableColumns"]->getAddressBookListTableColumns();
 
 			parent::ListModule($id, $data, array());
-
-			$this->sort = array();
-			$this->sort[$this->properties["fileas"]] = TABLE_SORT_ASCEND;
 		}
 		
 		/**
@@ -89,6 +93,9 @@
 					$store = $this->getActionStore($action);
 					$parententryid = $this->getActionParentEntryID($action);
 					$entryid = $this->getActionEntryID($action);
+
+					$this->generatePropertyTags($store, $entryid, $action);
+
 					switch($action["attributes"]["type"])
 					{
 						case "hierarchy":
@@ -1145,6 +1152,25 @@
 				return $paginationRestriction;
 			else
 				return false;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getContactABProperties($store);
+			$this->ab_properties = $GLOBALS["properties"]->getAddressBookProperties($store);
+
+			if(isset($this->properties["fileas"])) {
+				$this->sort = array();
+				$this->sort[$this->properties["fileas"]] = TABLE_SORT_ASCEND;
+			}
 		}
 	}
 

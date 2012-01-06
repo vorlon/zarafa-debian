@@ -425,7 +425,7 @@
 %apply (ULONG, MAPIARRAY) {(ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces)};
 %apply MAPILIST {LPSPropTagArray, LPENTRYLIST, LPADRLIST, LPFlagList, LPROWLIST};
 %apply MAPILIST *INPUT {LPSPropTagArray *};
-%apply MAPISTRUCT {LPSRestriction, LPSSortOrderSet, LPSPropValue, LPECQUOTA};
+%apply MAPISTRUCT {LPSRestriction, LPSSortOrderSet, LPECQUOTA};
 %apply MAPISTRUCT_W_FLAGS {LPECUSER, LPECCOMPANY};
 
 // Output
