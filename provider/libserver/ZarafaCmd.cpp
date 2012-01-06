@@ -1691,9 +1691,11 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 	}
 
 	// Set the PR_RECORD_KEY
-	if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-        sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-        sChildProps.lpPropVals->AddPropVal(sPropVal);
+	if (ulObjType != MAPI_ATTACH || !sChildProps.lpPropTags->HasPropTag(PR_RECORD_KEY)) {
+		if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+			sChildProps.lpPropVals->AddPropVal(sPropVal);
+		}
 	}
 
 	if (ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE || ulObjType == MAPI_MESSAGE) {
@@ -2854,8 +2856,14 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 		n = 0;
 
 		// set the PR_RECORD_KEY
+		// New clients generate the instance key, old clients don't. See if one was provided.
 		if (lpsSaveObj->ulObjType == MAPI_ATTACH || lpsSaveObj->ulObjType == MAPI_MESSAGE || lpsSaveObj->ulObjType == MAPI_FOLDER) {
-			if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess) {
+			bool bSkip = false;
+			if (lpsSaveObj->ulObjType == MAPI_ATTACH) {
+				for (int i = 0; !bSkip && i < lpsSaveObj->modProps.__size; ++i)
+					bSkip = lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_RECORD_KEY;
+			}
+			if (!bSkip && ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess) {
 				lpsReturnObj->delProps.__ptr[n] = PR_RECORD_KEY;
 				n++;
 			}

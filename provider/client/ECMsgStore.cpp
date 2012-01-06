@@ -156,6 +156,8 @@ ECMsgStore::ECMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpT
 
 	HrAddPropHandlers(PR_STORE_OFFLINE,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
 
+	HrAddPropHandlers(PR_EC_STORETYPE, 				DefaultGetProp,		DefaultSetPropComputed,	(void*) this);
+
 	// only on admin store? how? .. now checked on server in ECTableManager
 	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EC_STATSTABLE_SESSIONS,	GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);

@@ -68,6 +68,9 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 	static	HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach);
 
+	// Override for SaveChanges
+	virtual HRESULT SaveChanges(ULONG ulFlags);
+
 	// Override for OpenProperty
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk);
 
