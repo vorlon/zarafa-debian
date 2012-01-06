@@ -249,7 +249,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 		if (lpsCompanyList[i].sCompanyId.cb != 0 && lpsCompanyList[i].sCompanyId.lpb != NULL) {
 			m_ulProcessed++;
 		
-			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, &lpsQuota);
+			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, false, &lpsQuota);
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
 												"Unable to get quota information for company %s, error code: 0x%08X",
@@ -1395,7 +1395,7 @@ HRESULT ECQuotaMonitor::Notify(LPECUSER lpecUser, LPECCOMPANY lpecCompany, LPECQ
 		sVars.strCompany = (LPSTR)lpecCompany->lpszCompanyname;
 	}
 
-	hr = lpServiceAdmin->GetQuota(cbUserId, lpUserId, &lpecQuota);
+	hr = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &lpecQuota);
 	if (hr != hrSuccess)
 		goto exit;
 

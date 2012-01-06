@@ -114,6 +114,9 @@ LPECCOMPANY		Object_to_LPECCOMPANY(PyObject *, ULONG);
 PyObject *		Object_from_LPECCOMPANY(LPECCOMPANY lpCompany);
 PyObject *		List_from_LPECCOMPANY(LPECCOMPANY lpCompany, ULONG cElements);
 
+LPECQUOTA		Object_to_LPECQUOTA(PyObject *);
+PyObject *		Object_from_LPECQUOTA(LPECQUOTA lpQuota);
+
 LPROWLIST		List_to_LPROWLIST(PyObject *);
 
 void			Init();

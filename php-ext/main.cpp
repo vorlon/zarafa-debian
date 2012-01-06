@@ -4357,7 +4357,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 		goto exit;
 	}
 
-	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, &lpQuota);
+	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &lpQuota);
 	if (MAPI_G(hr) != hrSuccess) {
 		goto exit;
 	}
@@ -4423,7 +4423,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 		goto exit;
 	}
 
-	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, &lpQuota);
+	MAPI_G(hr) = lpServiceAdmin->GetQuota(cbUserId, lpUserId, false, &lpQuota);
 	if (MAPI_G(hr) != hrSuccess) {
 		goto exit;
 	}

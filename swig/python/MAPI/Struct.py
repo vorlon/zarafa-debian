@@ -7,6 +7,8 @@ class MAPIStruct:
     def __init__(self): pass
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+    def __repr__(self):
+        return repr(self.__dict__)
 
 class SPropValue(MAPIStruct):
     def __init__(self, ulPropTag, Value):
@@ -235,3 +237,12 @@ class ROWENTRY(MAPIStruct):
     def __init__(self, ulRowFlags, rgPropVals):
         self.ulRowFlags = ulRowFlags
         self.rgPropVals = rgPropVals
+
+class ECQUOTA(MAPIStruct):
+    def __init__(self, bUseDefaultQuota, bIsUserDefaultQuota, llWarnSize, llSoftSize, llHardSize):
+        self.bUseDefaultQuota = bUseDefaultQuota
+        self.bIsUserDefaultQuota = bIsUserDefaultQuota
+        self.llWarnSize = llWarnSize
+        self.llSoftSize = llSoftSize
+        self.llHardSize = llHardSize
+        

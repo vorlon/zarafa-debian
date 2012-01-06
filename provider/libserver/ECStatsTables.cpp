@@ -609,7 +609,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 		if (lpUserManagement->GetObjectDetails(iterRowList->ulObjId, &objectDetails) != erSuccess)
 			// user gone missing since first list, all props should be set to ignore
 			bNoObjectDetails = bNoQuotaDetails = true;
-		else if (lpSession->GetSecurity()->GetUserQuota(iterRowList->ulObjId, &quotaDetails) != erSuccess)
+		else if (lpSession->GetSecurity()->GetUserQuota(iterRowList->ulObjId, false, &quotaDetails) != erSuccess)
 			// user gone missing since last call, all quota props should be set to ignore
 			bNoQuotaDetails = true;
 

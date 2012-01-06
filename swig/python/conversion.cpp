@@ -80,6 +80,7 @@ static PyObject *PyTypeTABLE_NOTIFICATION;
 static PyObject *PyTypeECUser;
 static PyObject *PyTypeECGroup;
 static PyObject *PyTypeECCompany;
+static PyObject *PyTypeECQuota;
 
 static PyObject *PyTypeSAndRestriction;
 static PyObject *PyTypeSOrRestriction;
@@ -138,6 +139,7 @@ void Init()
     PyTypeECUser = PyObject_GetAttrString(lpMAPIStruct, "ECUSER");
     PyTypeECGroup = PyObject_GetAttrString(lpMAPIStruct, "ECGROUP");
     PyTypeECCompany = PyObject_GetAttrString(lpMAPIStruct, "ECCOMPANY");
+    PyTypeECQuota = PyObject_GetAttrString(lpMAPIStruct, "ECQUOTA");
     
     PyTypeNEWMAIL_NOTIFICATION = PyObject_GetAttrString(lpMAPIStruct, "NEWMAIL_NOTIFICATION");
     PyTypeOBJECT_NOTIFICATION = PyObject_GetAttrString(lpMAPIStruct, "OBJECT_NOTIFICATION");
@@ -2308,3 +2310,41 @@ int GetExceptionError(PyObject *object, HRESULT *lphr)
 	
 	return 1;
 }
+
+LPECQUOTA Object_to_LPECQUOTA(PyObject *elem)
+{
+	static conv_out_info<ECQUOTA> conv_info[] = {
+		{conv_out_default<ECQUOTA, bool, &ECQUOTA::bUseDefaultQuota>, "bUseDefaultQuota"},
+		{conv_out_default<ECQUOTA, bool, &ECQUOTA::bIsUserDefaultQuota>, "bIsUserDefaultQuota"},
+		{conv_out_default<ECQUOTA, long long, &ECQUOTA::llWarnSize>, "llWarnSize"},
+		{conv_out_default<ECQUOTA, long long, &ECQUOTA::llSoftSize>, "llSoftSize"},
+		{conv_out_default<ECQUOTA, long long, &ECQUOTA::llHardSize>, "llHardSize"},
+	};
+
+	HRESULT hr = hrSuccess;
+	LPECQUOTA lpQuota = NULL;
+
+	hr = MAPIAllocateBuffer(sizeof *lpQuota, (LPVOID*)&lpQuota);
+	if (hr != hrSuccess) {
+		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
+		goto exit;
+	}
+	memset(lpQuota, 0, sizeof *lpQuota);
+
+	process_conv_out_array(lpQuota, elem, conv_info, lpQuota, 0);
+
+exit:
+	if (PyErr_Occurred() && lpQuota) {
+		MAPIFreeBuffer(lpQuota);
+		lpQuota = NULL;
+	}
+
+	return lpQuota;
+}
+
+PyObject *Object_from_LPECQUOTA(LPECQUOTA lpQuota)
+{
+	return PyObject_CallFunction(PyTypeECQuota, "(IILLL)", lpQuota->bUseDefaultQuota, lpQuota->bIsUserDefaultQuota, lpQuota->llWarnSize, lpQuota->llSoftSize, lpQuota->llHardSize);
+}
+
+

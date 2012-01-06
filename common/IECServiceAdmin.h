@@ -112,7 +112,8 @@ public:
 	virtual HRESULT __stdcall SyncUsers(ULONG cbCompanyId, LPENTRYID lpCOmpanyId) = 0;
 
 	// Quota functions
-	virtual HRESULT __stdcall GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota) = 0;
+	
+	virtual HRESULT __stdcall GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefaultQuota, LPECQUOTA* lppsQuota) = 0;
 	virtual HRESULT __stdcall SetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA lpsQuota) = 0;
 
 	virtual HRESULT __stdcall AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) = 0;

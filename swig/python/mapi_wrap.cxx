@@ -28442,8 +28442,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateCompany(PyObject *SWIGUNUSEDPAR
   LPENTRYID *arg5 = (LPENTRYID *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   ULONG cbEntryID4 = 0 ;
@@ -28454,6 +28452,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateCompany(PyObject *SWIGUNUSEDPAR
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   ULONG ulFlags = 0;
   {
     arg4 = &cbEntryID4; arg5 = &lpEntryID4;
@@ -28465,17 +28464,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateCompany(PyObject *SWIGUNUSEDPAR
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPECCOMPANY,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_CreateCompany" "', argument " "2"" of type '" "LPECCOMPANY""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_CreateCompany" "', argument " "2"" of type '" "LPECCOMPANY""'");
-    } else {
-      LPECCOMPANY * temp = reinterpret_cast< LPECCOMPANY * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = (LPECCOMPANY)obj1;
   }
   {
     ecode3 = SWIG_AsVal_unsigned_SS_int (obj2, &fl3);
@@ -28484,6 +28473,12 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateCompany(PyObject *SWIGUNUSEDPAR
     } 
     arg3 = fl3;
     ulFlags = fl3;
+  }
+  {
+    arg2 = Object_to_LPECCOMPANY((PyObject*)arg2, ulFlags);
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_CreateCompany" "', argument " "2"" of type '" "LPECCOMPANY""'");
+    }
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -28513,12 +28508,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateCompany(PyObject *SWIGUNUSEDPAR
     }
   }
   {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
+  {
     if(*arg5)
     MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   {
     if(*arg5)
     MAPIFreeBuffer(*arg5);
@@ -28606,8 +28609,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetCompany(PyObject *SWIGUNUSEDPARM(s
   ULONG arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   PyObject * obj0 = 0 ;
@@ -28616,6 +28617,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetCompany(PyObject *SWIGUNUSEDPARM(s
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   ULONG ulFlags = 0;
   if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_SetCompany",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
@@ -28624,17 +28626,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetCompany(PyObject *SWIGUNUSEDPARM(s
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPECCOMPANY,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_SetCompany" "', argument " "2"" of type '" "LPECCOMPANY""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_SetCompany" "', argument " "2"" of type '" "LPECCOMPANY""'");
-    } else {
-      LPECCOMPANY * temp = reinterpret_cast< LPECCOMPANY * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = (LPECCOMPANY)obj1;
   }
   {
     ecode3 = SWIG_AsVal_unsigned_SS_int (obj2, &fl3);
@@ -28643,6 +28635,12 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetCompany(PyObject *SWIGUNUSEDPARM(s
     } 
     arg3 = fl3;
     ulFlags = fl3;
+  }
+  {
+    arg2 = Object_to_LPECCOMPANY((PyObject*)arg2, ulFlags);
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_SetCompany" "', argument " "2"" of type '" "LPECCOMPANY""'");
+    }
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -28666,9 +28664,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetCompany(PyObject *SWIGUNUSEDPARM(s
       SWIG_fail;
     }
   }
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -29630,21 +29636,24 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuota(PyObject *SWIGUNUSEDPARM(sel
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
   ULONG arg2 ;
   LPENTRYID arg3 ;
-  LPECQUOTA *arg4 = (LPECQUOTA *) 0 ;
+  bool arg4 ;
+  LPECQUOTA *arg5 = (LPECQUOTA *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
+  bool val4 ;
+  int ecode4 = 0 ;
+  LPECQUOTA temp5 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  temp5 = NULL; arg5 = &temp5;
   if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetQuota",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -29664,17 +29673,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuota(PyObject *SWIGUNUSEDPARM(sel
       arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  res4 = SWIG_ConvertPtr(obj2, &argp4,SWIGTYPE_p_LPECQUOTA, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_GetQuota" "', argument " "4"" of type '" "LPECQUOTA *""'"); 
-  }
-  arg4 = reinterpret_cast< LPECQUOTA * >(argp4);
+  ecode4 = SWIG_AsVal_bool(obj2, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetQuota" "', argument " "4"" of type '" "bool""'");
+  } 
+  arg4 = static_cast< bool >(val4);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
       try {
         mark_call_from_python();
-        result = (HRESULT)(arg1)->GetQuota(arg2,arg3,arg4);
+        result = (HRESULT)(arg1)->GetQuota(arg2,arg3,arg4,arg5);
         unmark_call_from_python();
       } catch (const Swig::DirectorException &) {
         unmark_call_from_python();
@@ -29692,13 +29701,25 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuota(PyObject *SWIGUNUSEDPARM(sel
     }
   }
   {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECQUOTA(*(arg5)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -29717,14 +29738,13 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetQuota(PyObject *SWIGUNUSEDPARM(sel
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg4 = NULL;
   if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_SetQuota",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -29745,17 +29765,8 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetQuota(PyObject *SWIGUNUSEDPARM(sel
     }
   }
   {
-    res4 = SWIG_ConvertPtr(obj2, &argp4, SWIGTYPE_p_LPECQUOTA,  0  | 0);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_SetQuota" "', argument " "4"" of type '" "LPECQUOTA""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_SetQuota" "', argument " "4"" of type '" "LPECQUOTA""'");
-    } else {
-      LPECQUOTA * temp = reinterpret_cast< LPECQUOTA * >(argp4);
-      arg4 = *temp;
-      if (SWIG_IsNewObj(res4)) delete temp;
-    }
+    arg4 = Object_to_LPECQUOTA(obj2);
+    if(PyErr_Occurred()) goto fail;
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -29782,11 +29793,19 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetQuota(PyObject *SWIGUNUSEDPARM(sel
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   }
+  {
+    if(arg4)
+    MAPIFreeBuffer(arg4);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(arg4)
+    MAPIFreeBuffer(arg4);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -32410,8 +32429,6 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   int ecode3 ;
   unsigned int val4 ;
   int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -32421,6 +32438,7 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
+  arg5 = NULL;
   if (!PyArg_ParseTuple(args,(char *)"OOOOO:IECImportContentsChanges_ConfigForConversionStream",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECImportContentsChanges, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -32446,17 +32464,8 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
   } 
   arg4 = static_cast< ULONG >(val4);
   {
-    res5 = SWIG_ConvertPtr(obj4, &argp5, SWIGTYPE_p_LPSPropValue,  0  | 0);
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECImportContentsChanges_ConfigForConversionStream" "', argument " "5"" of type '" "LPSPropValue""'");
-    } else {
-      LPSPropValue * temp = reinterpret_cast< LPSPropValue * >(argp5);
-      arg5 = *temp;
-      if (SWIG_IsNewObj(res5)) delete temp;
-    }
+    arg5 = Object_to_LPSPropValue(obj4);
+    if(PyErr_Occurred()) goto fail;
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -32480,9 +32489,17 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_ConfigForConversionStream(Py
       SWIG_fail;
     }
   }
+  {
+    if(arg5)
+    MAPIFreeBuffer(arg5);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg5)
+    MAPIFreeBuffer(arg5);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }

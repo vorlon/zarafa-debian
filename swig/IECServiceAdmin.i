@@ -60,7 +60,7 @@ public:
 	virtual HRESULT SyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
 
 	// Quota functions
-	virtual HRESULT GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota) = 0;
+	virtual HRESULT GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefault, LPECQUOTA* OUTPUT) = 0;
 	virtual HRESULT SetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA lpsQuota) = 0;
 
 	virtual HRESULT AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) = 0;
