@@ -437,7 +437,7 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		lpNewPropArray[cPropArray++].Value = lpPropParentSourceKey->Value;
 	}
 
-	if (lpszAliasName) {
+	if (lpszAliasName && lpszAliasName[0] != '\0') {
 		tstring tDisplay(lpPropDisplayName->Value.LPSZ);
 		convstring csAlias(lpszAliasName, ulFlags);
 		if ((std::wstring)csAlias != tDisplay)
