@@ -1119,6 +1119,79 @@ exit:
 	return hr;
 }
 
+/** 
+ * Set PR_SENT_REPRESENTING_* and PR_SENDER_* properties to mapi object.
+ * 
+ * @param[in] lpIcalItem Use base pointer from here for allocations
+ * @param[in] lplstMsgProps add generated properties to this list
+ * @param[in] strEmail email address of the organizer
+ * @param[in] strName full name of the organizer
+ * @param[in] strType SMTP or ZARAFA
+ * @param[in] cbEntryID bytes in entryid
+ * @param[in] lpEntryID entryid describing organizer
+ * 
+ * @return MAPI Error code
+ */
+HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string strType, ULONG cbEntryID, LPENTRYID lpEntryID)
+{
+	HRESULT hr = hrSuccess;
+	std::string strSearchKey;
+	SPropValue sPropVal;
+
+	strSearchKey = strType+":"+m_converter.convert_to<string>(strEmail);
+	transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
+
+	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_A;
+	hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, strType.c_str(), &sPropVal.Value.lpszW);
+	if (hr != hrSuccess)
+		goto exit;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
+	hr = HrCopyString(lpIcalItem->base, strEmail.c_str(), &sPropVal.Value.lpszW);
+	if (hr != hrSuccess)
+		goto exit;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENDER_NAME_W;
+	hr = HrCopyString(lpIcalItem->base, strName.c_str(), &sPropVal.Value.lpszW);
+	if (hr != hrSuccess)
+		goto exit;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;
+	hr = Util::HrCopyBinary(strSearchKey.length() + 1, (LPBYTE)strSearchKey.c_str(), &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
+	if (hr != hrSuccess)
+		goto exit;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
+	lplstMsgProps->push_back(sPropVal);
+
+	// re-allocate memory to list with lpIcalItem
+	hr = Util::HrCopyBinary(cbEntryID, (LPBYTE)lpEntryID, &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
+	if (hr != hrSuccess)
+		goto exit;
+
+	sPropVal.ulPropTag = PR_SENDER_ENTRYID;
+	lplstMsgProps->push_back(sPropVal);
+
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
+	lplstMsgProps->push_back(sPropVal);
+
+exit:
+	return hr;
+}
+
 /**
  * Sets Recipients in mapi structure from the ical data
  *
@@ -1131,18 +1204,17 @@ exit:
 HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, std::list<icalrecip> *lplstIcalRecip)
 {
 	HRESULT hr = hrSuccess;
-	SPropValue sPropVal;
 	std::wstring strEmail, strName;
-	std::string strSearchKey;
+	std::string strType;
 	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
 	icalrecip icrAttendee;
 	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
+	ULONG cbEntryIDOneOff;
+	LPENTRYID lpEntryIDOneOff = NULL;
 	LPSPropValue lpsPropVal = NULL;
 
-	// exchange organizer CN="John van der Kamp":MAILTO:john@exchange.ztest.nl
-	// google organizer: CN=Malcolm Yates:mailto:mdy@canonical.com
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
 		const char *tmp = icalproperty_get_organizer(lpicProp);
@@ -1158,17 +1230,30 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			strName = strEmail; // set email as name OL does not display organiser name if not set.
 
 		if (bIsUserLoggedIn(strEmail)) {
-			hr = HrGetOneProp(m_lpMailUser, PR_ENTRYID, &lpsPropVal);
+			SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+			ULONG count;
+
+			hr = m_lpMailUser->GetProps((LPSPropTagArray)&sPropTags, 0, &count, &lpsPropVal);
 			if (hr != hrSuccess)
 				goto exit;
 
-			// Warning: watch out for nice free code at the end
-			cbEntryID = lpsPropVal->Value.bin.cb;
-			lpEntryID = (LPENTRYID)lpsPropVal->Value.bin.lpb;
+			if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
+				strEmail = lpsPropVal[0].Value.lpszW;
+			if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
+				strName = lpsPropVal[1].Value.lpszW;
+			if (lpsPropVal[2].ulPropTag == PR_ADDRTYPE_A)
+				strType = lpsPropVal[2].Value.lpszA;
+			if (lpsPropVal[3].ulPropTag == PR_ENTRYID) {
+				cbEntryID = lpsPropVal[3].Value.bin.cb;
+				lpEntryID = (LPENTRYID)lpsPropVal[3].Value.bin.lpb;
+			}
 		} else {
-			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &lpEntryID);
+			strType = "SMTP";
+			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryIDOneOff, &lpEntryIDOneOff);
 			if (hr != hrSuccess)
 				goto exit;
+			cbEntryID = cbEntryIDOneOff;
+			lpEntryID = lpEntryIDOneOff;
 		}
 
 		// add the organiser to the recipient list
@@ -1187,61 +1272,32 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		lplstIcalRecip->push_back(icrAttendee);
 
 		// The DAgent does not want these properties from ical, since it writes them itself
-		if (!m_bNoRecipients) {
+		if (!m_bNoRecipients)
+			hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
+	} else if (!m_bNoRecipients && m_lpMailUser) {
+		// single item from caldav without organizer, no need to set recipients, only organizer to self
+		SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
+		ULONG count;
 
-			strSearchKey = "SMTP:"+m_converter.convert_to<string>(strEmail);
-			transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
+		hr = m_lpMailUser->GetProps((LPSPropTagArray)&sPropTags, 0, &count, &lpsPropVal);
+		if (hr != hrSuccess)
+			goto exit;
 
-			sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_A;
-			hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, "SMTP", &sPropVal.Value.lpszW);
-			if (hr != hrSuccess)
-				goto exit;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
-			hr = HrCopyString(lpIcalItem->base, strEmail.c_str(), &sPropVal.Value.lpszW);
-			if (hr != hrSuccess)
-				goto exit;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENDER_NAME_W;
-			hr = HrCopyString(lpIcalItem->base, strName.c_str(), &sPropVal.Value.lpszW);
-			if (hr != hrSuccess)
-				goto exit;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;
-			hr = Util::HrCopyBinary(strSearchKey.length() + 1, (LPBYTE)strSearchKey.c_str(), &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
-			if (hr != hrSuccess)
-				goto exit;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-			lplstMsgProps->push_back(sPropVal);
-
-			// re-allocate memory to list with lpIcalItem
-			hr = MAPIAllocateMore(cbEntryID, lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
-			if (hr != hrSuccess)
-				goto exit;
-			sPropVal.Value.bin.cb = cbEntryID;
-			memcpy(sPropVal.Value.bin.lpb, lpEntryID, cbEntryID);
-
-			sPropVal.ulPropTag = PR_SENDER_ENTRYID;
-			lplstMsgProps->push_back(sPropVal);
-
-			sPropVal.ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-			lplstMsgProps->push_back(sPropVal);
+		if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
+			strEmail = lpsPropVal[0].Value.lpszW;
+		if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
+			strName = lpsPropVal[1].Value.lpszW;
+		if (lpsPropVal[2].ulPropTag == PR_ADDRTYPE_A)
+			strType = lpsPropVal[2].Value.lpszA;
+		if (lpsPropVal[3].ulPropTag == PR_ENTRYID) {
+			cbEntryID = lpsPropVal[3].Value.bin.cb;
+			lpEntryID = (LPENTRYID)lpsPropVal[3].Value.bin.lpb;
 		}
+
+		hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	}
+	if (hr != hrSuccess)
+		goto exit;
 
 	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 		 lpicProp != NULL;
@@ -1316,11 +1372,11 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	}
 
 exit:
-	// because of the shortcut, it's either, not both
 	if (lpsPropVal)
 		MAPIFreeBuffer(lpsPropVal);
-	else if (lpEntryID)
-		MAPIFreeBuffer(lpEntryID);
+
+	if (lpEntryIDOneOff)
+		MAPIFreeBuffer(lpEntryIDOneOff);
 
 	return hr;
 }
@@ -1335,9 +1391,7 @@ exit:
 HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
-	SPropValue sPropVal;
 	wstring strEmail, strName;
-	string strSearchKey;
 	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
 	icalrecip icrAttendee;
@@ -1374,9 +1428,6 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 				strEmail.erase(0, 7);
 			}
 
-			strSearchKey = "SMTP:" + m_converter.convert_to<std::string>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-			transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
-
 			lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 			if (lpicParam) {
 				lpszProp = icalparameter_get_cn(lpicParam);
@@ -1384,56 +1435,13 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 			}
 		}
 
-		sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_W;
-		hr = HrCopyString(lpIcalItem->base, L"SMTP", &sPropVal.Value.lpszW);
-		if (hr != hrSuccess)
-			goto exit;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
-		hr = HrCopyString(lpIcalItem->base, strEmail.c_str(), &sPropVal.Value.lpszW);
-		if (hr != hrSuccess)
-			goto exit;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENDER_NAME_W;
-		hr = HrCopyString(lpIcalItem->base, strName.c_str(), &sPropVal.Value.lpszW);
-		if (hr != hrSuccess)
-			goto exit;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-		
-		sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;
-		hr = Util::HrCopyBinary(strSearchKey.length()+1, (LPBYTE)strSearchKey.c_str(), &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
-		if (hr != hrSuccess)
-			goto exit;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
 		hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &lpEntryID);
 		if (hr != hrSuccess)
 			goto exit;
 
-		// re-allocate memory to list with lpIcalItem
-		hr = Util::HrCopyBinary(cbEntryID, (LPBYTE)lpEntryID, &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
+		hr = HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
 		if (hr != hrSuccess)
 			goto exit;
-
-		sPropVal.ulPropTag = PR_SENDER_ENTRYID;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		sPropVal.ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
 	}
 
 exit:

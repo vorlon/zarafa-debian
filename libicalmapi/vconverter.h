@@ -98,6 +98,7 @@ protected:
 	virtual HRESULT HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem);
 	virtual HRESULT HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalItem);
 	virtual HRESULT HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem) = 0; /* pure, must be overloaded */
+	virtual HRESULT HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string strType, ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, std::list<icalrecip> * lplstIcalRecip);
 	virtual HRESULT HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem);
 	virtual HRESULT HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, icalitem *lpIcalItem);
