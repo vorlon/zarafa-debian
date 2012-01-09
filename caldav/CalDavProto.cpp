@@ -235,15 +235,10 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	
 	if (m_ulUrlFlag & REQ_PUBLIC && m_wstrFldName.empty())
 		lpMapiProp = m_lpDefStore;
-	else if(m_wstrFldName.empty() || m_wstrFldName.compare(L"Inbox") == 0 || m_wstrFldName.compare(L"Outbox") == 0)
-		lpMapiProp = m_lpActiveStore;
-	else if(m_lpUsrFld)
+	else if (m_lpUsrFld && !m_wstrFldName.empty())
 		lpMapiProp = m_lpUsrFld;
 	else
-	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error Folder named '%ls' of user '%ls' not found, error code 0x%08X", m_wstrFldName.c_str(), m_wstrUser.c_str(), hr);
-		goto exit;
-	}
+		lpMapiProp = m_lpActiveStore;
 	
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), (void **) &lpPropTagArr);
 	if (hr != hrSuccess)
@@ -329,6 +324,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	LPSPropValue lpProps = NULL;
 	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
+	ULONG ulItemCount = 0;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	ulTagTsRef = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
@@ -493,7 +489,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 				ulCensorFlag = 0;
 
 			hr = HrMapValtoStruct(lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal, ulCensorFlag, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
-			
+
+			ulItemCount++;
 			lpsWebMStatus->lstResp.push_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
 		}
@@ -506,6 +503,9 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	}
 
 exit:
+	if (hr == hrSuccess)
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Number of items in folder returned: %u", ulCensorFlag);
+
 	if (lpsRestriction)
 		FREE_RESTRICTION(lpsRestriction);
 
@@ -610,6 +610,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		goto exit;
 
 	cbsize = (ULONG)sWebRMGet->lstWebVal.size();
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Requesting conversion of %u items", cbsize);
 	
 	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
 	if (!lpMtIcal)
@@ -779,7 +780,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	SRowSet *lpValRows = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpsPropVal = NULL;
-	MapiToICal *lpMtIcal = NULL;
 	ULONG cbsize = 0;
 	ULONG ulPropTag = 0;
 	ULONG ulTagPrivate = 0;
@@ -912,9 +912,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 exit:
 	if (lpValRows)
 		FreeProws(lpValRows);
-	
-	if (lpMtIcal)
-		delete lpMtIcal;
 
 	if (lpsRoot)
 		FREE_RESTRICTION(lpsRoot);
@@ -1445,9 +1442,13 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 
 	for (list<WEBDAVPROPERTY>::iterator i = lpsDavProp->lstProps.begin(); i != lpsDavProp->lstProps.end(); i++) {
 		if (i->sPropName.strPropname.compare("displayname") == 0) {
-			wstrNewFldName = lpsDavProp->lstProps.front().wstrValue;
+			wstrNewFldName = i->wstrValue;
 			break;
 		}
+		// @todo find supported-calendar-component-set and create correct folder type:
+		// <C:supported-calendar-component-set>
+		//   <C:comp name="VTODO"/>
+		// </C:supported-calendar-component-set>
 	}
 	if (wstrNewFldName.empty()) {
 		hr = MAPI_E_COLLISION;
@@ -1460,6 +1461,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	
 	sPropValSet[0].ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropValSet[0].Value.lpszA = "IPF.Appointment";
+	// @todo: can also be IPF.Tasks .. and we need the correct PR_ICON_INDEX
 	sPropValSet[1].ulPropTag = PR_COMMENT_A;
 	sPropValSet[1].Value.lpszA = "Created by CalDAV Gateway";
 
