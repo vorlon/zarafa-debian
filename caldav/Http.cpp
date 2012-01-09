@@ -191,9 +191,10 @@ HRESULT Http::HrReadHeaders()
 		if (strBuffer.empty())
 			break;
 
-		if (n == 0)
+		if (n == 0) {
 			m_strAction = strBuffer;
-		else {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Request URL: %s", m_strAction.c_str());
+		} else {
 			std::string::size_type pos = strBuffer.find(':');
 			std::string::size_type start = 0;
 			std::pair<std::map<std::string, std::string>::iterator, bool> r;
@@ -214,7 +215,7 @@ HRESULT Http::HrReadHeaders()
 		if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
 			if (strBuffer.find("Authorization") != string::npos)
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< Authorization: <value hidden>");
-			else
+			else if (n > 0)
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< "+strBuffer);
 		}
 		n++;

@@ -590,7 +590,6 @@ void *HandlerClient(void *lpArg)
 	HandlerArgs *lpHandlerArgs = (HandlerArgs *) lpArg;
 	ECChannel *lpChannel = lpHandlerArgs->lpChannel;
 	bool bUseSSL = lpHandlerArgs->bUseSSL;	
-	IMAPISession *lpSession = NULL;
 
 	delete lpHandlerArgs;
 
@@ -610,7 +609,7 @@ void *HandlerClient(void *lpArg)
 		}
 
 		//Save mapi session between Requests
-		hr = HrHandleRequest(lpChannel, &lpSession);
+		hr = HrHandleRequest(lpChannel);
 		if (hr != hrSuccess)
 			break;
 	}
@@ -620,14 +619,11 @@ exit:
 		
 	if(lpChannel)
 		delete lpChannel;
-	
-	if(lpSession)
-		lpSession->Release();
 
 	return NULL;
 }
 
-HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
+HRESULT HrHandleRequest(ECChannel *lpChannel)
 {
 	HRESULT hr = hrSuccess;
 	std::wstring wstrUser;
@@ -641,8 +637,6 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 	IMAPISession *lpSession = NULL;
 	ULONG ulFlag = 0;
 
-	if(lpSessionSave)
-		lpSession = *lpSessionSave;
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "New Request");
 
@@ -698,9 +692,15 @@ HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSessionSave)
 		goto exit;
 	}
 	
-	if(!lpSession && (wstrUser.empty() || wstrPass.empty() || HrAuthenticate(wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession) != hrSuccess )) {
+	if (wstrUser.empty() || wstrPass.empty()) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Sending authentication request");
-		
+		hr = MAPI_E_CALL_FAILED;
+	} else {
+		hr = HrAuthenticate(wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession);
+		if (hr != hrSuccess)
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Login failed (0x%08X), resending authentication request", hr);	
+	}
+	if (hr != hrSuccess) {
 		if(ulFlag & SERVICE_ICAL)
 			lpRequest->HrRequestAuth("Zarafa iCal Gateway");
 		else
@@ -751,12 +751,9 @@ exit:
 	if(lpRequest)
 		delete lpRequest;
 	
-	if(lpSession) {
-		// do not keep the session alive, can do inbetween different (or missing) Auth headers!
+	if(lpSession)
+		// do not keep the session alive, can receive different (or missing) Auth headers in keep-open requests!
 		lpSession->Release();
-		// @todo remove lpSessionSave parameter
-		*lpSessionSave = NULL;
-	}
 
 	if(lpBase)
 		delete lpBase;

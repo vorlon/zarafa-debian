@@ -60,6 +60,6 @@ HRESULT HrAccept(int ulListenSocket, int *lpulClientSocket);
 HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL, int nCloseFDs, int *pCloseFDs);
 
 void *HandlerClient(void *lpArg);
-HRESULT HrHandleRequest(ECChannel *lpChannel, IMAPISession **lpSession);
+HRESULT HrHandleRequest(ECChannel *lpChannel);
 
 #endif

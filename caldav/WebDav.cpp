@@ -1451,8 +1451,8 @@ HRESULT WebDav::HrMkCalendar()
 	hr = HrParseXml();
 	if(hr != hrSuccess)
 	{
-		goto exit;
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Parsing Error For MKCALENDAR");
+		goto exit;
 	}
 	
 	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
