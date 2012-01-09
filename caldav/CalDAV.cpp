@@ -638,7 +638,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	ULONG ulFlag = 0;
 
 
-	g_lpLogger->Log(EC_LOGLEVEL_INFO, "New Request");
+	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "New Request");
 
 	hr = lpRequest->HrReadHeaders();
 	if(hr != hrSuccess) {
@@ -746,7 +746,7 @@ exit:
 	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.
 		hr = lpRequest->HrFinalize();
 
-	g_lpLogger->Log(EC_LOGLEVEL_INFO, "End Of Request");
+	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "End Of Request");
 
 	if(lpRequest)
 		delete lpRequest;
