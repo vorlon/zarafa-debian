@@ -87,7 +87,7 @@ public:
 	HRESULT HrSelect(int seconds);
 
 	void SetIPAddress(char *szIPAddress);
-	std::string GetIPAddress();
+	const std::string& GetIPAddress() const;
 		
 	bool UsingSsl();
 	bool sslctx();

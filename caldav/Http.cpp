@@ -157,8 +157,6 @@ Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
 
 	m_ulKeepAlive = 0;
 	m_ulRetCode = 0;
-
-	m_strRespHeader.clear();
 }
 
 /**
@@ -193,7 +191,6 @@ HRESULT Http::HrReadHeaders()
 
 		if (n == 0) {
 			m_strAction = strBuffer;
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Request URL: %s", m_strAction.c_str());
 		} else {
 			std::string::size_type pos = strBuffer.find(':');
 			std::string::size_type start = 0;
@@ -215,7 +212,7 @@ HRESULT Http::HrReadHeaders()
 		if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
 			if (strBuffer.find("Authorization") != string::npos)
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< Authorization: <value hidden>");
-			else if (n > 0)
+			else
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< "+strBuffer);
 		}
 		n++;
@@ -297,8 +294,6 @@ HRESULT Http::HrParseHeaders()
 	m_strUser = items[0];
 	m_strPass = items[1];
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Request from User : %s", m_strUser.c_str());
-
 exit:
 	return hr;
 }
@@ -371,18 +366,6 @@ HRESULT Http::HrGetUrl(std::wstring *wstrUrl)
 		hr = MAPI_E_NOT_FOUND;
 
 	return hr;
-}
-
-/**
- * Returns the User agent of the request
- * @param[out]	strAgent	Return user-agent
- * @return		HRESULT
- * @retval		MAPI_E_NOT_FOUND	No user-agent string present in request
- */
-// @todo remove
-HRESULT Http::HrGetUserAgent(std::string *strAgent)
-{
-	return HrGetHeaderValue("User-Agent", strAgent);
 }
 
 /**
@@ -684,7 +667,21 @@ HRESULT Http::HrFinalize()
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s", m_strRespBody.c_str());
 	}
 
+	// if http_log_enable?
+	{
+		char szTime[32];
+		time_t now = time(NULL);
+		tm local;
+		string strAgent;
+		localtime_r(&now, &local);
+		strftime(szTime, arraySize(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
+		HrGetHeaderValue("User-Agent", &strAgent);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"",
+						m_lpChannel->GetIPAddress().c_str(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
+	}
+
 exit:
+	m_ulRetCode = 0;
 	return hr;
 }
 
@@ -805,7 +802,6 @@ HRESULT Http::HrFlushHeaders()
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + m_strRespHeader);
 	strOutput += m_strRespHeader + "\r\n";
 	m_strRespHeader.clear();
-	m_ulRetCode = 0;
 
 	for (h = m_lstHeaders.begin(); h != m_lstHeaders.end(); h++) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + *h);

@@ -1946,8 +1946,10 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		goto exit;
 
 	hr = lpNewMsg->SubmitMessage(0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to submit message: 0x%08X", hr);
 		goto exit;
+	}
 
 exit:
 	

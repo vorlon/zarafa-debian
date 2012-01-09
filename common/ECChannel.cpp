@@ -539,7 +539,7 @@ void ECChannel::SetIPAddress(char *szIPAddress)
 	strIP = szIPAddress;
 }
 
-std::string ECChannel::GetIPAddress()
+const std::string& ECChannel::GetIPAddress() const
 {
 	return strIP;
 }
