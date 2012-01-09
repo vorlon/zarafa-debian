@@ -671,7 +671,7 @@ HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
 		goto exit;
 	}
 	if (lpLogger)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Accepted connection from %s", inet_ntoa(client.sin_addr));
+		lpLogger->Log(EC_LOGLEVEL_INFO, "Accepted connection from %s", inet_ntoa(client.sin_addr));
 
 	lpChannel = new ECChannel(socket);
 	lpChannel->SetIPAddress(inet_ntoa(client.sin_addr));
