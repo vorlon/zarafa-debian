@@ -214,11 +214,14 @@ HRESULT ProtocolBase::HrInitializeClass()
 		goto exit;
 	}
 
-	hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
-	if(hr != hrSuccess)
-	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-		goto exit;
+	if (!bIsPublic) {
+		// get default calendar entryid for non-public stores
+		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
+		if(hr != hrSuccess)
+		{
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			goto exit;
+		}
 	}
 
 	/*
@@ -236,7 +239,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 	else if(!m_wstrFldName.empty())
 	{
-		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use id's, I'm not usre we want to.
+		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use id's, I'm not sure we want to.
 		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_lpLogger, m_wstrFldName, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
