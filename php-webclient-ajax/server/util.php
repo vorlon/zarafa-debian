@@ -529,7 +529,7 @@
 		if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') === false){
 			return $input;
 		}else{
-			return urlencode($input);
+			return rawurlencode($input);
 		}
 	}
 
