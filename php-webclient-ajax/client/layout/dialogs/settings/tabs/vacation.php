@@ -64,10 +64,10 @@ function vacation_settings_html(){ ?>
 		<legend><?=_("Out of Office Assistant")?></legend>
 		<table class="options">
 			<tr>
-				<th colspan="2"><input id="vacation_notsignable" type="radio" name="vaction_option" onclick="vacation_signableChange();" class="checkbox"><label for="vacation_notsignable"><?=_("I am currently In the Office")?></label></th>
+				<th colspan="2"><input id="vacation_notsignable" type="radio" name="vacation_option" onclick="vacation_signableChange();" class="checkbox"><label for="vacation_notsignable"><?=_("I am currently In the Office")?></label></th>
 			</tr>
 			<tr>
-				<th colspan="2"><input id="vacation_signable" type="radio" name="vaction_option" onclick="vacation_signableChange();" class="checkbox"><label for="vacation_signable"><?=_("I am currently Out of the Office")?></label></th>
+				<th colspan="2"><input id="vacation_signable" type="radio" name="vacation_option" onclick="vacation_signableChange();" class="checkbox"><label for="vacation_signable"><?=_("I am currently Out of the Office")?></label></th>
 			</tr>
 		</table>
 		<table class="textinput" style="margin-top: 5px">
@@ -76,7 +76,7 @@ function vacation_settings_html(){ ?>
 				<td><input id="vacation_subject" type="text" class="text"></td>
 			</tr>
 			<tr>
-				<th colspan="2"><label for="vaction_message"><?=_("AutoReply only once to each sender with the following text")?>:</label></th>
+				<th colspan="2"><label for="vacation_message"><?=_("AutoReply only once to each sender with the following text")?>:</label></th>
 			</tr>
 			<tr>
 				<th>&nbsp;</th>
