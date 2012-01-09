@@ -50,6 +50,7 @@
 #include "platform.h"
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
+#include "mapi_ptr.h"
 
 using namespace std;
 
@@ -971,8 +972,10 @@ HRESULT CalDAV::HrHandleDelete()
 	}
 
 	hr = HrGetOneProp(m_lpDefStore, PR_IPM_WASTEBASKET_ENTRYID, &lpPropWstBxEID);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error finding \"Deleted items\" folder, error code : 0x%08X", hr);
 		goto exit;
+	}
 	
 	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, (LPENTRYID)lpPropWstBxEID->Value.bin.lpb, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpWastBoxFld);
 	if (hr != hrSuccess)
@@ -1040,10 +1043,10 @@ HRESULT CalDAV::HrHandleDelete()
 	}
 
 exit:
-	if ( hr == MAPI_E_NO_ACCESS )
+	if (hr == MAPI_E_NO_ACCESS)
 	{
 		m_lpRequest->HrResponseHeader(403, "Forbidden");
-		m_lpRequest->HrResponseBody("This folder cannot be deleted");
+		m_lpRequest->HrResponseBody("This item cannot be deleted");
 	}
 	else if (hr == MAPI_E_DECLINE_COPY)
 	{
@@ -1097,7 +1100,15 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	LPSPropValue lpProps = NULL;
 	IMessage *lpMessage = NULL;
 	LPENTRYLIST lpEntryList= NULL;
+	SPropValuePtr ptrAccess;
+
 	SizedSPropTagArray(3, lpPropTagArr) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
+
+	hr = HrGetOneProp(m_lpUsrFld, PR_ACCESS, &ptrAccess);
+	if (hr != hrSuccess || (ptrAccess->Value.ul & MAPI_ACCESS_DELETE) == 0) {
+		hr = MAPI_E_NO_ACCESS;
+		goto exit;
+	}
 
 	m_lpRequest->HrGetIfMatch(&strIfMatch);
 
