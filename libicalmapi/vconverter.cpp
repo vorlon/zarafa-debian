@@ -1132,7 +1132,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string strType, ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string &strType, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	std::string strSearchKey;
