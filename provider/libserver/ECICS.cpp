@@ -932,6 +932,7 @@ nextFolder:
 		// still don't have that company in the offline gab.
 		unsigned int ulCompanyId = 0;
 
+		// returns 0 for ZARAFA_UID_SYSTEM on hosted environments, and then the filter correctly doesn't filter anything.
 		lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
 
 	    if(ulChangeId > 0) {
@@ -1010,8 +1011,10 @@ nextFolder:
             lpDatabase->FreeResult(lpDBResult);
             lpDBResult = NULL;
 
-			// Skip 'everyone', 'system' and users outside our company space.
-            strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2) AND company = " + stringify(ulCompanyId);
+			// Skip 'everyone', 'system' and users outside our company space, except when we're system (zarafa-indexer loads full addressbook)
+            strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2)";
+			if (lpSession->GetSecurity()->GetUserId() != ZARAFA_UID_SYSTEM)
+				strQuery += " AND company = " + stringify(ulCompanyId);
             
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
