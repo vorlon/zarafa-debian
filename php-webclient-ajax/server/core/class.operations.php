@@ -3122,7 +3122,7 @@
 			foreach($rows as $k=>$row){
 				$rows[$k]["properties"][PR_RULE_SEQUENCE] = $seq;
 				$seq++;
-				unset($rows[$k][PR_RULE_ID]); // remove RULE_ID because this is the property Outlook does its sort when displaying rules instead of RULE_SEQUENCE!
+				unset($rows[$k]["properties"][PR_RULE_ID]); // remove RULE_ID because this is the property Outlook does its sort when displaying rules instead of RULE_SEQUENCE!
 			}
 			
 			// sort the rules, so they will get a RULE_ID in the right order when adding the rules
