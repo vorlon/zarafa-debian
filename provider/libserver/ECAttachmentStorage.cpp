@@ -1448,6 +1448,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 {
 	ECRESULT er = erSuccess;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression && iSize);
+	int iWritten;
 
 	// no need to remove the file, just overwrite it
 	if (m_bFileCompression && iSize) {
@@ -1456,7 +1457,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
-		gzwrite(gzfp, lpData, iSize);
+		iWritten = gzwrite(gzfp, lpData, iSize);
 		gzclose(gzfp);
 	} else {
 		FILE *f = fopen(filename.c_str(), "w");
@@ -1464,12 +1465,19 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
-		fwrite(lpData, 1, iSize, f);
+		iWritten = fwrite(lpData, 1, iSize, f);
 		fclose(f);
 	}
 
+	// set in transaction before disk full check to remove empty file
 	if(m_bTransaction)
 		m_setNewAttachment.insert(ulInstanceId);
+
+	if (iWritten != iSize) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write attachment, disk full");
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
 
 exit:
 	return er;
@@ -1492,6 +1500,9 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 	unsigned char szBuffer[CHUNK_SIZE];
 	int iSizeLeft;
 	int iChunkSize;
+	int iWritten;
+
+	iSizeLeft = iSize;
 
 	//no need to remove the file, just overwrite it
 	if (m_bFileCompression) {
@@ -1501,7 +1512,10 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 			goto exit;
 		}
 
-		iSizeLeft = iSize;
+		// file created on disk, now in transaction
+		if (m_bTransaction)
+			m_setNewAttachment.insert(ulInstanceId);
+
 		while (iSizeLeft > 0) {
 			iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
 
@@ -1511,7 +1525,9 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 				goto exit;
 			}
 
-			gzwrite(gzfp, szBuffer, iChunkSize);
+			iWritten = gzwrite(gzfp, szBuffer, iChunkSize);
+			if (iWritten == 0)
+				break;
 			iSizeLeft -= iChunkSize;
 		}
 		gzclose(gzfp);
@@ -1522,7 +1538,10 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 			goto exit;
 		}
 
-		iSizeLeft = iSize;
+		// file created on disk, now in transaction
+		if (m_bTransaction)
+			m_setNewAttachment.insert(ulInstanceId);
+
 		while (iSizeLeft > 0) {
 			iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
 
@@ -1532,17 +1551,21 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPr
 				goto exit;
 			}
 
-			fwrite(szBuffer, 1, iChunkSize, f);
+			iWritten = fwrite(szBuffer, 1, iChunkSize, f);
+			if (iWritten == 0)
+				break;
 			iSizeLeft -= iChunkSize;
 		}
 		fclose(f);
+		
+	}
+	if (iSizeLeft) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write streaming attachment, disk full");
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
 	}
 
 exit:
-	if(er != ZARAFA_E_DATABASE_ERROR && m_bTransaction) {
-		m_setNewAttachment.insert(ulInstanceId);
-	}
-
 	return er;
 }
 
