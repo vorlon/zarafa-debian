@@ -32,8 +32,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @WITH_SWIG_TRUE@am__append_1 = swig
-@WITH_PERL_TRUE@@WITH_SWIG_FALSE@am__append_2 = swig
-@WITH_PERL_FALSE@@WITH_PYTHON_TRUE@@WITH_SWIG_FALSE@am__append_3 = swig
+@WITH_PYTHON_TRUE@@WITH_SWIG_FALSE@am__append_2 = swig
 subdir = .
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/specialbuild.in \
@@ -175,9 +174,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PAM_LIBS = @PAM_LIBS@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PERL_ARCHLIBDIR = @PERL_ARCHLIBDIR@
-PERL_INSTDIR = @PERL_INSTDIR@
-PERL_PRIVLIBDIR = @PERL_PRIVLIBDIR@
 PHP_EXTENSION_DIR = @PHP_EXTENSION_DIR@
 PHP_INCLUDES = @PHP_INCLUDES@
 PHP_LDFLAGS = @PHP_LDFLAGS@
@@ -269,8 +265,7 @@ ACLOCAL_AMFLAGS = -I autoconf
 @OSS_ONLY_FALSE@PROSUBS = liblicense licensed
 SUBDIRS = common libfreebusy zarafa-libsync mapi4linux $(PROSUBS) \
 	provider libicalmapi inetmapi php-ext ECtools spooler gateway \
-	caldav installer po doc $(am__append_1) $(am__append_2) \
-	$(am__append_3)
+	caldav installer po doc $(am__append_1) $(am__append_2)
 EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax webapp/deploy
 BUILT_SOURCES = common/ecversion.h
 @OSS_ONLY_FALSE@CLEANFILES = common/ecversion.h

@@ -242,9 +242,8 @@ AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r mem
 # find required/optional libraries
 #
 
-# checks for swig (optional if files are already generated in make dist), perl and python
+# checks for swig (optional if files are already generated in make dist) and python
 SWIG_CHECK_SWIG
-SWIG_CHECK_PERL
 SWIG_CHECK_PYTHON
 if test "$want_unicode" = "yes"; then
    SWIG_FLAGS="-DUNICODE"
@@ -753,7 +752,6 @@ AC_CONFIG_FILES([Makefile
 		libicalmapi/Makefile
 		caldav/Makefile
 		swig/Makefile
-		swig/perl/Makefile
 		swig/python/Makefile
 		zarafa-libsync/Makefile
 
@@ -821,6 +819,5 @@ Boost
 # Thread libs	:	$BOOST_THREAD_LIBS
 ICU libs	:	$ICU_LIBS
 Swig 		:	$want_swig
-Perl module	:	$want_perl
 Python module	:	$want_python
 ])

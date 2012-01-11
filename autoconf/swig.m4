@@ -2,12 +2,9 @@
 # must be called to call other SWIG_CHECK_* functions
 AC_DEFUN([SWIG_CHECK_SWIG], [
 AC_ARG_ENABLE(swig, AC_HELP_STRING([--enable-swig], [enable regenerating swig code]), [want_swig=${enableval}], [want_swig=no])
-AC_ARG_ENABLE(perl, AC_HELP_STRING([--enable-perl], [enable building perl binding]), [want_perl=${enableval}], [want_perl=auto])
 AC_ARG_ENABLE(python, AC_HELP_STRING([--enable-python], [enable building python binding]), [want_python=${enableval}], [want_python=auto])
 
 if test "$want_swig" = "yes"; then
-   need_swig=yes
-elif test "$want_perl" = "yes" -a ! -f "$srcdir/swig/perl/mapi_wrap.cxx"; then
    need_swig=yes
 elif test "$want_python" = "yes" -a ! -f "$srcdir/swig/python/mapi_wrap.cxx"; then
    need_swig=yes
@@ -20,38 +17,6 @@ if test "$need_swig" = "yes" -a "x$SWIG_EXEC" = "x"; then
    AC_MSG_ERROR([Current options require swig, but swig binary is not found])
 fi
 AM_CONDITIONAL([WITH_SWIG], [test "$want_swig" = "yes"])
-])
-
-#perl
-AC_DEFUN([SWIG_CHECK_PERL],[
-if test "$want_perl" = "yes" -o "$want_perl" = "auto"; then
-  AC_MSG_CHECKING([for perl])
-  PERL_ARCHLIBDIR=$(perl -e 'use Config; print $Config{archlibexp}."\n";' 2>/dev/null)
-  if test -z "$PERL_ARCHLIBDIR"; then
-	if test "$want_perl" = "yes" -a "$want_swig" = "yes"; then
-      AC_MSG_ERROR([not found])
-	else
-	  AC_MSG_RESULT([no])
-	fi
-    want_perl=no
-  else
-    if test "$want_perl" = "auto" -a "x$SWIG_EXEC" = "x"; then
-		want_perl=no
-	  AC_MSG_RESULT([no])
-	else
-		want_perl=yes
-		AC_MSG_RESULT([yes])
-
-		AC_SUBST(PERL_ARCHLIBDIR)
-	
-		PERL_PRIVLIBDIR=$(perl -e 'use Config; print $Config{privlibexp}."\n";' 2>/dev/null)
-		AC_SUBST(PERL_PRIVLIBDIR)
-		PERL_INSTDIR=$(perl -e 'use Config; print $Config{installvendorarch}."\n";' 2>/dev/null)
-		AC_SUBST(PERL_INSTDIR)
-	fi
-  fi
-fi
-AM_CONDITIONAL([WITH_PERL], [test "$want_perl" = "yes"])
 ])
 
 #python

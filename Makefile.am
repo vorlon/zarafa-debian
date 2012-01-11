@@ -9,12 +9,8 @@ SUBDIRS = common libfreebusy zarafa-libsync mapi4linux $(PROSUBS) provider libic
 if WITH_SWIG
 SUBDIRS += swig
 else
-if WITH_PERL
-SUBDIRS += swig
-else
 if WITH_PYTHON
 SUBDIRS += swig
-endif
 endif
 endif
 
