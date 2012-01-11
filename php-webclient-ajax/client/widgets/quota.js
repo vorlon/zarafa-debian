@@ -111,7 +111,7 @@ QuotaWidget.prototype.update = function(size, warn, soft, hard)
 	}
 
 	if(maxLimit > 0) {
-		if(warn <= soft) {
+		if(warnSize <= softSize) {
 			quota.push({
 				qoutaname: "warn",
 				size: warnSize,
@@ -129,7 +129,7 @@ QuotaWidget.prototype.update = function(size, warn, soft, hard)
 				size: hardSize,
 				element: this.hardElement
 			});
-		} else if(soft < warn) {
+		} else if(softSize < warnSize) {
 			quota.push({
 				qoutaname: "soft",
 				size: softSize,
