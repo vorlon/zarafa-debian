@@ -511,7 +511,6 @@ struct restrictCompare {
 struct restrictContent {
 	unsigned int ulFuzzyLevel;
 	unsigned int ulPropTag;
-	char *szSearchString;		// unused from version 4.11 (only for backward comp..)
 	struct propVal *lpProp;
 };
 

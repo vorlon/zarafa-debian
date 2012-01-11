@@ -1033,11 +1033,6 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict)
 			delete lpRestrict->lpNot;
 		break;
 	case RES_CONTENT:
-		// NOTE: This is for version 4.1 backward compatibility
-		if(lpRestrict->lpContent && lpRestrict->lpContent->szSearchString)
-			delete [] lpRestrict->lpContent->szSearchString;
-		// end
-
 		if(lpRestrict->lpContent && lpRestrict->lpContent->lpProp)
 			FreePropVal(lpRestrict->lpContent->lpProp, true);
 
@@ -1438,10 +1433,6 @@ ECRESULT CopyRestrictTable(struct soap *soap, struct restrictTable *lpSrc, struc
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->lpContent->ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->lpContent->ulPropTag;
 
-		if(lpSrc->lpContent->szSearchString) {
-			lpDst->lpContent->szSearchString = s_alloc<char>(soap,strlen(lpSrc->lpContent->szSearchString)+1);
-			strcpy(lpDst->lpContent->szSearchString, lpSrc->lpContent->szSearchString);
-		}
 		if(lpSrc->lpContent->lpProp) {
 			er = CopyPropVal(lpSrc->lpContent->lpProp, &lpDst->lpContent->lpProp, soap);
 			if(er != erSuccess)
@@ -2026,97 +2017,6 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 	return er;
 }
 
-// NOTE: This is a workaround for version 4.1 backward compatibility
-ECRESULT BackwardCompRestrict4_1(struct restrictTable *lpsRestrict)
-{
-	ECRESULT er = erSuccess;
-	unsigned int i=0;
-
-	if(lpsRestrict == NULL) {
-		er = ZARAFA_E_INVALID_TYPE;
-		goto exit;
-	}
-
-	switch(lpsRestrict->ulType) {
-		case RES_OR:
-			if(lpsRestrict->lpOr == NULL) {
-				er = ZARAFA_E_INVALID_TYPE;
-				goto exit;
-			}
-
-			for(i=0; i<lpsRestrict->lpOr->__size; i++) {
-				er = BackwardCompRestrict4_1(lpsRestrict->lpOr->__ptr[i]);
-				if(er != erSuccess)
-					goto exit;
-			}
-			break;
-		case RES_AND:
-			if(lpsRestrict->lpAnd == NULL) {
-				er = ZARAFA_E_INVALID_TYPE;
-				goto exit;
-			}
-
-			for(i=0; i<lpsRestrict->lpAnd->__size; i++) {
-				er = BackwardCompRestrict4_1(lpsRestrict->lpAnd->__ptr[i]);
-				if(er != erSuccess)
-					goto exit;
-			}
-			break;
-		case RES_NOT:
-			if(lpsRestrict->lpNot == NULL) {
-				er = ZARAFA_E_INVALID_TYPE;
-				goto exit;
-			}
-
-			er = BackwardCompRestrict4_1(lpsRestrict->lpNot->lpNot);
-			if(er != erSuccess)
-				goto exit;
-
-			break;
-		case RES_PROPERTY:
-			if(lpsRestrict->lpProp == NULL) {
-				er = ZARAFA_E_INVALID_TYPE;
-				goto exit;
-			}
-
-			if(lpsRestrict->lpProp->ulPropTag == 0 && lpsRestrict->lpProp->lpProp != NULL)
-				lpsRestrict->lpProp->ulPropTag = lpsRestrict->lpProp->lpProp->ulPropTag;
-			break;
-		case RES_CONTENT:
-			if(lpsRestrict->lpContent == NULL) {
-				er = ZARAFA_E_INVALID_TYPE;
-				goto exit;
-			}
-
-			if( (PROP_TYPE(lpsRestrict->lpContent->ulPropTag) == PT_STRING8 || PROP_TYPE(lpsRestrict->lpContent->ulPropTag) == PT_MV_STRING8) &&
-				lpsRestrict->lpContent->lpProp == NULL && lpsRestrict->lpContent->szSearchString != NULL)
-			{
-				lpsRestrict->lpContent->lpProp = new struct propVal;
-				memset(lpsRestrict->lpContent->lpProp, 0, sizeof(struct propVal));
-
-				lpsRestrict->lpContent->lpProp->Value.lpszA = new char[strlen(lpsRestrict->lpContent->szSearchString)+1];
-				strcpy(lpsRestrict->lpContent->lpProp->Value.lpszA, lpsRestrict->lpContent->szSearchString);
-
-				lpsRestrict->lpContent->lpProp->ulPropTag = PT_STRING8;
-				lpsRestrict->lpContent->lpProp->__union = SOAP_UNION_propValData_lpszA;
-			}
-
-			if(PROP_TYPE(lpsRestrict->lpContent->ulPropTag) == PT_STRING8 && lpsRestrict->lpContent->szSearchString == NULL &&
-				lpsRestrict->lpContent->lpProp != NULL && lpsRestrict->lpContent->lpProp->Value.lpszA != NULL)
-			{
-				lpsRestrict->lpContent->szSearchString = new char[strlen(lpsRestrict->lpContent->lpProp->Value.lpszA)+1];
-				strcpy(lpsRestrict->lpContent->szSearchString, lpsRestrict->lpContent->lpProp->Value.lpszA);
-			}
-
-			break;
-		default:
-			break;
-	}
-
-exit:
-	return er;
-}
-
 ECRESULT CopyUserObjectDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, struct soap *soap, struct userobject *lpObject)
 {
 	ECRESULT er = erSuccess;
@@ -2545,9 +2445,6 @@ unsigned int RestrictTableSize(struct restrictTable *lpSrc)
 	case RES_CONTENT:
 		ulSize += sizeof(restrictContent);
 
-		if(lpSrc->lpContent->szSearchString) {
-			ulSize += strlen(lpSrc->lpContent->szSearchString)+1;
-		}
 		if(lpSrc->lpContent->lpProp) {
 			ulSize += PropSize(lpSrc->lpContent->lpProp);
 		}
@@ -2766,7 +2663,7 @@ ULONG NormalizePropTag(ULONG ulPropTag)
  */
 ECRESULT FreeNamedPropArray(struct namedPropArray *array, bool bFreeBase)
 {
-	for(int i = 0; i < array->__size; i++) {
+	for(unsigned int i = 0; i < array->__size; i++) {
 		if(array->__ptr[i].lpId)
 			delete array->__ptr[i].lpId;
 		if(array->__ptr[i].lpString)
