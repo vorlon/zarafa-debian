@@ -383,7 +383,7 @@ appointmentitemmodule.prototype.deleteMessage = function (basedate)
 		var end = dhtml.getElementById("duedate").getAttribute("unixtime");
 		var endtime = new Date(end * 1000);
 		
-		if (meeting !== 0 && (endtime.getTime() > (new Date().getTime()))) {
+		if (meeting !== 0 && !isMeetingInPast(endtime) && !isMeetingCanceled(this.itemProps)) {
 			/**
 			 * if occurrence is later then send confirmation message for cancellation message.
 			 * Check whether there are any recepients/resource in MR or not.
@@ -434,7 +434,7 @@ appointmentitemmodule.prototype.deleteMessage = function (basedate)
 		var endtime = new Date(end * 1000);
 
 		// if recurrence is later then send confirmation message for cancellation message.
-		if(meeting !== 0 && endtime.getTime() > (new Date().getTime())) {
+		if(meeting !== 0 && !isMeetingInPast(endtime) && !isMeetingCanceled(this.itemProps)) {
 			// Check whether there are any recepients in MR or not.
 			if (isMeetingOrganized && this.itemProps.requestsent && this.itemProps.requestsent == "1" ) {
 				send = confirm(_("Would you like to send an update to the attendees regarding changes to this meeting?"));
