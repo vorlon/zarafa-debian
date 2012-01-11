@@ -878,6 +878,9 @@ HRESULT HrExtractHTMLFromRealRTF(std::string &lpStrRTFIn, std::string &lpStrHTML
 						sState[ulState].output.append(1,' ');
 						sState[ulState].output.append(1,' ');
 					}
+				} else if (strcmp(szCommand,"bin") == 0) {
+					if (lArg > 0)
+						szInput += lArg; // skip all binary bytes here.
 				} else if (strcmp(szCommand,"uc") == 0) {
 					sState[ulState].ulUnicodeSkip = lArg;
 				} else if(strcmp(szCommand,"f") == 0) {
