@@ -25047,7 +25047,9 @@ _ACEOF
 
 
 
-for ac_func in random gettimeofday ftime localtime_r timegm gmtime gmtime_r memchr memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf strtof_l strtod_l wctomb mbtowc dcgettext getpeereid gethostbyname_r getpwnam_r vsyslog
+
+
+for ac_func in random gettimeofday ftime localtime_r timegm gmtime gmtime_r memchr memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf strtof_l strtod_l wctomb mbtowc dcgettext getpeereid gethostbyname_r getpwnam_r vsyslog snprintf sprintf_l
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -25414,7 +25416,8 @@ CXXFLAGS="$CXXFLAGS $PHP_INCLUDES"
 { echo "$as_me:$LINENO: checking acquired PHP settings" >&5
 echo $ECHO_N "checking acquired PHP settings... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -25495,7 +25498,8 @@ echo "${ECHO_T}$XML2_CONFIG" >&6; }
     { echo "$as_me:$LINENO: checking acquired XML2 settings" >&5
 echo $ECHO_N "checking acquired XML2 settings... $ECHO_C" >&6; }
     cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+
+      /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27000,7 +27004,7 @@ _ACEOF
 	  { echo "$as_me:$LINENO: checking for -lldap without LDAP_DEPRECATED" >&5
 echo $ECHO_N "checking for -lldap without LDAP_DEPRECATED... $ECHO_C" >&6; }
 	  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27043,7 +27047,8 @@ echo "${ECHO_T}no" >&6; }
 		  { echo "$as_me:$LINENO: checking for -lldap with LDAP_DEPRECATED" >&5
 echo $ECHO_N "checking for -lldap with LDAP_DEPRECATED... $ECHO_C" >&6; }
 		  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+
+			/* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27469,7 +27474,7 @@ fi
 { echo "$as_me:$LINENO: checking for iconv" >&5
 echo $ECHO_N "checking for iconv... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27511,7 +27516,7 @@ echo "${ECHO_T}no" >&6; }
 echo $ECHO_N "checking for iconv in -liconv... $ECHO_C" >&6; }
 	  LIBS="-liconv"
 	  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27567,7 +27572,7 @@ LIBS=$LIBS_system
 { echo "$as_me:$LINENO: checking for crypt" >&5
 echo $ECHO_N "checking for crypt... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
@@ -27835,7 +27840,7 @@ LIBS="$LIBS $SSL_LIBS"
 { echo "$as_me:$LINENO: checking for OpenSSL's EVP_PKEY_cmp" >&5
 echo $ECHO_N "checking for OpenSSL's EVP_PKEY_cmp... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
+ /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF

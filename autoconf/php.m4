@@ -62,13 +62,13 @@ dnl so we explicitly check if something would compile with the found include par
 AC_DEFUN([PHP_CHECK_INCLUDES],[
 CXXFLAGS="$CXXFLAGS $PHP_INCLUDES"
 AC_MSG_CHECKING([acquired PHP settings])
-AC_LINK_IFELSE(
+AC_LINK_IFELSE([
  AC_LANG_SOURCE([
 #include <php.h>
 int main() {
 	zval *ptr = NULL;
 }
- ]), [ AC_MSG_RESULT([ok]) ], [ AC_MSG_ERROR([broken])
+ ]) ], [ AC_MSG_RESULT([ok]) ], [ AC_MSG_ERROR([broken])
 ])
 CXXFLAGS=$CXXFLAGS_system
 ])

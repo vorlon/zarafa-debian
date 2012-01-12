@@ -235,7 +235,7 @@ AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memchr memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf strtof_l strtod_l wctomb mbtowc dcgettext getpeereid gethostbyname_r getpwnam_r vsyslog])
+AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memchr memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf strtof_l strtod_l wctomb mbtowc dcgettext getpeereid gethostbyname_r getpwnam_r vsyslog snprintf sprintf_l])
 
 
 #
@@ -276,13 +276,13 @@ AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
     CXXFLAGS="$CXXFLAGS $XML2_CFLAGS"
     LIBS=$XML2_LIBS
     AC_MSG_CHECKING([acquired XML2 settings])
-    AC_LINK_IFELSE(
+    AC_LINK_IFELSE([
       AC_LANG_SOURCE([
 #include <libxml/xmlwriter.h>
 int main() {
    	xmlNewTextWriterMemory(NULL, 0);
 }
-      ]), [ AC_MSG_RESULT([ok]) ], [ AC_MSG_ERROR([broken])
+      ]) ], [ AC_MSG_RESULT([ok]) ], [ AC_MSG_ERROR([broken])
     ])
     LIBS=$LIBS_system
     CXXFLAGS=$CXXFLAGS_system
@@ -457,10 +457,10 @@ fi
 AC_CHECK_HEADERS([ldap.h],
 	[ LIBS=-lldap
 	  AC_MSG_CHECKING([for -lldap without LDAP_DEPRECATED])
-	  AC_LINK_IFELSE(AC_LANG_SOURCE([#include <ldap.h>
+	  AC_LINK_IFELSE([ AC_LANG_SOURCE([#include <ldap.h>
 int main() {
     LDAP *l = ldap_init("localhost",389);
-}]),
+}]) ],
 		[ LDAP_LIBS=-lldap
 		  LDAP_FLAGS=
 		  want_ldap=yes
@@ -468,11 +468,11 @@ int main() {
 		[ AC_MSG_RESULT([no])
 		  CXXFLAGS="$CXXFLAGS -DLDAP_DEPRECATED=1"
 		  AC_MSG_CHECKING([for -lldap with LDAP_DEPRECATED])
-		  AC_LINK_IFELSE(
+		  AC_LINK_IFELSE([
 			AC_LANG_SOURCE([#include <ldap.h>
 int main() {
     LDAP *l = ldap_init("localhost",389);
-}]),
+}]) ],
 			[ LDAP_LIBS=-lldap
 			  LDAP_FLAGS=-DLDAP_DEPRECATED=1
 			  want_ldap=yes
@@ -502,22 +502,22 @@ AC_CHECK_HEADERS([shadow.h], [want_unix=yes], [want_unix=no])
 AM_CONDITIONAL([WITH_UNIX], [test "$want_unix" = yes])
 
 AC_MSG_CHECKING([for iconv])
-AC_LINK_IFELSE(AC_LANG_SOURCE([
+AC_LINK_IFELSE([ AC_LANG_SOURCE([
 #include <stdlib.h>
 #include <iconv.h>
 int main() {
 iconv_t i; i = iconv_open("", "");
-}]),
+}]) ],
 	[ AC_MSG_RESULT([yes]) ],
 	[ AC_MSG_RESULT([no])
 	  AC_MSG_CHECKING([for iconv in -liconv])
 	  LIBS="-liconv"
-	  AC_LINK_IFELSE(AC_LANG_SOURCE([
+	  AC_LINK_IFELSE([ AC_LANG_SOURCE([
 #include <stdlib.h>
 #include <iconv.h>
 int main() {
 iconv_t i; i = iconv_open("", "");
-}]),
+}]) ],
 		[ AC_MSG_RESULT([yes])
 		  ICONV_LIBS=$LIBS ],
 		[ AC_MSG_RESULT([no])
@@ -526,9 +526,9 @@ AC_SUBST(ICONV_LIBS)
 LIBS=$LIBS_system
 
 AC_MSG_CHECKING([for crypt])
-AC_LINK_IFELSE(AC_LANG_SOURCE([int main() {
+AC_LINK_IFELSE([ AC_LANG_SOURCE([int main() {
   char crypt();  crypt();
-}]),
+}]) ],
 	[ AC_MSG_RESULT([yes]) ],
 	[ AC_MSG_RESULT([no])
 	  AC_CHECK_LIB([crypt], [crypt],, AC_MSG_ERROR([required library libcrypt missing or unusable])) ])
@@ -548,9 +548,9 @@ LIBS=$LIBS_system
 # OpenSSL check for new EVP_PKEY_cmp() function
 LIBS="$LIBS $SSL_LIBS"
 AC_MSG_CHECKING([for OpenSSL's EVP_PKEY_cmp])
-AC_LINK_IFELSE(AC_LANG_SOURCE([int main() {
+AC_LINK_IFELSE([ AC_LANG_SOURCE([int main() {
   char EVP_PKEY_cmp();  EVP_PKEY_cmp();
-}]),
+}]) ],
 	[ AC_MSG_RESULT([yes])
 	  SSL_HAS_EVP_PKEY_CMP="-DSSL_HAS_EVP_PKEY_CMP=1" ],
 	[ AC_MSG_RESULT([no])

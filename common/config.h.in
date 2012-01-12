@@ -143,11 +143,17 @@
 /* Define to 1 if you have the <shadow.h> header file. */
 #undef HAVE_SHADOW_H
 
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
 /* Google sparsehash available */
 #undef HAVE_SPARSEHASH
+
+/* Define to 1 if you have the `sprintf_l' function. */
+#undef HAVE_SPRINTF_L
 
 /* Define to 1 if you have the `sscanf' function. */
 #undef HAVE_SSCANF
