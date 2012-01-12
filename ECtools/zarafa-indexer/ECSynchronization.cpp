@@ -321,16 +321,17 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 
 	m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
 
-	if(ulCreate || ulChange || ulDelete) {
-		m_lpIndexerData->OptimizeIndex(lpEntryData);
-		// Since it is not really fatal when the optimize failed, we will just ignore the error here
-	}
+	m_lpIndexerData->OptimizeIndex(lpEntryData);
+	// Since it is not really fatal when the optimize failed, we will just ignore the error here
 
 	hr = StopMergedChanges();
 	if (hr != hrSuccess)
 		goto exit;
 
 exit:
+	if (hr != hrSuccess)
+		m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
+
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing of store '%ls': Synchronizing Content - %d creations, %d changes, %d deletions %s",
 								  lpEntryData->m_strUserName.c_str(), ulCreate, ulChange, ulDelete, (hr == hrSuccess) ? "succeeded" : "failed");
 

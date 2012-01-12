@@ -147,6 +147,15 @@ private:
 	 */
 	static LPVOID RunThread(LPVOID lpVoid);
 
+	/** 
+	 * Enables index optimization for the next indexing run
+	 * 
+	 * @param[in] lpVoid pointer to instance of this
+	 * 
+	 * @return LPVOID
+	 */
+	static LPVOID EnableOptimizeIndex(LPVOID lpVoid);
+
 	/**
 	 * Main indexing function
 	 *
@@ -281,6 +290,7 @@ private:
 private:
 	ECThreadData  *m_lpThreadData;
 	ECScheduler *m_lpScheduler;
+	enum { DISABLE_OPTIMIZE, NEXT_OPTIMIZE, RUN_OPTIMIZE } m_eOptimize;
 
 	pthread_mutexattr_t m_hThreadLockAttr;
 	pthread_mutex_t m_hThreadLock;
