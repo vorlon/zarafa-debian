@@ -20,7 +20,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h auto_free.h ECCache.h		\
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
-				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h \
+				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -49,7 +49,8 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			HtmlEntity.cpp								\
 			ECABEntryID.cpp								\
 			ECDebugPrint.cpp							\
-			ECIterators.cpp
+			ECIterators.cpp								\
+			MAPINotifSink.cpp
 
 libcommon_util_la_LDFLAGS = -static
 libcommon_util_la_SOURCES = platform.cpp			\

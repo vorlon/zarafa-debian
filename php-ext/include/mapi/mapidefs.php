@@ -629,4 +629,18 @@ define('mtgDelegatorCopy',						0x00100000);	// This is set on the delegator's c
 define('MAPI_ONE_OFF_UNICODE',					0x8000);		// the flag that defines whether the embedded strings are Unicode in one off entryids.
 define('MAPI_ONE_OFF_NO_RICH_INFO',				0x0001);		// the flag that specifies whether the recipient gets TNEF or not.
 
+/* Mask flags for mapi_msgstore_advise */
+define('fnevCriticalError',           0x00000001);
+define('fnevNewMail',                 0x00000002);
+define('fnevObjectCreated',           0x00000004);
+define('fnevObjectDeleted',           0x00000008);
+define('fnevObjectModified',          0x00000010);
+define('fnevObjectMoved',             0x00000020);
+define('fnevObjectCopied',            0x00000040);
+define('fnevSearchComplete',          0x00000080);
+define('fnevTableModified',           0x00000100);
+define('fnevStatusObjectModified',    0x00000200);
+define('fnevReservedForMapi',         0x40000000);
+define('fnevExtended',                0x80000000);
+
 ?>

@@ -71,7 +71,7 @@ am_libcommon_mapi_la_OBJECTS = CommonUtil.lo rtfutil.lo codepage.lo \
 	ECGuid.lo ECUnknown.lo ECMemStream.lo ECMemTable.lo \
 	ECKeyTable.lo Util.lo ECDebug.lo favoritesutil.lo \
 	ZarafaCode.lo HtmlToTextParser.lo HtmlEntity.lo ECABEntryID.lo \
-	ECDebugPrint.lo ECIterators.lo
+	ECDebugPrint.lo ECIterators.lo MAPINotifSink.lo
 libcommon_mapi_la_OBJECTS = $(am_libcommon_mapi_la_OBJECTS)
 libcommon_mapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -343,7 +343,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  IECChangeAdvisor.h IECChangeAdviseSink.h IECImportContentsChanges.h IECTestProtocol.h auto_free.h ECCache.h		\
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
-				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h \
+				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -369,7 +369,8 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			HtmlEntity.cpp								\
 			ECABEntryID.cpp								\
 			ECDebugPrint.cpp							\
-			ECIterators.cpp
+			ECIterators.cpp								\
+			MAPINotifSink.cpp
 
 libcommon_util_la_LDFLAGS = -static
 libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
@@ -505,6 +506,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECUnknown.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlEntity.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlToTextParser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MAPINotifSink.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RecurrenceState.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SSLUtil.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SymmetricCrypt.Plo@am__quote@

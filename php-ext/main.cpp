@@ -259,6 +259,7 @@ ZEND_END_ARG_INFO()
 #include "Session.h"
 #include "SessionPool.h"
 #include "typeconversion.h"
+#include "MAPINotifSink.h"
 
 #include "charset/convert.h"
 #include "charset/utf8string.h"
@@ -305,6 +306,11 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_msgstore_getreceivefolder, NULL)
 	ZEND_FE(mapi_msgstore_entryidfromsourcekey, NULL)
 	ZEND_FE(mapi_msgstore_openmultistoretable, NULL)
+	ZEND_FE(mapi_msgstore_advise, NULL)
+	ZEND_FE(mapi_msgstore_unadvise, NULL)
+	
+	ZEND_FE(mapi_sink_create, NULL)
+	ZEND_FE(mapi_sink_timedwait, NULL)
 
 	ZEND_FE(mapi_table_queryallrows, NULL)
 	ZEND_FE(mapi_table_queryrows, NULL)
@@ -444,6 +450,8 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_enable_exceptions, NULL)
 #endif
 
+    ZEND_FE(mapi_feature, NULL)
+
 	ZEND_FALIAS(mapi_attach_openbin, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_msgstore_getprops, mapi_getprops, NULL)
 	ZEND_FALIAS(mapi_msgstore_setprops, mapi_setprops, NULL)
@@ -535,6 +543,7 @@ PHP_MINIT_FUNCTION(mapi)
 	le_mapi_attachment = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, name_mapi_attachment, module_number);
 	le_mapi_property = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, name_mapi_property, module_number);
 	le_mapi_modifytable = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, name_mapi_modifytable, module_number);
+	le_mapi_advisesink = zend_register_list_destructors_ex(_php_free_mapi_object, NULL, name_mapi_advisesink, module_number);
 	le_istream = zend_register_list_destructors_ex(_php_free_istream, NULL, name_istream, module_number);
 
 	// Freebusy functions
@@ -878,6 +887,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	int			sslcert_len = 0;
 	char		*sslpass = "";
 	int			sslpass_len = 0;
+	int			ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
 	LPMAPISESSION lpMAPISession = NULL;
 	// local
@@ -890,9 +900,9 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|sss",
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|sssl",
 							 &username, &username_len, &password, &password_len, &server, &server_len,
-							 &sslcert, &sslcert_len, &sslpass, &sslpass_len) == FAILURE) return;
+							 &sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags) == FAILURE) return;
 
 	if (!server) {
 		server = "http://localhost:236/zarafa";
@@ -919,7 +929,8 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 		sPropZarafa[2].ulPropTag = PR_EC_USERPASSWORD_A;
 		sPropZarafa[2].Value.lpszA = password;
 		sPropZarafa[3].ulPropTag = PR_EC_FLAGS;
-		sPropZarafa[3].Value.ul = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
+		sPropZarafa[3].Value.ul = ulFlags;
+
 		// unused by zarafa if PR_EC_PATH isn't https
 		sPropZarafa[4].ulPropTag = PR_EC_SSLKEY_FILE;
 		sPropZarafa[4].Value.lpszA = sslcert;
@@ -2110,6 +2121,110 @@ exit:
 
 	THROW_ON_ERROR();
 	return;
+}
+
+ZEND_FUNCTION(mapi_msgstore_advise)
+{
+	zval	*resStore = NULL;
+	zval	*resSink = NULL;
+	LPMDB	lpMsgStore = NULL;
+	IMAPIAdviseSink *lpSink = NULL;
+	LPENTRYID lpEntryId = NULL;
+	ULONG   cbEntryId = 0;
+	ULONG	ulMask = 0;
+	ULONG 	ulConnection = 0;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslr", &resStore, &lpEntryId, &cbEntryId, &ulMask, &resSink) == FAILURE) return;
+
+	ZEND_FETCH_RESOURCE(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
+	ZEND_FETCH_RESOURCE(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
+
+	// Sanitize NULL entryids
+	if(cbEntryId == 0) lpEntryId = NULL;
+
+	MAPI_G(hr) = lpMsgStore->Advise(cbEntryId, lpEntryId, ulMask, lpSink, &ulConnection);
+	if(MAPI_G(hr) != hrSuccess)
+		goto exit;
+
+	RETVAL_LONG(ulConnection);
+
+exit:
+	THROW_ON_ERROR();
+	return;
+}
+
+ZEND_FUNCTION(mapi_msgstore_unadvise)
+{
+	zval	*resStore = NULL;
+	LPMDB	lpMsgStore = NULL;
+	ULONG 	ulConnection = 0;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resStore, &ulConnection) == FAILURE) return;
+
+	ZEND_FETCH_RESOURCE(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
+
+	MAPI_G(hr) = lpMsgStore->Unadvise(ulConnection);
+	if(MAPI_G(hr) != hrSuccess)
+		goto exit;
+
+    RETVAL_TRUE;
+
+exit:
+	THROW_ON_ERROR();
+	return;
+}
+
+ZEND_FUNCTION(mapi_sink_create)
+{
+    MAPINotifSink *lpSink = NULL;
+    RETVAL_FALSE;
+    
+    MAPI_G(hr) = MAPINotifSink::Create(&lpSink);
+    
+	ZEND_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
+}
+
+ZEND_FUNCTION(mapi_sink_timedwait)
+{
+    zval *resSink = NULL;
+    zval *notifications = NULL;
+    ULONG ulTime = 0;
+    MAPINotifSink *lpSink = NULL;
+    ULONG cNotifs = 0;
+    LPNOTIFICATION lpNotifs = NULL;
+    
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resSink, &ulTime) == FAILURE) return;
+
+	ZEND_FETCH_RESOURCE(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
+	
+	MAPI_G(hr) = lpSink->GetNotifications(&cNotifs, &lpNotifs, false, ulTime);
+	if(MAPI_G(hr) != hrSuccess)
+	    goto exit;
+	    
+	MAPI_G(hr) = NotificationstoPHPArray(cNotifs, lpNotifs, &notifications TSRMLS_CC);
+	if(MAPI_G(hr) != hrSuccess) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The notifications could not be converted to a PHP array");
+		goto exit;
+	}
+
+	RETVAL_ZVAL(notifications, 0, 0);
+	FREE_ZVAL(notifications);
+
+exit:
+    if(lpNotifs)
+        MAPIFreeBuffer(lpNotifs);
+        
+    THROW_ON_ERROR();
+    return;
 }
 
 /**
@@ -7467,3 +7582,24 @@ ZEND_FUNCTION(mapi_enable_exceptions)
     return;
 }
 #endif
+
+// Can be queried by client applications to check whether certain API features are supported or not.
+ZEND_FUNCTION(mapi_feature)
+{
+    char *features[] = { "LOGONFLAGS", "NOTIFICATIONS" };
+    char *szFeature = NULL;
+    long cbFeature;
+    
+    RETVAL_FALSE;
+    
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &szFeature, &cbFeature) == FAILURE) return;
+    
+    for(unsigned int i = 0; i < arraySize(features); i++) {
+        if(stricmp(features[i], szFeature) == 0) {
+            RETVAL_TRUE;
+            break;
+        }
+    }
+    
+    return;
+}

@@ -3802,8 +3802,12 @@ SWIG_AsVal_bool (PyObject *obj, bool *val)
   return SWIG_OK;
 }
 
-SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ return new MAPINotifSink(); }
-SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ delete self; }
+SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ 
+			MAPINotifSink *lpSink = NULL;
+			MAPINotifSink::Create(&lpSink); 
+			return lpSink; 
+		}
+SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ self->Release(); }
 
 // Hack to get around OP_DELETE being an enum in perl\lib\core\opnames.h and EdkMdb.h
 namespace EdkMdb {

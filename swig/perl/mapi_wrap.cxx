@@ -2211,8 +2211,12 @@ SWIG_AsVal_bool SWIG_PERL_DECL_ARGS_2(SV *obj, bool* val)
   return SWIG_TypeError;
 }
 
-SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ return new MAPINotifSink(); }
-SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ delete self; }
+SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ 
+			MAPINotifSink *lpSink = NULL;
+			MAPINotifSink::Create(&lpSink); 
+			return lpSink; 
+		}
+SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ self->Release(); }
 
 // Hack to get around OP_DELETE being an enum in perl\lib\core\opnames.h and EdkMdb.h
 namespace EdkMdb {
