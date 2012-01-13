@@ -485,6 +485,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 	} else {
 
 		for (ULONG i = 0; i < lpSrvList->cServers; i++) {
+			wchar_t *wszPath = NULL;
 
 			lpLogger->Log(EC_LOGLEVEL_INFO, "Check server: '%ls' ssl='%ls' flag=%08x", 
 				(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>", 
@@ -497,14 +498,22 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 				continue;
 			}
 
-			if (lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "No SSL connection found for server: '%ls', please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
-				goto exit;
+			if(lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) {
+				if(lpSrvList->lpsaServer[i].lpszFilePath)
+					wszPath = lpSrvList->lpsaServer[i].lpszFilePath;
+			}
+			if (wszPath == NULL) {
+				if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
+					lpLogger->Log(EC_LOGLEVEL_ERROR, "No SSL or File path found for server: '%ls', please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
+					goto exit;
+				} else {
+					wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
+				}
 			}
 
-			hr = GetMailboxDataPerServer(lpLogger, converter.convert_to<char *>(lpSrvList->lpsaServer[i].lpszSslPath), lpSSLKey, lpSSLPass, lpCollector);
+			hr = GetMailboxDataPerServer(lpLogger, converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
 			if(FAILED(hr)) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to collect data from server: '%ls', hr: 0x%08x", lpSrvList->lpsaServer[i].lpszName, hr);
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to collect data from server: '%ls', hr: 0x%08x", wszPath, hr);
 				goto exit;
 			}
 		}
