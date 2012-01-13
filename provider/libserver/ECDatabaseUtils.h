@@ -51,6 +51,7 @@
 #define ECDATABASEUTILS_H
 
 #include "ECMAPI.h"
+#include "Zarafa.h"
 #include "ZarafaCode.h"
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
@@ -80,9 +81,15 @@
 #define PROPCOL_HILO		PROPCOL_HI "," PROPCOL_LO
 #define _PROPCOL_HILO(_tab)	PROPCOL_HI(_tab) "," PROPCOL_LO(_tab)
 
+/* make string of define value */
+#ifndef __STRING
+#define __STRING(x) #x
+#endif
+#define STR(macro) __STRING(macro)
+
 // Warning! Code references the ordering of these values! Do not change unless you know what you're doing!
 #define PROPCOLVALUEORDER(_tab) 			_PROPCOL_ULONG(_tab) "," _PROPCOL_STRING(_tab) "," _PROPCOL_BINARY(_tab) "," _PROPCOL_DOUBLE(_tab) "," _PROPCOL_LONGINT(_tab) "," _PROPCOL_HI(_tab) "," _PROPCOL_LO(_tab)
-#define PROPCOLVALUEORDER_TRUNCATED(_tab) 	_PROPCOL_ULONG(_tab) ", LEFT(" _PROPCOL_STRING(_tab) ",255),LEFT(" _PROPCOL_BINARY(_tab) ",255)," _PROPCOL_DOUBLE(_tab) "," _PROPCOL_LONGINT(_tab) "," _PROPCOL_HI(_tab) "," _PROPCOL_LO(_tab)
+#define PROPCOLVALUEORDER_TRUNCATED(_tab) 	_PROPCOL_ULONG(_tab) ", LEFT(" _PROPCOL_STRING(_tab) ","STR(TABLE_CAP_STRING)"),LEFT(" _PROPCOL_BINARY(_tab) ","STR(TABLE_CAP_BINARY)")," _PROPCOL_DOUBLE(_tab) "," _PROPCOL_LONGINT(_tab) "," _PROPCOL_HI(_tab) "," _PROPCOL_LO(_tab)
 enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALUE_NR_LONGINT, VALUE_NR_HILO, VALUE_NR_MAX };
 
 #define PROPCOLORDER "0,properties.tag,properties.type," PROPCOLVALUEORDER(properties)
@@ -93,7 +100,6 @@ enum { VALUE_NR_ULONG=0, VALUE_NR_STRING, VALUE_NR_BINARY, VALUE_NR_DOUBLE, VALU
 
 enum { FIELD_NR_ID=0, FIELD_NR_TAG, FIELD_NR_TYPE, FIELD_NR_ULONG, FIELD_NR_STRING, FIELD_NR_BINARY, FIELD_NR_DOUBLE, FIELD_NR_LONGINT, FIELD_NR_HI, FIELD_NR_LO, FIELD_NR_MAX };
 
-std::string GetColName(ULONG type, std::string table, BOOL bTableLimit);
 ULONG GetColOffset(ULONG ulPropTag);
 std::string GetPropColOrder(unsigned int ulPropTag, std::string strSubQuery);
 unsigned int GetColWidth(unsigned int ulPropType);
@@ -111,4 +117,3 @@ unsigned int NormalizeDBPropTag(unsigned int ulPropTag);
 bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2);
 
 #endif // ECDATABASEUTILS_H
-
