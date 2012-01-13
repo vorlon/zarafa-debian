@@ -314,7 +314,8 @@ typedef EID * PEID;
 // This is the DLL name given to WrapStoreEntryID so MAPI can
 // figure out which DLL to open for a given EntryID
 
-#define ZARAFA_DLL_NAME "libzarafaclient.so"
+// Note that the '32' is added by MAPI
+#define ZARAFA_DLL_NAME "zarafa6client.dll"
 
 // Default freebusy publish months
 #define ECFREEBUSY_DEFAULT_PUBLISH_MONTHS		6

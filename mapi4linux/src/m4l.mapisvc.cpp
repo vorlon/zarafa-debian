@@ -68,6 +68,10 @@ namespace bfs = boost::filesystem;
 
 using namespace std;
 
+// linux version of PR_SERVICE_DLL_NAME
+#define PR_SERVICE_SO_NAME                         PROP_TAG( PT_TSTRING,   0x3D13)
+#define PR_SERVICE_SO_NAME_W                       PROP_TAG( PT_UNICODE,   0x3D13)
+#define PR_SERVICE_SO_NAME_A                       PROP_TAG( PT_STRING8,   0x3D13)
 
 INFLoader::INFLoader()
 {
@@ -79,6 +83,7 @@ INFLoader::INFLoader()
 	m_mapDefs["PR_RESOURCE_FLAGS"] = PR_RESOURCE_FLAGS;			// ULONG
 	m_mapDefs["PR_RESOURCE_TYPE"] = PR_RESOURCE_TYPE;			// ULONG
 	m_mapDefs["PR_SERVICE_DLL_NAME"] = PR_SERVICE_DLL_NAME_A;	// STRING8
+	m_mapDefs["PR_SERVICE_SO_NAME"] = PR_SERVICE_SO_NAME_A;		// STRING8, custom property
 	m_mapDefs["PR_SERVICE_ENTRY_NAME"] = PR_SERVICE_ENTRY_NAME; // Always STRING8
 
 	// only the definitions used in mapisvc.inf
@@ -438,8 +443,10 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 		}
 	}
 
-	// find PR_SERVICE_DLL_NAME, load library
-	lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
+	// find PR_SERVICE_SO_NAME / PR_SERVICE_DLL_NAME, load library
+	lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_SO_NAME_A);
+	if (!lpSO)
+		lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
 	if (!lpSO) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
