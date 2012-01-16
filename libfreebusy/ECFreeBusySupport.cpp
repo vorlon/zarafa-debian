@@ -420,11 +420,11 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG ulBossWantsInfo;		/* 0x684B000B PR_SCHDINFO_BOSS_WANTS_INFO always 1 */
 		ULONG ulDontEmailDelegates;	/* 0x6843000B PR_SCHDINFO_DONT_MAIL_DELEGATES always 1 */
 
+		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
 		ULONG fDoesAutoAccept;
 		ULONG fDoesRejectRecurring;
 		ULONG fDoesRejectConflict;
 
-		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
 	} *lpStatus;
 
 	struct StatusOL2K {
