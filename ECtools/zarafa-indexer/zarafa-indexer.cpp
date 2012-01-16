@@ -479,6 +479,20 @@ HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemoni
 	if (hr != hrSuccess)
 		goto exit;
 
+
+	// Try to set max open file descriptors to 8192
+	// non-optimized indexes can use a very high number of open files. When we would go over 1024 files,
+	// lucene will crash, because of throws in a base constructor with pure virtual members. See ZCP-9260.
+	struct rlimit file_limit;
+#define OFLIMIT 8192
+	file_limit.rlim_cur = OFLIMIT;
+	file_limit.rlim_max = OFLIMIT;
+
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed. Crashes may occur when open files exceed current limit of %d.", OFLIMIT, getdtablesize());
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
+	}
+
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (daemonize && unix_daemonize(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger))
