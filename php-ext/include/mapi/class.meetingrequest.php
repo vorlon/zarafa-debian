@@ -2815,7 +2815,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$message = $this->message;
 		}
 
-		if(!$message) {
+		if(!isset($message) || !$message) {
 			return;
 		}
 
@@ -2834,7 +2834,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			mapi_setprops($message, array($this->proptags['owner_critical_change'] => time()));
 
 			mapi_savechanges($message);
-			if ($attach) { // Also save attachment Object.
+			if (isset($attach) && $attach) { // Also save attachment Object.
 				mapi_savechanges($attach);
 			}
 		}
