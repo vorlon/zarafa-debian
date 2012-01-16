@@ -2801,6 +2801,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 */
 	function checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged = false)
 	{
+		$message = null;
+		$attach = null;
+
 		// If basedate is specified then we need to open exception message to clear recipient responses
 		if($basedate) {
 			$recurrence = new Recurrence($this->store, $this->message);
@@ -2815,7 +2818,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$message = $this->message;
 		}
 
-		if(!isset($message) || !$message) {
+		if(!$message) {
 			return;
 		}
 
@@ -2834,7 +2837,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			mapi_setprops($message, array($this->proptags['owner_critical_change'] => time()));
 
 			mapi_savechanges($message);
-			if (isset($attach) && $attach) { // Also save attachment Object.
+			if ($attach) { // Also save attachment Object.
 				mapi_savechanges($attach);
 			}
 		}
