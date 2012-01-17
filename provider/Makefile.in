@@ -138,6 +138,7 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MAPICONFIGDIR = @MAPICONFIGDIR@
 MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
@@ -242,7 +243,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = tools include soap common libserver server client plugins
+SUBDIRS = tools include soap common libserver server client plugins contacts
 all: all-recursive
 
 .SUFFIXES:

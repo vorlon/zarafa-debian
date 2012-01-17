@@ -913,7 +913,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	LPSPropValue lpsPropArray = NULL;
 	LPMAPITABLE lpRecipientTable = NULL;
 	LPSRowSet lpsRow = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
 	LPMAPITABLE lpTable = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
@@ -965,11 +964,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		hr = MAPI_E_NO_RECIPIENTS;
 		goto exit;
 	}
-	
-	hr = lpRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &lpPropTagArray);
-
-	if (hr != hrSuccess)
-		goto exit;
 
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
 	while(TRUE){
@@ -1104,9 +1098,6 @@ exit:
 	
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
-
-	if(lpPropTagArray)
-		ECFreeBuffer(lpPropTagArray);
 
 	if(lpRecipientTable)
 		lpRecipientTable->Release();

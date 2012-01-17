@@ -91,6 +91,9 @@ namespace bpt = boost::posix_time;
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+#ifndef AB_UNICODE_OK
+#define AB_UNICODE_OK ((ULONG) 0x00000040)
+#endif
 
 extern ECSessionManager*	g_lpSessionManager;
 
@@ -4316,7 +4319,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			case PR_CONTAINER_FLAGS:
-				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE;
+				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			case PR_DISPLAY_TYPE:
@@ -4412,7 +4415,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
 				break;
 			case PR_CONTAINER_FLAGS:
-				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE;
+				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			case PR_AB_PROVIDER_ID:
@@ -4562,7 +4565,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			 * will cause Outlook 2007 to bug() which then doesn't place
 			 * the Global Address Book in the SearchPath.
 			 */
-			lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE;
+			lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
 			if (ulId == ZARAFA_UID_ADDRESS_BOOK)
 				lpPropVal->Value.ul |= AB_SUBCONTAINERS;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;

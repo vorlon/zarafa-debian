@@ -153,6 +153,7 @@ ZEND_FUNCTION(mapi_openmsgstore);
 ZEND_FUNCTION(mapi_openmsgstore_exchange);
 ZEND_FUNCTION(mapi_openmsgstore_zarafa);
 ZEND_FUNCTION(mapi_openmsgstore_zarafa_other);
+ZEND_FUNCTION(mapi_openprofilesection);
 
 ZEND_FUNCTION(mapi_openentry);
 ZEND_FUNCTION(mapi_openaddressbook);

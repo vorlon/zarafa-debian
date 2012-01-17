@@ -58,7 +58,7 @@ libmapi_la_DEPENDENCIES = ${top_builddir}/common/libcommon_mapi.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am_libmapi_la_OBJECTS = common.lo mapidefs.lo mapispi.lo mapiutil.lo \
-	mapix.lo rtf.lo imessage.lo
+	mapix.lo rtf.lo imessage.lo m4l.mapisvc.lo
 libmapi_la_OBJECTS = $(am_libmapi_la_OBJECTS)
 libmapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -170,6 +170,7 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MAPICONFIGDIR = @MAPICONFIGDIR@
 MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
@@ -275,7 +276,9 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libmapi.la
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common -I${top_srcdir}/libfreebusy
+AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" \
+	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common -I${top_srcdir}/libfreebusy
+
 libmapi_la_LDFLAGS = $(BOOST_FILESYSTEM_LDFLAGS)
 libmapi_la_LIBADD = \
 			${top_builddir}/common/libcommon_mapi.la \
@@ -286,7 +289,8 @@ libmapi_la_LIBADD = \
 			$(DL_LIBS)
 
 libmapi_la_SOURCES = common.cpp mapidefs.cpp mapispi.cpp mapiutil.cpp mapix.cpp rtf.cpp imessage.cpp \
-	m4l.common.h m4l.mapidefs.h m4l.mapispi.h m4l.mapiutil.h m4l.mapix.h mapi4linux.h m4l.debug.h rtf.h
+	m4l.common.h m4l.mapidefs.h m4l.mapispi.h m4l.mapiutil.h m4l.mapix.h mapi4linux.h m4l.debug.h rtf.h \
+	m4l.mapisvc.cpp m4l.mapisvc.h
 
 all: all-am
 
@@ -359,6 +363,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imessage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m4l.mapisvc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapidefs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapispi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapiutil.Plo@am__quote@

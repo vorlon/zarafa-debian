@@ -52,6 +52,7 @@
 #include "m4l.mapispi.h"
 #include "m4l.debug.h"
 #include "m4l.mapiutil.h"
+#include "m4l.mapisvc.h"
 
 #include <mapi.h>
 #include <mapiutil.h>
@@ -68,32 +69,17 @@
 #include "CommonUtil.h"
 #include "stringutil.h"
 #include "mapiguidext.h"
+#include "ECRestriction.h"
 
 #include <string>
 #include <map>
 #include <charset/convert.h>
 
 
-// From client/server ECGuid.h
-// same as MUIDECSAB
-#define MUIDECSAB_SERVER "\xAC\x21\xA9\x50\x40\xD3\xEE\x48\xB3\x19\xFB\xA7\x53\x30\x44\x25"
-
-// Dynamic loading of zarafa library
-DLIB lib;
-
-HRESULT (__cdecl *EC_MSProviderInit)(HINSTANCE hInstance, LPMALLOC pmalloc,
-									   LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf,
-									   ULONG ulFlags, ULONG ulMAPIVersion, ULONG * pulMDBVersion, LPMSPROVIDER * ppmsp) = NULL;
-HRESULT (__stdcall *EC_MSGServiceEntry)(HINSTANCE hInst, LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
-										ULONG ulContext, ULONG cvals, LPSPropValue pvals, LPPROVIDERADMIN lpAdminProviders,
-										MAPIERROR **lppMapiError) = NULL;
-HRESULT (__cdecl *EC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer,
-									   LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
-									   ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider) = NULL;
-
 /* Some required globals */
 ECConfig *m4l_lpConfig = NULL;
 ECLogger *m4l_lpLogger = NULL;
+MAPISVC *m4l_lpMAPISVC = NULL;
 
 /**
  * Internal MAPI4Linux function to create m4l internal ECConfig and ECLogger objects
@@ -653,7 +639,9 @@ exit:
 HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisplayName, ULONG ulUIParam, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::CreateMsgService", "");
 	HRESULT hr = hrSuccess;
-    serviceEntry* entry;
+	serviceEntry* entry = NULL;
+	SVCService* service = NULL;
+	LPSPropValue lpProp = NULL;
 
 	pthread_mutex_lock(&m_mutexserviceadmin);
 	
@@ -662,10 +650,9 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 		goto exit;
 	}
 
-    if(strcmp((char*)lpszService,"ZARAFA6") != 0) {
-    	hr = MAPI_E_NOT_FOUND;
+	hr = m4l_lpMAPISVC->GetService(lpszService, ulFlags, &service);
+	if (hr != hrSuccess)
 		goto exit;
-	}
 
 	// Create a Zarafa message service
     entry = findServiceAdmin(lpszService);
@@ -689,20 +676,19 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
     entry->provideradmin->AddRef();
 
 	entry->servicename = (char*)lpszService;
-		entry->displayname = "Zarafa Server 6";
-
+	lpProp = service->GetProp(PR_DISPLAY_NAME_A);
+	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
+	
     CoCreateGuid((LPGUID)&entry->muid);
+
+	entry->service = service;
     
 	services.push_back(entry);
 
-    // Now, add two providers, namely a private store and a public store
-    entry->provideradmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_private", 0, NULL, 0, 0, NULL);
-    entry->provideradmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_public", 0, NULL, 0, 0, NULL);
-	// add the addressbook provider too
-    entry->provideradmin->CreateProvider((TCHAR*)"ZARAFA6_ABP", 0, NULL, 0, 0, NULL);
+	// calls entry->provideradmin->CreateProvider for each provider read from mapisvc.inf
+	hr = service->CreateProviders(entry->provideradmin);
 
 	entry->bInitialize = false;
-
 
 exit:
 	pthread_mutex_unlock(&m_mutexserviceadmin);
@@ -739,7 +725,7 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(LPMAPIUID lpUID) {
 		}
     }
     
-    if(name == "") {
+    if(name.empty()) {
     	hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -800,11 +786,6 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 		goto exit;
 	}
 
-	if (!EC_MSGServiceEntry) {
-		hr = MAPI_E_NOT_INITIALIZED;
-		goto exit;
-	}
-
 	// Create a new provideradmin, will NULL servicename.. ie it is a provider admin for *all* providers in the msgservice
 	lpProviderAdmin = new M4LProviderAdmin(this, NULL);
 	lpProviderAdmin->AddRef();
@@ -817,10 +798,10 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 
 
 	// call zarafa client Message Service Entry (provider/client/EntryPoint.cpp)
-	hr = EC_MSGServiceEntry(0, NULL, NULL, ulUIParam, ulFlags, MSG_SERVICE_CONFIGURE, cValues, lpProps, (LPPROVIDERADMIN)entry->provideradmin, NULL);
+	hr = entry->service->MSGServiceEntry()(0, NULL, NULL, ulUIParam, ulFlags, MSG_SERVICE_CONFIGURE, cValues, lpProps, (LPPROVIDERADMIN)entry->provideradmin, NULL);
 	if(hr != hrSuccess)
 		goto exit;
-		
+	
 	entry->bInitialize = true;
 
 exit:
@@ -847,8 +828,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterfa
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpsPropVal = NULL;
 	IMAPIProp *lpMapiProp = NULL;
-
-    providerEntry* entry;
+	providerEntry* entry;
 	
 	pthread_mutex_lock(&m_mutexserviceadmin);
 
@@ -950,7 +930,6 @@ HRESULT M4LMsgServiceAdmin::SetPrimaryIdentity(LPMAPIUID lpUID, ULONG ulFlags) {
     return MAPI_E_NO_SUPPORT;
 }
 
-#define MUIDEMSAB "\xDC\xA7\x40\xC8\xC0\x42\x10\x1A\xB4\xB9\x08\x00\x2B\x2F\xE1\x82"
 /**
  * Get a list of all providers in the profile in a IMAPITable
  * object. No notifications for changes are sent.
@@ -983,7 +962,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	for(j=services.begin(); j != services.end(); j++) {
 		
 		if ((*j)->bInitialize == false) {
-			hr = EC_MSGServiceEntry(0, NULL, NULL, 0, 0, MSG_SERVICE_CREATE, 0, NULL, (LPPROVIDERADMIN)(*j)->provideradmin, NULL);
+			hr = (*j)->service->MSGServiceEntry()(0, NULL, NULL, 0, 0, MSG_SERVICE_CREATE, 0, NULL, (LPPROVIDERADMIN)(*j)->provideradmin, NULL);
 			if(hr !=hrSuccess)
 				goto exit;
 			
@@ -1087,7 +1066,6 @@ M4LMAPISession::M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_s
 	serviceAdmin->AddRef();
 	cValues = 0;
 	lpProps = NULL;
-
 }
 
 M4LMAPISession::~M4LMAPISession() {
@@ -1154,6 +1132,10 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		if (FAILED(hr))
 			goto exit;
 
+		lpType = PpropFindProp(lpsProps, cValues, PR_RESOURCE_TYPE);
+		if(lpType == NULL || lpType->Value.ul != MAPI_STORE_PROVIDER)
+			goto next;
+
 
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
@@ -1162,17 +1144,16 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		if(hr != hrSuccess)
 			goto exit;
 
-		lpType = PpropFindProp(lpDest, cValuesDest, PR_RESOURCE_TYPE);
-		
-		if(lpType != NULL && lpType->Value.ul == MAPI_STORE_PROVIDER) {
-			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-		
-		MAPIFreeBuffer(lpDest);
-		MAPIFreeBuffer(lpsProps);
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
+		if(hr != hrSuccess)
+			goto exit;
+
+next:
+		if (lpDest)
+			MAPIFreeBuffer(lpDest);
 		lpDest = NULL;
+		if (lpsProps)
+			MAPIFreeBuffer(lpsProps);
 		lpsProps = NULL;
 	}
 	
@@ -1231,13 +1212,9 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	MAPIUID sProviderUID;
 	ULONG cbStoreEntryID = 0;
 	LPENTRYID lpStoreEntryID = NULL;
-	
-	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_ENTRYID, PR_PROVIDER_UID} };
+	SVCService *service = NULL;
 
-	if (!EC_MSProviderInit) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_ENTRYID, PR_PROVIDER_UID} };
 
 	if (lpEntryID == NULL || lppMDB == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1248,6 +1225,11 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
     hr = UnWrapStoreEntryID(cbEntryID, lpEntryID, &cbStoreEntryID, &lpStoreEntryID);
     if (hr != hrSuccess)
         goto exit;
+
+	// padding in entryid solves string ending
+	hr = m4l_lpMAPISVC->GetService((char*)lpEntryID+4+sizeof(GUID)+2, &service);
+	if (hr != hrSuccess)
+		goto exit;
 	
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &lpTable);
@@ -1280,14 +1262,14 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	
 	if(lpsRows->cRows != 1) {
 		// No provider for the store, use a temporary profile section
-		lpISupport = new M4LMAPISupport(this, NULL);
+		lpISupport = new M4LMAPISupport(this, NULL, service);
 	} else
-		lpISupport = new M4LMAPISupport(this, &sProviderUID);
+		lpISupport = new M4LMAPISupport(this, &sProviderUID, service);
 		
 	lpISupport->AddRef();
 
 	// call zarafa client for the Message Store Provider (provider/client/EntryPoint.cpp)
-	hr = EC_MSProviderInit(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &msp);
+	hr = service->MSProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &mdbver, &msp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1344,14 +1326,9 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 	LPABPROVIDER lpABProvider = NULL;
 	LPMAPISUP lpMAPISup = NULL;
 	SPropValue sProps[1];
+    list<serviceEntry*>::iterator iService;
 
-	// If this call is missing in the client, don't even bother
-	if (!EC_ABProviderInit) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	lpMAPISup = new M4LMAPISupport(this, NULL);
+	lpMAPISup = new M4LMAPISupport(this, NULL, NULL);
 	if (!lpMAPISup) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1376,18 +1353,43 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = EC_ABProviderInit(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider);
-	if (hr != hrSuccess) {
-		hr = MAPI_W_ERRORS_RETURNED;
-		goto exit;
+	for (iService = serviceAdmin->services.begin(); iService != serviceAdmin->services.end(); iService++) {
+		if ((*iService)->service->ABProviderInit() == NULL)
+			continue;
+
+		if ((*iService)->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) == hrSuccess)
+		{
+			vector<SVCProvider*> vABProviders = (*iService)->service->GetProviders();
+			LPSPropValue lpProps;
+			ULONG cValues;
+			for (vector<SVCProvider*>::iterator i = vABProviders.begin(); i != vABProviders.end(); i++) {
+				LPSPropValue lpUID;
+				LPSPropValue lpProp;
+				std::string strDisplayName = "<unknown>";
+				(*i)->GetProps(&cValues, &lpProps);
+
+				lpProp = PpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
+				lpUID = PpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
+				if (!lpUID || !lpProp || lpProp->Value.ul != MAPI_AB_PROVIDER)
+					continue;
+
+				lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME_A);
+				if (lpProp)
+					strDisplayName = lpProp->Value.lpszA;
+
+				if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
+					hr = MAPI_W_ERRORS_RETURNED;
+			}
+
+			// lpAddrBook has the ref, not us
+			lpABProvider->Release();
+			lpABProvider = NULL;
+		} else {
+			hr = MAPI_W_ERRORS_RETURNED;
+		}
 	}
 
-	myAddrBook->addProvider(lpABProvider);
-
 exit:
-	if (lpABProvider)
-		lpABProvider->Release(); // lpAddrBook has the ref, not us
-
 	// If returning S_OK or MAPI_W_ERRORS_RETURNED, lppAdrBook must be set
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::OpenAddressBook", "0x%08x", hr);
 	return hr;
@@ -1433,12 +1435,12 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
     LPSRowSet lpsRows = NULL;
     ULONG cbUnWrappedID = 0;
     LPENTRYID lpUnWrappedID = NULL;
-	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_ENTRYID, PR_RECORD_KEY} };
+	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
 	GUID guidProvider;
 	bool bStoreEntryID = false;
 	MAPIUID muidOneOff = {MAPI_ONE_OFF_UID};
 	std::map<GUID, IMsgStore *>::iterator iterStores;
-    
+
     if (lpEntryID == NULL) {
         hr = MAPI_E_NOT_FOUND;
         goto exit;
@@ -1476,10 +1478,9 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 		}
         goto exit;
     }
-                
+
     // If this is an addressbook EntryID or a one-off entryid, use the addressbook to open the item
-    if (memcmp(&guidProvider,MUIDECSAB_SERVER,sizeof(GUID)) == 0 || memcmp(&guidProvider, &muidOneOff, sizeof(GUID)) == 0) 
-    {
+	if (memcmp(&guidProvider, &muidOneOff, sizeof(GUID)) == 0) {
         hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
         if(hr != hrSuccess)
             goto exit;
@@ -1489,13 +1490,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
         goto exit;
     }
             
-    // If not, it must be a store entryid, so we have to find the store     
-                                
-	if (!EC_MSProviderInit) {	
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	
+    // If not, it must be a provider entryid, so we have to find the provider
+
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &lpTable);
 	if(hr != hrSuccess)
@@ -1518,9 +1514,19 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
         if(lpsRows->aRow[0].lpProps[0].ulPropTag == PR_ENTRYID &&
             lpsRows->aRow[0].lpProps[1].ulPropTag == PR_RECORD_KEY &&
             lpsRows->aRow[0].lpProps[1].Value.bin.cb == sizeof(GUID) &&
-            memcmp(lpsRows->aRow[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0) {
-                hr = OpenMsgStore(0, lpsRows->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpsRows->aRow[0].lpProps[0].Value.bin.lpb, &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
-                
+            memcmp(lpsRows->aRow[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
+		{
+			if (lpsRows->aRow[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE && lpsRows->aRow[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
+				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
+				if(hr != hrSuccess)
+					goto exit;
+
+				hr = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+
+				break;
+			} else {
+                hr = OpenMsgStore(0, lpsRows->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpsRows->aRow[0].lpProps[0].Value.bin.lpb,
+								  &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
                 if(hr != hrSuccess)
                     goto exit;
                   
@@ -1529,18 +1535,20 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
           
 				if(bStoreEntryID == true) {
 					hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
-		            if(hr ==hrSuccess)
+		            if (hr == hrSuccess)
 		                *lpulObjType = MAPI_STORE;
 				}else{
 	                hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 				}
                 
 				break;
+			}
         }
 			
 		FreeProws(lpsRows);
 		lpsRows = NULL;
 	}
+
 exit:
 	if(lpUnWrappedID)
 		MAPIFreeBuffer(lpUnWrappedID);
@@ -1764,66 +1772,118 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup) {
 	serviceAdmin = new_serviceAdmin;
-	m_lpABProvider = NULL;
-	m_lpABLogon = NULL;
 	m_lpMAPISup = newlpMAPISup;
 	m_lpMAPISup->AddRef();
+	m_lpSavedSearchPath = NULL;
 }
 
 M4LAddrBook::~M4LAddrBook() {
-	if (m_lpABLogon) {
-		m_lpABLogon->Logoff(0);
-		m_lpABLogon->Release();
+	for (list<abEntry>::iterator i = m_lABProviders.begin(); i != m_lABProviders.end(); i++) {
+		i->lpABLogon->Logoff(0);
+		i->lpABLogon->Release();
+		i->lpABProvider->Release();	// TODO: call shutdown too? useless..
 	}
-	if (m_lpABProvider)			// TODO: call shutdown too? useless..
-		m_lpABProvider->Release();
-
 	if(m_lpMAPISup)
 		m_lpMAPISup->Release();
+	if (m_lpSavedSearchPath)
+		FreeProws(m_lpSavedSearchPath);
 }
 
-void M4LAddrBook::addProvider(LPABPROVIDER newProvider) {
-	m_lpABProvider = newProvider;
-	m_lpABProvider->AddRef();
-}
-
-/**
- * Internal function to open the IABLogon object on the ABProvider, if not already opened.
- * 
- * @return		HRESULT
- */
-void M4LAddrBook::logonProvider() {
-    TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::logonProvider", "");
+HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider) {
 	HRESULT hr = hrSuccess;
 	ULONG cbSecurity;
 	LPBYTE lpSecurity = NULL;
 	LPMAPIERROR lpMAPIError = NULL;
-	
-	if (!m_lpABProvider) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	LPABLOGON lpABLogon = NULL;
+	pair<map<LPABPROVIDER,LPABLOGON>::iterator, bool> iRes;
+	abEntry entry;
 
-	if (m_lpABLogon) {
-		// Addressbook already loaded 
-        goto exit;
-	}
-        
-	hr = m_lpABProvider->Logon(m_lpMAPISup, 0, (TCHAR*)"ZARAFA6"/*profilename*/, 0, &cbSecurity, &lpSecurity, &lpMAPIError, &m_lpABLogon);
+	hr = newProvider->Logon(m_lpMAPISup, 0, (TCHAR*)profilename.c_str(), 0, &cbSecurity, &lpSecurity, &lpMAPIError, &lpABLogon);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// @todo?, call lpABLogon->OpenEntry(0,NULL) to get the root folder, and save that entryid that we can use for the GetHierarchyTable of our root container?
+
+	memcpy(&entry.muid, lpUID, sizeof(MAPIUID));
+	entry.displayname = displayname;
+	entry.lpABProvider = newProvider;
+	newProvider->AddRef();
+	entry.lpABLogon = lpABLogon;
+
+	m_lABProviders.push_back(entry);
 
 exit:
 	if (lpSecurity)
 		MAPIFreeBuffer(lpSecurity);
+
 	if (lpMAPIError)
 		MAPIFreeBuffer(lpMAPIError);
 
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::logonProvider", "0x%08x", hr);
+	return hr;
 }
 
+HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath)
+{
+	HRESULT hr = hrSuccess;
+	IABContainer *lpRoot = NULL;
+	IMAPITable *lpTable = NULL;
+	ULONG ulObjType;
+	SPropValue sProp;
+	ECAndRestriction cRes;
+	LPSRestriction lpRes = NULL;
+
+	hr = this->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, (LPUNKNOWN*)&lpRoot);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpRoot->GetHierarchyTable((ulFlags & MAPI_UNICODE) | CONVENIENT_DEPTH, &lpTable);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// We add this restriction to filter out All Address Lists
+	sProp.ulPropTag = 0xFFFD0003; //PR_EMS_AB_CONTAINERID;
+	sProp.Value.ul = 7000;
+	cRes.append(ECOrRestriction(
+					ECPropertyRestriction(RELOP_NE, sProp.ulPropTag, &sProp) +
+					ECNotRestriction(ECExistRestriction(sProp.ulPropTag)))
+				);
+	// only folders, not groups
+	sProp.ulPropTag = PR_DISPLAY_TYPE;
+	sProp.Value.ul = DT_NOT_SPECIFIC;
+	cRes.append(ECPropertyRestriction(RELOP_EQ, sProp.ulPropTag, &sProp));
+	// only end folders, not root container folders
+	cRes.append(ECBitMaskRestriction(BMR_EQZ, PR_CONTAINER_FLAGS, AB_SUBCONTAINERS));
+
+	hr = cRes.CreateMAPIRestriction(&lpRes);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpTable->Restrict(lpRes, 0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpTable->QueryRows(-1, 0, lppSearchPath);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	if (lpRes)
+		MAPIFreeBuffer(lpRes);
+
+	if (lpRoot)
+		lpRoot->Release();
+
+	if (lpTable)
+		lpTable->Release();
+
+	return hr;
+}
+
+
 // 
-// How it should work:
+// How it works:
 //   1. program calls M4LMAPISession::OpenAddressBook()
-//      OpenAddressBook calls ABProviderInit() for all providers, and adds the returned
+//      OpenAddressBook calls ABProviderInit() for all AB providers in the profile, and adds the returned
 //      IABProvider/IABLogon interface to the Addressbook
 //   2.1a. program calls M4LAddrBook::OpenEntry()
 //         - lpEntryID == NULL, open root container.
@@ -1833,10 +1893,6 @@ exit:
 //         - lpEntryID != NULL, pass to correct IABLogon::OpenEntry()
 //   2.1b. program calls M4LAddrBook::ResolveName()
 //         - for every IABLogon object (in the searchpath), use OpenEntry() to get the IABContainer, and call ResolveNames()
-// 
-// How it will work, because we only will have the Zarafa Global Addressbook.
-// The IABContainer from M4L will be missing. We always directly pass the OpenEntry() calls to Zarafa, NULL or !NULL.
-// This saves us a lot of code. SearchPath and GetPAB/SetPAB and such do not even need to be implemented.
 // 
 
 /**
@@ -1890,31 +1946,67 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 		}
 	}
 
-    logonProvider();
-	
-	if (!m_lpABLogon) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+	if (lpEntryID == NULL && (lpInterface == NULL || *lpInterface == IID_IABContainer)) {
+		// 2.1a1: open root container, make an M4LABContainer which have the ABContainers of all providers as hierarchy entries.
+		M4LABContainer *lpCont = NULL;
+		SPropValue sPropObjectType;
+		lpCont = new M4LABContainer(m_lABProviders);
+
+		hr = lpCont->QueryInterface(IID_IABContainer, (void**)lppUnk);
+		if (hr != hrSuccess) {
+			delete lpCont;
+			goto exit;
+		}
+
+		sPropObjectType.ulPropTag = PR_OBJECT_TYPE;
+		sPropObjectType.Value.ul = MAPI_ABCONT;
+		lpCont->SetProps(1, &sPropObjectType, NULL);
+
+		*lpulObjType = MAPI_ABCONT;
+	} else if (lpEntryID) {
+		std::list<abEntry>::iterator i;
+
+		hr = MAPI_E_UNKNOWN_ENTRYID;
+		for (i = m_lABProviders.begin(); i != m_lABProviders.end(); i++) {
+			if (memcmp((BYTE*)lpEntryID +4, &i->muid, sizeof(MAPIUID)) == 0)
+				break;
+		}
+		if (i != m_lABProviders.end())
+			hr = i->lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+	} else {
+		// lpEntryID == NULL
+		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
-	hr = m_lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
+/** 
+ * @todo Should use the GetSearchPath items, not just all providers.
+ * 
+ * @param cbEntryID1 
+ * @param lpEntryID1 
+ * @param cbEntryID2 
+ * @param lpEntryID2 
+ * @param ulFlags 
+ * @param lpulResult 
+ * 
+ * @return 
+ */
 HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2,
 									 ULONG ulFlags, ULONG* lpulResult)
 {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::CompareEntryIDs", "");
 	HRESULT hr = hrSuccess;
 
-	logonProvider();
-
-	if (!m_lpABLogon)
-		hr = MAPI_E_CALL_FAILED;
-	else
-		hr = m_lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
+	// m_lABProviders[0] probably always is Zarafa
+	for (std::list<abEntry>::iterator i = m_lABProviders.begin(); i != m_lABProviders.end(); i++) {
+		hr = i->lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
+		if (hr == hrSuccess || hr != MAPI_E_NO_SUPPORT)
+			break;
+	}
 
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::CompareEntryIDs", "0x%08x", hr);
 	return hr;
@@ -1963,6 +2055,7 @@ HRESULT M4LAddrBook::NewEntry(ULONG ulUIParam, ULONG ulFlags, ULONG cbEIDContain
 
 /**
  * Resolve a list of names in the addressbook.
+ * @todo use GetSearchPath, and not to loop over all providers
  *
  * @param[in]	ulUIParam		Unused in Linux.
  * @param[in]	ulFlags			Passed to ResolveNames in Addressbook.
@@ -1986,16 +2079,11 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 	LPSPropValue lpNewProps = NULL;
 	LPSPropValue lpNewRow = NULL;
 	ULONG cNewRow = 0;
+	LPSRowSet lpSearchRows = NULL;
+	bool bContinue = true;
 
 	if (lpAdrList == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	logonProvider();
-
-	if (!m_lpABLogon) {
-		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
 
@@ -2005,8 +2093,6 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 
 	memset(lpFlagList, 0, CbNewFlagList(lpAdrList->cEntries));
 	lpFlagList->cFlags = lpAdrList->cEntries;
-
-	// maybe use this->GetDefaultDir()
 
 	// Resolve local items
 	for(unsigned int i=0; i<lpAdrList->cEntries;i++) {
@@ -2103,22 +2189,44 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 		}
 	}
 
-	// open root container
-	hr = m_lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &objType, (IUnknown**)&lpABContainer);
+	hr = this->GetSearchPath(MAPI_UNICODE, &lpSearchRows);
 	if (hr != hrSuccess)
 		goto exit;
 
-//---
-	hr = lpABContainer->ResolveNames(NULL, ulFlags, lpAdrList, lpFlagList);
-	if (FAILED(hr)) {
-		goto exit;
-	}
-	// may have warnings .. let's find out
-	for (ULONG i = 0; i < lpFlagList->cFlags; i++) {
-		if (lpFlagList->ulFlag[i] == MAPI_AMBIGUOUS) {
-			hr = MAPI_E_AMBIGUOUS_RECIP;
-			break;
+	for (ULONG c = 0; bContinue && c < lpSearchRows->cRows; c++) {
+		LPSPropValue lpEntryID = PpropFindProp(lpSearchRows->aRow[c].lpProps, lpSearchRows->aRow[c].cValues, PR_ENTRYID);
+
+		if (!lpEntryID)
+			continue;
+
+		hr = this->OpenEntry(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, &IID_IABContainer, 0, &objType, (IUnknown**)&lpABContainer);
+		if (hr != hrSuccess)
+			goto next;
+
+		hr = lpABContainer->ResolveNames(NULL, ulFlags, lpAdrList, lpFlagList);
+		if (FAILED(hr))
+			goto next;
+		hr = hrSuccess;
+
+		bContinue = false;
+		// may have warnings .. let's find out
+		for (ULONG i = 0; i < lpFlagList->cFlags; i++) {
+			if (lpFlagList->ulFlag[i] == MAPI_AMBIGUOUS) {
+				hr = MAPI_E_AMBIGUOUS_RECIP;
+				goto exit;
+			} else if (lpFlagList->ulFlag[i] == MAPI_UNRESOLVED) {
+				bContinue = true;
+			}
 		}
+
+	next:
+		lpABContainer->Release();
+		lpABContainer = NULL;
+	}
+
+	
+	// check for still unresolved addresses
+	for (ULONG i = 0; bContinue && i < lpFlagList->cFlags; i++) {
 		if (lpFlagList->ulFlag[i] == MAPI_UNRESOLVED) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
@@ -2140,6 +2248,9 @@ exit:
 
 	if (lpABContainer)
 		lpABContainer->Release();
+
+	if (lpSearchRows)
+		FreeProws(lpSearchRows);
 
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::ResolveName", "0x%08x", hr);
 	return hr;
@@ -2212,15 +2323,13 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 		goto exit;
 	}
 
-	logonProvider();
-
-	if (!m_lpABLogon) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+	// m_lABProviders[0] probably always is Zarafa
+	for (std::list<abEntry>::iterator i = m_lABProviders.begin(); i != m_lABProviders.end(); i++) {
+		// find a working open root container
+		hr = i->lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &objType, (IUnknown**)&lpABContainer);
+		if (hr == hrSuccess)
+			break;
 	}
-
-	// open root container
-	hr = m_lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &objType, (IUnknown**)&lpABContainer);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2277,16 +2386,71 @@ HRESULT M4LAddrBook::SetDefaultDir(ULONG cbEntryID, LPENTRYID lpEntryID) {
 	return MAPI_E_NO_SUPPORT;
 }
 
+/** 
+ * Returns the all hierarchy entries of the AB Root Container, see ResolveName()
+ * Should return what's set with SetSearchPath().
+ * Also should not return AB_SUBFOLDERS from the root container, but the subfolders.
+ * 
+ * @param[in] ulFlags MAPI_UNICODE
+ * @param[out] lppSearchPath IABContainers EntryIDs of all known providers
+ * 
+ * @return MAPI Error code
+ */
 HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetSearchPath", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetSearchPath", "0x%08x", MAPI_E_NO_SUPPORT);
-	return MAPI_E_NO_SUPPORT;
+	HRESULT hr = hrSuccess;
+	LPSRowSet lpSearchPath = NULL;
+
+	if (!m_lpSavedSearchPath) {
+		hr = this->getDefaultSearchPath(ulFlags, &m_lpSavedSearchPath);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	hr = MAPIAllocateBuffer(CbNewSRowSet(m_lpSavedSearchPath->cRows), (void**)&lpSearchPath);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = Util::HrCopySRowSet(lpSearchPath, m_lpSavedSearchPath, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppSearchPath = lpSearchPath;
+	lpSearchPath = NULL;
+
+exit:
+	if (lpSearchPath)
+		FreeProws(lpSearchPath);
+
+	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetSearchPath", "0x%08x", hr);
+	return hr;
 }
 
 HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::SetSearchPath", "");
-	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::SetSearchPath", "0x%08x", MAPI_E_NO_SUPPORT);
-	return MAPI_E_NO_SUPPORT;
+	HRESULT hr = hrSuccess;
+
+	if (m_lpSavedSearchPath) {
+		FreeProws(m_lpSavedSearchPath);
+		m_lpSavedSearchPath = NULL;
+	}
+
+	hr = MAPIAllocateBuffer(CbNewSRowSet(lpSearchPath->cRows), (void**)&m_lpSavedSearchPath);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = Util::HrCopySRowSet(m_lpSavedSearchPath, lpSearchPath, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	if (hr != hrSuccess && m_lpSavedSearchPath) {
+		FreeProws(m_lpSavedSearchPath);
+		m_lpSavedSearchPath = NULL;
+	}
+
+	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::SetSearchPath", "0x%08x", hr);
+	return hr;
 }
 
 /**
@@ -2773,6 +2937,7 @@ exit:
  * not cleanup anything in MAPIUnitialize until the counter is back to 0.
  */
 int _MAPIInitializeCount = 0;
+pthread_mutex_t g_MAPILock = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * MAPIInitialize is the first function called.
@@ -2790,63 +2955,28 @@ int _MAPIInitializeCount = 0;
 HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 	TRACE_MAPILIB(TRACE_ENTRY, "MAPIInitialize", "");
 	HRESULT hr = hrSuccess;
-	void **cf;
 
-	/* pthread_mutex_init should only be called once */
-	if (!_MAPIInitializeCount) {
-		pthread_mutex_init(&_memlist_lock, NULL);
+	pthread_mutex_lock(&g_MAPILock);
+
+	if (_MAPIInitializeCount++) {
+		assert(localProfileAdmin);
+		localProfileAdmin->AddRef();
+		goto exit;
 	}
 
-	/* Increase refcount */
-	_MAPIInitializeCount++;
+	/* Allocate special M4L services (logger, config, ...) */
+	hr = HrCreateM4LServices();
+	if (hr != hrSuccess)
+		goto exit;
 
-	if (!lib) {
-		lib = dlopen(ZARAFA_REAL_DLL_NAME, RTLD_NOW);
-		if (!lib) {
-			fprintf(stderr, "Unable to load zarafaclient: %s\n", dlerror());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+	// also static init?
+	pthread_mutex_init(&_memlist_lock, NULL);
 
-		if (!EC_MSProviderInit) {
-			cf = (void**)&EC_MSProviderInit;
-			*cf = dlsym(lib, "MSProviderInit");
-			if (!(*cf)) {
-#ifdef DEBUG
-				fprintf(stderr, "MSProviderInit: %s\n", dlerror());
-#endif
-				dlclose(lib);
-				lib = NULL;
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-		}
-
-		if (!EC_MSGServiceEntry) {
-			cf = (void**)&EC_MSGServiceEntry;
-			*cf = dlsym(lib, "MSGServiceEntry");
-			if (!(*cf)) {
-#ifdef DEBUG
-				fprintf(stderr, "MSGServiceEntry: %s\n", dlerror());
-#endif
-				dlclose(lib);
-				lib = NULL;
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-		}
-
-		if (!EC_ABProviderInit) {
-			cf = (void**)&EC_ABProviderInit;
-			*cf = dlsym(lib, "ABProviderInit");
-			if (!(*cf)) {
-#ifdef DEBUG
-				fprintf(stderr, "ABProviderInit: %s\n", dlerror());
-#endif
-				// ABProveriderInit is optional, so we continue;
-			}
-		}
-	}
+	// Loads the mapisvc.inf, and finds all providers and entry point functions
+	m4l_lpMAPISVC = new MAPISVC();
+	hr = m4l_lpMAPISVC->Init();
+	if (hr != hrSuccess)
+		goto exit;
 
 	if (!localProfileAdmin) {
 		localProfileAdmin = new M4LProfAdmin;
@@ -2854,15 +2984,13 @@ HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;
 		}
-	}
-	localProfileAdmin->AddRef();
+		localProfileAdmin->AddRef();
 
-	/* Allocate special M4L services (logger, config, ...) */
-	hr = HrCreateM4LServices();
-	if (hr != hrSuccess)
-		goto exit;
+	}
 
 exit:
+	pthread_mutex_unlock(&g_MAPILock);
+
 	TRACE_MAPILIB2(TRACE_RETURN, "MAPIInitialize", "%d, 0x%08x", _MAPIInitializeCount, hr);
 	return hr;
 }
@@ -2877,30 +3005,25 @@ exit:
 void __stdcall MAPIUninitialize(void) {
 	TRACE_MAPILIB(TRACE_ENTRY, "MAPIUninitialize", "");
 
+	pthread_mutex_lock(&g_MAPILock);
+
 	/* MAPIInitialize always AddRefs localProfileAdmin */
 	if (localProfileAdmin)
 		localProfileAdmin->Release();
 
 	/* Only clean everything up when this is the last MAPIUnitialize call. */
 	if ((--_MAPIInitializeCount) == 0) {
-#ifndef VALGRIND
-		if (lib)
-			dlclose(lib);
-		lib = NULL;
+		delete m4l_lpMAPISVC;
 
-		EC_MSGServiceEntry = NULL;
-		EC_ABProviderInit = NULL;
-		EC_MSProviderInit = NULL;
-#endif
-	
 		localProfileAdmin = NULL;
 
 		HrFreeM4LServices();
 
 		pthread_mutex_destroy(&_memlist_lock);
 
-
 	}
+
+	pthread_mutex_unlock(&g_MAPILock);
 
 	TRACE_MAPILIB2(TRACE_RETURN, "MAPIUninitialize", "%d, 0x%08x", _MAPIInitializeCount, hrSuccess);
 }

@@ -491,6 +491,12 @@ define("ZARAFA_STORE_PUBLIC_GUID"                ,makeGuid("{D47F4A09-D3BD-493C-
 define("ZARAFA_STORE_DELEGATE_GUID"              ,makeGuid("{7C7C1085-BC6D-4E53-9DAB-8A53F8DEF808}"));    // other store
 define('ZARAFA_STORE_ARCHIVER_GUID'              ,makeGuid("{BC8953AD-2E3F-4172-9404-896FF459870F}"));    // archive store
 
+/* global profile section guid */
+define('pbGlobalProfileSectionGuid'              ,makeGuid("{C8B0DB13-05AA-1A10-9BB0-00AA002FC45A}"));
+
+/* Zarafa Contacts provider GUID */
+define('ZARAFA_CONTACTS_GUID'                    ,makeGuid("{30047F72-92E3-DA4F-B86A-E52A7FE46571}"));
+
 /* Permissions */
 
 // Get permission type

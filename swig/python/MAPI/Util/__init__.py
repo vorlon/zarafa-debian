@@ -16,7 +16,11 @@ def OpenECSession(user, password, path, **keywords):
     profadmin = MAPIAdminProfiles(0)
     profadmin.CreateProfile(profname, None, 0, 0)
     admin = profadmin.AdminServices(profname, None, 0, 0)
-    admin.CreateMsgService("ZARAFA6", "Zarafa", 0, 0)
+    if keywords.has_key('providers'):
+        for provider in keywords['providers']:
+            admin.CreateMsgService(provider, provider, 0, 0)
+    else:
+        admin.CreateMsgService("ZARAFA6", "Zarafa", 0, 0)
     table = admin.GetMsgServiceTable(0)
     rows = table.QueryRows(1,0)
     prop = PpropFindProp(rows[0], PR_SERVICE_UID)

@@ -179,8 +179,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				hr = hrSuccess;
 			} else if (hr != hrSuccess) {
 				// eg. MAPI_E_NOT_FOUND
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
-				error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName ? lpGroupName->Value.lpszW : L"<unknown>", hr);
+				error = std::wstring(L"Error in group '") + (lpGroupName ? lpGroupName->Value.lpszW : L"<unknown>") + L"', unable to send e-mail";
 				goto exit;
 			}
 		}
