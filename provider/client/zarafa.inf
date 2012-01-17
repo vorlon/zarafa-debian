@@ -4,7 +4,8 @@ ZARAFA6=Zarafa Server
 # Service
 [ZARAFA6]
 PR_DISPLAY_NAME=Zarafa Server
-PR_SERVICE_DLL_NAME=libzarafaclient.so
+PR_SERVICE_DLL_NAME=zarafa6client.dll
+PR_SERVICE_SO_NAME=libzarafaclient.so
 PR_SERVICE_ENTRY_NAME=MSGServiceEntry
 PR_RESOURCE_FLAGS=SERVICE_SINGLE_COPY|SERVICE_PRIMARY_IDENTITY
 # windows also has: ZARAFA6_MSXP, ZARAFA6_MSMDB_Delegate
