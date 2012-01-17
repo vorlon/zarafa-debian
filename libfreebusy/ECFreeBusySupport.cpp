@@ -420,6 +420,25 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		ULONG ulBossWantsInfo;		/* 0x684B000B PR_SCHDINFO_BOSS_WANTS_INFO always 1 */
 		ULONG ulDontEmailDelegates;	/* 0x6843000B PR_SCHDINFO_DONT_MAIL_DELEGATES always 1 */
 
+		ULONG fDoesAutoAccept;
+		ULONG fDoesRejectRecurring;
+		ULONG fDoesRejectConflict;
+
+		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
+	} *lpStatusOlk2k3;
+
+	struct StatusOL2K7 {
+		ULONG ulResourceType;		/* 0x68410003 PR_SCHDINFO_RESOURCE_TYPE always 0*/
+		ULONG ulReserved1;			/* always 1? olk 2007 = 0 */
+
+		char **lppszFullname;		/* PR_MAILBOX_OWNER_NAME, but allocation method is unknown */
+		SBinary *lpUserEntryID;		/* PR_MAILBOX_OWNER_ENTRYID, but allocation method is unknown  */
+		ULONG *lpUnknown4;			/* pointer to NULL, -- not present in OL2K */
+		ULONG ulBossWantsCopy;		/* 0x6842000B PR_SCHDINFO_BOSS_WANTS_COPY always 1 */
+
+		ULONG ulBossWantsInfo;		/* 0x684B000B PR_SCHDINFO_BOSS_WANTS_INFO always 1 */
+		ULONG ulDontEmailDelegates;	/* 0x6843000B PR_SCHDINFO_DONT_MAIL_DELEGATES always 1 */
+
 		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
 		ULONG fDoesAutoAccept;
 		ULONG fDoesRejectRecurring;
@@ -475,9 +494,23 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		lpStatusOlk2K->fDoesRejectRecurring = bDeclineRecurring;
 
 		break;
+	case CLIENT_VERSION_OLK2003:
+		lpStatusOlk2k3 = (StatusOL2K3*)lpulStatus;
+		memset(lpStatusOlk2k3, 0, sizeof(StatusOL2K3));
+
+		lpStatusOlk2k3->ulReserved1 = 0;
+		lpStatusOlk2k3->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		lpStatusOlk2k3->ulBossWantsInfo = 1;
+		lpStatusOlk2k3->ulDontEmailDelegates = 1;
+
+		lpStatusOlk2k3->fDoesAutoAccept = bAutoAccept;
+		lpStatusOlk2k3->fDoesRejectConflict = bDeclineConflict;
+		lpStatusOlk2k3->fDoesRejectRecurring = bDeclineRecurring;
+
+		break;
 	default:
-		lpStatus = (StatusOL2K3*)lpulStatus;
-		memset(lpStatus, 0, sizeof(StatusOL2K3));
+		lpStatus = (StatusOL2K7*)lpulStatus;
+		memset(lpStatus, 0, sizeof(StatusOL2K7));
 
 		lpStatus->ulReserved1 = 0;
 		lpStatus->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
