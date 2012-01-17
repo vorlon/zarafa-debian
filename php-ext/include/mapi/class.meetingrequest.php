@@ -1430,7 +1430,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 * Return the tracking status of a recipient based on the IPM class (passed)
 	 */
 	function getTrackStatus($class) {
-		$status = olResponseNone;
+		$status = olResponseNotResponded;
 		switch($class)
 		{
 			case "IPM.Schedule.Meeting.Resp.Pos":
@@ -1880,7 +1880,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$hasOrganizer = false;
 		// Check if meeting already has an organizer.
 		foreach ($recipients as $key => $recipient){
-			if (isset($recipient[PR_RECIPIENT_FLAGS]) && $recipient[PR_RECIPIENT_FLAGS] == 3) {
+			if (isset($recipient[PR_RECIPIENT_FLAGS]) && $recipient[PR_RECIPIENT_FLAGS] == (recipSendable | recipOrganizer)) {
 				$hasOrganizer = true;
 			} else if ($isException && !isset($recipient[PR_RECIPIENT_FLAGS])){
 				// Recipients for an occurrence
@@ -1897,8 +1897,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$organizer[PR_RECIPIENT_TYPE] = MAPI_TO;
 			$organizer[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_SENT_REPRESENTING_NAME];
 			$organizer[PR_ADDRTYPE] = empty($messageProps[PR_SENT_REPRESENTING_ADDRTYPE]) ? 'SMTP':$messageProps[PR_SENT_REPRESENTING_ADDRTYPE];
-			$organizer[PR_RECIPIENT_TRACKSTATUS] = 0;
-			$organizer[PR_RECIPIENT_FLAGS] = 3;
+			$organizer[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
+			$organizer[PR_RECIPIENT_FLAGS] = recipSendable | recipOrganizer;
 
 			// Add organizer to recipients list.
 			array_unshift($recipients, $organizer);
@@ -2080,7 +2080,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			Array(Array(RES_PROPERTY,
 				Array(RELOP => RELOP_EQ,	// Equals recipient type 3: Resource
 					ULPROPTAG => PR_RECIPIENT_TYPE,
-					VALUE => array(PR_RECIPIENT_TYPE =>3) 
+					VALUE => array(PR_RECIPIENT_TYPE =>MAPI_BCC) 
 				)
 			))
 		);
@@ -2327,7 +2327,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			Array(Array(RES_PROPERTY,
 				Array(RELOP => RELOP_EQ,	// Equals recipient type 3: Resource
 					ULPROPTAG => PR_RECIPIENT_TYPE,
-					VALUE => array(PR_RECIPIENT_TYPE =>3) 
+					VALUE => array(PR_RECIPIENT_TYPE =>MAPI_BCC) 
 				)
 			))
 		);
@@ -2853,11 +2853,16 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$recipsRows = mapi_table_queryallrows($recipTable, $this->recipprops);
 
 		foreach($recipsRows as $recipient) {
-			// Probably recipient is an organizer, not possible at the moment but for safety reasons.
 			if(($recipient[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer){
-				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
-				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
+				// Recipient is attendee, set the trackstatus to "Not Responded"
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNotResponded;
+			} else {
+				// Recipient is organizer, this is not possible, but for safety
+				// it is best to clear the trackstatus for him as well by setting
+				// the trackstatus to "Organized".
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
 			}
+			mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
 		}
 	}
 
@@ -3008,8 +3013,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$delegator[PR_RECIPIENT_TYPE] = MAPI_TO;
 			$delegator[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_RCVD_REPRESENTING_NAME];
 			$delegator[PR_ADDRTYPE] = empty($messageProps[PR_RCVD_REPRESENTING_ADDRTYPE]) ? 'SMTP':$messageProps[PR_RCVD_REPRESENTING_ADDRTYPE];
-			$delegator[PR_RECIPIENT_TRACKSTATUS] = 0;
-			$delegator[PR_RECIPIENT_FLAGS] = 1;
+			$delegator[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
+			$delegator[PR_RECIPIENT_FLAGS] = recipSendable;
 
 			// Add organizer to recipients list.
 			array_unshift($recipients, $delegator);

@@ -878,15 +878,23 @@
 
 					if (!$found) {
 						if (count($deletedRecipients) == 0) {
-							$recipient[PR_RECIPIENT_FLAGS] = $recipient[PR_RECIPIENT_FLAGS] != 545 ? recipSendable | recipExceptionalDeleted : 545;
-							$recipient[PR_RECIPIENT_TRACKSTATUS] = 0;		// No Response required
+							if ($recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
+								$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
+							} else {
+								$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
+							}
+							$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;		// No Response required
 							$deletedRecipients[] = $recipient;
 						}
 
 						foreach($deletedRecipients as $recip) {
 							if ($recip[PR_ENTRYID] != $recipient[PR_ENTRYID]){
-								$recipient[PR_RECIPIENT_FLAGS] = $recipient[PR_RECIPIENT_FLAGS] != 545 ? recipSendable | recipExceptionalDeleted : 545;			// recipExceptionDeleted
-								$recipient[PR_RECIPIENT_TRACKSTATUS] = 0;		// No Response required
+								if ($recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
+									$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
+								} else {
+									$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
+								}
+								$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;		// No Response required
 								$deletedRecipients[] = $recipient;
 							}
 						}
@@ -945,7 +953,7 @@
 			$hasOrganizer = false;
 			// Check if meeting already has an organizer.
 			foreach ($recipients as $key => $recipient){
-				if (isset($recipient[PR_RECIPIENT_FLAGS]) && $recipient[PR_RECIPIENT_FLAGS] == 3) {
+				if (isset($recipient[PR_RECIPIENT_FLAGS]) && $recipient[PR_RECIPIENT_FLAGS] == (recipSendable | recipOrganizer)) {
 					$hasOrganizer = true;
 				} else if ($isException && !isset($recipient[PR_RECIPIENT_FLAGS])){
 					// Recipients for an occurrence
@@ -962,8 +970,8 @@
 				$organizer[PR_RECIPIENT_TYPE] = MAPI_TO;
 				$organizer[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_SENT_REPRESENTING_NAME];
 				$organizer[PR_ADDRTYPE] = empty($messageProps[PR_SENT_REPRESENTING_ADDRTYPE])?'SMTP':$messageProps[PR_SENT_REPRESENTING_ADDRTYPE];
-				$organizer[PR_RECIPIENT_TRACKSTATUS] = 0;
-				$organizer[PR_RECIPIENT_FLAGS] = 3;
+				$organizer[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
+				$organizer[PR_RECIPIENT_FLAGS] = recipSendable | recipOrganizer;
 
 				// Add organizer to recipients list.
 				array_unshift($recipients, $organizer);
