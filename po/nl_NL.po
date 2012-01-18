@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-19 00:03+0100\n"
+"POT-Creation-Date: 2012-01-03 15:33+0100\n"
 "PO-Revision-Date: 2011-10-18 13:25+0200\n"
 "Last-Translator: Remon <remon@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
@@ -14,96 +14,96 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:506 provider/ECProps/SyncBar.cpp:322
 msgid "Configure"
 msgstr "Instellen"
 
-#: provider/ECProps/Addin.cpp:504 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:508 provider/ECProps/SyncBar.cpp:314
 msgid "Synchronize"
 msgstr "Synchroniseren"
 
-#: provider/ECProps/Addin.cpp:506
+#: provider/ECProps/Addin.cpp:510
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Open Gedeelde Mappen..."
 
-#: provider/ECProps/Addin.cpp:508 provider/ECProps/Addin.cpp:549
+#: provider/ECProps/Addin.cpp:512 provider/ECProps/Addin.cpp:553
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Verwijderde Items Herstellen..."
 
-#: provider/ECProps/Addin.cpp:510 provider/ECProps/Addin.cpp:551
+#: provider/ECProps/Addin.cpp:514 provider/ECProps/Addin.cpp:555
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Afwezigheid instellingen..."
 
-#: provider/ECProps/Addin.cpp:514
+#: provider/ECProps/Addin.cpp:518
 msgid "Offline"
 msgstr "Offline"
 
-#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:547 provider/ECProps/SyncBar.cpp:324
 msgid "Configure offline synchronization"
 msgstr "Offline synchronisatie instellen"
 
-#: provider/ECProps/Addin.cpp:545 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:316
 msgid "Start offline synchronization"
 msgstr "Start offline synchronisatie"
 
-#: provider/ECProps/Addin.cpp:547
+#: provider/ECProps/Addin.cpp:551
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Open de mappen van een andere Outlook mappen delende gebruiker (Agenda, "
 "E-mail, etc)"
 
-#: provider/ECProps/Addin.cpp:659
+#: provider/ECProps/Addin.cpp:663
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "De Aanwezigheid-instelling is ingeschakeld. Wilt u deze uitschakelen?"
 
-#: provider/ECProps/Addin.cpp:659
+#: provider/ECProps/Addin.cpp:663
 msgid "Out Of Office Turned On"
 msgstr "De Afwezigheid Assistent is ingeschakeld"
 
-#: provider/ECProps/Addin.cpp:665
+#: provider/ECProps/Addin.cpp:669
 msgid "Unable to save Out of Office status"
 msgstr "Kon afwezigheidsstatus niet opslaan"
 
-#: provider/ECProps/Addin.cpp:760
+#: provider/ECProps/Addin.cpp:764
 msgid "Delegates"
 msgstr "Gemachtigden"
 
-#: provider/ECProps/Addin.cpp:884 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:888 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favorieten"
 
-#: provider/ECProps/Addin.cpp:896 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:900 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Machtigingen"
 
-#: provider/ECProps/Addin.cpp:1100 provider/ECProps/Addin.cpp:1101
+#: provider/ECProps/Addin.cpp:1104 provider/ECProps/Addin.cpp:1105
 msgid "Add to Public Favorites Folder"
 msgstr "Voeg toe aan Favorieten"
 
-#: provider/ECProps/Addin.cpp:1185
+#: provider/ECProps/Addin.cpp:1189
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:106
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Kan geen MAPI sessie openen."
 
-#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2374
 msgid "Shortcut"
 msgstr "Snelkoppeling"
 
-#: provider/ECProps/Addin.cpp:1189 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Snelkoppelingenmap"
 
-#: provider/ECProps/Addin.cpp:1191
+#: provider/ECProps/Addin.cpp:1195
 msgid "Unable to get shortcut folder."
 msgstr "Kan de snelkoppelingenmap niet openen."
 
@@ -300,7 +300,7 @@ msgstr "Toevoegen"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:252
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
-#: provider/client/ECABContainer.cpp:243 provider/client/ECABContainer.cpp:298
+#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:229
 msgid "Global Address Book"
 msgstr "Algemene adreslijst"
@@ -614,7 +614,7 @@ msgid "Tasks"
 msgstr "Taken"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:858 provider/client/ECMsgStore.cpp:2391
+#: provider/libserver/ECGenProps.cpp:876 provider/client/ECMsgStore.cpp:2391
 msgid "Inbox"
 msgstr "Postvak IN"
 
@@ -778,17 +778,17 @@ msgstr "Uw offline bestanden wordt bijgewerkt..."
 msgid "Upgrade: "
 msgstr "Bijwerken: "
 
-#: provider/libserver/ECGenProps.cpp:816
+#: provider/libserver/ECGenProps.cpp:834
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Publieke Mappen"
 
-#: provider/libserver/ECGenProps.cpp:860
+#: provider/libserver/ECGenProps.cpp:878
 msgid "Archive"
 msgstr ""
 
-#: provider/client/ECMSProvider.cpp:246
+#: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:279
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
@@ -798,7 +798,7 @@ msgstr ""
 "Kan profiel niet gebruiken omdat de licentielimiet is overschreden. Om door "
 "te gaan moet u een aanvullende client licenties aanschaffen."
 
-#: provider/client/ECMSProvider.cpp:250
+#: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:284
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
@@ -809,13 +809,13 @@ msgstr ""
 "de Zarafa licentie server. Neem contact op met uw systeembeheerder."
 
 # 75%
-#: provider/client/ECABContainer.cpp:245 provider/client/ECABContainer.cpp:300
+#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Algemene adreslijst"
 
 # 75%
 # 80%
-#: provider/client/ECABContainer.cpp:247 provider/client/ECABContainer.cpp:302
+#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Alle adreslijsten"
 
@@ -965,36 +965,36 @@ msgid "User already exists."
 msgstr "Gebruiker is al aanwezig."
 
 # 93%
-#: provider/client/ECArchiveAwareMessage.cpp:446
+#: provider/client/ECArchiveAwareMessage.cpp:451
 #, fuzzy
 msgid "Zarafa Archiver"
 msgstr "Zarafa Archief"
 
-#: provider/client/ECArchiveAwareMessage.cpp:448
+#: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:450
+#: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr "Fout code:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:462
+#: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:466
+#: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:470
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Fout beschrijving:"
 
@@ -1257,19 +1257,19 @@ msgstr ""
 "verbindingen worden gemaakt tot 'Offline werken' in het 'Bestand' menu is "
 "uitgeschakeld."
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:808
+#: provider/client/ECExchangeImportContentsChanges.cpp:818
 msgid "Sync Issues"
 msgstr "Sync problemen"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:812
+#: provider/client/ECExchangeImportContentsChanges.cpp:824
 msgid "Conflicts"
 msgstr "Problemen"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:816
+#: provider/client/ECExchangeImportContentsChanges.cpp:830
 msgid "Local Failures"
 msgstr "Local Failures"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:820
+#: provider/client/ECExchangeImportContentsChanges.cpp:836
 msgid "Server Failures"
 msgstr "Server Failures"
 
@@ -1315,6 +1315,10 @@ msgstr ""
 "2002. Als u gebruik wenst te maken van offline functionaliteit dient u "
 "Outlook 2000, 2003, 2007 of hoger te gebruiken."
 
+#: provider/contacts/ZCABContainer.cpp:645
+msgid "Zarafa Contacts Folders"
+msgstr ""
+
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
 msgstr "Kon het SSL object van de store niet verkrijgen"
@@ -1347,37 +1351,37 @@ msgstr "Het certificaat is vertrouwd maar wordt niet juist geverifieerd."
 msgid "Do you wish to continue?"
 msgstr "Wilt u doorgaan?"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:782
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr "Zarafa Archief"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:783
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
 msgstr "Deze map bevat de speciale archief mappen."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:787
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
 msgstr "Geschiedenis"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:788
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr "Deze map bevat archieven die vervangen zijn door een nieuwere versie."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:792
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
 msgid "Outgoing"
 msgstr "Uitgaand"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:793
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Deze folder bevat archieven van alle uitgaande berichten."
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:797
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
 msgid "Deleted"
 msgstr "Verwijderd "
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:798
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Deze map bevat archieven van berichten die zijn verwijderd. "
 
