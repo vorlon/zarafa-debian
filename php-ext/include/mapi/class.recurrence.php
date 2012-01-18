@@ -221,7 +221,7 @@
 		 */
 		function modifyException($exception_props, $base_date, $exception_recips = array(), $copy_attach_from = false)
 		{
-		    if(!$this->isValidExceptionDate($base_date, $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]))) {
+		    if(isset($exception_props[$this->proptags["startdate"]]) && !$this->isValidExceptionDate($base_date, $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]))) {
 		        return false;
             }
 		        
@@ -295,13 +295,15 @@
 				$this->setExceptionRecipients($message, $exception_recips);
 				mapi_savechanges($message);
 
+				// If a new start or duedate is provided, we update the properties 'PR_EXCEPTION_STARTTIME' and 'PR_EXCEPTION_ENDTIME'
+				// on the attachment which holds the embedded msg and save everything.
+				if (isset($exception_props[$this->proptags["startdate"]])) {
+					$props = array();
+					$props[PR_EXCEPTION_STARTTIME] = $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]);
+					$props[PR_EXCEPTION_ENDTIME] = $this->fromGMT($this->tz, $exception_props[$this->proptags["duedate"]]);
+					mapi_setprops($attach, $props);
+				}
 
-				// Set new values for 'PR_EXCEPTION_STARTTIME' and 'PR_EXCEPTION_ENDTIME' on attachment which holds the embedded msg and save
-				$props = array();
-				$props[PR_EXCEPTION_STARTTIME] = $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]);
-				$props[PR_EXCEPTION_ENDTIME] = $this->fromGMT($this->tz, $exception_props[$this->proptags["duedate"]]);
-
-				mapi_setprops($attach, $props);
 				mapi_savechanges($attach);
 			}
 

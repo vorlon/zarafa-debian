@@ -395,10 +395,6 @@ class Meetingrequest {
 												$this->proptags['counter_proposal']
 											));
 
-			// Retrieve actual start/due dates from calendar item.
-			$exception_props[$this->proptags['startdate']] = $recurr->getOccurrenceStart($basedate);
-			$exception_props[$this->proptags['duedate']] = $recurr->getOccurrenceEnd($basedate);
-
 			// Set message class for exception
 			$exception_props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
 			$exception_props[$this->proptags['basedate']] = $basedate;
@@ -410,6 +406,10 @@ class Meetingrequest {
 				// When we are creating an exception we need copy recipients from main recurring item
 				$recipTable =  mapi_message_getrecipienttable($calendaritem);
 				$recips = mapi_table_queryallrows($recipTable, $this->recipprops);
+
+				// Retrieve actual start/due dates from calendar item.
+				$exception_props[$this->proptags['startdate']] = $recurr->getOccurrenceStart($basedate);
+				$exception_props[$this->proptags['duedate']] = $recurr->getOccurrenceEnd($basedate);
 
 				$recurr->createException($exception_props, $basedate, false, $recips);
 			}
