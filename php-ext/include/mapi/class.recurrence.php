@@ -142,7 +142,7 @@
             }
 			if(!$delete) {
 
-                if(!$this->isValidExceptionDate($base_date, $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]))) {
+                if(isset($exception_props[$this->proptags["startdate"]]) && !$this->isValidExceptionDate($base_date, $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]))) {
                     return false;
                 }
 				// Properties in the attachment are the properties of the base object, plus $exception_props plus the base date
@@ -158,18 +158,22 @@
 				
 				// Basedate in the exception attachment is the GMT time at which the original occurrence would have been
 				$props[$this->proptags["basedate"]] = $this->toGMT($this->tz, $basetime);
-				
+
+				if (!isset($exception_props[$this->proptags["startdate"]])) {
+					$props[$this->proptags["startdate"]] = $this->getOccurrenceStart($base_date);
+				}
+				if (!isset($exception_props[$this->proptags["duedate"]])) {
+					$props[$this->proptags["duedate"]] = $this->getOccurrenceEnd($base_date);
+				}
+
 				// Save the data into an attachment
 				$this->createExceptionAttachment($props, $exception_recips, $copy_attach_from);
 				
                 $changed_item = array();
                 
-                $startdate = $this->gmtime($exception_props[$this->proptags["startdate"]]);
-                $enddate = $this->gmtime($exception_props[$this->proptags["duedate"]]);
-                
                 $changed_item["basedate"] = $baseday;
-                $changed_item["start"] = $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]);
-                $changed_item["end"] = $this->fromGMT($this->tz, $exception_props[$this->proptags["duedate"]]);
+                $changed_item["start"] = $this->fromGMT($this->tz, $props[$this->proptags["startdate"]]);
+                $changed_item["end"] = $this->fromGMT($this->tz, $props[$this->proptags["duedate"]]);
 
                 if(array_key_exists($this->proptags["subject"], $exception_props)) {
                     $changed_item["subject"] = $exception_props[$this->proptags["subject"]];
