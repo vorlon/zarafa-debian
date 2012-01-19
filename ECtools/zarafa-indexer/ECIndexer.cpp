@@ -79,6 +79,7 @@ ECIndexer::ECIndexer(ECThreadData *lpThreadData, ECScheduler *lpScheduler)
 {
 	m_lpThreadData = lpThreadData;
 	m_lpScheduler = lpScheduler;
+	m_eOptimize = DISABLE_OPTIMIZE;
 
 	m_lpABSyncStream = NULL;
 
@@ -167,6 +168,13 @@ HRESULT ECIndexer::Create(ECThreadData *lpThreadData, ECIndexer **lppIndexer)
 		goto exit;
 	}
 
+	// enable disk index optimization in indexing run at 2 am
+	hr = lpScheduler->AddSchedule(SCHEDULE_DAY, 2, ECIndexer::EnableOptimizeIndex, lpIndexer);
+	if (hr != hrSuccess) {
+		lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to schedule index optimizition");
+		goto exit;
+	}
+
 	if (lppIndexer)
 		*lppIndexer = lpIndexer;
 
@@ -189,6 +197,9 @@ HRESULT ECIndexer::RunSynchronization()
 	if (m_lpThreadData->bShutdown)
 		return hrSuccess;
 
+	if (m_eOptimize == NEXT_OPTIMIZE)
+		m_eOptimize = RUN_OPTIMIZE;
+
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Zarafa Indexer thread started");
 
 	hr = MAPIInitialize(NULL);
@@ -201,6 +212,8 @@ HRESULT ECIndexer::RunSynchronization()
 
 exit:
 	MAPIUninitialize();
+	if (m_eOptimize == RUN_OPTIMIZE)
+		m_eOptimize = DISABLE_OPTIMIZE;
 
 	if (hr == hrSuccess)
 		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Zarafa Indexer thread completed");
@@ -215,6 +228,14 @@ LPVOID ECIndexer::RunThread(LPVOID lpVoid)
 {
 	ECIndexer *lpIndexer = (ECIndexer *)lpVoid;
 	lpIndexer->RunSynchronization();
+	return NULL;
+}
+
+LPVOID ECIndexer::EnableOptimizeIndex(LPVOID lpVoid)
+{
+	ECIndexer *lpIndexer = (ECIndexer *)lpVoid;
+	if (lpIndexer->m_eOptimize < NEXT_OPTIMIZE)
+		lpIndexer->m_eOptimize = NEXT_OPTIMIZE;
 	return NULL;
 }
 
@@ -987,8 +1008,11 @@ exit:
 HRESULT ECIndexer::OptimizeIndex(ECEntryData *lpEntry)
 {
 	HRESULT hr = hrSuccess;
-	
-	hr = m_lpThreadData->lpLucene->OptimizeIndex(m_lpThreadData, lpEntry->m_strStorePath);
+
+	if (m_eOptimize == RUN_OPTIMIZE) {
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_WARNING, "Optimizing disk index");
+		hr = m_lpThreadData->lpLucene->OptimizeIndex(m_lpThreadData, lpEntry->m_strStorePath);
+	}
 
 	return hr;
 }
