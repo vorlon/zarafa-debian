@@ -223,6 +223,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropVal = NULL;
 	ULONG cbsize = 0;
+	std::string strReq;
 
 	lpsDavProp = &(sDavReqstProps->sProp);
 
@@ -268,7 +269,8 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	HrSetDavPropName(&(sDavResp.sPropName), "response", CALDAVNSDEF);
 
 	HrSetDavPropName(&(sDavResp.sHRef.sPropName), "href", CALDAVNSDEF);
-	m_lpRequest->HrGetUrl(&sDavResp.sHRef.wstrValue);
+	m_lpRequest->HrGetRequestUrl(&strReq);
+	sDavResp.sHRef.wstrValue = m_converter.convert_to<wstring>(strReq);
 
 	// map values and properties in WEBDAVRESPONSE structure.
 	hr = HrMapValtoStruct(lpSpropVal, cbsize, NULL, PROPFIND_ROOT, &(lpsDavProp->lstProps), &sDavResp);
@@ -305,6 +307,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	HRESULT hr = hrSuccess;
 	std::wstring wstrConvVal;
 	std::wstring wstrReqPath;
+	std::string strReqUrl;
 	IMAPITable *lpTable = NULL;
 	LPSRowSet lpRowSet = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
@@ -331,9 +334,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	ulTagTsRef = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	
-	hr = m_lpRequest->HrGetUrl(&wstrReqPath);
-	if(hr != hrSuccess)
-		goto exit;
+	m_lpRequest->HrGetRequestUrl(&strReqUrl);
+	wstrReqPath = m_converter.convert_to<wstring>(strReqUrl);
 
 	if (wstrReqPath[wstrReqPath.length() - 1] != '/')
 		wstrReqPath.append(1, '/');
@@ -478,7 +480,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 				else if(hr != hrSuccess)
 					continue;
 			} else {
-				wstrConvVal = urlEncode(wstrConvVal);
+				wstrConvVal = m_converter.convert_to<wstring>(urlEncode(wstrConvVal, "utf-8"));
 			}
 
 			wstrConvVal.append(L".ics");
@@ -554,6 +556,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	LPSPropTagArray lpPropTagArr = NULL;
 	MapiToICal *lpMtIcal = NULL;
 	std::wstring wstrReqPath;	
+	std::string strReq;	
 	std::list<WEBDAVPROPERTY>::iterator iter;
 	SRestriction * lpsRoot = NULL;
 	ULONG cbsize = 0;
@@ -562,7 +565,9 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
 	
-	m_lpRequest->HrGetUrl(&wstrReqPath);
+	m_lpRequest->HrGetRequestUrl(&strReq);
+	wstrReqPath = m_converter.convert_to<wstring>(strReq);
+
 	HrSetDavPropName(&(sWebResponse.sPropName), "response", CALDAVNSDEF);
 	HrSetDavPropName(&sWebMStatus->sPropName, "multistatus", CALDAVNSDEF);
 
@@ -630,7 +635,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		sWebRMGet->lstWebVal.pop_front();
 
 		sWebResponse.sHRef = sWebDavVal;
-		sWebResponse.sHRef.wstrValue = wstrReqPath + urlEncode(sWebDavVal.wstrValue) + L".ics";
+		sWebResponse.sHRef.wstrValue = wstrReqPath + m_converter.convert_to<wstring>(urlEncode(sWebDavVal.wstrValue, "utf-8")) + L".ics";
 		sWebResponse.sStatus = WEBDAVVALUE();
 
 		hr = HrMakeRestriction(W2U(sWebDavVal.wstrValue), m_lpNamedProps, &lpsRoot);
@@ -792,8 +797,10 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::wstring wstrReqPath;
+	std::string strReq;	
 
-	m_lpRequest->HrGetUrl(&wstrReqPath);
+	m_lpRequest->HrGetRequestUrl(&strReq);
+	wstrReqPath = m_converter.convert_to<wstring>(strReq);
 
 	// Open Global Address book
 	hr = m_lpAddrBook->GetDefaultDir(&sbEid.cb, (LPENTRYID*)&sbEid.lpb);
@@ -892,7 +899,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 			
 			HrSetDavPropName(&(sWebResponse.sHRef.sPropName), "href", CALDAVNSDEF);
 			if (lpsPropVal)
-				sWebResponse.sHRef.wstrValue = wstrReqPath + lpsPropVal->Value.lpszW;
+				sWebResponse.sHRef.wstrValue = wstrReqPath + m_converter.convert_to<wstring>(urlEncode(lpsPropVal->Value.lpszW, "utf-8"));
 			
 			if (hr == hrSuccess)
 				hr = HrMapValtoStruct(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, NULL, 0, &sDavProp.lstProps, &sWebResponse);
@@ -1533,9 +1540,12 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	WEBDAVRESPONSE sDavResponse;
 	std::wstring wstrUser;
 	std::wstring wstrPath;
+	std::string strReqUrl;
 
 	m_lpRequest->HrGetUser(&wstrUser);
-	m_lpRequest->HrGetUrl(&wstrPath);
+	m_lpRequest->HrGetRequestUrl(&strReqUrl);
+	wstrPath = m_converter.convert_to<wstring>(strReqUrl);
+
 
 	// all folder properties to fill request.
 	cbsize = lpsDavProp->lstProps.size() + 2;

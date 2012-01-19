@@ -153,7 +153,8 @@ std::wstring bin2hexw(unsigned int inLength, const unsigned char *input);
 #endif
 
 std::string urlEncode(const std::string &input);
-std::wstring urlEncode(const std::wstring &input);
+std::string urlEncode(const std::wstring &input, const char* charset);
+std::string urlEncode(const WCHAR* input, const char* charset);
 std::string urlDecode(const std::string &input);
 
 std::string StringEscape(const char* input, const char *tokens, const char escape);

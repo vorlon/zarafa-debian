@@ -568,15 +568,16 @@ std::string StringEscape(const char* input, const char *tokens, const char escap
 /** 
  * Encodes a string for inclusion into an url.
  *
- * @note: this does not encode an url to another more valid url!
+ * @note this does not encode an url to another more valid url (since / would get encoded!)
+ * @note watch the locale of the string, make sure it's the same as the rest of the url.
  * 
  * @param[in] input string to encode
  * 
- * @return encoded string valid to include in url
+ * @return encoded string valid to include in an url
  */
-template <typename StringType>
-StringType doUrlEncode(const StringType &input) {
-	StringType output;
+std::string urlEncode(const std::string &input)
+{
+	std::string output;
 	const char digits[] = "0123456789ABCDEF";
 
 	output.reserve(input.length());
@@ -619,24 +620,35 @@ StringType doUrlEncode(const StringType &input) {
 	return output;
 }
 
-std::string urlEncode(const std::string &input)
+/** 
+ * encode an url part, input in wide char, and destination charset in encoded characters
+ * 
+ * @param[in] input wide string to convert to valid url encoded ascii string
+ * @param[in] charset non-ascii characters will be encoded for this charset
+ * 
+ * @return url valid encoded string
+ */
+std::string urlEncode(const std::wstring &input, const char* charset)
 {
-	return doUrlEncode(input);
+	std::string output = convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR);
+	return urlEncode(output);
 }
 
-std::wstring urlEncode(const std::wstring &input)
+std::string urlEncode(const WCHAR* input, const char* charset)
 {
-	return doUrlEncode(input);
+	std::string output = convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR);
+	return urlEncode(output);
 }
 
 /** 
  * replaces %## values by ascii values
  * i.e Amsterdam%2C -> Amsterdam,
- * @note this can take a full url, since it just replaces the %## 
+ * @note 1. this can take a full url, since it just replaces the %## 
+ * @note 2. you need to handle the locale of the string yourself!
  * 
  * @param[in] input url encoded string
  * 
- * @return 
+ * @return decoded url in the locale it was encoded in
  */
 std::string urlDecode(const std::string &input)
 {

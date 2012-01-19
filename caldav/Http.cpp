@@ -236,7 +236,6 @@ HRESULT Http::HrParseHeaders()
 	HRESULT hr = hrSuccess;
 	std::string strAuthdata;
 	std::string strLength;
-	char *lpURI = NULL;
 
 	std::vector<std::string> items;
 	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
@@ -247,17 +246,11 @@ HRESULT Http::HrParseHeaders()
 		goto exit;
 	}
 	m_strMethod = items[0];
+	m_strURL = items[1];
 	m_strHttpVer = items[2];
 
 	// converts %20 -> ' '
-	lpURI = xmlURIUnescapeString((const char *)items[1].c_str(), items[1].size(), NULL);
-	if (lpURI) {
-		m_strPath = lpURI;
-		xmlFree(lpURI);
-		lpURI = NULL;
-	} else {
-		m_strPath = items[1];
-	}
+	m_strPath = urlDecode(m_strURL);
 
 	// find the content-type
 	// Content-Type: text/xml;charset=UTF-8
@@ -348,6 +341,19 @@ HRESULT Http::HrGetPass(std::wstring *strPass)
 		hr = MAPI_E_NOT_FOUND;
 
 	return hr;
+}
+
+/** 
+ * return the original, non-decoded, url
+ * 
+ * @param strURL us-ascii encoded url
+ * 
+ * @return 
+ */
+HRESULT Http::HrGetRequestUrl(std::string *strURL)
+{
+	strURL->assign(m_strURL);
+	return hrSuccess;
 }
 
 /**
@@ -674,6 +680,7 @@ HRESULT Http::HrFinalize()
 		tm local;
 		string strAgent;
 		localtime_r(&now, &local);
+		// @todo we're in C LC_TIME locale to get the correct (month) format, but the timezone will be GMT, which is not wanted.
 		strftime(szTime, arraySize(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
 		HrGetHeaderValue("User-Agent", &strAgent);
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"",
@@ -830,4 +837,3 @@ HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strVal
 	*strValue = iHeader->second;
 	return hrSuccess;
 }
-

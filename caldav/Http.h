@@ -94,6 +94,7 @@ public:
 	HRESULT HrGetMethod(std::string *strMethod);
 	HRESULT HrGetUser(std::wstring *strUser);	
 	HRESULT HrGetPass(std::wstring *strPass);
+	HRESULT HrGetRequestUrl(std::string *strURL);
 	HRESULT HrGetUrl(std::wstring *strURL);
 	HRESULT HrGetBody(std::string *strBody);
 	HRESULT HrGetDepth(ULONG *ulDepth);
@@ -115,9 +116,10 @@ private:
 	ECConfig *m_lpConfig;
 
 	/* request */
-	std::string m_strAction;
-	std::string m_strMethod;
-	std::string m_strPath;
+	std::string m_strAction;	//!< full 1st-line
+	std::string m_strMethod;	//!< HTTP method, eg. GET, PROPFIND, etc.
+	std::string m_strURL;		//!< original action url
+	std::string m_strPath;		//!< decoded url
 	std::string m_strHttpVer;
 	std::map<std::string, std::string> mapHeaders;
 

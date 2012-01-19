@@ -293,7 +293,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 				wstring strLocation = L"/" + parts[0] + L"/" + parts[1];
 
 				if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &ptrDisplayName) == hrSuccess) {
-					strLocation += L"/" + urlEncode(ptrDisplayName->Value.lpszW) + L"/";
+					std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
+					strLocation += L"/" + m_converter.convert_to<wstring>(part) + L"/";
 				} else {
 					// return 404 ?
 					strLocation += L"/Calendar/";
