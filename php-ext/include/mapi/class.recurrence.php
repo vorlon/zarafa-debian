@@ -296,7 +296,7 @@
 
 				// Set exception properties on embedded message and save
 				mapi_setprops($message, $exception_props);
-				$this->setExceptionRecipients($message, $exception_recips);
+				$this->setExceptionRecipients($message, $exception_recips, false);
 				mapi_savechanges($message);
 
 				// If a new start or duedate is provided, we update the properties 'PR_EXCEPTION_STARTTIME' and 'PR_EXCEPTION_ENDTIME'
@@ -586,7 +586,7 @@
 			}
 
 			mapi_message_setprops($imessage, $props);
-			$this->setExceptionRecipients($imessage, $exception_recips);
+			$this->setExceptionRecipients($imessage, $exception_recips, true);
 			mapi_message_savechanges($imessage);
 			mapi_message_savechanges($attachment);
 		}
@@ -853,12 +853,102 @@
         }
        
 		/**
-		 * Function which sets recipients for an exception, also checks for deleted recipients.
+		 * Function which sets recipients for an exception.
+		 * 
+		 * The $exception_recips can be provided in 2 ways:
+		 *  - A delta which indicates which recipients must be added, removed or deleted.
+		 *  - A complete array of the recipients which should be applied to the message.
+		 *
+		 * The first option is preferred as it will require less work to be executed.
+		 *
+		 * @param resource $message exception attachment of recurring item
+		 * @param array $exception_recips list of recipients
+		 * @param boolean $copy_orig_recips True to copy all recipients which are on the original
+		 * message to the attachment by default. False if only the $exception_recips changes should
+		 * be applied.
+		 */
+		function setExceptionRecipients($message, $exception_recips, $copy_orig_recips = true)
+		{
+			if (isset($exception_recips['add']) || isset($exception_recips['remove']) || isset($exception_recips['modify'])) {
+				$this->setDeltaExceptionRecipients($message, $exception_recips, $copy_orig_recips);
+			} else {
+				$this->setAllExceptionRecipients($message, $exception_recips);
+			}
+		}
+
+		/**
+		 * Function which applies the provided delta for recipients changes to the exception.
+		 *
+		 * The $exception_recips should be an array containing the following keys:
+		 *  - "add": this contains an array of recipients which must be added
+		 *  - "remove": This contains an array of recipients which must be removed
+		 *  - "modify": This contains an array of recipients which must be modified
+		 *
+		 * @param resource $message exception attachment of recurring item
+		 * @param array $exception_recips list of recipients
+		 * @param boolean $copy_orig_recips True to copy all recipients which are on the original
+		 * message to the attachment by default. False if only the $exception_recips changes should
+		 * be applied.
+		 */
+		function setDeltaExceptionRecipients($exception, $exception_recips, $copy_orig_recips)
+		{
+			// Check if the recipients from the original message should be copied,
+			// if so, open the recipient table of the parent message and apply all
+			// rows on the target recipient.
+			if ($copy_orig_recips === true) {
+				$recipprops = array(
+					PR_ENTRYID,
+					PR_DISPLAY_NAME,
+					PR_EMAIL_ADDRESS,
+					PR_RECIPIENT_ENTRYID,
+					PR_RECIPIENT_TYPE,
+					PR_SEND_INTERNET_ENCODING,
+					PR_SEND_RICH_INFO,
+					PR_RECIPIENT_DISPLAY_NAME,
+					PR_ADDRTYPE, PR_DISPLAY_TYPE,
+					PR_RECIPIENT_TRACKSTATUS,
+					PR_RECIPIENT_FLAGS,
+					PR_ROWID
+				);
+
+				$origTable = mapi_message_getrecipienttable($this->message);
+				$recipientRows = mapi_table_queryallrows($origTable, $recipprops);
+				mapi_message_modifyrecipients($exception, MODRECIP_ADD, $recipientRows);
+			}
+
+			// Add organizer to meeting only if it is not organized.
+			$msgprops = mapi_getprops($exception, array(PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_EMAIL_ADDRESS, PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_ADDRTYPE, $this->proptags['responsestatus']));
+			if (isset($msgprops[$this->proptags['responsestatus']]) && $msgprops[$this->proptags['responsestatus']] != olResponseOrganized){
+				$this->addOrganizer($msgprops, $exception_recips['add']);
+			}
+
+			// Remove all deleted recipients
+			if (isset($exception_recips['remove'])) {
+				mapi_message_modifyrecipients($exception, MODRECIP_REMOVE, $exception_recips['remove']);
+			}
+
+			// Add all new recipients
+			if (isset($exception_recips['add'])) {
+				mapi_message_modifyrecipients($exception, MODRECIP_ADD, $exception_recips['add']);
+			}
+
+			// Modify the existing recipients
+			if (isset($exception_recips['modify'])) {
+				mapi_message_modifyrecipients($exception, MODRECIP_MODIFY, $exception_recips['modify']);
+			}
+		}
+
+		/**
+		 * Function which applies the provided recipients to the exception, also checks for deleted recipients.
+		 *
+		 * The $exception_recips should be an array containing all recipients which must be applied
+		 * to the exception. This will copy all recipients from the original message and then start filter
+		 * out all recipients which are not provided by the $exception_recips list.
 		 *
 		 * @param resource $message exception attachment of recurring item
 		 * @param array $exception_recips list of recipients
 		 */
-		function setExceptionRecipients($message, $exception_recips)
+		function setAllExceptionRecipients($message, $exception_recips)
 		{
 			$deletedRecipients = array();
 			$useMessageRecipients = false;
