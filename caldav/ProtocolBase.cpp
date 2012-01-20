@@ -176,7 +176,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open public store with user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
 			goto exit;
 		}
-	} else if (m_wstrUser != m_wstrFldOwner) {
+	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
 		hr = HrOpenUserMsgStore(m_lpSession, (WCHAR*)m_wstrFldOwner.c_str(), &m_lpActiveStore);
 		if (hr != hrSuccess) {
