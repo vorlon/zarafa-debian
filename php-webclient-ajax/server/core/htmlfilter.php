@@ -236,10 +236,15 @@ function sq_casenormalize(&$val){
  */
 function sq_skipspace($body, $offset){
     $me = 'sq_skipspace';
-    preg_match('/^(\s*)/s', substr($body, $offset), $matches);
-    if (sizeof($matches{1})){
-        $count = strlen($matches{1});
-        $offset += $count;
+    while(1) {
+        $matches = Array();
+        preg_match('/^(\s*)/s', substr($body, $offset, 256), $matches);
+        if (sizeof($matches{1})){
+            $count = strlen($matches{1});
+            if ($count == 0)
+                break;
+            $offset += $count;
+        } else break;
     }
     return $offset;
 }
@@ -281,7 +286,7 @@ function sq_findnxreg($body, $offset, $reg){
     $me = 'sq_findnxreg';
     $matches = Array();
     $retarr = Array();
-    preg_match("%^(.*?)($reg)%si", substr($body, $offset), $matches);
+    preg_match("%(.*?)($reg)%si", $body, $matches, 0, $offset);
     if (!isset($matches{0}) || !$matches{0}){
         $retarr = false;
     } else {
@@ -441,12 +446,11 @@ function sq_getnxtag($body, $offset){
          * the end of the tag.
          */
         $matches = Array();
-        if (preg_match("%^(\s*)(>|/>)%s", substr($body, $pos), $matches)) {
+        if (preg_match("%^(>|/>)%s", substr($body, $pos, 2), $matches)) {
             /**
              * Yep. So we did.
              */
-            $pos += strlen($matches{1});
-            if ($matches{2} == "/>"){
+            if ($matches{1} == "/>"){
                 $tagtype = 3;
                 $pos++;
             }
