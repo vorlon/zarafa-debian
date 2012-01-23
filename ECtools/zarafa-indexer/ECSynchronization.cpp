@@ -329,9 +329,6 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 		goto exit;
 
 exit:
-	if (hr != hrSuccess)
-		m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
-
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing of store '%ls': Synchronizing Content - %d creations, %d changes, %d deletions %s",
 								  lpEntryData->m_strUserName.c_str(), ulCreate, ulChange, ulDelete, (hr == hrSuccess) ? "succeeded" : "failed");
 
