@@ -898,6 +898,7 @@
 			if ($copy_orig_recips === true) {
 				$recipprops = array(
 					PR_ENTRYID,
+					PR_SEARCH_KEY,
 					PR_DISPLAY_NAME,
 					PR_EMAIL_ADDRESS,
 					PR_RECIPIENT_ENTRYID,
@@ -905,8 +906,11 @@
 					PR_SEND_INTERNET_ENCODING,
 					PR_SEND_RICH_INFO,
 					PR_RECIPIENT_DISPLAY_NAME,
-					PR_ADDRTYPE, PR_DISPLAY_TYPE,
+					PR_ADDRTYPE,
+					PR_DISPLAY_TYPE,
+					PR_DISPLAY_TYPE_EX,
 					PR_RECIPIENT_TRACKSTATUS,
+					PR_RECIPIENT_TRACKSTATUS_TIME,
 					PR_RECIPIENT_FLAGS,
 					PR_ROWID
 				);
@@ -952,14 +956,32 @@
 		{
 			$deletedRecipients = array();
 			$useMessageRecipients = false;
+			$recipprops = array(
+				PR_ENTRYID,
+				PR_SEARCH_KEY,
+				PR_DISPLAY_NAME,
+				PR_EMAIL_ADDRESS,
+				PR_RECIPIENT_ENTRYID,
+				PR_RECIPIENT_TYPE,
+				PR_SEND_INTERNET_ENCODING,
+				PR_SEND_RICH_INFO,
+				PR_RECIPIENT_DISPLAY_NAME,
+				PR_ADDRTYPE,
+				PR_DISPLAY_TYPE,
+				PR_DISPLAY_TYPE_EX,
+				PR_RECIPIENT_TRACKSTATUS,
+				PR_RECIPIENT_TRACKSTATUS_TIME,
+				PR_RECIPIENT_FLAGS,
+				PR_ROWID
+			);
 
 			$recipientTable = mapi_message_getrecipienttable($message);
-			$recipientRows = mapi_table_queryallrows($recipientTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID));
-
+			$recipientRows = mapi_table_queryallrows($recipientTable, $recipprops);
+				
 			if (count($recipientRows) == 0) {
 				$useMessageRecipients = true;
 				$recipientTable = mapi_message_getrecipienttable($this->message);
-				$recipientRows = mapi_table_queryallrows($recipientTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID));
+				$recipientRows = mapi_table_queryallrows($recipientTable, $recipprops);
 			}
 
 			// Add organizer to meeting only if it is not organized.
