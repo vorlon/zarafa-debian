@@ -769,6 +769,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
 				$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 				$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
+				if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+					// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
+					$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+				}
 				if($userAction) {
 					// if user has responded then set replytime
 					$props[$this->proptags['replytime']] = time();
@@ -844,6 +848,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						$calItemProps = Array();
 						$calItemProps[PR_MESSAGE_CLASS] = "IPM.Appointment";
 						$calItemProps[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
+						if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+							// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
+							$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+						}
 						// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
 						$calItemProps[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 						if($userAction) {
@@ -891,6 +899,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 						$props[PR_MESSAGE_CLASS] = "IPM.Appointment";
 						$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
+						if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+							// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
+							$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+						}
 						// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
 						$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 						if($userAction) {
@@ -933,6 +945,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$props = array();
 			$props[$this->proptags['responsestatus']] = $tentative ? olResponseTentative : olResponseAccepted;
 			$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
+			if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+				// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
+				$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+			}
 			$props[$this->proptags['meetingstatus']] = olMeetingReceived;
 			$props[$this->proptags['replytime']] = time();
 
@@ -1476,7 +1492,15 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	}
 	
 	function getDefaultFolderEntryID($prop) {
-		$inbox = mapi_msgstore_getreceivefolder($this->store);
+		try {
+			$inbox = mapi_msgstore_getreceivefolder($this->store);
+		} catch (MAPIException $e) {
+			// public store doesn't support this method
+			if($e->getCode() == MAPI_E_NO_SUPPORT) {
+				return;
+			}
+		}
+
 		$inboxprops = mapi_getprops($inbox, Array($prop));
 		if(!isset($inboxprops[$prop]))
 			return;
@@ -2397,7 +2421,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		$exception_props[$this->proptags['meetingstatus']] = olMeetingReceived;
 		$exception_props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
-		$exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+		$exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($exception_props[$this->proptags['intendedbusystatus']]) ? $exception_props[$this->proptags['intendedbusystatus']] : fbBusy);
+		if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+			// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
+			$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+		}
 		if($userAction) {
 			// if user has responded then set replytime
 			$exception_props[$this->proptags['replytime']] = time();
@@ -2485,7 +2513,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			// In direct-booking mode, we don't need to send cancellations to resources
 			if($this->enableDirectBooking) {
 				$restriction[1][] = Array(RES_PROPERTY,
-										Array(RELOP => RELOP_NE,	// Does not equal recipient type: 3 (Resource)
+										Array(RELOP => RELOP_NE,	// Does not equal recipient type: MAPI_BCC (Resource)
 											ULPROPTAG => PR_RECIPIENT_TYPE,
 											VALUE => array(PR_RECIPIENT_TYPE => MAPI_BCC)
 										)
@@ -2581,7 +2609,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		if($this->enableDirectBooking) {
 			$stripResourcesRestriction[1][] = 
 									Array(RES_PROPERTY,
-										Array(RELOP => RELOP_NE,	// Does not equal recipient type: 3 (Resource)
+										Array(RELOP => RELOP_NE,	// Does not equal recipient type: MAPI_BCC (Resource)
 											ULPROPTAG => PR_RECIPIENT_TYPE,
 											VALUE => array(PR_RECIPIENT_TYPE => MAPI_BCC)
 										)
@@ -2618,8 +2646,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 			// Set some properties that are different in the sent request than
 			// in the item in our calendar
+			$newmessageprops[$this->proptags['intendedbusystatus']] = isset($newmessageprops[$this->proptags['busystatus']]) ? $newmessageprops[$this->proptags['busystatus']] : $messageprops[$this->proptags['busystatus']];
 			$newmessageprops[$this->proptags['busystatus']] = fbTentative; // The default status when not accepted
-			$newmessageprops[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['busystatus']];
 			$newmessageprops[$this->proptags['responsestatus']] = olResponseNotResponded; // The recipient has not responded yet
 			$newmessageprops[$this->proptags['attendee_critical_change']] = time();
 			$newmessageprops[$this->proptags['owner_critical_change']] = time();
@@ -2927,6 +2955,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		if (!$calFolder) {
 			$root = mapi_msgstore_openentry($userStore);
 			$rootprops = mapi_getprops($root, array(PR_STORE_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_FREEBUSY_ENTRYIDS));
+
+			if(!isset($rootprops[PR_IPM_APPOINTMENT_ENTRYID])) {
+				return;
+			}
+
 			$calFolder = mapi_msgstore_openentry($userStore, $rootprops[PR_IPM_APPOINTMENT_ENTRYID]);
 		}
 
