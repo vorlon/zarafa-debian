@@ -769,7 +769,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
 				$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 				$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
-				if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+				if(isset($messageprops[$this->proptags['intendedbusystatus']])) {
 					// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
 					$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 				}
@@ -848,7 +848,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						$calItemProps = Array();
 						$calItemProps[PR_MESSAGE_CLASS] = "IPM.Appointment";
 						$calItemProps[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
-						if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+						if(isset($messageprops[$this->proptags['intendedbusystatus']])) {
 							// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
 							$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 						}
@@ -899,7 +899,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 						$props[PR_MESSAGE_CLASS] = "IPM.Appointment";
 						$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
-						if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+						if(isset($messageprops[$this->proptags['intendedbusystatus']])) {
 							// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
 							$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 						}
@@ -945,7 +945,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$props = array();
 			$props[$this->proptags['responsestatus']] = $tentative ? olResponseTentative : olResponseAccepted;
 			$props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($messageprops[$this->proptags['intendedbusystatus']]) ? $messageprops[$this->proptags['intendedbusystatus']] : fbBusy);
-			if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+			if(isset($messageprops[$this->proptags['intendedbusystatus']])) {
 				// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
 				$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 			}
@@ -2422,7 +2422,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$exception_props[$this->proptags['meetingstatus']] = olMeetingReceived;
 		$exception_props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 		$exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : (isset($exception_props[$this->proptags['intendedbusystatus']]) ? $exception_props[$this->proptags['intendedbusystatus']] : fbBusy);
-		if(isset($messageprops[$this->proptags['intendedbusystatus']]) {
+		if(isset($messageprops[$this->proptags['intendedbusystatus']])) {
 			// if we have tentatively accepted this meeting request then we should preserver value of intendedbusystatus
 			$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 		}
