@@ -954,15 +954,26 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 			if ($basedate) {
 				$recurr = new Recurrence($store, $this->message);
-				$attach = $recurr->getExceptionAttachment($basedate);
 
-				if ($attach) {
-					$exception = mapi_attach_openobj($attach, MAPI_MODIFY);
+				// Copy recipients list
+				$reciptable = mapi_message_getrecipienttable($this->message);
+				$recips = mapi_table_queryallrows($reciptable, $this->recipprops);
 
-					mapi_setprops($exception, $proposeNewTimeProps + $props);
+				if($recurr->isException($basedate)) {
+					$recurr->modifyException($proposeNewTimeProps + $props, $basedate, $recips);
+				} else {
+					$props[$this->proptags['startdate']] = $recurr->getOccurrenceStart($basedate);
+					$props[$this->proptags['duedate']] = $recurr->getOccurrenceEnd($basedate);
 
-					mapi_savechanges($exception);
-					mapi_savechanges($attach);
+					$props[PR_SENT_REPRESENTING_EMAIL_ADDRESS] = $messageprops[PR_SENT_REPRESENTING_EMAIL_ADDRESS];
+					$props[PR_SENT_REPRESENTING_NAME] = $messageprops[PR_SENT_REPRESENTING_NAME];
+					$props[PR_SENT_REPRESENTING_ADDRTYPE] = $messageprops[PR_SENT_REPRESENTING_ADDRTYPE];
+					$props[PR_SENT_REPRESENTING_ENTRYID] = $messageprops[PR_SENT_REPRESENTING_ENTRYID];
+
+					// Set message class for exception
+					$props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
+					$props[$this->proptags['basedate']] = $basedate;
+					$recurr->createException($proposeNewTimeProps + $props, $basedate, false, $recips);
 				}
 			} else {
 				mapi_setprops($this->message, $proposeNewTimeProps + $props);
