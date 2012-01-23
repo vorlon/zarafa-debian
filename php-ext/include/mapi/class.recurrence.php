@@ -71,6 +71,26 @@
 		 *   always in LOCAL time. 
 		 */
 
+		// All properties for a recipient that are interesting
+		var $recipprops = Array(
+			PR_ENTRYID,
+			PR_SEARCH_KEY,
+			PR_DISPLAY_NAME,
+			PR_EMAIL_ADDRESS,
+			PR_RECIPIENT_ENTRYID,
+			PR_RECIPIENT_TYPE,
+			PR_SEND_INTERNET_ENCODING,
+			PR_SEND_RICH_INFO,
+			PR_RECIPIENT_DISPLAY_NAME,
+			PR_ADDRTYPE,
+			PR_DISPLAY_TYPE,
+			PR_DISPLAY_TYPE_EX,
+			PR_RECIPIENT_TRACKSTATUS,
+			PR_RECIPIENT_TRACKSTATUS_TIME,
+			PR_RECIPIENT_FLAGS,
+			PR_ROWID
+		);
+
 		/**
 		 * Constructor
 		 * @param resource $store MAPI Message Store Object
@@ -135,13 +155,13 @@
 		{
 			$baseday = $this->dayStartOf($base_date);
 			$basetime = $baseday + $this->recur["startocc"] * 60;
-			
-            // Remove any pre-existing exception on this base date
+
+			// Remove any pre-existing exception on this base date
             if($this->isException($baseday)) {
                 $this->deleteException($baseday); // note that deleting an exception is different from creating a deleted exception (deleting an occurrence).
             }
-			if(!$delete) {
 
+			if(!$delete) {
                 if(isset($exception_props[$this->proptags["startdate"]]) && !$this->isValidExceptionDate($base_date, $this->fromGMT($this->tz, $exception_props[$this->proptags["startdate"]]))) {
                     return false;
                 }
@@ -241,7 +261,7 @@
 			if(!$extomodify)
 				return false;
 
-			// remove basedate property as we want to preserver the old value
+			// remove basedate property as we want to preserve the old value
 			// client will send basedate with time part as zero, so discard that value
 			unset($exception_props[$this->proptags["basedate"]]);
 
@@ -544,7 +564,7 @@
 		 */		 		
 		function createExceptionAttachment($exception_props, $exception_recips = array(), $copy_attach_from = false)
 		{
-		  	//Create new attachment.
+		  	// Create new attachment.
 		  	$attachment = mapi_message_createattach($this->message);
 		  	$props = array();
 		  	$props[PR_ATTACHMENT_FLAGS] = 2;
@@ -586,7 +606,9 @@
 			}
 
 			mapi_message_setprops($imessage, $props);
+
 			$this->setExceptionRecipients($imessage, $exception_recips, true);
+
 			mapi_message_savechanges($imessage);
 			mapi_message_savechanges($attachment);
 		}
@@ -648,20 +670,22 @@
 							)
 			);
 			$attachments = mapi_message_getattachmenttable($this->message);
-			$attachTable = mapi_table_queryallrows($attachments, Array(PR_ATTACH_NUM), $attach_res);
+			$attachRows = mapi_table_queryallrows($attachments, Array(PR_ATTACH_NUM), $attach_res);
 
-			foreach($attachTable as $attachRow)
-			{
-				$tempattach = mapi_message_openattach($this->message, $attachRow[PR_ATTACH_NUM]);
-				$exception = mapi_attach_openobj($tempattach);
-		
-			  	$data = mapi_message_getprops($exception, array($this->proptags["basedate"]));
-			  	
-			  	if($this->isSameDay($this->fromGMT($this->tz,$data[$this->proptags["basedate"]]), $base_date)) {
-			  		return $tempattach;
-			  	}
-			}
+			if(is_array($attachRows)) {
+				foreach($attachRows as $attachRow)
+				{
+					$tempattach = mapi_message_openattach($this->message, $attachRow[PR_ATTACH_NUM]);
+					$exception = mapi_attach_openobj($tempattach);
 			
+					$data = mapi_message_getprops($exception, array($this->proptags["basedate"]));
+					
+					if($this->isSameDay($this->fromGMT($this->tz,$data[$this->proptags["basedate"]]), $base_date)) {
+						return $tempattach;
+					}
+				}
+			}
+
 			return false;
 		}
 
@@ -896,27 +920,8 @@
 			// if so, open the recipient table of the parent message and apply all
 			// rows on the target recipient.
 			if ($copy_orig_recips === true) {
-				$recipprops = array(
-					PR_ENTRYID,
-					PR_SEARCH_KEY,
-					PR_DISPLAY_NAME,
-					PR_EMAIL_ADDRESS,
-					PR_RECIPIENT_ENTRYID,
-					PR_RECIPIENT_TYPE,
-					PR_SEND_INTERNET_ENCODING,
-					PR_SEND_RICH_INFO,
-					PR_RECIPIENT_DISPLAY_NAME,
-					PR_ADDRTYPE,
-					PR_DISPLAY_TYPE,
-					PR_DISPLAY_TYPE_EX,
-					PR_RECIPIENT_TRACKSTATUS,
-					PR_RECIPIENT_TRACKSTATUS_TIME,
-					PR_RECIPIENT_FLAGS,
-					PR_ROWID
-				);
-
 				$origTable = mapi_message_getrecipienttable($this->message);
-				$recipientRows = mapi_table_queryallrows($origTable, $recipprops);
+				$recipientRows = mapi_table_queryallrows($origTable, $this->recipprops);
 				mapi_message_modifyrecipients($exception, MODRECIP_ADD, $recipientRows);
 			}
 
@@ -956,32 +961,14 @@
 		{
 			$deletedRecipients = array();
 			$useMessageRecipients = false;
-			$recipprops = array(
-				PR_ENTRYID,
-				PR_SEARCH_KEY,
-				PR_DISPLAY_NAME,
-				PR_EMAIL_ADDRESS,
-				PR_RECIPIENT_ENTRYID,
-				PR_RECIPIENT_TYPE,
-				PR_SEND_INTERNET_ENCODING,
-				PR_SEND_RICH_INFO,
-				PR_RECIPIENT_DISPLAY_NAME,
-				PR_ADDRTYPE,
-				PR_DISPLAY_TYPE,
-				PR_DISPLAY_TYPE_EX,
-				PR_RECIPIENT_TRACKSTATUS,
-				PR_RECIPIENT_TRACKSTATUS_TIME,
-				PR_RECIPIENT_FLAGS,
-				PR_ROWID
-			);
 
 			$recipientTable = mapi_message_getrecipienttable($message);
-			$recipientRows = mapi_table_queryallrows($recipientTable, $recipprops);
+			$recipientRows = mapi_table_queryallrows($recipientTable, $this->recipprops);
 				
 			if (count($recipientRows) == 0) {
 				$useMessageRecipients = true;
 				$recipientTable = mapi_message_getrecipienttable($this->message);
-				$recipientRows = mapi_table_queryallrows($recipientTable, $recipprops);
+				$recipientRows = mapi_table_queryallrows($recipientTable, $this->recipprops);
 			}
 
 			// Add organizer to meeting only if it is not organized.

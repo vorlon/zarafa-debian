@@ -1276,7 +1276,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 							// Save all previous changes
 							mapi_savechanges($this->message);
 
-							$this->submitMeetingRequest($occurrenceItem, $cancel, $prefix, $basedate, $recurr);
+							$this->submitMeetingRequest($occurrenceItem, $cancel, $prefix, $basedate, $recurr, true, $deletedRecips);
 							mapi_savechanges($occurrenceItem);
 							mapi_savechanges($attach);
 						}
@@ -1733,10 +1733,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 *@param boolean $use_cleanGlobalID if true then search should be performed on cleanGlobalID(0x23) else globalID(0x3)
 	 */
 	function findCalendarItems($goid, $calendar = false, $use_cleanGlobalID = false) {
-	    if(!$calendar) {
-    		// Open the Calendar
-	    	$calendar = $this->openDefaultCalendar();
-        }
+		if(!$calendar) {
+			// Open the Calendar
+			$calendar = $this->openDefaultCalendar();
+		}
 		
 		// Find the item by restricting all items to the correct ID
 		$restrict = Array(RES_AND, Array());
@@ -1760,8 +1760,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// In principle, there should only be one row, but we'll handle them all just in case	
 		foreach($rows as $row) {
 			$calendaritems[] = $row[PR_ENTRYID];
-		}									
-			
+		}
+
 		return $calendaritems;
 	}
 	
@@ -2434,7 +2434,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	{
 		$newmessageprops = $messageprops = mapi_getprops($this->message);
 		$new = $this->createOutgoingMessage();
-
+		
 		// Copy the entire message into the new meeting request message
 		if ($basedate) {
 			// messageprops contains properties of whole recurring series
@@ -2506,7 +2506,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// confuses the Zarafa webaccess
 		$newmessageprops[PR_ICON_INDEX] = null;
 		$newmessageprops[PR_RESPONSE_REQUESTED] = true;
-
+		
 		$meetingTimeInfo = $this->getMeetingTimeInfo();
 
 		if($meetingTimeInfo)
@@ -2598,7 +2598,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 			// Save recipients in exceptions
 			mapi_message_modifyrecipients($message, MODRECIP_ADD, $recipients);
-			mapi_setprops($message, array($this->proptags['meetingstatus'] => olMeeting, $this->proptags['responsestatus'] => olResponseOrganized));
 
 			// Now retrieve only those recipient who should receive this meeting request.
 			$recipients = mapi_table_queryallrows($recipienttable, $this->recipprops, $stripResourcesRestriction);
@@ -2636,7 +2635,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			}
 
 			mapi_setprops($new, $newmessageprops);
-
 			mapi_message_savechanges($new);
 
 			// Submit message to non-resource recipients
@@ -2652,7 +2650,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$newmessageprops[PR_MESSAGE_CLASS] = "IPM.Schedule.Meeting.Canceled";
 			$newmessageprops[$this->proptags['meetingstatus']] = olMeetingCanceled; // It's a cancel request
 			$newmessageprops[$this->proptags['busystatus']] = fbFree; // set the busy status as free
-			$newmessageprops[PR_IMPORTANCE] = IMPORTANCE_HIGH;	//HIGH Importance
+			$newmessageprops[PR_IMPORTANCE] = IMPORTANCE_HIGH;	// HIGH Importance
+			if (isset($newmessageprops[PR_SUBJECT])) {
+				$newmessageprops[PR_SUBJECT] = _('Canceled: ') . $newmessageprops[PR_SUBJECT];
+			}
 
 			mapi_setprops($new, $newmessageprops);
 			mapi_message_savechanges($new);
