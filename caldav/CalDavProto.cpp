@@ -1584,48 +1584,47 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		goto exit;
 	}
 
-	{		
-		hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, NULL, &lpHichyTable);
-		if(hr != hrSuccess)
-		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving subcalendars for IPM_Subtree, error code : 0x%08X", hr);
-			goto exit;
-		}
+	hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, NULL, &lpHichyTable);
+	if(hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving subcalendars for IPM_Subtree, error code : 0x%08X", hr);
+		goto exit;
+	}
 
-		if(m_ulUrlFlag & REQ_PUBLIC)
-			hr = HrGetOneProp(m_lpDefStore, PR_IPM_WASTEBASKET_ENTRYID, &lpSpropWbEID);
-		else
-			hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &lpSpropWbEID);
+	// public definitly doesn't have a wastebasket to filter
+	if ((m_ulUrlFlag & REQ_PUBLIC) == 0)
+	{
+		// always try to get the wastebasket from the current store to filter calendars from
+		// make it optional, because we may not have rights on the folder
+		hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &lpSpropWbEID);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving subcalendars for IPM_Subtree, error code : 0x%08X", hr);
-			goto exit;
+			hr = hrSuccess;
+			goto nowaste;
 		}
 		
-		if(m_ulUrlFlag & REQ_PUBLIC)
-			hr = m_lpDefStore->OpenEntry(lpSpropWbEID->Value.bin.cb, (LPENTRYID)lpSpropWbEID->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpWasteBox);
-		else
-			hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, (LPENTRYID)lpSpropWbEID->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpWasteBox);
+		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, (LPENTRYID)lpSpropWbEID->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpWasteBox);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening deleted items folder, error code : 0x%08X", hr);
-			goto exit;
+			hr = hrSuccess;
+			goto nowaste;
 		}
 		
 		hr = HrGetSubCalendars(m_lpSession, lpWasteBox, NULL, &lpDelHichyTable);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving subcalendars for Deleted items folder, error code : 0x%08X", hr);
-			goto exit;
+			hr = hrSuccess;
+			goto nowaste;
 		}
 	}
 
-
+nowaste:
 	hr = lpHichyTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = lpDelHichyTable->SetColumns(lpPropTagArr, 0);
+	if (lpDelHichyTable)
+		hr = lpDelHichyTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1634,8 +1633,9 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		hr = lpHichyTable->QueryRows(50, 0, &lpRowsALL);
 		if(hr != hrSuccess || lpRowsALL->cRows == 0)
 			break;
-		
-		hr = lpDelHichyTable->QueryRows(50, 0, &lpRowsDeleted);
+
+		if (lpDelHichyTable)
+			hr = lpDelHichyTable->QueryRows(50, 0, &lpRowsDeleted);
 		if(hr != hrSuccess)
 			break;
 
@@ -1643,7 +1643,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		{
 			std::wstring wstrFldPath;
 
-			if (lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows)
+			if (lpDelHichyTable && lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows)
 			{
 				// @todo is this optimized, or just pure luck that this works? don't we need a loop?
 				ulCmp = memcmp((const void *)lpRowsALL->aRow[i].lpProps[0].Value.bin.lpb,
