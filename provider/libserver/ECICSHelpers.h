@@ -67,9 +67,10 @@ enum {
 
 // Auxiliary Message Data (ParentSourceKey, Last ChangeId)
 struct SAuxMessageData {
-	SAuxMessageData(const SOURCEKEY &ps, unsigned int ct): sParentSourceKey(ps), ulChangeTypes(ct) {}
+	SAuxMessageData(const SOURCEKEY &ps, unsigned int ct, unsigned int flags): sParentSourceKey(ps), ulChangeTypes(ct), ulFlags(flags) {}
 	SOURCEKEY		sParentSourceKey;
 	unsigned int	ulChangeTypes;
+	unsigned int	ulFlags; // For readstate change
 };
 typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
 
