@@ -971,7 +971,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					$props[PR_SENT_REPRESENTING_ENTRYID] = $messageprops[PR_SENT_REPRESENTING_ENTRYID];
 
 					// Set message class for exception
-					$props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
 					$props[$this->proptags['basedate']] = $basedate;
 					$recurr->createException($proposeNewTimeProps + $props, $basedate, false, $recips);
 				}
