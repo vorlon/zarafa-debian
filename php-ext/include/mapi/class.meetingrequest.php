@@ -395,10 +395,6 @@ class Meetingrequest {
 												$this->proptags['counter_proposal']
 											));
 
-			// Set message class for exception
-			$exception_props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
-			$exception_props[$this->proptags['basedate']] = $basedate;
-
 			// Create/modify exception
 			if($recurr->isException($basedate)) {
 				$recurr->modifyException($exception_props, $basedate);
@@ -982,8 +978,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					$props[PR_SENT_REPRESENTING_ADDRTYPE] = $messageprops[PR_SENT_REPRESENTING_ADDRTYPE];
 					$props[PR_SENT_REPRESENTING_ENTRYID] = $messageprops[PR_SENT_REPRESENTING_ENTRYID];
 
-					// Set message class for exception
-					$props[$this->proptags['basedate']] = $basedate;
 					$recurr->createException($proposeNewTimeProps + $props, $basedate, false, $recips);
 				}
 			} else {
@@ -2440,12 +2434,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// add delegator to meetings
 		if ($isDelegate) $this->addDelegator($exception_props, $recips);
 
-		// Set message class for exception
-		$exception_props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
 		$exception_props[$this->proptags['meetingstatus']] = olMeetingReceived;
 		$exception_props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 		// Set basedate property (ExceptionReplaceTime)
-		$exception_props[$this->proptags['basedate']] = $basedate;
 
 		if (isset($exception_props[$this->proptags['intendedbusystatus']])) {
 		   $exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : $exception_props[$this->proptags['intendedbusystatus']];
