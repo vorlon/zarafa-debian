@@ -1869,8 +1869,8 @@ function eventAttachmentClick(moduleObject, element, event)
 			} else {
 				attachNum += "&attachNum[]=" + attach_num;
 				var action = webclient.base_url + "index.php?load=download_attachment&store=" + moduleObject.storeid + attachNum + "&openType=attachment";
-				if(moduleObject.rootentryid) {
-					action += "&entryid=" + moduleObject.rootentryid;
+				if(moduleObject.messageentryid) {
+					action += "&entryid=" + moduleObject.messageentryid;
 				}
 
 				/**
