@@ -933,7 +933,7 @@
 
 			// Remove all deleted recipients
 			if (isset($exception_recips['remove'])) {
-				foreach ($exception_recips['remove'] as $recip) {
+				foreach ($exception_recips['remove'] as &$recip) {
 					if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recip[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 						$recip[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 					} else {
@@ -941,6 +941,7 @@
 					}
 					$recip[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;		// No Response required
 				}
+				unset($recip);
 				mapi_message_modifyrecipients($exception, MODRECIP_MODIFY, $exception_recips['remove']);
 			}
 
