@@ -1157,6 +1157,11 @@ HRESULT ECGenericProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProble
 	LPSPropProblemArray		lpProblems = NULL;
 	int						nProblem = 0;
 
+	if (!lpPropTagArray) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
 	if (!fModify) {
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
