@@ -934,7 +934,7 @@
 			// Remove all deleted recipients
 			if (isset($exception_recips['remove'])) {
 				foreach ($exception_recips['remove'] as $recip) {
-					if ($recip[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
+					if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recip[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 						$recip[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 					} else {
 						$recip[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
@@ -995,7 +995,7 @@
 
 					if (!$found) {
 						if (count($deletedRecipients) == 0) {
-							if ($recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
+							if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 								$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 							} else {
 								$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
@@ -1006,7 +1006,7 @@
 
 						foreach($deletedRecipients as $recip) {
 							if ($recip[PR_ENTRYID] != $recipient[PR_ENTRYID]){
-								if ($recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
+								if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 									$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 								} else {
 									$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;

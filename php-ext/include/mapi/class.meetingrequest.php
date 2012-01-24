@@ -530,6 +530,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		$listProperties = $this->proptags;
 		$listProperties['subject'] = PR_SUBJECT;
+		$listProperties['sent_representing_name'] = PR_SENT_REPRESENTING_NAME;
+		$listProperties['sent_representing_address_type'] = PR_SENT_REPRESENTING_ADDRTYPE;
+		$listProperties['sent_representing_email_address'] = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
+		$listProperties['sent_representing_entryid'] = PR_SENT_REPRESENTING_ENTRYID;
+		$listProperties['sent_representing_search_key'] = PR_SENT_REPRESENTING_SEARCH_KEY;
 		$listProperties['rcvd_representing_name'] = PR_RCVD_REPRESENTING_NAME;
 		$messageprops = mapi_getprops($this->message, $listProperties);
 		$store = $this->store;
@@ -596,9 +601,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 */
 	function isInCalendar() {
 		$messageprops = mapi_getprops($this->message, Array($this->proptags['goid'], $this->proptags['goid2'], PR_RCVD_REPRESENTING_NAME));
+		$goid = $messageprops[$this->proptags['goid']];
 		$goid2 = $messageprops[$this->proptags['goid2']];
 
-		$basedate = $this->getBasedateFromGlobalID($messageprops[$this->proptags['goid']]);
+		$basedate = $this->getBasedateFromGlobalID($goid);
 
 		if (isset($messageprops[PR_RCVD_REPRESENTING_NAME])){
 			$delegatorStore = $this->getDelegatorStore($messageprops);
@@ -613,7 +619,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		 */
 		if ($basedate) {
 			// First try with GlobalID(0x3) (case 1)
-			$entryid = $this->findCalendarItems($messageprops[$this->proptags['goid']], $calFolder);
+			$entryid = $this->findCalendarItems($goid, $calFolder);
 			// If not found then try with CleanGlobalID(0x23) (case 2)
 			if (!is_array($entryid))
 				$entryid = $this->findCalendarItems($goid2, $calFolder);
@@ -2571,6 +2577,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			 * also additionally we are sending these properties
 			 * Ref: MS-OXCICAL 2.2.1.20.20 Property: RECURRENCE-ID
 			 */
+			$newmessageprops[$this->proptags['basedate']] = $basedate;
 			if($recurObject) {
 				if($messageprops[$this->proptags['startdate']] && $messageprops[$this->proptags['duedate']]) {
 					$startDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['startdate']]));
