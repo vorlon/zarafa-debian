@@ -602,6 +602,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	ECDatabase *lpDatabase = NULL;
 	std::list<ULONG> lstPrefix;
 	bool fInserted = false;
+	bool bInTransaction = false;
 	
 	lstPrefix.push_back(PR_MESSAGE_FLAGS);
 
@@ -632,7 +633,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     // We now have to see if the folder in which the object resides is actually a target of a search folder.
     // We do this by checking whether the specified folder is a searchfolder target folder, or a child of
     // a target folder if it is a recursive search.
-    
+
     // Loop through search folders for this store
     for(iterFolder = iterStore->second.begin(); iterFolder != iterStore->second.end(); iterFolder++) {
         bIsInTargetFolder = false;
@@ -641,7 +642,18 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
         
         if(iterFolder->second->lpSearchCriteria->lpFolders == NULL || iterFolder->second->lpSearchCriteria->lpRestrict == NULL)
             continue;
-        
+
+		er = lpDatabase->Begin();
+		if (er != erSuccess)
+			goto exit;
+
+		bInTransaction = true;
+
+		// Lock the root records to make sure that we don't interfere with modifies of the folder counters 
+		er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(iterFolder->first) + " FOR UPDATE", NULL);
+		if(er != erSuccess)
+			goto exit;
+
         if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
             // Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
             for(unsigned int i=0; i<iterFolder->second->lpSearchCriteria->lpFolders->__size; i++) {
@@ -832,7 +844,15 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
             // If the searchfolder has changed, update counts and send notifications
         	UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_COUNT, lCount);
         	UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_UNREAD, lUnreadCount);
-        	
+    	}
+
+		er = lpDatabase->Commit();
+		if(er != erSuccess)
+			goto exit;
+		
+		bInTransaction = false;
+
+		if(lCount || lUnreadCount) {		
 			m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, iterFolder->first);
             er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, iterFolder->first);
             
@@ -845,6 +865,9 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 
 exit:    
     pthread_mutex_unlock(&m_mutexMapSearchFolders);
+
+	if (lpDatabase && er != erSuccess && bInTransaction)
+		lpDatabase->Rollback();
 
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
