@@ -2491,6 +2491,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			// and newmessageprops contains properties of exception item
 			$newmessageprops = mapi_getprops($message);
 
+			// Ensure that the correct basedate is set in the new message
+			$newmessageprops[$this->proptags['basedate']] = $basedate;
+
 			// Set isRecurring to false, because this is an exception
 			$newmessageprops[$this->proptags['recurring']] = false;
 
@@ -2577,7 +2580,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			 * also additionally we are sending these properties
 			 * Ref: MS-OXCICAL 2.2.1.20.20 Property: RECURRENCE-ID
 			 */
-			$newmessageprops[$this->proptags['basedate']] = $basedate;
 			if($recurObject) {
 				if($messageprops[$this->proptags['startdate']] && $messageprops[$this->proptags['duedate']]) {
 					$startDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['startdate']]));
