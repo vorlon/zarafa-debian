@@ -1001,7 +1001,7 @@
 							} else {
 								$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
 							}
-							$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;		// No Response required
+							$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;	// No Response required
 							$deletedRecipients[] = $recipient;
 						}
 
@@ -1012,7 +1012,7 @@
 								} else {
 									$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
 								}
-								$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;		// No Response required
+								$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;	// No Response required
 								$deletedRecipients[] = $recipient;
 							}
 						}
@@ -1088,7 +1088,7 @@
 				$organizer[PR_RECIPIENT_TYPE] = MAPI_TO;
 				$organizer[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_SENT_REPRESENTING_NAME];
 				$organizer[PR_ADDRTYPE] = empty($messageProps[PR_SENT_REPRESENTING_ADDRTYPE])?'SMTP':$messageProps[PR_SENT_REPRESENTING_ADDRTYPE];
-				$organizer[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
+				$organizer[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;
 				$organizer[PR_RECIPIENT_FLAGS] = recipSendable | recipOrganizer;
 
 				// Add organizer to recipients list.

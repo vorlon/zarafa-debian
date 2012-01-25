@@ -458,7 +458,7 @@ class Meetingrequest {
 
 				mapi_message_modifyrecipients($calendaritem, MODRECIP_MODIFY, Array($recipient));
 			}
-			if(isset($recipient[PR_RECIPIENT_TRACKSTATUS]) && $recipient[PR_RECIPIENT_TRACKSTATUS] == olResponseAccepted)
+			if(isset($recipient[PR_RECIPIENT_TRACKSTATUS]) && $recipient[PR_RECIPIENT_TRACKSTATUS] == olRecipientTrackStatusAccepted)
 				$acceptedrecips++;
 		}
 	
@@ -483,7 +483,7 @@ class Meetingrequest {
 
 			mapi_message_modifyrecipients($calendaritem, MODRECIP_ADD, Array($recipient));
 			$totalrecips++;
-			if($recipient[PR_RECIPIENT_TRACKSTATUS] == olResponseAccepted)
+			if($recipient[PR_RECIPIENT_TRACKSTATUS] == olRecipientTrackStatusAccepted)
 				$acceptedrecips++;
 		}
 
@@ -1468,19 +1468,19 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 * Return the tracking status of a recipient based on the IPM class (passed)
 	 */
 	function getTrackStatus($class) {
-		$status = olResponseNotResponded;
+		$status = olRecipientTrackStatusNone;
 		switch($class)
 		{
 			case "IPM.Schedule.Meeting.Resp.Pos":
-				$status = olResponseAccepted;
+				$status = olRecipientTrackStatusAccepted;
 				break;
 				
 			case "IPM.Schedule.Meeting.Resp.Tent":
-				$status = olResponseTentative;
+				$status = olRecipientTrackStatusTentative;
 				break;	
 				
 			case "IPM.Schedule.Meeting.Resp.Neg":
-				$status = olResponseDeclined;
+				$status = olRecipientTrackStatusDeclined;
 				break;
 		}
 		return $status;
@@ -1945,7 +1945,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$organizer[PR_RECIPIENT_TYPE] = MAPI_TO;
 			$organizer[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_SENT_REPRESENTING_NAME];
 			$organizer[PR_ADDRTYPE] = empty($messageProps[PR_SENT_REPRESENTING_ADDRTYPE]) ? 'SMTP':$messageProps[PR_SENT_REPRESENTING_ADDRTYPE];
-			$organizer[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
+			$organizer[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;
 			$organizer[PR_RECIPIENT_FLAGS] = recipSendable | recipOrganizer;
 
 			// Add organizer to recipients list.
@@ -2384,7 +2384,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		if(count($resourceRecipients) > 0){
 			// Set Tracking status of resource recipients to olResponseAccepted (3)
 			for($i=0;$i<count($resourceRecipients);$i++){
-				$resourceRecipients[$i][PR_RECIPIENT_TRACKSTATUS] = olResponseAccepted;
+				$resourceRecipients[$i][PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusAccepted;
 				$resourceRecipients[$i][PR_RECIPIENT_TRACKSTATUS_TIME] = time();
 			}
 			mapi_message_modifyrecipients($message, MODRECIP_MODIFY, $resourceRecipients);
@@ -2910,12 +2910,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		foreach($recipsRows as $recipient) {
 			if(($recipient[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer){
 				// Recipient is attendee, set the trackstatus to "Not Responded"
-				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNotResponded;
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;
 			} else {
 				// Recipient is organizer, this is not possible, but for safety
 				// it is best to clear the trackstatus for him as well by setting
 				// the trackstatus to "Organized".
-				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseOrganized;
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;
 			}
 			mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
 		}
@@ -3073,7 +3073,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$delegator[PR_RECIPIENT_TYPE] = MAPI_TO;
 			$delegator[PR_RECIPIENT_DISPLAY_NAME] = $messageProps[PR_RCVD_REPRESENTING_NAME];
 			$delegator[PR_ADDRTYPE] = empty($messageProps[PR_RCVD_REPRESENTING_ADDRTYPE]) ? 'SMTP':$messageProps[PR_RCVD_REPRESENTING_ADDRTYPE];
-			$delegator[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
+			$delegator[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;
 			$delegator[PR_RECIPIENT_FLAGS] = recipSendable;
 
 			// Add organizer to recipients list.
