@@ -138,7 +138,7 @@ def UpdateDatabaseConvertSearchFolders(db, cursor, progress_callback):
     processed = 0    
     for result in results:
         new_rule_data = decode_wtf1252(dbresult2string(result[2])).encode('utf-8')
-        cursor.execute("UPDATE properties SET val_string='%s' WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (db.escape_string(new_rule_data), result[0], result[1]))
+        cursor.execute("UPDATE properties SET val_string=0x%s WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (binascii.hexlify(new_rule_data), result[0], result[1]))
         processed += 1
 
         progress_callback.setProgress(processed)
