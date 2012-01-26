@@ -889,6 +889,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "disabled_features", "imap pop3", CONFIGSETTING_RELOADABLE },
 		{ "counter_reset", "yes", CONFIGSETTING_RELOADABLE },
 		{ "mysql_group_concat_max_len", "21844", CONFIGSETTING_RELOADABLE },
+		{ "restrict_admin_permissions", "no", 0 },
 		{ NULL, NULL },
 	};
 

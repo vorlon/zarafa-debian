@@ -131,6 +131,7 @@ protected:
 	unsigned int		m_ulUserID; // current user id
 	unsigned int		m_ulCompanyID; // Company to which the user belongs to
 	objectdetails_t		m_details;
+	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
 	std::list<localobjectdetails_t> *m_lpGroups; // current user groups
 	std::list<localobjectdetails_t> *m_lpViewCompanies; // current visible companies
 	std::list<localobjectdetails_t> *m_lpAdminCompanies; // Companies where the user has admin rights on

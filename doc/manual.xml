@@ -3702,6 +3702,28 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>restrict_admin_permissions</option></term>
+			<listitem>
+				<para>Normally, admin users are granted all permissions on
+				all stores in the server, or for stores in the tenant's
+				company (in multi-tenant mode). Enabling this option
+				restricts permissions to folder operations: Folder viewing,
+				folder creation and importantly, folder permissions. This
+				means that an administrator can grant himself full
+				permissions on a folder. However, in combination with
+				auditing, it provides an extra level of security protection
+				against unwanted access.
+				</para>
+				<para>Note that some applications may require full access to
+				all stores, which would be restricted by this option. Also,
+				this option cannot be reset by sending a HUP signal, so a
+				full server restart is required to change the setting.
+				</para>
+				<para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>pam_service</option></term>
 			<listitem>
 				<para>This is the pam service name. Pam services can

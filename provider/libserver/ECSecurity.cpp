@@ -119,6 +119,7 @@ ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpLog
 	m_lpAdminCompanies = NULL;
 	m_ulUserID = 0;
 	m_ulCompanyID = 0;
+	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));
 }
 
 ECSecurity::~ECSecurity()
@@ -429,6 +430,12 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	unsigned int	ulObjectOwnerId = 0;
 	unsigned int	ulACL = 0;
 	int				nCheckType = 0;
+	
+	if(m_ulUserID == ZARAFA_UID_SYSTEM) {
+		// SYSTEM is always allowed everything
+		er = erSuccess;
+		goto exit;
+	}
 
 	// Is the current user the owner of the store
 	if(GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
@@ -460,10 +467,23 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 		}
 	}
 
-	// Since this is the most complicated check, do this one last
-	if(ulObjId == 0 || IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
+	if(ulObjId == 0) {
 		er = erSuccess;
 		goto exit;
+	}
+
+	// Since this is the most complicated check, do this one last
+	if(IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
+		if(!m_bRestrictedAdmin) {
+			er = erSuccess;
+			goto exit;
+		} else {
+			// If restricted admin mode is set, admins only receive folder permissions.
+			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityCreateFolder) {
+				er = erSuccess;
+				goto exit;
+			}
+		}
 	}
 
 	ulACL = 0;
