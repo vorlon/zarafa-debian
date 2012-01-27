@@ -467,11 +467,6 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 		}
 	}
 
-	if(ulObjId == 0) {
-		er = erSuccess;
-		goto exit;
-	}
-
 	// Since this is the most complicated check, do this one last
 	if(IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
 		if(!m_bRestrictedAdmin) {
