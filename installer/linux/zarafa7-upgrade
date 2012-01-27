@@ -10,6 +10,7 @@ import subprocess
 import getopt
 import MySQLdb
 import binascii
+import warnings
 
 # Some older MySQLdb versions return a list of bytes for VARBINARY fields.
 # Convert those to string..
@@ -450,10 +451,27 @@ def UpdateDatabaseConvertNames(db, cursor, progress_callback):
                    ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"""
 
     cursor.execute(table_def)
-    progress_callback.setTotal(1)
-    
-    cursor.execute("INSERT INTO names_temp (id,nameid,namestring,guid) SELECT id,nameid,CAST(CAST(CONVERT(namestring USING latin1) AS binary) AS CHAR CHARACTER SET utf8),guid FROM names")
-    progress_callback.setProgress(1)
+
+    cursor.execute("SELECT max(id) FROM names")
+    results = cursor.fetchall()
+    if len(results) == 0:
+        return
+    maxid = results[0][0]
+    if maxid == 0:
+        return
+
+    progress_callback.setTotal(maxid)
+    warnings.simplefilter("error", Warning)
+
+    for i in xrange(1,maxid+1):
+        try:
+            cursor.execute("INSERT INTO names_temp (id,nameid,namestring,guid) SELECT id,nameid,CAST(CAST(CONVERT(namestring USING latin1) AS binary) AS CHAR CHARACTER SET utf8),guid FROM names WHERE id = %d" % i)
+        except:
+            # retry as windows-1252
+            cursor.execute("REPLACE INTO names_temp (id,nameid,namestring,guid) SELECT id,nameid,CAST(namestring AS CHAR CHARACTER SET utf8),guid FROM names WHERE id = %d" % i)
+        progress_callback.setProgress(i)
+
+    warnings.resetwarnings()
     
     cursor.execute("RENAME TABLE names TO names_old, names_temp TO names")
     cursor.execute("DROP TABLE names_old")
