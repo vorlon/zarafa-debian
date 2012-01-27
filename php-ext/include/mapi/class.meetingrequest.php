@@ -1593,8 +1593,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$imessage = mapi_attach_openobj($exception, 0);
 				$imsgprops = mapi_getprops($imessage);
 
+				// If location is provided, copy it to the response
+				if (isset($imsgprops[$this->proptags['location']])) {
+					$messageprops[$this->proptags['location']] = $imsgprops[$this->proptags['location']];
+				}
+
 				// Update $messageprops with timings of occurrence
-				$messageprops[$this->proptags['location']] = $imsgprops[$this->proptags['location']];
 				$messageprops[$this->proptags['startdate']] = $imsgprops[$this->proptags['startdate']];
 				$messageprops[$this->proptags['duedate']] = $imsgprops[$this->proptags['duedate']];
 
