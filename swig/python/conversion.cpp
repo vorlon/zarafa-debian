@@ -2793,10 +2793,10 @@ LPECSVRNAMELIST List_to_LPECSVRNAMELIST(PyObject *object)
 		PyErr_Format(PyExc_TypeError, "Invalid list passed as servername list");
 		goto exit;
 	}
+	
+	MAPIAllocateBuffer(sizeof(ECSVRNAMELIST)+(sizeof(LPECSERVER) * len), (void**)&lpSvrNameList);
 
-	MAPIAllocateBuffer(sizeof(ECSVRNAMELIST)+(sizeof(ECSVRNAMELIST::lpszaServer) * len), (void**)&lpSvrNameList);
-
-	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST)+(sizeof(ECSVRNAMELIST::lpszaServer) * len) );
+	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST)+(sizeof(LPECSERVER) * len) );
 
 	iter = PyObject_GetIter(object);
 	if (iter == NULL)
