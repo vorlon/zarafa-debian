@@ -776,11 +776,6 @@
 						}
 					}
 				}
-				// adding selected message ID to sort array so we can return the particular item to 
-				// client while displaying the items in table
-				if(isset($action["sort"]["selectedmessageid"]) && $action["sort"]["selectedmessageid"]!= ""){
-					$this->sort["selectedmessageid"] = $action["sort"]["selectedmessageid"];
-				}
 			}
 			
 		}
