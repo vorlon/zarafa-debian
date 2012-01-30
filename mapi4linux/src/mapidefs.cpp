@@ -823,9 +823,11 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	entry->profilesection = new M4LProfSect();
 	if(!entry->profilesection) {
 		delete entry;
+		entry = NULL;
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
+	entry->profilesection->AddRef();
 	
 	// Set the default profilename
 	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &lpsPropValProfileName);
@@ -837,7 +839,6 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 		goto exit;
 
 	CoCreateGuid((LPGUID)&entry->uid);
-	entry->profilesection->AddRef();
 
 	// no need to free this, not a copy!
 	lpProvider->GetProps(&cProviderProps, &lpProviderProps);
@@ -890,6 +891,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	entry->servicename = szService;
 		
 	msa->providers.push_back(entry);
+	entry = NULL;
 
 	if(lpUID)
 		*lpUID = entry->uid;
@@ -900,6 +902,12 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	
 exit:
 	pthread_mutex_unlock(&msa->m_mutexserviceadmin);
+
+	if (entry) {
+		if (entry->profilesection)
+			entry->profilesection->Release();
+		delete entry;
+	}
 
 	if (lpsPropValProfileName)
 		MAPIFreeBuffer(lpsPropValProfileName);
@@ -915,6 +923,8 @@ HRESULT M4LProviderAdmin::DeleteProvider(LPMAPIUID lpUID) {
 	
 	for(i = msa->providers.begin(); i != msa->providers.end(); i++) {
 		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
+			(*i)->profilesection->Release();
+			delete *i;
 			msa->providers.erase(i);
 			hr = hrSuccess;
 			break;
