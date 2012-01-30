@@ -80,8 +80,8 @@ am_libzarafaclient_la_OBJECTS = ECABLogon.lo ECABProvider.lo \
 	WSABPropStorage.lo WSUtil.lo WSABTableView.lo \
 	WSStoreTableView.lo ClientUtil.lo ECExchangeModifyTable.lo \
 	ECExchangeExportChanges.lo ECExchangeImportContentsChanges.lo \
-	ECExchangeImportHierarchyChanges.lo ECMAPISupport.lo \
-	ECProfSect.lo ECMSProviderSwitch.lo ECMSProviderOffline.lo \
+	ECExchangeImportHierarchyChanges.lo ECProfSect.lo \
+	ECMSProviderSwitch.lo ECMSProviderOffline.lo \
 	ECABProviderSwitch.lo ECABProviderOffline.lo ProviderUtil.lo \
 	ECExportAddressbookChanges.lo ECMAPIFolderPublic.lo \
 	ECMemTablePublic.lo ECMsgStorePublic.lo ECChangeAdvisor.lo \
@@ -357,7 +357,6 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECExchangeImportContentsChanges.cpp ECExchangeImportContentsChanges.h							\
 	ECExchangeImportHierarchyChanges.cpp ECExchangeImportHierarchyChanges.h							\
 	ECICS.h 																		\
-	ECMAPISupport.cpp ECMAPISupport.h																\
 	ECProfSect.cpp ECProfSect.h																		\
 	ECMSProviderSwitch.cpp ECMSProviderSwitch.h	ECMSProviderOffline.h ECMSProviderOffline.cpp		\
 	ECABProviderSwitch.cpp ECABProviderSwitch.h	ECABProviderOffline.h ECABProviderOffline.cpp		\
@@ -469,7 +468,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPIFolder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPIFolderPublic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPIProp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPISupport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPITable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMSProvider.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMSProviderOffline.Plo@am__quote@

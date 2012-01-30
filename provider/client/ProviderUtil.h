@@ -67,7 +67,6 @@ typedef struct {
 
 typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
 
-HRESULT GetWrappedSupportObject(IMAPISupport* lpMAPISup, LPPROFSECT lpProfileObj, IMAPISupport** lppWrappedMAPISupport);
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
 
 HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags, WSTransport* lpTransport,

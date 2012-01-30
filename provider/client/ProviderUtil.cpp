@@ -56,7 +56,6 @@
 #include <mapiutil.h>
 #include <mapispi.h>
 
-#include "ECMAPISupport.h"
 #include "ClientUtil.h"
 #include "Mem.h"
 #include "stringutil.h"
@@ -97,32 +96,6 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-// Wrap Support object
-HRESULT GetWrappedSupportObject(IMAPISupport* lpMAPISup, LPPROFSECT lpProfileObj, IMAPISupport** lppWrappedMAPISupport)
-{
-	HRESULT			hr = hrSuccess;
-	
-	ECMAPISupport*	lpECMAPISupport = NULL;
-
-	if(lpMAPISup == NULL || lppWrappedMAPISupport == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = ECMAPISupport::Create(lpMAPISup, lpProfileObj, &lpECMAPISupport);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpECMAPISupport->QueryInterface(IID_IMAPISup, (void **)lppWrappedMAPISupport);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpECMAPISupport)
-		lpECMAPISupport->Release();
-
-	return hr;
-}
 
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
 {

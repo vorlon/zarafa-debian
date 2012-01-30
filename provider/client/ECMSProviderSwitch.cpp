@@ -65,9 +65,6 @@
 #include "Trace.h"
 #include "ECDebug.h"
 
-
-#include "ECMAPISupport.h"
-
 #include "edkguid.h"
 #include "EntryPoint.h"
 #include "DLLGlobal.h"
@@ -139,7 +136,6 @@ HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT			hr = hrSuccess;
-	IMAPISupport*	lpMAPISupport = NULL;
 	ECMsgStore*		lpecMDB = NULL;
 
 	sGlobalProfileProps	sProfileProps;
@@ -166,11 +162,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
 
 
-
-	// Wrap Support object
-	hr = GetWrappedSupportObject(lpMAPISup, NULL, &lpMAPISupport);
-	if (hr != hrSuccess)
-		goto exit;
 
 	// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
@@ -236,7 +227,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		bool fDone = false;
 
 		while(!fDone) {
-			hr = lpOnline->Logon(lpMAPISupport, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, NULL, NULL, NULL, &lpMSLogon, &lpMDB);
+			hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, NULL, NULL, NULL, &lpMSLogon, &lpMDB);
 			ulConnectType = CT_ONLINE;
 			{
 				fDone = true;
@@ -368,9 +359,6 @@ exit:
     if (lpIdentityProps)
         MAPIFreeBuffer(lpIdentityProps);
 
-	if (lpMAPISupport)
-		lpMAPISupport->Release();
-
 	if (lpStoreID)
 		MAPIFreeBuffer(lpStoreID);
 
@@ -380,7 +368,6 @@ exit:
 HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT hr = hrSuccess;
-	IMAPISupport *lpMAPISupport = NULL;
 	IMSProvider *lpProvider = NULL; // Do not release
 	PROVIDER_INFO sProviderInfo;
 	LPMDB lpMDB = NULL;
@@ -397,18 +384,13 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 		goto exit;
 	}
 
-	// Wrap Support object
-	hr = GetWrappedSupportObject(lpMAPISup, NULL, &lpMAPISupport);
-	if (hr != hrSuccess)
-		goto exit;
-
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		goto exit;
 
 		lpProvider = sProviderInfo.lpMSProviderOnline;
 
-	hr = lpProvider->SpoolerLogon(lpMAPISupport, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity, lpbSpoolSecurity, NULL, &lpMSLogon, &lpMDB);
+	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity, lpbSpoolSecurity, NULL, &lpMSLogon, &lpMDB);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -417,7 +399,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 		goto exit;
 
 	// Register ourselves with mapisupport
-	hr = lpMAPISupport->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0); 
+	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0); 
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -447,9 +429,6 @@ exit:
 	
 	if (lpMDB)
 		lpMDB->Release();
-
-	if (lpMAPISupport)
-		lpMAPISupport->Release();
 
 	return hr;
 }

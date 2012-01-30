@@ -63,8 +63,6 @@
 #include "Trace.h"
 #include "ECDebug.h"
 
-
-#include "ECMAPISupport.h"
 #include "EntryPoint.h"
 #include "mapiext.h"
 
