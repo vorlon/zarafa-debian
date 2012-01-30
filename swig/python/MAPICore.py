@@ -1334,6 +1334,8 @@ class IECServiceAdmin(IUnknown):
     def GetSendAsList(*args): return _MAPICore.IECServiceAdmin_GetSendAsList(*args)
     def AddSendAsUser(*args): return _MAPICore.IECServiceAdmin_AddSendAsUser(*args)
     def DelSendAsUser(*args): return _MAPICore.IECServiceAdmin_DelSendAsUser(*args)
+    def GetUserClientUpdateStatus(*args): return _MAPICore.IECServiceAdmin_GetUserClientUpdateStatus(*args)
+    def RemoveAllObjects(*args): return _MAPICore.IECServiceAdmin_RemoveAllObjects(*args)
     def CreateGroup(*args): return _MAPICore.IECServiceAdmin_CreateGroup(*args)
     def DeleteGroup(*args): return _MAPICore.IECServiceAdmin_DeleteGroup(*args)
     def SetGroup(*args): return _MAPICore.IECServiceAdmin_SetGroup(*args)

@@ -94,8 +94,8 @@ PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList);
 
 LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNames);
 PyObject *		List_from_LPNOTIFICATION(LPNOTIFICATION lpNotif, ULONG cNotifs);
-PyObject *		Object_from_p_NOTIFICATION(NOTIFICATION *lpNotif);
-NOTIFICATION *	Object_to_p_NOTIFICATION(PyObject *);
+PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif);
+NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *);
 
 LPFlagList		List_to_LPFlagList(PyObject *);
 PyObject *		List_from_LPFlagList(LPFlagList lpFlags);
@@ -123,7 +123,17 @@ PyObject *		List_from_LPECCOMPANY(LPECCOMPANY lpCompany, ULONG cElements);
 LPECQUOTA		Object_to_LPECQUOTA(PyObject *);
 PyObject *		Object_from_LPECQUOTA(LPECQUOTA lpQuota);
 
+PyObject *		Object_from_LPECQUOTASTATUS(LPECQUOTASTATUS lpQuotaStatus);
+
+PyObject *		Object_from_LPECUSERCLIENTUPDATESTATUS(LPECUSERCLIENTUPDATESTATUS lpECUCUS);
+
 LPROWLIST		List_to_LPROWLIST(PyObject *);
+
+LPECSVRNAMELIST List_to_LPECSVRNAMELIST(PyObject *object);
+
+PyObject *		Object_from_LPECSERVER(LPECSERVER lpServer);
+
+PyObject *		List_from_LPECSERVERLIST(LPECSERVERLIST lpServerList);
 
 void			Init();
 

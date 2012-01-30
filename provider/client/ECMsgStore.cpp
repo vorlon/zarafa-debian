@@ -1132,6 +1132,11 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		goto exit;
 	}*/
 
+	if (!lpMessage) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
 	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cValue, &lpsPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
@@ -1265,15 +1270,18 @@ HRESULT ECMsgStore::NotifyNewMail(LPNOTIFICATION lpNotification)
 	}*/
 
 	// Check input/output variables
-	if(lpNotification == NULL) {
+	if(lpNotification == NULL || lpNotification->info.newmail.lpParentID == NULL || lpNotification->info.newmail.lpEntryID == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	if(lpNotification->info.newmail.lpParentID == NULL) {
-		hr = MAPI_E_INVALID_ENTRYID;
+	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbEntryID, lpNotification->info.newmail.lpEntryID, &GetStoreGuid());
+	if(hr != hrSuccess)
 		goto exit;
-	}
+
+	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbParentID, lpNotification->info.newmail.lpParentID, &GetStoreGuid());
+	if(hr != hrSuccess)
+		goto exit;
 
 	hr = lpTransport->HrNotify(lpNotification);
 

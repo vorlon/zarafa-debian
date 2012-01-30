@@ -3051,104 +3051,105 @@ namespace Swig {
 #define SWIGTYPE_p_LPECSERVERLIST swig_types[60]
 #define SWIGTYPE_p_LPECSVRNAMELIST swig_types[61]
 #define SWIGTYPE_p_LPECUSER swig_types[62]
-#define SWIGTYPE_p_LPENTRYID swig_types[63]
-#define SWIGTYPE_p_LPENTRYLIST swig_types[64]
-#define SWIGTYPE_p_LPFNBUTTON swig_types[65]
-#define SWIGTYPE_p_LPFNDISMISS swig_types[66]
-#define SWIGTYPE_p_LPFlagList swig_types[67]
-#define SWIGTYPE_p_LPGUID swig_types[68]
-#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[69]
-#define SWIGTYPE_p_LPMAPIERROR swig_types[70]
-#define SWIGTYPE_p_LPMAPIFOLDER swig_types[71]
-#define SWIGTYPE_p_LPMAPINAMEID swig_types[72]
-#define SWIGTYPE_p_LPMAPIPROP swig_types[73]
-#define SWIGTYPE_p_LPMAPITABLE swig_types[74]
-#define SWIGTYPE_p_LPMAPIUID swig_types[75]
-#define SWIGTYPE_p_LPMDB swig_types[76]
-#define SWIGTYPE_p_LPMESSAGE swig_types[77]
-#define SWIGTYPE_p_LPNOTIFICATION swig_types[78]
-#define SWIGTYPE_p_LPREADSTATE swig_types[79]
-#define SWIGTYPE_p_LPROWLIST swig_types[80]
-#define SWIGTYPE_p_LPSPropProblemArray swig_types[81]
-#define SWIGTYPE_p_LPSPropTagArray swig_types[82]
-#define SWIGTYPE_p_LPSPropValue swig_types[83]
-#define SWIGTYPE_p_LPSRestriction swig_types[84]
-#define SWIGTYPE_p_LPSRowSet swig_types[85]
-#define SWIGTYPE_p_LPSSortOrderSet swig_types[86]
-#define SWIGTYPE_p_LPSTR swig_types[87]
-#define SWIGTYPE_p_LPTSTR swig_types[88]
-#define SWIGTYPE_p_LPUNKNOWN swig_types[89]
-#define SWIGTYPE_p_LPVOID swig_types[90]
-#define SWIGTYPE_p_MAPIAdviseSink swig_types[91]
-#define SWIGTYPE_p_MAPIINIT_0 swig_types[92]
-#define SWIGTYPE_p_MAPINotifSink swig_types[93]
-#define SWIGTYPE_p_STATSTG swig_types[94]
-#define SWIGTYPE_p_Stream swig_types[95]
-#define SWIGTYPE_p_ULARGE_INTEGER swig_types[96]
-#define SWIGTYPE_p_ULONG swig_types[97]
-#define SWIGTYPE_p_bool swig_types[98]
-#define SWIGTYPE_p_char swig_types[99]
-#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[100]
-#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[101]
-#define SWIGTYPE_p_p_ECLogger swig_types[102]
-#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[103]
-#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[104]
-#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[105]
-#define SWIGTYPE_p_p_IABContainer swig_types[106]
-#define SWIGTYPE_p_p_IAddrBook swig_types[107]
-#define SWIGTYPE_p_p_IAttach swig_types[108]
-#define SWIGTYPE_p_p_IDistList swig_types[109]
-#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[110]
-#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[111]
-#define SWIGTYPE_p_p_IECExportChanges swig_types[112]
-#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[113]
-#define SWIGTYPE_p_p_IECLicense swig_types[114]
-#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[115]
-#define SWIGTYPE_p_p_IECServiceAdmin swig_types[116]
-#define SWIGTYPE_p_p_IECSingleInstance swig_types[117]
-#define SWIGTYPE_p_p_IECTestProtocol swig_types[118]
-#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[119]
-#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[120]
-#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[121]
-#define SWIGTYPE_p_p_IExchangeManageStore swig_types[122]
-#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[123]
-#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[124]
-#define SWIGTYPE_p_p_IMAPIContainer swig_types[125]
-#define SWIGTYPE_p_p_IMAPIFolder swig_types[126]
-#define SWIGTYPE_p_p_IMAPIProgress swig_types[127]
-#define SWIGTYPE_p_p_IMAPIProp swig_types[128]
-#define SWIGTYPE_p_p_IMAPISession swig_types[129]
-#define SWIGTYPE_p_p_IMAPIStatus swig_types[130]
-#define SWIGTYPE_p_p_IMAPITable swig_types[131]
-#define SWIGTYPE_p_p_IMailUser swig_types[132]
-#define SWIGTYPE_p_p_IMessage swig_types[133]
-#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[134]
-#define SWIGTYPE_p_p_IMsgStore swig_types[135]
-#define SWIGTYPE_p_p_IProfAdmin swig_types[136]
-#define SWIGTYPE_p_p_IProfSect swig_types[137]
-#define SWIGTYPE_p_p_IProviderAdmin swig_types[138]
-#define SWIGTYPE_p_p_ISequentialStream swig_types[139]
-#define SWIGTYPE_p_p_IStream swig_types[140]
-#define SWIGTYPE_p_p_IUnknown swig_types[141]
-#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[142]
-#define SWIGTYPE_p_p_LPTSTR swig_types[143]
-#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[144]
-#define SWIGTYPE_p_p_MAPIERROR swig_types[145]
-#define SWIGTYPE_p_p_MAPINotifSink swig_types[146]
-#define SWIGTYPE_p_p_Stream swig_types[147]
-#define SWIGTYPE_p_p_char swig_types[148]
-#define SWIGTYPE_p_p_unsigned_char swig_types[149]
-#define SWIGTYPE_p_p_void swig_types[150]
-#define SWIGTYPE_p_tagLOCKTYPE swig_types[151]
-#define SWIGTYPE_p_tagSTATFLAG swig_types[152]
-#define SWIGTYPE_p_tagSTGTY swig_types[153]
-#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[154]
-#define SWIGTYPE_p_unsigned_char swig_types[155]
-#define SWIGTYPE_p_unsigned_int swig_types[156]
-#define SWIGTYPE_p_void swig_types[157]
-#define SWIGTYPE_p_wchar_t swig_types[158]
-static swig_type_info *swig_types[160];
-static swig_module_info swig_module = {swig_types, 159, 0, 0, 0, 0};
+#define SWIGTYPE_p_LPECUSERCLIENTUPDATESTATUS swig_types[63]
+#define SWIGTYPE_p_LPENTRYID swig_types[64]
+#define SWIGTYPE_p_LPENTRYLIST swig_types[65]
+#define SWIGTYPE_p_LPFNBUTTON swig_types[66]
+#define SWIGTYPE_p_LPFNDISMISS swig_types[67]
+#define SWIGTYPE_p_LPFlagList swig_types[68]
+#define SWIGTYPE_p_LPGUID swig_types[69]
+#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[70]
+#define SWIGTYPE_p_LPMAPIERROR swig_types[71]
+#define SWIGTYPE_p_LPMAPIFOLDER swig_types[72]
+#define SWIGTYPE_p_LPMAPINAMEID swig_types[73]
+#define SWIGTYPE_p_LPMAPIPROP swig_types[74]
+#define SWIGTYPE_p_LPMAPITABLE swig_types[75]
+#define SWIGTYPE_p_LPMAPIUID swig_types[76]
+#define SWIGTYPE_p_LPMDB swig_types[77]
+#define SWIGTYPE_p_LPMESSAGE swig_types[78]
+#define SWIGTYPE_p_LPNOTIFICATION swig_types[79]
+#define SWIGTYPE_p_LPREADSTATE swig_types[80]
+#define SWIGTYPE_p_LPROWLIST swig_types[81]
+#define SWIGTYPE_p_LPSPropProblemArray swig_types[82]
+#define SWIGTYPE_p_LPSPropTagArray swig_types[83]
+#define SWIGTYPE_p_LPSPropValue swig_types[84]
+#define SWIGTYPE_p_LPSRestriction swig_types[85]
+#define SWIGTYPE_p_LPSRowSet swig_types[86]
+#define SWIGTYPE_p_LPSSortOrderSet swig_types[87]
+#define SWIGTYPE_p_LPSTR swig_types[88]
+#define SWIGTYPE_p_LPTSTR swig_types[89]
+#define SWIGTYPE_p_LPUNKNOWN swig_types[90]
+#define SWIGTYPE_p_LPVOID swig_types[91]
+#define SWIGTYPE_p_MAPIAdviseSink swig_types[92]
+#define SWIGTYPE_p_MAPIINIT_0 swig_types[93]
+#define SWIGTYPE_p_MAPINotifSink swig_types[94]
+#define SWIGTYPE_p_STATSTG swig_types[95]
+#define SWIGTYPE_p_Stream swig_types[96]
+#define SWIGTYPE_p_ULARGE_INTEGER swig_types[97]
+#define SWIGTYPE_p_ULONG swig_types[98]
+#define SWIGTYPE_p_bool swig_types[99]
+#define SWIGTYPE_p_char swig_types[100]
+#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[101]
+#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[102]
+#define SWIGTYPE_p_p_ECLogger swig_types[103]
+#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[104]
+#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[105]
+#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[106]
+#define SWIGTYPE_p_p_IABContainer swig_types[107]
+#define SWIGTYPE_p_p_IAddrBook swig_types[108]
+#define SWIGTYPE_p_p_IAttach swig_types[109]
+#define SWIGTYPE_p_p_IDistList swig_types[110]
+#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[111]
+#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[112]
+#define SWIGTYPE_p_p_IECExportChanges swig_types[113]
+#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[114]
+#define SWIGTYPE_p_p_IECLicense swig_types[115]
+#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[116]
+#define SWIGTYPE_p_p_IECServiceAdmin swig_types[117]
+#define SWIGTYPE_p_p_IECSingleInstance swig_types[118]
+#define SWIGTYPE_p_p_IECTestProtocol swig_types[119]
+#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[120]
+#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[121]
+#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[122]
+#define SWIGTYPE_p_p_IExchangeManageStore swig_types[123]
+#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[124]
+#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[125]
+#define SWIGTYPE_p_p_IMAPIContainer swig_types[126]
+#define SWIGTYPE_p_p_IMAPIFolder swig_types[127]
+#define SWIGTYPE_p_p_IMAPIProgress swig_types[128]
+#define SWIGTYPE_p_p_IMAPIProp swig_types[129]
+#define SWIGTYPE_p_p_IMAPISession swig_types[130]
+#define SWIGTYPE_p_p_IMAPIStatus swig_types[131]
+#define SWIGTYPE_p_p_IMAPITable swig_types[132]
+#define SWIGTYPE_p_p_IMailUser swig_types[133]
+#define SWIGTYPE_p_p_IMessage swig_types[134]
+#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[135]
+#define SWIGTYPE_p_p_IMsgStore swig_types[136]
+#define SWIGTYPE_p_p_IProfAdmin swig_types[137]
+#define SWIGTYPE_p_p_IProfSect swig_types[138]
+#define SWIGTYPE_p_p_IProviderAdmin swig_types[139]
+#define SWIGTYPE_p_p_ISequentialStream swig_types[140]
+#define SWIGTYPE_p_p_IStream swig_types[141]
+#define SWIGTYPE_p_p_IUnknown swig_types[142]
+#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[143]
+#define SWIGTYPE_p_p_LPTSTR swig_types[144]
+#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[145]
+#define SWIGTYPE_p_p_MAPIERROR swig_types[146]
+#define SWIGTYPE_p_p_MAPINotifSink swig_types[147]
+#define SWIGTYPE_p_p_Stream swig_types[148]
+#define SWIGTYPE_p_p_char swig_types[149]
+#define SWIGTYPE_p_p_unsigned_char swig_types[150]
+#define SWIGTYPE_p_p_void swig_types[151]
+#define SWIGTYPE_p_tagLOCKTYPE swig_types[152]
+#define SWIGTYPE_p_tagSTATFLAG swig_types[153]
+#define SWIGTYPE_p_tagSTGTY swig_types[154]
+#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[155]
+#define SWIGTYPE_p_unsigned_char swig_types[156]
+#define SWIGTYPE_p_unsigned_int swig_types[157]
+#define SWIGTYPE_p_void swig_types[158]
+#define SWIGTYPE_p_wchar_t swig_types[159]
+static swig_type_info *swig_types[161];
+static swig_module_info swig_module = {swig_types, 160, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -10265,13 +10266,12 @@ SWIGINTERN PyObject *_wrap_IMsgStore_NotifyNewMail(PyObject *SWIGUNUSEDPARM(self
   LPNOTIFICATION arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   if (!PyArg_ParseTuple(args,(char *)"OO:IMsgStore_NotifyNewMail",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IMsgStore, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -10279,17 +10279,8 @@ SWIGINTERN PyObject *_wrap_IMsgStore_NotifyNewMail(PyObject *SWIGUNUSEDPARM(self
   }
   arg1 = reinterpret_cast< IMsgStore * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPNOTIFICATION,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IMsgStore_NotifyNewMail" "', argument " "2"" of type '" "LPNOTIFICATION""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IMsgStore_NotifyNewMail" "', argument " "2"" of type '" "LPNOTIFICATION""'");
-    } else {
-      LPNOTIFICATION * temp = reinterpret_cast< LPNOTIFICATION * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = Object_to_LPNOTIFICATION(obj1);
+    if(PyErr_Occurred()) goto fail;
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -10313,9 +10304,17 @@ SWIGINTERN PyObject *_wrap_IMsgStore_NotifyNewMail(PyObject *SWIGUNUSEDPARM(self
       SWIG_fail;
     }
   }
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -24993,10 +24992,10 @@ SWIGINTERN PyObject *_wrap_IExchangeManageStore_GetRights(PyObject *SWIGUNUSEDPA
   ULONG *arg6 = (ULONG *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   size_t size4 ;
@@ -25006,37 +25005,31 @@ SWIGINTERN PyObject *_wrap_IExchangeManageStore_GetRights(PyObject *SWIGUNUSEDPA
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   arg6 = &temp6;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IExchangeManageStore_GetRights",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IExchangeManageStore_GetRights",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IExchangeManageStore, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IExchangeManageStore_GetRights" "', argument " "1"" of type '" "IExchangeManageStore *""'"); 
   }
   arg1 = reinterpret_cast< IExchangeManageStore * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IExchangeManageStore_GetRights" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IExchangeManageStore_GetRights" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IExchangeManageStore_GetRights" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IExchangeManageStore_GetRights" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IExchangeManageStore_GetRights" "', argument " "4"" of type '" "ULONG""'");
     }
@@ -25077,11 +25070,17 @@ SWIGINTERN PyObject *_wrap_IExchangeManageStore_GetRights(PyObject *SWIGUNUSEDPA
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_ULONG, new_flags));
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
@@ -27326,18 +27325,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddSendAsUser(PyObject *SWIGUNUSEDPAR
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  unsigned int val4 ;
-  int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 ;
+  int alloc4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_AddSendAsUser",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_AddSendAsUser",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_AddSendAsUser" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -27356,22 +27354,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddSendAsUser(PyObject *SWIGUNUSEDPAR
       arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  ecode4 = SWIG_AsVal_unsigned_SS_int(obj2, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_AddSendAsUser" "', argument " "4"" of type '" "ULONG""'");
-  } 
-  arg4 = static_cast< ULONG >(val4);
   {
-    res5 = SWIG_ConvertPtr(obj3, &argp5, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_AddSendAsUser" "', argument " "5"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_AddSendAsUser" "', argument " "5"" of type '" "LPENTRYID""'");
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_AddSendAsUser" "', argument " "4"" of type '" "ULONG""'");
+    }
+    if(buf4 == NULL) {
+      arg4 = 0;
+      arg5 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp5);
-      arg5 = *temp;
-      if (SWIG_IsNewObj(res5)) delete temp;
+      arg4 = static_cast< ULONG >(size4 - 1);
+      arg5 = reinterpret_cast< LPENTRYID >(buf4);
     }
   }
   {
@@ -27399,11 +27392,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddSendAsUser(PyObject *SWIGUNUSEDPAR
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -27423,18 +27422,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelSendAsUser(PyObject *SWIGUNUSEDPAR
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  unsigned int val4 ;
-  int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 ;
+  int alloc4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_DelSendAsUser",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_DelSendAsUser",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_DelSendAsUser" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -27453,22 +27451,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelSendAsUser(PyObject *SWIGUNUSEDPAR
       arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  ecode4 = SWIG_AsVal_unsigned_SS_int(obj2, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_DelSendAsUser" "', argument " "4"" of type '" "ULONG""'");
-  } 
-  arg4 = static_cast< ULONG >(val4);
   {
-    res5 = SWIG_ConvertPtr(obj3, &argp5, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_DelSendAsUser" "', argument " "5"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DelSendAsUser" "', argument " "5"" of type '" "LPENTRYID""'");
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_DelSendAsUser" "', argument " "4"" of type '" "ULONG""'");
+    }
+    if(buf4 == NULL) {
+      arg4 = 0;
+      arg5 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp5);
-      arg5 = *temp;
-      if (SWIG_IsNewObj(res5)) delete temp;
+      arg4 = static_cast< ULONG >(size4 - 1);
+      arg5 = reinterpret_cast< LPENTRYID >(buf4);
     }
   }
   {
@@ -27477,6 +27470,182 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelSendAsUser(PyObject *SWIGUNUSEDPAR
       try {
         mark_call_from_python();
         result = (arg1)->DelSendAsUser(arg2,arg3,arg4,arg5);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserClientUpdateStatus(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
+  ULONG arg2 ;
+  LPENTRYID arg3 ;
+  ULONG arg4 ;
+  LPECUSERCLIENTUPDATESTATUS *arg5 = (LPECUSERCLIENTUPDATESTATUS *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
+  unsigned int fl4 ;
+  int ecode4 ;
+  LPECUSERCLIENTUPDATESTATUS temp5 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  ULONG ulFlags = 0;
+  temp5 = NULL; arg5 = &temp5;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetUserClientUpdateStatus",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetUserClientUpdateStatus" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
+  }
+  arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  {
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetUserClientUpdateStatus" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
+    } else {
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
+    }
+  }
+  {
+    ecode4 = SWIG_AsVal_unsigned_SS_int (obj2, &fl4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetUserClientUpdateStatus" "', argument " "4"" of type '" "ULONG""'");
+    } 
+    arg4 = fl4;
+    ulFlags = fl4;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->GetUserClientUpdateStatus(arg2,arg3,arg4,arg5);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECUSERCLIENTUPDATESTATUS(*(arg5)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IECServiceAdmin_RemoveAllObjects(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
+  ULONG arg2 ;
+  LPENTRYID arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_RemoveAllObjects",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_RemoveAllObjects" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
+  }
+  arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  {
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_RemoveAllObjects" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
+    } else {
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
+    }
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->RemoveAllObjects(arg2,arg3);
         unmark_call_from_python();
       } catch (const Swig::DirectorException &) {
         unmark_call_from_python();
@@ -27516,8 +27685,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateGroup(PyObject *SWIGUNUSEDPARM(
   LPENTRYID *arg5 = (LPENTRYID *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   ULONG cbEntryID4 = 0 ;
@@ -27528,6 +27695,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateGroup(PyObject *SWIGUNUSEDPARM(
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   ULONG ulFlags = 0;
   {
     arg4 = &cbEntryID4; arg5 = &lpEntryID4;
@@ -27539,17 +27707,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateGroup(PyObject *SWIGUNUSEDPARM(
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPECGROUP,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_CreateGroup" "', argument " "2"" of type '" "LPECGROUP""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_CreateGroup" "', argument " "2"" of type '" "LPECGROUP""'");
-    } else {
-      LPECGROUP * temp = reinterpret_cast< LPECGROUP * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = (LPECGROUP)obj1;
   }
   {
     ecode3 = SWIG_AsVal_unsigned_SS_int (obj2, &fl3);
@@ -27558,6 +27716,12 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateGroup(PyObject *SWIGUNUSEDPARM(
     } 
     arg3 = fl3;
     ulFlags = fl3;
+  }
+  {
+    arg2 = Object_to_LPECGROUP((PyObject*)arg2, ulFlags);
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_CreateGroup" "', argument " "2"" of type '" "LPECGROUP""'");
+    }
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -27587,12 +27751,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_CreateGroup(PyObject *SWIGUNUSEDPARM(
     }
   }
   {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
+  {
     if(*arg5)
     MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   {
     if(*arg5)
     MAPIFreeBuffer(*arg5);
@@ -27609,38 +27781,32 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteGroup(PyObject *SWIGUNUSEDPARM(
   LPENTRYID arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_DeleteGroup",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_DeleteGroup",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_DeleteGroup" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_DeleteGroup" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_DeleteGroup" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DeleteGroup" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_DeleteGroup" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
@@ -27665,9 +27831,15 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteGroup(PyObject *SWIGUNUSEDPARM(
       SWIG_fail;
     }
   }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -27680,8 +27852,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetGroup(PyObject *SWIGUNUSEDPARM(sel
   ULONG arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   PyObject * obj0 = 0 ;
@@ -27690,6 +27860,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetGroup(PyObject *SWIGUNUSEDPARM(sel
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   ULONG ulFlags = 0;
   if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_SetGroup",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
@@ -27698,17 +27869,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetGroup(PyObject *SWIGUNUSEDPARM(sel
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPECGROUP,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_SetGroup" "', argument " "2"" of type '" "LPECGROUP""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_SetGroup" "', argument " "2"" of type '" "LPECGROUP""'");
-    } else {
-      LPECGROUP * temp = reinterpret_cast< LPECGROUP * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = (LPECGROUP)obj1;
   }
   {
     ecode3 = SWIG_AsVal_unsigned_SS_int (obj2, &fl3);
@@ -27717,6 +27878,12 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetGroup(PyObject *SWIGUNUSEDPARM(sel
     } 
     arg3 = fl3;
     ulFlags = fl3;
+  }
+  {
+    arg2 = Object_to_LPECGROUP((PyObject*)arg2, ulFlags);
+    if(PyErr_Occurred()) {
+      SWIG_exception_fail(SWIG_ArgError(SWIG_ERROR), "in method '" "IECServiceAdmin_SetGroup" "', argument " "2"" of type '" "LPECGROUP""'");
+    }
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -27740,9 +27907,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_SetGroup(PyObject *SWIGUNUSEDPARM(sel
       SWIG_fail;
     }
   }
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -27757,60 +27932,48 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetGroup(PyObject *SWIGUNUSEDPARM(sel
   LPECGROUP *arg5 = (LPECGROUP *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
+  LPECGROUP temp5 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:IECServiceAdmin_GetGroup",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  temp5 = NULL; arg5 = &temp5;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetGroup",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetGroup" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_GetGroup" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_GetGroup" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_GetGroup" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetGroup" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    ecode4 = SWIG_AsVal_unsigned_SS_int (obj3, &fl4);
+    ecode4 = SWIG_AsVal_unsigned_SS_int (obj2, &fl4);
     if (!SWIG_IsOK(ecode4)) {
       SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetGroup" "', argument " "4"" of type '" "ULONG""'");
     } 
     arg4 = fl4;
     ulFlags = fl4;
   }
-  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_LPECGROUP, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_GetGroup" "', argument " "5"" of type '" "LPECGROUP *""'"); 
-  }
-  arg5 = reinterpret_cast< LPECGROUP * >(argp5);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -27833,9 +27996,27 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetGroup(PyObject *SWIGUNUSEDPARM(sel
       SWIG_fail;
     }
   }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECGROUP(*(arg5)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -28073,10 +28254,10 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteGroupUser(PyObject *SWIGUNUSEDP
   LPENTRYID arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   size_t size4 ;
@@ -28084,36 +28265,30 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteGroupUser(PyObject *SWIGUNUSEDP
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_DeleteGroupUser",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_DeleteGroupUser",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_DeleteGroupUser" "', argument " "4"" of type '" "ULONG""'");
     }
@@ -28148,11 +28323,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteGroupUser(PyObject *SWIGUNUSEDP
     }
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
@@ -28170,10 +28351,10 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddGroupUser(PyObject *SWIGUNUSEDPARM
   LPENTRYID arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   size_t size4 ;
@@ -28181,36 +28362,30 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddGroupUser(PyObject *SWIGUNUSEDPARM
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_AddGroupUser",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_AddGroupUser",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_AddGroupUser" "', argument " "4"" of type '" "ULONG""'");
     }
@@ -28245,11 +28420,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddGroupUser(PyObject *SWIGUNUSEDPARM
     }
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
@@ -28268,10 +28449,10 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserListOfGroup(PyObject *SWIGUNUS
   LPECUSER *arg6 = (LPECUSER *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   ULONG c5 ;
@@ -28279,38 +28460,32 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserListOfGroup(PyObject *SWIGUNUS
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
   lp5 = NULL; arg6 = &lp5; c5 = 0; arg5 = &c5;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_GetUserListOfGroup",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetUserListOfGroup",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    ecode4 = SWIG_AsVal_unsigned_SS_int (obj3, &fl4);
+    ecode4 = SWIG_AsVal_unsigned_SS_int (obj2, &fl4);
     if (!SWIG_IsOK(ecode4)) {
       SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetUserListOfGroup" "', argument " "4"" of type '" "ULONG""'");
     } 
@@ -28344,12 +28519,18 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserListOfGroup(PyObject *SWIGUNUS
     if(PyErr_Occurred()) goto fail;
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if(*arg6)
     MAPIFreeBuffer(*arg6);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if(*arg6)
     MAPIFreeBuffer(*arg6);
@@ -28722,17 +28903,16 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetCompany(PyObject *SWIGUNUSEDPARM(s
   int alloc2 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
+  LPECCOMPANY temp5 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_GetCompany",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  temp5 = NULL; arg5 = &temp5;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetCompany",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetCompany" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -28759,11 +28939,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetCompany(PyObject *SWIGUNUSEDPARM(s
     arg4 = fl4;
     ulFlags = fl4;
   }
-  res5 = SWIG_ConvertPtr(obj3, &argp5,SWIGTYPE_p_LPECCOMPANY, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_GetCompany" "', argument " "5"" of type '" "LPECCOMPANY *""'"); 
-  }
-  arg5 = reinterpret_cast< LPECCOMPANY * >(argp5);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -28787,13 +28962,25 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetCompany(PyObject *SWIGUNUSEDPARM(s
     }
   }
   {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECCOMPANY(*(arg5)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg5)
+    MAPIFreeBuffer(*arg5);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -29006,10 +29193,10 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddCompanyToRemoteViewList(PyObject *
   LPENTRYID arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   size_t size4 ;
@@ -29017,36 +29204,30 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddCompanyToRemoteViewList(PyObject *
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_AddCompanyToRemoteViewList",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_AddCompanyToRemoteViewList",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_AddCompanyToRemoteViewList" "', argument " "4"" of type '" "ULONG""'");
     }
@@ -29081,11 +29262,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddCompanyToRemoteViewList(PyObject *
     }
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
@@ -29103,10 +29290,10 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelCompanyFromRemoteViewList(PyObject
   LPENTRYID arg5 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   size_t size4 ;
@@ -29114,36 +29301,30 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelCompanyFromRemoteViewList(PyObject
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_DelCompanyFromRemoteViewList",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_DelCompanyFromRemoteViewList",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
   {
-    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
     if (!SWIG_IsOK(res4)) {
       SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_DelCompanyFromRemoteViewList" "', argument " "4"" of type '" "ULONG""'");
     }
@@ -29178,11 +29359,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DelCompanyFromRemoteViewList(PyObject
     }
   }
   {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
   {
     if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
@@ -29853,21 +30040,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddQuotaRecipient(PyObject *SWIGUNUSE
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  unsigned int val4 ;
-  int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 ;
+  int alloc4 = 0 ;
   unsigned int val6 ;
   int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:IECServiceAdmin_AddQuotaRecipient",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_AddQuotaRecipient",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -29886,25 +30072,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddQuotaRecipient(PyObject *SWIGUNUSE
       arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  ecode4 = SWIG_AsVal_unsigned_SS_int(obj2, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "4"" of type '" "ULONG""'");
-  } 
-  arg4 = static_cast< ULONG >(val4);
   {
-    res5 = SWIG_ConvertPtr(obj3, &argp5, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "5"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "5"" of type '" "LPENTRYID""'");
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "4"" of type '" "ULONG""'");
+    }
+    if(buf4 == NULL) {
+      arg4 = 0;
+      arg5 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp5);
-      arg5 = *temp;
-      if (SWIG_IsNewObj(res5)) delete temp;
+      arg4 = static_cast< ULONG >(size4 - 1);
+      arg5 = reinterpret_cast< LPENTRYID >(buf4);
     }
   }
-  ecode6 = SWIG_AsVal_unsigned_SS_int(obj4, &val6);
+  ecode6 = SWIG_AsVal_unsigned_SS_int(obj3, &val6);
   if (!SWIG_IsOK(ecode6)) {
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "IECServiceAdmin_AddQuotaRecipient" "', argument " "6"" of type '" "ULONG""'");
   } 
@@ -29934,11 +30115,17 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_AddQuotaRecipient(PyObject *SWIGUNUSE
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -29955,68 +30142,56 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteQuotaRecipient(PyObject *SWIGUN
   ULONG arg6 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  unsigned int val2 ;
-  int ecode2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  unsigned int val4 ;
-  int ecode4 = 0 ;
-  void *argp5 ;
-  int res5 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 ;
+  int alloc4 = 0 ;
   unsigned int val6 ;
   int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  PyObject * obj5 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:IECServiceAdmin_DeleteQuotaRecipient",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_DeleteQuotaRecipient",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "2"" of type '" "ULONG""'");
-  } 
-  arg2 = static_cast< ULONG >(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "3"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "3"" of type '" "LPENTRYID""'");
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  ecode4 = SWIG_AsVal_unsigned_SS_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "4"" of type '" "ULONG""'");
-  } 
-  arg4 = static_cast< ULONG >(val4);
   {
-    res5 = SWIG_ConvertPtr(obj4, &argp5, SWIGTYPE_p_LPENTRYID,  0  | 0);
-    if (!SWIG_IsOK(res5)) {
-      SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "5"" of type '" "LPENTRYID""'"); 
-    }  
-    if (!argp5) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "5"" of type '" "LPENTRYID""'");
+    res4 = SWIG_AsCharPtrAndSize(obj2, &buf4, &size4, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "4"" of type '" "ULONG""'");
+    }
+    if(buf4 == NULL) {
+      arg4 = 0;
+      arg5 = NULL;
     } else {
-      LPENTRYID * temp = reinterpret_cast< LPENTRYID * >(argp5);
-      arg5 = *temp;
-      if (SWIG_IsNewObj(res5)) delete temp;
+      arg4 = static_cast< ULONG >(size4 - 1);
+      arg5 = reinterpret_cast< LPENTRYID >(buf4);
     }
   }
-  ecode6 = SWIG_AsVal_unsigned_SS_int(obj5, &val6);
+  ecode6 = SWIG_AsVal_unsigned_SS_int(obj3, &val6);
   if (!SWIG_IsOK(ecode6)) {
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "IECServiceAdmin_DeleteQuotaRecipient" "', argument " "6"" of type '" "ULONG""'");
   } 
@@ -30043,9 +30218,21 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_DeleteQuotaRecipient(PyObject *SWIGUN
       SWIG_fail;
     }
   }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -30164,15 +30351,14 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuotaStatus(PyObject *SWIGUNUSEDPA
   char *buf2 = 0 ;
   size_t size2 ;
   int alloc2 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
+  LPECQUOTASTATUS temp4 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetQuotaStatus",&obj0,&obj1,&obj2)) SWIG_fail;
+  temp4 = NULL; arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_GetQuotaStatus",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetQuotaStatus" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -30191,11 +30377,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuotaStatus(PyObject *SWIGUNUSEDPA
       arg3 = reinterpret_cast< LPENTRYID >(buf2);
     }
   }
-  res4 = SWIG_ConvertPtr(obj2, &argp4,SWIGTYPE_p_LPECQUOTASTATUS, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_GetQuotaStatus" "', argument " "4"" of type '" "LPECQUOTASTATUS *""'"); 
-  }
-  arg4 = reinterpret_cast< LPECQUOTASTATUS * >(argp4);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -30219,13 +30400,25 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuotaStatus(PyObject *SWIGUNUSEDPA
     }
   }
   {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECQUOTASTATUS(*(arg4)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg4)
+    MAPIFreeBuffer(*arg4);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  {
+    if(*arg4)
+    MAPIFreeBuffer(*arg4);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
@@ -30416,38 +30609,27 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetServerDetails(PyObject *SWIGUNUSED
   LPECSERVERLIST *arg4 = (LPECSERVERLIST *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
+  LPECSERVERLIST temp4 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg2 = NULL;
   ULONG ulFlags = 0;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_GetServerDetails",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  temp4 = NULL; arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IECServiceAdmin_GetServerDetails",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_GetServerDetails" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
   }
   arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_LPECSVRNAMELIST,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_GetServerDetails" "', argument " "2"" of type '" "LPECSVRNAMELIST""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_GetServerDetails" "', argument " "2"" of type '" "LPECSVRNAMELIST""'");
-    } else {
-      LPECSVRNAMELIST * temp = reinterpret_cast< LPECSVRNAMELIST * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = List_to_LPECSVRNAMELIST(obj1);
+    if(PyErr_Occurred()) goto fail;
   }
   {
     ecode3 = SWIG_AsVal_unsigned_SS_int (obj2, &fl3);
@@ -30457,11 +30639,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetServerDetails(PyObject *SWIGUNUSED
     arg3 = fl3;
     ulFlags = fl3;
   }
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_LPECSERVERLIST, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_GetServerDetails" "', argument " "4"" of type '" "LPECSERVERLIST *""'"); 
-  }
-  arg4 = reinterpret_cast< LPECSERVERLIST * >(argp4);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -30484,9 +30661,29 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetServerDetails(PyObject *SWIGUNUSED
       SWIG_fail;
     }
   }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECSERVERLIST(*(arg4)));
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
+  {
+    if(*arg4)
+    MAPIFreeBuffer(*arg4);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer(arg2);
+  }
+  {
+    if(*arg4)
+    MAPIFreeBuffer(*arg4);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -30503,18 +30700,20 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_ResolvePseudoUrl(PyObject *SWIGUNUSED
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
+  char *lpStr3 = NULL ;
+  bool bBool4 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IECServiceAdmin_ResolvePseudoUrl",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  {
+    arg3 = &lpStr3;
+  }
+  {
+    arg4 = &bBool4;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_ResolvePseudoUrl",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_ResolvePseudoUrl" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
@@ -30525,16 +30724,6 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_ResolvePseudoUrl(PyObject *SWIGUNUSED
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_ResolvePseudoUrl" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_p_char, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IECServiceAdmin_ResolvePseudoUrl" "', argument " "3"" of type '" "char **""'"); 
-  }
-  arg3 = reinterpret_cast< char ** >(argp3);
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_bool, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_ResolvePseudoUrl" "', argument " "4"" of type '" "bool *""'"); 
-  }
-  arg4 = reinterpret_cast< bool * >(argp4);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -30557,11 +30746,25 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_ResolvePseudoUrl(PyObject *SWIGUNUSED
       SWIG_fail;
     }
   }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtr((char*)*arg3));
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((int)*arg4));
+  }
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  {
+    if(*arg3)
+    MAPIFreeBuffer(*arg3);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  {
+    if(*arg3)
+    MAPIFreeBuffer(*arg3);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -34827,6 +35030,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IECServiceAdmin_GetSendAsList", _wrap_IECServiceAdmin_GetSendAsList, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_AddSendAsUser", _wrap_IECServiceAdmin_AddSendAsUser, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_DelSendAsUser", _wrap_IECServiceAdmin_DelSendAsUser, METH_VARARGS, NULL},
+	 { (char *)"IECServiceAdmin_GetUserClientUpdateStatus", _wrap_IECServiceAdmin_GetUserClientUpdateStatus, METH_VARARGS, NULL},
+	 { (char *)"IECServiceAdmin_RemoveAllObjects", _wrap_IECServiceAdmin_RemoveAllObjects, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_CreateGroup", _wrap_IECServiceAdmin_CreateGroup, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_DeleteGroup", _wrap_IECServiceAdmin_DeleteGroup, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_SetGroup", _wrap_IECServiceAdmin_SetGroup, METH_VARARGS, NULL},
@@ -35357,6 +35562,7 @@ static swig_type_info _swigt__p_LPECQUOTASTATUS = {"_p_LPECQUOTASTATUS", "LPECQU
 static swig_type_info _swigt__p_LPECSERVERLIST = {"_p_LPECSERVERLIST", "LPECSERVERLIST *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPECSVRNAMELIST = {"_p_LPECSVRNAMELIST", "LPECSVRNAMELIST *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPECUSER = {"_p_LPECUSER", "LPECUSER *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_LPECUSERCLIENTUPDATESTATUS = {"_p_LPECUSERCLIENTUPDATESTATUS", "LPECUSERCLIENTUPDATESTATUS *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPENTRYID = {"_p_LPENTRYID", "LPENTRYID *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPENTRYLIST = {"_p_LPENTRYLIST", "LPENTRYLIST *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPFNBUTTON = {"_p_LPFNBUTTON", "LPFNBUTTON *", 0, 0, (void*)0, 0};
@@ -35518,6 +35724,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_LPECSERVERLIST,
   &_swigt__p_LPECSVRNAMELIST,
   &_swigt__p_LPECUSER,
+  &_swigt__p_LPECUSERCLIENTUPDATESTATUS,
   &_swigt__p_LPENTRYID,
   &_swigt__p_LPENTRYLIST,
   &_swigt__p_LPFNBUTTON,
@@ -35679,6 +35886,7 @@ static swig_cast_info _swigc__p_LPECQUOTASTATUS[] = {  {&_swigt__p_LPECQUOTASTAT
 static swig_cast_info _swigc__p_LPECSERVERLIST[] = {  {&_swigt__p_LPECSERVERLIST, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPECSVRNAMELIST[] = {  {&_swigt__p_LPECSVRNAMELIST, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPECUSER[] = {  {&_swigt__p_LPECUSER, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_LPECUSERCLIENTUPDATESTATUS[] = {  {&_swigt__p_LPECUSERCLIENTUPDATESTATUS, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPENTRYID[] = {  {&_swigt__p_LPENTRYID, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPENTRYLIST[] = {  {&_swigt__p_LPENTRYLIST, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPFNBUTTON[] = {  {&_swigt__p_LPFNBUTTON, 0, 0, 0},{0, 0, 0, 0}};
@@ -35840,6 +36048,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_LPECSERVERLIST,
   _swigc__p_LPECSVRNAMELIST,
   _swigc__p_LPECUSER,
+  _swigc__p_LPECUSERCLIENTUPDATESTATUS,
   _swigc__p_LPENTRYID,
   _swigc__p_LPENTRYLIST,
   _swigc__p_LPFNBUTTON,

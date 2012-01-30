@@ -81,6 +81,9 @@ static PyObject *PyTypeECUser;
 static PyObject *PyTypeECGroup;
 static PyObject *PyTypeECCompany;
 static PyObject *PyTypeECQuota;
+static PyObject *PyTypeECUserClientUpdateStatus;
+static PyObject *PyTypeECServer;
+static PyObject *PyTypeECQuotaStatus;
 
 static PyObject *PyTypeSAndRestriction;
 static PyObject *PyTypeSOrRestriction;
@@ -149,6 +152,9 @@ void Init()
     PyTypeECGroup = PyObject_GetAttrString(lpMAPIStruct, "ECGROUP");
     PyTypeECCompany = PyObject_GetAttrString(lpMAPIStruct, "ECCOMPANY");
     PyTypeECQuota = PyObject_GetAttrString(lpMAPIStruct, "ECQUOTA");
+	PyTypeECUserClientUpdateStatus = PyObject_GetAttrString(lpMAPIStruct, "ECUSERCLIENTUPDATESTATUS");
+	PyTypeECServer = PyObject_GetAttrString(lpMAPIStruct, "ECSERVER");
+	PyTypeECQuotaStatus = PyObject_GetAttrString(lpMAPIStruct, "ECQUOTASTATUS");
     
     PyTypeNEWMAIL_NOTIFICATION = PyObject_GetAttrString(lpMAPIStruct, "NEWMAIL_NOTIFICATION");
     PyTypeOBJECT_NOTIFICATION = PyObject_GetAttrString(lpMAPIStruct, "OBJECT_NOTIFICATION");
@@ -1395,7 +1401,10 @@ LPSSortOrderSet	Object_to_LPSSortOrderSet(PyObject *object)
     LPSSortOrderSet lpsSortOrderSet = NULL;
     Py_ssize_t len = 0;
     unsigned int i = 0;
-    
+
+	if(object == Py_None)
+		goto exit;	
+
     aSort = PyObject_GetAttrString(object, "aSort");
     cCategories = PyObject_GetAttrString(object, "cCategories");
     cExpanded = PyObject_GetAttrString(object, "cExpanded");
@@ -1921,8 +1930,9 @@ exit:
     return list;
 }
 
-LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNames)
+LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNotifs)
 {
+
 	return NULL;
 }
 
@@ -1932,7 +1942,7 @@ PyObject *		List_from_LPNOTIFICATION(LPNOTIFICATION lpNotif, ULONG cNotifs)
     PyObject *item = NULL;
     
     for(unsigned int i=0; i<cNotifs; i++) {
-        item = Object_from_p_NOTIFICATION(&lpNotif[i]);
+        item = Object_from_LPNOTIFICATION(&lpNotif[i]);
         if(PyErr_Occurred())
             goto exit;
             
@@ -1956,7 +1966,7 @@ exit:
     return list;
 }
 
-PyObject *		Object_from_p_NOTIFICATION(NOTIFICATION *lpNotif)
+PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 {
     PyObject *elem = NULL;
     PyObject *proptags = NULL;
@@ -2029,9 +2039,104 @@ exit:
     return elem;
 }
 
-NOTIFICATION *	Object_to_p_NOTIFICATION(PyObject *)
+NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 {
-	return NULL;
+	Py_ssize_t size;
+	PyObject *oTmp = NULL;
+	LPNOTIFICATION lpNotif = NULL;
+
+	if(obj == Py_None)
+		return NULL;
+
+	MAPIAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotif);
+	memset(lpNotif, 0, sizeof(NOTIFICATION));
+
+	if(PyObject_IsInstance(obj, PyTypeNEWMAIL_NOTIFICATION))
+	{
+		lpNotif->ulEventType = fnevNewMail;
+
+		Py_ssize_t size;
+		oTmp = PyObject_GetAttrString(obj, "lpEntryID");
+	    if(!oTmp) {
+	        PyErr_SetString(PyExc_RuntimeError, "lpEntryID missing for newmail notification");
+       		goto exit;
+	    }
+
+		if (oTmp != Py_None) {
+			PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpEntryID, &size);
+			lpNotif->info.newmail.cbEntryID = size;
+		}
+
+		Py_DECREF(oTmp);
+
+        oTmp = PyObject_GetAttrString(obj, "lpParentID");
+	        if(!oTmp) {
+                PyErr_SetString(PyExc_RuntimeError, "lpParentID missing for newmail notification");
+                goto exit;
+            }
+
+		 if (oTmp != Py_None) {
+            PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpParentID, &size);
+            lpNotif->info.newmail.cbParentID = size;
+		 }
+
+            Py_DECREF(oTmp);
+
+			oTmp = PyObject_GetAttrString(obj, "ulFlags");
+			if(!oTmp) {
+				PyErr_SetString(PyExc_RuntimeError, "ulFlags missing for newmail notification");
+				goto exit;
+			}
+
+			if (oTmp != Py_None) {
+				lpNotif->info.newmail.ulFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
+			}
+
+			Py_DECREF(oTmp);
+
+            oTmp = PyObject_GetAttrString(obj, "ulMessageFlags");
+            if(!oTmp) {
+                PyErr_SetString(PyExc_RuntimeError, "ulMessageFlags missing for newmail notification");
+                goto exit;
+            }
+
+			if (oTmp != Py_None) {
+	            lpNotif->info.newmail.ulFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
+			}
+            Py_DECREF(oTmp);
+
+			// MessageClass
+			oTmp= PyObject_GetAttrString(obj, "lpszMessageClass");
+			if(!oTmp) {
+				PyErr_SetString(PyExc_RuntimeError, "lpszMessageClass missing for newmail notification");
+				goto exit;
+			}
+
+			if (oTmp != Py_None) {
+				if(lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
+    	        	lpNotif->info.newmail.lpszMessageClass = (WCHAR*)PyUnicode_AsUnicode(oTmp);
+				else
+					PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpszMessageClass, NULL);
+			}
+
+			Py_DECREF(oTmp);
+			oTmp = NULL;
+			
+	} else {
+		PyErr_Format(PyExc_RuntimeError, "Bad object type %x", obj->ob_type);
+	}
+
+exit:
+    if(PyErr_Occurred()) {
+        if(lpNotif)
+            MAPIFreeBuffer(lpNotif);
+        lpNotif = NULL;
+    }
+
+	if(oTmp)
+		Py_DECREF(oTmp);
+
+	return lpNotif;
 }
 
 LPFlagList		List_to_LPFlagList(PyObject *list)
@@ -2304,6 +2409,9 @@ LPECUSER Object_to_LPECUSER(PyObject *elem, ULONG ulFlags) {
 	HRESULT hr = hrSuccess;
 	LPECUSER lpUser = NULL;
 
+	if (elem == Py_None)
+		goto exit;
+
 	hr = MAPIAllocateBuffer(sizeof *lpUser, (LPVOID*)&lpUser);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
@@ -2373,6 +2481,9 @@ LPECGROUP Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 	LPECGROUP lpGroup = NULL;
 
+	if (elem == Py_None)
+		goto exit;
+
 	hr = MAPIAllocateBuffer(sizeof *lpGroup, (LPVOID*)&lpGroup);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
@@ -2440,6 +2551,9 @@ LPECCOMPANY Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 	LPECCOMPANY lpCompany = NULL;
 
+	if (elem == Py_None)
+		goto exit;
+
 	hr = MAPIAllocateBuffer(sizeof *lpCompany, (LPVOID*)&lpCompany);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
@@ -2494,6 +2608,13 @@ exit:
 
 	return list;
 }
+
+PyObject *Object_from_LPECUSERCLIENTUPDATESTATUS(LPECUSERCLIENTUPDATESTATUS lpECUCUS)
+{
+	// @todo charset conversion ?
+	return PyObject_CallFunction(PyTypeECUserClientUpdateStatus, "(llsssl)", lpECUCUS->ulTrackId, lpECUCUS->tUpdatetime, lpECUCUS->lpszCurrentversion, lpECUCUS->lpszLatestversion, lpECUCUS->lpszComputername, lpECUCUS->ulStatus);
+}
+
 
 LPROWLIST List_to_LPROWLIST(PyObject *object)
 {
@@ -2625,6 +2746,9 @@ LPECQUOTA Object_to_LPECQUOTA(PyObject *elem)
 	HRESULT hr = hrSuccess;
 	LPECQUOTA lpQuota = NULL;
 
+	if (elem == Py_None)
+		goto exit;
+
 	hr = MAPIAllocateBuffer(sizeof *lpQuota, (LPVOID*)&lpQuota);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
@@ -2646,4 +2770,110 @@ exit:
 PyObject *Object_from_LPECQUOTA(LPECQUOTA lpQuota)
 {
 	return PyObject_CallFunction(PyTypeECQuota, "(llLLL)", lpQuota->bUseDefaultQuota, lpQuota->bIsUserDefaultQuota, lpQuota->llWarnSize, lpQuota->llSoftSize, lpQuota->llHardSize);
+}
+
+PyObject *Object_from_LPECQUOTASTATUS(LPECQUOTASTATUS lpQuotaStatus)
+{
+	return PyObject_CallFunction(PyTypeECQuotaStatus, "Ll", lpQuotaStatus->llStoreSize, lpQuotaStatus->quotaStatus);
+}
+
+LPECSVRNAMELIST List_to_LPECSVRNAMELIST(PyObject *object)
+{
+	HRESULT hr = hrSuccess;
+	Py_ssize_t len = 0;
+	PyObject *iter = NULL;
+	PyObject *elem = NULL;
+	LPECSVRNAMELIST lpSvrNameList = NULL;
+
+	if (object == Py_None)
+		goto exit;
+
+	len = PyObject_Length(object);
+	if (len < 0) {
+		PyErr_Format(PyExc_TypeError, "Invalid list passed as servername list");
+		goto exit;
+	}
+
+	MAPIAllocateBuffer(sizeof(ECSVRNAMELIST)+(sizeof(ECSVRNAMELIST::lpszaServer) * len), (void**)&lpSvrNameList);
+
+	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST)+(sizeof(ECSVRNAMELIST::lpszaServer) * len) );
+
+	iter = PyObject_GetIter(object);
+	if (iter == NULL)
+		goto exit;
+
+	while ((elem = PyIter_Next(iter))) {
+		char *ptr = NULL;
+		Py_ssize_t strlen = 0;
+
+		PyString_AsStringAndSize(elem, &ptr, &strlen);
+		if (PyErr_Occurred())
+			goto exit;
+		
+		hr = MAPIAllocateMore(strlen,  lpSvrNameList, (void**)&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]);
+		if (hr != hrSuccess) {
+			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
+			goto exit;
+		}
+
+		memcpy(lpSvrNameList->lpszaServer[lpSvrNameList->cServers], ptr, strlen);
+
+		Py_DECREF(elem);
+		elem = NULL;
+		lpSvrNameList->cServers++;
+	}
+
+
+exit:
+    if(PyErr_Occurred()) {
+        if(lpSvrNameList)
+            MAPIFreeBuffer(lpSvrNameList);
+        lpSvrNameList = NULL;
+    }
+    if(elem) {
+        Py_DECREF(elem);
+    }
+
+    if(iter) {
+        Py_DECREF(iter);
+    }
+
+	return lpSvrNameList;
+}
+
+PyObject *Object_from_LPECSERVER(LPECSERVER lpServer)
+{
+	return PyObject_CallFunction(PyTypeECServer, "(sssssl)", lpServer->lpszName, lpServer->lpszFilePath, lpServer->lpszHttpPath, lpServer->lpszSslPath, lpServer->lpszPreferedPath, lpServer->ulFlags);
+}
+
+PyObject *List_from_LPECSERVERLIST(LPECSERVERLIST lpServerList)
+{
+    PyObject *list = PyList_New(0);
+    PyObject *item = NULL;
+
+    for(unsigned int i=0; i<lpServerList->cServers; i++) {
+        item = Object_from_LPECSERVER(&lpServerList->lpsaServer[i]);
+        if (PyErr_Occurred())
+            goto exit;
+
+        PyList_Append(list, item);
+
+        Py_DECREF(item);
+        item = NULL;
+    }
+
+exit:
+    if(PyErr_Occurred()) {
+        if(list) {
+            Py_DECREF(list);
+        }
+        list = NULL;
+    }
+
+    if(item) {
+        Py_DECREF(item);
+    }
+
+    return list;
+
 }

@@ -261,6 +261,24 @@ class ECCOMPANY(MAPIStruct):
         self.IsHidden = IsHidden
         self.CompanyID = CompanyID
 
+class ECUSERCLIENTUPDATESTATUS(MAPIStruct):
+    def __init__(self, TrackId, Updatetime, Currentversion, Latestversion, Computername, Status):
+        self.TrackId = TrackId
+        self.Updatetime = Updatetime
+        self.Currentversion = Currentversion
+        self.Latestversion = Latestversion
+        self.Computername = Computername
+        self.Status = Status
+
+class ECSERVER(MAPIStruct):
+    def __init__(self, Name, FilePath, HttpPath, SslPath, PreferedPath, Flags):
+        self.Name = Name
+        self.FilePath = FilePath
+        self.HttpPath = HttpPath
+        self.SslPath = SslPath
+        self.PreferedPath = PreferedPath
+        self.Flags = Flags
+
 class ERROR_NOTIFICATION(MAPIStruct):
     def __init__(self, lpEntryID, scode, ulFlags, lpMAPIError):
         self.lpEntryID = lpEntryID
@@ -306,4 +324,10 @@ class ECQUOTA(MAPIStruct):
         self.llWarnSize = llWarnSize
         self.llSoftSize = llSoftSize
         self.llHardSize = llHardSize
-        
+
+class ECQUOTASTATUS(MAPIStruct):
+    def __init_(self, StoreSize, QuotaStatus):
+        self.StoreSize = StoreSize
+        self.QuotaStatus = QuotaStatus
+
+

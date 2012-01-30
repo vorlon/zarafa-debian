@@ -1006,6 +1006,7 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 
 	sNotification.ulEventType = lpNotification->ulEventType;
 	sNotification.newmail = new notificationNewMail;
+	memset(&sNotification.newmail, 0, sizeof(notificationNewMail));
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(lpNotification->info.newmail.cbEntryID, (LPENTRYID)lpNotification->info.newmail.lpEntryID, &sNotification.newmail->pEntryId);
 	if(hr != hrSuccess)
@@ -2845,6 +2846,11 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULO
 
 	LockSoap();
 
+	if (!lpGroupId || !lpUserId) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
 		goto exit;
@@ -2876,6 +2882,11 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG 
 	entryId sUserId = {0};
 
 	LockSoap();
+
+	if (!lpGroupId || !lpUserId) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
@@ -3818,7 +3829,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserD
 	
 	LockSoap();
 	
-	if(lppsQuota == NULL) {
+	if(lppsQuota == NULL || lpUserId == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -4121,6 +4132,10 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	ECsResolveResult				*lpCachedResult = NULL;
 	ECsResolveResult				cachedResult;
 
+	if (lpszPseudoUrl == NULL || lppszServerPath == NULL) {
+		return MAPI_E_INVALID_PARAMETER;
+	}
+
 	// First try the cache
 	pthread_mutex_lock(&m_ResolveResultCacheMutex);
 	er = m_ResolveResultCache.GetCacheItem(lpszPseudoUrl, &lpCachedResult);
@@ -4143,12 +4158,6 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 
 	// Cache failed. Try the server
 	LockSoap();
-
-	if (lpszPseudoUrl == NULL || lppszServerPath == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
 	START_SOAP_CALL
 	{
