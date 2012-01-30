@@ -160,6 +160,7 @@ ECMsgStore::ECMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpT
 	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EC_STATSTABLE_SESSIONS,	GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EC_STATSTABLE_USERS,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
+	HrAddPropHandlers(PR_EC_STATSTABLE_COMPANY,     GetPropHandler,     DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 
 	HrAddPropHandlers(PR_TEST_LINE_SPEED,			GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EMSMDB_SECTION_UID,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
@@ -1359,15 +1360,8 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			lpsPropValue->ulPropTag = PR_RECEIVE_FOLDER_SETTINGS;
 			lpsPropValue->Value.x = 1;
 			break;
-		case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):	// == PROP_ID(PR_MESSAGE_SIZE)
+		case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):	
 			hr = lpStore->HrGetRealProp(PR_MESSAGE_SIZE_EXTENDED, ulFlags, lpBase, lpsPropValue);
-			if(hr != hrSuccess) {
-				break;
-			}
-			if (ulPropTag == PR_MESSAGE_SIZE) {
-				lpsPropValue->ulPropTag = PR_MESSAGE_SIZE;
-				lpsPropValue->Value.ul = (ULONG)lpsPropValue->Value.li.QuadPart;
-			}
 			break;
 		case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
 			lpsPropValue->ulPropTag = PR_QUOTA_WARNING_THRESHOLD;
