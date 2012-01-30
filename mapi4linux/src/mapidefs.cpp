@@ -891,10 +891,11 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	entry->servicename = szService;
 		
 	msa->providers.push_back(entry);
-	entry = NULL;
 
 	if(lpUID)
 		*lpUID = entry->uid;
+
+	entry = NULL;
 
 	// We should really call the MSGServiceEntry with MSG_SERVICE_PROVIDER_CREATE, but there
 	// isn't much use at the moment. (since we don't store the profile data on disk? or why not?)
