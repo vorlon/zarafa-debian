@@ -772,10 +772,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 
 				if (isset($props[$this->proptags['intendedbusystatus']])) {
-				   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : $props[$this->proptags['intendedbusystatus']];
-				   // we already have intendedbusystatus value in $props so no need to copy it
+					if($tentative && $props[$this->proptags['intendedbusystatus']] !== fbFree) {
+						$props[$this->proptags['busystatus']] = $tentative;
+					} else {
+						$props[$this->proptags['busystatus']] = $props[$this->proptags['intendedbusystatus']];
+					}
+					// we already have intendedbusystatus value in $props so no need to copy it
 				} else {
-				   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+					$props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
 				}
 
 				if($userAction) {
@@ -854,10 +858,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						$calItemProps[PR_MESSAGE_CLASS] = "IPM.Appointment";
 
 						if (isset($messageprops[$this->proptags['intendedbusystatus']])) {
-						   $calItemProps[$this->proptags['busystatus']] = $tentative ? fbTentative : $messageprops[$this->proptags['intendedbusystatus']];
-						   $calItemProps[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+							if($tentative && $messageprops[$this->proptags['intendedbusystatus']] !== fbFree) {
+								$calItemProps[$this->proptags['busystatus']] = $tentative;
+							} else {
+								$calItemProps[$this->proptags['busystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+							}
+							$calItemProps[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 						} else {
-						   $calItemProps[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+							$calItemProps[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
 						}
 
 						// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
@@ -910,10 +918,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 
 						if (isset($props[$this->proptags['intendedbusystatus']])) {
-						   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : $props[$this->proptags['intendedbusystatus']];
-						   //  we already have intendedbusystatus value in $props so no need to copy it
+							if($tentative && $props[$this->proptags['intendedbusystatus']] !== fbFree) {
+								$props[$this->proptags['busystatus']] = $tentative;
+							} else {
+								$props[$this->proptags['busystatus']] = $props[$this->proptags['intendedbusystatus']];
+							}
+							// we already have intendedbusystatus value in $props so no need to copy it
 						} else {
-						   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+							$props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
 						}
 
 						if($userAction) {
@@ -957,10 +969,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$props[$this->proptags['responsestatus']] = $tentative ? olResponseTentative : olResponseAccepted;
 
 			if (isset($messageprops[$this->proptags['intendedbusystatus']])) {
-			   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : $messageprops[$this->proptags['intendedbusystatus']];
-			   $props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+				if($tentative && $messageprops[$this->proptags['intendedbusystatus']] !== fbFree) {
+					$props[$this->proptags['busystatus']] = $tentative;
+				} else {
+					$props[$this->proptags['busystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
+				}
+				$props[$this->proptags['intendedbusystatus']] = $messageprops[$this->proptags['intendedbusystatus']];
 			} else {
-			   $props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+				$props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
 			}
 
 			$props[$this->proptags['meetingstatus']] = olMeetingReceived;
@@ -2449,10 +2465,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// Set basedate property (ExceptionReplaceTime)
 
 		if (isset($exception_props[$this->proptags['intendedbusystatus']])) {
-		   $exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : $exception_props[$this->proptags['intendedbusystatus']];
-		   //  we already have intendedbusystatus value in $exception_props so no need to copy it
+			if($tentative && $exception_props[$this->proptags['intendedbusystatus']] !== fbFree) {
+				$exception_props[$this->proptags['busystatus']] = $tentative;
+			} else {
+				$exception_props[$this->proptags['busystatus']] = $exception_props[$this->proptags['intendedbusystatus']];
+			}
+			// we already have intendedbusystatus value in $exception_props so no need to copy it
 		} else {
-		   $exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
+			$exception_props[$this->proptags['busystatus']] = $tentative ? fbTentative : fbBusy;
 		}
 
 		if($userAction) {
