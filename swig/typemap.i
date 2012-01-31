@@ -450,7 +450,7 @@
 %apply MAPILIST INOUT {LPADRLIST INOUT, LPFlagList INOUT };
 
 // Classes
-%apply MAPICLASS *{IMAPISession **, IProfAdmin **, IMsgServiceAdmin **, IMAPITable **, IMsgStore **, IMAPIFolder **, IMAPITable **, IStream **, IMessage **, IAttach **, IAddrBook **, IProviderAdmin **, IProfSect **}
+%apply MAPICLASS *{IMAPISession **, IProfAdmin **, IMsgServiceAdmin **, IMAPITable **, IMsgStore **, IMAPIFolder **, IMAPITable **, IStream **, IMessage **, IAttach **, IAddrBook **, IProviderAdmin **, IProfSect **, IUnknown **}
 
 // Specialization for LPSRowSet and LPADRLIST
 %typemap(freearg) LPSRowSet *OUTPUT, LPADRLIST *OUTPUT

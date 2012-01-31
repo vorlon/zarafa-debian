@@ -3931,6 +3931,7 @@ swig_type_info *TypeFromIID(REFIID iid)
   TYPECASE(IECChangeAdviseSink)
   TYPECASE(IECSingleInstance)
   TYPECASE(IECLicense)
+  TYPECASE(IProxyStoreObject)
   return NULL;
 }
 
@@ -3961,6 +3962,7 @@ LPCIID IIDFromType(const char *type)
   IIDCASE(IECChangeAdviseSink)
   IIDCASE(IECSingleInstance)
   IIDCASE(IECLicense)
+  IIDCASE(IProxyStoreObject)
   return &IID_IUnknown;
 }
 
