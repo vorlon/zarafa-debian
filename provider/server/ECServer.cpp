@@ -1151,6 +1151,10 @@ int running_server(char *szName, const char *szConfig)
 				if (i < 29) {
 					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, waiting 2s for retry.");
 					sleep_ms(2000);
+				} else {
+					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed still not running 60s. Distributed features are unavailable.");
+					retval = -1;
+					goto exit;
 				}
 				continue;
 			}

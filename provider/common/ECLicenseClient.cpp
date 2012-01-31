@@ -116,7 +116,7 @@ ECRESULT ECLicenseClient::QueryCapability(unsigned int ulServiceType, const std:
 	if (er != erSuccess)
 		goto exit;
 
-    er = DoCmd("QUERY " + strServiceType, vResult);
+    er = DoCmd("QUERY " + strServiceType + " " + strCapability, vResult);
     if (er != erSuccess)
 		goto exit;
 
