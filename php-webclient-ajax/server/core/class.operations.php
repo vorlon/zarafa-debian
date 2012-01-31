@@ -876,12 +876,11 @@
 					mapi_table_sort($table, $sort, TBL_BATCH);
 				}
 
-				// Not all php-ext implementations have mapi_table_findrow and mapi_table_queryposition, so check
+				// Not all php-ext implementations have mapi_table_findrow, so check
 				// before usage.
-				if (function_exists('mapi_table_findrow') && function_exists('mapi_table_queryposition')) {
-					mapi_table_findrow($table, array(RES_PROPERTY, array(RELOP => RELOP_EQ, ULPROPTAG => PR_ENTRYID, VALUE => $messageid)));
-					if (mapi_last_hresult() == 0) {
-						$rowNum = mapi_table_queryposition($table);
+				if (function_exists('mapi_table_findrow')) {
+					$rowNum = mapi_table_findrow($table, array(RES_PROPERTY, array(RELOP => RELOP_EQ, ULPROPTAG => PR_ENTRYID, VALUE => $messageid)));
+					if ($rowNum !== false) {
 						$start = floor($rowNum / $rowcount) * $rowcount;
 					}
 				} else {

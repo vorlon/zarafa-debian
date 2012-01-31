@@ -319,7 +319,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_table_sort, NULL)
 	ZEND_FE(mapi_table_restrict, NULL)
 	ZEND_FE(mapi_table_findrow, NULL)
-	ZEND_FE(mapi_table_queryposition, NULL)
 
 	ZEND_FE(mapi_folder_gethierarchytable, NULL)
 	ZEND_FE(mapi_folder_getcontentstable, NULL)
@@ -2558,6 +2557,9 @@ ZEND_FUNCTION(mapi_table_findrow)
 	// local
 	LPMAPITABLE		lpTable = NULL;
 	LPSRestriction	lpRestrict = NULL;
+	ULONG ulRow = 0;
+	ULONG ulNumerator = 0;
+	ULONG ulDenominator = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2582,39 +2584,16 @@ ZEND_FUNCTION(mapi_table_findrow)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	RETVAL_TRUE;
-
-exit:
-	if (lpRestrict)
-		MAPIFreeBuffer(lpRestrict);
-
-	THROW_ON_ERROR();
-	return;
-}
-
-ZEND_FUNCTION(mapi_table_queryposition)
-{
-	// params
-	zval *res;
-	LPMAPITABLE	lpTable = NULL;
-	// return value
-	ULONG ulRow = 0;
-	ULONG ulNumerator = 0;
-	ULONG ulDenominator = 0;
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
-
-	ZEND_FETCH_RESOURCE(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
-
 	MAPI_G(hr) = lpTable->QueryPosition(&ulRow, &ulNumerator, &ulDenominator);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
 
 	RETVAL_LONG(ulRow);
+
 exit:
+	if (lpRestrict)
+		MAPIFreeBuffer(lpRestrict);
+
 	THROW_ON_ERROR();
 	return;
 }
