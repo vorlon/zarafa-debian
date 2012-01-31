@@ -736,7 +736,6 @@ int running_server(char *szName, const char *szConfig)
 	
 	bool			hosted = false;
 	bool			distributed = false;
-	bool			mslicense = false;
 
 	// SIGSEGV backtrace support
 	stack_t st = {0};
@@ -971,32 +970,6 @@ int running_server(char *szName, const char *szConfig)
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
 
-	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
-	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
-
-	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
-
-	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
-	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
-	} else {
-		if (!strSerial.empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
-
-			if (distributed) {
-				vector<string> lCaps;
-				lpLicense->GetCapabilities(0 /*SERVICE_TYPE_ZCP*/, lCaps);
-				mslicense = find(lCaps.begin(), lCaps.end(), string("MULTISERVER")) != lCaps.end();
-			}
-		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
-		}
-	}
-	if (!mslicense && distributed) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
-		retval = -1;
-		goto exit;
-	}
-
 
 	zarafa_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"), g_lpLogger);
 
@@ -1081,6 +1054,20 @@ int running_server(char *szName, const char *szConfig)
 	}
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 
+	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
+	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
+
+	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
+
+	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
+	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
+	} else {
+		if (!strSerial.empty())
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
+		else
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
+	}
+
 
 	// Set max open file descriptors to FD_SETSIZE .. higher than this number
 	// is a bad idea, as it will start breaking select() calls.
@@ -1152,6 +1139,27 @@ int running_server(char *szName, const char *szConfig)
 		signal(SIGUSR1, process_signal);
 		signal(SIGUSR2, process_signal);
 		signal(SIGPIPE, process_signal);
+	}
+
+	// Check if we're licensed to run distributed mode. The license daemon might
+	// not be running (yet), so try for a minute before giving up.
+	if (distributed) {
+		for (int i = 0; i < 30; ++i) {
+			bool bLicensed = false;
+			er = lpLicense->QueryCapability(0 /*SERVICE_TYPE_ZCP*/, "MULTISERVER", &bLicensed);
+			if (er != erSuccess) {
+				if (i < 29) {
+					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, waiting 2s for retry.");
+					sleep_ms(2000);
+				}
+				continue;
+			}
+			if (!bLicensed) {
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
+				retval = -1;
+				goto exit;
+			}
+		}
 	}
 
 	// ignore ignorable signals that might stop the server during database upgrade
