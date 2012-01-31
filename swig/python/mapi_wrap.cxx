@@ -3034,122 +3034,124 @@ namespace Swig {
 #define SWIGTYPE_p_IProfAdmin swig_types[43]
 #define SWIGTYPE_p_IProfSect swig_types[44]
 #define SWIGTYPE_p_IProviderAdmin swig_types[45]
-#define SWIGTYPE_p_ISequentialStream swig_types[46]
-#define SWIGTYPE_p_IStream swig_types[47]
-#define SWIGTYPE_p_IUnknown swig_types[48]
-#define SWIGTYPE_p_LARGE_INTEGER swig_types[49]
-#define SWIGTYPE_p_LONG swig_types[50]
-#define SWIGTYPE_p_LPADRENTRY swig_types[51]
-#define SWIGTYPE_p_LPADRLIST swig_types[52]
-#define SWIGTYPE_p_LPADRPARM swig_types[53]
-#define SWIGTYPE_p_LPBYTE swig_types[54]
-#define SWIGTYPE_p_LPCIID swig_types[55]
-#define SWIGTYPE_p_LPECCOMPANY swig_types[56]
-#define SWIGTYPE_p_LPECGROUP swig_types[57]
-#define SWIGTYPE_p_LPECQUOTA swig_types[58]
-#define SWIGTYPE_p_LPECQUOTASTATUS swig_types[59]
-#define SWIGTYPE_p_LPECSERVERLIST swig_types[60]
-#define SWIGTYPE_p_LPECSVRNAMELIST swig_types[61]
-#define SWIGTYPE_p_LPECUSER swig_types[62]
-#define SWIGTYPE_p_LPECUSERCLIENTUPDATESTATUS swig_types[63]
-#define SWIGTYPE_p_LPENTRYID swig_types[64]
-#define SWIGTYPE_p_LPENTRYLIST swig_types[65]
-#define SWIGTYPE_p_LPFNBUTTON swig_types[66]
-#define SWIGTYPE_p_LPFNDISMISS swig_types[67]
-#define SWIGTYPE_p_LPFlagList swig_types[68]
-#define SWIGTYPE_p_LPGUID swig_types[69]
-#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[70]
-#define SWIGTYPE_p_LPMAPIERROR swig_types[71]
-#define SWIGTYPE_p_LPMAPIFOLDER swig_types[72]
-#define SWIGTYPE_p_LPMAPINAMEID swig_types[73]
-#define SWIGTYPE_p_LPMAPIPROP swig_types[74]
-#define SWIGTYPE_p_LPMAPITABLE swig_types[75]
-#define SWIGTYPE_p_LPMAPIUID swig_types[76]
-#define SWIGTYPE_p_LPMDB swig_types[77]
-#define SWIGTYPE_p_LPMESSAGE swig_types[78]
-#define SWIGTYPE_p_LPNOTIFICATION swig_types[79]
-#define SWIGTYPE_p_LPREADSTATE swig_types[80]
-#define SWIGTYPE_p_LPROWLIST swig_types[81]
-#define SWIGTYPE_p_LPSPropProblemArray swig_types[82]
-#define SWIGTYPE_p_LPSPropTagArray swig_types[83]
-#define SWIGTYPE_p_LPSPropValue swig_types[84]
-#define SWIGTYPE_p_LPSRestriction swig_types[85]
-#define SWIGTYPE_p_LPSRowSet swig_types[86]
-#define SWIGTYPE_p_LPSSortOrderSet swig_types[87]
-#define SWIGTYPE_p_LPSTR swig_types[88]
-#define SWIGTYPE_p_LPTSTR swig_types[89]
-#define SWIGTYPE_p_LPUNKNOWN swig_types[90]
-#define SWIGTYPE_p_LPVOID swig_types[91]
-#define SWIGTYPE_p_MAPIAdviseSink swig_types[92]
-#define SWIGTYPE_p_MAPIINIT_0 swig_types[93]
-#define SWIGTYPE_p_MAPINotifSink swig_types[94]
-#define SWIGTYPE_p_STATSTG swig_types[95]
-#define SWIGTYPE_p_Stream swig_types[96]
-#define SWIGTYPE_p_ULARGE_INTEGER swig_types[97]
-#define SWIGTYPE_p_ULONG swig_types[98]
-#define SWIGTYPE_p_bool swig_types[99]
-#define SWIGTYPE_p_char swig_types[100]
-#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[101]
-#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[102]
-#define SWIGTYPE_p_p_ECLogger swig_types[103]
-#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[104]
-#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[105]
-#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[106]
-#define SWIGTYPE_p_p_IABContainer swig_types[107]
-#define SWIGTYPE_p_p_IAddrBook swig_types[108]
-#define SWIGTYPE_p_p_IAttach swig_types[109]
-#define SWIGTYPE_p_p_IDistList swig_types[110]
-#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[111]
-#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[112]
-#define SWIGTYPE_p_p_IECExportChanges swig_types[113]
-#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[114]
-#define SWIGTYPE_p_p_IECLicense swig_types[115]
-#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[116]
-#define SWIGTYPE_p_p_IECServiceAdmin swig_types[117]
-#define SWIGTYPE_p_p_IECSingleInstance swig_types[118]
-#define SWIGTYPE_p_p_IECTestProtocol swig_types[119]
-#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[120]
-#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[121]
-#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[122]
-#define SWIGTYPE_p_p_IExchangeManageStore swig_types[123]
-#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[124]
-#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[125]
-#define SWIGTYPE_p_p_IMAPIContainer swig_types[126]
-#define SWIGTYPE_p_p_IMAPIFolder swig_types[127]
-#define SWIGTYPE_p_p_IMAPIProgress swig_types[128]
-#define SWIGTYPE_p_p_IMAPIProp swig_types[129]
-#define SWIGTYPE_p_p_IMAPISession swig_types[130]
-#define SWIGTYPE_p_p_IMAPIStatus swig_types[131]
-#define SWIGTYPE_p_p_IMAPITable swig_types[132]
-#define SWIGTYPE_p_p_IMailUser swig_types[133]
-#define SWIGTYPE_p_p_IMessage swig_types[134]
-#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[135]
-#define SWIGTYPE_p_p_IMsgStore swig_types[136]
-#define SWIGTYPE_p_p_IProfAdmin swig_types[137]
-#define SWIGTYPE_p_p_IProfSect swig_types[138]
-#define SWIGTYPE_p_p_IProviderAdmin swig_types[139]
-#define SWIGTYPE_p_p_ISequentialStream swig_types[140]
-#define SWIGTYPE_p_p_IStream swig_types[141]
-#define SWIGTYPE_p_p_IUnknown swig_types[142]
-#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[143]
-#define SWIGTYPE_p_p_LPTSTR swig_types[144]
-#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[145]
-#define SWIGTYPE_p_p_MAPIERROR swig_types[146]
-#define SWIGTYPE_p_p_MAPINotifSink swig_types[147]
-#define SWIGTYPE_p_p_Stream swig_types[148]
-#define SWIGTYPE_p_p_char swig_types[149]
-#define SWIGTYPE_p_p_unsigned_char swig_types[150]
-#define SWIGTYPE_p_p_void swig_types[151]
-#define SWIGTYPE_p_tagLOCKTYPE swig_types[152]
-#define SWIGTYPE_p_tagSTATFLAG swig_types[153]
-#define SWIGTYPE_p_tagSTGTY swig_types[154]
-#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[155]
-#define SWIGTYPE_p_unsigned_char swig_types[156]
-#define SWIGTYPE_p_unsigned_int swig_types[157]
-#define SWIGTYPE_p_void swig_types[158]
-#define SWIGTYPE_p_wchar_t swig_types[159]
-static swig_type_info *swig_types[161];
-static swig_module_info swig_module = {swig_types, 160, 0, 0, 0, 0};
+#define SWIGTYPE_p_IProxyStoreObject swig_types[46]
+#define SWIGTYPE_p_ISequentialStream swig_types[47]
+#define SWIGTYPE_p_IStream swig_types[48]
+#define SWIGTYPE_p_IUnknown swig_types[49]
+#define SWIGTYPE_p_LARGE_INTEGER swig_types[50]
+#define SWIGTYPE_p_LONG swig_types[51]
+#define SWIGTYPE_p_LPADRENTRY swig_types[52]
+#define SWIGTYPE_p_LPADRLIST swig_types[53]
+#define SWIGTYPE_p_LPADRPARM swig_types[54]
+#define SWIGTYPE_p_LPBYTE swig_types[55]
+#define SWIGTYPE_p_LPCIID swig_types[56]
+#define SWIGTYPE_p_LPECCOMPANY swig_types[57]
+#define SWIGTYPE_p_LPECGROUP swig_types[58]
+#define SWIGTYPE_p_LPECQUOTA swig_types[59]
+#define SWIGTYPE_p_LPECQUOTASTATUS swig_types[60]
+#define SWIGTYPE_p_LPECSERVERLIST swig_types[61]
+#define SWIGTYPE_p_LPECSVRNAMELIST swig_types[62]
+#define SWIGTYPE_p_LPECUSER swig_types[63]
+#define SWIGTYPE_p_LPECUSERCLIENTUPDATESTATUS swig_types[64]
+#define SWIGTYPE_p_LPENTRYID swig_types[65]
+#define SWIGTYPE_p_LPENTRYLIST swig_types[66]
+#define SWIGTYPE_p_LPFNBUTTON swig_types[67]
+#define SWIGTYPE_p_LPFNDISMISS swig_types[68]
+#define SWIGTYPE_p_LPFlagList swig_types[69]
+#define SWIGTYPE_p_LPGUID swig_types[70]
+#define SWIGTYPE_p_LPMAPIADVISESINK swig_types[71]
+#define SWIGTYPE_p_LPMAPIERROR swig_types[72]
+#define SWIGTYPE_p_LPMAPIFOLDER swig_types[73]
+#define SWIGTYPE_p_LPMAPINAMEID swig_types[74]
+#define SWIGTYPE_p_LPMAPIPROP swig_types[75]
+#define SWIGTYPE_p_LPMAPITABLE swig_types[76]
+#define SWIGTYPE_p_LPMAPIUID swig_types[77]
+#define SWIGTYPE_p_LPMDB swig_types[78]
+#define SWIGTYPE_p_LPMESSAGE swig_types[79]
+#define SWIGTYPE_p_LPNOTIFICATION swig_types[80]
+#define SWIGTYPE_p_LPREADSTATE swig_types[81]
+#define SWIGTYPE_p_LPROWLIST swig_types[82]
+#define SWIGTYPE_p_LPSPropProblemArray swig_types[83]
+#define SWIGTYPE_p_LPSPropTagArray swig_types[84]
+#define SWIGTYPE_p_LPSPropValue swig_types[85]
+#define SWIGTYPE_p_LPSRestriction swig_types[86]
+#define SWIGTYPE_p_LPSRowSet swig_types[87]
+#define SWIGTYPE_p_LPSSortOrderSet swig_types[88]
+#define SWIGTYPE_p_LPSTR swig_types[89]
+#define SWIGTYPE_p_LPTSTR swig_types[90]
+#define SWIGTYPE_p_LPUNKNOWN swig_types[91]
+#define SWIGTYPE_p_LPVOID swig_types[92]
+#define SWIGTYPE_p_MAPIAdviseSink swig_types[93]
+#define SWIGTYPE_p_MAPIINIT_0 swig_types[94]
+#define SWIGTYPE_p_MAPINotifSink swig_types[95]
+#define SWIGTYPE_p_STATSTG swig_types[96]
+#define SWIGTYPE_p_Stream swig_types[97]
+#define SWIGTYPE_p_ULARGE_INTEGER swig_types[98]
+#define SWIGTYPE_p_ULONG swig_types[99]
+#define SWIGTYPE_p_bool swig_types[100]
+#define SWIGTYPE_p_char swig_types[101]
+#define SWIGTYPE_p_p_ECChangeAdviseSink swig_types[102]
+#define SWIGTYPE_p_p_ECImportContentsChanges swig_types[103]
+#define SWIGTYPE_p_p_ECLogger swig_types[104]
+#define SWIGTYPE_p_p_ExchangeExportChanges swig_types[105]
+#define SWIGTYPE_p_p_ExchangeImportContentsChanges swig_types[106]
+#define SWIGTYPE_p_p_ExchangeImportHierarchyChanges swig_types[107]
+#define SWIGTYPE_p_p_IABContainer swig_types[108]
+#define SWIGTYPE_p_p_IAddrBook swig_types[109]
+#define SWIGTYPE_p_p_IAttach swig_types[110]
+#define SWIGTYPE_p_p_IDistList swig_types[111]
+#define SWIGTYPE_p_p_IECChangeAdviseSink swig_types[112]
+#define SWIGTYPE_p_p_IECChangeAdvisor swig_types[113]
+#define SWIGTYPE_p_p_IECExportChanges swig_types[114]
+#define SWIGTYPE_p_p_IECImportContentsChanges swig_types[115]
+#define SWIGTYPE_p_p_IECLicense swig_types[116]
+#define SWIGTYPE_p_p_IECMultiStoreTable swig_types[117]
+#define SWIGTYPE_p_p_IECServiceAdmin swig_types[118]
+#define SWIGTYPE_p_p_IECSingleInstance swig_types[119]
+#define SWIGTYPE_p_p_IECTestProtocol swig_types[120]
+#define SWIGTYPE_p_p_IExchangeExportChanges swig_types[121]
+#define SWIGTYPE_p_p_IExchangeImportContentsChanges swig_types[122]
+#define SWIGTYPE_p_p_IExchangeImportHierarchyChanges swig_types[123]
+#define SWIGTYPE_p_p_IExchangeManageStore swig_types[124]
+#define SWIGTYPE_p_p_IExchangeModifyTable swig_types[125]
+#define SWIGTYPE_p_p_IMAPIAdviseSink swig_types[126]
+#define SWIGTYPE_p_p_IMAPIContainer swig_types[127]
+#define SWIGTYPE_p_p_IMAPIFolder swig_types[128]
+#define SWIGTYPE_p_p_IMAPIProgress swig_types[129]
+#define SWIGTYPE_p_p_IMAPIProp swig_types[130]
+#define SWIGTYPE_p_p_IMAPISession swig_types[131]
+#define SWIGTYPE_p_p_IMAPIStatus swig_types[132]
+#define SWIGTYPE_p_p_IMAPITable swig_types[133]
+#define SWIGTYPE_p_p_IMailUser swig_types[134]
+#define SWIGTYPE_p_p_IMessage swig_types[135]
+#define SWIGTYPE_p_p_IMsgServiceAdmin swig_types[136]
+#define SWIGTYPE_p_p_IMsgStore swig_types[137]
+#define SWIGTYPE_p_p_IProfAdmin swig_types[138]
+#define SWIGTYPE_p_p_IProfSect swig_types[139]
+#define SWIGTYPE_p_p_IProviderAdmin swig_types[140]
+#define SWIGTYPE_p_p_IProxyStoreObject swig_types[141]
+#define SWIGTYPE_p_p_ISequentialStream swig_types[142]
+#define SWIGTYPE_p_p_IStream swig_types[143]
+#define SWIGTYPE_p_p_IUnknown swig_types[144]
+#define SWIGTYPE_p_p_LPMAPINAMEID swig_types[145]
+#define SWIGTYPE_p_p_LPTSTR swig_types[146]
+#define SWIGTYPE_p_p_MAPIAdviseSink swig_types[147]
+#define SWIGTYPE_p_p_MAPIERROR swig_types[148]
+#define SWIGTYPE_p_p_MAPINotifSink swig_types[149]
+#define SWIGTYPE_p_p_Stream swig_types[150]
+#define SWIGTYPE_p_p_char swig_types[151]
+#define SWIGTYPE_p_p_unsigned_char swig_types[152]
+#define SWIGTYPE_p_p_void swig_types[153]
+#define SWIGTYPE_p_tagLOCKTYPE swig_types[154]
+#define SWIGTYPE_p_tagSTATFLAG swig_types[155]
+#define SWIGTYPE_p_tagSTGTY swig_types[156]
+#define SWIGTYPE_p_tagSTREAM_SEEK swig_types[157]
+#define SWIGTYPE_p_unsigned_char swig_types[158]
+#define SWIGTYPE_p_unsigned_int swig_types[159]
+#define SWIGTYPE_p_void swig_types[160]
+#define SWIGTYPE_p_wchar_t swig_types[161]
+static swig_type_info *swig_types[163];
+static swig_module_info swig_module = {swig_types, 162, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3754,6 +3756,15 @@ SWIG_FromWCharPtr(const wchar_t *cptr)
 }
 
 SWIGINTERN void delete_IMsgStore(IMsgStore *self){ self->Release(); }
+SWIGINTERN void delete_IProxyStoreObject(IProxyStoreObject *self){ self->Release(); }
+SWIGINTERN HRESULT IProxyStoreObject_UnwrapNoRef(IProxyStoreObject *self,IUnknown **OUTPUT){
+            HRESULT hr = 0;
+            hr = self->UnwrapNoRef((LPVOID*)OUTPUT);
+            if(hr == 0)
+                (*OUTPUT)->AddRef();
+
+            return hr;          
+        }
 SWIGINTERN void delete_IMAPIFolder(IMAPIFolder *self){ self->Release(); }
 SWIGINTERN void delete_IMessage(IMessage *self){ self->Release(); }
 SWIGINTERN void delete_IAttach(IAttach *self){ self->Release(); }
@@ -10363,6 +10374,191 @@ SWIGINTERN PyObject *IMsgStore_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
   SWIG_TypeNewClientData(SWIGTYPE_p_IMsgStore, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN PyObject *_wrap_IProxyStoreObject_PlaceHolder1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IProxyStoreObject *arg1 = (IProxyStoreObject *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:IProxyStoreObject_PlaceHolder1",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IProxyStoreObject, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IProxyStoreObject_PlaceHolder1" "', argument " "1"" of type '" "IProxyStoreObject *""'"); 
+  }
+  arg1 = reinterpret_cast< IProxyStoreObject * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->PlaceHolder1();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IProxyStoreObject_PlaceHolder2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IProxyStoreObject *arg1 = (IProxyStoreObject *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:IProxyStoreObject_PlaceHolder2",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IProxyStoreObject, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IProxyStoreObject_PlaceHolder2" "', argument " "1"" of type '" "IProxyStoreObject *""'"); 
+  }
+  arg1 = reinterpret_cast< IProxyStoreObject * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->PlaceHolder2();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_IProxyStoreObject(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IProxyStoreObject *arg1 = (IProxyStoreObject *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_IProxyStoreObject",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IProxyStoreObject, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IProxyStoreObject" "', argument " "1"" of type '" "IProxyStoreObject *""'"); 
+  }
+  arg1 = reinterpret_cast< IProxyStoreObject * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        delete_IProxyStoreObject(arg1);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IProxyStoreObject_UnwrapNoRef(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IProxyStoreObject *arg1 = (IProxyStoreObject *) 0 ;
+  IUnknown **arg2 = (IUnknown **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  IUnknown *temp2 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  temp2 = NULL; arg2 = &temp2;
+  if (!PyArg_ParseTuple(args,(char *)"O:IProxyStoreObject_UnwrapNoRef",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IProxyStoreObject, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IProxyStoreObject_UnwrapNoRef" "', argument " "1"" of type '" "IProxyStoreObject *""'"); 
+  }
+  arg1 = reinterpret_cast< IProxyStoreObject * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = IProxyStoreObject_UnwrapNoRef(arg1,arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)*(arg2), SWIGTYPE_p_IUnknown, SWIG_SHADOW | SWIG_OWNER));
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *IProxyStoreObject_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_IProxyStoreObject, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
@@ -34802,6 +34998,11 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IMsgStore_NotifyNewMail", _wrap_IMsgStore_NotifyNewMail, METH_VARARGS, NULL},
 	 { (char *)"delete_IMsgStore", _wrap_delete_IMsgStore, METH_VARARGS, NULL},
 	 { (char *)"IMsgStore_swigregister", IMsgStore_swigregister, METH_VARARGS, NULL},
+	 { (char *)"IProxyStoreObject_PlaceHolder1", _wrap_IProxyStoreObject_PlaceHolder1, METH_VARARGS, NULL},
+	 { (char *)"IProxyStoreObject_PlaceHolder2", _wrap_IProxyStoreObject_PlaceHolder2, METH_VARARGS, NULL},
+	 { (char *)"delete_IProxyStoreObject", _wrap_delete_IProxyStoreObject, METH_VARARGS, NULL},
+	 { (char *)"IProxyStoreObject_UnwrapNoRef", _wrap_IProxyStoreObject_UnwrapNoRef, METH_VARARGS, NULL},
+	 { (char *)"IProxyStoreObject_swigregister", IProxyStoreObject_swigregister, METH_VARARGS, NULL},
 	 { (char *)"IMAPIFolder_CreateMessage", _wrap_IMAPIFolder_CreateMessage, METH_VARARGS, NULL},
 	 { (char *)"IMAPIFolder_CopyMessages", _wrap_IMAPIFolder_CopyMessages, METH_VARARGS, NULL},
 	 { (char *)"IMAPIFolder_DeleteMessages", _wrap_IMAPIFolder_DeleteMessages, METH_VARARGS, NULL},
@@ -35342,6 +35543,9 @@ static void *_p_p_StreamTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory))
 static void *_p_p_MAPINotifSinkTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown **) (IMAPIAdviseSink *) ((MAPINotifSink **) x));
 }
+static void *_p_p_IProxyStoreObjectTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((IUnknown **)  ((IProxyStoreObject **) x));
+}
 static void *_p_p_IECLicenseTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown **)  ((IECLicense **) x));
 }
@@ -35471,6 +35675,9 @@ static void *_p_StreamTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
 static void *_p_MAPINotifSinkTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown *) (IMAPIAdviseSink *) ((MAPINotifSink *) x));
 }
+static void *_p_IProxyStoreObjectTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((IUnknown *)  ((IProxyStoreObject *) x));
+}
 static void *_p_IECLicenseTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown *)  ((IECLicense *) x));
 }
@@ -35547,6 +35754,7 @@ static swig_type_info _swigt__p_IMsgStore = {"_p_IMsgStore", "IMsgStore *", 0, 0
 static swig_type_info _swigt__p_IProfAdmin = {"_p_IProfAdmin", "IProfAdmin *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IProfSect = {"_p_IProfSect", "IProfSect *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IProviderAdmin = {"_p_IProviderAdmin", "IProviderAdmin *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_IProxyStoreObject = {"_p_IProxyStoreObject", "IProxyStoreObject *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ISequentialStream = {"_p_ISequentialStream", "ISequentialStream *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IStream = {"_p_IStream", "IStream *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IUnknown = {"_p_IUnknown", "IUnknown *", 0, 0, (void*)0, 0};
@@ -35639,6 +35847,7 @@ static swig_type_info _swigt__p_p_IMAPIContainer = {"_p_p_IMAPIContainer", 0, 0,
 static swig_type_info _swigt__p_p_IABContainer = {"_p_p_IABContainer", 0, 0, 0, 0, 0};
 static swig_type_info _swigt__p_p_ISequentialStream = {"_p_p_ISequentialStream", 0, 0, 0, 0, 0};
 static swig_type_info _swigt__p_p_IECTestProtocol = {"_p_p_IECTestProtocol", 0, 0, 0, 0, 0};
+static swig_type_info _swigt__p_p_IProxyStoreObject = {"_p_p_IProxyStoreObject", 0, 0, 0, 0, 0};
 static swig_type_info _swigt__p_p_MAPINotifSink = {"_p_p_MAPINotifSink", 0, 0, 0, 0, 0};
 static swig_type_info _swigt__p_p_IECLicense = {"_p_p_IECLicense", 0, 0, 0, 0, 0};
 static swig_type_info _swigt__p_p_IMAPIProp = {"_p_p_IMAPIProp", 0, 0, 0, 0, 0};
@@ -35709,6 +35918,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_IProfAdmin,
   &_swigt__p_IProfSect,
   &_swigt__p_IProviderAdmin,
+  &_swigt__p_IProxyStoreObject,
   &_swigt__p_ISequentialStream,
   &_swigt__p_IStream,
   &_swigt__p_IUnknown,
@@ -35803,6 +36013,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_IProfAdmin,
   &_swigt__p_p_IProfSect,
   &_swigt__p_p_IProviderAdmin,
+  &_swigt__p_p_IProxyStoreObject,
   &_swigt__p_p_ISequentialStream,
   &_swigt__p_p_IStream,
   &_swigt__p_p_IUnknown,
@@ -35871,9 +36082,10 @@ static swig_cast_info _swigc__p_IMsgStore[] = {  {&_swigt__p_IMsgStore, 0, 0, 0}
 static swig_cast_info _swigc__p_IProfAdmin[] = {  {&_swigt__p_IProfAdmin, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IProfSect[] = {  {&_swigt__p_IProfSect, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IProviderAdmin[] = {  {&_swigt__p_IProviderAdmin, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IProxyStoreObject[] = {  {&_swigt__p_IProxyStoreObject, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ISequentialStream[] = {  {&_swigt__p_IStream, _p_IStreamTo_p_ISequentialStream, 0, 0},  {&_swigt__p_Stream, _p_StreamTo_p_ISequentialStream, 0, 0},  {&_swigt__p_ISequentialStream, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IStream[] = {  {&_swigt__p_IStream, 0, 0, 0},  {&_swigt__p_Stream, _p_StreamTo_p_IStream, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_IUnknown[] = {  {&_swigt__p_IMAPIStatus, _p_IMAPIStatusTo_p_IUnknown, 0, 0},  {&_swigt__p_IECSingleInstance, _p_IECSingleInstanceTo_p_IUnknown, 0, 0},  {&_swigt__p_IAddrBook, _p_IAddrBookTo_p_IUnknown, 0, 0},  {&_swigt__p_IMessage, _p_IMessageTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeManageStore, _p_IExchangeManageStoreTo_p_IUnknown, 0, 0},  {&_swigt__p_IMailUser, _p_IMailUserTo_p_IUnknown, 0, 0},  {&_swigt__p_IMsgStore, _p_IMsgStoreTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeImportContentsChanges, _p_IExchangeImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeImportHierarchyChanges, _p_IExchangeImportHierarchyChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeExportChanges, _p_IExchangeExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ECImportContentsChanges, _p_ECImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECImportContentsChanges, _p_IECImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECExportChanges, _p_IECExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeExportChanges, _p_ExchangeExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeImportHierarchyChanges, _p_ExchangeImportHierarchyChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeImportContentsChanges, _p_ExchangeImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECServiceAdmin, _p_IECServiceAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IMsgServiceAdmin, _p_IMsgServiceAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IUnknown, 0, 0, 0},  {&_swigt__p_IProviderAdmin, _p_IProviderAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IAttach, _p_IAttachTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeModifyTable, _p_IExchangeModifyTableTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPITable, _p_IMAPITableTo_p_IUnknown, 0, 0},  {&_swigt__p_IECChangeAdvisor, _p_IECChangeAdvisorTo_p_IUnknown, 0, 0},  {&_swigt__p_IDistList, _p_IDistListTo_p_IUnknown, 0, 0},  {&_swigt__p_IECMultiStoreTable, _p_IECMultiStoreTableTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIContainer, _p_IMAPIContainerTo_p_IUnknown, 0, 0},  {&_swigt__p_IABContainer, _p_IABContainerTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPISession, _p_IMAPISessionTo_p_IUnknown, 0, 0},  {&_swigt__p_ISequentialStream, _p_ISequentialStreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIFolder, _p_IMAPIFolderTo_p_IUnknown, 0, 0},  {&_swigt__p_IECTestProtocol, _p_IECTestProtocolTo_p_IUnknown, 0, 0},  {&_swigt__p_MAPINotifSink, _p_MAPINotifSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IECLicense, _p_IECLicenseTo_p_IUnknown, 0, 0},  {&_swigt__p_IProfAdmin, _p_IProfAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIProp, _p_IMAPIPropTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIAdviseSink, _p_IMAPIAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_MAPIAdviseSink, _p_MAPIAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IECChangeAdviseSink, _p_IECChangeAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_ECChangeAdviseSink, _p_ECChangeAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIProgress, _p_IMAPIProgressTo_p_IUnknown, 0, 0},  {&_swigt__p_Stream, _p_StreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IStream, _p_IStreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IProfSect, _p_IProfSectTo_p_IUnknown, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IUnknown[] = {  {&_swigt__p_IMAPIStatus, _p_IMAPIStatusTo_p_IUnknown, 0, 0},  {&_swigt__p_IECSingleInstance, _p_IECSingleInstanceTo_p_IUnknown, 0, 0},  {&_swigt__p_IAddrBook, _p_IAddrBookTo_p_IUnknown, 0, 0},  {&_swigt__p_IMessage, _p_IMessageTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeManageStore, _p_IExchangeManageStoreTo_p_IUnknown, 0, 0},  {&_swigt__p_IMailUser, _p_IMailUserTo_p_IUnknown, 0, 0},  {&_swigt__p_IMsgStore, _p_IMsgStoreTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeImportContentsChanges, _p_IExchangeImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeImportHierarchyChanges, _p_IExchangeImportHierarchyChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeExportChanges, _p_IExchangeExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ECImportContentsChanges, _p_ECImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECImportContentsChanges, _p_IECImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECExportChanges, _p_IECExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeExportChanges, _p_ExchangeExportChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeImportHierarchyChanges, _p_ExchangeImportHierarchyChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_ExchangeImportContentsChanges, _p_ExchangeImportContentsChangesTo_p_IUnknown, 0, 0},  {&_swigt__p_IECServiceAdmin, _p_IECServiceAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IMsgServiceAdmin, _p_IMsgServiceAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IUnknown, 0, 0, 0},  {&_swigt__p_IProviderAdmin, _p_IProviderAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IAttach, _p_IAttachTo_p_IUnknown, 0, 0},  {&_swigt__p_IExchangeModifyTable, _p_IExchangeModifyTableTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPITable, _p_IMAPITableTo_p_IUnknown, 0, 0},  {&_swigt__p_IECChangeAdvisor, _p_IECChangeAdvisorTo_p_IUnknown, 0, 0},  {&_swigt__p_IDistList, _p_IDistListTo_p_IUnknown, 0, 0},  {&_swigt__p_IECMultiStoreTable, _p_IECMultiStoreTableTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIContainer, _p_IMAPIContainerTo_p_IUnknown, 0, 0},  {&_swigt__p_IABContainer, _p_IABContainerTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPISession, _p_IMAPISessionTo_p_IUnknown, 0, 0},  {&_swigt__p_ISequentialStream, _p_ISequentialStreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIFolder, _p_IMAPIFolderTo_p_IUnknown, 0, 0},  {&_swigt__p_IECTestProtocol, _p_IECTestProtocolTo_p_IUnknown, 0, 0},  {&_swigt__p_MAPINotifSink, _p_MAPINotifSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IProxyStoreObject, _p_IProxyStoreObjectTo_p_IUnknown, 0, 0},  {&_swigt__p_IECLicense, _p_IECLicenseTo_p_IUnknown, 0, 0},  {&_swigt__p_IProfAdmin, _p_IProfAdminTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIProp, _p_IMAPIPropTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIAdviseSink, _p_IMAPIAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_MAPIAdviseSink, _p_MAPIAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IECChangeAdviseSink, _p_IECChangeAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_ECChangeAdviseSink, _p_ECChangeAdviseSinkTo_p_IUnknown, 0, 0},  {&_swigt__p_IMAPIProgress, _p_IMAPIProgressTo_p_IUnknown, 0, 0},  {&_swigt__p_Stream, _p_StreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IStream, _p_IStreamTo_p_IUnknown, 0, 0},  {&_swigt__p_IProfSect, _p_IProfSectTo_p_IUnknown, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LARGE_INTEGER[] = {  {&_swigt__p_LARGE_INTEGER, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LONG[] = {  {&_swigt__p_LONG, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPADRENTRY[] = {  {&_swigt__p_LPADRENTRY, 0, 0, 0},{0, 0, 0, 0}};
@@ -35962,6 +36174,7 @@ static swig_cast_info _swigc__p_p_IMAPIContainer[] = {{&_swigt__p_p_IMAPIContain
 static swig_cast_info _swigc__p_p_IABContainer[] = {{&_swigt__p_p_IABContainer, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_ISequentialStream[] = {{&_swigt__p_p_ISequentialStream, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IECTestProtocol[] = {{&_swigt__p_p_IECTestProtocol, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_IProxyStoreObject[] = {{&_swigt__p_p_IProxyStoreObject, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_MAPINotifSink[] = {{&_swigt__p_p_MAPINotifSink, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IECLicense[] = {{&_swigt__p_p_IECLicense, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IMAPIProp[] = {{&_swigt__p_p_IMAPIProp, 0, 0, 0},{0, 0, 0, 0}};
@@ -35970,7 +36183,7 @@ static swig_cast_info _swigc__p_p_MAPIAdviseSink[] = {{&_swigt__p_p_MAPIAdviseSi
 static swig_cast_info _swigc__p_p_IECChangeAdviseSink[] = {{&_swigt__p_p_IECChangeAdviseSink, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_ECChangeAdviseSink[] = {{&_swigt__p_p_ECChangeAdviseSink, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IMAPIProgress[] = {{&_swigt__p_p_IMAPIProgress, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_p_IUnknown[] = {  {&_swigt__p_p_IMAPIStatus, _p_p_IMAPIStatusTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECSingleInstance, _p_p_IECSingleInstanceTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IAddrBook, _p_p_IAddrBookTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMessage, _p_p_IMessageTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeManageStore, _p_p_IExchangeManageStoreTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMailUser, _p_p_IMailUserTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMsgStore, _p_p_IMsgStoreTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeImportContentsChanges, _p_p_IExchangeImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeImportHierarchyChanges, _p_p_IExchangeImportHierarchyChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeExportChanges, _p_p_IExchangeExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ECImportContentsChanges, _p_p_ECImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECImportContentsChanges, _p_p_IECImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECExportChanges, _p_p_IECExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeExportChanges, _p_p_ExchangeExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeImportHierarchyChanges, _p_p_ExchangeImportHierarchyChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeImportContentsChanges, _p_p_ExchangeImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECServiceAdmin, _p_p_IECServiceAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMsgServiceAdmin, _p_p_IMsgServiceAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IUnknown, 0, 0, 0},  {&_swigt__p_p_IProviderAdmin, _p_p_IProviderAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IAttach, _p_p_IAttachTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeModifyTable, _p_p_IExchangeModifyTableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPITable, _p_p_IMAPITableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECChangeAdvisor, _p_p_IECChangeAdvisorTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IDistList, _p_p_IDistListTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECMultiStoreTable, _p_p_IECMultiStoreTableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIContainer, _p_p_IMAPIContainerTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IABContainer, _p_p_IABContainerTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPISession, _p_p_IMAPISessionTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ISequentialStream, _p_p_ISequentialStreamTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIFolder, _p_p_IMAPIFolderTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECTestProtocol, _p_p_IECTestProtocolTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_MAPINotifSink, _p_p_MAPINotifSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECLicense, _p_p_IECLicenseTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IProfAdmin, _p_p_IProfAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIProp, _p_p_IMAPIPropTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIAdviseSink, _p_p_IMAPIAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_MAPIAdviseSink, _p_p_MAPIAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECChangeAdviseSink, _p_p_IECChangeAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ECChangeAdviseSink, _p_p_ECChangeAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIProgress, _p_p_IMAPIProgressTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_Stream, _p_p_StreamTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IProfSect, _p_p_IProfSectTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IStream, _p_p_IStreamTo_p_p_IUnknown, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_IUnknown[] = {  {&_swigt__p_p_IMAPIStatus, _p_p_IMAPIStatusTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECSingleInstance, _p_p_IECSingleInstanceTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IAddrBook, _p_p_IAddrBookTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMessage, _p_p_IMessageTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeManageStore, _p_p_IExchangeManageStoreTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMailUser, _p_p_IMailUserTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMsgStore, _p_p_IMsgStoreTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeImportContentsChanges, _p_p_IExchangeImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeImportHierarchyChanges, _p_p_IExchangeImportHierarchyChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeExportChanges, _p_p_IExchangeExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ECImportContentsChanges, _p_p_ECImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECImportContentsChanges, _p_p_IECImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECExportChanges, _p_p_IECExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeExportChanges, _p_p_ExchangeExportChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeImportHierarchyChanges, _p_p_ExchangeImportHierarchyChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ExchangeImportContentsChanges, _p_p_ExchangeImportContentsChangesTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECServiceAdmin, _p_p_IECServiceAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMsgServiceAdmin, _p_p_IMsgServiceAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IUnknown, 0, 0, 0},  {&_swigt__p_p_IProviderAdmin, _p_p_IProviderAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IAttach, _p_p_IAttachTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IExchangeModifyTable, _p_p_IExchangeModifyTableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPITable, _p_p_IMAPITableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECChangeAdvisor, _p_p_IECChangeAdvisorTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IDistList, _p_p_IDistListTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECMultiStoreTable, _p_p_IECMultiStoreTableTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIContainer, _p_p_IMAPIContainerTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IABContainer, _p_p_IABContainerTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPISession, _p_p_IMAPISessionTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ISequentialStream, _p_p_ISequentialStreamTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIFolder, _p_p_IMAPIFolderTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECTestProtocol, _p_p_IECTestProtocolTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IProxyStoreObject, _p_p_IProxyStoreObjectTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_MAPINotifSink, _p_p_MAPINotifSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECLicense, _p_p_IECLicenseTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IProfAdmin, _p_p_IProfAdminTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIProp, _p_p_IMAPIPropTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIAdviseSink, _p_p_IMAPIAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_MAPIAdviseSink, _p_p_MAPIAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IECChangeAdviseSink, _p_p_IECChangeAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_ECChangeAdviseSink, _p_p_ECChangeAdviseSinkTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IMAPIProgress, _p_p_IMAPIProgressTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_Stream, _p_p_StreamTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IProfSect, _p_p_IProfSectTo_p_p_IUnknown, 0, 0},  {&_swigt__p_p_IStream, _p_p_IStreamTo_p_p_IUnknown, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_LPMAPINAMEID[] = {  {&_swigt__p_p_LPMAPINAMEID, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_LPTSTR[] = {  {&_swigt__p_p_LPTSTR, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_MAPIERROR[] = {  {&_swigt__p_p_MAPIERROR, 0, 0, 0},{0, 0, 0, 0}};
@@ -36033,6 +36246,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_IProfAdmin,
   _swigc__p_IProfSect,
   _swigc__p_IProviderAdmin,
+  _swigc__p_IProxyStoreObject,
   _swigc__p_ISequentialStream,
   _swigc__p_IStream,
   _swigc__p_IUnknown,
@@ -36127,6 +36341,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_IProfAdmin,
   _swigc__p_p_IProfSect,
   _swigc__p_p_IProviderAdmin,
+  _swigc__p_p_IProxyStoreObject,
   _swigc__p_p_ISequentialStream,
   _swigc__p_p_IStream,
   _swigc__p_p_IUnknown,

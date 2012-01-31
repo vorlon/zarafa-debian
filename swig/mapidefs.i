@@ -283,6 +283,26 @@ public:
 	}
 };
 
+class IProxyStoreObject : public IUnknown {
+public:
+    virtual HRESULT PlaceHolder1() = 0;
+    virtual HRESULT PlaceHolder2() = 0;
+
+    %extend {
+        ~IProxyStoreObject() { self->Release(); }
+
+        virtual HRESULT UnwrapNoRef(IUnknown **OUTPUT /*ppvObject*/) {
+            HRESULT hr = hrSuccess;
+            hr = self->UnwrapNoRef((LPVOID*)OUTPUT);
+            if(hr == hrSuccess)
+                (*OUTPUT)->AddRef();
+
+            return hr;          
+        };
+ 
+    }
+};
+
 #define FOLDER_ROOT             (0x00000000)
 #define FOLDER_GENERIC          (0x00000001)
 #define FOLDER_SEARCH           (0x00000002)
