@@ -982,7 +982,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 			goto exit;
 		}
 
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d stores", lObjectIds.size());
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d stores", (int)lObjectIds.size());
 
 		for(iterObjectId = lObjectIds.begin(); iterObjectId != lObjectIds.end() && !(*lpbExit); iterObjectId++)
 		{
@@ -1032,7 +1032,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 			goto exit;
 		}
 
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d folders", lObjectIds.size());
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d folders", (int)lObjectIds.size());
 
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
@@ -1077,7 +1077,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 			goto exit;
 		}
 
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d messages", lObjectIds.size());
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start to purge %d messages", (int)lObjectIds.size());
 
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
@@ -1990,7 +1990,6 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 	SOURCEKEY		sParentSourceKey;
 
 	DB_RESULT		lpDBResult = NULL;
-	DB_ROW			lpDBRow = NULL;
 
 	if(!lpAttachmentStorage) {
 		er = ZARAFA_E_INVALID_PARAMETER;
@@ -3073,7 +3072,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		UpdateFolderCounts(lpDatabase, ulParentObjId, ulFlags, &lpsSaveObj->modProps);
     else if(ulSyncId != 0) {
         // On modified appointments, unread flags may have changed (only possible during ICS import)
-        for(unsigned int i=0; i < lpsSaveObj->modProps.__size; i++) {
+        for(int i=0; i < lpsSaveObj->modProps.__size; i++) {
             if(lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_MESSAGE_FLAGS) {
                 ulNewReadState = lpsSaveObj->modProps.__ptr[i].Value.ul & MSGFLAG_READ;
                 break;
@@ -5892,6 +5891,8 @@ SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result
     }
 
     er = g_lpSessionManager->GetCacheManager()->PurgeCache(ulFlags);
+
+	g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(NULL));
 exit:
     ;
 }
