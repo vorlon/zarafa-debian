@@ -293,6 +293,10 @@
 				 */
 				$data["sort"]["_content"] = array_search($firstSortColumn &~ MV_INSTANCE, $this->properties);
 
+				if(isset($this->selectedMessageId)) {
+					$this->start = $GLOBALS["operations"]->getStartRow($store, $entryid, $this->selectedMessageId, $this->sort, false, $this->searchRestriction);
+				}
+
 				// Get the table and merge the arrays
 				$items = $GLOBALS["operations"]->getTable($store, $entryid, $this->properties, $this->sort, $this->start, false, $this->searchRestriction);
 				
@@ -701,9 +705,12 @@
 		function parseSearchRestriction($action)
 		{
 			if(isset($action["restriction"])) {
-				if(isset($action["restriction"]["start"])) {
+				if(isset($action["restriction"]["selectedmessageid"])) {
+					$this->selectedMessageId = hex2bin($action["restriction"]["selectedmessageid"]);
+				} elseif(isset($action["restriction"]["start"])) {
 					// Set start variable
 					$this->start = (int) $action["restriction"]["start"];
+					unset($this->selectedMessageId);
 				}
 			}
 		}
