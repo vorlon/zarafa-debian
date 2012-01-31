@@ -222,7 +222,6 @@ HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 {
     MAPINotifSink *lpSink = new MAPINotifSink();
 
-    m_cRef = 0;
     lpSink->AddRef();
     
     *lppSink = lpSink;
@@ -232,6 +231,7 @@ HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 
 MAPINotifSink::MAPINotifSink() {
     m_bExit = false;
+    m_cRef = 0;
     pthread_mutex_init(&m_hMutex, NULL);
     pthread_cond_init(&m_hCond, NULL);
 }
