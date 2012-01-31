@@ -221,7 +221,8 @@ HRESULT CopyNotification(NOTIFICATION *lpSrc, void *lpBase, NOTIFICATION *lpDst)
 HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 {
     MAPINotifSink *lpSink = new MAPINotifSink();
-    
+
+    m_cRef = 0;
     lpSink->AddRef();
     
     *lppSink = lpSink;
