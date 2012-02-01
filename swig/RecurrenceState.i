@@ -33,7 +33,7 @@ import time
 
 # actually functions from platform.h .. probably should move
 def FileTimeToUnixTime(llFT):
-    return (llFT - 116444736000000000) / 10000000
+    return int((llFT - 116444736000000000) / 10000000)
 def RTimeToFileTime(ulRTime):
     return ulRTime * 600000000
 def RTimeToUnixTime(ulRTime):
@@ -82,7 +82,7 @@ def Summarize(rs):
     print "FirstDateTime: %d" % rs.ulFirstDateTime
     print "Period: %d" % rs.ulPeriod
     print "ulSlidingFlag: %d" % rs.ulSlidingFlag
-    print "Pattern info:"
+    print "Pattern info, type %d:" % rs.ulPatternType
     if rs.ulPatternType == 0:
         pass
     elif rs.ulPatternType == 1:
@@ -95,11 +95,11 @@ def Summarize(rs):
     else:
         print "ERROR: Invalid pattern type: %d" % rs.ulPatternType
     if rs.ulEndType == ET_DATE:
-        print "Ending recurrence by date, see EndDate below, end count is 10: %d" % rs.ulOccurrenceCount
+        print "Ending recurrence by date, see EndDate below, end count is: %d" % rs.ulOccurrenceCount
     elif rs.ulEndType == ET_NUMBER:
         print "Ending recurrence by count: %d" % rs.ulOccurrenceCount
     elif rs.ulEndType == ET_NEVER:
-        print "Never ending recurrence"
+        print "Never ending recurrence, end count is 10: %d" % rs.ulOccurrenceCount
     else:
         print "ERROR: Invalid end type: 0x%x" % rs.ulEndType
     print "First Day of Week: %d" % rs.ulFirstDOW
