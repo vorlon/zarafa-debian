@@ -80,9 +80,9 @@ am_libzarafaclient_la_OBJECTS = ECABLogon.lo ECABProvider.lo \
 	WSABPropStorage.lo WSUtil.lo WSABTableView.lo \
 	WSStoreTableView.lo ClientUtil.lo ECExchangeModifyTable.lo \
 	ECExchangeExportChanges.lo ECExchangeImportContentsChanges.lo \
-	ECExchangeImportHierarchyChanges.lo ECProfSect.lo \
-	ECMSProviderSwitch.lo ECMSProviderOffline.lo \
-	ECABProviderSwitch.lo ECABProviderOffline.lo ProviderUtil.lo \
+	ECExchangeImportHierarchyChanges.lo ECMSProviderSwitch.lo \
+	ECMSProviderOffline.lo ECABProviderSwitch.lo \
+	ECABProviderOffline.lo ProviderUtil.lo \
 	ECExportAddressbookChanges.lo ECMAPIFolderPublic.lo \
 	ECMemTablePublic.lo ECMsgStorePublic.lo ECChangeAdvisor.lo \
 	ECDisplayTable.lo ECArchiveAwareMsgStore.lo \
@@ -357,7 +357,6 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECExchangeImportContentsChanges.cpp ECExchangeImportContentsChanges.h							\
 	ECExchangeImportHierarchyChanges.cpp ECExchangeImportHierarchyChanges.h							\
 	ECICS.h 																		\
-	ECProfSect.cpp ECProfSect.h																		\
 	ECMSProviderSwitch.cpp ECMSProviderSwitch.h	ECMSProviderOffline.h ECMSProviderOffline.cpp		\
 	ECABProviderSwitch.cpp ECABProviderSwitch.h	ECABProviderOffline.h ECABProviderOffline.cpp		\
 	ProviderUtil.h ProviderUtil.cpp																	\
@@ -482,7 +481,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECNotifyClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECNotifyMaster.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECParentStorage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECProfSect.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECPropertyEntry.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSessionGroupManager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECXPLogon.Plo@am__quote@

@@ -53,7 +53,6 @@ libzarafaclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECExchangeImportContentsChanges.cpp ECExchangeImportContentsChanges.h							\
 	ECExchangeImportHierarchyChanges.cpp ECExchangeImportHierarchyChanges.h							\
 	ECICS.h 																		\
-	ECProfSect.cpp ECProfSect.h																		\
 	ECMSProviderSwitch.cpp ECMSProviderSwitch.h	ECMSProviderOffline.h ECMSProviderOffline.cpp		\
 	ECABProviderSwitch.cpp ECABProviderSwitch.h	ECABProviderOffline.h ECABProviderOffline.cpp		\
 	ProviderUtil.h ProviderUtil.cpp																	\

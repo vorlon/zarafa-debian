@@ -1548,7 +1548,10 @@ LPSRowSet		List_to_LPSRowSet(PyObject *list)
     Py_ssize_t len = 0;
     LPSRowSet lpsRowSet = NULL;
     int i = 0;
-    
+   
+	if (list == Py_None)
+		goto exit;
+
     len = PyObject_Length(list);
     
     iter = PyObject_GetIter(list);
