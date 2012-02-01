@@ -2172,7 +2172,7 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 	LPMDB	lpMsgStore = NULL;
 	IMAPIAdviseSink *lpSink = NULL;
 	LPENTRYID lpEntryId = NULL;
-	long   	cbEntryId = 0;
+	ULONG  	cbEntryId = 0;
 	long	ulMask = 0;
 	ULONG 	ulConnection = 0;
 
