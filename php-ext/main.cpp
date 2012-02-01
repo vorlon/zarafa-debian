@@ -888,7 +888,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	int			sslcert_len = 0;
 	char		*sslpass = "";
 	int			sslpass_len = 0;
-	int			ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
+	long		ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
 	LPMAPISESSION lpMAPISession = NULL;
 	// local
