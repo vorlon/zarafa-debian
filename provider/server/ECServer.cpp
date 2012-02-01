@@ -1149,10 +1149,10 @@ int running_server(char *szName, const char *szConfig)
 			er = lpLicense->QueryCapability(0 /*SERVICE_TYPE_ZCP*/, "MULTISERVER", &bLicensed);
 			if (er != erSuccess) {
 				if (i < 29) {
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, waiting 2s for retry.");
+					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to determine if distributed features are allowed, waiting 2s for retry. (attempt %u/30)", i + 1);
 					sleep_ms(2000);
 				} else {
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed still not running 60s. Distributed features are unavailable.");
+					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to determine if distributed features are allowed, assuming unavailable.");
 					retval = -1;
 					goto exit;
 				}
