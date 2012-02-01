@@ -2173,8 +2173,8 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 	LPMDB	lpMsgStore = NULL;
 	IMAPIAdviseSink *lpSink = NULL;
 	LPENTRYID lpEntryId = NULL;
-	ULONG   cbEntryId = 0;
-	ULONG	ulMask = 0;
+	long   	cbEntryId = 0;
+	long	ulMask = 0;
 	ULONG 	ulConnection = 0;
 
 	RETVAL_FALSE;
@@ -2203,7 +2203,7 @@ ZEND_FUNCTION(mapi_msgstore_unadvise)
 {
 	zval	*resStore = NULL;
 	LPMDB	lpMsgStore = NULL;
-	ULONG 	ulConnection = 0;
+	long 	ulConnection = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -2237,7 +2237,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 {
     zval *resSink = NULL;
     zval *notifications = NULL;
-    ULONG ulTime = 0;
+    long ulTime = 0;
     MAPINotifSink *lpSink = NULL;
     ULONG cNotifs = 0;
     LPNOTIFICATION lpNotifs = NULL;
