@@ -1156,12 +1156,12 @@ int running_server(char *szName, const char *szConfig)
 					retval = -1;
 					goto exit;
 				}
-				continue;
-			}
-			if (!bLicensed) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
-				retval = -1;
-				goto exit;
+			} else {
+				if (!bLicensed)
+					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
+					retval = -1;
+					goto exit;
+				break;
 			}
 		}
 	}
