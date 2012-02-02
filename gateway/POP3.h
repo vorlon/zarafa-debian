@@ -106,6 +106,7 @@ private:
 	HRESULT HrMakeMailList();
 	HRESULT HrLogin(const std::string &strUsername, const std::string &strPassword);
 	std::string DotFilter(const char *input);
+	BOOL IsAuthorized() { return !!lpStore; }
 
 	IMAPISession	*lpSession;
 	IMsgStore		*lpStore;
