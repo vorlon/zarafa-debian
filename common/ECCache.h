@@ -150,7 +150,7 @@ public:
 	
 	size_type Size() const
 	{
-		return m_map.size() * sizeof(typename _MapType::value_type) + m_ulSize;
+		return (m_map.size() * sizeof(typename _MapType::value_type) + 64) + m_ulSize;
 	}
 
 	ECRESULT RemoveCacheItem(const key_type &key) 
@@ -295,7 +295,7 @@ private:
 	
 	ECRESULT UpdateCache(float ratio)
 	{
-		if((size_type)m_map.size() * (sizeof(typename _MapType::value_type) + 64) + m_ulSize > MaxSize()) {
+		if( Size() > MaxSize()) {
 			PurgeCache(ratio);
 		}
 
