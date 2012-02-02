@@ -185,7 +185,6 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		hr = HrResponse(POP3_RESP_ERR, "Invalid command");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Not authorized for command: %s", vWords[0].c_str());
 		hr = MAPI_E_CALL_FAILED;
-		goto exit;
 	} else if (strCommand.compare("STAT") == 0) {
 		if (vWords.size() != 1) {
 			hr = HrResponse(POP3_RESP_ERR, "Stat command has no arguments");
