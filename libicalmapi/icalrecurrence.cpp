@@ -277,7 +277,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	}
 
 	// now that we have a full recurrence object, recalculate the end time, see ZCP-9143
-	if (lpRec->getEndType() != recurrence::NEVER)
+	if (lpRec->getEndType() == recurrence::DATE)
 	{
 		OccrInfo *lpOccrInfo = NULL;
 		ULONG cValues = 0;
