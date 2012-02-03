@@ -181,7 +181,11 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		string strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
 		hr = HrCmdPass(strPass);
-	} else if (!IsAuthorized()) {
+	} else if (strCommand.compare("QUIT") == 0) {
+        hr = HrCmdQuit();
+        // let the gateway quit from the socket read loop
+        hr = MAPI_E_END_OF_SESSION;
+    } else if (!IsAuthorized()) {
 		hr = HrResponse(POP3_RESP_ERR, "Invalid command");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Not authorized for command: %s", vWords[0].c_str());
 		hr = MAPI_E_CALL_FAILED;
@@ -244,10 +248,6 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		} else {
 			hr = HrCmdUidl();
 		}
-	} else if (strCommand.compare("QUIT") == 0) {
-		hr = HrCmdQuit();
-		// let the gateway quit from the socket read loop
-		hr = MAPI_E_END_OF_SESSION;
 	} else {
 		hr = HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
