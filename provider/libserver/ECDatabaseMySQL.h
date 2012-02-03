@@ -95,6 +95,8 @@ public:
 
 	void			ResetResult(DB_RESULT sResult);
 
+	ECRESULT		ValidateTables();
+
 	std::string		GetError();
 	
 	ECRESULT		Begin();

@@ -1176,6 +1176,14 @@ int running_server(char *szName, const char *szConfig)
 	if (!tmplock)
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
+#ifdef EMBEDDED_MYSQL
+	er = lpDatabase->ValidateTables();
+	if (er != erSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to validate the database.");
+		goto exit;
+	}
+#endif
+
 	// perform database upgrade .. may take a very long time
 	er = lpDatabaseFactory->UpdateDatabase(m_bForceDatabaseUpdate, dbError);
 

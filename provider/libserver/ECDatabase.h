@@ -98,6 +98,8 @@ public:
 	// Reset the result set so it can be iterated again
 	virtual void			ResetResult(DB_RESULT sResult) = 0;
 
+	virtual ECRESULT		ValidateTables() = 0;
+
 	// Freememory functions
 	virtual	void			FreeResult(DB_RESULT sResult) = 0;
 

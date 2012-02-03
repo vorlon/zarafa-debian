@@ -73,6 +73,7 @@
 #include "ECDatabaseUpdate.h"
 #include "ECStatsCollector.h"
 
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -251,8 +252,7 @@ ECRESULT ECDatabaseMySQL::InitLibrary(char* lpDatabaseDir, char* lpConfigFile, E
 		(char*)strDatabaseDir.c_str(),
 	};
 
-	// mysql > 4.1.10 =mysql_library_init(...)
-	if((ret = mysql_server_init(arraySize(server_args), server_args, server_groups)) != 0) {
+	if((ret = mysql_library_init(arraySize(server_args), server_args, server_groups)) != 0) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize mysql: error 0x%08X", ret);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
@@ -1374,4 +1374,80 @@ ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 exit:
 	return er;
 }
+/**
+ * Validate all database tables
+*/
+ECRESULT ECDatabaseMySQL::ValidateTables()
+{
+	ECRESULT	er = erSuccess;
+	string		strQuery;
+	list<std::string> listTables;
+	list<std::string> listErrorTables;
+	list<std::string>::iterator iterTables;
+	DB_RESULT	lpResult = NULL;
+	DB_ROW		lpDBRow = NULL;
 
+	er = DoSelect("SHOW TABLES", &lpResult);
+	if(er != erSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to get all tables from the mysql database. %s", GetError().c_str());
+		goto exit;
+	}
+
+	// Get all tables of the database
+	while( (lpDBRow = FetchRow(lpResult))) {
+		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Wrong table information.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+
+		listTables.insert(listTables.end(), lpDBRow[0]);
+	}
+	if(lpResult) FreeResult(lpResult);
+	lpResult = NULL;
+
+	for(iterTables = listTables.begin(); iterTables != listTables.end(); iterTables++) {
+		er = DoSelect("CHECK TABLE " + *iterTables, &lpResult);
+		if(er != erSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to check table '%s'", iterTables->c_str());
+			goto exit;
+		}
+
+		lpDBRow = FetchRow(lpResult);
+		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Wrong check table information.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+
+		m_lpLogger->Log(EC_LOGLEVEL_INFO,"%20s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
+		if (strcmp(lpDBRow[2], "error") == 0)
+			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
+
+		if(lpResult) FreeResult(lpResult);
+		lpResult = NULL;
+	}
+
+	if (!listErrorTables.empty())
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables.");
+		for(iterTables = listErrorTables.begin(); iterTables != listErrorTables.end(); iterTables++) {
+
+
+			er = DoUpdate("ALTER TABLE " + *iterTables + " FORCE");
+			if(er != erSuccess) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to fix table '%s'", iterTables->c_str());
+				goto exit;
+			}
+		}
+		ECDBUpdateProgress::DestroyInstance();
+
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables done.");
+	}//	if (!listErrorTables.empty())
+
+exit:
+	if(lpResult)
+		FreeResult(lpResult);
+
+	return er;
+}
