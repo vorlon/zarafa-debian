@@ -1440,7 +1440,6 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 				goto exit;
 			}
 		}
-		ECDBUpdateProgress::DestroyInstance();
 
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables done.");
 	}//	if (!listErrorTables.empty())
