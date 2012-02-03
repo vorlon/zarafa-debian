@@ -15,6 +15,7 @@
 %include "cwstring.i"
 %include "typemap.i"
 %include "std_vector.i"
+%include "std_wstring.i"
 
 %cstring_input_binary(char *lpData, unsigned int ulLen);
 %cstring_output_allocate_size(char **lpData, unsigned int *lpulLen, MAPIFreeBuffer(*$1));

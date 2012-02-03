@@ -2523,13 +2523,12 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 #define SWIGTYPE_p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type swig_types[15]
 #define SWIGTYPE_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t swig_types[16]
 #define SWIGTYPE_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type swig_types[17]
-#define SWIGTYPE_p_std__wstring swig_types[18]
-#define SWIGTYPE_p_swig__PySwigIterator swig_types[19]
-#define SWIGTYPE_p_unsigned_int swig_types[20]
-#define SWIGTYPE_p_value_type swig_types[21]
-#define SWIGTYPE_p_wchar_t swig_types[22]
-static swig_type_info *swig_types[24];
-static swig_module_info swig_module = {swig_types, 23, 0, 0, 0, 0};
+#define SWIGTYPE_p_swig__PySwigIterator swig_types[18]
+#define SWIGTYPE_p_unsigned_int swig_types[19]
+#define SWIGTYPE_p_value_type swig_types[20]
+#define SWIGTYPE_p_wchar_t swig_types[21]
+static swig_type_info *swig_types[23];
+static swig_module_info swig_module = {swig_types, 22, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2981,6 +2980,10 @@ SWIG_AsVal_ptrdiff_t (PyObject * obj, ptrdiff_t *val)
 #include <vector>
 
 
+#include <cwchar>
+#include <string>
+
+
 SWIGINTERNINLINE PyObject *
 SWIG_From_int  (int value)
 {    
@@ -3149,6 +3152,125 @@ SWIG_From_std_string  (const std::string& s)
     return SWIG_FromCharPtrAndSize(s.data(), s.size());
   } else {
     return SWIG_FromCharPtrAndSize(s.c_str(), 0);
+  }
+}
+
+
+#include <wchar.h>
+#include <limits.h>
+#ifndef WCHAR_MIN
+#  define WCHAR_MIN 0
+#endif
+#ifndef WCHAR_MAX
+#  define WCHAR_MAX 65535
+#endif
+
+
+SWIGINTERN swig_type_info*
+SWIG_pwchar_descriptor()
+{
+  static int init = 0;
+  static swig_type_info* info = 0;
+  if (!init) {
+    info = SWIG_TypeQuery("_p_wchar_t");
+    init = 1;
+  }
+  return info;
+}
+
+
+SWIGINTERN int
+SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
+{
+  PyObject *tmp = 0;
+  int isunicode = PyUnicode_Check(obj);
+  if (!isunicode && PyString_Check(obj)) {
+    if (cptr) {
+      obj = tmp = PyUnicode_FromObject(obj);
+    }
+    isunicode = 1;
+  }
+  if (isunicode) {
+    int len = PyUnicode_GetSize(obj);
+    if (cptr) {
+      *cptr = (new wchar_t[len + 1]);
+      PyUnicode_AsWideChar((PyUnicodeObject *)obj, *cptr, len);
+      (*cptr)[len] = 0;
+    }
+    if (psize) *psize = (size_t) len + 1;
+    if (alloc) *alloc = cptr ? SWIG_NEWOBJ : 0;
+    Py_XDECREF(tmp);
+    return SWIG_OK;
+  } else {
+    swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
+    if (pwchar_descriptor) {
+      void * vptr = 0;
+      if (SWIG_ConvertPtr(obj, &vptr, pwchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = (wchar_t *)vptr;
+	if (psize) *psize = vptr ? (wcslen((wchar_t *)vptr) + 1) : 0;
+	return SWIG_OK;
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+
+
+SWIGINTERN int
+SWIG_AsPtr_std_wstring (PyObject * obj, std::wstring **val) 
+{
+  wchar_t* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
+  if (SWIG_IsOK((SWIG_AsWCharPtrAndSize(obj, &buf, &size, &alloc)))) {
+    if (buf) {
+      if (val) *val = new std::wstring(buf, size - 1);
+      if (alloc == SWIG_NEWOBJ) delete[] buf;
+      return SWIG_NEWOBJ;
+    } else {
+      if (val) *val = 0;
+      return SWIG_OLDOBJ;
+    }
+  } else {
+    static int init = 0;
+    static swig_type_info* descriptor = 0;
+    if (!init) {
+      descriptor = SWIG_TypeQuery("std::wstring" " *");
+      init = 1;
+    }
+    if (descriptor) {
+      std::wstring *vptr;
+      int res = SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0);
+      if (SWIG_IsOK(res) && val) *val = vptr;
+      return res;
+    }
+  }
+  return SWIG_ERROR;
+}
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
+{
+  if (carray) {
+    if (size > INT_MAX) {
+      swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
+      return pwchar_descriptor ? 
+	SWIG_NewPointerObj(const_cast< wchar_t * >(carray), pwchar_descriptor, 0) : SWIG_Py_Void();
+    } else {
+      return PyUnicode_FromWideChar(carray, static_cast< int >(size));
+    }
+  } else {
+    return SWIG_Py_Void();
+  }
+}
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_std_wstring  (const std::wstring& s)
+{
+  if (s.size()) {
+    return SWIG_FromWCharPtrAndSize(s.data(), s.size());
+  } else {
+    return SWIG_FromWCharPtrAndSize(s.c_str(), 0);
   }
 }
 
@@ -6635,11 +6757,10 @@ fail:
 SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharSubject_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ExtendedException *arg1 = (ExtendedException *) 0 ;
-  std::wstring arg2 ;
+  std::wstring *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
@@ -6651,27 +6772,27 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharSubject_set(PyObject *SW
   }
   arg1 = reinterpret_cast< ExtendedException * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_std__wstring,  0  | 0);
+    std::wstring *ptr = (std::wstring *)0;
+    res2 = SWIG_AsPtr_std_wstring(obj1, &ptr);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ExtendedException_strWideCharSubject_set" "', argument " "2"" of type '" "std::wstring""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ExtendedException_strWideCharSubject_set" "', argument " "2"" of type '" "std::wstring""'");
-    } else {
-      std::wstring * temp = reinterpret_cast< std::wstring * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ExtendedException_strWideCharSubject_set" "', argument " "2"" of type '" "std::wstring const &""'"); 
     }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ExtendedException_strWideCharSubject_set" "', argument " "2"" of type '" "std::wstring const &""'"); 
+    }
+    arg2 = ptr;
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    if (arg1) (arg1)->strWideCharSubject = arg2;
+    if (arg1) (arg1)->strWideCharSubject = *arg2;
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsNewObj(res2)) delete arg2;
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -6683,7 +6804,7 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharSubject_get(PyObject *SW
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  std::wstring result;
+  std::wstring *result = 0 ;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   if (!PyArg_ParseTuple(args,(char *)"O:ExtendedException_strWideCharSubject_get",&obj0)) SWIG_fail;
@@ -6694,10 +6815,13 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharSubject_get(PyObject *SW
   arg1 = reinterpret_cast< ExtendedException * >(argp1);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    result =  ((arg1)->strWideCharSubject);
+    {
+      std::wstring const &_result_ref =  ((arg1)->strWideCharSubject);
+      result = (std::wstring *) &_result_ref;
+    }
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
-  resultobj = SWIG_NewPointerObj((new std::wstring(static_cast< const std::wstring& >(result))), SWIGTYPE_p_std__wstring, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_From_std_wstring(static_cast< std::wstring >(*result));
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
@@ -6709,11 +6833,10 @@ fail:
 SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharLocation_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ExtendedException *arg1 = (ExtendedException *) 0 ;
-  std::wstring arg2 ;
+  std::wstring *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
@@ -6725,27 +6848,27 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharLocation_set(PyObject *S
   }
   arg1 = reinterpret_cast< ExtendedException * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_std__wstring,  0  | 0);
+    std::wstring *ptr = (std::wstring *)0;
+    res2 = SWIG_AsPtr_std_wstring(obj1, &ptr);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ExtendedException_strWideCharLocation_set" "', argument " "2"" of type '" "std::wstring""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ExtendedException_strWideCharLocation_set" "', argument " "2"" of type '" "std::wstring""'");
-    } else {
-      std::wstring * temp = reinterpret_cast< std::wstring * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ExtendedException_strWideCharLocation_set" "', argument " "2"" of type '" "std::wstring const &""'"); 
     }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ExtendedException_strWideCharLocation_set" "', argument " "2"" of type '" "std::wstring const &""'"); 
+    }
+    arg2 = ptr;
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    if (arg1) (arg1)->strWideCharLocation = arg2;
+    if (arg1) (arg1)->strWideCharLocation = *arg2;
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsNewObj(res2)) delete arg2;
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -6757,7 +6880,7 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharLocation_get(PyObject *S
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  std::wstring result;
+  std::wstring *result = 0 ;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   if (!PyArg_ParseTuple(args,(char *)"O:ExtendedException_strWideCharLocation_get",&obj0)) SWIG_fail;
@@ -6768,10 +6891,13 @@ SWIGINTERN PyObject *_wrap_ExtendedException_strWideCharLocation_get(PyObject *S
   arg1 = reinterpret_cast< ExtendedException * >(argp1);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    result =  ((arg1)->strWideCharLocation);
+    {
+      std::wstring const &_result_ref =  ((arg1)->strWideCharLocation);
+      result = (std::wstring *) &_result_ref;
+    }
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
-  resultobj = SWIG_NewPointerObj((new std::wstring(static_cast< const std::wstring& >(result))), SWIGTYPE_p_std__wstring, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_From_std_wstring(static_cast< std::wstring >(*result));
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
@@ -14516,7 +14642,6 @@ static swig_type_info _swigt__p_std__vectorT_ExtendedException_std__allocatorT_E
 static swig_type_info _swigt__p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type = {"_p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type", "std::vector< ExtendedException >::value_type *|ExtendedException *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t = {"_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t", "std::vector< unsigned int,std::allocator< unsigned int > > *|std::vector< unsigned int > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type = {"_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type", "std::vector< unsigned int >::allocator_type *|std::allocator< unsigned int > *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__wstring = {"_p_std__wstring", "std::wstring *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_swig__PySwigIterator = {"_p_swig__PySwigIterator", "swig::PySwigIterator *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "unsigned int *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
@@ -14541,7 +14666,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type,
   &_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t,
   &_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type,
-  &_swigt__p_std__wstring,
   &_swigt__p_swig__PySwigIterator,
   &_swigt__p_unsigned_int,
   &_swigt__p_value_type,
@@ -14566,7 +14690,6 @@ static swig_cast_info _swigc__p_std__vectorT_ExtendedException_std__allocatorT_E
 static swig_cast_info _swigc__p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type[] = {  {&_swigt__p_ExtendedException, 0, 0, 0},  {&_swigt__p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t[] = {  {&_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type[] = {  {&_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_std__wstring[] = {  {&_swigt__p_std__wstring, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_swig__PySwigIterator[] = {  {&_swigt__p_swig__PySwigIterator, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_value_type[] = {  {&_swigt__p_value_type, 0, 0, 0},{0, 0, 0, 0}};
@@ -14591,7 +14714,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_std__vectorT_ExtendedException_std__allocatorT_ExtendedException_t_t__value_type,
   _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t,
   _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t__allocator_type,
-  _swigc__p_std__wstring,
   _swigc__p_swig__PySwigIterator,
   _swigc__p_unsigned_int,
   _swigc__p_value_type,
