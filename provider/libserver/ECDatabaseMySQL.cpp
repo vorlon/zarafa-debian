@@ -1437,11 +1437,14 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 			er = DoUpdate("ALTER TABLE " + *iterTables + " FORCE");
 			if(er != erSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to fix table '%s'", iterTables->c_str());
-				goto exit;
+				break;
 			}
 		}
-
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables done.");
+		if(er != erSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables failed. Error code 0x%08x", er);
+		} else {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Rebuild tables done.");
+		}
 	}//	if (!listErrorTables.empty())
 
 exit:
