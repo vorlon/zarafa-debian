@@ -1000,6 +1000,11 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		er = lpDatabase->Begin();
 		if (er != erSuccess)
 			goto exit;
+			
+		// Lock the root records to make sure that we don't interfere with modifies of the folder counters 
+		er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
+		if(er != erSuccess)
+			goto exit;
 
 		// Loop through the results data
 		for(unsigned int j=0; j< lpIndexerResults->__size && (!lpbCancel || !*lpbCancel);j++) {
@@ -1077,10 +1082,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		if(er != erSuccess)
 			goto exit;
 
-		// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
-		if(!bNotify)
-			lpDatabase->Begin();
-
 		// lstFolders now contains all folders to search through
 		for(iterFolders = lstFolders.begin(); iterFolders != lstFolders.end() && (!lpbCancel || !*lpbCancel); iterFolders++) {
 			// Optimisation: we know the folder id of the objects we're querying
@@ -1093,7 +1094,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			if(er != erSuccess)
 				continue;
 			
-			while(1) {	
+			while(1) {
+				std::list<int>	lstMsgIds;
 
 				if(lpbCancel && *lpbCancel)
 					break;
@@ -1127,10 +1129,20 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				er = RunSubRestrictions(lpSession, &ecODStore, lpSearchCrit->lpRestrict, &ecRows, locale, &lpSubResults);
 				if(er != erSuccess)
 					goto exit;
+					
+				er = lpDatabase->Begin();
+				if (er != erSuccess)
+					goto exit;
+					
+				// Lock the root records to make sure that we don't interfere with modifies of the folder counters 
+				er = lpDatabase->DoSelect("SELECT 0 FROM hierarchy WHERE id = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
+				if(er != erSuccess)
+					goto exit;
 			    
 				// Loop through the results data                
 				lCount=0;
 				lUnreadCount=0;
+				ASSERT(lstMsgIds.empty());
 				for(int j=0; j< lpRowSet->__size && (!lpbCancel || !*lpbCancel);j++, iterRows++) {
 					er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[j], lpSearchCrit->lpRestrict, lpSubResults, locale, &fMatch);
 			        
@@ -1154,8 +1166,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 						lUnreadCount++;
 					
 					if(bNotify) {
-						// Add matched row and send a notification to update views of this search (if any are open)
-						m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, iterRows->ulObjId, MAPI_MESSAGE);
+						// Defer the notifications untill we committed the changes.
+						lstMsgIds.push_back(iterRows->ulObjId);
 					}
 				}
 				
@@ -1163,14 +1175,21 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				if(lCount || lUnreadCount) {
 					UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
 					UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
+				}
+				
+				er = lpDatabase->Commit();
+				if (er != erSuccess)
+					goto exit;
+				
+				if((lCount || lUnreadCount) && bNotify) {
+					for (list<int>::const_iterator i = lstMsgIds.begin(); i != lstMsgIds.end(); ++i)
+						m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, *i, MAPI_MESSAGE);
 			    
-					if(bNotify) {
-						m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
-						m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-						
-						if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
-							m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
-					}                    
+					m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
+					m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
+					
+					if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
+						m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
 				}
 				
 				if(lpRowSet) {
@@ -1191,9 +1210,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		}
 
 		// Search done
-		// If we needn't notify, we don't need to commit each message before notifying, so Commit() here
-		if(!bNotify)
-			lpDatabase->Commit();
 
 	} //if(!bUseIndexer)
     
