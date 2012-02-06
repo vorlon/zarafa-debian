@@ -1244,11 +1244,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		if (!isset($props[$this->proptags['updatecounter']])) {
 			$props[$this->proptags['updatecounter']] = 0;	// OL also starts sequence no with zero.
 		}
-
-		/*if (!$basedate) {
-			$props[$this->proptags['meetingstatus']] = olMeeting;
-			$props[$this->proptags['responsestatus']] = olResponseOrganized;
-		}*/
 		
 		mapi_setprops($this->message, $props);
 	}
