@@ -297,7 +297,7 @@ class Meetingrequest {
 		if(!$this->isMeetingRequestResponse())
 			return;
 
-		// Get information we need rfom the response message
+		// Get information we need from the response message
 		$messageprops = mapi_getprops($this->message, Array(
 													$this->proptags['goid'],
 													$this->proptags['goid2'],
@@ -1241,13 +1241,14 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['goid']] = $goid;
 		$props[$this->proptags['goid2']] = $goid;
 
-		if (!isset($props[$this->proptags['updatecounter']]))
-			$props[$this->proptags['updatecounter']] = 0;	//OL also starts sequence no with zero.
+		if (!isset($props[$this->proptags['updatecounter']])) {
+			$props[$this->proptags['updatecounter']] = 0;	// OL also starts sequence no with zero.
+		}
 
-		if (!$basedate) {
+		/*if (!$basedate) {
 			$props[$this->proptags['meetingstatus']] = olMeeting;
 			$props[$this->proptags['responsestatus']] = olResponseOrganized;
-		}
+		}*/
 		
 		mapi_setprops($this->message, $props);
 	}
@@ -1264,16 +1265,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	{
 		$this->includesResources = false;
 		$this->nonAcceptingResources = Array();
-
-		// Get the properties of the message
-		$messageprops = mapi_getprops($this->message);
-
-		// PR_START_DATE and PR_END_DATE will be used by outlook to show the position in the calendar
-		if (!isset($messageprops[PR_START_DATE])) {
-			$addtimeprops[PR_START_DATE] = $messageprops[$this->proptags['startdate']];
-			$addtimeprops[PR_END_DATE] = $messageprops[$this->proptags['duedate']];
-			mapi_setprops($this->message, $addtimeprops);
-		}
 
 		/*****************************************************************************************
 		 * Submit message to non-resource recipients
@@ -1301,11 +1292,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 						if ($attach) {
 							$occurrenceItem = mapi_attach_openobj($attach, MAPI_MODIFY);
-							$this->submitMeetingRequest($occurrenceItem, $cancel, false, $exceptionBasedate, $recurr);
+							$this->submitMeetingRequest($occurrenceItem, $cancel, false, $exceptionBasedate, $recurr, false, $deletedRecips);
 							mapi_savechanges($attach);
 						}
 					}
 				}
+
 				// Now we can send meetingrequest for recurring item
 				$this->submitMeetingRequest($this->message, $cancel, $prefix, false, $recurr, false, $deletedRecips);
 			}
@@ -1407,11 +1399,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	function updateMeetingRequest($basedate = false)
 	{
 		$messageprops = mapi_getprops($this->message, Array($this->proptags['updatecounter'], $this->proptags['goid']));
-		
+
 		if(!isset($messageprops[$this->proptags['updatecounter']]) || !isset($messageprops[$this->proptags['goid']])) {
 			$this->setMeetingRequest($basedate);
 		} else {
-			$counter = $messageprops[$this->proptags['updatecounter']]+1;
+			$counter = $messageprops[$this->proptags['updatecounter']] + 1;
 
 			mapi_setprops($this->message, Array($this->proptags['updatecounter'] => $counter));
 		}
@@ -1666,22 +1658,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$props[$this->proptags['timezone_data']] = $messageprops[$this->proptags['timezone_data']];
 			$props[$this->proptags['timezone']] = $messageprops[$this->proptags['timezone']];
 
-			if(isset($messageprops[$this->proptags['startdate']]) && isset($messageprops[$this->proptags['duedate']])) {
-				$startDate = date("Y:n:j:G:i:s", $recurr->fromGMT($recurr->tz, $messageprops[$this->proptags['startdate']]));
-				$endDate = date("Y:n:j:G:i:s", $recurr->fromGMT($recurr->tz, $messageprops[$this->proptags['duedate']]));
-
-				$startDate = explode(":", $startDate);
-				$endDate = explode(":", $endDate);
-
-				// [0] => year, [1] => month, [2] => day, [3] => hour, [4] => minutes, [5] => seconds
-				// RecurStartDate = year * 512 + month_number * 32 + day_number
-				$props[$this->proptags["start_recur_date"]] = (intval($startDate[0], 10) * 512) + (intval($startDate[1], 10) * 32) + intval($startDate[2], 10);
-				// RecurStartTime = hour * 4096 + minutes * 64 + seconds
-				$props[$this->proptags["start_recur_time"]] = (intval($startDate[3], 10) * 4096) + (intval($startDate[4], 10) * 64) + intval($startDate[5], 10);
-
-				$props[$this->proptags["end_recur_date"]] = (intval($endDate[0], 10) * 512) + (intval($endDate[1], 10) * 32) + intval($endDate[2], 10);
-				$props[$this->proptags["end_recur_time"]] = (intval($endDate[3], 10) * 4096) + (intval($endDate[4], 10) * 64) + intval($endDate[5], 10);
-			}
+			$this->generateRecurDates($recurr, $messageprops, $props);
 		}
 
 		// Create a response message
@@ -1735,7 +1712,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		}
 
 		//Set body message in Appointment
-		if(isset($body)) $props[PR_BODY] = $this->getMeetingTimeInfo() ? $this->getMeetingTimeInfo() : $body;
+		if(isset($body)) {
+			$props[PR_BODY] = $this->getMeetingTimeInfo() ? $this->getMeetingTimeInfo() : $body;
+		}
 
 		// PR_START_DATE/PR_END_DATE is used in the UI in Outlook on the response message
 		$props[PR_START_DATE] = $messageprops[$this->proptags['startdate']];
@@ -1983,7 +1962,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	function setRecipsFromString(&$recips, $recipString, $recipType = MAPI_TO)
 	{
 		$extraRecipient = array();
-		$recipArray = split(";", $recipString);
+		$recipArray = explode(";", $recipString);
+
 		foreach($recipArray as $recip) {
 			$recip = trim($recip);
 			if (!empty($recip)) {
@@ -1994,6 +1974,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		}
 		
 	}
+
 	/**
 	 * Function which removes an exception/occurrence from recurrencing meeting
 	 * when a meeting cancellation of an occurrence is processed.
@@ -2129,7 +2110,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			// Delete properties which are not needed.
 			$deleteProps = array($this->proptags['basedate'], PR_DISPLAY_NAME, PR_ATTACHMENT_FLAGS, PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS, PR_ATTACH_METHOD);
 			foreach ($deleteProps as $propID) {
-				if (isset($messageprops[$propID])) unset($messageprops[$propID]);
+				if (isset($messageprops[$propID])) {
+					unset($messageprops[$propID]);
+				}
 			}
 
 			if (isset($messageprops[$this->proptags['recurring']])) $messageprops[$this->proptags['recurring']] = false;
@@ -2529,8 +2512,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 			// Set startdate and enddate of exception
 			if ($cancel && $recurObject) {
-				$newmessageprops[PR_START_DATE] = $newmessageprops[$this->proptags['startdate']] = $recurObject->getOccurrenceStart($basedate);
-				$newmessageprops[PR_END_DATE] = $newmessageprops[$this->proptags['duedate']] = $recurObject->getOccurrenceEnd($basedate);
+				$newmessageprops[$this->proptags['startdate']] = $recurObject->getOccurrenceStart($basedate);
+				$newmessageprops[$this->proptags['duedate']] = $recurObject->getOccurrenceEnd($basedate);
 			}
 
 			// Set basedate in guid (0x3)
@@ -2583,7 +2566,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// confuses the Zarafa webaccess
 		$newmessageprops[PR_ICON_INDEX] = null;
 		$newmessageprops[PR_RESPONSE_REQUESTED] = true;
-		
+
+		// PR_START_DATE and PR_END_DATE will be used by outlook to show the position in the calendar
+		$newmessageprops[PR_START_DATE] = $newmessageprops[$this->proptags['startdate']];
+		$newmessageprops[PR_END_DATE] = $newmessageprops[$this->proptags['duedate']];
+
 		$meetingTimeInfo = $this->getMeetingTimeInfo();
 
 		if($meetingTimeInfo)
@@ -2596,30 +2583,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$newmessageprops[$this->proptags['timezone_data']] = $messageprops[$this->proptags['timezone_data']];
 			$newmessageprops[$this->proptags['timezone']] = $messageprops[$this->proptags['timezone']];
 
-			/**
-			 * OL2007 uses these 4 properties to specify occurence that should be updated
-			 * ical generates RECURRENCE-ID property based on exception's basedate (PidLidExceptionReplaceTime), 
-			 * but OL07 doesn't send this property, so ical will generate RECURRENCE-ID property based on date
-			 * from GlobalObjId and time from StartRecurTime property, so we are sending basedate property and
-			 * also additionally we are sending these properties
-			 * Ref: MS-OXCICAL 2.2.1.20.20 Property: RECURRENCE-ID
-			 */
 			if($recurObject) {
-				if($messageprops[$this->proptags['startdate']] && $messageprops[$this->proptags['duedate']]) {
-					$startDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['startdate']]));
-					$endDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['duedate']]));
-					$startDate = explode(":", $startDate);
-					$endDate = explode(":", $endDate);
-
-					// [0] => year, [1] => month, [2] => day, [3] => hour, [4] => minutes, [5] => seconds
-					// RecurStartDate = year * 512 + month_number * 32 + day_number
-					$newmessageprops[$this->proptags["start_recur_date"]] = (intval($startDate[0], 10) * 512) + (intval($startDate[1], 10) * 32) + intval($startDate[2], 10);
-					// RecurStartTime = hour * 4096 + minutes * 64 + seconds
-					$newmessageprops[$this->proptags["start_recur_time"]] = (intval($startDate[3], 10) * 4096) + (intval($startDate[4], 10) * 64) + intval($startDate[5], 10);
-
-					$newmessageprops[$this->proptags["end_recur_date"]] = (intval($endDate[0], 10) * 512) + (intval($endDate[1], 10) * 32) + intval($endDate[2], 10);
-					$newmessageprops[$this->proptags["end_recur_time"]] = (intval($endDate[3], 10) * 4096) + (intval($endDate[4], 10) * 64) + intval($endDate[5], 10);
-				}
+				$this->generateRecurDates($recurObject, $messageprops, $newmessageprops);
 			}
 		}
 
@@ -2742,6 +2707,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			mapi_message_submitmessage($new);
 		}
 
+		// Set properties on meeting object in calendar
 		// Set requestsent to 'true' (turns on 'tracking', etc)
 		$props = array();
 		$props[$this->proptags['meetingstatus']] = olMeeting;
@@ -2750,7 +2716,43 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['attendee_critical_change']] = time();
 		$props[$this->proptags['owner_critical_change']] = time();
 		$props[$this->proptags['meetingtype']] = mtgRequest;
+
+		// PR_START_DATE and PR_END_DATE will be used by outlook to show the position in the calendar
+		$props[PR_START_DATE] = $messageprops[$this->proptags['startdate']];
+		$props[PR_END_DATE] = $messageprops[$this->proptags['duedate']];
+
 		mapi_setprops($message, $props);
+	}
+
+	/**
+	 * OL2007 uses these 4 properties to specify occurence that should be updated.
+	 * ical generates RECURRENCE-ID property based on exception's basedate (PidLidExceptionReplaceTime), 
+	 * but OL07 doesn't send this property, so ical will generate RECURRENCE-ID property based on date
+	 * from GlobalObjId and time from StartRecurTime property, so we are sending basedate property and
+	 * also additionally we are sending these properties.
+	 * Ref: MS-OXCICAL 2.2.1.20.20 Property: RECURRENCE-ID
+	 * @param Object $recurObject instance of recurrence class for this message
+	 * @param Array $messageprops properties of meeting object that is going to be send
+	 * @param Array $newmessageprops properties of meeting request/response that is going to be send
+	 */
+	function generateRecurDates($recurObject, $messageprops, &$newmessageprops)
+	{
+		if($messageprops[$this->proptags['startdate']] && $messageprops[$this->proptags['duedate']]) {
+			$startDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['startdate']]));
+			$endDate = date("Y:n:j:G:i:s", $recurObject->fromGMT($recurObject->tz, $messageprops[$this->proptags['duedate']]));
+
+			$startDate = explode(":", $startDate);
+			$endDate = explode(":", $endDate);
+
+			// [0] => year, [1] => month, [2] => day, [3] => hour, [4] => minutes, [5] => seconds
+			// RecurStartDate = year * 512 + month_number * 32 + day_number
+			$newmessageprops[$this->proptags["start_recur_date"]] = (intval($startDate[0], 10) * 512) + (intval($startDate[1], 10) * 32) + intval($startDate[2], 10);
+			// RecurStartTime = hour * 4096 + minutes * 64 + seconds
+			$newmessageprops[$this->proptags["start_recur_time"]] = (intval($startDate[3], 10) * 4096) + (intval($startDate[4], 10) * 64) + intval($startDate[5], 10);
+
+			$newmessageprops[$this->proptags["end_recur_date"]] = (intval($endDate[0], 10) * 512) + (intval($endDate[1], 10) * 32) + intval($endDate[2], 10);
+			$newmessageprops[$this->proptags["end_recur_time"]] = (intval($endDate[3], 10) * 4096) + (intval($endDate[4], 10) * 64) + intval($endDate[5], 10);
+		}
 	}
 
 	function createOutgoingMessage()
@@ -2818,14 +2820,28 @@ If it is the first time this attendee has proposed a new date/time, increment th
 											));
 					}
 
-					if ((isset($occurrenceItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $occurrenceItemProps[$this->proptags['updatecounter']]) 
+					// we found the exception, compare with it
+					if(isset($occurrenceItemProps)) {
+						if ((isset($occurrenceItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $occurrenceItemProps[$this->proptags['updatecounter']]) 
 							|| (isset($occurrenceItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $occurrenceItemProps[$this->proptags['owner_critical_change']])) {
 
-						mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
-						mapi_savechanges($this->message);
-						$result = true;
+							mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
+							mapi_savechanges($this->message);
+							$result = true;
+						}
+					} else {
+						// we are not able to find exception, could mean that a significant change has occured on series
+						// and it deleted all exceptions, so compare with series
+						if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) 
+							|| (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
+
+							mapi_setprops($this->message, array($this->proptags['meetingtype'] => mtgOutOfDate, PR_ICON_INDEX => 1033));
+							mapi_savechanges($this->message);
+							$result = true;
+						}
 					}
 				} else {
+					// normal / recurring series
 					if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) 
 							|| (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {
 
@@ -2859,6 +2875,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 													$this->proptags['updatecounter'],
 													$this->proptags['recurring']
 									));
+
 				if(isset($calendarItemProps[$this->proptags['updatecounter']]) && isset($props[$this->proptags['updatecounter']]) && $calendarItemProps[$this->proptags['updatecounter']] > $props[$this->proptags['updatecounter']]) {
 					$result = true;
 				}
