@@ -178,10 +178,3 @@ Description: A web interface for the Zarafa Collaboration Platform
  users to make full use of the Zarafa Collaboration Platform through a
  modern web browser.
 
-Package: zarafa-webaccess-mobile
-Architecture: all
-Section: web
-Depends: php5-mapi
-Description: A mobile device optimized web interface to the Zarafa Collaboration Platform
- Allows user to manage their e-mail, calendar and contacts by simple
- web browsers as found on older mobile devices.

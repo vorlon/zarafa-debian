@@ -87,15 +87,12 @@ install-indep:
 	# debian/<package>-doc.
 	#INSTALLDOC#
 	$(MAKE) DESTDIR=$(INSTDIR) install-ajax-webaccess
-	$(MAKE) DESTDIR=$(INSTDIR) install-mobile-webaccess
 
 	# fix webaccess correct owner writable files
 	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess/tmp
-	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess-mobile/*
 	# add apache config
 	mkdir -p $(INSTDIR)/etc/apache2/sites-available
 	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess
-	mv $(INSTDIR)/usr/share/zarafa-webaccess-mobile/zarafa-webaccess-mobile.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess-mobile
 
 	dh_install -i --sourcedir=debian/tmp --fail-missing
 
@@ -143,7 +140,7 @@ binary-indep: install-indep
 # installs NEWS files
 	dh_installchangelogs -i
 	dh_compress -i
-	dh_fixperms -i -Xvar/lib/zarafa-webaccess/tmp -Xvar/lib/zarafa-webaccess-mobile/config -Xvar/lib/zarafa-webaccess-mobile/cache -Xvar/lib/zarafa-webaccess-mobile/templates_c
+	dh_fixperms -i -Xvar/lib/zarafa-webaccess/tmp
 	dh_pysupport -i
 	dh_installdeb -i
 	dh_gencontrol -i
