@@ -39,6 +39,7 @@ endif
 
 config.status: configure
 	dh_testdir
+	dh_autotools-dev_updateconfig
 	# Add here commands to configure the package.
 	#[ -x bootstrap ] && ./bootstrap
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --with-distro=debian --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --with-userscript-prefix=/etc/zarafa/userscripts --with-quotatemplate-prefix=/etc/zarafa/quotamail --with-indexerscripts-prefix=/usr/share/zarafa/indexerscripts --disable-static --enable-tcmalloc --enable-unicode --disable-perl --enable-python --disable-swig $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
@@ -47,15 +48,10 @@ config.status: configure
 clean:
 	dh_testdir
 	dh_testroot
+	dh_autotools-dev_restoreconfig
 	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
-	cp -f /usr/share/misc/config.sub config.sub
-endif
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
-	cp -f /usr/share/misc/config.guess config.guess
-endif
 	dh_clean 
 
 
