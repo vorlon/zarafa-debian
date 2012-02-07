@@ -159,7 +159,8 @@ class Meetingrequest {
 		$properties["reminderminutes"] = "PT_LONG:PSETID_Common:0x8501";
 		$properties["reminderset"] = "PT_BOOLEAN:PSETID_Common:0x8503";
 		$properties["sendasical"] = "PT_BOOLEAN:PSETID_Appointment:0x8200";
-		$properties["updatecounter"] = "PT_LONG:PSETID_Appointment:0x8201";			// AppointmentSequenceNumber
+		$properties["updatecounter"] = "PT_LONG:PSETID_Appointment:0x8201";					// AppointmentSequenceNumber
+		$properties["last_updatecounter"] = "PT_LONG:PSETID_Appointment:0x8203";			// AppointmentLastSequence
 		$properties["unknown7"] = "PT_LONG:PSETID_Appointment:0x8202";
 		$properties["busystatus"] = "PT_LONG:PSETID_Appointment:0x8205";
 		$properties["intendedbusystatus"] = "PT_LONG:PSETID_Appointment:0x8224";
@@ -1242,7 +1243,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['goid2']] = $goid;
 
 		if (!isset($props[$this->proptags['updatecounter']])) {
-			$props[$this->proptags['updatecounter']] = 0;	// OL also starts sequence no with zero.
+			$props[$this->proptags['updatecounter']] = 0;			// OL also starts sequence no with zero.
+			$props[$this->proptags['last_updatecounter']] = 0;
 		}
 		
 		mapi_setprops($this->message, $props);
@@ -1260,6 +1262,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	{
 		$this->includesResources = false;
 		$this->nonAcceptingResources = Array();
+
+		// Get the properties of the message
+		$messageprops = mapi_getprops($this->message, Array($this->proptags['recurring']));
 
 		/*****************************************************************************************
 		 * Submit message to non-resource recipients
@@ -1393,14 +1398,17 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	 */
 	function updateMeetingRequest($basedate = false)
 	{
-		$messageprops = mapi_getprops($this->message, Array($this->proptags['updatecounter'], $this->proptags['goid']));
+		$messageprops = mapi_getprops($this->message, Array($this->proptags['last_updatecounter'], $this->proptags['goid']));
 
-		if(!isset($messageprops[$this->proptags['updatecounter']]) || !isset($messageprops[$this->proptags['goid']])) {
+		if(!isset($messageprops[$this->proptags['last_updatecounter']]) || !isset($messageprops[$this->proptags['goid']])) {
 			$this->setMeetingRequest($basedate);
 		} else {
-			$counter = $messageprops[$this->proptags['updatecounter']] + 1;
+			$counter = $messageprops[$this->proptags['last_updatecounter']] + 1;
 
-			mapi_setprops($this->message, Array($this->proptags['updatecounter'] => $counter));
+			// increment value of last_updatecounter, last_updatecounter will be common for recurring series
+			// so even if you sending an exception only you need to update the last_updatecounter in the recurring series message
+			// this way we can make sure that everytime we will be using a uniwue number for every operation
+			mapi_setprops($this->message, Array($this->proptags['last_updatecounter'] => $counter));
 		}
 	}
 	
@@ -2516,9 +2524,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$newmessageprops[$this->proptags['goid2']] = $messageprops[$this->proptags['goid2']];
 			$newmessageprops[PR_OWNER_APPT_ID] = $messageprops[PR_OWNER_APPT_ID];
 
-			// Set updatecounter/AppointmentSequenceNumber
-			$newmessageprops[$this->proptags['updatecounter']] = $messageprops[$this->proptags['updatecounter']];
-
 			// Get deleted recipiets from exception msg
 			$restriction = Array(RES_AND,
 							Array(
@@ -2565,6 +2570,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// PR_START_DATE and PR_END_DATE will be used by outlook to show the position in the calendar
 		$newmessageprops[PR_START_DATE] = $newmessageprops[$this->proptags['startdate']];
 		$newmessageprops[PR_END_DATE] = $newmessageprops[$this->proptags['duedate']];
+
+		// Set updatecounter/AppointmentSequenceNumber
+		// get the value of latest updatecounter for the whole series and use it
+		$newmessageprops[$this->proptags['updatecounter']] = $messageprops[$this->proptags['last_updatecounter']];
 
 		$meetingTimeInfo = $this->getMeetingTimeInfo();
 
@@ -2711,12 +2720,17 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['attendee_critical_change']] = time();
 		$props[$this->proptags['owner_critical_change']] = time();
 		$props[$this->proptags['meetingtype']] = mtgRequest;
+		// save the new updatecounter to exception/recurring series/normal meeting
+		$props[$this->proptags['updatecounter']] = $newmessageprops[$this->proptags['updatecounter']];
 
 		// PR_START_DATE and PR_END_DATE will be used by outlook to show the position in the calendar
 		$props[PR_START_DATE] = $messageprops[$this->proptags['startdate']];
 		$props[PR_END_DATE] = $messageprops[$this->proptags['duedate']];
 
 		mapi_setprops($message, $props);
+
+		// saving of these properties on calendar item should be handled by caller function
+		// based on sending meeting request was successfull or not
 	}
 
 	/**
