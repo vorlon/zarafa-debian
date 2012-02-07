@@ -161,7 +161,7 @@
 //////////////////////////
 
 // Input
-%typemap(in)	LPMAPIUID (int res, char *buf, size_t size, int alloc),
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf, size_t size, int alloc),
 				LPCIID (int res, char *buf, size_t size, int alloc),
 				LPGUID (int res, char *buf, size_t size, int alloc)
 {
@@ -172,7 +172,7 @@
   }
   $1 = %reinterpret_cast(buf, $1_ltype);
 }
-%typemap(in)	const IID& (int res, char *buf, size_t size, int alloc)
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res, char *buf, size_t size, int alloc)
 {
   alloc = SWIG_OLDOBJ;
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -185,11 +185,11 @@
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 // Used for LPUNKNOWN *
-%typemap(arginit,noblock=1) LPCIID USE_IID_FOR_OUTPUT
+%typemap(arginit,noblock=1,fragment="SWIG_AsCharPtrAndSize") LPCIID USE_IID_FOR_OUTPUT
 {
   LPCIID &__lpiid = $1;
 }
-%typemap(arginit,noblock=1) const IID& USE_IID_FOR_OUTPUT
+%typemap(arginit,noblock=1,fragment="SWIG_AsCharPtrAndSize") const IID& USE_IID_FOR_OUTPUT
 {
   LPIID &__lpiid = $1;
 }
@@ -383,6 +383,30 @@
 	if($2)
 		MAPIFreeBuffer((void *)$2);
 }
+
+///////////////////////////////////
+// ECLogger director
+///////////////////////////////////
+#if SWIGPYTHON
+#ifndef WIN32
+
+%typemap(in) ECLogger * (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
+{
+	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
+	if(!SWIG_IsOK(res))
+		%argument_fail(res,"ECSimpleLogger",$symname, $argnum);
+
+	ECLoggerProxy::Create(EC_LOGLEVEL_DEBUG, sl, &proxy);
+	$1 = proxy;
+}
+
+%typemap(freearg) ECLogger *
+{
+	$1->Release();
+}
+
+#endif
+#endif
 
 // Pull in the language-specific typemap
 #if SWIGPERL

@@ -11,6 +11,7 @@
     #include "rtfutil.h"
     #include "favoritesutil.h"
     #include "Util.h"
+	#include "ECLogger.h"
 %}
 
 %include "wchar.i"
@@ -85,3 +86,4 @@ class Util {
 public:
     static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
 };
+

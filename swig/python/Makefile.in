@@ -63,12 +63,14 @@ am__DEPENDENCIES_1 =
 _MAPICore_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
+	${top_builddir}/zarafa-libsync/libzarafasync.la \
 	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
-am__MAPICore_la_OBJECTS = conversion.lo mapi_wrap.lo director_util.lo
+am__MAPICore_la_OBJECTS = _MAPICore_la-conversion.lo \
+	_MAPICore_la-mapi_wrap.lo _MAPICore_la-director_util.lo
 _MAPICore_la_OBJECTS = $(am__MAPICore_la_OBJECTS)
 _MAPICore_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(_MAPICore_la_CXXFLAGS) \
 	$(CXXFLAGS) $(_MAPICore_la_LDFLAGS) $(LDFLAGS) -o $@
 _archiver_la_DEPENDENCIES =  \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
@@ -115,6 +117,21 @@ _libcommon_la_OBJECTS = $(am__libcommon_la_OBJECTS)
 _libcommon_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(_libcommon_la_LDFLAGS) $(LDFLAGS) -o $@
+_libfreebusy_la_DEPENDENCIES =  \
+	${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/libfreebusy/libfreebusy.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_util.la \
+	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+am__libfreebusy_la_OBJECTS = _libfreebusy_la-conversion.lo \
+	_libfreebusy_la-libfreebusy_wrap.lo \
+	_libfreebusy_la-libfreebusy_conv.lo
+_libfreebusy_la_OBJECTS = $(am__libfreebusy_la_OBJECTS)
+_libfreebusy_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) \
+	$(_libfreebusy_la_LDFLAGS) $(LDFLAGS) -o $@
 _licenseclient_la_DEPENDENCIES =  \
 	${top_builddir}/provider/common/libzarafacommon.la \
 	${top_builddir}/provider/soap/libgsoap.la \
@@ -171,11 +188,12 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(_MAPICore_la_SOURCES) $(_archiver_la_SOURCES) \
 	$(_icalmapi_la_SOURCES) $(_inetmapi_la_SOURCES) \
-	$(_libcommon_la_SOURCES) $(_licenseclient_la_SOURCES) \
-	$(_licensereq_la_SOURCES)
+	$(_libcommon_la_SOURCES) $(_libfreebusy_la_SOURCES) \
+	$(_licenseclient_la_SOURCES) $(_licensereq_la_SOURCES)
 DIST_SOURCES = $(_MAPICore_la_SOURCES) $(_archiver_la_SOURCES) \
 	$(_icalmapi_la_SOURCES) $(_inetmapi_la_SOURCES) \
-	$(_libcommon_la_SOURCES) $(_licenseclient_la_SOURCES) \
+	$(_libcommon_la_SOURCES) $(_libfreebusy_la_SOURCES) \
+	$(_licenseclient_la_SOURCES) \
 	$(am___licensereq_la_SOURCES_DIST)
 dataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(data_DATA)
@@ -369,14 +387,16 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la \
 	_licenseclient.la $(am__append_1)
-noinst_LTLIBRARIES = _libcommon.la _archiver.la
+noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la
 
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common $(PYTHON_INCLUDES) -I${top_srcdir}/swig -w -DSWIG_PYTHON_OUTPUT_TUPLE
+_MAPICore_la_CXXFLAGS = -I${top_srcdir}/zarafa-libsync
 _MAPICore_la_LDFLAGS = -module -avoid-version
 _MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
+						${top_builddir}/zarafa-libsync/libzarafasync.la \
 						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -431,24 +451,35 @@ _libcommon_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 					   ${top_builddir}/swig/libswigcommon.la \
 				  	   $(PROG_LIBS) $(PYTHON_LIBS)
 
+_libfreebusy_la_CXXFLAGS = -I${top_srcdir}/libfreebusy
+_libfreebusy_la_LDFLAGS = -module -avoid-version 
+_libfreebusy_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+						 ${top_builddir}/libfreebusy/libfreebusy.la \
+						 ${top_builddir}/common/libcommon_mapi.la \
+                         ${top_builddir}/common/libcommon_util.la \
+                         ${top_builddir}/swig/libswigcommon.la \
+                         $(PROG_LIBS) $(PYTHON_LIBS)
+
 BUILT_SOURCES = mapi_wrap.cxx mapi_wrap.h inetmapi_wrap.cxx \
 	icalmapi_wrap.cxx archiver_wrap.cxx libcommon_wrap.cxx \
-	licenseclient_wrap.cxx $(am__append_2)
+	licenseclient_wrap.cxx libfreebusy_wrap.cxx $(am__append_2)
 CLEANFILES = $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py \
-	archiver.py libcommon.py licenseclient.py $(am__append_3)
+	archiver.py libcommon.py licenseclient.py libfreebusy.py \
+	$(am__append_3)
 _MAPICore_la_SOURCES = conversion.h conversion.cpp mapi_wrap.cxx mapi_wrap.h scl.h ../director_util.h ../director_util.cpp
 _inetmapi_la_SOURCES = conversion.h conversion.cpp inetmapi_wrap.cxx 
 _icalmapi_la_SOURCES = conversion.h conversion.cpp icalmapi_wrap.cxx
 _archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
 _libcommon_la_SOURCES = libcommon_wrap.cxx
 _licenseclient_la_SOURCES = licenseclient_wrap.cxx licenseclient_conv.cpp licenseclient_conv.h
+_libfreebusy_la_SOURCES = conversion.h conversion.cpp libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
 @OSS_ONLY_FALSE@_licensereq_la_SOURCES = licensereq_wrap.cxx
 EXTRA_DIST = typemap_python.i helpers_python.i setup.py \
 	$(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py \
 	licenseclient.py MAPI/Defs.py MAPI/__init__.py MAPI/Struct.py \
 	MAPI/Tags.py MAPI/Time.py MAPI/Util/__init__.py \
 	MAPI/Util/Generators.py MAPI/Util/Iterators.py \
-	archiver_python.i $(am__append_4)
+	MAPI/Util/AddressBook.py archiver_python.i $(am__append_4)
 data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py \
 	$(am__append_5)
 noinst_datadir = libcommon.py 
@@ -532,6 +563,8 @@ _inetmapi.la: $(_inetmapi_la_OBJECTS) $(_inetmapi_la_DEPENDENCIES)
 	$(_inetmapi_la_LINK) -rpath $(pythonexeclibdir) $(_inetmapi_la_OBJECTS) $(_inetmapi_la_LIBADD) $(LIBS)
 _libcommon.la: $(_libcommon_la_OBJECTS) $(_libcommon_la_DEPENDENCIES) 
 	$(_libcommon_la_LINK)  $(_libcommon_la_OBJECTS) $(_libcommon_la_LIBADD) $(LIBS)
+_libfreebusy.la: $(_libfreebusy_la_OBJECTS) $(_libfreebusy_la_DEPENDENCIES) 
+	$(_libfreebusy_la_LINK)  $(_libfreebusy_la_OBJECTS) $(_libfreebusy_la_LIBADD) $(LIBS)
 _licenseclient.la: $(_licenseclient_la_OBJECTS) $(_licenseclient_la_DEPENDENCIES) 
 	$(_licenseclient_la_LINK) -rpath $(pythonexeclibdir) $(_licenseclient_la_OBJECTS) $(_licenseclient_la_LIBADD) $(LIBS)
 _licensereq.la: $(_licensereq_la_OBJECTS) $(_licensereq_la_DEPENDENCIES) 
@@ -543,19 +576,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_MAPICore_la-conversion.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_MAPICore_la-director_util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_MAPICore_la-mapi_wrap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_archiver_la-archiver_conv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_archiver_la-archiver_wrap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_icalmapi_la-conversion.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_icalmapi_la-icalmapi_wrap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_inetmapi_la-conversion.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_inetmapi_la-inetmapi_wrap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_libfreebusy_la-conversion.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_libfreebusy_la-libfreebusy_conv.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_libfreebusy_la-libfreebusy_wrap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_licenseclient_la-licenseclient_conv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_licenseclient_la-licenseclient_wrap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/_licensereq_la-licensereq_wrap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conversion.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/director_util.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcommon_wrap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapi_wrap.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -578,12 +614,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-director_util.lo: ../director_util.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT director_util.lo -MD -MP -MF $(DEPDIR)/director_util.Tpo -c -o director_util.lo `test -f '../director_util.cpp' || echo '$(srcdir)/'`../director_util.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/director_util.Tpo $(DEPDIR)/director_util.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../director_util.cpp' object='director_util.lo' libtool=yes @AMDEPBACKSLASH@
+_MAPICore_la-conversion.lo: conversion.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -MT _MAPICore_la-conversion.lo -MD -MP -MF $(DEPDIR)/_MAPICore_la-conversion.Tpo -c -o _MAPICore_la-conversion.lo `test -f 'conversion.cpp' || echo '$(srcdir)/'`conversion.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_MAPICore_la-conversion.Tpo $(DEPDIR)/_MAPICore_la-conversion.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='conversion.cpp' object='_MAPICore_la-conversion.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o director_util.lo `test -f '../director_util.cpp' || echo '$(srcdir)/'`../director_util.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -c -o _MAPICore_la-conversion.lo `test -f 'conversion.cpp' || echo '$(srcdir)/'`conversion.cpp
+
+_MAPICore_la-mapi_wrap.lo: mapi_wrap.cxx
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -MT _MAPICore_la-mapi_wrap.lo -MD -MP -MF $(DEPDIR)/_MAPICore_la-mapi_wrap.Tpo -c -o _MAPICore_la-mapi_wrap.lo `test -f 'mapi_wrap.cxx' || echo '$(srcdir)/'`mapi_wrap.cxx
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_MAPICore_la-mapi_wrap.Tpo $(DEPDIR)/_MAPICore_la-mapi_wrap.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mapi_wrap.cxx' object='_MAPICore_la-mapi_wrap.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -c -o _MAPICore_la-mapi_wrap.lo `test -f 'mapi_wrap.cxx' || echo '$(srcdir)/'`mapi_wrap.cxx
+
+_MAPICore_la-director_util.lo: ../director_util.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -MT _MAPICore_la-director_util.lo -MD -MP -MF $(DEPDIR)/_MAPICore_la-director_util.Tpo -c -o _MAPICore_la-director_util.lo `test -f '../director_util.cpp' || echo '$(srcdir)/'`../director_util.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_MAPICore_la-director_util.Tpo $(DEPDIR)/_MAPICore_la-director_util.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../director_util.cpp' object='_MAPICore_la-director_util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_MAPICore_la_CXXFLAGS) $(CXXFLAGS) -c -o _MAPICore_la-director_util.lo `test -f '../director_util.cpp' || echo '$(srcdir)/'`../director_util.cpp
 
 _archiver_la-archiver_wrap.lo: archiver_wrap.cxx
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_archiver_la_CXXFLAGS) $(CXXFLAGS) -MT _archiver_la-archiver_wrap.lo -MD -MP -MF $(DEPDIR)/_archiver_la-archiver_wrap.Tpo -c -o _archiver_la-archiver_wrap.lo `test -f 'archiver_wrap.cxx' || echo '$(srcdir)/'`archiver_wrap.cxx
@@ -626,6 +676,27 @@ _inetmapi_la-inetmapi_wrap.lo: inetmapi_wrap.cxx
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='inetmapi_wrap.cxx' object='_inetmapi_la-inetmapi_wrap.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_inetmapi_la_CXXFLAGS) $(CXXFLAGS) -c -o _inetmapi_la-inetmapi_wrap.lo `test -f 'inetmapi_wrap.cxx' || echo '$(srcdir)/'`inetmapi_wrap.cxx
+
+_libfreebusy_la-conversion.lo: conversion.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -MT _libfreebusy_la-conversion.lo -MD -MP -MF $(DEPDIR)/_libfreebusy_la-conversion.Tpo -c -o _libfreebusy_la-conversion.lo `test -f 'conversion.cpp' || echo '$(srcdir)/'`conversion.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_libfreebusy_la-conversion.Tpo $(DEPDIR)/_libfreebusy_la-conversion.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='conversion.cpp' object='_libfreebusy_la-conversion.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -c -o _libfreebusy_la-conversion.lo `test -f 'conversion.cpp' || echo '$(srcdir)/'`conversion.cpp
+
+_libfreebusy_la-libfreebusy_wrap.lo: libfreebusy_wrap.cxx
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -MT _libfreebusy_la-libfreebusy_wrap.lo -MD -MP -MF $(DEPDIR)/_libfreebusy_la-libfreebusy_wrap.Tpo -c -o _libfreebusy_la-libfreebusy_wrap.lo `test -f 'libfreebusy_wrap.cxx' || echo '$(srcdir)/'`libfreebusy_wrap.cxx
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_libfreebusy_la-libfreebusy_wrap.Tpo $(DEPDIR)/_libfreebusy_la-libfreebusy_wrap.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libfreebusy_wrap.cxx' object='_libfreebusy_la-libfreebusy_wrap.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -c -o _libfreebusy_la-libfreebusy_wrap.lo `test -f 'libfreebusy_wrap.cxx' || echo '$(srcdir)/'`libfreebusy_wrap.cxx
+
+_libfreebusy_la-libfreebusy_conv.lo: libfreebusy_conv.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -MT _libfreebusy_la-libfreebusy_conv.lo -MD -MP -MF $(DEPDIR)/_libfreebusy_la-libfreebusy_conv.Tpo -c -o _libfreebusy_la-libfreebusy_conv.lo `test -f 'libfreebusy_conv.cpp' || echo '$(srcdir)/'`libfreebusy_conv.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/_libfreebusy_la-libfreebusy_conv.Tpo $(DEPDIR)/_libfreebusy_la-libfreebusy_conv.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libfreebusy_conv.cpp' object='_libfreebusy_la-libfreebusy_conv.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_libfreebusy_la_CXXFLAGS) $(CXXFLAGS) -c -o _libfreebusy_la-libfreebusy_conv.lo `test -f 'libfreebusy_conv.cpp' || echo '$(srcdir)/'`libfreebusy_conv.cpp
 
 _licenseclient_la-licenseclient_wrap.lo: licenseclient_wrap.cxx
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(_licenseclient_la_CXXFLAGS) $(CXXFLAGS) -MT _licenseclient_la-licenseclient_wrap.lo -MD -MP -MF $(DEPDIR)/_licenseclient_la-licenseclient_wrap.Tpo -c -o _licenseclient_la-licenseclient_wrap.lo `test -f 'licenseclient_wrap.cxx' || echo '$(srcdir)/'`licenseclient_wrap.cxx
@@ -886,13 +957,14 @@ icalmapi.py: $(BUILT_SOURCES)
 archiver.py: $(BUILT_SOURCES)
 libcommon.py: $(BUILT_SOURCES)
 licenseclient.py: $(BUILT_SOURCES)
+libfreebusy.py: $(BUILT_SOURCES)
 
 @OSS_ONLY_FALSE@licensereq.py: $(BUILT_SOURCES)
 
 mapi_wrap.h: mapi_wrap.cxx
 mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ../mapinotifsink.i ../mapiutil.i ../typemap.i ../helpers.i ../edkmdb.i ../IECServiceAdmin.i ../ecdefs.i typemap_python.i helpers_python.i
 	if test "x$(SWIG_EXEC)" = "x"; then echo "swig is required for 'make dist'"; exit 1; fi
-	$(SWIG_EXEC) -I${top_srcdir}/swig $(SWIG_FLAGS) -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapi_wrap.cxx ${top_srcdir}/swig/mapi.i
+	$(SWIG_EXEC) -I${top_srcdir}/swig -I${top_srcdir}/zarafa-libsync $(SWIG_FLAGS) -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapi_wrap.cxx ${top_srcdir}/swig/mapi.i
 
 inetmapi_wrap.cxx: ../typemap.i ../inetmapi.i typemap_python.i helpers_python.i
 	$(SWIG_EXEC) -I${top_srcdir}/swig -Wall -python -c++ -threads -o ${top_builddir}/swig/python/inetmapi_wrap.cxx ${top_srcdir}/swig/inetmapi.i
@@ -912,6 +984,9 @@ licenseclient_wrap.cxx: ../licenseclient.i
 # make dist seems to want to create this file regardless of the OSS_ONLY flag.
 licensereq_wrap.cxx: ../licensereq.i
 	$(SWIG_EXEC) -I${top_srcdir}/liblicense -I${top_srcdir/swig} -Wall -python -c++ -threads -o ${top_builddir}/swig/python/licensereq_wrap.cxx ${top_srcdir}/swig/licensereq.i
+
+libfreebusy_wrap.cxx: ../libfreebusy.i
+	$(SWIG_EXEC) -I${top_srcdir}/libfreebusy -I${top_srcdir/swig}  -Wall -python -c++ -threads -o ${top_builddir}/swig/python/libfreebusy_wrap.cxx ${top_srcdir}/swig/libfreebusy.i
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

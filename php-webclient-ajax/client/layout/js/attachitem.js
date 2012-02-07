@@ -457,7 +457,7 @@ function attachItemRenderRowColumnData(moduleObject, itemData, properties) {
 				} else if(xmlNode && xmlNode.getAttribute("type") == "timestamp_date") {
 					value = strftime_gmt(_("%a %x %X"), xmlValue);
 				} else if(typeof xmlValue != null) {
-					value = xmlValue;
+					value = xmlValue.htmlEntities();
 				} else {
 					value = NBSP;
 				}

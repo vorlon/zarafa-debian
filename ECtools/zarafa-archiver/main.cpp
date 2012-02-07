@@ -51,12 +51,15 @@
 #include "my_getopt.h"
 #include "stringutil.h"
 #include "ECConfig.h"
-
+#include "charset/convert.h"
+#include <locale.h>
 #include <iostream>
 using namespace std;
 
 #include <initguid.h>
 #include "archiver.h"
+
+#include "UnixUtil.cpp"
 
 enum modes {
 	MODE_INVALID = 0, 
@@ -66,7 +69,8 @@ enum modes {
 	MODE_LIST,
 	MODE_LIST_ARCHUSER,
 	MODE_ARCHIVE,
-	MODE_CLEANUP
+	MODE_CLEANUP,
+	MODE_AUTO_ATTACH
 };
 
 /**
@@ -105,6 +109,13 @@ void print_help(ostream &ostr, const char *name)
 	ostr << "                                     specified with --archive-folder." << endl;
 	ostr << "  -D|--detach <archive no>         : Detach the archive specified by archive no. This" << endl;
 	ostr << "                                     number can be found by running zarafa-archiver -l" << endl;
+	ostr << "     --auto-attach                 : When no user is specified with -u, all users" << endl;
+	ostr << "                                     will have their archives attached or detached" << endl;
+	ostr << "                                     based on the LDAP/ADS settings. If a user is" << endl;
+	ostr << "                                     specified only that user's store will be processed." << endl;
+	ostr << "                                     This option can be combined with -A/--archive to" << endl;
+	ostr << "                                     force an auto-attach run regardless of the" << endl;
+	ostr << "                                     enable_auto_attach configuration option." << endl;
 	ostr << "  -f|--archive-folder <name>       : Specify an alternate name for the subfolder" << endl;
 	ostr << "                                     that acts as the root of the archive." << endl;
 	ostr << "  -s|--archive-server <path>       : Specify the server on which the archive should" << endl;
@@ -113,7 +124,10 @@ void print_help(ostream &ostr, const char *name)
 	ostr << "                                     of the archive. This implies that only one" << endl;
 	ostr << "                                     archive can be made in the specified archive" << endl;
 	ostr << "                                     store." << endl;
-	ostr << "  -w|--writable                    : Grant write permissions on the archive." << endl;
+	ostr << "  -w                               : Grant write permissions on the archive. This will" << endl;
+	ostr << "                                     override the auto_attach_writable config option." << endl;
+	ostr << "     --writable <yes|no>           : Enable or disable write permissions. This will" << endl;
+	ostr << "                                     override the auto_attach_writable config option." << endl;
 	ostr << "  -c|--config                      : Use alternate config file." << endl;
 	ostr << "                                     Default: archiver.cfg" << endl;
 	ostr << "     --help                        : Show this help message." << endl;
@@ -143,6 +157,7 @@ enum cmdOptions {
 	OPT_ATTACH,
 	OPT_DETACH,
 	OPT_DETACH_IDX,
+	OPT_AUTO_ATTACH,
 	OPT_FOLDER,
 	OPT_ASERVER,
 	OPT_NOFOLDER,
@@ -161,6 +176,7 @@ struct option long_options[] = {
 		{ "attach-to",		required_argument,	NULL, OPT_ATTACH	},
 		{ "detach-from",	required_argument,	NULL, OPT_DETACH	},
 		{ "detach",			required_argument,	NULL, OPT_DETACH_IDX },
+		{ "auto-attach",	no_argument,		NULL, OPT_AUTO_ATTACH },
 		{ "archive-folder",	required_argument,	NULL, OPT_FOLDER	},
 		{ "archive-server", required_argument,  NULL, OPT_ASERVER	},
 		{ "no-folder",		no_argument,		NULL, OPT_NOFOLDER	},
@@ -171,9 +187,11 @@ struct option long_options[] = {
 		{ "local-only",		no_argument,		NULL, OPT_LOCAL		},
 		{ "help", 			no_argument, 		NULL, OPT_HELP		},
 		{ "config", 		required_argument, 	NULL, OPT_CONFIG 	},
-		{ "writable",		no_argument,		NULL, OPT_WRITABLE	},
+		{ "writable",		required_argument,	NULL, OPT_WRITABLE	},
 		{ NULL, 			no_argument, 		NULL, 0				}
 };
+
+#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
 
 /**
  * In some programming languages, the main function is where a program starts execution.
@@ -194,12 +212,21 @@ int main(int argc, char *argv[])
 	const char *lpszFolder = NULL;
 	const char *lpszArchiveServer = NULL;
 	bool bLocalOnly = false;
+	bool bAutoAttach = false;
 	unsigned ulAttachFlags = 0;
 	ArchiverPtr ptrArchiver;
+	convert_context converter;
 	
     ULONG ulFlags = 0;
     
 	const char *lpszConfig = Archiver::GetConfigPath();
+
+	const configsetting_t lpDefaults[] = {
+		{ "pid_file", "/var/run/zarafa-archiver.pid" },
+		{ NULL, NULL }
+	};
+
+	setlocale(LC_CTYPE, "");
 
 	int c;
 	while (1) {
@@ -247,6 +274,15 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 		} break;
+		case OPT_AUTO_ATTACH:
+			if (mode == MODE_ARCHIVE)
+				bAutoAttach = true;
+			else if(mode != MODE_INVALID) {
+				print_mode_error(mode, MODE_AUTO_ATTACH, argv[0]);
+				return 1;
+			}
+			mode = MODE_AUTO_ATTACH;
+			break;
 
 		case 'f':
 		case OPT_FOLDER:
@@ -276,7 +312,7 @@ int main(int argc, char *argv[])
 		case 'l':
 		case OPT_LIST:
 			if (mode != MODE_INVALID) {
-				print_mode_error(mode, MODE_ATTACH, argv[0]);
+				print_mode_error(mode, MODE_LIST, argv[0]);
 				return 1;
 			}
 			mode = MODE_LIST;
@@ -285,7 +321,7 @@ int main(int argc, char *argv[])
 		case 'L':
 		case OPT_LIST_ARCHUSER:
 			if (mode != MODE_INVALID) {
-				print_mode_error(mode, MODE_ATTACH, argv[0]);
+				print_mode_error(mode, MODE_LIST_ARCHUSER, argv[0]);
 				return 1;
 			}
 			mode = MODE_LIST_ARCHUSER;
@@ -293,8 +329,10 @@ int main(int argc, char *argv[])
 
 		case 'A':
 		case OPT_ARCHIVE:
-			if (mode != MODE_INVALID) {
-				print_mode_error(mode, MODE_ATTACH, argv[0]);
+			if (mode == MODE_AUTO_ATTACH)
+				bAutoAttach = true;
+			else if (mode != MODE_INVALID) {
+				print_mode_error(mode, MODE_ARCHIVE, argv[0]);
 				return 1;
 			}
 			mode = MODE_ARCHIVE;
@@ -320,17 +358,25 @@ int main(int argc, char *argv[])
 			break;
 			
 		case 'w':
-		case OPT_WRITABLE:
 			ulAttachFlags |= ArchiveManage::Writable;
+			break;
+			
+		case OPT_WRITABLE:
+			if (parseBool(my_optarg))
+				ulAttachFlags |= ArchiveManage::Writable;
+			else
+				ulAttachFlags |= ArchiveManage::ReadOnly;
 			break;
 			
 		case OPT_HELP:
 			print_help(cout, argv[0]);
 			return 1;
 
-		// error handling?
 		case '?':
-			break;
+			// Invalid option, or required argument missing
+			// my_getopt_long outputs the error message.
+			print_help(cerr, argv[0]);
+			return 1;
 		default:
 			break;
 		};
@@ -371,10 +417,6 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-	
-	else if (mode == MODE_ARCHIVE) {
-		// Needs no arguments
-	}
 
 
 	r = Archiver::Create(&ptrArchiver);
@@ -383,10 +425,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (mode != MODE_ARCHIVE)
-		ulFlags |= Archiver::AttachStdErr;
-		
-	r = ptrArchiver->Init(argv[0], lpszConfig, ulFlags);
+	ulFlags |= Archiver::AttachStdErr;
+	r = ptrArchiver->Init(argv[0], lpszConfig, lpDefaults, ulFlags);
 	if (r == FileNotFound) {
 		cerr << "Unable to open configuration file " << lpszConfig << endl;
 		return 1;
@@ -395,34 +435,49 @@ int main(int argc, char *argv[])
 		cerr << "Failed to initialize" << endl;
 		return 1;
 	}
-	
-	
+
+	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
+		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
+			return 1;
+
 	switch (mode) {
 	case MODE_ATTACH: {
 		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(lpszUser, &ptr);
+		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
 		if (r != Success)
 			goto exit;
 			
-		r = ptr->AttachTo(lpszArchiveServer, lpszArchive, lpszFolder, ulAttachFlags);
+		r = ptr->AttachTo(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder), ulAttachFlags);
 	} break;
 
 	case MODE_DETACH_IDX:
 	case MODE_DETACH: {
 		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(lpszUser, &ptr);
+		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
 		if (r != Success)
 			goto exit;
 
 		if (mode == MODE_DETACH_IDX)
 			r = ptr->DetachFrom(ulArchive);
 		else
-			r = ptr->DetachFrom(lpszArchiveServer, lpszArchive, lpszFolder);
+			r = ptr->DetachFrom(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder));
+	} break;
+
+	case MODE_AUTO_ATTACH: {
+		if (lpszUser) {
+			ArchiveManagePtr ptr;
+			r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
+			if (r != Success)
+				goto exit;
+
+			r = ptr->AutoAttach(ulAttachFlags);
+		} else
+			r = ptrArchiver->AutoAttach(ulAttachFlags);
 	} break;
 	
 	case MODE_LIST: {
 		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(lpszUser, &ptr);
+		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
 		if (r != Success)
 			goto exit;
 			
@@ -431,7 +486,7 @@ int main(int argc, char *argv[])
 
 	case MODE_LIST_ARCHUSER: {
 		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage("SYSTEM", &ptr);
+		r = ptrArchiver->GetManage(_T("SYSTEM"), &ptr);
 		if (r != Success)
 			goto exit;
 			
@@ -445,9 +500,9 @@ int main(int argc, char *argv[])
 			goto exit;
 			
 		if (lpszUser)
-			r = ptr->Archive(lpszUser);
+			r = ptr->Archive(TO_LPTST(lpszUser), bAutoAttach, ulAttachFlags);
 		else
-			r = ptr->ArchiveAll(bLocalOnly);
+			r = ptr->ArchiveAll(bLocalOnly, bAutoAttach, ulAttachFlags);
 	} break;
 		
 	case MODE_CLEANUP: {
@@ -457,7 +512,7 @@ int main(int argc, char *argv[])
 			goto exit;
 			
 		if (lpszUser)
-			r = ptr->Cleanup(lpszUser);
+			r = ptr->Cleanup(converter.convert_to<LPTSTR>(lpszUser));
 		else
 			r = ptr->CleanupAll(bLocalOnly);
 	} break;

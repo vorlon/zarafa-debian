@@ -51,6 +51,7 @@
 #define SWIG_IUNKNOWN_H
 
 #include <set>
+#include <stdio.h>
 
 /**
  * IUnknownImplementor takes care of the IUnknown part of an IUnknown
@@ -60,19 +61,39 @@ template <typename _Interface>
 class IUnknownImplementor : public _Interface {
 public:
 	IUnknownImplementor(ULONG cInterfaces, LPCIID lpInterfaces)
-	: m_ulRef(1)
-	, m_interfaces(lpInterfaces, lpInterfaces + cInterfaces, &IIDLess)
+	: m_interfaces(lpInterfaces, lpInterfaces + cInterfaces, &IIDLess)
 	{ }
 
+	IUnknownImplementor()
+	: m_interfaces(&IID_IUnknown, &IID_IUnknown + 1, &IIDLess)
+	{ }
+
+	virtual ~IUnknownImplementor() { 
+	}
+
 	ULONG AddRef() {
-		return ++m_ulRef;
+		PyGILState_STATE gstate;
+		gstate = PyGILState_Ensure();
+		
+		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		PyObject *o = director->swig_get_self();
+		Py_INCREF(o);
+
+		PyGILState_Release(gstate);
+		return o->ob_refcnt;
 	}
 
 	ULONG Release() {
-		ULONG ulRef = --m_ulRef;
-		if (ulRef == 0)
-			delete this;
-		return ulRef;
+		PyGILState_STATE gstate;
+		gstate = PyGILState_Ensure();
+		
+		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		PyObject *o = director->swig_get_self();
+		ULONG cnt = o->ob_refcnt;
+		Py_DECREF(o); // Will delete this because python object will have refcount 0, which deletes this object
+
+		PyGILState_Release(gstate);
+		return cnt-1;
 	}
 
 	HRESULT QueryInterface(REFIID iid , void** ppvObject) {
@@ -84,8 +105,6 @@ public:
 		return hrSuccess;
 	}
 	
-protected:
-	virtual ~IUnknownImplementor() { }
 
 private:
 	static bool IIDLess(REFIID lhs, REFIID rhs) {
@@ -93,7 +112,6 @@ private:
 	}
 
 private:
-	ULONG m_ulRef;
 	std::set<IID, bool(*)(REFIID,REFIID)> m_interfaces;
 };
 

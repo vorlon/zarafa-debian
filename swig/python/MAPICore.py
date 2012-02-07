@@ -1308,6 +1308,7 @@ SYNC_W_PROGRESS = _MAPICore.SYNC_W_PROGRESS
 SYNC_W_CLIENT_CHANGE_NEWER = _MAPICore.SYNC_W_CLIENT_CHANGE_NEWER
 ECSTORE_TYPE_PRIVATE = _MAPICore.ECSTORE_TYPE_PRIVATE
 ECSTORE_TYPE_PUBLIC = _MAPICore.ECSTORE_TYPE_PUBLIC
+ECSTORE_TYPE_ARCHIVE = _MAPICore.ECSTORE_TYPE_ARCHIVE
 class IECServiceAdmin(IUnknown):
     __swig_setmethods__ = {}
     for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
@@ -1320,7 +1321,6 @@ class IECServiceAdmin(IUnknown):
     def CreateStore(*args): return _MAPICore.IECServiceAdmin_CreateStore(*args)
     def CreateEmptyStore(*args): return _MAPICore.IECServiceAdmin_CreateEmptyStore(*args)
     def ResolveStore(*args): return _MAPICore.IECServiceAdmin_ResolveStore(*args)
-    def GetStore(*args): return _MAPICore.IECServiceAdmin_GetStore(*args)
     def HookStore(*args): return _MAPICore.IECServiceAdmin_HookStore(*args)
     def UnhookStore(*args): return _MAPICore.IECServiceAdmin_UnhookStore(*args)
     def RemoveStore(*args): return _MAPICore.IECServiceAdmin_RemoveStore(*args)
@@ -1368,6 +1368,7 @@ class IECServiceAdmin(IUnknown):
     def GetServerDetails(*args): return _MAPICore.IECServiceAdmin_GetServerDetails(*args)
     def ResolvePseudoUrl(*args): return _MAPICore.IECServiceAdmin_ResolvePseudoUrl(*args)
     def GetPublicStoreEntryID(*args): return _MAPICore.IECServiceAdmin_GetPublicStoreEntryID(*args)
+    def GetArchiveStoreEntryID(*args): return _MAPICore.IECServiceAdmin_GetArchiveStoreEntryID(*args)
     __swig_destroy__ = _MAPICore.delete_IECServiceAdmin
     __del__ = lambda self : None;
 IECServiceAdmin_swigregister = _MAPICore.IECServiceAdmin_swigregister
@@ -1433,6 +1434,23 @@ class IECLicense(IUnknown):
     __del__ = lambda self : None;
 IECLicense_swigregister = _MAPICore.IECLicense_swigregister
 IECLicense_swigregister(IECLicense)
+
+class IECExportChanges(IUnknown):
+    __swig_setmethods__ = {}
+    for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, IECExportChanges, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IUnknown]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, IECExportChanges, name)
+    def __init__(self, *args, **kwargs): raise AttributeError, "No constructor defined"
+    __repr__ = _swig_repr
+    def GetChangeCount(*args): return _MAPICore.IECExportChanges_GetChangeCount(*args)
+    def SetMessageInterface(*args): return _MAPICore.IECExportChanges_SetMessageInterface(*args)
+    def SetLogger(*args): return _MAPICore.IECExportChanges_SetLogger(*args)
+    __swig_destroy__ = _MAPICore.delete_IECExportChanges
+    __del__ = lambda self : None;
+IECExportChanges_swigregister = _MAPICore.IECExportChanges_swigregister
+IECExportChanges_swigregister(IECExportChanges)
 
 UnwrapObject = _MAPICore.UnwrapObject
 class IECChangeAdvisor(IUnknown):
@@ -1578,5 +1596,112 @@ MAPI_SUPPRESS_ATTACH = _MAPICore.MAPI_SUPPRESS_ATTACH
 MAPI_ENVELOPE_ONLY = _MAPICore.MAPI_ENVELOPE_ONLY
 MAPI_BODY_AS_FILE = _MAPICore.MAPI_BODY_AS_FILE
 MAPI_AB_NOMODIFY = _MAPICore.MAPI_AB_NOMODIFY
+class ECSimpleLogger(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSimpleLogger, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSimpleLogger, name)
+    __repr__ = _swig_repr
+    def Log(*args): return _MAPICore.ECSimpleLogger_Log(*args)
+    def __init__(self, *args): 
+        if self.__class__ == ECSimpleLogger:
+            args = (None,) + args
+        else:
+            args = (self,) + args
+        this = _MAPICore.new_ECSimpleLogger(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_ECSimpleLogger
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_ECSimpleLogger(self)
+        return weakref_proxy(self)
+ECSimpleLogger_swigregister = _MAPICore.ECSimpleLogger_swigregister
+ECSimpleLogger_swigregister(ECSimpleLogger)
+
+class Stream(IStream):
+    __swig_setmethods__ = {}
+    for _s in [IStream]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Stream, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IStream]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, Stream, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == Stream:
+            args = (None,) + args
+        else:
+            args = (self,) + args
+        this = _MAPICore.new_Stream(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def Read(*args): return _MAPICore.Stream_Read(*args)
+    def Write(*args): return _MAPICore.Stream_Write(*args)
+    __swig_destroy__ = _MAPICore.delete_Stream
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_Stream(self)
+        return weakref_proxy(self)
+Stream_swigregister = _MAPICore.Stream_swigregister
+Stream_swigregister(Stream)
+
+EC_SYNC_OPT_STREAM = _MAPICore.EC_SYNC_OPT_STREAM
+EC_SYNC_OPT_CHANGENOTIF = _MAPICore.EC_SYNC_OPT_CHANGENOTIF
+EC_SYNC_OPT_STATECOLLECT = _MAPICore.EC_SYNC_OPT_STATECOLLECT
+EC_SYNC_OPT_CONTINUOUS = _MAPICore.EC_SYNC_OPT_CONTINUOUS
+EC_SYNC_OPT_ALL = _MAPICore.EC_SYNC_OPT_ALL
+class ECSyncSettings(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSyncSettings, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSyncSettings, name)
+    def __init__(self, *args, **kwargs): raise AttributeError, "No constructor defined"
+    __repr__ = _swig_repr
+    __swig_getmethods__["GetInstance"] = lambda x: _MAPICore.ECSyncSettings_GetInstance
+    if _newclass:GetInstance = staticmethod(_MAPICore.ECSyncSettings_GetInstance)
+    def SyncLogEnabled(*args): return _MAPICore.ECSyncSettings_SyncLogEnabled(*args)
+    def SyncLogLevel(*args): return _MAPICore.ECSyncSettings_SyncLogLevel(*args)
+    def ContinuousLogging(*args): return _MAPICore.ECSyncSettings_ContinuousLogging(*args)
+    def SyncStreamEnabled(*args): return _MAPICore.ECSyncSettings_SyncStreamEnabled(*args)
+    def ChangeNotificationsEnabled(*args): return _MAPICore.ECSyncSettings_ChangeNotificationsEnabled(*args)
+    def StateCollectorEnabled(*args): return _MAPICore.ECSyncSettings_StateCollectorEnabled(*args)
+    def StreamTimeout(*args): return _MAPICore.ECSyncSettings_StreamTimeout(*args)
+    def StreamBufferSize(*args): return _MAPICore.ECSyncSettings_StreamBufferSize(*args)
+    def StreamBatchSize(*args): return _MAPICore.ECSyncSettings_StreamBatchSize(*args)
+    def EnableSyncLog(*args): return _MAPICore.ECSyncSettings_EnableSyncLog(*args)
+    def SetSyncLogLevel(*args): return _MAPICore.ECSyncSettings_SetSyncLogLevel(*args)
+    def SetSyncOptions(*args): return _MAPICore.ECSyncSettings_SetSyncOptions(*args)
+    def SetStreamTimeout(*args): return _MAPICore.ECSyncSettings_SetStreamTimeout(*args)
+    def SetStreamBufferSize(*args): return _MAPICore.ECSyncSettings_SetStreamBufferSize(*args)
+    def SetStreamBatchSize(*args): return _MAPICore.ECSyncSettings_SetStreamBatchSize(*args)
+    __swig_destroy__ = _MAPICore.delete_ECSyncSettings
+    __del__ = lambda self : None;
+ECSyncSettings_swigregister = _MAPICore.ECSyncSettings_swigregister
+ECSyncSettings_swigregister(ECSyncSettings)
+ECSyncSettings_GetInstance = _MAPICore.ECSyncSettings_GetInstance
+
+class ECSyncLog(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECSyncLog, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECSyncLog, name)
+    __repr__ = _swig_repr
+    __swig_getmethods__["GetLogger"] = lambda x: _MAPICore.ECSyncLog_GetLogger
+    if _newclass:GetLogger = staticmethod(_MAPICore.ECSyncLog_GetLogger)
+    __swig_getmethods__["SetLogger"] = lambda x: _MAPICore.ECSyncLog_SetLogger
+    if _newclass:SetLogger = staticmethod(_MAPICore.ECSyncLog_SetLogger)
+    def __init__(self, *args): 
+        this = _MAPICore.new_ECSyncLog(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_ECSyncLog
+    __del__ = lambda self : None;
+ECSyncLog_swigregister = _MAPICore.ECSyncLog_swigregister
+ECSyncLog_swigregister(ECSyncLog)
+ECSyncLog_GetLogger = _MAPICore.ECSyncLog_GetLogger
+ECSyncLog_SetLogger = _MAPICore.ECSyncLog_SetLogger
+
 
 

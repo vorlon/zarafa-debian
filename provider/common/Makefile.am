@@ -5,7 +5,10 @@ AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(GSOAP_CFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap -I${top_srcdir}/common
 
 libzarafacommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
+	SOAPAlloc.h \
+	SOAPHelpers.cpp SOAPHelpers.h \
 	SOAPDebug.cpp SOAPDebug.h \
+	SOAPSock.cpp SOAPSock.h \
 	ZarafaUtil.cpp ZarafaUtil.h \
 	ZarafaUser.h ZarafaUser.cpp \
 	ECChannelClient.h ECChannelClient.cpp \

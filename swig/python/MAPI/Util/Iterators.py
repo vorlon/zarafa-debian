@@ -2,7 +2,7 @@ import MAPI
 import MAPI.Util.Generators
 
 class StoreIterator:
-    def __init__(self, session, users = None, flags = MAPI.MAPI_BEST_ACCESS):
+    def __init__(self, session, users = None, flags = MAPI.MDB_WRITE):
             self.session = session
             self.users = users
             self.flags = flags

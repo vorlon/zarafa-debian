@@ -72,18 +72,32 @@ using namespace std;
 
 DEFINEMAPIPTR(ECLicense);
 
-class DataCollector
-{
+class servername {
 public:
-	virtual LPSPropTagArray	GetRequiredPropTags() const;
-	virtual HRESULT GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction);
-	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable) = 0;
+	servername(LPCTSTR lpszName): m_strName(lpszName) {}
+	servername(const servername &other): m_strName(other.m_strName) {}
+
+	servername& operator=(const servername &other) {
+		if (&other != this)
+			m_strName = other.m_strName;
+		return *this;
+	}
+
+	LPTSTR c_str() const {
+		return (LPTSTR)m_strName.c_str();
+	}
+
+	bool operator<(const servername &other) const {
+		return wcscasecmp(m_strName.c_str(), other.m_strName.c_str()) < 0;
+	}
+
+private:
+	wstring	m_strName;
 };
 
-static HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector);
 static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, char *lpszPath, const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector);
 static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, char *lpszPath, DataCollector *lpCollector);
-static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<std::wstring> &listServers);
+static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers);
 
 
 class UserCountCollector : public DataCollector
@@ -97,25 +111,28 @@ private:
 	unsigned int m_ulUserCount;
 };
 
+template <typename string_type, ULONG prAccount>
 class UserListCollector : public DataCollector
 {
 public:
 	UserListCollector(IMAPISession *lpSession);
 
-	virtual LPSPropTagArray	GetRequiredPropTags() const;
+	virtual HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const;
 	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable);
-	void swap_result(std::list<std::string> *lplstUsers);
+	void swap_result(std::list<string_type> *lplstUsers);
 
 private:
-	std::list<std::string> m_lstUsers;
+	void push_back(LPSPropValue lpPropAccount);
+
+private:
+	std::list<string_type> m_lstUsers;
 	MAPISessionPtr m_ptrSession;
 };
 
 
-
-LPSPropTagArray	DataCollector::GetRequiredPropTags() const {
+HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
 	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
-	return (LPSPropTagArray)&sptaDefaultProps;
+	return Util::HrCopyPropTagArray((LPSPropTagArray)&sptaDefaultProps, lppPropTagArray);
 }
 
 HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction) {
@@ -169,17 +186,19 @@ inline unsigned int UserCountCollector::result() const {
 }
 
 
+template<typename string_type, ULONG prAccount>
+UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSession): m_ptrSession(lpSession, true) {}
 
-UserListCollector::UserListCollector(IMAPISession *lpSession): m_ptrSession(lpSession, true) {}
-
-LPSPropTagArray	UserListCollector::GetRequiredPropTags() const {
+template<typename string_type, ULONG prAccount>
+HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
 	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_MAILBOX_OWNER_ENTRYID}};
-	return (LPSPropTagArray)&sptaDefaultProps;
+	return Util::HrCopyPropTagArray((LPSPropTagArray)&sptaDefaultProps, lppPropTagArray);
 }
 
-HRESULT UserListCollector::CollectData(LPMAPITABLE lpStoreTable) {
+template<typename string_type, ULONG prAccount>
+HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpStoreTable) {
 	HRESULT hr = hrSuccess;
-	std::list<std::string> lstUsers;
+	std::list<string_type> lstUsers;
 
 	while (true) {
 		mapi_rowset_ptr ptrRows;
@@ -199,11 +218,11 @@ HRESULT UserListCollector::CollectData(LPMAPITABLE lpStoreTable) {
 				if (hrTmp != hrSuccess)
 					continue;
 
-				hrTmp = HrGetOneProp(ptrUser, PR_ACCOUNT_A, &ptrAccount);
+				hrTmp = HrGetOneProp(ptrUser, prAccount, &ptrAccount);
 				if (hrTmp != hrSuccess)
 					continue;
 
-				lstUsers.push_back(ptrAccount->Value.lpszA);
+				push_back(ptrAccount);
 			}
 		}
 
@@ -217,8 +236,19 @@ exit:
 	return hr;
 }
 
-void UserListCollector::swap_result(std::list<std::string> *lplstUsers) {
+template<typename string_type, ULONG prAccount>
+void UserListCollector<string_type, prAccount>::swap_result(std::list<string_type> *lplstUsers) {
 	lplstUsers->swap(m_lstUsers);
+}
+
+template<>
+void UserListCollector<std::string, PR_ACCOUNT_A>::push_back(LPSPropValue lpPropAccount) {
+	m_lstUsers.push_back(lpPropAccount->Value.lpszA);
+}
+
+template<>
+void UserListCollector<std::wstring, PR_ACCOUNT_W>::push_back(LPSPropValue lpPropAccount) {
+	m_lstUsers.push_back(lpPropAccount->Value.lpszW);
 }
 
 
@@ -282,7 +312,22 @@ exit:
 HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
 {
 	HRESULT hr = hrSuccess;
-	UserListCollector collector(lpMapiSession);
+	UserListCollector<std::string, PR_ACCOUNT_A> collector(lpMapiSession);
+
+	hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
+	if (hr != hrSuccess)
+		goto exit;
+
+	collector.swap_result(lplstUsers);
+
+exit:
+	return hr;
+}
+
+HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly)
+{
+	HRESULT hr = hrSuccess;
+	UserListCollector<std::wstring, PR_ACCOUNT_W> collector(lpMapiSession);
 
 	hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
 	if (hr != hrSuccess)
@@ -311,7 +356,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 	ULONG cbDDEntryID = 0;
 	ULONG ulCompanyCount = 0;
 
-	std::set<wstring>	listServers;
+	std::set<servername>	listServers;
 	convert_context		converter;
 	
 	ECSVRNAMELIST	*lpSrvNameList = NULL;
@@ -417,8 +462,8 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 		goto exit;
 
 	lpSrvNameList->cServers = 0;
-	for(std::set<wstring>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
-		lpSrvNameList->lpszaServer[lpSrvNameList->cServers++] = (TCHAR*)iServer->c_str();
+	for(std::set<servername>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
+		lpSrvNameList->lpszaServer[lpSrvNameList->cServers++] = iServer->c_str();
 
 	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &lpSrvList);
 	if (hr == MAPI_E_NETWORK_ERROR) {
@@ -433,7 +478,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Details for one or more requested servers was not found.");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "This usually indicates a misconfigured home server for a user.");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested servers:");
-			for(std::set<wstring>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
+			for(std::set<servername>::iterator iServer = listServers.begin(); iServer != listServers.end(); iServer++)
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "* %ls", iServer->c_str());
 		}
 		goto exit;
@@ -507,6 +552,7 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, cha
 
 	MsgStorePtr		ptrStoreAdmin;
 	MAPITablePtr	ptrStoreTable;
+	SPropTagArrayPtr ptrPropTagArray;
 	SRestrictionPtr ptrRestriction;
 
 	ExchangeManageStorePtr	ptrEMS;
@@ -527,7 +573,11 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, cha
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrStoreTable->SetColumns(lpCollector->GetRequiredPropTags(), MAPI_DEFERRED_ERRORS);
+	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &ptrPropTagArray);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrStoreTable->SetColumns(ptrPropTagArray, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -555,7 +605,7 @@ exit:
  *
  * @return MAPI error codes
  */
-HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<wstring> &listServers)
+HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers)
 {
 	HRESULT hr = S_OK;
 	mapi_rowset_ptr ptrRows;

@@ -60,7 +60,8 @@
 #include "ECExchangeImportContentsChanges.h"
 #include "ECExchangeExportChanges.h"
 #include "WSTransport.h"
-#include "WSStreamOps.h"
+#include "WSMessageStreamExporter.h"
+#include "WSMessageStreamImporter.h"
 
 #include "Mem.h"
 #include "ECGuid.h"
@@ -78,45 +79,12 @@
 #include "stringutil.h"
 
 #include <charset/convstring.h>
-#include "mapi_ptr.h"
-#include <sstream>
-#include "ZarafaUtil.h"
-
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
-static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
-{
-	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
-	r.sUserId.__size = p.sUserId.cb;
-	r.sUserId.__ptr = p.sUserId.lpb;
-
-	return r;
-}
-
-static ECPERMISSION RightsToECPermCheap(const struct rights r)
-{
-	ECPERMISSION p = {r.ulType, r.ulRights, RIGHT_NEW};	// Force to new
-	p.sUserId.cb = r.sUserId.__size;
-	p.sUserId.lpb = r.sUserId.__ptr;
-
-	return p;
-}
-
-class FindUser {
-public:
-	FindUser(const ECENTRYID &sEntryID): m_sEntryID(sEntryID) {}
-	bool operator()(const ECPERMISSION &sPermission) const {
-		return CompareABEID(m_sEntryID.cb, (LPENTRYID)m_sEntryID.lpb, sPermission.sUserId.cb, (LPENTRYID)sPermission.sUserId.lpb);
-	}
-
-private:
-	const ECENTRYID &m_sEntryID;
-};
 
 LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif)
 {
@@ -1088,47 +1056,68 @@ exit:
 	return hr;
 }
 
-HRESULT ECMAPIFolder::ExportMessageChangesAsStream(ULONG ulFlags, const std::vector<ICSCHANGE> &sChanges, LPSPropTagArray lpsProps, WSStreamOps **lppsStreamOps)
+/**
+ * Export a set of messages as stream.
+ *
+ * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
+ * @param[in]	sChanges	The complete set of changes available.
+ * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
+ * @param[in]	ulCount		The number of messages to export, starting at ulStart. This number will be decreased if less messages are available.
+ * @param[in]	lpsProps	The set of proptags that will be returned as regular properties outside the stream.
+ * @param[out]	lppsStreamExporter	The streamexporter that must be used to get the individual streams.
+ *
+ * @retval	MAPI_E_INVALID_PARAMETER	ulStart is larger than the number of changes available.
+ * @retval	MAPI_E_UNABLE_TO_COMPLETE	ulCount is 0 after trunctation.
+ */
+HRESULT ECMAPIFolder::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	HRESULT		hr = hrSuccess;
-	WSStreamOps	*lpStreamOps = NULL;
-	
-	hr = GetMsgStore()->lpTransport->HrOpenStreamOps(m_cbEntryId, m_lpEntryId, &lpStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStreamOps->HrStartExportMessageChangesAsStream(ulFlags, sChanges, lpsProps);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpStreamOps->QueryInterface(IID_ECStreamOps, (void**)lppsStreamOps);
-		
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
+	HRESULT hr = hrSuccess;
+	WSMessageStreamExporterPtr ptrStreamExporter;
+	WSTransportPtr ptrTransport;
 
+	if (ulStart > sChanges.size()) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	if (ulStart + ulCount > sChanges.size())
+		ulCount = sChanges.size() - ulStart;
+
+	if (ulCount == 0) {
+		hr = MAPI_E_UNABLE_TO_COMPLETE;
+		goto exit;
+	}
+
+	// Need to clone the transport since we want to be able to use our own transport for other things
+	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
+	// with other MAPI calls which would normally be impossible since the stream is kept open between
+	// Synchronize() calls.
+	hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
+	if (hr != hrSuccess)
+		goto exit;
+	
+	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppsStreamExporter = ptrStreamExporter.release();
+
+exit:
 	return hr;
 }
 
-HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSStreamOps **lppsStreamOps)
+HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter)
 {
-	HRESULT		hr = hrSuccess;
-	WSStreamOps	*lpStreamOps = NULL;
-	
-	hr = GetMsgStore()->lpTransport->HrOpenStreamOps(m_cbEntryId, m_lpEntryId, &lpStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStreamOps->HrStartImportMessageFromStream(ulFlags, ulSyncId, cbEntryID, lpEntryID, true, NULL);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpStreamOps->QueryInterface(IID_ECStreamOps, (void**)lppsStreamOps);
-		
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr	ptrStreamImporter;
 
+	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, true, false, &ptrStreamImporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppsStreamImporter = ptrStreamImporter.release();
+
+exit:
 	return hr;
 }
 
@@ -1137,185 +1126,16 @@ HRESULT ECMAPIFolder::GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPro
 	return lpFolderOps->HrGetChangeInfo(cbEntryID, lpEntryID, lppPropPCL, lppPropCK);
 }
 
-HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSStreamOps **lppsStreamOps)
+HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter)
 {
-	HRESULT		hr = hrSuccess;
-	WSStreamOps	*lpStreamOps = NULL;
-	
-	hr = GetMsgStore()->lpTransport->HrOpenStreamOps(m_cbEntryId, m_lpEntryId, &lpStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStreamOps->HrStartImportMessageFromStream(0, ulSyncId, cbEntryID, lpEntryID, false, lpConflictItems);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpStreamOps->QueryInterface(IID_ECStreamOps, (void**)lppsStreamOps);
-		
-exit:
-	if (lpStreamOps)
-		lpStreamOps->Release();
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr	ptrStreamImporter;
 
-	return hr;
-}
-
-HRESULT ECMAPIFolder::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue)
-{
-	HRESULT				hr = hrSuccess;
-	ECSecurityPtr		ptrSecurity;
-	ULONG				cPerms = 0;
-	ECPermissionPtr		ptrPerms;
-	struct soap			soap;
-	std::ostringstream	os;
-	struct rightsArray	rights;
-	std::string			strAclData;
-
-	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
+	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(0, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, false, lpConflictItems, &ptrStreamImporter);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &ptrPerms);
-	if (hr != hrSuccess)
-		goto exit;
-
-	rights.__size = cPerms;
-	rights.__ptr = s_alloc<struct rights>(&soap, cPerms);
-	std::transform(ptrPerms.get(), ptrPerms + cPerms, rights.__ptr, &ECPermToRightsCheap);
-
-	soap_set_omode(&soap, SOAP_C_UTFSTRING);
-	soap_begin(&soap);
-	soap.os = &os;
-	soap_serialize_rightsArray(&soap, &rights);
-	soap_begin_send(&soap);
-	soap_put_rightsArray(&soap, &rights, "rights", "rightsArray");
-	soap_end_send(&soap);
-
-	strAclData = os.str();
-	lpsPropValue->Value.bin.cb = strAclData.size();
-	hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb);
-	if (hr != hrSuccess)
-		goto exit;
-	memcpy(lpsPropValue->Value.bin.lpb, strAclData.data(), lpsPropValue->Value.bin.cb);
-
-exit:
-	soap_end(&soap); // clean up allocated temporaries 
-	
-	return hr;
-}
-
-HRESULT ECMAPIFolder::SetSerializedACLData(LPSPropValue lpsPropValue)
-{
-	HRESULT				hr = hrSuccess;
-	ECPermissionPtr		ptrPerms;
-	struct soap			soap;
-	struct rightsArray	rights;
-	std::string			strAclData;
-
-	if (lpsPropValue == NULL || PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	{
-		std::istringstream is(std::string((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb));
-
-		soap.is = &is;
-		soap_set_imode(&soap, SOAP_C_UTFSTRING);
-		soap_begin(&soap);
-		soap_begin_recv(&soap);
-		if (!soap_get_rightsArray(&soap, &rights, "rights", "rightsArray")) {
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
-		}
-		soap_end_recv(&soap); 
-	}
-
-	hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &ptrPerms);
-	if (hr != hrSuccess)
-		goto exit;
-
-	std::transform(rights.__ptr, rights.__ptr + rights.__size, ptrPerms.get(), &RightsToECPermCheap);
-	hr = UpdateACLs(rights.__size, ptrPerms);
-
-exit:
-	soap_end(&soap); // clean up allocated temporaries 
-
-	return hr;
-}
-
-HRESULT	ECMAPIFolder::UpdateACLs(ULONG cNewPerms, LPECPERMISSION lpNewPerms)
-{
-	HRESULT					hr = hrSuccess;
-	ECSecurityPtr			ptrSecurity;
-	ULONG					cPerms = 0;
-	ECPermissionArrayPtr	ptrPerms;
-	ULONG					cSparePerms = 0;
-	ECPermissionPtr			ptrTmpPerms;
-	LPECPERMISSION			lpPermissions = NULL;
-
-	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &ptrPerms);
-	if (hr != hrSuccess)
-		goto exit;
-
-	// Since we want to replace the current ACL with a new one, we need to mark
-	// each existing item as deleted, and add all new ones as new.
-	// But there can also be overlap, where some items are left unchanged, and
-	// other modified.
-	for (ULONG i = 0; i < cPerms; ++i) {
-		LPECPERMISSION lpMatch = std::find_if(lpNewPerms, lpNewPerms + cNewPerms, FindUser(ptrPerms[i].sUserId));
-		if (lpMatch == lpNewPerms + cNewPerms) {
-			// Not in new set, so delete
-			ptrPerms[i].ulState = RIGHT_DELETED;
-		} else {
-			// Found an entry in the new set, check if it's different
-			if (ptrPerms[i].ulRights == lpMatch->ulRights &&
-				ptrPerms[i].ulType == lpMatch->ulType)
-			{
-				// Nothing changes, remove from set.
-				if (i < (cPerms - 1))
-					std::swap(ptrPerms[i], ptrPerms[cPerms - 1]);
-				cPerms--;
-				i--;
-				cSparePerms++;
-			} else {
-				ptrPerms[i].ulRights = lpMatch->ulRights;
-				ptrPerms[i].ulType = lpMatch->ulType;
-				ptrPerms[i].ulState = RIGHT_MODIFY;
-			}
-
-			// Remove from list of new permissions
-			if (lpMatch != &lpNewPerms[cNewPerms - 1])
-				std::swap(*lpMatch, lpNewPerms[cNewPerms - 1]);
-			cNewPerms--;
-		}
-	}
-
-	// Now see if there are still some new ACL's left. If enough spare space is available
-	// we'll reuse the ptrPerms storage. If not we'll reallocate the whole array.
-	lpPermissions = ptrPerms.get();
-	if (cNewPerms > 0) {
-		if (cNewPerms <= cSparePerms) {
-			memcpy(&ptrPerms[cPerms], lpNewPerms, cNewPerms * sizeof(ECPERMISSION));
-		} else if (cPerms == 0) {
-			lpPermissions = lpNewPerms;
-		} else {
-			hr = MAPIAllocateBuffer((cPerms + cNewPerms) * sizeof(ECPERMISSION), &ptrTmpPerms);
-			if (hr != hrSuccess)
-				goto exit;
-
-			memcpy(ptrTmpPerms, ptrPerms, cPerms * sizeof(ECPERMISSION));
-			memcpy(ptrTmpPerms + cPerms, lpNewPerms, cNewPerms * sizeof(ECPERMISSION));
-
-			lpPermissions = ptrTmpPerms;
-		}
-	}
-
-	if (cPerms + cNewPerms > 0)
-		hr = ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
+	*lppsStreamImporter = ptrStreamImporter.release();
 
 exit:
 	return hr;

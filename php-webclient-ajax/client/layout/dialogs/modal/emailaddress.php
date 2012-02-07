@@ -60,7 +60,18 @@ function getIncludes() {
 	return $includes;
 }
 
+function getJavaScript_onload(){ ?>
+	var internalId = "<?=get("internalid", "", false, ID_REGEX)?>";
+	if(internalId != "") {
+		var module = parentwindow.module;
+		dhtml.getElementById("name").value = module.itemProps[internalId].name;
+		dhtml.getElementById("email").value = module.itemProps[internalId].address;
+		dhtml.getElementById("internalId").value = internalId;
+	}
+<?php } // getJavaScript_onload
+
 function getBody() { ?>
+	<input id="internalId" type="hidden" value="">
 	<table class="options">
 		<tr>
 			<th><?=_("Name")?></th>

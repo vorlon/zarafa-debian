@@ -57,10 +57,13 @@
 
 #include "archiver.h"
 #include "mapi_ptr.h"
+#include "tstring.h"
 
 #include "archiver-session_fwd.h"
+#include "helpers/archivehelper.h"
 
 class ECLogger;
+class ECConfig;
 
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
@@ -68,20 +71,24 @@ class ECLogger;
 class ArchiveManageImpl : public ArchiveManage
 {
 public:
-	static HRESULT Create(SessionPtr ptrSession, const char *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
+	static HRESULT Create(SessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
 
-	eResult AttachTo(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder, unsigned ulFlags);
-	eResult DetachFrom(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder);
+	eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags);
+	eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder);
 	eResult DetachFrom(unsigned int ulArchive);
 	eResult ListArchives(std::ostream &ostr);
 	eResult ListArchives(ArchiveList *lplstArchives, const char *lpszIpmSubtreeSubstitude);
 	eResult ListAttachedUsers(std::ostream &ostr);
 	eResult ListAttachedUsers(UserList *lplstUsers);
+	eResult AutoAttach(unsigned int ulFlags);
+
+	HRESULT AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned ulFlags, za::helpers::AttachType attachType);
+	HRESULT AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const abentryid_t &sUserEntryId, unsigned ulFlags, za::helpers::AttachType attachType);
 
 	~ArchiveManageImpl();
 	
 private:
-	ArchiveManageImpl(SessionPtr ptrSession, const std::string &strUser, ECLogger *lpLogger);
+	ArchiveManageImpl(SessionPtr ptrSession, ECConfig *lpConfig, const tstring &strUser, ECLogger *lpLogger);
 	HRESULT Init();
 
 	static UserEntry MakeUserEntry(const std::string &strUser);
@@ -90,7 +97,8 @@ private:
 
 private:
 	SessionPtr	m_ptrSession;
-	std::string	m_strUser;
+	ECConfig	*m_lpConfig;
+	tstring	m_strUser;
 	ECLogger	*m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;
 };

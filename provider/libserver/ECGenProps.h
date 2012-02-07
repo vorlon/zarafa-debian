@@ -94,7 +94,7 @@ public:
 	static ECRESULT GetPropComputedUncached(struct soap *soap, ECSession* lpSession, unsigned int ulPropTag, unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal);
 
 	static ECRESULT GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery);
-	static ECRESULT GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, char** lppStoreName);
+	static ECRESULT GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName);
 	static ECRESULT IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, bool *lpbIsOrphan);
 private:
 

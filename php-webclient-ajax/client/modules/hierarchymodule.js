@@ -128,6 +128,9 @@ hierarchymodule.prototype.execute = function(type, action)
 						case "subtree":
 							store["subtree_entryid"] = item.nodeValue;
 							break;
+						case "mailbox_owner":
+							store["mailbox_owner_entryid"] = item.nodeValue;
+							break;
 						case "name":
 							store["name"] = item.nodeValue;
 							break;
@@ -218,6 +221,8 @@ hierarchymodule.prototype.execute = function(type, action)
 
 			// sorting storelist
 			this.stores.sort(this.sortStores);
+			// Rearrange the archive stores in the list to get the below the user's original store
+			this.reorderArchiverStores();
 			
 			this.createHierarchyList(true);
 			this.showSharedFolderActions();
@@ -346,6 +351,11 @@ hierarchymodule.prototype.sortStores = function(storeA, storeB)
 	if(storeA["type"]=="public") return 1;
 	if(storeB["type"]=="public") return -1;
 
+	// sort archive at the end just before the public store
+	// When comparing two archive stores we want them to sort on name
+	if(storeA["type"]=="archive" && storeB["type"]!="archive") return 1;
+	if(storeA["type"]!="archive" && storeB["type"]=="archive") return -1;
+
 	// sort other folders after other stores
 	if(storeA["foldertype"]!="all" && storeB["foldertype"]=="all") return 1;
 	if(storeA["foldertype"]=="all" && storeB["foldertype"]!="all") return -1;
@@ -354,6 +364,44 @@ hierarchymodule.prototype.sortStores = function(storeA, storeB)
 	if(storeA["name"] > storeB["name"]) return 1;
 	if(storeA["name"] < storeB["name"]) return -1;
 	return 0;
+}
+
+/**
+ * Will rearrange the archive stores so that each archive store is directly placed below the user's 
+ * original store. For that we extract the archive stores from the list and insert them at the 
+ * proper places by comparing the mailbox_owner_entrid properties of both stores.
+ * It will sort this classes' this.stores property.
+ */
+hierarchymodule.prototype.reorderArchiverStores = function(){
+	/*
+	 * The compare function sortStores has the archivers sorted next to eachother. We need to find 
+	 * the range within the list of stores to be able to extract them. For that we have to find the 
+	 * start position of that range and the number of archive stores in the list.
+	 */ 
+	var start, num = 0;
+	for(var i=0;i<this.stores.length;i++){
+		if(this.stores[i]['type'] == 'archive'){
+			if(!start){
+				start = i;
+			}
+			num++;
+		}
+	}
+	// Extract the archive stores from the list to insert them at the correct places
+	var archStores = this.stores.splice(start,num);
+	// For each extracted archive store we check at what position they need to be inserted
+	for(var i=0;i<archStores.length;i++){
+		for(var j=0;j<this.stores.length;j++){
+			// Compare the two entryids of the original store and the archiver to found out if they are linked
+			if(compareEntryIds(archStores[i]['mailbox_owner_entryid'], this.stores[j]['mailbox_owner_entryid'])){
+				// Break out of the look if the entryids match so we can use the j variable as target location
+				break;
+			}
+		}
+		// Add the archive store after the found owner stor.  If not found it will add it at the end,
+		// but that is not likely as the archive store cannot be opened without the original store.
+		this.stores.splice(j+1,0,archStores[i]);
+	}
 }
 
 hierarchymodule.prototype.isDefaultStore = function(storeid)

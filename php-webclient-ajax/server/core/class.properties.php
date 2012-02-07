@@ -298,6 +298,7 @@
 			// Detailed contacts properties
 			// Properties for phone numbers
 			$properties["assistant_telephone_number"] = PR_ASSISTANT_TELEPHONE_NUMBER;
+			$properties["business_telephone_number"] = PR_BUSINESS_TELEPHONE_NUMBER;
 			$properties["business2_telephone_number"] = PR_BUSINESS2_TELEPHONE_NUMBER;
 			$properties["callback_telephone_number"] = PR_CALLBACK_TELEPHONE_NUMBER;
 			$properties["car_telephone_number"] = PR_CAR_TELEPHONE_NUMBER;

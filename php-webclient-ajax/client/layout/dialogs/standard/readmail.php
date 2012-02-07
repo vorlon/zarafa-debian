@@ -235,11 +235,14 @@ function getBody(){ ?>
 		</div>
 
 		<script type="text/javascript">
+			// Adding a scroller element to the page for iPad users
+			var scrollerStartHTML = '<div id="scroller" class="ipadscroller">';
+			var scrollerEndHTML = '</div>';
 			// The javascript in the src attribute is to suppress the security warning in IE when using SSL
 			if (window.BROWSER_IE){
-				document.write("<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' width='100%' height='150' frameborder='0' src=\"javascript:document.open();document.write('<html></html>');document.close();\"></iframe>");
+				document.write(scrollerStartHTML+"<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' width='100%' height='150' frameborder='0' src=\"javascript:document.open();document.write('<html></html>');document.close();\"></iframe>"+scrollerEndHTML);
 			}else{
-				document.write("<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' width='100%' height='150' frameborder='0'></iframe>");
+				document.write(scrollerStartHTML+"<iframe id='html_body' onload='linkifyDOM(this.contentDocument);' width='100%' height='150' frameborder='0'></iframe>"+scrollerEndHTML);
 			}
 		</script>
 <?php } // getBody

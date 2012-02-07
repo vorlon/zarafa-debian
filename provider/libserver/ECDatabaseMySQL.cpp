@@ -181,7 +181,13 @@ sUpdateList_t	sUpdateList[] = {
 	{ Z_UPDATE_CONVERT_NAMES, 0, "Converting names table to Unicode", UpdateDatabaseConvertNames },
 
 	// Update from version 7.00 to 7.0.1
-	{ Z_UPDATE_CONVERT_RF_TOUNICODE, 0, "Converting receivefolder table to Unicode", UpdateDatabaseReceiveFolderToUnicode }
+	{ Z_UPDATE_CONVERT_RF_TOUNICODE, 0, "Converting receivefolder table to Unicode", UpdateDatabaseReceiveFolderToUnicode },
+
+	// Update from 6.40.13 / 7.0.3
+	{ Z_UPDATE_CREATE_CLIENTUPDATE_TABLE, 0, "Creating client update status table", UpdateDatabaseClientUpdateStatus },
+
+	{ Z_UPDATE_CONVERT_STORES, 0, "Converting stores table", UpdateDatabaseConvertStores },
+	{ Z_UPDATE_UPDATE_STORES, 0, "Updating stores table", UpdateDatabaseUpdateStores },
 };
 
 static char *server_groups[] = {
@@ -501,6 +507,7 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	if(err) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL Failed: %s, Query Size: %u, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
+		ASSERT(false);
 	}
 
 exit:
@@ -553,8 +560,10 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 	
 	if (lppResult)
 		*lppResult = lpResult;
-	else
-		FreeResult(lpResult);
+	else {
+		if(lpResult)
+			FreeResult(lpResult);
+	}
 
 exit:
 	if (er != erSuccess) {
@@ -1034,6 +1043,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		{"singleinstances", Z_TABLEDEF_REFERENCES },
 		{"abchanges", Z_TABLEDEF_ABCHANGES },
 		{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES },
+		{"clientupdatestatus", Z_TABLEDEF_CLIENTUPDATESTATUS },
 	};
 
 	// Zarafa database default data

@@ -65,6 +65,7 @@
 #include "CommonUtil.h"
 #include "stringutil.h"
 #include "charset/convert.h"
+#include "tstring.h"
 
 #include "ECMemStream.h"
 #include "IECSingleInstance.h"
@@ -963,6 +964,24 @@ exit:
 	return hr;
 }
 
+HRESULT	Util::HrCopyPropTagArray(LPSPropTagArray lpSrc, LPSPropTagArray *lppDest)
+{
+	HRESULT hr = hrSuccess;
+	SPropTagArrayPtr ptrPropTagArray;
+
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &ptrPropTagArray);
+	if (hr != hrSuccess)
+		goto exit;
+
+	memcpy(ptrPropTagArray->aulPropTag, lpSrc->aulPropTag, lpSrc->cValues * sizeof *lpSrc->aulPropTag);
+	ptrPropTagArray->cValues = lpSrc->cValues;
+
+	*lppDest = ptrPropTagArray.release();
+
+exit:
+	return hr;
+}
+
 /**
  * Copies a LPSPropTagArray while forcing all string types to either
  * PT_STRING8 or PT_UNICODE according to the MAPI_UNICODE flag in
@@ -1739,13 +1758,23 @@ LONG Util::FindPropInArray(LPSPropTagArray lpPropTags, ULONG ulPropTag)
  * code is not specified in this function, it will return 'access
  * denied' as default error string.
  * 
- * @param[in] hr return string version for the given value
+ * @param[in]	hr			return string version for the given value.
+ * @param[out]	lppszError	Pointer to a character pointer that will contain the error
+ * 							message on success. If no lpBase was provided, the result
+ * 							must be freed with MAPIFreeBuffer.
+ * @param[in]	lpBase		optional base pointer for use with MAPIAllocateMore.
  * 
- * @return translated string for hr
+ * @retval	hrSuccess on success.
  */
-LPCTSTR Util::HrMAPIErrorToText(HRESULT hr)
+HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 {
+	tstring strError;
 	LPCTSTR lpszError = NULL;
+
+	if (lppszError == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	switch(hr)
 	{
@@ -1791,12 +1820,28 @@ LPCTSTR Util::HrMAPIErrorToText(HRESULT hr)
 	case MAPI_E_HAS_MESSAGES:
 		lpszError = _("The subfolder being deleted contains messages.");
 		break;
-	default:
-		lpszError = _("Access denied");
+	default: {
+			strError = _("No description available.");
+			strError.append(1, ' ');
+			strError.append(_("MAPI error code:"));
+			strError.append(1, ' ');
+			strError.append(tstringify(hr, true));
+			lpszError = strError.c_str();
+		}
 		break;
 	}
 
-	return lpszError;
+	if (lpBase == NULL)
+		hr = MAPIAllocateBuffer((_tcslen(lpszError) + 1) * sizeof *lpszError, (void**)lppszError);
+	else
+		hr = MAPIAllocateMore((_tcslen(lpszError) + 1) * sizeof *lpszError, lpBase, (void**)lppszError);
+	if (hr != hrSuccess)
+		goto exit;
+
+	_tcscpy(*lppszError, lpszError);
+
+exit:
+	return hr;
 }
 
 /** 

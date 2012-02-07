@@ -189,8 +189,14 @@
 							$store = $GLOBALS["mapisession"]->addUserStore($action["username"]);
 							$openingItem = ($action["foldertype"] == "all") ? _("store") : _("folder");
 							if ($store){
-								$data = $GLOBALS["operations"]->getHierarchyList($this->columns, HIERARCHY_GET_ONE, $store);
-								if(!mapi_is_error(mapi_last_hresult()) && (is_array($data["store"]) && count($data["store"]) > 0)) {
+								$stores = Array($store);
+								// Only open the archive store when a store is opened and not just a folder
+								if($action['foldertype'] == 'all'){
+									$stores = array_merge($stores, array_values( $GLOBALS["mapisession"]->getArchivedStores($GLOBALS["mapisession"]->resolveStrictUserName($action["username"])) ));
+								}
+								$data = $GLOBALS["operations"]->getHierarchyList($this->columns, HIERARCHY_GET_SPECIFIC, $stores);
+								// TODO: Perhaps some more error handling could be done here
+								if(is_array($data["store"]) && count($data["store"]) > 0) {
 									array_push($this->responseData["action"], $data);
 									$GLOBALS["bus"]->addData($this->responseData);	
 									$result = true;

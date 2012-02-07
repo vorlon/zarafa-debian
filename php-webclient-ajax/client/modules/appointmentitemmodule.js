@@ -582,7 +582,7 @@ appointmentitemmodule.prototype.messageSaved = function(action)
 					break;
 				}
 			}
-			if(resourcesPlanned){
+			if(resourcesPlanned && Number(dhtml.getXMLValue(action, "direct_booking_enabled"))){
 				alert(_("Resources have been planned."));
 			}
 		}

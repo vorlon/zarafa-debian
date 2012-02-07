@@ -2629,6 +2629,7 @@ namespace swig {
     #include "rtfutil.h"
     #include "favoritesutil.h"
     #include "Util.h"
+	#include "ECLogger.h"
 
 
 #include <cwchar>

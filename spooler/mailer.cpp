@@ -2260,9 +2260,20 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
-		hr = HrArchiveMessageForSending(lpAdminSession, lpMessage, g_lpLogger, &archiveResult);
-		if (hr != hrSuccess)
+		ArchivePtr ptrArchive;
+		
+		hr = Archive::Create(lpAdminSession, g_lpLogger, &ptrArchive);
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate archive object: 0x%08X", hr);
 			goto exit;
+		}
+		
+		hr = ptrArchive->HrArchiveMessageForSending(lpMessage, &archiveResult);
+		if (hr != hrSuccess) {
+			if (ptrArchive->HaveErrorMessage())
+				lpMailer->setError(ptrArchive->GetErrorMessage());
+			goto exit;
+		}
 	}
 
 	if (lpRepStore && parseBool(g_lpConfig->GetSetting("copy_delegate_mails",NULL,"yes"))) {

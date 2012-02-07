@@ -52,6 +52,8 @@
 #include "archiver-session.h"
 #include "archivectrl.h"
 #include "archivemanage.h"
+#include "archivestatecollector.h"
+#include "archivestateupdater.h"
 
 #include "mapix.h"
 
@@ -95,16 +97,25 @@ public:
 	ArchiverImpl();
 	~ArchiverImpl();
 
-	eResult Init(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags);
+	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags);
 
 	eResult GetControl(ArchiveControlPtr *lpptrControl);
-	eResult GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage);
+	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
+	eResult AutoAttach(unsigned int ulFlags);
+
+	ECConfig* GetConfig() const;
+	ECLogger* GetLogger() const;
 
 private:
-	AutoMAPI	m_MAPI;
-	ECConfig	*m_lpsConfig;
-	ECLogger	*m_lpLogger;
-	SessionPtr 	m_ptrSession;
+	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
+	unsigned CountSettings(const configsetting_t *lpSettings);
+
+private:
+	AutoMAPI		m_MAPI;
+	ECConfig		*m_lpsConfig;
+	ECLogger		*m_lpLogger;
+	SessionPtr 		m_ptrSession;
+	configsetting_t	*m_lpDefaults;
 };
 
 
@@ -149,6 +160,8 @@ const configsetting_t* Archiver::GetConfigDefaults()
 
 		{ "track_history",	"no" },
 		{ "cleanup_action",	"store" },
+		{ "enable_auto_attach",	"no" },
+		{ "auto_attach_writable",	"yes" },
 
 		// Log options
 		{ "log_method",		"file" },
@@ -192,18 +205,27 @@ exit:
 	return r;
 }
 
-HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const char *lpszUser, ArchiveManagePtr *lpptrManage)
+HRESULT Archiver::CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	HRESULT hr = hrSuccess;
+	ECConfig *lpsConfig = NULL; 
 	SessionPtr ptrArchiverSession;
 
-	hr = Session::Create(MAPISessionPtr(lpSession, true), lpLogger, &ptrArchiverSession);
+	lpsConfig = ECConfig::Create(GetConfigDefaults());
+	if (!lpsConfig->LoadSettings(GetConfigPath())) {
+		// Just log warnings and errors and continue with default.
+		if (lpLogger)
+			LogConfigErrors(lpsConfig, lpLogger);
+	}
+
+	hr = Session::Create(MAPISessionPtr(lpSession, true), lpsConfig, lpLogger, &ptrArchiverSession);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ArchiveManageImpl::Create(ptrArchiverSession, lpszUser, lpLogger, lpptrManage);
+	hr = ArchiveManageImpl::Create(ptrArchiverSession, NULL, lpszUser, lpLogger, lpptrManage);
 
 exit:
+	delete lpsConfig;
 	return hr;
 }
 
@@ -211,6 +233,7 @@ exit:
 ArchiverImpl::ArchiverImpl()
 : m_lpsConfig(NULL)
 , m_lpLogger(NULL)
+, m_lpDefaults(NULL)
 {
 }
 
@@ -220,15 +243,22 @@ ArchiverImpl::~ArchiverImpl()
 		m_lpLogger->Release();
 	
 	delete m_lpsConfig;
+	delete[] m_lpDefaults;
 }
 
-eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, unsigned int ulFlags)
+eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags)
 {
 	eResult r = Success;
 
 	MAPIINIT_0 sMapiInit = {MAPI_INIT_VERSION, MAPI_MULTITHREAD_NOTIFICATIONS};
-	
-	m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+
+	if (lpExtraSettings == NULL)
+		m_lpsConfig = ECConfig::Create(Archiver::GetConfigDefaults());
+
+	else {
+		m_lpDefaults = ConcatSettings(Archiver::GetConfigDefaults(), lpExtraSettings);
+		m_lpsConfig = ECConfig::Create(m_lpDefaults);
+	}
 
 	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig)) {
 		r = FileNotFound;
@@ -302,10 +332,80 @@ eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl)
 	return MAPIErrorToArchiveError(ArchiveControlImpl::Create(m_ptrSession, m_lpsConfig, m_lpLogger, lpptrControl));
 }
 
-eResult ArchiverImpl::GetManage(const char *lpszUser, ArchiveManagePtr *lpptrManage)
+eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
 {
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
 		
-	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, lpszUser, m_lpLogger, lpptrManage));
+	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, m_lpsConfig, lpszUser, m_lpLogger, lpptrManage));
+}
+
+eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
+{
+	HRESULT hr = hrSuccess;
+	ArchiveStateCollectorPtr ptrArchiveStateCollector;
+	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
+
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ulFlags == 0) {
+		if (parseBool(m_lpsConfig->GetSetting("auto_attach_writable")))
+			ulFlags = ArchiveManage::Writable;
+		else
+			ulFlags = ArchiveManage::ReadOnly;
+	}
+
+	hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
+
+exit:
+	return MAPIErrorToArchiveError(hr);
+}
+
+ECConfig* ArchiverImpl::GetConfig() const
+{
+	return m_lpsConfig;
+}
+
+ECLogger* ArchiverImpl::GetLogger() const
+{
+	return m_lpLogger;
+}
+
+configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)
+{
+	configsetting_t *lpMergedSettings = NULL;
+	unsigned ulSettings = 0;
+	unsigned ulIndex = 0;
+
+	ulSettings = CountSettings(lpSettings1) + CountSettings(lpSettings2);
+	lpMergedSettings = new configsetting_t[ulSettings + 1];
+
+	while (lpSettings1->szName != NULL)
+		lpMergedSettings[ulIndex++] = *lpSettings1++;
+	while (lpSettings2->szName != NULL)
+		lpMergedSettings[ulIndex++] = *lpSettings2++;
+	memset(&lpMergedSettings[ulIndex], 0, sizeof(lpMergedSettings[ulIndex]));
+
+	return lpMergedSettings;
+}
+
+unsigned ArchiverImpl::CountSettings(const configsetting_t *lpSettings)
+{
+	unsigned ulSettings = 0;
+
+	while ((lpSettings++)->szName != NULL)
+		ulSettings++;
+
+	return ulSettings;
 }

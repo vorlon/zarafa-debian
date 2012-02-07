@@ -11,6 +11,7 @@
 #include "IECSpooler.h"
 #include "IECTestProtocol.h"
 #include "IECMultiStoreTable.h"
+#include "IECExportChanges.h"
 #include "IECLicense.h"
 
 /*
@@ -159,6 +160,7 @@ public:
 %include "IECTestProtocol.i"
 %include "IECMultiStoreTable.i"
 %include "IECLicense.i"
+%include "IECExportChanges.i"
 %include "helpers.i"
 %include "ecdefs.i"
 
@@ -203,16 +205,20 @@ public:
 swig_type_info *TypeFromIID(REFIID iid)
 {
 #define TYPECASE(x) if(iid == IID_##x) return SWIGTYPE_p_##x;
+  TYPECASE(IUnknown)
   TYPECASE(IStream)
   TYPECASE(IMAPIProp)
   TYPECASE(IMessage)
+  TYPECASE(IMAPIContainer)
   TYPECASE(IMAPIFolder)
   TYPECASE(IMAPITable)
+  TYPECASE(IABContainer)
   TYPECASE(IMailUser)
   TYPECASE(IDistList)
   TYPECASE(IMsgStore)
   if (iid == IID_ECMsgStoreOnline || iid == IID_ECMsgStoreOffline) return SWIGTYPE_p_IMsgStore;
   TYPECASE(IExchangeExportChanges)
+  TYPECASE(IECExportChanges)
   TYPECASE(IExchangeImportContentsChanges)
   TYPECASE(IExchangeImportHierarchyChanges)
   TYPECASE(IExchangeManageStore)
@@ -231,15 +237,19 @@ swig_type_info *TypeFromIID(REFIID iid)
 LPCIID IIDFromType(const char *type)
 {
 #define IIDCASE(x) if(strstr(type, #x) != NULL) return &IID_##x;
+  IIDCASE(IUnknown)
   IIDCASE(IStream)
   IIDCASE(IMAPIProp)
   IIDCASE(IMessage)
+  IIDCASE(IMAPIContainer)
   IIDCASE(IMAPIFolder)
   IIDCASE(IMAPITable)
+  IIDCASE(IABContainer)
   IIDCASE(IMailUser)
   IIDCASE(IDistList)
   IIDCASE(IMsgStore)
   IIDCASE(IExchangeExportChanges)
+  IIDCASE(IECExportChanges)
   IIDCASE(IExchangeImportContentsChanges)
   IIDCASE(IExchangeImportHierarchyChanges)
   IIDCASE(IExchangeManageStore)
@@ -254,3 +264,31 @@ LPCIID IIDFromType(const char *type)
   return &IID_IUnknown;
 }
 %}
+
+#if SWIGPYTHON
+#ifndef WIN32
+%include "ECLogger.i"
+
+// Directors for IStream
+
+%{
+#include "swig_iunknown.h"
+typedef IUnknownImplementor<IStream> Stream;
+%}
+
+%feature("director") Stream;
+%feature("nodirector") Stream::QueryInterface;
+class Stream : public IStream {
+public:
+	Stream(ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *cbOUTPUT) = 0;
+    virtual HRESULT Write(const void *pv, ULONG cb, ULONG *OUTPUT) = 0;
+	%extend {
+		virtual ~Stream() { delete self; };
+	}
+};
+
+%include "zarafasync.i"
+
+#endif
+#endif

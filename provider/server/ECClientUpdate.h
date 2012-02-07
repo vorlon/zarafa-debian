@@ -50,7 +50,23 @@
 #ifndef ECCLIENTUPDATE_H
 #define ECCLIENTUPDATE_H
 
+struct ClientVersion
+{
+	unsigned int nMajorVersion;
+	unsigned int nMinorVersion;
+	unsigned int nUpdateNumber;
+	unsigned int nBuildNumber;
+};
+
+
 /* entry point */
 int HandleClientUpdate(struct soap *soap);
+
+bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile);
+bool GetVersionFromString(char *szVersion, ClientVersion *lpClientVersion);
+bool GetVersionFromMSIName(const char *szVersion, ClientVersion *lpClientVersion);
+int  CompareVersions(ClientVersion Version1, ClientVersion Version2);
+bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, ClientVersion *lpLatestVersion);
+bool GetClientMSINameFromVersion(const ClientVersion &clientVersion, std::string *lpstrMSIName);
 
 #endif

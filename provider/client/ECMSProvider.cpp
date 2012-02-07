@@ -131,7 +131,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 {
 	HRESULT			hr = hrSuccess;
 	WSTransport*	lpTransport = NULL;
-	WSTransport*	lpAltTransport = NULL;
 	ECMsgStore*		lpECMsgStore = NULL;
 	ECMSLogon*		lpECMSLogon = NULL;
 
@@ -140,6 +139,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	LPSPropTagArray	lpsPropTagArray = NULL;
 	LPSPropValue	lpsPropArray = NULL;
 	BOOL			fIsDefaultStore = FALSE;
+	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
 	BOOL			bOfflineStore = FALSE;
 	ECABProvider*	lpsAbProvider = NULL;
@@ -186,28 +186,15 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	lpsPropTagArray->aulPropTag[1] = PR_RESOURCE_FLAGS;
 	
 	hr = lpProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpsPropArray);
-	if(hr == hrSuccess || hr == MAPI_W_ERRORS_RETURNED)
-	{
-		if(lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS) {
-			if(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE) {
-				fIsDefaultStore = TRUE;
-			}
-		}
+	if (FAILED(hr))
+		goto exit;
 
-		if(lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER){
-			memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
-		}else if(fIsDefaultStore == FALSE){
-			// Assume private store when not specified in the profile section
-			memcpy(&guidMDBProvider, &ZARAFA_STORE_DELEGATE_GUID, sizeof(MAPIUID));
-		}else {
-			memcpy(&guidMDBProvider, &ZARAFA_SERVICE_GUID, sizeof(MAPIUID));
-		}
-		
-		TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", DBGGUIDToString(*(IID*)guidMDBProvider.ab).c_str());
-			
-	}
+	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER ? DBGGUIDToString(*(IID*)lpsPropArray[0].Value.bin.lpb).c_str() : "<Unknown>");
 
-	
+	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS && (lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE)
+		fIsDefaultStore = TRUE;
+
+
 	// Create a transport for this message store
 	hr = WSTransport::Create(ulFlags, &lpTransport);
 	if(hr != hrSuccess)
@@ -216,6 +203,32 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	{
 		hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	}
+
+	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
+		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
+	} else if (fIsDefaultStore == FALSE){
+		// also fallback to private store when logon failed (hr, do not change)
+		if(hr != hrSuccess || lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType) != hrSuccess) {
+			// Maintain backward-compat: if connecting to a server that does not support the storetype
+			// call, assume private store, which is what happened before this call was introduced
+			ulStoreType = ECSTORE_TYPE_PRIVATE;
+		}
+
+		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
+			memcpy(&guidMDBProvider, &ZARAFA_STORE_DELEGATE_GUID, sizeof(MAPIUID));
+		else if (ulStoreType == ECSTORE_TYPE_PUBLIC)
+			memcpy(&guidMDBProvider, &ZARAFA_STORE_PUBLIC_GUID, sizeof(MAPIUID));
+		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
+			memcpy(&guidMDBProvider, &ZARAFA_STORE_ARCHIVE_GUID, sizeof(MAPIUID));
+		else {
+			ASSERT(FALSE);
+			hr = MAPI_E_NO_SUPPORT;
+			goto exit;
+		}
+	} else {
+		memcpy(&guidMDBProvider, &ZARAFA_SERVICE_GUID, sizeof(MAPIUID));
+	}
+	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", DBGGUIDToString(*(IID*)&guidMDBProvider).c_str());
 
 
 	if(hr != hrSuccess)
@@ -295,7 +308,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 {
 	HRESULT hr = hrSuccess;
 	WSTransport *lpTransport = NULL;
-	WSTransport *lpAltTransport = NULL;
 	ECMsgStore *lpMsgStore = NULL;
 	ECMSLogon *lpLogon = NULL;
 	IECPropStorage *lpStorage = NULL;

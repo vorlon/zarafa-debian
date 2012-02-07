@@ -166,7 +166,7 @@ StoreHelper::~StoreHelper()
  *
  * @return HRESULT
  */
-HRESULT StoreHelper::GetFolder(const string &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
+HRESULT StoreHelper::GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrIpmSubtree;
@@ -423,7 +423,7 @@ exit:
  *
  * @return HRESULT
  */
-HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const std::string &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
+HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
@@ -440,11 +440,11 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const std::string &s
 
 	sRestriction.rt = RES_PROPERTY;
 	sRestriction.res.resProperty.relop = RELOP_EQ;
-	sRestriction.res.resProperty.ulPropTag = PR_DISPLAY_NAME_A;
+	sRestriction.res.resProperty.ulPropTag = PR_DISPLAY_NAME;
 	sRestriction.res.resProperty.lpProp = &sResPropValue;
 	
-	sResPropValue.ulPropTag = PR_DISPLAY_NAME_A;
-	sResPropValue.Value.lpszA = (LPSTR)strFolder.c_str();
+	sResPropValue.ulPropTag = PR_DISPLAY_NAME;
+	sResPropValue.Value.LPSZ = (LPTSTR)strFolder.c_str();
 	
 	
 	
@@ -472,7 +472,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const std::string &s
 	
 	} else if (hr == MAPI_E_NOT_FOUND && bCreate == true) {
 	
-		hr = ptrFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolder.c_str(), NULL, &ptrSubFolder.iid, 0, &ptrSubFolder);
+		hr = ptrFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolder.c_str(), NULL, &ptrSubFolder.iid, fMapiUnicode, &ptrSubFolder);
 		if (hr != hrSuccess)
 			goto exit;
 		
@@ -704,7 +704,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	ECAndRestriction resArchiveCheck;
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
-	SPropValue sPropStubbed;
 	EntryListPtr ptrEntryList;
 	ECAndRestriction resDeleteFolder;
 	SRestrictionPtr ptrRestriction;
@@ -748,9 +747,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
 	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
 
-
-	sPropStubbed.ulPropTag = PROP_STUBBED; 
-	sPropStubbed.Value.b = 1;
 
 	// Create/Update the search folder that tracks all archived message that are not flagged to be never deleted or never stubbed
 	resDeleteFolder.append(

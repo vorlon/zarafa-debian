@@ -1,4 +1,3 @@
-dnl
 dnl m4 defines:
 dnl    TYPE == OPENLDAP or ADS
 dnl    MULTISERVER == 1, or other

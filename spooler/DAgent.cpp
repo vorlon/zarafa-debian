@@ -367,9 +367,9 @@ void sigsegv(int signr) {
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 exit:
@@ -1378,6 +1378,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	// See if we're looping
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
 		if ( (strstr(lpMessageProps[0].Value.lpszA, "X-Zarafa-Vacation:") != NULL) ||
+			 (strstr(lpMessageProps[0].Value.lpszA, "Auto-Submitted:") != NULL) ||
 			 (strstr(lpMessageProps[0].Value.lpszA, "Precedence:") != NULL) )
 			// Vacation header already present, do not send vacation reply
 			// Precedence: list/bulk/junk, do not reply to these mails
@@ -2259,6 +2260,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
 			MAPISessionPtr ptrAdminSession;
+			ArchivePtr ptrArchive;
 
 			if (bIsAdmin)
 				hr = lpSession->QueryInterface(ptrAdminSession.iid, &ptrAdminSession);
@@ -2274,7 +2276,13 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 				goto exit;
 			}
 
-			hr = HrArchiveMessageForDelivery(ptrAdminSession, lpDeliveryMessage, g_lpLogger);
+			hr = Archive::Create(ptrAdminSession, g_lpLogger, &ptrArchive);
+			if (hr != hrSuccess) {
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate archive object: 0x%08X", hr);
+				goto exit;
+			}
+
+			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to archive message: 0x%08X", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);

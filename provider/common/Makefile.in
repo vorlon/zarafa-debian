@@ -45,9 +45,10 @@ CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libzarafacommon_la_LIBADD =
-am_libzarafacommon_la_OBJECTS = SOAPUtils.lo SOAPDebug.lo \
-	ZarafaUtil.lo ZarafaUser.lo ECChannelClient.lo \
-	ECLicenseClient.lo ECSearchClient.lo ECOfflineState.lo
+am_libzarafacommon_la_OBJECTS = SOAPUtils.lo SOAPHelpers.lo \
+	SOAPDebug.lo SOAPSock.lo ZarafaUtil.lo ZarafaUser.lo \
+	ECChannelClient.lo ECLicenseClient.lo ECSearchClient.lo \
+	ECOfflineState.lo
 libzarafacommon_la_OBJECTS = $(am_libzarafacommon_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -266,7 +267,10 @@ AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(GSOAP_CFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap -I${top_srcdir}/common
 
 libzarafacommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
+	SOAPAlloc.h \
+	SOAPHelpers.cpp SOAPHelpers.h \
 	SOAPDebug.cpp SOAPDebug.h \
+	SOAPSock.cpp SOAPSock.h \
 	ZarafaUtil.cpp ZarafaUtil.h \
 	ZarafaUser.h ZarafaUser.cpp \
 	ECChannelClient.h ECChannelClient.cpp \
@@ -331,6 +335,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECOfflineState.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearchClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SOAPDebug.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SOAPHelpers.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SOAPSock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SOAPUtils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ZarafaUser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ZarafaUtil.Plo@am__quote@

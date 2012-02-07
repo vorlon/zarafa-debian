@@ -76,10 +76,18 @@ public:
 	bool	ChangeNotificationsEnabled() const;
 	bool	StateCollectorEnabled() const;
 
+	// Stream settings
+	ULONG	StreamTimeout() const;
+	ULONG	StreamBufferSize() const;
+	ULONG	StreamBatchSize() const;
+
 	// Update settings
 	bool	EnableSyncLog(bool bEnable);
 	ULONG	SetSyncLogLevel(ULONG ulLogLevel);
 	ULONG	SetSyncOptions(ULONG ulOptions);
+	ULONG	SetStreamTimeout(ULONG ulTimeout);
+	ULONG	SetStreamBufferSize(ULONG ulBufferSize);
+	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
 private:
 	ECSyncSettings();
@@ -88,6 +96,9 @@ private:
 	ULONG	m_ulSyncLog;
 	ULONG	m_ulSyncLogLevel;
 	ULONG	m_ulSyncOpts;
+	ULONG	m_ulStreamTimeout;
+	ULONG	m_ulStreamBufferSize;
+	ULONG	m_ulStreamBatchSize;
 
 	static pthread_mutex_t s_hMutex;
 	static ECSyncSettings *s_lpInstance;

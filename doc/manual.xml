@@ -2059,10 +2059,15 @@
 		      user, so you may access the store again. Use the
 		      <option>-u</option> <replaceable>username</replaceable>
 			  to specify the user to hook the store to.</para>
-			  <para>You can copy an orphaned store to the public store,
-			  so you can read the store in the public folders. Use the
-			  <option>--copyto-public</option> to copy the store to 
-			  the public folder 'Admin/deleted stores'.</para>
+			  <para>You can copy an orphaned store to the public
+			  store, so you can read the store in the public
+			  folders. Use the <option>--copyto-public</option> to
+			  copy the store to the public folder 'Admin/deleted
+			  stores'.</para><para>To hook a public store, use the
+			  <option>--type</option> group/company option to
+			  influence the name type in the -u switch.</para><para>To
+			  hook an archive store, use <option>--type</option>
+			  <replaceable>archive</replaceable>.</para>
 		    </listitem>
 		  </varlistentry>
 
@@ -2102,7 +2107,14 @@
 		      <para>You can unhook a store from a user, so you can
 		      remove the store and create a new one. Use the
 		      <option>-u</option> <replaceable>username</replaceable>
-			  to specify the user to unhook the store from.</para>
+		      to specify the user to unhook the store
+		      from.</para><para>To unhook a public store, use the
+		      <option>--type</option> group/company option to
+		      influence the name type in the <option>-u</option>
+		      switch. Use a companyname with type company or Everyone
+		      with type group to unhook the public.</para><para>To
+			  unhook an archive store, use <option>--type</option>
+			  <replaceable>archive</replaceable>.</para>
 		    </listitem>
 		  </varlistentry>
 
@@ -3133,7 +3145,7 @@
 			  anymore.
 			  Administrators will still be able to see and use the user.
 	  		  </para>
-			  <para>Default: <replaceable>no</replaceable></para>
+			  <para>Default: <replaceable>yes</replaceable></para>
 	 		</listitem>
 		  </varlistentry>
 
@@ -3391,7 +3403,7 @@
 			  attachment will push usefull data from the MySQL
 			  cache. The drawback of separate files is that a
 			  mysqldump is not enough for a full disaster recovery.</para>
-			  <para>Default: <replaceable>database</replaceable></para>
+			  <para>Default: <replaceable>files</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3621,7 +3633,7 @@
 				<para>Synchronization clean cycle, in days. 0 means
 				never. Synchronizations older than this setting will be
 				removed	from the database.</para>
-				<para>Default: <replaceable>365</replaceable></para>
+				<para>Default: <replaceable>90</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3757,7 +3769,7 @@
 			  it, set this value as high as possible, up to 50%
 			  of your total RAM capacity. Make sure this doesn't
 			  lead to swapping though.</para>
-			  <para>Default: <replaceable>16777216</replaceable> (16
+			  <para>Default: <replaceable>268435456</replaceable> (256
 			  Mb)</para>
 			</listitem>
 		  </varlistentry>
@@ -3854,7 +3866,7 @@
 			  from the cache making room for more often requested user details.
 			  Set to 0 to never expire, or -1 to disable this cache.
 			  </para>
-			  <para>Default: <replaceable>5</replaceable> (5 minutes)</para>
+			  <para>Default: <replaceable>0</replaceable> (never expire)</para>
 			</listitem>
 		  </varlistentry>
 
@@ -4205,6 +4217,25 @@
 			  download this file through the Zarafa server.
 			  </para>
 			  <para>Default: <replaceable>/var/lib/zarafa/client</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>client_update_log_level</option></term>
+			<listitem>
+			  <para>Receive the log information from the client auto update service.</para>
+			  <para>Options: 0 disable, 1 sent only with errors, 2 always sent</para>
+			  <para>Default: <replaceable>1</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>client_update_log_path</option></term>
+			<listitem>
+				<para>Log location for the client auto update files</para>
+				<para>You need the <option>client_update_log_level</option> option set to non-zero
+						value to receive log files from the client.</para>
+				<para>Default: <replaceable>/var/log/zarafa/autoupdate</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -10765,7 +10796,7 @@
 			  the attachment to be searched as well.</para>
 			  <para>This will slow down the indexing process, require more system memory
 			  and increases index file size.</para>
-			  <para>Default: <replaceable>yes</replaceable></para>
+			  <para>Default: <replaceable>no</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -11112,6 +11143,22 @@
 			  <replaceable>username</replaceable> <option>-l</option></para>
 			</listitem>
 		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--auto-attach</option>
+			</term>
+			<listitem>
+			  <para>When no user is specified with -u, all users
+			  will have their archives attached or detached
+			  based on the LDAP/ADS settings. If a user is
+			  specified only that user's store will be processed.
+			  This option can be combined with <parameter>-A</parameter> to
+			  force an auto-attach run regardless of the
+			  <parameter>enable_auto_attach</parameter> configuration option.
+			  </para>
+			</listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
@@ -11181,11 +11228,27 @@
 
 		  <varlistentry>
 			<term><option>-w</option></term>
-			<term><option>--writable</option></term>
 			<listitem>
 			  <para>By default zarafa-archiver makes an archive read-only
 			  for the user. By passing this option, the user will get
 			  read/write permissions in the attached archive.</para>
+			  <para>This will override the <replaceable>auto_attach_writable
+			  </replaceable> configuration options when auto attaching
+			  archives.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--writable</option>
+			  <replaceable>yes|no</replaceable>
+			</term>
+			<listitem>
+			  <para>Explicitly enable or disable write permissions when
+			  (auto) attaching archives.</para>
+			  <para>This will override the <replaceable>auto_attach_writable
+			  </replaceable> configuration options when auto attaching
+			  archives.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -11501,6 +11564,27 @@
 		  </varlistentry>
 		  
 		  <varlistentry>
+			<term><option>enable_auto_attach</option></term>
+			<listitem>
+			  <para> Specify whether on each archive run an auto-attach run
+			  is performed in order to match the attached archives to the
+			  requested state as specified in LDAP or ADS.
+			  </para>
+			  <para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
+			<term><option>auto_attach_writable</option></term>
+			<listitem>
+			  <para> Specify whether an auto attached archive will be granted
+			  write permissions for the user it's attached to.
+			  </para>
+			  <para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
 			<term><option>log_method</option></term>
 			<listitem>
 			  <para>The method which should be used for logging. Valid
@@ -11556,6 +11640,17 @@
 			  <para>The level of output for logging in the range from
 			  0 to 5. 0 means no logging, 5 means full logging.</para>
 			  <para>Default: <replaceable>2</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>pid_file</option></term>
+			<listitem>
+			  <para>The location of the pid file used to guarantee
+              only one instance of zarafa-archiver is running
+              in non-administrative mode.</para>
+			  <para>Default: <replaceable>/var/run/zarafa-archiver.pid
+			  </replaceable></para>
 			</listitem>
 		  </varlistentry>
 		</variablelist>
@@ -11760,6 +11855,43 @@
 			  <para>Default: value not set.</para>
 			</listitem>
 		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>bidirectional</option></term>
+			<listitem>
+			  <para>If yes, then perform bidirectional synchronization
+			  between source and destination stores. If no, then only
+			  unidirectional (migration) replication is used (from source to
+			  dest)</para>
+			  <para>Default: yes</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>workers</option></term>
+			<listitem>
+			  <para>Specifies the number of parallel workers to use to
+			  migrate the stores.</para>
+			  <para>Default: 4</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>force_source</option></term>
+			<listitem>
+			  <para>Normally, the source server is only used to provide an
+			  entry point into the source cluster; If the store of the user
+			  to be migrated is on a different host, then zarafa-msr
+			  automatically redirects to the correct source server. If this
+			  option is 'yes', then no such redirection is performed. This
+			  is useful if the user has already been migrated to the
+			  new (destination) server, and a final MSR sync is required
+			  between the old store and the new (active) store. If you fail
+			  to set force_source to 'yes' in this case, MSR will fail
+			  since source and destination store will be the same.</para>
+			  <para>Default: no</para>
+			</listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
@@ -11958,7 +12090,7 @@
 		  <varlistentry>
 			<term>
 			  <option>-h</option>
-			  <replaceable>username</replaceable>
+			  <replaceable>serverpath</replaceable>
 			</term>
 			<listitem>
 			  <para>Host to connect with.</para>

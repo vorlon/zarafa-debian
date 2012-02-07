@@ -92,6 +92,7 @@
 #include "SOAPDebug.h"
 #include "edkmdb.h"
 #include "ECDBDef.h"
+#include "ZarafaCmdUtil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -424,23 +425,38 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	ECRESULT		er = ZARAFA_E_NO_ACCESS;
 	bool			bOwnerFound = false;
 	unsigned int	ulStoreOwnerId = 0;
+	unsigned int	ulStoreType = 0;
 	unsigned int	ulObjectOwnerId = 0;
 	unsigned int	ulACL = 0;
 	int				nCheckType = 0;
 
 	// Is the current user the owner of the store
-	if(GetStoreOwner(ulObjId, &ulStoreOwnerId) == erSuccess && ulStoreOwnerId == m_ulUserID) {
-		er = erSuccess;
-		goto exit;
+	if(GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
+		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
+				er = erSuccess;
+				goto exit;
+			}
+		} else {
+			er = erSuccess;
+			goto exit;
+		}
 	}
 
 	// is current user the owner of the object
 	if (GetOwner(ulObjId, &ulObjectOwnerId) == erSuccess && ulObjectOwnerId == m_ulUserID)
 	{
 		bOwnerFound = true;
-		if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
-			er = erSuccess;
-			goto exit;
+		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
+			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
+				er = erSuccess;
+				goto exit;
+			}
+		} else {
+			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
+				er = erSuccess;
+				goto exit;
+			}
 		}
 	}
 
@@ -481,7 +497,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 			nCheckType = 1;
 			break;
 		case ecSecurityFolderAccess: // 7
-			if(bOwnerFound == false)
+			if(bOwnerFound == false || ulStoreType == ECSTORE_TYPE_ARCHIVE)
 				ulACL |= ecRightsFolderAccess;
 			nCheckType = 1;
 			break;
@@ -1078,16 +1094,40 @@ int ECSecurity::GetAdminLevel()
  */
 ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId, unsigned int* lpulOwnerId)
 {
+	return GetStoreOwnerAndType(ulObjId, lpulOwnerId, NULL);
+}
+
+/** 
+ * Get the owner and type of the store in which the given objectid resides in
+ * 
+ * @param[in] ulObjId hierarchy object id to get store owner of
+ * @param[out] lpulOwnerId user id of store in which ulObjId resides
+ * @param[out] lpulStoreType type of store in which ulObjId resides
+ * 
+ * @return Zarafa error code
+ */
+ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId, unsigned int* lpulOwnerId, unsigned int* lpulStoreType)
+{
 	ECRESULT er = erSuccess;
 	unsigned int ulStoreId = 0;
 
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
-	if(er != erSuccess)
-		goto exit;
+	if (lpulOwnerId || lpulStoreType) {
+		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
+		if (er != erSuccess)
+			goto exit;
+	}
 
-	er = GetOwner(ulStoreId, lpulOwnerId);
-	if(er != erSuccess)
-		goto exit;
+	if (lpulOwnerId) {
+		er = GetOwner(ulStoreId, lpulOwnerId);
+		if (er != erSuccess)
+			goto exit;
+	}
+
+	if (lpulStoreType) {
+		er = GetStoreType(m_lpSession, ulStoreId, lpulStoreType);
+		if (er != erSuccess)
+			goto exit;
+	}
 
 exit:
 	return er;

@@ -65,7 +65,6 @@
 #include "WSStoreTableView.h"
 //#include "WSTableOutGoingQueue.h"
 #include "WSMAPIFolderOps.h"
-#include "WSStreamOps.h"
 #include "WSMAPIPropStorage.h"
 #include "ECParentStorage.h"
 #include "ECABLogon.h"
@@ -73,6 +72,8 @@
 #include <ECCache.h>
 
 class utf8string;
+class WSMessageStreamExporter;
+class WSMessageStreamImporter;
 
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *lpParam, ECSESSIONID newSessionId);
 typedef std::map<ULONG, std::pair<void *, SESSIONRELOADCALLBACK> > SESSIONRELOADLIST;
@@ -120,6 +121,7 @@ public:
 
 	virtual HRESULT HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* lppcbStoreID, LPENTRYID* lppStoreID, ULONG* lppcbRootID, LPENTRYID* lppRootID, std::string *lpstrRedirServer = NULL);
 	virtual HRESULT HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG ulFlags, LPTSTR *lppszStoreName);
+	virtual HRESULT HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG *lpulStoreType);
 	virtual HRESULT HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer = NULL);
 
 	// Check item exist with flags
@@ -132,7 +134,8 @@ public:
 
 	// Interface for folder operations (create/delete)
 	virtual HRESULT HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAPIFolderOps **lppFolderOps);
-	virtual HRESULT HrOpenStreamOps(ULONG cbFolderEntryId, LPENTRYID lpFolderEntryId, WSStreamOps **lppStreamOps);
+	virtual HRESULT HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter);
+	virtual HRESULT HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter);
 
 	// Interface for table operations
 	virtual HRESULT HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableOps);
@@ -178,6 +181,7 @@ public:
 	// Get user information
 	virtual HRESULT HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	virtual HRESULT HrResolveUserStore(const utf8string &strUserName, ULONG ulFlags, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer = NULL);
+	virtual HRESULT HrResolveTypedStore(const utf8string &strUserName, ULONG ulStoreType, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 
 	// IECServiceAdmin functions
 	virtual HRESULT HrCreateUser(LPECUSER lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
@@ -186,9 +190,8 @@ public:
 	virtual HRESULT HrGetUser(ULONG cbUserID, LPENTRYID lpUserID, ULONG ulFlags, LPECUSER *lpECUser);
 
 	virtual HRESULT HrCreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG cbStoreID, LPENTRYID lpStoreID, ULONG cbRootID, LPENTRYID lpRootID, ULONG ulFLags);
-	virtual HRESULT HrGetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpulStoreId);
-	virtual HRESULT HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId);
-	virtual HRESULT HrUnhookStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId);
+	virtual HRESULT HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId);
+	virtual HRESULT HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId);
 	virtual HRESULT HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId);
 
 	virtual HRESULT HrGetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, LPECUSER* lppsUsers);
@@ -199,6 +202,8 @@ public:
 	virtual HRESULT HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId);
 	
 	virtual HRESULT HrRemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId);
+
+	virtual HRESULT HrGetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS);
 
 	// Quota
 	virtual HRESULT GetQuota(ULONG cbUserId, LPENTRYID lpUserId, LPECQUOTA* lppsQuota);
@@ -350,6 +355,9 @@ protected:
 private:
 	pthread_mutex_t					m_ResolveResultCacheMutex;
 	ECCache<ECMapResolveResults>	m_ResolveResultCache;
+
+friend class WSMessageStreamExporter;
+friend class WSMessageStreamImporter;
 };
 
 #endif // WSTRANSPORT_H

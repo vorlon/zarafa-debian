@@ -350,4 +350,103 @@ private:
 };
 
 
+class SwigDirector_ECSimpleLogger : public ECSimpleLogger, public Swig::Director {
+
+public:
+    SwigDirector_ECSimpleLogger(PyObject *self);
+    virtual HRESULT Log(int loglevel, char const *szMessage);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::PyObject_var name = PyString_FromString(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class ECSimpleLogger doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::PyObject_var vtable[1];
+#endif
+
+};
+
+
+class SwigDirector_Stream : public Stream, public Swig::Director {
+
+public:
+    SwigDirector_Stream(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT Write(char const *pv, ULONG cb, ULONG *OUTPUT);
+    virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
+    virtual HRESULT SetSize(ULARGE_INTEGER libNewSize);
+    virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
+    virtual HRESULT Commit(DWORD grfCommitFlags);
+    virtual HRESULT Revert();
+    virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
+    virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
+    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
+    virtual HRESULT Clone(IStream **ppstm);
+    virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *cbOUTPUT);
+    virtual HRESULT Write(void const *pv, ULONG cb, ULONG *OUTPUT);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::PyObject_var name = PyString_FromString(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class Stream doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::PyObject_var vtable[12];
+#endif
+
+};
+
+
 #endif

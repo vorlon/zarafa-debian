@@ -1,7 +1,7 @@
 import MAPI
 from MAPI.Util import *
 
-def GetStores(session, users = None, flags = MAPI_BEST_ACCESS):
+def GetStores(session, users = None, flags = MDB_WRITE):
     ems = GetDefaultStore(session).QueryInterface(IID_IExchangeManageStore)
     if users is None:
         users = GetUserList(session)

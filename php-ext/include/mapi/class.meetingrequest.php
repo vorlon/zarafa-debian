@@ -112,7 +112,7 @@ class Meetingrequest {
 	 */
 	 
 	// All properties for a recipient that are interesting
-	var $recipprops = Array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME, PR_RECIPIENT_FLAGS, PR_ROWID, PR_OBJECT_TYPE);
+	var $recipprops = Array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME, PR_RECIPIENT_FLAGS, PR_ROWID, PR_OBJECT_TYPE, PR_SEARCH_KEY);
 	 
 	/**
 	 * Constructor
@@ -1260,11 +1260,13 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				// This is normal meeting
 				$resourceRecipData = $this->bookResources($this->message, $cancel, $prefix);
 
-				if (!$this->errorSetResource) $this->submitMeetingRequest($this->message, $cancel, $prefix, false, false, false, $deletedRecips);
+				if (!$this->errorSetResource) {
+					$this->submitMeetingRequest($this->message, $cancel, $prefix, false, false, false, $deletedRecips);
+				}
 			}
 		}
 
-		if($this->errorSetResource){
+		if(isset($this->errorSetResource) && $this->errorSetResource){
 			return Array(
 				'error' => $this->errorSetResource,
 				'displayname' => $this->recipientDisplayname
@@ -2503,7 +2505,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			}
 		}
 
-		if (isset($newmessageprops[$this->proptags['counter_proposal']])) unset($newmessageprops[$this->proptags['counter_proposal']]);
+		if (isset($newmessageprops[$this->proptags['counter_proposal']])) {
+			unset($newmessageprops[$this->proptags['counter_proposal']]);
+		}
 
 		// Prefix the subject if needed
 		if ($prefix && isset($newmessageprops[PR_SUBJECT]))
@@ -2623,6 +2627,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props[$this->proptags['requestsent']] = (count($recipients) > 0) || ($this->includesResources && !$this->errorSetResource);
 		$props[$this->proptags['attendee_critical_change']] = time();
 		$props[$this->proptags['owner_critical_change']] = time();
+		$props[$this->proptags['meetingtype']] = mtgRequest;
 		mapi_setprops($message, $props);
 	}
 
@@ -2731,6 +2736,77 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Checks if there has been any significant changes on appointment/meeting item.
+	 * Significant changes be:
+	 * 1) startdate has been changed
+	 * 2) duedate has been changed OR
+	 * 3) recurrence pattern has been created, modified or removed
+	 *
+	 * @param Array oldProps old props before an update
+	 * @param Number basedate basedate
+	 * @param Boolean isRecurrenceChanged for change in recurrence pattern.
+	 * isRecurrenceChanged true means Recurrence pattern has been changed, so clear all attendees response
+	 */
+	function checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged = false)
+	{
+		// If basedate is specified then we need to open exception message to clear recipient responses
+		if($basedate) {
+			$recurrence = new Recurrence($this->store, $this->message);
+			if($recurrence->isException($basedate)){
+				$attach = $recurrence->getExceptionAttachment($basedate);
+				if ($attach) {
+					$message = mapi_attach_openobj($attach, MAPI_MODIFY);
+				}
+			}
+		} else {
+			// use normal message or recurring series message
+			$message = $this->message;
+		}
+
+		if(!$message) {
+			return;
+		}
+
+		$newProps = mapi_getprops($message, array($this->proptags['startdate'], $this->proptags['duedate'], $this->proptags['updatecounter']));
+
+		// Check whether message is updated or not.
+		if(isset($newProps[$this->proptags['updatecounter']]) && $newProps[$this->proptags['updatecounter']] == 0) {
+			return;
+		}
+
+		if (($newProps[$this->proptags['startdate']] != $oldProps[$this->proptags['startdate']])
+			|| ($newProps[$this->proptags['duedate']] != $oldProps[$this->proptags['duedate']])
+			|| $isRecurrenceChanged) {
+			$this->clearRecipientResponse($message);
+
+			mapi_setprops($message, array($this->proptags['owner_critical_change'] => time()));
+
+			mapi_savechanges($message);
+			if ($attach) { // Also save attachment Object.
+				mapi_savechanges($attach);
+			}
+		}
+	}
+
+	/**
+	 * Clear responses of all attendees who have replied in past.
+	 * @param MAPI_MESSAGE $message on which responses should be cleared
+	 */
+	function clearRecipientResponse($message)
+	{
+		$recipTable = mapi_message_getrecipienttable($message);
+		$recipsRows = mapi_table_queryallrows($recipTable, $this->recipprops);
+
+		foreach($recipsRows as $recipient) {
+			// Probably recipient is an organizer, not possible at the moment but for safety reasons.
+			if(($recipient[PR_RECIPIENT_FLAGS] & recipOrganizer) != recipOrganizer){
+				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
+				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
+			}
+		}
 	}
 
 	/**

@@ -50,6 +50,10 @@
 #include "platform.h"
 
 #include "ECExchangeImportContentsChanges.h"
+#include "WSMessageStreamImporter.h"
+#include "ECMessageStreamImporterIStreamAdapter.h"
+#include "ECLogger.h"
+#include "ECSyncLog.h"
 
 #include "Util.h"
 #include "edkguid.h"
@@ -131,6 +135,8 @@ private:
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder)
 : m_iidMessage(IID_IMessage)
 {
+	ECSyncLog::GetLogger(&m_lpLogger);
+
 	m_lpFolder = lpFolder;
 	m_lpStream = NULL;
 	m_lpFolder->AddRef();
@@ -138,6 +144,7 @@ ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *l
 
 ECExchangeImportContentsChanges::~ECExchangeImportContentsChanges(){
 	m_lpFolder->Release();
+	m_lpLogger->Release();
 }
 
 HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
@@ -179,10 +186,12 @@ HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lp
 HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	HRESULT		hr = hrSuccess;
 	LPMAPIERROR	lpMapiError = NULL;
-	LPCTSTR		lpszErrorMsg = NULL;
+	LPTSTR		lpszErrorMsg = NULL;
 	
 	//FIXME: give synchronization errors messages
-	lpszErrorMsg = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult);
+	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &lpszErrorMsg);
+	if (hr != hrSuccess)
+		goto exit;
 
 	MAPIAllocateBuffer(sizeof(MAPIERROR),(void **)&lpMapiError);
 	
@@ -212,6 +221,10 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	lpMapiError->ulVersion		= 0;
 
 	*lppMAPIError = lpMapiError;
+
+exit:
+	if (lpszErrorMsg)
+		MAPIFreeBuffer(lpszErrorMsg);
 
 	return hr;
 }
@@ -802,24 +815,34 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	ULONG ulCount = 0;
 
 	hr = m_lpFolder->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpRootFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder((TCHAR*)"IPM", 0, &cbEntryId, &lpEntryId, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpInbox);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = HrGetOneProp(&m_lpFolder->GetMsgStore()->m_xMsgStore, PR_IPM_SUBTREE_ENTRYID, &lpIPMSubTree);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, (LPENTRYID)lpIPMSubTree->Value.bin.lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpParentFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to open ipm subtree folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &lpAdditionalREN);
 
@@ -842,20 +865,28 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	}
 
 	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &lpConflictFolder);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Sync Issues' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Conflicts' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Local Failures' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 	
 	hr = CreateConflictFolder(_("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, NULL);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to create 'Server Failures' folder, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 	hr = HrSetOneProp(lpRootFolder, lpNewAdditionalREN);
 	if(hr != hrSuccess)
@@ -866,8 +897,13 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		goto exit;
 
 	hr = HrUpdateSearchReminders(lpRootFolder, lpNewAdditionalREN);
-	if (hr != hrSuccess)
+	if (hr == MAPI_E_NOT_FOUND) {
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "No reminder searchfolder found, nothing to update");
+		hr = hrSuccess;
+	} else if (hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "Failed to update search reminders, hr = 0x%08x", hr);
 		goto exit;
+	}
 
 exit:
 	if(lpRootFolder)
@@ -965,45 +1001,24 @@ exit:
 HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppStream)
 {
 	HRESULT hr = hrSuccess; 
-
-	SizedSPropTagArray(1, sptSourceKey) = { 1, {PR_SOURCE_KEY} };
-	
-	LPSPropValue lpFolderSourceKey = NULL;
-	LPSPropValue lpPropPCL = NULL;
-	LPSPropValue lpPropCK = NULL;
+	SPropValuePtr ptrFolderSourceKey;
 	ULONG cbEntryId = 0;
-	LPENTRYID lpEntryId = NULL;
+	EntryIdPtr ptrEntryId;
+	WSMessageStreamImporterPtr ptrMessageImporter;
+	StreamPtr ptrStream;
 
 	LPSPropValue lpMessageSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
-	LPSPropValue lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	LPSPropValue lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
-	
-	LPSPropValue lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
-	LPSPropValue lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
 
-	ULONG ulObjType = 0;
-	ULONG ulCount = 0;
-	bool bAssociatedMessage = false;
-	WSStreamOps *lpsStreamOps = NULL;
-	IMessage *lpMessage = NULL;
-	LPSPropValue lpConflictItems = NULL;
-
-	ULONG ulNewFlags = 0;
-
-	// FIXME: I think we want to combine this with another call
-	hr = m_lpFolder->GetProps((LPSPropTagArray)&sptSourceKey,0, &ulCount, &lpFolderSourceKey);
-	if(hr != hrSuccess)
+	hr = HrGetOneProp(&m_lpFolder->m_xMAPIProp, PR_SOURCE_KEY, &ptrFolderSourceKey);
+	if (hr != hrSuccess)
 		goto exit;
 
-	if(lpFolderSourceKey->ulPropTag != PR_SOURCE_KEY) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	if(lpMessageSourceKey != NULL) {
-		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, lpFolderSourceKey->Value.bin.cb, lpFolderSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &lpEntryId);
-		if(hr != MAPI_E_NOT_FOUND && hr != hrSuccess)
+	if (lpMessageSourceKey != NULL) {
+		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, ptrFolderSourceKey->Value.bin.cb, ptrFolderSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &ptrEntryId);
+		if (hr != MAPI_E_NOT_FOUND && hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "ImportFast: Failed to get entryid from sourcekey, hr = 0x%08x", hr);
 			goto exit;
+		}
 	} else {
 	    // Source key not specified, therefore the message must be new since this is the only thing
 	    // we can do if there is no sourcekey. Z-Push uses this, while offline ICS does not (it always
@@ -1012,111 +1027,168 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 		hr = MAPI_E_NOT_FOUND;
 	}
 
-	if((hr == MAPI_E_NOT_FOUND) && ((ulFlags & SYNC_NEW_MESSAGE) == 0)) {
+	if (hr == MAPI_E_NOT_FOUND && ((ulFlags & SYNC_NEW_MESSAGE) == 0)) {
 		// This is a change, but we don't already have the item. This can only mean
 		// that the item has been deleted on our side. 
+		LOG_DEBUG(m_lpLogger, "ImportFast: %s", "Destination message deleted");
 		hr = SYNC_E_OBJECT_DELETED;
 		goto exit;
 	}
 
-	if((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b)) {
-		bAssociatedMessage = true;
+	if (hr == MAPI_E_NOT_FOUND)
+		hr = ImportMessageCreateAsStream(cValue, lpPropArray, &ptrMessageImporter);
+	else
+		hr = ImportMessageUpdateAsStream(cbEntryId, ptrEntryId, cValue, lpPropArray, &ptrMessageImporter);
+	if (hr != hrSuccess) {
+		if (hr != SYNC_E_IGNORE && hr != SYNC_E_OBJECT_DELETED)
+			LOG_DEBUG(m_lpLogger, "ImportFast: Failed to get MessageImporter, hr = 0x%08x", hr);
+		goto exit;
 	}
 
-	if(hr == MAPI_E_NOT_FOUND){
-		LPSPropValue lpPassedEntryId = NULL;
-		EntryIdPtr ptrNewEntryId;
-		ULONG cbNewEntryId;
-		LPENTRYID lpTmpEntryId = NULL;
-		ULONG cbTmpEntryId = 0;
-
-		if(bAssociatedMessage == true){
-		    ulNewFlags = MAPI_ASSOCIATED;
-		}else{
-		    ulNewFlags = 0;
-		}
-
-		lpPassedEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
-		if(lpPassedEntryId == NULL) {
-			// No entryid from export changes, create a new one.
-			hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbNewEntryId, &ptrNewEntryId);
-			if (hr != hrSuccess)
-				goto exit;
-
-			lpTmpEntryId = ptrNewEntryId.get();
-			cbTmpEntryId = cbNewEntryId;			
-		} else {
-			lpTmpEntryId = (LPENTRYID)lpPassedEntryId->Value.bin.lpb;
-			cbTmpEntryId = lpPassedEntryId->Value.bin.cb;			
-		}
-
-		hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbTmpEntryId, lpTmpEntryId, &lpsStreamOps);
-		if(hr != hrSuccess)
-			goto exit;
-	}else{
-		hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &lpPropPCL, &lpPropCK);
-		if (hr == MAPI_E_NOT_FOUND) {
-			// The item was soft-deleted; sourcekey is known, but we cannot open the item. It has therefore been deleted.
-			hr = SYNC_E_OBJECT_DELETED;
-			goto exit;
-		}
-
-		if(hr != hrSuccess)
-			goto exit;
-
-		if (IsProcessed(lpRemoteCK, lpPropPCL)) {
-			//we already have this change
-			hr = SYNC_E_IGNORE;
-			goto exit;
-		}
-		
-		// Check for conflicts except for associated messages, take always the lastone
-		if(bAssociatedMessage == false && IsConflict(lpPropCK, lpRemotePCL)){
-			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpMessage);
-			if(hr == MAPI_E_NOT_FOUND) {
-				// This shouldn't happen as we just got a conflict.
-				hr = SYNC_E_OBJECT_DELETED;
-				goto exit;
-			}
-
-			if (CreateConflictMessageOnly(lpMessage, &lpConflictItems) == MAPI_E_NOT_FOUND){
-				CreateConflictFolders();
-				CreateConflictMessageOnly(lpMessage, &lpConflictItems);
-			}
-			
-			lpMessage->Release();
-			lpMessage = NULL;
-		}
-		
-		hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, lpConflictItems, &lpsStreamOps);
-		if (hr != hrSuccess)
-			goto exit;
+	LOG_DEBUG(m_lpLogger, "ImportFast: %s", "Wrapping MessageImporter in IStreamAdapter");
+	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &ptrStream);
+	if (hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "ImportFast: Failed to wrap message importer, hr = 0x%08x" ,hr);
+		goto exit;
 	}
 
-	hr = lpsStreamOps->QueryInterface(IID_IStream, (void**)lppStream);
+	*lppStream = ptrStream.release();
 
 exit:
-	if (lpConflictItems)
-		MAPIFreeBuffer(lpConflictItems);
+	return hr;
+}
 
-	if (lpMessage)
-		lpMessage->Release();
+HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
+{
+	HRESULT hr = hrSuccess;
+	LPSPropValue lpMessageFlags = NULL;
+	LPSPropValue lpMessageAssociated = NULL;
+	LPSPropValue lpPropEntryId = NULL;
+	ULONG ulNewFlags = 0;
+	ULONG cbEntryId = 0;
+	LPENTRYID lpEntryId = NULL;
+	WSMessageStreamImporterPtr ptrMessageImporter;
 
-	if (lpsStreamOps)
-		lpsStreamOps->Release();
+	if (lpPropArray == NULL || lppMessageImporter == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
-	if(lpFolderSourceKey)
-		MAPIFreeBuffer(lpFolderSourceKey);
+	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
+	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
+	lpPropEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 
-	if(lpPropPCL)
-		MAPIFreeBuffer(lpPropPCL);
+	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
+		ulNewFlags = MAPI_ASSOCIATED;
 
-	if(lpPropCK)
-		MAPIFreeBuffer(lpPropCK);
+	if (lpPropEntryId != NULL) {
+		cbEntryId = lpPropEntryId->Value.bin.cb;
+		lpEntryId = (LPENTRYID)lpPropEntryId->Value.bin.lpb;
+	} else {
+		LOG_DEBUG(m_lpLogger, "CreateFast: %s", "Creating new entryid");
+		hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbEntryId, &lpEntryId);
+		if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "CreateFast: Failed to create entryid, hr = 0x%08x", hr);
+			goto exit;
+		}
+	}
 
-	if(lpEntryId)
-		MAPIFreeBuffer(lpEntryId);
+	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &ptrMessageImporter);
+	if(hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "CreateFast: Failed to create message from stream, hr = 0x%08x", hr);
+		goto exit;
+	}
 
+	*lppMessageImporter = ptrMessageImporter.release();
+
+exit:
+	return hr;
+}
+
+HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
+{
+	HRESULT hr = hrSuccess;
+	SPropValuePtr ptrPropPCL;
+	SPropValuePtr ptrPropCK;
+	LPSPropValue lpRemoteCK = NULL;
+	LPSPropValue lpRemotePCL = NULL;
+	LPSPropValue lpMessageFlags = NULL;
+	LPSPropValue lpMessageAssociated = NULL;
+	bool bAssociated = false;
+	SPropValuePtr ptrConflictItems;
+	WSMessageStreamImporterPtr ptrMessageImporter;
+
+	if (lpEntryId == NULL || lpPropArray == NULL || lppMessageImporter == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &ptrPropPCL, &ptrPropCK);
+	if (hr != hrSuccess) {
+		if (hr == MAPI_E_NOT_FOUND) {
+			// The item was soft-deleted; sourcekey is known, but we cannot open the item. It has therefore been deleted.
+			LOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item was deleted");
+			hr = SYNC_E_OBJECT_DELETED;
+		} else
+			LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to get change info, hr = 0x%08x", hr);
+		goto exit;
+	}
+
+	lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
+	if (IsProcessed(lpRemoteCK, ptrPropPCL)) {
+		//we already have this change
+		LOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item was previously synchronized");
+		hr = SYNC_E_IGNORE;
+		goto exit;
+	}
+
+	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
+	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
+	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
+		bAssociated = true;
+
+	lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
+	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
+		MessagePtr ptrMessage;
+		ULONG ulType = 0;
+
+		LOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");
+
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &ptrMessage.iid, MAPI_MODIFY, &ulType, &ptrMessage);
+		if (hr == MAPI_E_NOT_FOUND) {
+			// This shouldn't happen as we just got a conflict.
+			LOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item seems to have disappeared");
+			hr = SYNC_E_OBJECT_DELETED;
+			goto exit;
+		} else if (hr != hrSuccess) {
+			LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to open conflicting message, hr = 0x%08x", hr);
+			goto exit;
+		}
+
+		if (CreateConflictMessageOnly(ptrMessage, &ptrConflictItems) == MAPI_E_NOT_FOUND) {
+			hr = CreateConflictFolders();
+			if (hr != hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to create conflict folders, hr = 0x%08x", hr);
+				goto exit;
+			}
+
+			hr = CreateConflictMessageOnly(ptrMessage, &ptrConflictItems);
+			if (hr != hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to create conflict message, hr = 0x%08x", hr);
+				goto exit;
+			}
+		}
+	}
+
+	hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, ptrConflictItems, &ptrMessageImporter);
+	if (hr != hrSuccess) {
+		LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to update message from stream, hr = 0x%08x", hr);
+		goto exit;
+	}
+
+	*lppMessageImporter = ptrMessageImporter.release();
+
+exit:
 	return hr;
 }
 

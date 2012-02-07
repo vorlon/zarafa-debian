@@ -134,6 +134,8 @@ public:
 	property_map			GetPropMapAnonymous() const;
 	property_mv_map			GetPropMapListAnonymous() const;
 
+	bool			PropListStringContains(const property_key_t &propname, const std::string &value, bool ignoreCase = false) const;
+
 	void			SetPropInt(const property_key_t &propname, unsigned int value);
 	void			SetPropBool(const property_key_t &propname, bool value);
 	void			SetPropString(const property_key_t &propname, const std::string &value);

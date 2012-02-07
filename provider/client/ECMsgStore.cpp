@@ -164,6 +164,8 @@ ECMsgStore::ECMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpT
 	HrAddPropHandlers(PR_TEST_LINE_SPEED,			GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	HrAddPropHandlers(PR_EMSMDB_SECTION_UID,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 
+	HrAddPropHandlers(PR_ACL_DATA,					GetPropHandler,		SetPropHandler,			(void*) this, FALSE, TRUE);
+
 	// Basically a workaround because we can't pass 'this' in the superclass constructor.
 	SetProvider(this);
 
@@ -447,6 +449,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	} else if(ulPropTag == PR_ACL_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
 			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
+	} else if(ulPropTag == PR_ACL_TABLE) {
+		if(*lpiid == IID_IExchangeModifyTable)
+			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
 	} else
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 
@@ -601,6 +606,35 @@ HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 
 	for(iter = lpThis->m_setAdviseConnections.begin(); iter != lpThis->m_setAdviseConnections.end(); iter++) {
 		lpThis->m_lpNotifyClient->Reregister(*iter);
+	}
+
+	return hr;
+}
+
+HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+{
+	HRESULT hr = hrSuccess;
+	ECMsgStore* lpMsgStore = (ECMsgStore*)lpProvider;
+
+	switch (lpsPropValSrc->ulPropTag) {
+		case PR_ENTRYID:
+		{				
+			ULONG cbWrapped = 0;
+			LPENTRYID lpWrapped = NULL;
+
+			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &lpWrapped);
+			if (hr == hrSuccess) {
+				ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+				memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
+				lpsPropValDst->Value.bin.cb = cbWrapped;
+				lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+				MAPIFreeBuffer(lpWrapped);
+			}
+			break;
+		}	
+		default:
+			hr = MAPI_E_NOT_FOUND;
+			break;
 	}
 
 	return hr;
@@ -1386,6 +1420,15 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			lpsPropValue->Value.bin.lpb = NULL;
 			lpsPropValue->Value.bin.cb = 0;
 			break;
+		case PROP_ID(PR_ACL_DATA):
+			hr = lpStore->GetSerializedACLData(lpBase, lpsPropValue);
+			if (hr == hrSuccess)
+				lpsPropValue->ulPropTag = PR_ACL_DATA;
+			else {
+				lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_ACL_DATA, PT_ERROR);
+				lpsPropValue->Value.err = hr;
+			}
+			break;
 
 		default:
 			hr = MAPI_E_NOT_FOUND;
@@ -1398,6 +1441,23 @@ exit:
 
 	if(lpProp)
 		MAPIFreeBuffer(lpProp);
+
+	return hr;
+}
+
+HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+{
+	HRESULT hr = hrSuccess;
+	ECMsgStore *lpStore = (ECMsgStore *)lpParam;
+
+	switch(ulPropTag) {
+	case PR_ACL_DATA:
+		hr = lpStore->SetSerializedACLData(lpsPropValue);
+		break;
+	default:
+		hr = MAPI_E_NOT_FOUND;
+		break;
+	}
 
 	return hr;
 }
@@ -1477,7 +1537,8 @@ exit:
  * @param[in]	lpszMailboxDN
  *					The username for whom to find the store.
  * @param[in]	ulFlags
- *					Unused.
+ *					OPENSTORE_OVERRIDE_HOME_MDB - Don't fall back to resolving the server if the user can't be found on the specified server.
+ *					MAPI_UNICODE - All passed strings are in Unicode.
  * @param[out]	lpcbEntryID
  *					Pointer to a ULONG variable, which will be set to the size of the returned entry id.
  * @param[out]	lppEntryID
@@ -1521,7 +1582,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 		bool bIsPeer;
 
 		hr = MsgStoreDnToPseudoUrl(tstrMsgStoreDN, &strPseudoUrl);
-		if (hr == MAPI_E_NO_SUPPORT) {
+		if (hr == MAPI_E_NO_SUPPORT && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			// Try again old style since the MsgStoreDn contained Unknown as the server name.
 			hr = CreateStoreEntryID(NULL, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 			goto exit;
@@ -1531,7 +1592,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 		
 		// MsgStoreDN successfully converted
 		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &ptrServerPath, &bIsPeer);
-		if (hr == MAPI_E_NOT_FOUND) {
+		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			// Try again old style since the MsgStoreDN contained an unknown server name or the server doesn't support multi server.
 			hr = CreateStoreEntryID(NULL, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 			goto exit;
@@ -2065,7 +2126,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 
 	LPSPropValue		lpPropValue = NULL;
-	SPropValue			sPropValue;
 	ULONG				cValues = 0;
 	ULONG				ulObjType = 0;
 
@@ -2570,7 +2630,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 	GUID guidStore;
 
 	// Check requested store type
-	if ((ulStoreType != ECSTORE_TYPE_PUBLIC && ulStoreType != ECSTORE_TYPE_PRIVATE) ||
+	if (!ECSTORE_TYPE_ISVALID(ulStoreType) ||
 		(ulFlags != 0 && ulFlags != EC_OVERRIDE_HOMESERVER))
 	{
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -2664,20 +2724,20 @@ exit:
 	return hr;
 }
 
-HRESULT ECMsgStore::HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
+HRESULT ECMsgStore::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
 {
 	HRESULT			hr = hrSuccess;
 
-	hr = lpTransport->HrHookStore(cbUserId, lpUserId, lpGuid, 0);
+	hr = lpTransport->HrHookStore(ulStoreType, cbUserId, lpUserId, lpGuid, 0);
 
 	return hr;
 }
 
-HRESULT ECMsgStore::UnhookStore(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId)
 {
 	HRESULT	hr = hrSuccess;
 
-	hr = lpTransport->HrUnhookStore(cbUserId, lpUserId, 0);
+	hr = lpTransport->HrUnhookStore(ulStoreType, cbUserId, lpUserId, 0);
 
 	return hr;
 }
@@ -2706,15 +2766,6 @@ HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbSt
 exit:
 	if(lpStoreEntryID)
 		MAPIFreeBuffer(lpStoreEntryID);
-
-	return hr;
-}
-
-HRESULT ECMsgStore::GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId)
-{
-	HRESULT			hr = hrSuccess;
-
-	hr = lpTransport->HrGetStore(cbUserId, lpUserId, lpulStoreId);
 
 	return hr;
 }
@@ -2919,6 +2970,15 @@ HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSe
 	HRESULT	hr = hrSuccess;
 
 	hr = lpTransport->HrDelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
+
+	return hr;
+}
+
+HRESULT ECMsgStore::GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+	HRESULT hr = hrSuccess;
+
+	hr = lpTransport->HrGetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
 
 	return hr;
 }
@@ -3291,6 +3351,39 @@ HRESULT ECMsgStore::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPE
 	}
 	if (hr != hrSuccess)
 		goto exit;
+
+	hr = lpSupport->WrapStoreEntryID(cbStoreID, ptrStoreID, lpcbStoreID, lppStoreID);
+
+exit:
+	return hr;
+}
+
+HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+{
+	HRESULT hr = hrSuccess;
+	ULONG cbStoreID;
+	EntryIdPtr ptrStoreID;
+
+	if (lpszUserName == NULL || lpcbStoreID == NULL || lppStoreID == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	if (lpszServerName != NULL) {
+		WSTransportPtr ptrTransport;
+
+		hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &ptrTransport);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		if (hr != hrSuccess)
+			goto exit;
+	} else {
+		hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		if (hr != hrSuccess)
+			goto exit;
+	}
 
 	hr = lpSupport->WrapStoreEntryID(cbStoreID, ptrStoreID, lpcbStoreID, lppStoreID);
 
@@ -3910,20 +4003,20 @@ HRESULT ECMsgStore::xECServiceAdmin::CreateEmptyStore(ULONG ulStoreType, ULONG c
 	return hr;
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
+HRESULT ECMsgStore::xECServiceAdmin::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::HookStore", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->HookStore(cbUserId, lpUserId, lpGuid);
+	HRESULT hr = pThis->HookStore(ulStoreType, cbUserId, lpUserId, lpGuid);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::HookStore", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::UnhookStore(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::xECServiceAdmin::UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::UnhookStore", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->UnhookStore(cbUserId, lpUserId);
+	HRESULT hr = pThis->UnhookStore(ulStoreType, cbUserId, lpUserId);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::UnhookStore", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -3943,15 +4036,6 @@ HRESULT ECMsgStore::xECServiceAdmin::ResolveStore(LPGUID lpGuid, ULONG *lpulUser
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
 	HRESULT hr = pThis->ResolveStore(lpGuid, lpulUserID, lpcbStoreID, lppStoreID);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::ResolveStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetStore(cbUserId, lpUserId, lpulStoreId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetStore", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
@@ -4025,6 +4109,15 @@ HRESULT ECMsgStore::xECServiceAdmin::DelSendAsUser(ULONG cbUserId, LPENTRYID lpU
 	HRESULT hr = pThis->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DelSendAsUser", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
+}
+
+HRESULT ECMsgStore::xECServiceAdmin::GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+    TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUserClientUpdateStatus", "");
+    METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
+    HRESULT hr = pThis->GetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
+    TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUserClientUpdateStatus", "%s", GetMAPIErrorDescription(hr).c_str());
+    return hr;
 }
 
 HRESULT ECMsgStore::xECServiceAdmin::RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
@@ -4343,9 +4436,16 @@ HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(char *lpszPseudoUrl, char 
 
 HRESULT ECMsgStore::xECServiceAdmin::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetPublicStore", "");
+	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetPublicStoreEntryID", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
 	return pThis->GetPublicStoreEntryID(ulFlags, lpcbStoreID, lppStoreID);
+}
+
+HRESULT ECMsgStore::xECServiceAdmin::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetArchiveStoreEntryID", "");
+	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
+	return pThis->GetArchiveStoreEntryID(lpszUserName, lpszServerName, ulFlags, lpcbStoreID, lppStoreID);
 }
 
 ///////////////////////

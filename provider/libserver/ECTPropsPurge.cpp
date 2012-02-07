@@ -257,7 +257,7 @@ ECRESULT ECTPropsPurge::GetLargestFolderId(ECDatabase *lpDatabase, unsigned int 
     DB_RESULT lpResult = NULL;
     DB_ROW lpRow = NULL;
     
-    er = lpDatabase->DoSelect("SELECT folderid FROM deferredupdate GROUP BY folderid ORDER BY count(*) DESC LIMIT 1", &lpResult);
+    er = lpDatabase->DoSelect("SELECT folderid, COUNT(*) as c FROM deferredupdate GROUP BY folderid ORDER BY c DESC LIMIT 1", &lpResult);
     if(er != erSuccess)
         goto exit;
         
@@ -364,6 +364,9 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ul
 	*lpulCount = ulCount;
 	
 exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+		
 	return er;
 }
 

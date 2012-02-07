@@ -123,13 +123,15 @@ int ECLogger::GetFileDescriptor()
 	return -1;
 }
 
-void ECLogger::AddRef() {
-	++m_ulRef;
+unsigned ECLogger::AddRef() {
+	return ++m_ulRef;
 }
 
-void ECLogger::Release() {
-	if (--m_ulRef == 0)
+unsigned ECLogger::Release() {
+	unsigned ulRef = --m_ulRef;
+	if (ulRef == 0)
 		delete this;
+	return ulRef;
 }
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
@@ -454,10 +456,8 @@ ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) : ECLogger(lo
 
 ECLogger_Pipe::~ECLogger_Pipe() {
 	close(m_fd);						// this will make the log child exit
-	if (m_childpid) {
-		kill(m_childpid, SIGPIPE);		// this will make the signal thread exit
+	if (m_childpid)
 		waitpid(m_childpid, NULL, 0);	// wait for the child if we're the one that forked it
-	}
 }
 
 void ECLogger_Pipe::Reset() {
@@ -532,8 +532,15 @@ int ECLogger_Pipe::GetFileDescriptor()
 	return m_fd;
 }
 
+/** 
+ * Make sure we do not close the log process when this object is cleaned.
+ */
+void ECLogger_Pipe::Disown()
+{
+	m_childpid = 0;
+}
+
 namespace PrivatePipe {
-	int quit = 0;
 	ECLogger_File *m_lpFileLogger;
 	ECConfig *m_lpConfig;
 	pthread_t signal_thread;
@@ -551,21 +558,20 @@ namespace PrivatePipe {
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
 	}
 	void sigpipe(int s) {
-		m_lpFileLogger->Log(EC_LOGLEVEL_WARNING, "[%5d] Log process received sigpipe", getpid());
-		quit = 1;
+		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sigpipe", getpid());
 	}
 	void* signal_handler(void*)
 	{
 		int sig;
 		m_lpFileLogger->Log(EC_LOGLEVEL_DEBUG, "[%5d] Log signal thread started", getpid());
-		while (!quit && sigwait(&signal_mask, &sig) == 0) {
+		while (sigwait(&signal_mask, &sig) == 0) {
 			switch(sig) {
 			case SIGHUP:
 				sighup(sig);
 				break;
 			case SIGPIPE:
 				sigpipe(sig);
-				break;
+				return NULL;
 			};
 		}
 		return NULL;
@@ -608,7 +614,7 @@ namespace PrivatePipe {
 		// We want the prefix of each individual thread/fork, so don't add that of the Pipe version.
 		m_lpFileLogger->SetLogprefix(LP_NONE);
 
-		while (!quit) {
+		while (true) {
 			FD_ZERO(&readfds);
 			FD_SET(readfd, &readfds);
 
@@ -646,10 +652,12 @@ namespace PrivatePipe {
 				}
 			}
 		}
+		// we need to stop fetching signals
+		kill(getpid(), SIGPIPE);
 
-		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
 		if (bNPTL)
 			pthread_join(signal_thread, NULL);
+		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
 		return ret;
 	}
 }

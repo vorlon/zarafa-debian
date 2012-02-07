@@ -81,6 +81,7 @@ struct CPMAP {
   { "ks_c_5601-1987",	949 },	 // ks_c_5601-1987 == cp949, but this charset is not recognized by iconv
   { "gb18030",		 	936 },	 // was gb2312, but cp936 is gb3212 + more, which is superseded by gb18030 (is codepage 54936?)
   { "gb2312",		 	936 },	 // entry for reverse lookup
+  { "GBK",			 	936 },	 // entry for reverse lookup
   { "csgb2312",	 		52936 }, // not sure, hz-cn-2312 according to MS, iconv has this one
   { "ibm852",		 	852 },
   { "ibm866",		 	866 },
@@ -97,6 +98,7 @@ struct CPMAP {
   { "iso-8859-6",		28596 },
   { "iso-8859-7",		28597 },
   { "iso-8859-8", 		28598 },
+  { "iso-8859-8-i",		28598 },
   { "iso-8859-9", 		28599 },
   { "iso-8859-13", 		28603 },
   { "iso-8859-15", 		28605 },

@@ -3099,7 +3099,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	if (hr != hrSuccess)
 		goto exit;
 
-	ASSERT(lpRows->cRows == 1);
+//	ASSERT(lpRows->cRows == 1);
 
 	if (lpRows->cRows == 0) {
 		hr = MAPI_E_NOT_FOUND;

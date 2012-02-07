@@ -236,6 +236,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	DELETEITEM sItem;
 	ECSessionManager *lpSessionManager = NULL;
 	ECCacheManager *lpCacheManager = NULL;
+	unsigned int ulParent = NULL;
 	
 	if (lpSession == NULL || lpDatabase == NULL || lpsObjectList == NULL || lplstDeleteItems == NULL) {
 		er = ZARAFA_E_INVALID_PARAMETER;
@@ -253,6 +254,20 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		//Free database results
 		if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
 
+		// Lock the root records's parent counter to maintain locking order (counters/content/storesize/committimemax)
+		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
+		if(er != erSuccess)
+		    goto exit;
+		    
+        er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParent) + " FOR UPDATE", NULL);
+        if(er != erSuccess)
+            goto exit;
+
+        // Lock the root records to make sure that we don't interfere with modifies or deletes on the same record
+        er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(*iListObjectId) + " FOR UPDATE", NULL);
+        if(er != erSuccess)
+            goto exit;
+                
 		strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.type, properties.val_ulong, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = h.id LIMIT 1) FROM hierarchy as h LEFT JOIN properties ON properties.hierarchyid=h.id AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " LEFT JOIN hierarchy AS p ON h.parent=p.id WHERE ";
 		if((ulFlags & EC_DELETE_CONTAINER) == 0)
 			strQuery += "h.parent=" + stringify(*iListObjectId);
@@ -1862,6 +1877,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
     
     // Trigger an assertion since in practice this should never happen
     ASSERT(false);
+	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
 
 	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
 	if(er != erSuccess) {
@@ -1896,8 +1912,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId)
     if(er != erSuccess)
     	goto exit;
     	
-	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
-	
 	
 exit:
 	if(er != erSuccess)
@@ -1906,6 +1920,36 @@ exit:
 		lpDatabase->Commit();
 		
 	return er;	
+}
+
+ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *lpulStoreType)
+{
+	ECRESULT er = erSuccess;
+	ECDatabase *lpDatabase = NULL;
+	DB_RESULT lpDBResult = NULL;
+	DB_ROW lpDBRow = NULL;
+	std::string strQuery;
+
+	lpDatabase = lpSession->GetDatabase();
+
+	strQuery = "SELECT s.type FROM stores AS s JOIN hierarchy AS h ON s.hierarchy_id=h.id AND s.user_id=h.owner AND h.type=" + stringify(MAPI_STORE) + " AND h.id=" + stringify(ulObjId);
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+		er = ZARAFA_E_NOT_FOUND;
+		goto exit;
+	}
+	
+	*lpulStoreType = atoui(lpDBRow[0]);
+
+exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+
+	return er;
 }
 
 /**

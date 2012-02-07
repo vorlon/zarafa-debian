@@ -227,7 +227,7 @@ Default:
 If this option is set to \'yes\', the internal user SYSTEM will be hidden from the Global Addressbook\&. Thus, users will not be able to send e\-mail to this user anymore\&. Administrators will still be able to see and use the user\&.
 .sp
 Default:
-\fIno\fR
+\fIyes\fR
 .RE
 .PP
 \fBthread_stacksize\fR
@@ -420,7 +420,7 @@ Default:
 The location where attachments are stored\&. This can be in the MySQL database, or as separate files\&. The drawback of \'database\' is that the large data of attachment will push usefull data from the MySQL cache\&. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery\&.
 .sp
 Default:
-\fIdatabase\fR
+\fIfiles\fR
 .RE
 .PP
 \fBattachment_path\fR
@@ -577,7 +577,7 @@ Default:
 Synchronization clean cycle, in days\&. 0 means never\&. Synchronizations older than this setting will be removed from the database\&.
 .sp
 Default:
-\fI365\fR
+\fI90\fR
 .RE
 .PP
 \fBsync_log_all_changes\fR
@@ -661,8 +661,8 @@ Default:
 Size in bytes of the cell cache\&. This is the main cache used in Zarafa\&. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder)\&. In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1\&.5K per message item (e\-mail, appointment task, etc) in the entire server\&. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity\&. Make sure this doesn\'t lead to swapping though\&.
 .sp
 Default:
-\fI16777216\fR
-(16 Mb)
+\fI268435456\fR
+(256 Mb)
 .RE
 .PP
 \fBcache_object_size\fR
@@ -744,8 +744,8 @@ Default:
 This sets the lifetime for user details inside the cache\&. If user details weren\'t queried during this period it is removed from the cache making room for more often requested user details\&. Set to 0 to never expire, or \-1 to disable this cache\&.
 .sp
 Default:
-\fI5\fR
-(5 minutes)
+\fI0\fR
+(never expire)
 .RE
 .PP
 \fBcache_server_size\fR
@@ -993,6 +993,28 @@ for clients to actually download this file through the Zarafa server\&.
 .sp
 Default:
 \fI/var/lib/zarafa/client\fR
+.RE
+.PP
+\fBclient_update_log_level\fR
+.RS 4
+Receive the log information from the client auto update service\&.
+.sp
+Options: 0 disable, 1 sent only with errors, 2 always sent
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
+\fBclient_update_log_path\fR
+.RS 4
+Log location for the client auto update files
+.sp
+You need the
+\fBclient_update_log_level\fR
+option set to non\-zero value to receive log files from the client\&.
+.sp
+Default:
+\fI/var/log/zarafa/autoupdate\fR
 .RE
 .PP
 \fBindex_services_enabled\fR

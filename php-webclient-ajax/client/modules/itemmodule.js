@@ -594,7 +594,7 @@ ItemModule.prototype.createAppointmentTemplate= function(message, htmlFormat)
 						}
 						result["required_attendee"] = new Object;
 						result["required_attendee"].label = _("Required Attendee");
-						result["required_attendee"].value = this.generateRecipientStringFromXML(message, "to");
+						result["required_attendee"].value = this.generateRecipientStringFromXML(message, "to", false);
 
 					} else {
 						xmlValue = NBSP;
@@ -634,7 +634,10 @@ ItemModule.prototype.createAppointmentTemplate= function(message, htmlFormat)
 				case "duedate":
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
-			}			
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
+					break;
+			}
 			// add data in result
 			result[tagName] = new Object;
 			result[tagName].label = properties[tagName];
@@ -663,6 +666,9 @@ ItemModule.prototype.createContactTemplate= function(message, htmlFormat)
 				case "wedding_anniversary":
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
+					break;
 			}
 			// add data in result
 			result[tagName] = new Object;
@@ -686,8 +692,8 @@ ItemModule.prototype.createStickyNoteTemplate= function(message, htmlFormat)
 		// add data in result
 		result["body"] = new Object;
 		result["body"].label = _("Body");
-		result["body"].value = dhtml.getXMLValue(message, "body", "");
-	
+		result["body"].value = htmlFormat ? dhtml.getXMLValue(message, "body", "").htmlEntities() : dhtml.getXMLValue(message, "body", "");
+		
 	return result;
 }
 
@@ -738,6 +744,9 @@ ItemModule.prototype.createTaskTemplate= function(message, htmlFormat)
 				case "percent_complete":
 					xmlValue = xmlValue *100 +"%";
 					break;
+				case "body":
+					xmlValue = htmlFormat? xmlValue.htmlEntities() : xmlValue;
+					break;
 			}
 			// add data in result
 			result[tagName] = new Object;
@@ -767,7 +776,7 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 					xmlValue = strftime(_("%a %x %X"), xmlValue);
 					break;
 				case "sent_representing_email_address":
-					xmlValue = nameAndEmailToString(dhtml.getXMLValue(message, "sent_representing_name", ""), xmlValue, MAPI_MAILUSER , htmlFormat);;
+					xmlValue = nameAndEmailToString(dhtml.getXMLValue(message, "sent_representing_name", ""), xmlValue, MAPI_MAILUSER , false);
 					break;
 				case "attachment":
 					xmlValue = this.generateAttachmentStringFromXML(message);
@@ -817,14 +826,6 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 					xmlValue = content;
 					break;
 			}
-			var recipients = this.generateRecipientStringFromXML(message, false, htmlFormat);
-			if (recipients){
-				for(var type in recipients){
-					result[type] = new Object;
-					result[type].label = type;
-					result[type].value = recipients[type];
-				}
-			}
 
 			// add data in result
 			if(xmlValue != "") {
@@ -834,6 +835,17 @@ ItemModule.prototype.createMailTemplate= function(message, htmlFormat)
 			}
 		}
 	}
+
+	var recipients = this.generateRecipientStringFromXML(message, false, false);
+	if (recipients){
+		for(var type in recipients){
+			result[type] = new Object;
+			result[type].label = type;
+			result[type].value = recipients[type];
+		}
+	}
+
+
 	return result;
 }
 
@@ -1398,7 +1410,7 @@ ItemModule.prototype.setInlineAttachmentData = function (attachments)
 			// Only for images files.
 			if (type && type.substring(0, type.indexOf('/')) == "image") {
 				this.inlineattachments[attachments[i]["attach_num"]] = new Object();
-				this.inlineattachments[attachments[i]["attach_num"]]["name"] = attachments[i]["name"];
+				this.inlineattachments[attachments[i]["attach_num"]]["name"] = attachments[i]["name"].htmlEntities();
 				this.inlineattachments[attachments[i]["attach_num"]]["cid"] = attachments[i]["cid"];
 				this.inlineattachments[attachments[i]["attach_num"]]["filetype"] = attachments[i]["filetype"];
 				

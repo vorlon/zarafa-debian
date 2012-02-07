@@ -87,6 +87,11 @@
 #include "charset/utf8string.h"
 #include "charset/convstring.h"
 
+#include "SOAPSock.h"
+#include "mapi_ptr.h"
+#include "WSMessageStreamExporter.h"
+#include "WSMessageStreamImporter.h"
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -644,6 +649,50 @@ exit:
 	return hr;
 }
 
+HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG *lpulStoreType)
+{
+	ECRESULT er = erSuccess;
+	HRESULT hr = hrSuccess;
+	entryId		sEntryId; // Do not free
+	struct getStoreTypeResponse sResponse;
+	LPENTRYID	lpUnWrapStoreID = NULL;
+	ULONG		cbUnWrapStoreID = 0;
+
+	LockSoap();
+
+	if(lpStoreID == NULL || lpulStoreType == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	// Remove the servername
+	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &lpUnWrapStoreID);
+	if(hr != hrSuccess)
+		goto exit;
+
+	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
+	sEntryId.__size = cbUnWrapStoreID;
+	
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__getStoreType(m_ecSessionId, sEntryId, &sResponse))
+			er = ZARAFA_E_SERVER_NOT_RESPONDING;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
+
+	*lpulStoreType = sResponse.ulStoreType;
+
+exit:
+	UnLockSoap();
+
+	if(lpUnWrapStoreID)
+		ECFreeBuffer(lpUnWrapStoreID);
+
+	return hr;
+}
+
 HRESULT WSTransport::HrLogOff()
 {
 	HRESULT hr = hrSuccess;
@@ -1130,34 +1179,95 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrOpenStreamOps(ULONG cbFolderEntryId, LPENTRYID lpFolderEntryId, WSStreamOps **lppStreamOps)
+/**
+ * Export a set of messages as stream.
+ * If this call succeeds, the returned exporter is responsible for flushing all streams from the network and
+ * unlock this WSTransport object when done.
+ *
+ * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
+ * @param[in]	lpChanges	The complete set of changes available.
+ * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
+ * @param[in]	ulChanges	The number of messages to export, starting at ulStart. ulStart and ulCount must not me larger than the amount of available changes.
+ * @param[in]	lpsProps	The set of proptags that will be returned as regular properties outside the stream.
+ * @param[out]	lppsStreamExporter	The streamexporter that must be used to get the individual streams.
+ *
+ * @retval	MAPI_E_INVALID_PARAMETER	lpChanges or lpsProps == NULL
+ * @retval	MAPI_E_NETWORK_ERROR		The actual call to the server failed or no streams are returned
+ */
+HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	HRESULT		hr = hrSuccess;
-	ZarafaCmd	*lpCmd = NULL;
+	typedef mapi_memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
+
+	HRESULT hr = hrSuccess;
+	sourceKeyPairArrayPtr ptrsSourceKeyPairs;
+	WSMessageStreamExporterPtr ptrStreamExporter;
+	propTagArray sPropTags = {0, NULL};
+	exportMessageChangesAsStreamResponse sResponse = {{0}};
+
+	if (lpChanges == NULL || lpsProps == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if ((m_ulServerCapabilities & ZARAFA_CAP_ENHANCED_ICS) == 0) {
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
 
-	hr = CreateSoapTransport(MDB_NO_DIALOG, m_sProfileProps, &lpCmd);
+	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &ptrsSourceKeyPairs);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = WSStreamOps::Create(lpCmd, m_ecSessionId, cbFolderEntryId, lpFolderEntryId, m_ulServerCapabilities, lppStreamOps);
-	if (hr != hrSuccess)
-		goto exit;
+	sPropTags.__size = lpsProps->cValues;
+	sPropTags.__ptr = (unsigned int*)lpsProps->aulPropTag;
 
-	soap_set_omode(lpCmd->soap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);
-	if (m_ulServerCapabilities & ZARAFA_CAP_COMPRESSION) {
-		soap_set_imode(lpCmd->soap, SOAP_ENC_ZLIB);	// also autodetected
-		soap_set_omode(lpCmd->soap, SOAP_ENC_ZLIB);
+	LockSoap();
+
+	// Make sure to get the mime attachments ourselves
+	soap_post_check_mime_attachments(m_lpCmd->soap);
+
+	if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, &sResponse) != SOAP_OK) {
+		UnLockSoap();
+		hr = MAPI_E_NETWORK_ERROR;
+		goto exit;
 	}
 
-exit:
-	if (hr != hrSuccess && lpCmd)
-		DestroySoapTransport(lpCmd);
+	if (sResponse.sMsgStreams.__size > 0 && !soap_check_mime_attachments(m_lpCmd->soap)) {
+		UnLockSoap();
+		hr = MAPI_E_NETWORK_ERROR;
+		goto exit;
+	}
 
+	hr = WSMessageStreamExporter::Create(ulStart, ulChanges, sResponse.sMsgStreams, this, &ptrStreamExporter);
+	if (hr != hrSuccess) {
+		UnLockSoap();
+		goto exit;
+	}
+
+	// From here one, the MessageStreamExporter is responsible for unlocking soap.
+	*lppsStreamExporter = ptrStreamExporter.release();
+
+exit:
+	return hr;
+}
+
+HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter)
+{
+	HRESULT hr = hrSuccess;
+	WSMessageStreamImporterPtr ptrStreamImporter;
+
+	if ((m_ulServerCapabilities & ZARAFA_CAP_ENHANCED_ICS) == 0) {
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &ptrStreamImporter);
+	if (hr != hrSuccess)
+		goto exit;
+
+	*lppStreamImporter = ptrStreamImporter.release();
+
+exit:
 	return hr;
 }
 
@@ -1694,7 +1804,7 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ulFlags, &sResponse))
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC, ulFlags, &sResponse))
 			er = ZARAFA_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1729,8 +1839,56 @@ exit:
 	UnLockSoap();
 
 	return hr;
-	
 }
+
+/**
+ * Resolve a specific store type for a user.
+ *
+ * @param[in]	strUserName		The name of the user for whom to resolve the store. If left
+ *								empty, the store for the current user will be resolved.
+ * @param[in]	ulStoreType		The type of the store to resolve.
+ * @param[out]	lpcbStoreID		The length of the returned entry id.
+ * @param[out]	lppStoreID		The returned store entry id.
+ *
+ * @note	This method should be called on a transport that's already connected to the
+ *			right server as redirection is not supported.
+ */
+HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ulStoreType, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+{
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
+	struct resolveUserStoreResponse sResponse;
+
+	LockSoap();
+
+	// Currently only archive stores are supported.
+	if (ulStoreType != ECSTORE_TYPE_ARCHIVE || lpcbStoreID == NULL || lppStoreID == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), (1 << ulStoreType), 0, &sResponse))
+			er = ZARAFA_E_NETWORK_ERROR;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
+
+	if(lpcbStoreID && lppStoreID) {
+		// Create a client store entry, add the servername
+		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
+		if(hr != hrSuccess)
+			goto exit;
+	}
+
+exit:
+	UnLockSoap();
+
+	return hr;
+}
+
 
 /**
  * Create a new user.
@@ -1976,7 +2134,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
+HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -1999,7 +2157,7 @@ HRESULT WSTransport::HrHookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGu
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, sUserId, sStoreGuid, ulSyncId, &er))
+		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, ulStoreType, sUserId, sStoreGuid, ulSyncId, &er))
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2010,7 +2168,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrUnhookStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId)
+HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -2029,7 +2187,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulS
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__unhookStore(m_ecSessionId, sUserId, ulSyncId, &er))
+		if(SOAP_OK != m_lpCmd->ns__unhookStore(m_ecSessionId, ulStoreType, sUserId, ulSyncId, &er))
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2062,36 +2220,6 @@ HRESULT WSTransport::HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId)
 			er = ZARAFA_E_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	UnLockSoap();
-
-	return hr;
-}
-
-HRESULT WSTransport::HrGetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpulStoreId)
-{
-	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
-	struct getStoreByUserResponse sResponse;
-	entryId sUserId = {0};
-
-	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
-	if (hr != hrSuccess)
-		goto exit;
-
-	START_SOAP_CALL
-	{
-    	if(m_lpCmd->ns__getStoreByUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
-			er = ZARAFA_E_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-	}
-	END_SOAP_CALL
-
-	*lpulStoreId = sResponse.ulStoreId;
 
 exit:
 	UnLockSoap();
@@ -2495,6 +2623,42 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 	END_SOAP_CALL
 
 exit:	
+	UnLockSoap();
+
+	return hr;
+}
+
+HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS)
+{
+	ECRESULT er = erSuccess;
+	HRESULT hr = hrSuccess;
+	entryId sUserId = {0};
+	struct userClientUpdateStatusResponse sResponse;
+
+    LockSoap();
+
+    if (cbUserId < CbNewABEID("") || lpUserId == NULL) {
+        hr = MAPI_E_INVALID_PARAMETER;
+        goto exit;
+    }
+
+	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
+    if (hr != hrSuccess)
+        goto exit;
+
+	START_SOAP_CALL
+	{
+		if(SOAP_OK != m_lpCmd->ns__getUserClientUpdateStatus(m_ecSessionId, sUserId, &sResponse) )
+			er = ZARAFA_E_NETWORK_ERROR;
+	}
+	END_SOAP_CALL
+
+
+	hr = CopyUserClientUpdateStatusFromSOAP(sResponse, ulFlags, lppECUCUS);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
 	UnLockSoap();
 
 	return hr;

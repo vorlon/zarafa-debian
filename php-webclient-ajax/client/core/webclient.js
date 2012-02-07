@@ -93,6 +93,12 @@ WebClient.prototype.init = function(base_url, modulePrefix, availableModules, se
 	this.pluginManager.init();
 
 	startKeepAlive();
+
+    /*
+     * Trigger the hook so it is possible to execute code directly after the webclient
+     * has finished initializing.
+     */
+    webclient.pluginManager.triggerHook('client.core.webclient.init.after', {});
 }
 
 WebClient.prototype.setUserInfo = function(username, fullname, entryid, emailaddress)

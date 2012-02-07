@@ -281,7 +281,7 @@ HRESULT StartSpoolerFork(const wchar_t *szUsername, char *szSMTP, int ulSMTPPort
 		goto exit;
 	}
 	if (pid == 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
 			  szCommand, basename(szCommand) /* argv[0] */,
 			  "--send-message-entryid", bin2hex(cbMsgEntryId, lpMsgEntryId).c_str(),
 			  "--send-username-enc", encodestring(szUsername).c_str(),

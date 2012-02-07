@@ -618,6 +618,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 	unsigned int ulLastPos;
 	std::string	strData;
 	unsigned int type = atoi(lpRow[FIELD_NR_TYPE]);
+	unsigned int ulPropTag;
 	locale_t loc = createlocale(LC_NUMERIC, "C");
 
 	if((type & MVI_FLAG) == MVI_FLAG) {
@@ -625,7 +626,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		type &= ~MVI_FLAG;
 	}
 
-	lpPropVal->ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
+	ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
 
 	switch(type) {
 	case PT_I2:
@@ -713,7 +714,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		lpPropVal->Value.lpszA = s_alloc<char>(soap, lpLen[FIELD_NR_STRING]+1);
 		strcpy(lpPropVal->Value.lpszA, lpRow[FIELD_NR_STRING]);
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_UNICODE); // return unicode strings to client, because database contains UTF-8
+		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE); // return unicode strings to client, because database contains UTF-8
 
 		break;
 	case PT_CLSID:
@@ -861,7 +862,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			lpPropVal->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strData.size() + 1);
 			memcpy(lpPropVal->Value.mvszA.__ptr[i], strData.c_str(), sizeof(char) * (strData.size() + 1));
 		}
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_MV_UNICODE); // return unicode strings to client, because database contains UTF-8
+		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE); // return unicode strings to client, because database contains UTF-8
 		break;
 	case PT_MV_I8:
 		if(lpRow[FIELD_NR_LONGINT] == NULL) {
@@ -881,7 +882,10 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		break;
 	default:
 		er = ZARAFA_E_INVALID_TYPE;
+		goto exit;
 	}
+
+	lpPropVal->ulPropTag = ulPropTag;
 
 exit:
 	freelocale(loc);

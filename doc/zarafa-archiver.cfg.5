@@ -176,6 +176,22 @@ Default:
 \fIstore\fR
 .RE
 .PP
+\fBenable_auto_attach\fR
+.RS 4
+Specify whether on each archive run an auto\-attach run is performed in order to match the attached archives to the requested state as specified in LDAP or ADS\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBauto_attach_writable\fR
+.RS 4
+Specify whether an auto attached archive will be granted write permissions for the user it\'s attached to\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
 \fBlog_method\fR
 .RS 4
 The method which should be used for logging\&. Valid values are:
@@ -220,6 +236,14 @@ The level of output for logging in the range from 0 to 5\&. 0 means no logging, 
 .sp
 Default:
 \fI2\fR
+.RE
+.PP
+\fBpid_file\fR
+.RS 4
+The location of the pid file used to guarantee only one instance of zarafa\-archiver is running in non\-administrative mode\&.
+.sp
+Default:
+\fI/var/run/zarafa\-archiver\&.pid \fR
 .RE
 .SH "FILES"
 .PP

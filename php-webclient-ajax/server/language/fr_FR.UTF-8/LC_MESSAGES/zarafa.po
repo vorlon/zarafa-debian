@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-02 17:23+0200\n"
-"PO-Revision-Date: 2011-08-10 17:46+0200\n"
+"POT-Creation-Date: 2011-10-14 00:03+0200\n"
+"PO-Revision-Date: 2011-10-13 09:16+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -20,10 +20,10 @@ msgid "Can't save this message as a file"
 msgstr "Impossible d'enregistrer ce message sous un fichier"
 
 #: php-webclient-ajax/client/download_message.php:81
-#: php-webclient-ajax/server/core/class.operations.php:3603
-#: php-webclient-ajax/server/core/class.operations.php:3619
+#: php-webclient-ajax/server/core/class.operations.php:3571
+#: php-webclient-ajax/server/core/class.operations.php:3587
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:543
-#: php-webclient-ajax/client/modules/itemmodule.js:1602
+#: php-webclient-ajax/client/modules/itemmodule.js:1605
 msgid "Untitled"
 msgstr "Sans nom"
 
@@ -167,7 +167,7 @@ msgstr "Enregistrer"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.php:138
 #: php-webclient-ajax/client/modules/maillistmodule.js:52
 #: php-webclient-ajax/client/modules/distlistmodule.js:28
-#: php-webclient-ajax/client/modules/freebusymodule.js:68
+#: php-webclient-ajax/client/modules/freebusymodule.js:86
 #: php-webclient-ajax/client/modules/multiusercalendarmodule.js:83
 #: php-webclient-ajax/client/modules/tasklistmodule.js:34
 #: php-webclient-ajax/client/modules/contactlistmodule.js:42
@@ -201,8 +201,8 @@ msgstr "Détails"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:202
 #: php-webclient-ajax/client/modules/printmessageitem.js:64
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:57
-#: php-webclient-ajax/client/modules/itemmodule.js:1563
-#: php-webclient-ajax/client/modules/itemmodule.js:1580
+#: php-webclient-ajax/client/modules/itemmodule.js:1565
+#: php-webclient-ajax/client/modules/itemmodule.js:1582
 msgid "To"
 msgstr "À"
 
@@ -212,7 +212,7 @@ msgstr "À"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:121
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:490
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:24
-#: php-webclient-ajax/server/core/class.operations.php:2770
+#: php-webclient-ajax/server/core/class.operations.php:2738
 #: php-webclient-ajax/server/core/class.tablecolumns.php:19
 #: php-webclient-ajax/server/core/class.tablecolumns.php:154
 #: php-webclient-ajax/server/core/class.tablecolumns.php:170
@@ -225,7 +225,7 @@ msgstr "À"
 #: php-webclient-ajax/client/core/properties.js:23
 #: php-webclient-ajax/client/core/properties.js:95
 #: php-webclient-ajax/client/layout/js/restoreitems.js:130
-#: php-webclient-ajax/client/layout/js/rule.js:230
+#: php-webclient-ajax/client/layout/js/rule.js:257
 msgid "Subject"
 msgstr "Sujet"
 
@@ -248,15 +248,15 @@ msgstr "Date d'échéance"
 #: php-webclient-ajax/client/modules/taskitemmodule.js:178
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:347
 #: php-webclient-ajax/client/modules/itemmodule.js:581
-#: php-webclient-ajax/client/views/table.view.js:1117
+#: php-webclient-ajax/client/views/table.view.js:1088
 #: php-webclient-ajax/client/views/today.task.view.js:213
 #: php-webclient-ajax/client/layout/js/delegatespermissions.js:20
-#: php-webclient-ajax/client/layout/js/dialog.js:678
-#: php-webclient-ajax/client/layout/js/dialog.js:699
-#: php-webclient-ajax/client/layout/js/dialog.js:716
-#: php-webclient-ajax/client/layout/js/dialog.js:717
-#: php-webclient-ajax/client/layout/js/dialog.js:968
+#: php-webclient-ajax/client/layout/js/dialog.js:682
+#: php-webclient-ajax/client/layout/js/dialog.js:703
+#: php-webclient-ajax/client/layout/js/dialog.js:720
+#: php-webclient-ajax/client/layout/js/dialog.js:721
 #: php-webclient-ajax/client/layout/js/dialog.js:972
+#: php-webclient-ajax/client/layout/js/dialog.js:976
 #: php-webclient-ajax/client/layout/js/advancedfind.js:319
 #: php-webclient-ajax/client/layout/js/attachitem.js:356
 #: php-webclient-ajax/client/layout/js/task.js:127
@@ -327,7 +327,7 @@ msgstr "Date de début"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:482
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:592
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:598
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:45
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:73
 #: php-webclient-ajax/server/core/class.tablecolumns.php:167
 #: php-webclient-ajax/server/core/class.tablecolumns.php:189
 #: php-webclient-ajax/server/core/class.tablecolumns.php:218
@@ -339,25 +339,25 @@ msgstr "Priorité"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:337
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:598
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:78
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:48
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:78
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:28
 #: php-webclient-ajax/client/modules/listmodule.js:153
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:366
 #: php-webclient-ajax/client/modules/itemmodule.js:509
-#: php-webclient-ajax/client/views/table.view.js:965
+#: php-webclient-ajax/client/views/table.view.js:939
 msgid "Low"
 msgstr "Faible"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:338
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:79
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:90
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:49
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:79
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:29
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:40
 #: php-webclient-ajax/client/modules/listmodule.js:154
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:367
-#: php-webclient-ajax/client/views/table.view.js:975
-#: php-webclient-ajax/client/views/table.view.js:1171
+#: php-webclient-ajax/client/views/table.view.js:949
+#: php-webclient-ajax/client/views/table.view.js:1142
 #: php-webclient-ajax/client/layout/js/advancedfind.js:300
 #: php-webclient-ajax/client/layout/js/attachitem.js:337
 msgid "Normal"
@@ -366,12 +366,12 @@ msgstr "Normale"
 #: php-webclient-ajax/client/layout/dialogs/standard/task.php:339
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:592
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:80
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:50
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:80
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:30
 #: php-webclient-ajax/client/modules/listmodule.js:155
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:368
 #: php-webclient-ajax/client/modules/itemmodule.js:512
-#: php-webclient-ajax/client/views/table.view.js:981
+#: php-webclient-ajax/client/views/table.view.js:955
 msgid "High"
 msgstr "Haute"
 
@@ -451,7 +451,7 @@ msgstr "Catégories"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:453
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:92
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:42
-#: php-webclient-ajax/client/views/table.view.js:1179
+#: php-webclient-ajax/client/views/table.view.js:1150
 #: php-webclient-ajax/client/layout/js/advancedfind.js:306
 #: php-webclient-ajax/client/layout/js/attachitem.js:343
 msgid "Private"
@@ -553,7 +553,7 @@ msgstr "Vérifier les noms"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:357
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:561
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:562
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:40
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:44
 #: php-webclient-ajax/client/core/properties.js:28
 msgid "Recurrence"
 msgstr "Périodicité"
@@ -705,8 +705,8 @@ msgstr "Supprimer les éléments"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:24
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:77
 #: php-webclient-ajax/client/widgets/menu.js:11
-#: php-webclient-ajax/client/layout/js/appointment.js:747
-#: php-webclient-ajax/client/layout/js/appointment.js:748
+#: php-webclient-ajax/client/layout/js/appointment.js:745
+#: php-webclient-ajax/client/layout/js/appointment.js:746
 msgid "Appointment"
 msgstr "Rendez-vous"
 
@@ -722,7 +722,7 @@ msgstr "Suivi"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:90
 #: php-webclient-ajax/client/modules/freebusymodule.js:19
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:660
-#: php-webclient-ajax/client/layout/js/appointment.js:1524
+#: php-webclient-ajax/client/layout/js/appointment.js:1527
 #: php-webclient-ajax/client/layout/js/readmail.js:31
 msgid "Start time"
 msgstr "Commence à"
@@ -730,7 +730,7 @@ msgstr "Commence à"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:91
 #: php-webclient-ajax/client/modules/freebusymodule.js:18
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:661
-#: php-webclient-ajax/client/layout/js/appointment.js:1525
+#: php-webclient-ajax/client/layout/js/appointment.js:1528
 #: php-webclient-ajax/client/layout/js/readmail.js:32
 msgid "End time"
 msgstr "Termine à"
@@ -745,7 +745,7 @@ msgid "Label"
 msgstr "Étiquette"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:318
-#: php-webclient-ajax/client/views/table.view.js:1121
+#: php-webclient-ajax/client/views/table.view.js:1092
 #: php-webclient-ajax/client/layout/js/advancedfind.js:322
 #: php-webclient-ajax/client/layout/js/attachitem.js:359
 msgid "Important"
@@ -760,7 +760,7 @@ msgstr "Important"
 #: php-webclient-ajax/client/modules/contactitemmodule.js:38
 #: php-webclient-ajax/client/modules/contactitemmodule.js:44
 #: php-webclient-ajax/client/core/properties.js:53
-#: php-webclient-ajax/client/views/table.view.js:1125
+#: php-webclient-ajax/client/views/table.view.js:1096
 #: php-webclient-ajax/client/views/addresscards.view.js:317
 #: php-webclient-ajax/client/layout/js/advancedfind.js:325
 #: php-webclient-ajax/client/layout/js/attachitem.js:362
@@ -771,8 +771,8 @@ msgstr "Professionnel"
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:91
 #: php-webclient-ajax/client/layout/dialogs/modal/categories.php:64
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:41
-#: php-webclient-ajax/client/views/table.view.js:1129
-#: php-webclient-ajax/client/views/table.view.js:1175
+#: php-webclient-ajax/client/views/table.view.js:1100
+#: php-webclient-ajax/client/views/table.view.js:1146
 #: php-webclient-ajax/client/layout/js/advancedfind.js:303
 #: php-webclient-ajax/client/layout/js/advancedfind.js:328
 #: php-webclient-ajax/client/layout/js/attachitem.js:340
@@ -781,28 +781,28 @@ msgid "Personal"
 msgstr "Personnel"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:321
-#: php-webclient-ajax/client/views/table.view.js:1132
+#: php-webclient-ajax/client/views/table.view.js:1103
 #: php-webclient-ajax/client/layout/js/advancedfind.js:331
 #: php-webclient-ajax/client/layout/js/attachitem.js:368
 msgid "Vacation"
 msgstr "Congé"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:322
-#: php-webclient-ajax/client/views/table.view.js:1136
+#: php-webclient-ajax/client/views/table.view.js:1107
 #: php-webclient-ajax/client/layout/js/advancedfind.js:334
 #: php-webclient-ajax/client/layout/js/attachitem.js:371
 msgid "Must Attend"
 msgstr "Doit être présent"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:323
-#: php-webclient-ajax/client/views/table.view.js:1140
+#: php-webclient-ajax/client/views/table.view.js:1111
 #: php-webclient-ajax/client/layout/js/advancedfind.js:337
 #: php-webclient-ajax/client/layout/js/attachitem.js:374
 msgid "Travel Required"
 msgstr "Déplacement requis"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:324
-#: php-webclient-ajax/client/views/table.view.js:1144
+#: php-webclient-ajax/client/views/table.view.js:1115
 #: php-webclient-ajax/client/layout/js/advancedfind.js:340
 #: php-webclient-ajax/client/layout/js/attachitem.js:377
 msgid "Needs Preparation"
@@ -812,7 +812,7 @@ msgstr "Demande une préparation"
 #: php-webclient-ajax/client/layout/dialogs/standard/contact.php:537
 #: php-webclient-ajax/server/core/class.tablecolumns.php:82
 #: php-webclient-ajax/client/core/properties.js:80
-#: php-webclient-ajax/client/views/table.view.js:1148
+#: php-webclient-ajax/client/views/table.view.js:1119
 #: php-webclient-ajax/client/layout/js/advancedfind.js:343
 #: php-webclient-ajax/client/layout/js/attachitem.js:380
 msgid "Birthday"
@@ -820,20 +820,21 @@ msgstr "Anniversaire"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:326
 #: php-webclient-ajax/client/core/properties.js:81
-#: php-webclient-ajax/client/views/table.view.js:1152
+#: php-webclient-ajax/client/views/table.view.js:1123
 #: php-webclient-ajax/client/layout/js/advancedfind.js:346
 #: php-webclient-ajax/client/layout/js/attachitem.js:383
 msgid "Anniversary"
 msgstr "Anniversaire"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:327
-#: php-webclient-ajax/client/views/table.view.js:1156
+#: php-webclient-ajax/client/views/table.view.js:1127
 #: php-webclient-ajax/client/layout/js/advancedfind.js:349
 #: php-webclient-ajax/client/layout/js/attachitem.js:386
 msgid "Phone Call"
 msgstr "Appel téléphonique"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:342
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:36
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:124
 msgid "All Day Event"
 msgstr "Journée entière"
@@ -899,7 +900,7 @@ msgstr "heures"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:74
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:76
 #: php-webclient-ajax/client/core/utils.js:1668
-#: php-webclient-ajax/client/layout/js/appointment.js:1027
+#: php-webclient-ajax/client/layout/js/appointment.js:1030
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
 msgid "day"
@@ -919,7 +920,7 @@ msgstr "jour"
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:63
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:64
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:77
-#: php-webclient-ajax/client/layout/js/appointment.js:1031
+#: php-webclient-ajax/client/layout/js/appointment.js:1034
 #: php-webclient-ajax/client/layout/js/task.js:776
 #: php-webclient-ajax/client/layout/js/task.js:782
 msgid "days"
@@ -927,14 +928,14 @@ msgstr "jours"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
-#: php-webclient-ajax/client/layout/js/appointment.js:1036
+#: php-webclient-ajax/client/layout/js/appointment.js:1039
 #: php-webclient-ajax/client/layout/js/task.js:786
 msgid "week"
 msgstr "semaine"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:392
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:66
-#: php-webclient-ajax/client/layout/js/appointment.js:1040
+#: php-webclient-ajax/client/layout/js/appointment.js:1043
 #: php-webclient-ajax/client/layout/js/task.js:786
 msgid "weeks"
 msgstr "semaines"
@@ -942,7 +943,7 @@ msgstr "semaines"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:393
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:222
 #: php-webclient-ajax/client/core/utils.js:1627
-#: php-webclient-ajax/client/layout/js/appointment.js:1045
+#: php-webclient-ajax/client/layout/js/appointment.js:1048
 msgid "month"
 msgstr "mois"
 
@@ -953,7 +954,7 @@ msgstr "État de disponibilité"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:401
 #: php-webclient-ajax/client/modules/itemmodule.js:490
-#: php-webclient-ajax/client/views/table.view.js:1094
+#: php-webclient-ajax/client/views/table.view.js:1068
 #: php-webclient-ajax/client/layout/js/advancedfind.js:281
 #: php-webclient-ajax/client/layout/js/attachitem.js:318
 msgid "Free"
@@ -964,25 +965,25 @@ msgstr "Libre"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:484
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:218
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:219
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:52
-#: php-webclient-ajax/server/core/class.operations.php:1007
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:56
+#: php-webclient-ajax/server/core/class.operations.php:979
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:131
 #: php-webclient-ajax/client/modules/itemmodule.js:493
 #: php-webclient-ajax/client/modules/itemmodule.js:534
-#: php-webclient-ajax/client/views/table.view.js:1098
+#: php-webclient-ajax/client/views/table.view.js:1071
 #: php-webclient-ajax/client/layout/js/advancedfind.js:259
 #: php-webclient-ajax/client/layout/js/advancedfind.js:284
-#: php-webclient-ajax/client/layout/js/appointment.js:1280
-#: php-webclient-ajax/client/layout/js/appointment.js:1353
+#: php-webclient-ajax/client/layout/js/appointment.js:1283
+#: php-webclient-ajax/client/layout/js/appointment.js:1356
 #: php-webclient-ajax/client/layout/js/attachitem.js:296
 #: php-webclient-ajax/client/layout/js/attachitem.js:321
 msgid "Tentative"
 msgstr "Provisoire"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:403
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:50
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:54
 #: php-webclient-ajax/client/modules/itemmodule.js:496
-#: php-webclient-ajax/client/views/table.view.js:1102
+#: php-webclient-ajax/client/views/table.view.js:1074
 #: php-webclient-ajax/client/layout/js/advancedfind.js:287
 #: php-webclient-ajax/client/layout/js/attachitem.js:324
 msgid "Busy"
@@ -991,7 +992,7 @@ msgstr "Occupé"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:404
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:4
 #: php-webclient-ajax/client/modules/itemmodule.js:499
-#: php-webclient-ajax/client/views/table.view.js:1106
+#: php-webclient-ajax/client/views/table.view.js:1077
 #: php-webclient-ajax/client/layout/js/advancedfind.js:290
 #: php-webclient-ajax/client/layout/js/attachitem.js:327
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.js:14
@@ -1009,7 +1010,7 @@ msgstr "Les réponses reçues au sujet de cette réunion sont les suivantes :"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:134
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:656
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:657
-#: php-webclient-ajax/client/layout/js/appointment.js:1521
+#: php-webclient-ajax/client/layout/js/appointment.js:1524
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
 msgid "Propose New Time"
@@ -1070,7 +1071,7 @@ msgstr "Membres"
 #: php-webclient-ajax/client/modules/distlistmodule.js:97
 #: php-webclient-ajax/client/modules/contactlistmodule.js:49
 #: php-webclient-ajax/client/layout/js/signatures.js:18
-#: php-webclient-ajax/client/layout/js/appointment.js:1145
+#: php-webclient-ajax/client/layout/js/appointment.js:1148
 #: php-webclient-ajax/client/layout/js/restoreitems.js:138
 #: php-webclient-ajax/client/layout/js/delegates.js:8
 msgid "Name"
@@ -1129,12 +1130,12 @@ msgstr "Lire le courrier"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2481
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2484
 #: php-webclient-ajax/client/layout/js/restoreitems.js:129
-#: php-webclient-ajax/client/layout/js/rule.js:228
+#: php-webclient-ajax/client/layout/js/rule.js:255
 msgid "From"
 msgstr "De"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:86
-#: php-webclient-ajax/server/core/class.operations.php:2771
+#: php-webclient-ajax/server/core/class.operations.php:2739
 #: php-webclient-ajax/server/core/class.tablecolumns.php:177
 #: php-webclient-ajax/server/core/class.tablecolumns.php:203
 #: php-webclient-ajax/client/modules/printmessageitem.js:63
@@ -1146,8 +1147,8 @@ msgstr "Envoyé"
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:466
 #: php-webclient-ajax/client/modules/printmessageitem.js:65
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:58
-#: php-webclient-ajax/client/modules/itemmodule.js:1566
-#: php-webclient-ajax/client/modules/itemmodule.js:1583
+#: php-webclient-ajax/client/modules/itemmodule.js:1568
+#: php-webclient-ajax/client/modules/itemmodule.js:1585
 msgid "CC"
 msgstr "Cc"
 
@@ -1185,7 +1186,7 @@ msgstr "Date de fin"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:160
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:72
-#: php-webclient-ajax/client/modules/itemmodule.js:1208
+#: php-webclient-ajax/client/modules/itemmodule.js:1210
 msgid "When"
 msgstr "Quand"
 
@@ -1646,14 +1647,14 @@ msgid "Zoom"
 msgstr "Zoom"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:15
-#: php-webclient-ajax/client/modules/freebusymodule.js:378
+#: php-webclient-ajax/client/modules/freebusymodule.js:396
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:96
 msgid "All Attendees"
 msgstr "Tous les participants"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:17
-#: php-webclient-ajax/client/modules/freebusymodule.js:949
-#: php-webclient-ajax/client/modules/freebusymodule.js:959
+#: php-webclient-ajax/client/modules/freebusymodule.js:1001
+#: php-webclient-ajax/client/modules/freebusymodule.js:1011
 msgid "Add a name"
 msgstr "Ajouter un nom"
 
@@ -1661,16 +1662,16 @@ msgstr "Ajouter un nom"
 msgid "AutoPick"
 msgstr "Choix automatique"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:54
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:58
 msgid "Out of office"
 msgstr "Absence du bureau"
 
-#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:56
+#: php-webclient-ajax/client/layout/dialogs/standard/freebusy.php:60
 msgid "No Information"
 msgstr "Pas d'information"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:4
-#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:177
+#: php-webclient-ajax/server/modules/class.reminderlistmodule.php:179
 msgid "Reminders"
 msgstr "Rappels"
 
@@ -1810,7 +1811,7 @@ msgstr "Sensibilité"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/messageoptions.php:93
 #: php-webclient-ajax/client/layout/dialogs/modal/mailoptions.php:43
-#: php-webclient-ajax/client/views/table.view.js:1183
+#: php-webclient-ajax/client/views/table.view.js:1154
 #: php-webclient-ajax/client/layout/js/advancedfind.js:309
 #: php-webclient-ajax/client/layout/js/attachitem.js:346
 msgid "Confidential"
@@ -1973,7 +1974,7 @@ msgstr "Signature pour messages nouveaux"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/signatures.php:133
 msgid "Signature for replies and forwards"
-msgstr "Signature pour réponses et transferts"
+msgstr "Signature pour les réponses et transferts"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:6
 msgid "Delegate Permissions"
@@ -2054,67 +2055,71 @@ msgstr "Ajouter/Modifier une règle"
 msgid "Rule"
 msgstr "Règle"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:37
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:39
 msgid "Rule name"
 msgstr "Nom de la règle"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:41
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:49
 msgid "With the following properties"
 msgstr "Avec les propriétés suivantes"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:43
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:53
 msgid "From field contains"
 msgstr "Le champ De contient"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:44
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:64
 msgid "Subject contains"
 msgstr "Le sujet contient"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:56
-#: php-webclient-ajax/client/layout/js/rule.js:240
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:88
+#: php-webclient-ajax/client/layout/js/rule.js:267
 msgid "Sent to"
 msgstr "Envoyé à"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:58
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:92
 msgid "Contact or Distribution List"
 msgstr "Contact ou liste de diffusion"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:59
-#: php-webclient-ajax/client/layout/js/rule.js:242
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:103
+#: php-webclient-ajax/client/layout/js/rule.js:269
 msgid "Sent only to me"
 msgstr "Envoyé uniquement à moi-même"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:63
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:113
 msgid "Perform the following action"
 msgstr "Effectuer l'action suivante"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:65
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:118
 msgid "Move to"
 msgstr "Déplacer vers"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:65
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:66
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:120
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:130
 #: php-webclient-ajax/server/modules/class.hierarchymodule.php:139
 msgid "folder"
 msgstr "dossier"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:66
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:128
 msgid "Copy to"
 msgstr "Copier vers"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:67
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:138
 msgid "Delete the message"
 msgstr "Supprimer le message"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:68
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:144
 msgid "Redirect to"
-msgstr "Rediriger vers"
+msgstr "Réexpédier à"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:69
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:156
 msgid "Forward to"
-msgstr "Transférer vers"
+msgstr "Transférer à"
 
-#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:70
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
+msgid "Forward as Attachment to"
+msgstr "Transférer comme pièce jointe à"
+
+#: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
 msgstr "Interrompre l'application des règles"
 
@@ -3445,8 +3450,8 @@ msgstr "L'utilisateur n'a pas pu être défini"
 msgid "Multi-user calendar is not available with your license"
 msgstr "L'agenda multi-utilisateur n'est pas disponible sous votre licence"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:155
-#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:230
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:158
+#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:228
 msgid ""
 "Cannot set a reminder to appear before the previous occurence. Reset "
 "reminder to save the change"
@@ -3454,52 +3459,60 @@ msgstr ""
 "Impossible de programmer le déclenchement d'un rappel avant la prochaine "
 "occurrence. Réinitialiser le rappel pour enregistrer la modification"
 
-#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:160
+#: php-webclient-ajax/server/modules/class.appointmentitemmodule.php:163
 msgid "Two occurrences cannot occur on the same day"
 msgstr "Deux occurrences ne peuvent avoir lieu le même jour"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:140
-#: php-webclient-ajax/server/modules/class.itemmodule.php:71
+#: php-webclient-ajax/server/modules/class.listmodule.php:135
+#: php-webclient-ajax/server/modules/class.itemmodule.php:72
 msgid "You have insufficient privileges to save items in this folder"
 msgstr ""
 "Vous ne disposez pas des privilèges vous permettant d'effectuer des "
 "enregistrements dans ce dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:206
-#: php-webclient-ajax/server/modules/class.listmodule.php:336
-#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:161
-#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:96
+# 92%
+#: php-webclient-ajax/server/modules/class.listmodule.php:165
+#: php-webclient-ajax/server/modules/class.itemmodule.php:162
+msgid "You have insufficient privileges to delete items in this folder"
+msgstr ""
+"Vous ne disposez pas des privilèges vous permettant de supprimer des "
+"éléments dans ce dossier"
+
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
+#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
+#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "In Folder"
 msgstr "Dans le dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:206
-#: php-webclient-ajax/server/modules/class.listmodule.php:336
-#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:161
-#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:96
+#: php-webclient-ajax/server/modules/class.listmodule.php:219
+#: php-webclient-ajax/server/modules/class.listmodule.php:349
+#: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:160
+#: php-webclient-ajax/server/modules/class.attachitemlistmodule.php:95
 msgid "Sort Folder"
 msgstr "Trier le dossier"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:278
-#: php-webclient-ajax/server/modules/class.listmodule.php:289
-#: php-webclient-ajax/server/modules/class.listmodule.php:317
+#: php-webclient-ajax/server/modules/class.listmodule.php:291
+#: php-webclient-ajax/server/modules/class.listmodule.php:302
+#: php-webclient-ajax/server/modules/class.listmodule.php:330
 #: php-webclient-ajax/client/modules/maillistmodule.js:320
 #: php-webclient-ajax/client/modules/contactlistmodule.js:404
 msgid "Error in search, please try again"
 msgstr "Erreur de recherche, veuillez effectuer une nouvelle tentative"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:413
+#: php-webclient-ajax/server/modules/class.listmodule.php:426
 msgid "Error in search"
 msgstr "Erreur de recherche"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1082
+#: php-webclient-ajax/server/modules/class.listmodule.php:1095
 msgid "Private Appointment"
 msgstr "Rendez-vous personnel"
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:141
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:140
 msgid "Could not handle this type of object."
 msgstr "Impossible de traiter ce type d'objet."
 
-#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:149
+#: php-webclient-ajax/server/modules/class.addressbookitemmodule.php:148
 msgid "Could not open this object."
 msgstr "Impossible d'ouvrir cet objet."
 
@@ -3540,12 +3553,12 @@ msgstr "Utilisateur/groupe inconnu"
 msgid "unknown"
 msgstr "inconnu"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:221
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:223
 #, php-format
 msgid "%s's Birthday"
 msgstr "Anniversaire de %s"
 
-#: php-webclient-ajax/server/modules/class.contactitemmodule.php:245
+#: php-webclient-ajax/server/modules/class.contactitemmodule.php:247
 #, php-format
 msgid "%s's Anniversary"
 msgstr "Anniversaire de %s"
@@ -3558,7 +3571,7 @@ msgstr "Impossible d'accéder aux données du délégué."
 msgid "Unable to set Delegates permissions."
 msgstr "Impossible de définir les permissions du délégué."
 
-#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:210
+#: php-webclient-ajax/server/modules/class.appointmentlistmodule.php:208
 msgid ""
 "Unable to reschedule occurrence: either the new occurrence skips over an "
 "existing occurrence, or an occurrence is already present on this day."
@@ -3575,12 +3588,12 @@ msgstr ""
 "L'extension JSON pour PHP est requise afin de pouvoir utiliser cette "
 "fonctionnalité. Veuillez informer votre administrateur système."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:38
+#: php-webclient-ajax/server/modules/class.itemmodule.php:39
 msgid "The message store has exceeded its hard quota limit."
 msgstr "Cette boîte de message a dépassé sa limite stricte de quota."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:39
-#: php-webclient-ajax/server/modules/class.itemmodule.php:42
+#: php-webclient-ajax/server/modules/class.itemmodule.php:40
+#: php-webclient-ajax/server/modules/class.itemmodule.php:43
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
@@ -3589,26 +3602,26 @@ msgstr ""
 "sélectionner certains éléments dont vous n'avez plus besoin, puis les "
 "supprimer de manière définitive (SHIFT + DEL)."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:41
+#: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
 msgstr "Cette boîte de message a dépassé sa limite modérée de quota."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:182
-#: php-webclient-ajax/server/core/class.operations.php:2573
+#: php-webclient-ajax/server/modules/class.itemmodule.php:200
+#: php-webclient-ajax/server/core/class.operations.php:2541
 msgid "Task Accepted:"
 msgstr "Tâche acceptée :"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:184
-#: php-webclient-ajax/server/core/class.operations.php:2576
-#: php-webclient-ajax/server/core/class.operations.php:2632
+#: php-webclient-ajax/server/modules/class.itemmodule.php:202
+#: php-webclient-ajax/server/core/class.operations.php:2544
+#: php-webclient-ajax/server/core/class.operations.php:2600
 msgid "Task Declined:"
 msgstr "Tâche déclinée :"
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:462
+#: php-webclient-ajax/server/modules/class.itemmodule.php:480
 msgid "Conflicts with another appointment on your Calendar."
 msgstr "Conflits avec un autre rendez-vous sur votre agenda."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:464
+#: php-webclient-ajax/server/modules/class.itemmodule.php:482
 #, php-format
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
@@ -3617,7 +3630,7 @@ msgstr ""
 "%s occurrences de ce rendez-vous périodique entrent en conflit avec d'autres "
 "rendez-vous sur votre agenda."
 
-#: php-webclient-ajax/server/modules/class.itemmodule.php:465
+#: php-webclient-ajax/server/modules/class.itemmodule.php:483
 #, php-format
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -3626,95 +3639,95 @@ msgstr ""
 "%s occurrence de ce rendez-vous périodique entre en conflit avec un autre "
 "rendez-vous sur votre agenda."
 
-#: php-webclient-ajax/server/core/class.operations.php:971
-#: php-webclient-ajax/server/core/class.operations.php:1004
+#: php-webclient-ajax/server/core/class.operations.php:943
+#: php-webclient-ajax/server/core/class.operations.php:976
 msgid "Organizor"
 msgstr "Organisateur"
 
-#: php-webclient-ajax/server/core/class.operations.php:975
-#: php-webclient-ajax/client/layout/js/appointment.js:1264
-#: php-webclient-ajax/client/layout/js/appointment.js:1346
+#: php-webclient-ajax/server/core/class.operations.php:947
+#: php-webclient-ajax/client/layout/js/appointment.js:1267
+#: php-webclient-ajax/client/layout/js/appointment.js:1349
 msgid "Required"
 msgstr "Participation obligatoire"
 
-#: php-webclient-ajax/server/core/class.operations.php:979
-#: php-webclient-ajax/client/layout/js/appointment.js:1267
-#: php-webclient-ajax/client/layout/js/appointment.js:1347
+#: php-webclient-ajax/server/core/class.operations.php:951
+#: php-webclient-ajax/client/layout/js/appointment.js:1270
+#: php-webclient-ajax/client/layout/js/appointment.js:1350
 msgid "Optional"
 msgstr "Facultatif"
 
-#: php-webclient-ajax/server/core/class.operations.php:983
+#: php-webclient-ajax/server/core/class.operations.php:955
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
-#: php-webclient-ajax/client/layout/js/appointment.js:1270
-#: php-webclient-ajax/client/layout/js/appointment.js:1348
+#: php-webclient-ajax/client/layout/js/appointment.js:1273
+#: php-webclient-ajax/client/layout/js/appointment.js:1351
 msgid "Resource"
 msgstr "Ressource"
 
-#: php-webclient-ajax/server/core/class.operations.php:1001
+#: php-webclient-ajax/server/core/class.operations.php:973
 #: php-webclient-ajax/client/modules/itemmodule.js:528
-#: php-webclient-ajax/client/views/table.view.js:1058
+#: php-webclient-ajax/client/views/table.view.js:1032
 #: php-webclient-ajax/client/layout/js/advancedfind.js:253
-#: php-webclient-ajax/client/layout/js/appointment.js:1186
-#: php-webclient-ajax/client/layout/js/appointment.js:1293
-#: php-webclient-ajax/client/layout/js/appointment.js:1351
+#: php-webclient-ajax/client/layout/js/appointment.js:1189
+#: php-webclient-ajax/client/layout/js/appointment.js:1296
+#: php-webclient-ajax/client/layout/js/appointment.js:1354
 #: php-webclient-ajax/client/layout/js/attachitem.js:290
 msgid "No Response"
 msgstr "Sans réponse"
 
-#: php-webclient-ajax/server/core/class.operations.php:1010
+#: php-webclient-ajax/server/core/class.operations.php:982
 #: php-webclient-ajax/client/modules/itemmodule.js:537
-#: php-webclient-ajax/client/views/table.view.js:1070
+#: php-webclient-ajax/client/views/table.view.js:1044
 #: php-webclient-ajax/client/layout/js/advancedfind.js:262
-#: php-webclient-ajax/client/layout/js/appointment.js:1283
-#: php-webclient-ajax/client/layout/js/appointment.js:1354
+#: php-webclient-ajax/client/layout/js/appointment.js:1286
+#: php-webclient-ajax/client/layout/js/appointment.js:1357
 #: php-webclient-ajax/client/layout/js/attachitem.js:299
 msgid "Accepted"
 msgstr "Accepté"
 
-#: php-webclient-ajax/server/core/class.operations.php:1013
+#: php-webclient-ajax/server/core/class.operations.php:985
 #: php-webclient-ajax/client/modules/itemmodule.js:540
-#: php-webclient-ajax/client/views/table.view.js:1074
+#: php-webclient-ajax/client/views/table.view.js:1048
 #: php-webclient-ajax/client/layout/js/advancedfind.js:265
-#: php-webclient-ajax/client/layout/js/appointment.js:1286
-#: php-webclient-ajax/client/layout/js/appointment.js:1355
+#: php-webclient-ajax/client/layout/js/appointment.js:1289
+#: php-webclient-ajax/client/layout/js/appointment.js:1358
 #: php-webclient-ajax/client/layout/js/attachitem.js:302
 msgid "Declined"
 msgstr "Décliné"
 
-#: php-webclient-ajax/server/core/class.operations.php:1016
-#: php-webclient-ajax/client/layout/js/appointment.js:1289
-#: php-webclient-ajax/client/layout/js/appointment.js:1356
+#: php-webclient-ajax/server/core/class.operations.php:988
+#: php-webclient-ajax/client/layout/js/appointment.js:1292
+#: php-webclient-ajax/client/layout/js/appointment.js:1359
 msgid "Not Responded"
 msgstr "Sans réponse"
 
-#: php-webclient-ajax/server/core/class.operations.php:2579
+#: php-webclient-ajax/server/core/class.operations.php:2547
 msgid "Task Request:"
 msgstr "Demande de tâche :"
 
-#: php-webclient-ajax/server/core/class.operations.php:2589
-#: php-webclient-ajax/server/core/class.operations.php:2633
+#: php-webclient-ajax/server/core/class.operations.php:2557
+#: php-webclient-ajax/server/core/class.operations.php:2601
 msgid "Task Updated:"
 msgstr "Tâche actualisée :"
 
-#: php-webclient-ajax/server/core/class.operations.php:2589
-#: php-webclient-ajax/server/core/class.operations.php:2633
+#: php-webclient-ajax/server/core/class.operations.php:2557
+#: php-webclient-ajax/server/core/class.operations.php:2601
 msgid "Task Completed:"
 msgstr "Tâche achevée :"
 
-#: php-webclient-ajax/server/core/class.operations.php:2769
+#: php-webclient-ajax/server/core/class.operations.php:2737
 msgid "Your message did not reach some or all of the intended recipients"
 msgstr "Votre message n'est pas parvenu à certains ou à tous les destinataires"
 
-#: php-webclient-ajax/server/core/class.operations.php:2772
+#: php-webclient-ajax/server/core/class.operations.php:2740
 msgid "The following recipient(s) could not be reached"
 msgstr "Impossible de contacter le(s) destinataire(s) suivant(s)"
 
-#: php-webclient-ajax/server/core/class.operations.php:3120
+#: php-webclient-ajax/server/core/class.operations.php:3088
 msgid "Untitled rule"
 msgstr "Règle sans titre"
 
-#: php-webclient-ajax/server/core/class.operations.php:3241
-#: php-webclient-ajax/server/core/class.operations.php:3252
+#: php-webclient-ajax/server/core/class.operations.php:3209
+#: php-webclient-ajax/server/core/class.operations.php:3220
 msgid "Canceled: "
 msgstr "Annulé : "
 
@@ -3845,21 +3858,27 @@ msgid "Sort on Contact"
 msgstr "Tri par contact"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
-#: php-webclient-ajax/client/modules/freebusymodule.js:1041
+#: php-webclient-ajax/client/modules/freebusymodule.js:1093
 #: php-webclient-ajax/client/modules/itemmodule.js:547
 msgid "Required Attendee"
 msgstr "Participant requis"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
-#: php-webclient-ajax/server/core/class.tablecolumns.php:45
-#: php-webclient-ajax/server/core/class.tablecolumns.php:46
-msgid "Sort on Attendee"
-msgstr "Tri par participant"
+msgid "Sort on Required Attendee"
+msgstr "Tri par participant requis"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
-#: php-webclient-ajax/client/modules/freebusymodule.js:1043
+#: php-webclient-ajax/client/modules/freebusymodule.js:1095
 msgid "Optional Attendee"
 msgstr "Participant optionnel"
+
+#: php-webclient-ajax/server/core/class.tablecolumns.php:45
+msgid "Sort on Optional Attendee"
+msgstr "Tri par participant optionnel"
+
+#: php-webclient-ajax/server/core/class.tablecolumns.php:46
+msgid "Sort on Resource"
+msgstr "Tri par ressource"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -3876,7 +3895,7 @@ msgstr "Tri par statut de disponibilité"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:304
 #: php-webclient-ajax/client/modules/distlistmodule.js:96
 #: php-webclient-ajax/client/modules/stickynotelistmodule.js:22
-#: php-webclient-ajax/client/layout/js/appointment.js:1144
+#: php-webclient-ajax/client/layout/js/appointment.js:1147
 msgid "Icon"
 msgstr "Icône"
 
@@ -4523,21 +4542,21 @@ msgstr "Il y a un nouveau message dans votre boîte de réception"
 msgid "There are %s unread messages in your inbox"
 msgstr "Il y a %s messages non lus dans votre boîte de réception"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:82
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:99
 #, c-format
 msgid "Do you want to update the location '%s' with new location '%s'"
 msgstr ""
 "Désirez-vous mettre à jour l'emplacement '%s' avec le nouvel emplacement '%"
 "s'"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:310
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:358
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:343
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:391
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:484
 #: php-webclient-ajax/client/views/multiusercalendar.view.js:1761
 #: php-webclient-ajax/client/views/calendar.day.view.js:2047
 #: php-webclient-ajax/client/views/calendar.month.view.js:533
 #: php-webclient-ajax/client/views/calendar.week.view.js:494
-#: php-webclient-ajax/client/layout/js/appointment.js:483
+#: php-webclient-ajax/client/layout/js/appointment.js:484
 msgid ""
 "Would you like to send an update to the attendees regarding changes to this "
 "meeting?"
@@ -4545,11 +4564,11 @@ msgstr ""
 "Désirez-vous envoyer une actualisation aux participants concernant les "
 "modifications apportées à cette réunion ?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:501
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:537
 msgid "Resources have been planned."
 msgstr "Les ressources ont été planifiées."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:523
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:559
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:535
 #, c-format
 msgid ""
@@ -4565,7 +4584,7 @@ msgstr ""
 "votre administrateur afin qu'il vous accorde l'autorisation de gérer "
 "l'emploi du temps de \"%s\"."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:526
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:562
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:538
 #, c-format
 msgid ""
@@ -4575,7 +4594,7 @@ msgstr ""
 "\"%s\" a décliné votre demande de réunion car \"%s\" n'accepte pas "
 "automatiquement les demandes de réunion. "
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:529
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:541
 #, c-format
 msgid ""
@@ -4585,7 +4604,7 @@ msgstr ""
 "\"%s\" a décliné votre demande de réunion car elle est récurrente. Vous devez "
 "réserver chaque réunion séparément avec cette récurrence."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:532
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4595,7 +4614,7 @@ msgstr ""
 "\"%s\" est déjà réservé à cet horaire. Vous devez choisir un autre horaire ou "
 "trouver une autre ressource."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:535
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 msgid "Meeting was not scheduled."
 msgstr "La réunion n'a pas été planifiée."
@@ -4652,7 +4671,7 @@ msgstr "Date de début: %s"
 #: php-webclient-ajax/client/modules/itemmodule.js:586
 #: php-webclient-ajax/client/modules/itemmodule.js:615
 #: php-webclient-ajax/client/modules/itemmodule.js:718
-#: php-webclient-ajax/client/views/table.view.js:1217
+#: php-webclient-ajax/client/views/table.view.js:1172
 #: php-webclient-ajax/client/views/table.compact.view.js:264
 #: php-webclient-ajax/client/layout/js/advancedfind.js:370
 #: php-webclient-ajax/client/layout/js/advancedfind.js:372
@@ -4666,7 +4685,7 @@ msgstr "%a %x %X"
 #: php-webclient-ajax/client/modules/printitemmodule.js:78
 #: php-webclient-ajax/client/modules/printitemmodule.js:82
 #: php-webclient-ajax/client/modules/itemmodule.js:664
-#: php-webclient-ajax/client/views/table.view.js:1220
+#: php-webclient-ajax/client/views/table.view.js:1175
 #, c-format
 msgid "%a %x"
 msgstr "%a %x"
@@ -4703,15 +4722,15 @@ msgstr "%a %x"
 #: php-webclient-ajax/client/widgets/datepicker.js:183
 #: php-webclient-ajax/client/layout/js/contact.js:129
 #: php-webclient-ajax/client/layout/js/contact.js:136
-#: php-webclient-ajax/client/layout/js/dialog.js:682
-#: php-webclient-ajax/client/layout/js/dialog.js:683
-#: php-webclient-ajax/client/layout/js/dialog.js:688
+#: php-webclient-ajax/client/layout/js/dialog.js:686
+#: php-webclient-ajax/client/layout/js/dialog.js:687
 #: php-webclient-ajax/client/layout/js/dialog.js:692
-#: php-webclient-ajax/client/layout/js/dialog.js:695
-#: php-webclient-ajax/client/layout/js/dialog.js:969
-#: php-webclient-ajax/client/layout/js/dialog.js:976
-#: php-webclient-ajax/client/layout/js/appointment.js:1068
-#: php-webclient-ajax/client/layout/js/appointment.js:1089
+#: php-webclient-ajax/client/layout/js/dialog.js:696
+#: php-webclient-ajax/client/layout/js/dialog.js:699
+#: php-webclient-ajax/client/layout/js/dialog.js:973
+#: php-webclient-ajax/client/layout/js/dialog.js:980
+#: php-webclient-ajax/client/layout/js/appointment.js:1071
+#: php-webclient-ajax/client/layout/js/appointment.js:1092
 #: php-webclient-ajax/client/layout/js/task.js:96
 #: php-webclient-ajax/client/layout/js/task.js:100
 #: php-webclient-ajax/client/layout/js/task.js:102
@@ -4754,11 +4773,11 @@ msgstr ""
 "Impossible de trouver le contact '%s'. Il peut avoir été supprimé ou déplacé "
 "de son emplacement d'origine. Voulez-vous le retirer de la liste ?"
 
-#: php-webclient-ajax/client/modules/freebusymodule.js:69
+#: php-webclient-ajax/client/modules/freebusymodule.js:87
 msgid "Update"
 msgstr "Actualiser"
 
-#: php-webclient-ajax/client/modules/freebusymodule.js:1045
+#: php-webclient-ajax/client/modules/freebusymodule.js:1097
 msgid "Resource (Room or Equipment)"
 msgstr "Ressource (salle ou équipement)"
 
@@ -4801,17 +4820,17 @@ msgstr "Mois"
 msgid "List"
 msgstr "Liste"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:211
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:217
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:212
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:218
 msgid "RE"
 msgstr "RE"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:221
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:222
 msgid "FW"
 msgstr "TR"
 
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:467
-#: php-webclient-ajax/client/modules/createmailitemmodule.js:478
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:468
+#: php-webclient-ajax/client/modules/createmailitemmodule.js:479
 msgid "Original message"
 msgstr "Message initial"
 
@@ -5241,7 +5260,7 @@ msgstr "a décliné"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:308
 #: php-webclient-ajax/client/core/utils.js:1612
 #: php-webclient-ajax/client/widgets/searchcriteria.js:2136
-#: php-webclient-ajax/client/layout/js/rule.js:244
+#: php-webclient-ajax/client/layout/js/rule.js:271
 msgid "and"
 msgstr "et"
 
@@ -5295,7 +5314,7 @@ msgid "%d/%m/%Y %H:%M"
 msgstr "%d/%m/%Y %H:%M"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:671
-#: php-webclient-ajax/client/layout/js/appointment.js:1535
+#: php-webclient-ajax/client/layout/js/appointment.js:1538
 #: php-webclient-ajax/client/layout/js/readmail.js:42
 msgid "Comment"
 msgstr "Commentaire"
@@ -5384,48 +5403,48 @@ msgid "Would you like to close the window?"
 msgstr "Désirez-vous fermer la fenêtre ?"
 
 #: php-webclient-ajax/client/modules/itemmodule.js:531
-#: php-webclient-ajax/client/views/table.view.js:1062
+#: php-webclient-ajax/client/views/table.view.js:1036
 #: php-webclient-ajax/client/layout/js/advancedfind.js:256
 #: php-webclient-ajax/client/layout/js/attachitem.js:293
 msgid "Meeting Organizer"
 msgstr "Organisateur de la réunion"
 
 #: php-webclient-ajax/client/modules/itemmodule.js:543
-#: php-webclient-ajax/client/views/table.view.js:1078
+#: php-webclient-ajax/client/views/table.view.js:1052
 #: php-webclient-ajax/client/layout/js/advancedfind.js:268
 #: php-webclient-ajax/client/layout/js/attachitem.js:305
 msgid "Not Yet Responded"
 msgstr "Pas encore répondu"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1139
+#: php-webclient-ajax/client/modules/itemmodule.js:1141
 msgid "New Meeting Time Proposed"
 msgstr "Nouvelle horaire de réunion proposé"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1140
-#: php-webclient-ajax/client/modules/itemmodule.js:1141
-#: php-webclient-ajax/client/modules/itemmodule.js:1213
-#: php-webclient-ajax/client/modules/itemmodule.js:1214
+#: php-webclient-ajax/client/modules/itemmodule.js:1142
+#: php-webclient-ajax/client/modules/itemmodule.js:1143
+#: php-webclient-ajax/client/modules/itemmodule.js:1215
+#: php-webclient-ajax/client/modules/itemmodule.js:1216
 msgid "%A, %B %e, %Y %H:%M"
 msgstr "%A, %B %e, %Y %H:%M"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1146
+#: php-webclient-ajax/client/modules/itemmodule.js:1148
 msgid "GMT"
 msgstr "GMT"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1217
+#: php-webclient-ajax/client/modules/itemmodule.js:1219
 msgid "Where"
 msgstr "Où"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1263
+#: php-webclient-ajax/client/modules/itemmodule.js:1265
 msgid "You will lose the modified data. Do you want to continue?"
 msgstr ""
 "Vous allez perdre les données modifiées. Désirez-vous vraiment continuer ?"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1494
+#: php-webclient-ajax/client/modules/itemmodule.js:1496
 msgid "Add to message body"
 msgstr "Ajouter au corps du message"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1663
+#: php-webclient-ajax/client/modules/itemmodule.js:1664
 msgid "This meeting request is out-of-date and will now be deleted."
 msgstr "Cette demande de réunion est expirée et va être supprimée."
 
@@ -5560,8 +5579,8 @@ msgstr "Compte"
 #: php-webclient-ajax/client/widgets/timepicker.js:130
 #: php-webclient-ajax/client/widgets/timepicker.js:169
 #: php-webclient-ajax/client/widgets/timepicker.js:206
-#: php-webclient-ajax/client/layout/js/dialog.js:682
-#: php-webclient-ajax/client/layout/js/dialog.js:683
+#: php-webclient-ajax/client/layout/js/dialog.js:686
+#: php-webclient-ajax/client/layout/js/dialog.js:687
 #: php-webclient-ajax/client/layout/js/task.js:171
 msgid "%H:%M"
 msgstr "%H:%M"
@@ -5628,7 +5647,9 @@ msgstr "%.1f semaines"
 #: php-webclient-ajax/client/core/utils.js:599
 #: php-webclient-ajax/client/layout/js/emailaddress.js:5
 #: php-webclient-ajax/client/layout/js/dialog.js:198
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:227
+#: php-webclient-ajax/client/layout/js/rule.js:237
+#: php-webclient-ajax/client/layout/js/rule.js:247
 msgid "Please input a valid email address!"
 msgstr "Veuillez saisir une adresse électronique valide !"
 
@@ -5971,11 +5992,11 @@ msgstr "Serveur inconnu ou problème de connexion"
 msgid "Not logged on"
 msgstr "Session non ouverte"
 
-#: php-webclient-ajax/client/views/table.view.js:881
+#: php-webclient-ajax/client/views/table.view.js:855
 msgid "There are no items to show in this view"
 msgstr "Il n'y a aucun éléments à afficher dans cette fenêtre"
 
-#: php-webclient-ajax/client/views/table.view.js:1066
+#: php-webclient-ajax/client/views/table.view.js:1040
 msgid "Tentatively Accepted"
 msgstr "Provisoirement accepté"
 
@@ -6206,7 +6227,7 @@ msgstr "Les valeurs que vous avez saisies pour Taille ne sont pas valides"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1554
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1895
 msgid "Search for the words(s)"
-msgstr ""
+msgstr "Rechercher le(s) mot(s)"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1324
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1445
@@ -6315,7 +6336,7 @@ msgstr "seulement le champ numéro de téléphone"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1667
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1757
 msgid "Search for the word(s)"
-msgstr ""
+msgstr "Rechercher le(s) mot(s)"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1679
 msgid "contents only"
@@ -6471,7 +6492,7 @@ msgstr "Demande de tâche"
 #: php-webclient-ajax/client/widgets/datepicker.js:161
 #: php-webclient-ajax/client/widgets/timepicker.js:203
 #: php-webclient-ajax/client/widgets/timepicker.js:212
-#: php-webclient-ajax/client/layout/js/dialog.js:971
+#: php-webclient-ajax/client/layout/js/dialog.js:975
 msgid ""
 "You must specify a valid date and/or time. Check your entries in this dialog "
 "box to make sure they represent a valid date and/or time."
@@ -6500,11 +6521,11 @@ msgstr "Aller à la dernière page"
 msgid "Page"
 msgstr "Page"
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:962
+#: php-webclient-ajax/client/widgets/tablewidget.js:964
 msgid "Loading..."
 msgstr "Chargement..."
 
-#: php-webclient-ajax/client/widgets/tablewidget.js:981
+#: php-webclient-ajax/client/widgets/tablewidget.js:983
 msgid "There are no items to show in this view."
 msgstr "Il n'y a aucun élément à afficher dans cette fenêtre."
 
@@ -6743,11 +6764,15 @@ msgstr ""
 "Cette tâche étant adressée à plusieurs destinataires, votre copie ne pourra "
 "pas être actualisée."
 
-#: php-webclient-ajax/client/layout/js/dialog.js:439
+#: php-webclient-ajax/client/layout/js/dialog.js:324
+msgid "You must enter at least one recipient in To field."
+msgstr "Veuillez saisir au moins un destinataire dans le champ À"
+
+#: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"
 msgstr "Aucune signature"
 
-#: php-webclient-ajax/client/layout/js/dialog.js:478
+#: php-webclient-ajax/client/layout/js/dialog.js:482
 msgid "No signature"
 msgstr "Aucune signature"
 
@@ -6803,11 +6828,11 @@ msgstr "Proposition de date et horaire de fin de réunion"
 msgid "Proposed by"
 msgstr "Proposé par"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:395
+#: php-webclient-ajax/client/layout/js/appointment.js:396
 msgid "The end date you entered occurs before the start date."
 msgstr "La date de fin que vous avez saisie est antérieure à la date de début."
 
-#: php-webclient-ajax/client/layout/js/appointment.js:490
+#: php-webclient-ajax/client/layout/js/appointment.js:489
 msgid ""
 "This meeting request cannot be sent since it has no recipients. Would you "
 "like to save and close this meeting instead?"
@@ -6815,87 +6840,87 @@ msgstr ""
 "Cette demande de réunion ne peut pas être envoyé parce qu'aucun destinataire "
 "n'a été précisé. Désirez-vous plutôt l'enregistrer et la quitter ?"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:764
-#: php-webclient-ajax/client/layout/js/appointment.js:765
-#: php-webclient-ajax/client/layout/js/appointment.js:785
-#: php-webclient-ajax/client/layout/js/appointment.js:786
+#: php-webclient-ajax/client/layout/js/appointment.js:762
+#: php-webclient-ajax/client/layout/js/appointment.js:763
+#: php-webclient-ajax/client/layout/js/appointment.js:783
+#: php-webclient-ajax/client/layout/js/appointment.js:784
 msgid "Meeting"
 msgstr "Réunion"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:821
+#: php-webclient-ajax/client/layout/js/appointment.js:819
 msgid "Meeting has been canceled."
 msgstr "La réunion a été annulée."
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1021
+#: php-webclient-ajax/client/layout/js/appointment.js:1024
 msgid "Occurs every"
 msgstr "Survient tous les"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1025
+#: php-webclient-ajax/client/layout/js/appointment.js:1028
 msgid "workday"
 msgstr "jour ouvrable"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1049
+#: php-webclient-ajax/client/layout/js/appointment.js:1052
 msgid "months"
 msgstr "mois"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1054
+#: php-webclient-ajax/client/layout/js/appointment.js:1057
 msgid "year"
 msgstr "année"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1058
+#: php-webclient-ajax/client/layout/js/appointment.js:1061
 msgid "years"
 msgstr "années"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1064
+#: php-webclient-ajax/client/layout/js/appointment.js:1067
 msgid "effective"
 msgstr "en vigueur"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1076
+#: php-webclient-ajax/client/layout/js/appointment.js:1079
 msgid "for 1 occurrence"
 msgstr "pour 1 occurrence"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1078
+#: php-webclient-ajax/client/layout/js/appointment.js:1081
 #, c-format
 msgid "for %d occurrences"
 msgstr "pour %d occurrences"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1085
+#: php-webclient-ajax/client/layout/js/appointment.js:1088
 msgid "until"
 msgstr "jusque"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1094
+#: php-webclient-ajax/client/layout/js/appointment.js:1097
 msgid "from"
 msgstr "de"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1098
+#: php-webclient-ajax/client/layout/js/appointment.js:1101
 msgid "to"
 msgstr "à"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1146
+#: php-webclient-ajax/client/layout/js/appointment.js:1149
 msgid "Attendance"
 msgstr "Participation"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1147
+#: php-webclient-ajax/client/layout/js/appointment.js:1150
 msgid "Response"
 msgstr "Réponse"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1185
-#: php-webclient-ajax/client/layout/js/appointment.js:1261
-#: php-webclient-ajax/client/layout/js/appointment.js:1277
-#: php-webclient-ajax/client/layout/js/appointment.js:1345
-#: php-webclient-ajax/client/layout/js/appointment.js:1352
+#: php-webclient-ajax/client/layout/js/appointment.js:1188
+#: php-webclient-ajax/client/layout/js/appointment.js:1264
+#: php-webclient-ajax/client/layout/js/appointment.js:1280
+#: php-webclient-ajax/client/layout/js/appointment.js:1348
+#: php-webclient-ajax/client/layout/js/appointment.js:1355
 msgid "Organizer"
 msgstr "Organisateur"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 msgid "attendee accepted"
 msgstr "participant accepté"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 msgid "tentatively accepted"
 msgstr "provisoirement accepté"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1238
+#: php-webclient-ajax/client/layout/js/appointment.js:1241
 msgid "declined"
 msgstr "a décliné"
 
@@ -6979,34 +7004,45 @@ msgstr "Échec lors de l'affichage d'une règle comportant plus d'une action"
 msgid "Unable to show the rule action"
 msgstr "Échec lors de l'affichage de l'action d'une règle"
 
-#: php-webclient-ajax/client/layout/js/rule.js:200
+#: php-webclient-ajax/client/layout/js/rule.js:207
 msgid "Please select an appropriate action for this rule"
 msgstr "Veuillez sélectionner une action adéquate pour cette règle"
 
-#: php-webclient-ajax/client/layout/js/rule.js:205
+#: php-webclient-ajax/client/layout/js/rule.js:212
 msgid "Please select a folder to move the item to"
 msgstr ""
 "Veuillez sélectionner le dossier vers lequel vous désirez déplacer l'élément"
 
-#: php-webclient-ajax/client/layout/js/rule.js:210
+#: php-webclient-ajax/client/layout/js/rule.js:217
 msgid "Please select a folder to copy the item to"
 msgstr ""
 "Veuillez sélectionner le dossier vers lequel vous désirez copier l'élément"
 
-#: php-webclient-ajax/client/layout/js/rule.js:215
-#: php-webclient-ajax/client/layout/js/rule.js:219
+#: php-webclient-ajax/client/layout/js/rule.js:223
+#: php-webclient-ajax/client/layout/js/rule.js:227
 msgid "Please specify a forwarding address"
+msgstr "Veuillez spécifier une adresse de transfert"
+
+#: php-webclient-ajax/client/layout/js/rule.js:233
+#: php-webclient-ajax/client/layout/js/rule.js:237
+msgid "Please specify a forwarding as attachment address"
+msgstr "Veuillez spécifier une adresses pour le transfert en pièce jointe"
+
+# 77%
+#: php-webclient-ajax/client/layout/js/rule.js:243
+#: php-webclient-ajax/client/layout/js/rule.js:247
+msgid "Please specify a redirecting address"
 msgstr "Veuillez spécifier une adresse de réexpédition"
 
-#: php-webclient-ajax/client/layout/js/rule.js:234
+#: php-webclient-ajax/client/layout/js/rule.js:261
 msgid "Low priority"
 msgstr "Basse priorité"
 
-#: php-webclient-ajax/client/layout/js/rule.js:235
+#: php-webclient-ajax/client/layout/js/rule.js:262
 msgid "Normal priority"
 msgstr "Priorité normale"
 
-#: php-webclient-ajax/client/layout/js/rule.js:236
+#: php-webclient-ajax/client/layout/js/rule.js:263
 msgid "High priority"
 msgstr "Haute priorité"
 
@@ -7064,6 +7100,9 @@ msgstr "FLÈCHE DU HAUT"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.js:11
 msgid "DOWN ARROW"
 msgstr "FLÈCHE DU BAS"
+
+#~ msgid "Sort on Attendee"
+#~ msgstr "Tri par participant"
 
 #~ msgid "Check Address"
 #~ msgstr "Vérifier adresse"

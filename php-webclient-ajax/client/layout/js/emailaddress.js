@@ -48,19 +48,21 @@
  */
 
 function emailAddressSubmit() {
-    var name = (dhtml.getElementById("name", "input").value).trim();
-    var email = (dhtml.getElementById("email", "input").value).trim();
-    if (email==""){
-        alert(_("Please input a valid email address!"));
-        return false;
-    }else if (validateEmailAddress(email, true)){
-        var result = new Object;
-        result.name = name;
-        result.email = email;
-        
-        window.resultCallBack(result, window.callBackData);
-        return true;
-    }
-    dhtml.getElementById("email", "input").focus();
-    return false;
+	var name = (dhtml.getElementById("name", "input").value).trim();
+	var email = (dhtml.getElementById("email", "input").value).trim();
+	var internalId = dhtml.getElementById("internalId").value;
+	if (email==""){
+		alert(_("Please input a valid email address!"));
+		return false;
+	}else if (validateEmailAddress(email, true)){
+		var result = new Object;
+		result.name = name;
+		result.email = email;
+		result.internalId = internalId;
+		
+		window.resultCallBack(result, window.callBackData);
+		return true;
+	}
+	dhtml.getElementById("email", "input").focus();
+	return false;
 }

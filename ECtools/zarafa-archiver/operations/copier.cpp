@@ -277,7 +277,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	}
 
 	if (ulSourceRows == 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "No attachments in source message, nothing to do.");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No attachments in source message, nothing to do.");
 		goto exit;
 	}
 
@@ -464,6 +464,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	LPSPropValue lpEntryId = NULL;
 	LPSPropValue lpStoreEntryId = NULL;
 	SObjectEntry refObjectEntry;
+	MessagePtr ptrMessageRaw;
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
@@ -499,13 +500,13 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	refObjectEntry.sItemEntryId.assign(lpEntryId->Value.bin);
 
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
-	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &ptrMessage);
+	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &ptrMessageRaw);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
 
-	hr = VerifyRestriction(ptrMessage);
+	hr = VerifyRestriction(ptrMessageRaw);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring message because it doesn't match the criteria for begin archived.");
 		Logger()->Log(EC_LOGLEVEL_WARNING, "This can happen when huge amounts of message are being processed.");
@@ -520,7 +521,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		goto exit;
 	}
 	
-	hr = MAPIPropHelper::Create(ptrMessage.as<MAPIPropPtr>(), &ptrMsgHelper);
+	hr = MAPIPropHelper::Create(ptrMessageRaw.as<MAPIPropPtr>(), &ptrMsgHelper);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -543,8 +544,10 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to reopen message. (hr=%s)", stringify(hr, true).c_str());
 			goto exit;
 		}
-	}
+	} else
+		ptrMessage = ptrMessageRaw;
 
+	// From here on we work on ptrMessage, except for ExecuteSubOperations.
 	if (!state.isCopy()) {		// Include state.isMove()
 		hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);
 		if (hr != hrSuccess) {
@@ -662,7 +665,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
 	}
 	
-	hrTemp = ExecuteSubOperations(CurrentFolder(), cProps, lpProps);
+	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), cProps, lpProps);
 	if (hrTemp != hrSuccess)
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Unable to execute next operation, hr=%08x. The operation is postponed, not cancelled", hrTemp);
 
@@ -823,7 +826,13 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 		goto exit;
 	}
 
-	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &IID_IECMessageRaw, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
+	/**
+	 * We used to get the raw message here to ensure we're not getting the extra destubbing layer here. However, the messages
+	 * in the archive should never be stubbed, so there's no problem.
+	 * The main reason to not try to get the raw message through IID_IECMessageRaw is that archive stores don't support it.
+	 * @todo Should we verify if the item is really not stubbed?
+	 */
+	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchivedMsg.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open existing archived message. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -943,36 +952,28 @@ exit:
 	return hr;
 }
 
-HRESULT Copier::ExecuteSubOperations(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps)
+HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpEntryId = NULL;
-	ULONG ulType = 0;
-	MessagePtr ptrMessage;
 	list<ArchiveOperationPtr>::iterator iOp;
+
+	ASSERT(lpMessage != NULL);
+	ASSERT(lpFolder != NULL);
+	if (lpMessage == NULL || lpFolder == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if (!m_ptrDeleteOp && !m_ptrStubOp)
 		goto exit;
 
-	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
-	if (lpEntryId == NULL) {
-		hr = MAPI_E_NOT_FOUND;	// How did we get here if this happens?
-		goto exit;
-	}
-
-	// @todo: See if we can get this object from the caller, since we just closed it, and will open it again in the next operation
-	hr = ptrFolder->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, fMapiDeferredErrors, &ulType, &ptrMessage);
-	if (hr != hrSuccess)
-		goto exit;
-
-
 	// First see if the deleter restriction matches, in that case we run the deleter
 	// and be done with it.
 	if (m_ptrDeleteOp) {
-		hr = m_ptrDeleteOp->VerifyRestriction(ptrMessage);
+		hr = m_ptrDeleteOp->VerifyRestriction(lpMessage);
 		if (hr == hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing delete operation.");
-			hr = m_ptrDeleteOp->ProcessEntry(ptrFolder, cProps, lpProps);
+			hr = m_ptrDeleteOp->ProcessEntry(lpFolder, cProps, lpProps);
 			if (hr != hrSuccess)
 				Logger()->Log(EC_LOGLEVEL_WARNING, "Delete operation failed, postponing next attempt. hr=0x%08x", hr);
 			else
@@ -987,10 +988,10 @@ HRESULT Copier::ExecuteSubOperations(MAPIFolderPtr &ptrFolder, ULONG cProps, con
 
 	// Now see if we need to stub the message.
 	if (m_ptrStubOp) {
-		hr = m_ptrStubOp->VerifyRestriction(ptrMessage);
+		hr = m_ptrStubOp->VerifyRestriction(lpMessage);
 		if (hr == hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
-			hr = m_ptrStubOp->ProcessEntry(ptrFolder, cProps, lpProps);
+			hr = m_ptrStubOp->ProcessEntry(lpMessage);
 			if (hr != hrSuccess)
 				Logger()->Log(EC_LOGLEVEL_WARNING, "Stub operation failed, postponing next attempt. hr=0x%08x", hr);
 			else

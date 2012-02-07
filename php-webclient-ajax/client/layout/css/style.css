@@ -636,6 +636,7 @@ div.cursor_bottom {
 .rowcolumn {
 	border-bottom: 1px solid #EEEEEE;
 	overflow:hidden;
+    padding-left: 2px;
 }
 
 .rowcolumntext {

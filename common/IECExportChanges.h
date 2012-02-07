@@ -50,10 +50,13 @@
 #ifndef IECEXPORTCHANGES_H
 #define IECEXPORTCHANGES_H
 
+class ECLogger;
+
 class IECExportChanges : public IUnknown{
 public:
 	virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges) = 0;
 	virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) = 0;
+	virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger) = 0;
 };
 
 #endif

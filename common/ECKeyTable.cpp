@@ -238,7 +238,7 @@ bool ECTableRow::rowcompare (ECTableRow *a, ECTableRow *b)
 }
 
 // Does a normal row compare between two rows
-bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB) {
+bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned char **lppSortKeysA, unsigned char *lpSortFlagsA, unsigned int ulSortColsB, int *lpSortLenB, unsigned char **lppSortKeysB, unsigned char *lpSortFlagsB, bool fIgnoreOrder) {
 	unsigned int i=0;
 	bool ret = false;
 	unsigned int ulSortCols;
@@ -295,7 +295,7 @@ bool ECTableRow::rowcompare (unsigned int ulSortColsA, int *lpSortLenA, unsigned
         }
 	} else {
 	    // Unequal, flip order if desc
-		if(lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
+		if(!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
 			return !ret;
 		else
 			return ret;
@@ -311,7 +311,7 @@ bool ECTableRow::rowcompareprefix (unsigned int ulPrefix, unsigned int ulSortCol
 bool ECTableRow::operator <(const ECTableRow &other) const
 {
     return ECTableRow::rowcompare(ulSortCols, lpSortLen, lppSortKeys, lpFlags,
-                                  other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags);
+                                  other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags, true);
                                           
 }
 
@@ -1404,6 +1404,7 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 {
     ECRESULT er = erSuccess;
     unsigned int ulSortColPrefixLen = 0;
+    unsigned int ulFirstCols = 0;
     unsigned char **lppSortData = 0;
     int *lpSortLen = NULL;
     unsigned char *lpFlags = NULL;
@@ -1431,13 +1432,15 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
     if(lpCurrent == NULL)
         goto exit; // No more rows
             
+    ulFirstCols = lpCurrent->ulSortCols;
+
     while(lpCurrent) {
         // Stop unhiding when lpCurrent > prefix, so prefix < lpCurrent
         if(ECTableRow::rowcompareprefix(ulSortColPrefixLen, ulSortColPrefixLen, lpSortLen, lppSortData, lpFlags, lpCurrent->ulSortCols, lpCurrent->lpSortLen, lpCurrent->lppSortKeys, lpCurrent->lpFlags))
             break;
 
         // Only unhide items with the same amount of sort columns as the first row (ensures we only expand the first layer)
-        if(lpCurrent->ulSortCols == ulSortColPrefixLen) {
+        if(lpCurrent->ulSortCols == ulFirstCols) {
                 
             lpUnhiddenList->push_back(lpCurrent->sKey);
             lpCurrent->fHidden = false;

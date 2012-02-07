@@ -61,10 +61,11 @@ libarchiver_la_DEPENDENCIES =  \
 	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_libarchiver_la_OBJECTS = archiver-session.lo archiver-common.lo \
-	archivemanage.lo archiver.lo archivectrl.lo archivehelper.lo \
-	storehelper.lo mapiprophelper.lo operations.lo copier.lo \
-	deleter.lo stubber.lo transaction.lo instanceidmapper.lo \
-	postsaveiidupdater.lo ECDatabaseMySQL.lo
+	archivemanage.lo archiver.lo archivectrl.lo \
+	archivestatecollector.lo archivestateupdater.lo \
+	archivehelper.lo storehelper.lo mapiprophelper.lo \
+	operations.lo copier.lo deleter.lo stubber.lo transaction.lo \
+	instanceidmapper.lo postsaveiidupdater.lo ECDatabaseMySQL.lo
 libarchiver_la_OBJECTS = $(am_libarchiver_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -301,6 +302,8 @@ libarchiver_la_SOURCES = \
 	archivemanage.cpp archivemanage.h \
 	archiver.cpp archiver.h \
 	archivectrl.cpp archivectrl.h \
+	archivestatecollector.cpp archivestatecollector.h \
+	archivestateupdater.cpp archivestateupdater.h archivestateupdater_fwd.h \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
 	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \
@@ -426,6 +429,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archiver-common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archiver-session.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archiver.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archivestatecollector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archivestateupdater.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copier.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deleter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/instanceidmapper.Plo@am__quote@

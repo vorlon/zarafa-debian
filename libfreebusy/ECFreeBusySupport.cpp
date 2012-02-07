@@ -57,6 +57,7 @@
 #include "mapiutil.h"
 
 #include "freebusyutil.h"
+#include "mapi_ptr.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -408,39 +409,54 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	ULONG ulRead = 0;
 
 	struct StatusOL2K3 {
-		ULONG ulReserved0;			/* always 0 */
-		ULONG ulReserved1;			/* always 1 */
+		ULONG ulResourceType;		/* 0x68410003 PR_SCHDINFO_RESOURCE_TYPE always 0*/
+		ULONG ulReserved1;			/* always 1? olk 2007 = 0 */
 
 		char **lppszFullname;		/* PR_MAILBOX_OWNER_NAME, but allocation method is unknown */
 		SBinary *lpUserEntryID;		/* PR_MAILBOX_OWNER_ENTRYID, but allocation method is unknown  */
-		ULONG *lpUnknown4;			/* pointer to NULL */
-		ULONG *lpUnknown5;			/* pointer to NULL -- not present in OL2K */
+		ULONG *lpUnknown4;			/* pointer to NULL, -- not present in OL2K */
+		ULONG ulBossWantsCopy;		/* 0x6842000B PR_SCHDINFO_BOSS_WANTS_COPY always 1 */
 
-		ULONG ulReserved6;			/* always 1 */
-		ULONG ulReserved7;			/* always 1 */
+		ULONG ulBossWantsInfo;		/* 0x684B000B PR_SCHDINFO_BOSS_WANTS_INFO always 1 */
+		ULONG ulDontEmailDelegates;	/* 0x6843000B PR_SCHDINFO_DONT_MAIL_DELEGATES always 1 */
 
 		ULONG fDoesAutoAccept;
-		ULONG fDoesRejectConflict;	/* no effect? */
-		ULONG fDoesRejectRecurring;	/* no effect? */
+		ULONG fDoesRejectRecurring;
+		ULONG fDoesRejectConflict;
 
 		ULONG ulReserved11;			/* always 0 -- unknown -- not present in OL2K */
 	} *lpStatus;
 
 	struct StatusOL2K {
-		ULONG ulReserved0;			/* always 0 */
+		ULONG ulResourceType;		/* always 0 */
 		ULONG ulReserved1;			/* always 1 */
 
 		char **lppszFullname;		/* PR_MAILBOX_OWNER_NAME, but allocation method is unknown */
 		SBinary *lpUserEntryID;		/* PR_MAILBOX_OWNER_ENTRYID, but allocation method is unknown  */
-		ULONG *lpUnknown4;			/* pointer to a value 01000000 */
+		ULONG ulBossWantsCopy;		/* always 1 */
 
-		ULONG ulReserved6;			/* always 1 */
-		ULONG ulReserved7;			/* always 1 */
+		ULONG ulBossWantsInfo;		/* always 1 */
+		ULONG ulDontEmailDelegates;	/* always 1 */
 
 		ULONG fDoesAutoAccept;
-		ULONG fDoesRejectConflict;	/* no effect? */
-		ULONG fDoesRejectRecurring;	/* no effect? */
+		ULONG fDoesRejectRecurring;
+		ULONG fDoesRejectConflict;
 	} *lpStatusOlk2K;
+
+	bool bAutoAccept = true, bDeclineConflict = true, bDeclineRecurring = true;
+	ULONG ulObjType = 0;
+	MailUserPtr ptrUser;
+	MsgStorePtr ptrStore;
+	SPropValuePtr ptrName;
+
+	if (m_lpSession->OpenEntry(sFBUser.m_cbEid, sFBUser.m_lpEid, NULL, 0, &ulObjType, &ptrUser) == hrSuccess && 
+		HrGetOneProp(ptrUser, PR_ACCOUNT, &ptrName) == hrSuccess &&
+		HrOpenUserMsgStore(m_lpSession, ptrName->Value.LPSZ, &ptrStore) == hrSuccess)
+	{
+		GetAutoAcceptSettings(ptrStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+		// ignore error, default true.
+		hr = hrSuccess;
+	}
 
 	switch (m_ulOutlookVersion) {
 	case CLIENT_VERSION_OLK2000:
@@ -449,26 +465,29 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 		memset(lpStatusOlk2K, 0, sizeof(StatusOL2K));
 
 		lpStatusOlk2K->ulReserved1 = 1;
-		lpStatusOlk2K->ulReserved6 = 1;
-		lpStatusOlk2K->ulReserved7 = 1;
+		lpStatusOlk2K->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		lpStatusOlk2K->ulBossWantsInfo = 1;
+		lpStatusOlk2K->ulDontEmailDelegates = 1;
 
-		// TODO, get the actual values. However, they don't seem to have much effect, as outlook will always plan the resource.
-		lpStatusOlk2K->fDoesAutoAccept = 1;
-		lpStatusOlk2K->fDoesRejectConflict = 1;
-		lpStatusOlk2K->fDoesRejectRecurring = 1;
+		// They don't seem to have much effect, as outlook will always plan the resource.
+		lpStatusOlk2K->fDoesAutoAccept = bAutoAccept;
+		lpStatusOlk2K->fDoesRejectConflict = bDeclineConflict;
+		lpStatusOlk2K->fDoesRejectRecurring = bDeclineRecurring;
 
 		break;
 	default:
 		lpStatus = (StatusOL2K3*)lpulStatus;
 		memset(lpStatus, 0, sizeof(StatusOL2K3));
 
-		lpStatus->ulReserved6 = 1;
-		lpStatus->ulReserved7 = 1;
+		lpStatus->ulReserved1 = 0;
+		lpStatus->ulBossWantsCopy = 0; // WARNING Outlook will crash if it will be enabled (1)!
+		lpStatus->ulBossWantsInfo = 1;
+		lpStatus->ulDontEmailDelegates = 1;
 
-		// TODO, get the actual values. However, they don't seem to have much effect, as outlook will always plan the resource.
-		lpStatus->fDoesAutoAccept = 1;
-		lpStatus->fDoesRejectConflict = 1;
-		lpStatus->fDoesRejectRecurring = 1;
+		// Atleast Outlook 2007 should be able to correctly use these, if you restart outlook.
+		lpStatus->fDoesAutoAccept = bAutoAccept;
+		lpStatus->fDoesRejectConflict = bDeclineConflict;
+		lpStatus->fDoesRejectRecurring = bDeclineRecurring;
 		break;
 	};
 

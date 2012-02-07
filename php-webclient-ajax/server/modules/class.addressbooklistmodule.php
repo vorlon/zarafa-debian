@@ -939,11 +939,12 @@
 
 					$items = array();
 
-					foreach($members as $key=>$item){
-						$parts = unpack("Vnull/A16guid/Ctype/A*entryid", $item);
+					foreach($members as $key=>$member){
+						$parts = unpack("Vnull/A16guid/Ctype/A*entryid", $member);
 						
 						if ($parts["guid"]==hex2bin("812b1fa4bea310199d6e00dd010f5402")){ // custom e-mail address (no user or contact)
-							$oneoff = mapi_parseoneoff($item);
+							// $parts can not be used for this guid because it is a one off entryid
+							$oneoff = mapi_parseoneoff($member);
 							$item = array();
 							$item["fileas"] = w2u($oneoff["name"]);
 							$item["display_name"] = $item["fileas"];
@@ -951,8 +952,18 @@
 							$item["email_address"] = w2u($oneoff["address"]);
 							$items[] = $item;
 						}else{
+							// $parts can be another personal distribution list, an electronic address contained in a contact, a GAL member, a distribution list, or a one-off e-mail address.
+							// see msdn documentation [OXOCNTC] WrappedEntryId structure
 							$item = array();
 							switch($parts["type"]){
+								case 0: //one off
+									$oneoff = mapi_parseoneoff($parts["entryid"]);
+									$item["fileas"] = w2u($oneoff["name"]);
+									$item["display_name"] = $item["fileas"];
+									$item["addrtype"] = w2u($oneoff["type"]);
+									$item["email_address"] = w2u($oneoff["address"]);
+									$items[] = $item;
+									break;
 								case DL_USER: // contact
 									$msg = mapi_msgstore_openentry($store, $parts["entryid"]);
 									if (mapi_last_hresult()!=NOERROR) // contact could be deleted, skip item

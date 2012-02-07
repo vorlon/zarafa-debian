@@ -287,7 +287,7 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 	pthread_cond_init(&g_hExitSignal, NULL);
 	g_hMainThread = pthread_self();
 
-	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting Zarafa indexer...");
+	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-indexer version " PROJECT_VERSION_INDEXER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	/*
 	 * Set the maxClauses value to something more useful
@@ -559,7 +559,7 @@ int main(int argc, char *argv[]) {
 		{ "index_max_merge_docs", "2147483647", CONFIGSETTING_RELOADABLE },
 		{ "index_term_interval", "128", CONFIGSETTING_RELOADABLE },
 		{ "index_cache_timeout", "0" },
-		{ "index_attachments", "yes", CONFIGSETTING_RELOADABLE },
+		{ "index_attachments", "no", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_max_size", "5120", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser", INDEXER_ATTACH_PARSER, CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser_max_memory", "0", CONFIGSETTING_RELOADABLE },

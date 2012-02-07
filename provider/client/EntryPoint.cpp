@@ -209,6 +209,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 	HRESULT hr = hrSuccess;
 
 	WSTransport		*lpTransport = NULL;
+	WSTransport		*lpAltTransport = NULL;
 	
 	PABEID			pABeid = NULL;
 	
@@ -222,6 +223,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 	SPropValuePtr	ptrPropValueResourceType;
 	SPropValuePtr	ptrPropValueServiceName;
 	SPropValuePtr	ptrPropValueProviderUid;
+	SPropValuePtr	ptrPropValueServerName;
 	WStringPtr		ptrStoreName;
 	std::string		strRedirServer;
 	std::string		strDefStoreServer;
@@ -339,7 +341,14 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
 			}
 			if(hr != hrSuccess) {
-				hr = MAPI_E_UNCONFIGURED;
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty delegate store
+				hr = hrSuccess;
 				goto exit;
 			}
 
@@ -355,6 +364,45 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSec
 				hr = lpTransport->HrResolveUserStore(convstring::from_SPropValue(ptrPropValueName), 0, NULL, &cbEntryId, &ptrEntryId);
 			}
 			if(hr != hrSuccess)
+				goto exit;
+		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &ZARAFA_STORE_ARCHIVE_GUID)) {
+			// We need to get the username and the server name or url from the profsect.
+			// That's enough information to get the entryid from the correct server. There's no redirect
+			// available when resolving archive stores.
+			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
+			if (hr != hrSuccess)
+				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
+			if (hr == hrSuccess) {
+				hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
+				if (hr != hrSuccess)
+					hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_A, &ptrPropValueServerName);
+				if (hr != hrSuccess) {
+					hr = MAPI_E_UNCONFIGURED;
+					goto exit;
+				}
+			}
+			if (hr != hrSuccess) {
+				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
+				// know the type of the provider and it shouldn't just delete the provider for
+				// all types of providers.
+				if(lpAdminProvider && ptrPropValueProviderUid.get())
+					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
+
+				// Invalid or empty archive store
+				hr = hrSuccess;
+				goto exit;
+			}
+
+			hr = GetTransportToNamedServer(lpTransport, ptrPropValueServerName->Value.LPSZ, (PROP_TYPE(ptrPropValueServerName->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE), &lpAltTransport);
+			if (hr != hrSuccess)
+				goto exit;
+
+			std::swap(lpTransport, lpAltTransport);
+			lpAltTransport->Release();
+			lpAltTransport = NULL;
+
+			hr = lpTransport->HrResolveTypedStore(convstring::from_SPropValue(ptrPropValueName), ECSTORE_TYPE_ARCHIVE, &cbEntryId, &ptrEntryId);
+			if (hr != hrSuccess)
 				goto exit;
 		} else {
 			ASSERT(FALSE); // unknown GUID?
@@ -521,7 +569,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	ProfSectPtr		ptrGlobalProfSect;
 	ProfSectPtr		ptrProfSect;
 	MAPISessionPtr	ptrSession;
-	SPropValuePtr	ptrProfSectProp;
 
 	WSTransport		*lpTransport = NULL;
 	LPSPropValue	lpsPropValue = NULL;
@@ -789,40 +836,45 @@ exit:
 		*lppMapiError = NULL;
 
 		if(hr != hrSuccess) {
-			// Set Error
-			strError = _T("EntryPoint: ");
-			strError += Util::HrMAPIErrorToText(hr);
+			LPTSTR lpszErrorMsg;
 
-			// Some outlook 2007 clients can't allocate memory so check it
-			if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
+			if (Util::HrMAPIErrorToText(hr, &lpszErrorMsg) == hrSuccess) {
+				// Set Error
+				strError = _T("EntryPoint: ");
+				strError += lpszErrorMsg;
+				MAPIFreeBuffer(lpszErrorMsg);
 
-				memset(lpMapiError, 0, sizeof(MAPIERROR));				
+				// Some outlook 2007 clients can't allocate memory so check it
+				if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
 
-				if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
-					std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
-					std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+					memset(lpMapiError, 0, sizeof(MAPIERROR));				
+
+					if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
+						std::wstring wstrErrorMsg = convert_to<std::wstring>(strError);
+						std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+							
+						MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError);
+						wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 						
-					MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError);
-					wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-					
-					MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent);
-					wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
-				} else {
-					std::string strErrorMsg = convert_to<std::string>(strError);
-					std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
+						MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent);
+						wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+					} else {
+						std::string strErrorMsg = convert_to<std::string>(strError);
+						std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
-					MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError);
-					strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
-					
-					MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent);
-					strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
+						MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError);
+						strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
+						
+						MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent);
+						strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());  
+					}
+				
+					lpMapiError->ulVersion = 0;
+					lpMapiError->ulLowLevelError = 0;
+					lpMapiError->ulContext = 0;
+
+					*lppMapiError = lpMapiError;
 				}
-			
-				lpMapiError->ulVersion = 0;
-				lpMapiError->ulLowLevelError = 0;
-				lpMapiError->ulContext = 0;
-
-				*lppMapiError = lpMapiError;
 			}
 		}
 	}

@@ -136,7 +136,7 @@ def UpdateDatabaseConvertSearchFolders(db, cursor, progress_callback):
     
     processed = 0    
     for result in results:
-        new_rule_data = decode_wtf1252(dbresult2string(result[2]))
+        new_rule_data = decode_wtf1252(dbresult2string(result[2])).encode('utf-8')
         cursor.execute("UPDATE properties SET val_string='%s' WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (db.escape_string(new_rule_data), result[0], result[1]))
         processed += 1
 
@@ -307,7 +307,7 @@ def UpdateDatabaseCreateTProperties(db, cursor, progress_callback):
                        `val_longint` bigint(20) default NULL,
                        `val_hi` int(11) default NULL,
                        `val_lo` int(11) unsigned default NULL,
-                       PRIMARY KEY `ht` (`folderid`,`tag`,`type`,`hierarchyid`),
+                       PRIMARY KEY `ht` (`folderid`,`tag`,`hierarchyid`,`type`),
                        KEY `hi` (`hierarchyid`)
                    ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"""
 

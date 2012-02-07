@@ -104,13 +104,29 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	}
 
 	*lppLogger = s_lpLogger;
+	
+	s_lpLogger->AddRef();
 
 	pthread_mutex_unlock(&s_hMutex);
 
 	return hr;
 }
 
+HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
+{
+	pthread_mutex_lock(&s_hMutex);
 
+	if (s_lpLogger)
+		s_lpLogger->Release();
+
+	s_lpLogger = lpLogger;
+	if (s_lpLogger)
+		s_lpLogger->AddRef();
+
+	pthread_mutex_unlock(&s_hMutex);
+
+	return hrSuccess;
+}
 
 pthread_mutex_t	ECSyncLog::s_hMutex;
 ECLogger		*ECSyncLog::s_lpLogger = NULL;
@@ -121,8 +137,12 @@ ECSyncLog::__initializer::__initializer() {
 }
 
 ECSyncLog::__initializer::~__initializer() {
-	if (ECSyncLog::s_lpLogger)
-		ECSyncLog::s_lpLogger->Release();
+	if (ECSyncLog::s_lpLogger) {
+		unsigned ulRef = ECSyncLog::s_lpLogger->Release();
+		// Make sure all references are released so compressed logs don't get corrupted.
+		while (ulRef)
+			ulRef = ECSyncLog::s_lpLogger->Release();
+	}
 
 	pthread_mutex_destroy(&ECSyncLog::s_hMutex);
 }

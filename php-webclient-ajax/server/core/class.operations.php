@@ -96,8 +96,8 @@
 		* - folder: array of folders with each an array of properties (see Operations::setFolder() for properties)
 		*
 		* @param array $properties MAPI property mapping for folders
-		* @param int $type Which stores to fetch (HIERARCHY_GET_ALL | HIERARCHY_GET_DEFAULT | HIERARCHY_GET_ONE)
-		* @param object $store Only when $type == HIERARCHY_GET_ONE
+		* @param int $type Which stores to fetch (HIERARCHY_GET_ALL | HIERARCHY_GET_DEFAULT | HIERARCHY_GET_SPECIFIC )
+		* @param object $store Only when $type == HIERARCHY_GET_SPECIFIC
 		*
 		* @return array Return structure
 		*/
@@ -114,8 +114,8 @@
 					$storelist = array($GLOBALS["mapisession"]->getDefaultMessageStore());
 					break;
 					
-				case HIERARCHY_GET_ONE:
-					$storelist = array($store);
+				case HIERARCHY_GET_SPECIFIC:
+					$storelist = (is_array($store))?$store:array($store);
 					break;
 			}
 						
@@ -125,7 +125,7 @@
 			
 			foreach($storelist as $store)
 			{
-				$msgstore_props = mapi_getprops($store, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID));
+				$msgstore_props = mapi_getprops($store, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID, PR_MAILBOX_OWNER_ENTRYID));
 				
 				$inboxProps = array();
 
@@ -140,6 +140,8 @@
 					case ZARAFA_STORE_DELEGATE_GUID:
 						$storeType = "other";
 						break;
+					case ZARAFA_STORE_ARCHIVER_GUID:
+						$storeType = 'archive';
 				}
 
 				/**
@@ -153,6 +155,7 @@
 				$storeData["attributes"] = array(	"id" => bin2hex($msgstore_props[PR_ENTRYID]), 
 													"name" => windows1252_to_utf8($msgstore_props[PR_DISPLAY_NAME]), 
 													"subtree" => bin2hex($msgstore_props[PR_IPM_SUBTREE_ENTRYID]),
+													'mailbox_owner' => bin2hex($msgstore_props[PR_MAILBOX_OWNER_ENTRYID]),
 													"type" => $storeType,
 													"foldertype" => "all"
 												);
@@ -314,8 +317,8 @@
 						} else {
 							$this->getSubFoldersPublic($folder, $store, $properties, $storeData);
 						}
+						array_push($data["store"], $storeData);
 					}
-					array_push($data["store"], $storeData);
 				}
 			}
 
@@ -1375,6 +1378,7 @@
 			$basedate = false;	// Flag for MeetingRequest Class whether to send an exception or not.
 			$isReminderTimeAllowed = true;	// Flag to check reminder minutes is in range of the occurences
 			$properties = $GLOBALS["properties"]->getAppointmentProperties();
+			$oldProps = array();
 
 			if($store && $parententryid) {
 				if(isset($action["props"])) {
@@ -1412,20 +1416,14 @@
 									// As the reminder minutes occurs before other occurences don't modify the item.
 									if($isReminderTimeAllowed){
 										if($recurrence->isException($basedate)){
-											$oldExceptionProps = $recurrence->getExceptionProperties($recurrence->getChangeException($basedate));
+											$oldProps = $recurrence->getExceptionProperties($recurrence->getChangeException($basedate));
 											$isExceptionAllowed = $recurrence->modifyException(Conversion::mapXML2MAPI($properties, $action["props"]), $basedate, $exception_recips);
-
-
-											$attach = $recurrence->getExceptionAttachment($basedate);
-											if ($attach) {
-												$exceptionMsg = mapi_attach_openobj($attach, MAPI_MODIFY);
-												$this->checkSignificantChanges($exceptionMsg, $oldExceptionProps);
-												mapi_savechanges($exceptionMsg);
-												mapi_savechanges($attach);
-											}
 										} else {
+											$oldProps[$properties['startdate']] = $recurrence->getOccurrenceStart($basedate);
+											$oldProps[$properties['duedate']] = $recurrence->getOccurrenceEnd($basedate);
 											$isExceptionAllowed = $recurrence->createException(Conversion::mapXML2MAPI($properties, $action["props"]), $basedate, false, $exception_recips);
 										}
+										mapi_savechanges($message);
 									}
 								}
 							} else {
@@ -1454,12 +1452,6 @@
 									// Act like the 'props' are the recurrence pattern; it has more information but that
 									// is ignored
 									$recur->setRecurrence($tz, $action['props']);
-
-									// Recurrence pattern has been changed, so clear all attendees response
-									$this->clearRecipientResponse($message);
-								} else {
-									// Check of significant changes, maybe we want to clear responses
-									$this->checkSignificantChanges($message, $oldProps);
 								}
 							}
 							// Get the properties of the main object of which the exception was changed, and post
@@ -1497,6 +1489,9 @@
 			if(isset($action["send"]) && $action["send"] && $isExceptionAllowed) {
 				$request = new Meetingrequest($store, $message, $GLOBALS["mapisession"]->getSession(), ENABLE_DIRECT_BOOKING);
 				$request->updateMeetingRequest($basedate);
+
+				$isRecurrenceChanged = isset($action['props']['recurring_reset']) && $action['props']['recurring_reset'] == 1;
+				$request->checkSignificantChanges($oldProps, $basedate, $isRecurrenceChanged);
 
 				// Update extra body information
 				if(isset($action['props']['meetingTimeInfo']) && strlen($action['props']['meetingTimeInfo']))
@@ -1545,44 +1540,6 @@
 			}
 
 			return $result;
-		}
-
-		/**
-		 * Checks if there has been any significant changes on appointment/meeting item.
-		 * Significant changes be:
-		 * 1) startdate has been changed
-		 * 2) duedate has been changed OR
-		 * 3) recurrence pattern has been created, modified or removed
-		 *
-		 * @param MAPI_MESSAGE $message
-		 * @param Array $oldProps old props before an update
-		 */
-		function checkSignificantChanges($message, $oldProps)
-		{
-			$properties = $GLOBALS["properties"]->getAppointmentProperties();
-			$newProps = mapi_getprops($message, array($properties['startdate'], $properties['duedate']));
-
-			if (($newProps[$properties['startdate']] != $oldProps[$properties['startdate']])
-				|| ($newProps[$properties['duedate']] != $oldProps[$properties['duedate']])) {
-
-				$this->clearRecipientResponse($message);
-			}
-			
-		}
-
-		/**
-		 * Clear responses of all attendee who have replied in past.
-		 * @param MAPI_MESSAGE $message on which responses should be cleared
-		 */
-		function clearRecipientResponse($message)
-		{
-			$recipTable = mapi_message_getrecipienttable($message);
-			$recipsRows = mapi_table_queryallrows($recipTable, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY));
-
-			foreach($recipsRows as $recipient) {
-				$recipient[PR_RECIPIENT_TRACKSTATUS] = olResponseNone;
-				mapi_message_modifyrecipients($message, MODRECIP_MODIFY, array($recipient));
-			}
 		}
 
 		/**
@@ -3219,14 +3176,17 @@
 		* @return string Folder name of specified folder
 		*/
 		function getFolderName($storeid, $folderid) {
-			$store = $GLOBALS["mapisession"]->openMessageStore($storeid);
-			if(!$store)
-				return false;
-			
-			$folder = mapi_msgstore_openentry($store, $folderid);
-			if(!$folder)
-				return false;
+			$folder = mapi_openentry($GLOBALS["mapisession"]->getSession(), $folderid, 0);
+			if (!$folder) {
+				$store = $GLOBALS["mapisession"]->openMessageStore($storeid);
+				if(!$store)
+					return false;
 				
+				$folder = mapi_msgstore_openentry($store, $folderid);
+				if(!$folder)
+					return false;
+			}
+			
 			$folderprops = mapi_getprops($folder, array(PR_DISPLAY_NAME));
 			
 			return $folderprops[PR_DISPLAY_NAME];

@@ -190,9 +190,19 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   $input = SWIG_FromCharPtrAndSize((const char *)__iid, sizeof(IID));
 }
 
+%typemap(directorin) (const void *pv, ULONG cb)
+{
+  $input = SWIG_FromCharPtrAndSize((const char *)pv, cb);
+}
+
+%typemap(directorargout) (ULONG *OUTPUT)
+{
+  *$result = PyInt_AsLong($input);
+}
+
 %typemap(directorargout) void **OUTPUT_USE_IID
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), $result, TypeFromIID(*__iid), SWIG_POINTER_DISOWN);
+  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), $result, TypeFromIID(*__iid), 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -200,9 +210,34 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorargout)	MAPICLASS *
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), (void**)$result, $*1_descriptor, SWIG_POINTER_DISOWN);
+  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), (void**)$result, $*1_descriptor, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
+  }
+
+  /**
+   * MAGIC ALERT
+   *
+   * We use a referencing system in which the director object (the c++ interface) forwards
+   * all addref() and release() calls to the python object, and the python object remains
+   * the owner of the c++ director object; this means that when the python object gets to a refcount
+   * of 0, it will clean up the c++ director object just like any other SWIGged object. However,
+   * when this bit of code is invoked, it means that we are outputting an object from a director method
+   * back to c++. When the object we are returning is a director object itself, this means that there are
+   * now TWO references to the object: from python AND from C++ (since you should always return refcount 1
+   * objects to c++). Since normally the object created will have a refcount of 1 (from python) we have
+   * to increment the refcount when it is a director object.
+   *
+   * To put it a different way, although the object always had a c++ part, it was not referenced from c++
+   * until we returned it to the realm of c++ from here, so we have to addref it now.
+   *
+   * For non-director objects, we will just have a reference to a c++-only interface here, so no special
+   * handling is needed since the refcount will be correct already.
+   */
+
+  if(dynamic_cast<Swig::Director *>(*$result) != NULL) {
+	IUnknown *lpUnk = dynamic_cast<IUnknown *>(*$result);
+	lpUnk->AddRef();
   }
 }
 

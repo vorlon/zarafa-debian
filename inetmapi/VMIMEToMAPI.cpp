@@ -1644,6 +1644,14 @@ HRESULT VMIMEToMAPI::disectBody(vmime::ref<vmime::header> vmHeader, vmime::ref<v
 		// find body type
 		if (mt->getType() == "multipart") {
 			if (vmBody->getPartCount() > 0) {
+				/*
+				 * reset selected states:
+				 * - new multipart, so disable append mode (bmixed)
+				 * - new bodyLevel: if we previously had written any body (mixed or alternative),
+				 *   this multipart _may_ override this current body
+				 */
+				bMixed = false;
+				m_mailState.bodyLevel = BODY_NONE;
 				if (mt->getSubType() == "appledouble")
 					bFilterDouble = true;
 				else if (mt->getSubType() == "mixed")
@@ -1974,8 +1982,8 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 			}
 
 			if (HrGetCPByCharset(bodyCharset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess) {
-				// we have no matching win32 codepage, so choose iso-8859-15
-				sCodepage.Value.ul = 28605;
+				// we have no matching win32 codepage, so convert the HTML from plaintext in utf-8 for compatibility.
+				sCodepage.Value.ul = 65001;
 			}
 			sCodepage.ulPropTag = PR_INTERNET_CPID;
 			HrSetOneProp(lpMessage, &sCodepage);
@@ -2094,8 +2102,10 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			
 			// write codepage for PR_HTML property
 			if (HrGetCPByCharset(bodyCharset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess) {
-				// we have no matching win32 codepage, so choose iso-8859-15
-				sCodepage.Value.ul = 28605;
+				// we have no matching win32 codepage, so choose utf-8 and convert body using iconv, (note: HTML is already "charset-sanitized", should not throw error here)
+				sCodepage.Value.ul = 65001;
+				strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				lpLogger->Log(EC_LOGLEVEL_INFO, "Changing HTML charset to UTF-8 for compatibility");
 			}
 			sCodepage.ulPropTag = PR_INTERNET_CPID;
 			HrSetOneProp(lpMessage, &sCodepage);
@@ -2117,7 +2127,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		}
 
 		// create new or reset body
-		if (m_mailState.bodyLevel < BODY_HTML || !bAppendBody)
+		if (m_mailState.bodyLevel == BODY_NONE || (m_mailState.bodyLevel < BODY_HTML && !bAppendBody))
 			ulFlags |= MAPI_CREATE;
 
 		hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpHTMLStream);
@@ -2284,8 +2294,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 		if (cdf->hasParameter("filename")) {
 			strLongFilename = getWideFromVmimeText(vmime::text(cdf->getFilename()));
 		} else if (ctf->hasParameter("name")) {
-			strTmp = ctf->getParameter("name")->getValue().generate();
-			strLongFilename = m_converter.convert_to<wstring>(strTmp, rawsize(strTmp), MAPI_CHARSET_STRING);
+			strLongFilename = getWideFromVmimeText(vmime::text(ctf->getParameter("name")->getValue()));
 		} else if (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT &&
 				   ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == "calendar") {
 			strLongFilename = L"calendar.ics";
@@ -2365,8 +2374,9 @@ namespace charsetHelper {
 		const char *original;
 		const char *update;
 	} fixes[] = {
-		{"gb2312", "gb18030"},		// gb18030 is an extended version of gb2312
-		{"ks_c_5601-1987", "cp949"}	// cp949 is euc-kr with UHC extensions
+		{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
+		{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
+		{"iso-8859-8-i", "iso-8859-8"}	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
 	};
 }
 vmime::charset VMIMEToMAPI::getCompatibleCharset(const vmime::charset &vmCharset)

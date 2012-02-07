@@ -64,7 +64,7 @@ class ECChangeAdviseSink : public IECChangeAdviseSink {
 public:
 	ECChangeAdviseSink(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~ECChangeAdviseSink() { self->Release(); }
+		virtual ~ECChangeAdviseSink() { delete self; }
 	}
 };
 
@@ -74,7 +74,7 @@ class ECImportContentsChanges : public IECImportContentsChanges {
 public:
 	ECImportContentsChanges(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
-		virtual ~ECImportContentsChanges() { self->Release(); }
+		virtual ~ECImportContentsChanges() { delete self; }
 	}
 };
 

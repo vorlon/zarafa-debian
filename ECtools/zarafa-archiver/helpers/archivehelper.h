@@ -59,6 +59,7 @@
 #include <mapi_ptr.h>
 
 #include "archiver-session_fwd.h"
+#include "tstring.h"
 
 class ECLogger;
 
@@ -73,6 +74,11 @@ enum ArchiveType {
 	MultiArchive = 2
 };
 
+enum AttachType {
+	ExplicitAttach = 0,
+	ImplicitAttach = 1
+};
+
 /**
  * The ArchiveHelper class is a utility class that operates on a message store that's used as
  * an archive.
@@ -80,34 +86,35 @@ enum ArchiveType {
 class ArchiveHelper
 {
 public:
-	static HRESULT Create(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
-	static HRESULT Create(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
 	static HRESULT Create(SessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
 	~ArchiveHelper();
 	
-	HRESULT GetAttachedUser(entryid_t *lpsUserEntryId);
-	HRESULT SetAttachedUser(const entryid_t &sUserEntryId);
-	HRESULT GetArchiveEntry(SObjectEntry *lpsObjectEntry);
+	HRESULT GetAttachedUser(abentryid_t *lpsUserEntryId);
+	HRESULT SetAttachedUser(const abentryid_t &sUserEntryId);
+	HRESULT GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry);
 
-	HRESULT GetArchiveType(ArchiveType *lpaType);
-	HRESULT SetArchiveType(ArchiveType aType);
+	HRESULT GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType);
+	HRESULT SetArchiveType(ArchiveType archType, AttachType attachType);
 	
-	HRESULT SetPermissions(const entryid_t &sUserEntryId, bool bWritable);
+	HRESULT SetPermissions(const abentryid_t &sUserEntryId, bool bWritable);
 	
 	HRESULT GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, SessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
 	HRESULT GetDeletedItemsFolder(LPMAPIFOLDER *lppOutgoingFolder);
 
-	HRESULT GetArchiveFolder(LPMAPIFOLDER *lppArchiveFolder);
+	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
+	HRESULT IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult);
 
 	MsgStorePtr GetMsgStore() const { return m_ptrArchiveStore; }
 
 	HRESULT PrepareForFirstUse(ECLogger *lpLogger = NULL);
 
 private:
-	ArchiveHelper(MsgStorePtr &ptrArchiveStore, const std::string &strFolder, const std::string &strServerPath);
-	ArchiveHelper(MsgStorePtr &ptrArchiveStore, MAPIFolderPtr &ptrArchiveFolder, const std::string &strServerPath);
+	ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath);
+	ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath);
 	HRESULT Init();
 
 	enum eSpecFolder {
@@ -116,18 +123,22 @@ private:
 		sfOutgoing = 2,		//< The outgoing folder, which is a child of the special root
 		sfDeleted = 3		//< The deleted items folder, which is a child of the special root
 	};
+	HRESULT GetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	HRESULT SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntryID, LPENTRYID lpEntryID);
 	HRESULT GetSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder);
 	HRESULT CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lppSpecialFolder);
+	HRESULT IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolder, bool *lpbResult);
 
 private:
 	MsgStorePtr	m_ptrArchiveStore;
 	MAPIFolderPtr m_ptrArchiveFolder;
-	std::string	m_strFolder;
+	tstring	m_strFolder;
 	const std::string m_strServerPath;
 	
 	PROPMAP_START
 	PROPMAP_DEF_NAMED_ID(ATTACHED_USER_ENTRYID)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_TYPE)
+	PROPMAP_DEF_NAMED_ID(ATTACH_TYPE)
 	PROPMAP_DEF_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS)
 };
 

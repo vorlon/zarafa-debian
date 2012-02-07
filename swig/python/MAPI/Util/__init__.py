@@ -1,9 +1,14 @@
 # -*- indent-tabs-mode: nil -*-
 
+import random
+
+# MAPI stuff
 from MAPI.Defs import *
 from MAPI.Tags import *
 from MAPI.Struct import *
-import random
+
+# For backward compatibility
+from AddressBook import GetUserList
 
 # flags = 1 == EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 def OpenECSession(user, password, path, **keywords):
@@ -64,17 +69,3 @@ def GetPublicStore(session):
     for row in rows:
         if(row[0].ulPropTag == PR_MDB_PROVIDER and row[0].Value == ZARAFA_STORE_PUBLIC_GUID):
             return session.OpenMsgStore(0, row[1].Value, None, MDB_WRITE)
-
-def GetUserList(session):
-    users = []
-    ab = session.OpenAddressBook(0, None, 0)
-    gab = ab.OpenEntry(ab.GetDefaultDir(), None, 0)
-    table = gab.GetContentsTable(0)
-    table.SetColumns([MAPI.Tags.PR_EMAIL_ADDRESS], MAPI.TBL_BATCH)
-    while True:
-        rows = table.QueryRows(50, 0)
-        if len(rows) == 0:
-            break
-        [users.append(row[0].Value) for row in rows]
-    return users
-   

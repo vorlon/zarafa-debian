@@ -51,6 +51,7 @@
 #define SOAPUTILS_H
 
 #include "soapH.h"
+#include "SOAPAlloc.h"
 #include "ZarafaCode.h"
 #include "ZarafaUser.h"
 #include "ustringutil.h"
@@ -142,28 +143,6 @@ unsigned int EntryIdSize(entryId *lpEntryid);
 unsigned int NotificationStructSize(notification *lpNotification);
 unsigned int PropTagArraySize(struct propTagArray *pPropTagArray);
 unsigned int SortOrderArraySize(struct sortOrderArray *lpsSortOrder);
-
-// The automatic soap/non-soap allocator
-template<typename Type>
-Type* s_alloc(struct soap *soap, size_t size) {
-    if(soap == NULL) {
-		return (Type*)new Type[size];
-	} else {
-		return (Type*)soap_malloc(soap, sizeof(Type) * size);
-	}
-}
-
-template<typename Type>
-Type* s_alloc(struct soap *soap) {
-    if(soap == NULL) {
-		return (Type*)new Type;
-	} else {
-		return (Type*)soap_malloc(soap, sizeof(Type));
-	}
-}
-
-char *s_strcpy(struct soap *soap, const char *str);
-char *s_memcpy(struct soap *soap, const char *str, unsigned int len);
 
 class DynamicPropValArray {
 public:

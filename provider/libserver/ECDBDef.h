@@ -60,6 +60,7 @@
  * abchanges         | All addressbook changes
  * acl               | User permission objects
  * changes           | Object changes
+ * clientupdatestatus| Update status of the zarafa client, only used with auto updater
  * hierarchy         | The hiearchy between the mapi objects
  * indexedproperties | Mapi object entryid and sourcekey
  * lob               | Attachment data. Only when the setting attachment in database is enabled
@@ -192,11 +193,12 @@
 										`id` int(11) unsigned NOT NULL auto_increment, \
 										`hierarchy_id` int(11) unsigned NOT NULL default '0', \
 										`user_id` int(11) unsigned NOT NULL default '0', \
+										`type` smallint(6) unsigned NOT NULL default '0', \
 										`user_name` varchar(255) CHARACTER SET utf8 NOT NULL default '', \
 										`company` int(11) unsigned NOT NULL default '0', \
 										`guid` blob NOT NULL, \
-										PRIMARY KEY  (`id`), \
-										UNIQUE KEY `user_hierarchy_id` (`user_id`, `hierarchy_id`) \
+										PRIMARY KEY  (`user_id`, `hierarchy_id`, `type`), \
+										UNIQUE KEY `id` (`id`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_USERS			"CREATE TABLE `users` ( \
@@ -335,6 +337,18 @@
 										PRIMARY KEY  (`name`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
+#define Z_TABLEDEF_CLIENTUPDATESTATUS "CREATE TABLE clientupdatestatus ( \
+										`userid` int(11) unsigned NOT NULL, \
+										`trackid` int(11) unsigned NOT NULL, \
+										`updatetime` DATETIME NOT NULL, \
+										`currentversion` varchar(50) binary NOT NULL, \
+										`latestversion` varchar(50) binary NOT NULL, \
+										`computername` varchar(255) binary NOT NULL, \
+										`status` int(11) unsigned NOT NULL, \
+										PRIMARY KEY (`userid`), \
+										UNIQUE KEY (`trackid`) \
+										)  ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
+
 // Default mysql table data
 #define Z_TABLEDATA_ACL				"INSERT INTO `acl` VALUES (2, 2, 2, 1531), \
 										(2, 1, 2, 1531), \
@@ -349,7 +363,7 @@
 										(1, 12289, 30, NULL, 'Admin store', NULL, NULL, NULL, NULL, NULL, false), \
 										(2, 12289, 30, NULL, 'root Admin store', NULL, NULL, NULL, NULL, NULL, false);"
 
-#define Z_TABLEDATA_STORES			"INSERT INTO `stores` VALUES (1, 1, 2, 'SYSTEM', 0, 0x8962ffeffb7b4d639bc5967c4bb58234);"
+#define Z_TABLEDATA_STORES			"INSERT INTO `stores` VALUES (1, 1, 2, 0, 'SYSTEM', 0, 0x8962ffeffb7b4d639bc5967c4bb58234);"
 
 //1=ZARAFA_UID_EVERYONE, 0x30002=DISTLIST_SECURITY
 //2=ZARAFA_UID_SYSTEM, 0x10001=ACTIVE_USER
@@ -424,12 +438,15 @@
 #define Z_UPDATE_CONVERT_CHANGES				57
 #define Z_UPDATE_CONVERT_NAMES					58
 #define Z_UPDATE_CONVERT_RF_TOUNICODE			59
+#define Z_UPDATE_CREATE_CLIENTUPDATE_TABLE		60
+#define Z_UPDATE_CONVERT_STORES					61
+#define Z_UPDATE_UPDATE_STORES					62
 
 // This is the update ID of a release so never change 
 // this in a release version
 #define Z_UPDATE_RELEASE_ID						59
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST							59
+#define Z_UPDATE_LAST							62
 
 #endif

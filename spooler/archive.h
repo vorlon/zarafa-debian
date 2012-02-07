@@ -54,7 +54,10 @@
 #include <mapix.h>
 
 #include "mapi_ptr.h"
+#include "tstring.h"
+
 #include <list>
+#include <memory>
 
 class ECLogger;
 
@@ -68,7 +71,33 @@ private:
 };
 
 
-HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage, ECLogger *lpLogger);
-HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage, ECLogger *lpLogger, ArchiveResult *lpResult);
+class Archive;
+typedef std::auto_ptr<Archive> ArchivePtr;
+
+class Archive {
+public:
+	static HRESULT Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive);
+	~Archive();
+
+	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage);
+	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult);
+
+	bool HaveErrorMessage() const { return !m_strErrorMessage.empty(); }
+	LPCTSTR GetErrorMessage() const { return m_strErrorMessage.c_str(); }
+
+private:
+	Archive(IMAPISession *lpSession, ECLogger *lpLogger);
+	void SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage);
+
+	// Inhibit copying
+	Archive(const Archive&);
+	Archive& operator=(const Archive&);
+
+private:
+	MAPISessionPtr	m_ptrSession;
+	ECLogger		*m_lpLogger;
+	tstring			m_strErrorMessage;
+};
+
 
 #endif // ndef __DAGENT_ARCHIVE_H

@@ -66,8 +66,6 @@ distlistmodule.prototype.init = function(id, element, title, data)
 {
 	distlistmodule.superclass.init.call(this, id, element, title, data, "internalid");
 
-	delete this.events["row"]["dblclick"]; // FIXME: add windows to show addressbook items, until then you can't open a item from the distlist
-
 	this.initializeView();
 
 	this.action = "list";
@@ -80,7 +78,7 @@ distlistmodule.prototype.init = function(id, element, title, data)
 	dhtml.addEvent(id, document.body, "click", eventListRemoveContextMessage);
 
 	// this.members contains list of distlist members with the following properties: 
-	//					address, distlisttype, entryid, icon_index, internalid, message_flags, name, type
+	// address, distlisttype, entryid, icon_index, internalid, message_flags, name, type
 
 	this.members = new Array();
 	this.newInternalId = 1;
@@ -337,7 +335,7 @@ distlistmodule.prototype.checkMissing = function()
 				delete member.missing;
 				delete member.message_class;
 				member.entryid.value = "oneoff_"+member.internalid.value;
-				member.distlisttype.value = "ONEOFF";
+				member.distlisttype = {value: "ONEOFF"};
 			}
 		}
 	}
@@ -354,7 +352,7 @@ distlistmodule.prototype.addItem = function(item)
 	else
 		member.address = {value: item.email_address};
 	member.message_flags = {value: 1};
-	this.newInternalId++;
+
 	if (item.entryid){
 		member.entryid = {value: item.entryid, attributes: {type: "binary"} };
 		if (item.objecttype && item.objecttype == MAPI_DISTLIST){
@@ -391,13 +389,104 @@ distlistmodule.prototype.addItem = function(item)
 
 	member.name = {value: item.display_name};
 	member.type = {value: item.addrtype};
-	member.internalid = {value: this.newInternalId};
 
-	this.members.push(member);
-	
+	if(typeof item["internalId"] == "undefined") {
+		this.newInternalId++;
+		member.internalid = {value: this.newInternalId};
+		this.members.push(member);
+	} else {
+		member.internalid = {value: item.internalId};
+		var memberId = this.getMemberIdByInternalId(item.internalId);
+		this.members[memberId] = member;
+	}
+
 	var dom = buildDOM(member, "item");
 
 	distlistmodule.superclass.execute.call(this, "item", dom);
+}
+
+/** 
+ * Opens the entry based on the supplied internalId which is uniqueid for this module. The messageClass is only needed when calling the 
+ * openDetails method.
+ * @param internalId String uniqueid for the entry that has to be opened
+ * @param messageClass String Message class of the entry based on the CSS classname 
+ */
+distlistmodule.prototype.onOpenItem = function(internalId, messageClass) {
+	this.openDetails(internalId, messageClass);
+	return false;
+}
+
+/** 
+ * Opens the entry based on the supplied internalId i.e. uniqueid. The messageClass is only needed when the object 
+ * type of the entry is a MAPI_MESSAGE. In that case the superlclass' onOpenItem is called to handle
+ * according to the default behavior. The Message class is usually based on the CSS class name and
+ * will be used to determine the type of dialog that has to be opened.
+ * @param internalId internal String Entryid of the entry distlistmodule has its own uniqueId
+ * that is internalId, which denotes to the specific item in the itemProps data.
+ * @param messageClass String Message class of the entry based on the CSS classname 
+ */
+distlistmodule.prototype.openDetails = function(internalId, messageClass) {
+	var memberId = this.getMemberIdByInternalId(internalId);
+	var distlisttype = this.members[memberId].distlisttype.value;
+
+	if (this.members[memberId].missing && this.members[memberId].missing.value == 1){
+		if (confirm(_("Could not find Contact '%s'. It may have been deleted or moved from its original location. Would you like to remove it from this list?").sprintf(this.members[memberId].name.value))){
+			// Remove missing contact from the list.
+			var items = new Array();
+			items.push(this.members[memberId].internalid.value);
+			this.removeItems(items);
+			return;
+		}else{
+			// Replace missing entry as oneoff entry.
+			var member = this.members[memberId];
+
+			delete member.missing;
+			delete member.message_class;
+			member.entryid.value = "oneoff_"+member.internalid.value;
+			member.distlisttype.value = "ONEOFF";
+			distlisttype = "ONEOFF";
+		}
+	}
+
+	var entryid = this.members[memberId].entryid.value;
+
+	switch(distlisttype){
+		case "DL_USER_AB":
+			var uri = DIALOG_URL+"task=gab_detail_mailuser_standard&storeid=" + this.storeid + "&entryid=" + this.members[memberId].entryid.value;
+			webclient.openWindow(this, "gab_detail", uri, FIXEDSETTINGS.ABITEM_DIALOG_MAILUSER_WIDTH, FIXEDSETTINGS.ABITEM_DIALOG_MAILUSER_HEIGHT);
+			break;
+		case "DL_DIST_AB":
+			var uri = DIALOG_URL+"task=gab_detail_distlist_standard&storeid=" + this.storeid + "&entryid=" + this.members[memberId].entryid.value;
+			webclient.openWindow(this, "gab_detail", uri, FIXEDSETTINGS.ABITEM_DIALOG_DISTLIST_WIDTH, FIXEDSETTINGS.ABITEM_DIALOG_DISTLIST_HEIGHT);
+			break;
+		case "DL_DIST":
+		case "DL_USER":
+		case "DL_USER2":
+		case "DL_USER3":
+			// If it is a normal item then open dialog and show item there.
+			this.openItem(internalId, messageClass);
+			break;
+		case "ONEOFF":
+			// Open emailaddress dialog for oneoff entryids
+			webclient.openModalDialog(-1, 'addemail', DIALOG_URL+'task=emailaddress_modal&internalid='+internalId, 300,150, distlist_addNewCallback);
+			break;
+	}
+}
+
+/**
+* Function to open MAPI_MESSAGE in dialog
+*
+* @param internalId String uniqueid for the entry that has to be opened
+* @param message_type is the type of message "distlist" or "contact"
+* (usally a part of the message_class)
+*/
+distlistmodule.prototype.openItem = function(internalId, message_type)
+{
+	var memberId = this.getMemberIdByInternalId(internalId);
+	var entryid = this.members[memberId].entryid.value;
+
+	var uri = DIALOG_URL+"task=" + message_type + "_standard&storeid=" + this.storeid + "&parententryid=" + this.entryid + "&entryid=" + entryid;
+	webclient.openWindow(this, message_type, uri);
 }
 
 function eventDistListDelete(moduleObject, element, event)

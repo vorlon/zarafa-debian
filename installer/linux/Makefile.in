@@ -38,12 +38,14 @@ host_triplet = @host@
 @OSS_ONLY_FALSE@am__append_3 = zarafa-licensed.init.rhel
 @OSS_ONLY_FALSE@am__append_4 = zarafa-licensed.init.suse
 @OSS_ONLY_FALSE@am__append_5 = zarafa-licensed.init.cbs4
+@OSS_ONLY_FALSE@am__append_6 = zarafa-licensed.init.alt
 subdir = installer/linux
 DIST_COMMON = $(am__dist_data_config_DATA_DIST) \
 	$(am__dist_sysconf_cert_DATA_DIST) \
 	$(am__dist_sysconf_config_DATA_DIST) $(dist_bin_SCRIPTS) \
-	$(dist_data_DATA) $(dist_sysconf_rotate_DATA) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+	$(dist_data_DATA) $(dist_sysconf_cron_SCRIPTS) \
+	$(dist_sysconf_rotate_DATA) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
 	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
@@ -53,15 +55,17 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconf_initdir)" \
-	"$(DESTDIR)$(datadir)" "$(DESTDIR)$(data_configdir)" \
-	"$(DESTDIR)$(sysconf_certdir)" \
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconf_crondir)" \
+	"$(DESTDIR)$(sysconf_initdir)" "$(DESTDIR)$(datadir)" \
+	"$(DESTDIR)$(data_configdir)" "$(DESTDIR)$(sysconf_certdir)" \
 	"$(DESTDIR)$(sysconf_configdir)" \
 	"$(DESTDIR)$(sysconf_rotatedir)" \
 	"$(DESTDIR)$(sysconf_sysconfigdir)"
 dist_binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
+dist_sysconf_cronSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 sysconf_initSCRIPT_INSTALL = $(INSTALL_SCRIPT)
-SCRIPTS = $(dist_bin_SCRIPTS) $(sysconf_init_SCRIPTS)
+SCRIPTS = $(dist_bin_SCRIPTS) $(dist_sysconf_cron_SCRIPTS) \
+	$(sysconf_init_SCRIPTS)
 SOURCES =
 DIST_SOURCES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -297,9 +301,14 @@ cbs4_initscript_files = zarafa-server.init.cbs4 \
 	zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 \
 	zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4 \
 	$(am__append_5)
+alt_initscript_files = zarafa-server.init.alt zarafa-spooler.init.alt \
+	zarafa-gateway.init.alt zarafa-monitor.init.alt \
+	zarafa-ical.init.alt zarafa-dagent.init.alt \
+	zarafa-indexer.init.alt $(am__append_6)
 rhel_sysconfig_files = sysconfig.rhel
 suse_sysconfig_files = sysconfig.suse
 sles_sysconfig_files = ${suse_sysconfig_files}
+alt_sysconfig_files = sysconfig.alt
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files}
 sysconf_configdir = ${sysconfdir}/zarafa
@@ -311,6 +320,7 @@ suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
 sysconf_sysconfig_DATA = ${@DISTRO@_sysconfig_files}
+alt_sysconfig_path = ${sysconfdir}/sysconfig
 dist_data_DATA = \
 	db-convert-4.1-to-4.2 db-convert-4.20-to-4.21 db-convert-4.20-to-innodb.sql db-calc-storesize db-convert-attachments-to-files \
 	createuser.dotforward db-convert-4.2x-to-5.00 ssl-certificates.sh db-upgrade-objectsid-to-objectguid.pl ldap-switch-sendas.pl \
@@ -321,11 +331,13 @@ BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg \
 dist_bin_SCRIPTS = zarafa-autorespond zarafa-mr-accept
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = zarafa.logrotate
+sysconf_crondir = ${sysconfdir}/cron.daily
+dist_sysconf_cron_SCRIPTS = zarafa-client-update.cron
 sysconf_certdir = ${sysconfdir}/zarafa/report-ca
 @OSS_ONLY_FALSE@dist_sysconf_cert_DATA = addtrust.crt
 EXTRA_DIST = $(BUILT_SOURCES) ldap.m4 \
-	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
-	$(rhel_sysconfig_files) $(suse_sysconfig_files)
+	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
+	$(rhel_sysconfig_files) $(suse_sysconfig_files) $(alt_sysconfig_files)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -378,6 +390,25 @@ uninstall-dist_binSCRIPTS:
 	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
 	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	done
+install-dist_sysconf_cronSCRIPTS: $(dist_sysconf_cron_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(sysconf_crondir)" || $(MKDIR_P) "$(DESTDIR)$(sysconf_crondir)"
+	@list='$(dist_sysconf_cron_SCRIPTS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f $$d$$p; then \
+	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	    echo " $(dist_sysconf_cronSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(sysconf_crondir)/$$f'"; \
+	    $(dist_sysconf_cronSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(sysconf_crondir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-dist_sysconf_cronSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_sysconf_cron_SCRIPTS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	  echo " rm -f '$(DESTDIR)$(sysconf_crondir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(sysconf_crondir)/$$f"; \
 	done
 install-sysconf_initSCRIPTS: $(sysconf_init_SCRIPTS)
 	@$(NORMAL_INSTALL)
@@ -544,7 +575,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(SCRIPTS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconf_initdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(data_configdir)" "$(DESTDIR)$(sysconf_certdir)" "$(DESTDIR)$(sysconf_configdir)" "$(DESTDIR)$(sysconf_rotatedir)" "$(DESTDIR)$(sysconf_sysconfigdir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconf_crondir)" "$(DESTDIR)$(sysconf_initdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(data_configdir)" "$(DESTDIR)$(sysconf_certdir)" "$(DESTDIR)$(sysconf_configdir)" "$(DESTDIR)$(sysconf_rotatedir)" "$(DESTDIR)$(sysconf_sysconfigdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -593,6 +624,7 @@ info-am:
 
 install-data-am: install-dist_dataDATA install-dist_data_configDATA \
 	install-dist_sysconf_certDATA install-dist_sysconf_configDATA \
+	install-dist_sysconf_cronSCRIPTS \
 	install-dist_sysconf_rotateDATA install-sysconf_initSCRIPTS \
 	install-sysconf_sysconfigDATA
 	@$(NORMAL_INSTALL)
@@ -633,6 +665,7 @@ ps-am:
 uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_dataDATA \
 	uninstall-dist_data_configDATA uninstall-dist_sysconf_certDATA \
 	uninstall-dist_sysconf_configDATA \
+	uninstall-dist_sysconf_cronSCRIPTS \
 	uninstall-dist_sysconf_rotateDATA \
 	uninstall-sysconf_initSCRIPTS uninstall-sysconf_sysconfigDATA
 
@@ -645,6 +678,7 @@ uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_dataDATA \
 	install-dist_binSCRIPTS install-dist_dataDATA \
 	install-dist_data_configDATA install-dist_sysconf_certDATA \
 	install-dist_sysconf_configDATA \
+	install-dist_sysconf_cronSCRIPTS \
 	install-dist_sysconf_rotateDATA install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
@@ -656,6 +690,7 @@ uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_dataDATA \
 	uninstall-dist_binSCRIPTS uninstall-dist_dataDATA \
 	uninstall-dist_data_configDATA uninstall-dist_sysconf_certDATA \
 	uninstall-dist_sysconf_configDATA \
+	uninstall-dist_sysconf_cronSCRIPTS \
 	uninstall-dist_sysconf_rotateDATA \
 	uninstall-sysconf_initSCRIPTS uninstall-sysconf_sysconfigDATA
 
@@ -678,9 +713,12 @@ install-data-hook:
 	for f in ${DESTDIR}/${sysconf_rotatedir}/*.logrotate; do \
 		mv $$f $${f%.logrotate}; \
 	done
+	for f in ${DESTDIR}/${sysconf_crondir}/*.cron; do \
+		mv $$f $${f%.cron}; \
+	done
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.suse ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.zarafa || true; \
-	elif test ${DISTRO} = "rhel"; then \
+	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.${DISTRO} ${DESTDIR}${sysconf_sysconfigdir}/zarafa || true; \
 	else \
 		true; \

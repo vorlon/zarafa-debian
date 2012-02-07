@@ -66,6 +66,7 @@
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECLockManager.h"
+#include "ZarafaCmdUtil.h"	// for GetStoreType (seems to be a bit misplaced)
 
 #include <edkmdb.h>
 
@@ -239,8 +240,8 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_INSTANCE_KEY):
 		case PROP_ID(PR_RECORD_KEY):
 		case PROP_ID(PR_OBJECT_TYPE):
-		case PROP_ID(PR_CONTENT_COUNT):
-		case PROP_ID(PR_CONTENT_UNREAD):
+		case PROP_ID(PR_SOURCE_KEY):
+		case PROP_ID(PR_PARENT_SOURCE_KEY):
 		case PROP_ID(PR_RIGHTS):
 		case PROP_ID(PR_ACCESS_LEVEL):
 		case PROP_ID(PR_ACCESS):
@@ -254,6 +255,12 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
     			er = erSuccess;
             else
                 er = ZARAFA_E_NOT_FOUND;
+			break;
+		case PROP_ID(PR_CONTENT_COUNT):
+			if (ulObjType == MAPI_MESSAGE)
+				er = erSuccess;
+			else
+				er = ZARAFA_E_NOT_FOUND;
 			break;
         default:
             er = ZARAFA_E_NOT_FOUND;
@@ -389,6 +396,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 	unsigned int	ulFlags = 0;
 	unsigned int	ulUserId = 0;
 	char*			lpStoreName = NULL;
+	struct propVal	sPropVal = {0};
 
 	struct propValArray sPropValArray = {0, 0};
 	struct propTagArray sPropTagArray = {0, 0};
@@ -427,13 +435,13 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;
 			}
-			lpPropVal->ulPropTag = ulPropTag;
+			sPropVal.ulPropTag = ulPropTag;
 
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.__union = SOAP_UNION_propValData_bin;
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 
-			lpPropVal->Value.bin->__ptr = sEntryId.__ptr;
-			lpPropVal->Value.bin->__size = sEntryId.__size;
+			sPropVal.Value.bin->__ptr = sEntryId.__ptr;
+			sPropVal.Value.bin->__size = sEntryId.__size;
 
 			break;
 		}
@@ -446,12 +454,12 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			if(	lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
 			{
-				lpPropVal->__union = sPropValArray.__ptr[0].__union;
-				lpPropVal->ulPropTag = PR_USER_ENTRYID;
-				lpPropVal->Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
+				sPropVal.__union = sPropValArray.__ptr[0].__union;
+				sPropVal.ulPropTag = PR_USER_ENTRYID;
+				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin; // memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_USER_NAME):
@@ -463,28 +471,35 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			if(	lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT)
 			{
-				lpPropVal->__union = sPropValArray.__ptr[0].__union;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_USER_NAME, (PROP_TYPE(ulPropTag)));
-				lpPropVal->Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
+				sPropVal.__union = sPropValArray.__ptr[0].__union;
+				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_USER_NAME, (PROP_TYPE(ulPropTag)));
+				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA;// memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_DISPLAY_NAME):
+		{
+			unsigned int ulStoreType = 0;
+
 			if(ulObjType != MAPI_STORE) {
 			    er = ZARAFA_E_NOT_FOUND;
 			    goto exit;
 	        }
-        
-			er = GetStoreName(soap, lpSession, ulObjId, &lpStoreName);
-			if(er != erSuccess)
-				break;
-		
-			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
-			lpPropVal->Value.lpszA = lpStoreName;
 
+			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			if (er != erSuccess)
+				goto exit;
+        
+			er = GetStoreName(soap, lpSession, ulObjId, ulStoreType, &lpStoreName);
+			if(er != erSuccess)
+				goto exit;
+		
+			sPropVal.__union = SOAP_UNION_propValData_lpszA;
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, (PROP_TYPE(ulPropTag)));
+			sPropVal.Value.lpszA = lpStoreName;
+		}
 		break;
 		case PROP_ID(PR_MAILBOX_OWNER_NAME):
 			sPropTagArray.__ptr = new unsigned int[1];
@@ -495,12 +510,12 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_DISPLAY_NAME)
 			{
-				lpPropVal->__union = sPropValArray.__ptr[0].__union;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_MAILBOX_OWNER_NAME, (PROP_TYPE(ulPropTag)));
-				lpPropVal->Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+				sPropVal.__union = sPropValArray.__ptr[0].__union;
+				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_MAILBOX_OWNER_NAME, (PROP_TYPE(ulPropTag)));
+				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 		break;
 		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
@@ -512,12 +527,12 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ENTRYID)
 			{
-				lpPropVal->__union = sPropValArray.__ptr[0].__union;
-				lpPropVal->ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
-				lpPropVal->Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
+				sPropVal.__union = sPropValArray.__ptr[0].__union;
+				sPropVal.ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
+				sPropVal.Value.bin = sPropValArray.__ptr[0].Value.bin;// memory is allocated in GetUserData(..)
 			}else{
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
 		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
@@ -529,71 +544,78 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray) == erSuccess &&
 				sPropValArray.__ptr && sPropValArray.__ptr[0].ulPropTag == PR_ACCOUNT) {
 
-				lpPropVal->__union = sPropValArray.__ptr[0].__union;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
-				lpPropVal->Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
+				sPropVal.__union = sPropValArray.__ptr[0].__union;
+				sPropVal.ulPropTag = CHANGE_PROP_TYPE(PR_EC_MAILBOX_OWNER_ACCOUNT, (PROP_TYPE(ulPropTag)));
+				sPropVal.Value.lpszA = sPropValArray.__ptr[0].Value.lpszA; // memory is allocated in GetUserData(..)
 			} else {
 				er = ZARAFA_E_NOT_FOUND;
-				break;
+				goto exit;
 			}
 			break;
         case PROP_ID(PR_EC_HIERARCHYID):
-			lpPropVal->ulPropTag = ulPropTag;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			sPropVal.ulPropTag = ulPropTag;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
 			
-			lpPropVal->Value.ul = ulObjId;
+			sPropVal.Value.ul = ulObjId;
             break;
 		case PROP_ID(PR_INSTANCE_KEY):
-			lpPropVal->ulPropTag = ulPropTag;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
+			sPropVal.ulPropTag = ulPropTag;
+			sPropVal.__union = SOAP_UNION_propValData_bin;
 			
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG)*2);
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG)*2);
 			
-			lpPropVal->Value.bin->__size = sizeof(ULONG)*2;
-			memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
-			memcpy(lpPropVal->Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
+			sPropVal.Value.bin->__size = sizeof(ULONG)*2;
+			memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
+			memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
 			break;
 		case PROP_ID(PR_RECORD_KEY):
-			lpPropVal->ulPropTag = ulPropTag;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
+			sPropVal.ulPropTag = ulPropTag;
+			sPropVal.__union = SOAP_UNION_propValData_bin;
 			
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
 			
-			lpPropVal->Value.bin->__size = sizeof(ULONG);
-			memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
+			sPropVal.Value.bin->__size = sizeof(ULONG);
+			memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 			break;
 		case PROP_ID(PR_OBJECT_TYPE):
-			lpPropVal->ulPropTag = PR_OBJECT_TYPE;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = ulObjType;
+			sPropVal.ulPropTag = PR_OBJECT_TYPE;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
+			sPropVal.Value.ul = ulObjType;
 			break;
 		case PROP_ID(PR_SOURCE_KEY):
-			lpPropVal->ulPropTag = PR_SOURCE_KEY;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.ulPropTag = PR_SOURCE_KEY;
+			sPropVal.__union = SOAP_UNION_propValData_bin;
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.Value.bin->__size = 0;
+			sPropVal.Value.bin->__ptr = NULL;
 
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, (unsigned int*)&lpPropVal->Value.bin->__size, &lpPropVal->Value.bin->__ptr);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, soap, (unsigned int*)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
 			break;
 		case PROP_ID(PR_PARENT_SOURCE_KEY):
-			lpPropVal->ulPropTag = PR_PARENT_SOURCE_KEY;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.ulPropTag = PR_PARENT_SOURCE_KEY;
+			sPropVal.__union = SOAP_UNION_propValData_bin;
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.Value.bin->__size = 0;
+			sPropVal.Value.bin->__ptr = NULL;
 
 			if(ulParentId == 0) {
 				er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, NULL);
 				if(er != erSuccess)
-					break;
+					goto exit;
 			}
 			
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int*)&lpPropVal->Value.bin->__size, &lpPropVal->Value.bin->__ptr);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulParentId, soap, (unsigned int*)&sPropVal.Value.bin->__size, &sPropVal.Value.bin->__ptr);
+			if(er != erSuccess)
+				goto exit;
+
 			break;
 		case PROP_ID(PR_CONTENT_COUNT):
 			if(ulObjType == MAPI_MESSAGE) {
-				lpPropVal->ulPropTag = ulPropTag;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				lpPropVal->Value.ul = 1;
+				sPropVal.ulPropTag = ulPropTag;
+				sPropVal.__union = SOAP_UNION_propValData_ul;
+				sPropVal.Value.ul = 1;
 			} else {
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;
@@ -606,15 +628,15 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				goto exit;
 			}
 
-			lpPropVal->ulPropTag = PR_RIGHTS;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			sPropVal.ulPropTag = PR_RIGHTS;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
 		
 			if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == erSuccess || lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess)
-				lpPropVal->Value.ul = ecRightsAll;
+				sPropVal.Value.ul = ecRightsAll;
 			else if(lpSession->GetSecurity()->GetObjectPermission(ulObjId, &ulRights) == hrSuccess)
-				lpPropVal->Value.ul = ulRights;
+				sPropVal.Value.ul = ulRights;
 			else
-				lpPropVal->Value.ul = 0;
+				sPropVal.Value.ul = 0;
 
 			break;
 		case PROP_ID(PR_ACCESS):
@@ -624,9 +646,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				goto exit;
 			}
 
-			lpPropVal->ulPropTag = PR_ACCESS;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = 0;
+			sPropVal.ulPropTag = PR_ACCESS;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
+			sPropVal.Value.ul = 0;
 
 			// Optimize: for a message, the rights are equal to that of the parent. It is more efficient for
 			// the cache to check the folder permissions than the message permissions
@@ -638,18 +660,18 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
 				switch(ulObjType) {
 					case MAPI_FOLDER:
-						lpPropVal->Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
+						sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 						if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
-							lpPropVal->Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY | MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED;
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY | MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED;
 						break;
 					case MAPI_MESSAGE:
-						lpPropVal->Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
+						sPropVal.Value.ul = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 						break;
 					case MAPI_ATTACH:
 					case MAPI_STORE:
 					default:
 						er = ZARAFA_E_NOT_FOUND;
-						break;
+						goto exit;
 				}
 
 				break;
@@ -666,49 +688,47 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			switch(ulObjType) {
 				case MAPI_FOLDER:
 					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
-						lpPropVal->Value.ul |= MAPI_ACCESS_READ;
+						sPropVal.Value.ul |= MAPI_ACCESS_READ;
 
 					if( bOwner == true || (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
-						lpPropVal->Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
+						sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
 					
 					if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
 					{
 						if( (ulRights&ecRightsCreateSubfolder) == ecRightsCreateSubfolder)
-							lpPropVal->Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY;
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY;
 							
 						if( (ulRights&ecRightsCreate) == ecRightsCreate )
-							lpPropVal->Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;	
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;	
 							
 						if( (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
-							lpPropVal->Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;
 					}
 
 					break;
 				case MAPI_MESSAGE:
 					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
-						lpPropVal->Value.ul |= MAPI_ACCESS_READ;
+						sPropVal.Value.ul |= MAPI_ACCESS_READ;
 
 					if( (ulRights&ecRightsEditAny)==ecRightsEditAny || (bOwner == true && (ulRights&ecRightsEditOwned) == ecRightsEditOwned) )
-						lpPropVal->Value.ul |= MAPI_ACCESS_MODIFY;
+						sPropVal.Value.ul |= MAPI_ACCESS_MODIFY;
 
 					if( (ulRights&ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights&ecRightsDeleteOwned) == ecRightsDeleteOwned) )
-						lpPropVal->Value.ul |= MAPI_ACCESS_DELETE;
+						sPropVal.Value.ul |= MAPI_ACCESS_DELETE;
 
 					break;
 				case MAPI_ATTACH:
 				case MAPI_STORE:
-					er = ZARAFA_E_NOT_FOUND;
-					break;
 				default:
 					er = ZARAFA_E_NOT_FOUND;
-					break;
+					goto exit;
 			}
 			break;
 		case PROP_ID(PR_ACCESS_LEVEL):
 			{
-				lpPropVal->ulPropTag = PR_ACCESS_LEVEL;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				lpPropVal->Value.ul = 0;
+				sPropVal.ulPropTag = PR_ACCESS_LEVEL;
+				sPropVal.__union = SOAP_UNION_propValData_ul;
+				sPropVal.Value.ul = 0;
 
 				ulRights = 0;
 
@@ -726,36 +746,36 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 				if(bAdmin == true || ulRights&ecRightsCreate || ulRights&ecRightsEditAny || ulRights&ecRightsDeleteAny || ulRights&ecRightsCreateSubfolder || 
 					(bOwner == true  && (ulRights&ecRightsEditOwned || ulRights&ecRightsDeleteOwned)) )
 				{
-					lpPropVal->Value.ul = MAPI_MODIFY;
+					sPropVal.Value.ul = MAPI_MODIFY;
 				}
 			}
 			break;
         case PROP_ID(PR_ROW_TYPE):
-			lpPropVal->ulPropTag = ulPropTag;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = TBL_LEAF_ROW;
+			sPropVal.ulPropTag = ulPropTag;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
+			sPropVal.Value.ul = TBL_LEAF_ROW;
             break;
 
 		case PROP_ID(PR_MAPPING_SIGNATURE):
-			lpPropVal->ulPropTag = ulPropTag;
+			sPropVal.ulPropTag = ulPropTag;
 
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
 
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			lpPropVal->Value.bin->__size = sizeof(GUID);
+			sPropVal.__union = SOAP_UNION_propValData_bin;
+			sPropVal.Value.bin->__size = sizeof(GUID);
 
-			er = lpSession->GetServerGUID((GUID*)lpPropVal->Value.bin->__ptr);
+			er = lpSession->GetServerGUID((GUID*)sPropVal.Value.bin->__ptr);
 			if(er != erSuccess){
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;
 			}
 			break;
 		case PROP_ID(PR_EC_DELETED_STORE):
-			lpPropVal->ulPropTag = PR_EC_DELETED_STORE;
-			lpPropVal->__union = SOAP_UNION_propValData_b;
+			sPropVal.ulPropTag = PR_EC_DELETED_STORE;
+			sPropVal.__union = SOAP_UNION_propValData_b;
 
-			er = IsOrphanStore(lpSession, ulObjId, &lpPropVal->Value.b);
+			er = IsOrphanStore(lpSession, ulObjId, &sPropVal.Value.b);
 			if(er != erSuccess){
 				er = ZARAFA_E_NOT_FOUND;
 				goto exit;
@@ -766,12 +786,18 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			goto exit;
 	}
 
+	*lpPropVal = sPropVal;
 exit:
 	if(sPropTagArray.__ptr)
 		delete[] sPropTagArray.__ptr;
 
-	if(soap == NULL && sPropValArray.__ptr) // soap != NULL gsoap will cleanup the memory
-		delete[] sPropValArray.__ptr;
+	if(soap == NULL) { // soap != NULL gsoap will cleanup the memory
+		if (sPropValArray.__ptr) 
+			delete[] sPropValArray.__ptr;
+
+		if (er != erSuccess)
+			FreePropVal(&sPropVal, false);
+	}
 
 	return er;
 }
@@ -804,7 +830,7 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 		goto exit;
 	}
 
-	strQuery = "SELECT id FROM stores where user_id != 0 and hierarchy_id="+stringify(ulObjId);
+	strQuery = "SELECT 0 FROM stores where user_id != 0 and hierarchy_id="+stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -832,7 +858,7 @@ exit:
  * @param lppStoreName Output pointer
  * @return result
  */
-ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, char** lppStoreName)
+ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
 {
 	ECRESULT			er = erSuccess;
 	unsigned int		ulUserId = 0;
@@ -895,7 +921,12 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
                 strFormat.replace(pos, sub.size(), sPropValArray.__ptr[i].Value.lpszA);
         }
 
-        strFormat = string(_("Inbox -")) + " " + strFormat;
+		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
+			strFormat = string(_("Inbox")) + " - " + strFormat;
+		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
+			strFormat = string(_("Archive")) + " - " + strFormat;
+		else
+			assert(false);
     }
     
 	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);

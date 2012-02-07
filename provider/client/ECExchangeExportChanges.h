@@ -63,7 +63,7 @@
 #include <IECExportChanges.h>
 #include <IECImportContentsChanges.h>
 
-#include "StreamTypes.h"
+#include "WSMessageStreamExporter.h"
 
 class ECExchangeExportChanges : public ECUnknown {
 protected:
@@ -82,6 +82,7 @@ public:
 	
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
 	virtual HRESULT SetMessageInterface(REFIID refiid);
+	virtual HRESULT SetLogger(ECLogger *lpLogger);
 
 private:
 	static HRESULT CloseAndGetAsyncResult(IStream *lpStream, HRESULT *lphrResult);
@@ -108,6 +109,7 @@ private:
 
 		virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges);
 		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid);
+		virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger);
 	} m_xECExportChanges;
 	
 	HRESULT ExportMessageChanges();
@@ -120,9 +122,6 @@ private:
 	HRESULT UpdateStream(LPSTREAM lpStream);
 	HRESULT ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList);
 
-	HRESULT UpdateProgress(ULONG ulNewStep);
-	HRESULT GetMessageStream();
-
 	unsigned long	m_ulSyncType;
 	bool			m_bConfiged;
 	ECMAPIFolder*	m_lpFolder;
@@ -131,10 +130,7 @@ private:
 	ULONG			m_ulSyncId;
 	ULONG			m_ulChangeId;
 	ULONG			m_ulStep;
-	ULONG			m_ulStepOffset;
 	ULONG			m_ulBatchSize;
-	ULONG			m_ulBatchEnd;
-	ULONG			m_ulBatchNextStart;
 	ULONG			m_ulBufferSize;
 
 	IID				m_iidMessage;
@@ -145,7 +141,7 @@ private:
 	LPECIMPORTCONTENTSCHANGES			m_lpImportStreamedContents;
 	LPEXCHANGEIMPORTHIERARCHYCHANGES	m_lpImportHierarchy;
 	
-	WSStreamOps							*m_lpsStreamOps;
+	WSMessageStreamExporterPtr			m_ptrStreamExporter;
 	
 	std::vector<ICSCHANGE> m_lstChange;
 
@@ -167,6 +163,8 @@ private:
 	ECLogger			*m_lpLogger;
 	clock_t				m_clkStart;
 	struct tms			m_tmsStart;
+	
+	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 };
 
 #endif // ECEXCHANGEEXPORTCHANGES_H

@@ -83,4 +83,6 @@ HRESULT GetLastConnectionType(IMAPISupport *lpMAPISup, ULONG *lpulType);
 
 HRESULT GetMAPIUniqueProfileId(LPMAPISUP lpMAPISup, tstring *lpstrUniqueId);
 
+HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
+
 #endif // #ifndef PROVIDERUTIL_H

@@ -90,6 +90,7 @@ protected:
 	virtual ~ECMsgStore();
 
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
+	static HRESULT SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
 
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
@@ -135,11 +136,10 @@ public:
 	// IECServiceAdmin
 	virtual HRESULT CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId);
 	virtual HRESULT CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID* lppRootId);
-	virtual HRESULT HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid);
-	virtual HRESULT UnhookStore(ULONG cbUserId, LPENTRYID lpUserId);
+	virtual HRESULT HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid);
+	virtual HRESULT UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId);
 	virtual HRESULT RemoveStore(LPGUID lpGuid);
 	virtual HRESULT ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
-	virtual HRESULT GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId);
 	virtual HRESULT CreateUser(LPECUSER lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
 	virtual HRESULT DeleteUser(ULONG cbUserId, LPENTRYID lpUserId);
 	virtual HRESULT SetUser(LPECUSER lpECUser, ULONG ulFlags);
@@ -149,6 +149,7 @@ public:
 	virtual HRESULT GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcSenders, LPECUSER *lppSenders);
 	virtual HRESULT AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId);
 	virtual HRESULT DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId);
+	virtual HRESULT GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS);
 	virtual HRESULT RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId);
 	virtual HRESULT CreateGroup(LPECGROUP lpECGroup, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId);
 	virtual HRESULT DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId);
@@ -186,6 +187,7 @@ public:
 	virtual HRESULT OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer);
 	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
+	virtual HRESULT GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	
 	// MAPIOfflineMgr
 	virtual HRESULT SetCurrentState(ULONG ulFlags, ULONG ulMask, ULONG ulState, void* pReserved);
@@ -212,6 +214,8 @@ public:
 
 	// Called when session is reloaded
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
+
+	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
 
 protected:
 	HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, const IMessageFactory &refMessageFactory, ULONG *lpulObjType, LPUNKNOWN *lppUnk);
@@ -301,11 +305,10 @@ public:
 
 		virtual HRESULT __stdcall CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId);
 		virtual HRESULT __stdcall CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId);
-		virtual HRESULT __stdcall HookStore(ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid);
-		virtual HRESULT __stdcall UnhookStore(ULONG cbUserId, LPENTRYID lpUserId);
+		virtual HRESULT __stdcall HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid);
+		virtual HRESULT __stdcall UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId);
 		virtual HRESULT __stdcall RemoveStore(LPGUID lpGuid);
 		virtual HRESULT __stdcall ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
-		virtual HRESULT __stdcall GetStore(ULONG cbUserId, LPENTRYID lpUserId, ULONG *lpulStoreId);
 		virtual HRESULT __stdcall CreateUser(LPECUSER lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
 		virtual HRESULT __stdcall DeleteUser(ULONG cbUserId, LPENTRYID lpUserId);
 		virtual HRESULT __stdcall SetUser(LPECUSER lpECUser, ULONG ulFlags);
@@ -315,6 +318,7 @@ public:
 		virtual HRESULT __stdcall GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcSenders, LPECUSER *lppSenders);
 		virtual HRESULT __stdcall AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId);
 		virtual HRESULT __stdcall DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId);
+		virtual HRESULT __stdcall GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS);
 		virtual HRESULT __stdcall RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId);
 		virtual HRESULT __stdcall CreateGroup(LPECGROUP lpECGroup, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId);
 		virtual HRESULT __stdcall DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId);
@@ -352,6 +356,7 @@ public:
 		virtual HRESULT __stdcall OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 		virtual HRESULT __stdcall ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer);
 		virtual HRESULT __stdcall GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
+		virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	} m_xECServiceAdmin;
 
 	class xECSpooler : public IECSpooler {

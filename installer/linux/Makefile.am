@@ -12,10 +12,13 @@ suse_initscript_files = \
 sles_initscript_files = $(suse_initscript_files)
 cbs4_initscript_files = \
 	zarafa-server.init.cbs4 zarafa-spooler.init.cbs4 zarafa-gateway.init.cbs4 zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4
+alt_initscript_files = \
+	zarafa-server.init.alt zarafa-spooler.init.alt zarafa-gateway.init.alt zarafa-monitor.init.alt zarafa-ical.init.alt zarafa-dagent.init.alt zarafa-indexer.init.alt
 
 rhel_sysconfig_files = sysconfig.rhel
 suse_sysconfig_files = sysconfig.suse
 sles_sysconfig_files = ${suse_sysconfig_files}
+alt_sysconfig_files = sysconfig.alt
 
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files}
@@ -31,6 +34,7 @@ suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
 sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
 sysconf_sysconfig_DATA = ${@DISTRO@_sysconfig_files}
+alt_sysconfig_path = ${sysconfdir}/sysconfig
 
 dist_data_DATA = \
 	db-convert-4.1-to-4.2 db-convert-4.20-to-4.21 db-convert-4.20-to-innodb.sql db-calc-storesize db-convert-attachments-to-files \
@@ -58,6 +62,9 @@ dist_bin_SCRIPTS = zarafa-autorespond zarafa-mr-accept
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = zarafa.logrotate
 
+sysconf_crondir = ${sysconfdir}/cron.daily
+dist_sysconf_cron_SCRIPTS = zarafa-client-update.cron
+
 sysconf_certdir = ${sysconfdir}/zarafa/report-ca
 if ! OSS_ONLY
 BUILT_SOURCES += ldapms.openldap.cfg ldapms.active-directory.cfg
@@ -66,14 +73,15 @@ config_files += licensed.cfg example-msr.cfg backup.cfg
 rhel_initscript_files += zarafa-licensed.init.rhel
 suse_initscript_files += zarafa-licensed.init.suse
 cbs4_initscript_files += zarafa-licensed.init.cbs4
+alt_initscript_files += zarafa-licensed.init.alt
 
 dist_sysconf_cert_DATA = addtrust.crt
 endif
 
 config_files += $(BUILT_SOURCES)
 EXTRA_DIST = $(BUILT_SOURCES) ldap.m4 \
-	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) \
-	$(rhel_sysconfig_files) $(suse_sysconfig_files)
+	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
+	$(rhel_sysconfig_files) $(suse_sysconfig_files) $(alt_sysconfig_files)
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconf_configdir}/license
@@ -81,9 +89,12 @@ install-data-hook:
 	for f in ${DESTDIR}/${sysconf_rotatedir}/*.logrotate; do \
 		mv $$f $${f%.logrotate}; \
 	done
+	for f in ${DESTDIR}/${sysconf_crondir}/*.cron; do \
+		mv $$f $${f%.cron}; \
+	done
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.suse ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.zarafa || true; \
-	elif test ${DISTRO} = "rhel"; then \
+	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
 		mv ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.${DISTRO} ${DESTDIR}${sysconf_sysconfigdir}/zarafa || true; \
 	else \
 		true; \

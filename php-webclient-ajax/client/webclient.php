@@ -86,6 +86,14 @@
 		<!--[if IE]>
 		<link rel="stylesheet" type="text/css" href="client/layout/css/style.ie.css">
 		<![endif]-->
+<?php
+	// Apply an iPad specific stylesheet when needed
+	if(strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') !== false){
+?>
+		<link rel="stylesheet" type="text/css" href="client/layout/css/style.ipad.css">
+<?php
+	}
+?>
 		<link rel="icon" href="client/layout/img/favicon.ico"  type="image/x-icon">
 		<link rel="shortcut icon" href="client/layout/img/favicon.ico" type="image/x-icon">	
 <?php

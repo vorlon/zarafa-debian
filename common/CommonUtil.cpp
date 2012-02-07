@@ -69,6 +69,7 @@
 #include "Util.h"
 #include "stringutil.h"
 #include "base64.h"
+#include "mapi_ptr.h"
 
 #include "charset/convert.h"
 #include "charset/utf16string.h"
@@ -855,6 +856,63 @@ exit:
 	return hr;
 }
 
+static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewProfileUID)
+{
+	HRESULT				hr = hrSuccess;
+	ProfSectPtr			ptrGlobalProfSect;
+	ULONG				cValues;
+	SPropValuePtr		ptrGlobalProps;
+	ULONG				csNewMapiUID;
+	SPropValuePtr		ptrNewProp;
+
+	SizedSPropTagArray(1, sptaGlobalProps) = {1, {PR_STORE_PROVIDERS}};
+
+	//Open global profile, add the store.(for show list, delete etc)
+	hr = lpProviderAdmin->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY, &ptrGlobalProfSect);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// The prop value PR_STORE_PROVIDERS
+	hr = ptrGlobalProfSect->GetProps((LPSPropTagArray)&sptaGlobalProps, 0, &cValues, &ptrGlobalProps);
+	if (HR_FAILED(hr))
+		goto exit;
+
+	hr = hrSuccess;
+
+	if (ptrGlobalProps->ulPropTag != PR_STORE_PROVIDERS)
+		ptrGlobalProps->Value.bin.cb = 0;
+
+	// The new size of stores provider uid
+	csNewMapiUID = ptrGlobalProps->Value.bin.cb + sizeof(MAPIUID); //lpNewProfileUID
+
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrNewProp);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = MAPIAllocateMore(csNewMapiUID, ptrNewProp, (LPVOID*)&ptrNewProp->Value.bin.lpb);
+	if (hr != hrSuccess)
+		goto exit;
+
+	ptrNewProp->Value.bin.cb = csNewMapiUID;
+	ptrNewProp->ulPropTag = PR_STORE_PROVIDERS;
+
+	if (ptrGlobalProps->Value.bin.cb > 0)
+		memcpy(ptrNewProp->Value.bin.lpb, ptrGlobalProps->Value.bin.lpb, ptrGlobalProps->Value.bin.cb);
+
+	memcpy(ptrNewProp->Value.bin.lpb + ptrGlobalProps->Value.bin.cb, lpNewProfileUID, sizeof(MAPIUID));
+
+	hr = ptrGlobalProfSect->SetProps(1, ptrNewProp, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrGlobalProfSect->SaveChanges(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	return hr;
+}
+
 HRESULT HrAddECMailBox(LPMAPISESSION lpSession, LPCWSTR lpszUserName)
 {
 	HRESULT			hr = hrSuccess;
@@ -877,107 +935,61 @@ exit:
 
 HRESULT HrAddECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName)
 {
-	HRESULT			hr = hrSuccess;
-	MAPIUID			sNewProfileUID;
-	ULONG			csNewMapiUID = 0;
-	ULONG			cValues = 0;
-	int				i = 0;
+	HRESULT		hr = hrSuccess;
+	MAPIUID		sNewProfileUID;
+	SPropValue	asProfileProps[1];
 
-	LPSPropTagArray	lpsPropTagArray = NULL;
-	LPPROFSECT		lpGlobalProfSect = NULL;
-	LPSPropValue	lpProps = NULL;
-	LPSPropValue	lpGlobalProps = NULL;	
-	LPSPropValue	lpNewProp = NULL;
-	
+	if (lpProviderAdmin == NULL || lpszUserName == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
-	cValues = 3;
-	MAPIAllocateBuffer( sizeof(SPropValue) * cValues, (void**)&lpProps);
-
-	memset(lpProps, 0, sizeof(SPropValue) * cValues);
-
-	i = 0;
-
-	lpProps[i].ulPropTag = PR_EC_USERNAME_W;
-	lpProps[i++].Value.lpszW = (WCHAR*)lpszUserName;
+	asProfileProps[0].ulPropTag = PR_EC_USERNAME_W;
+	asProfileProps[0].Value.lpszW = (WCHAR*)lpszUserName;
 
 	// Create the profile, now the profile is shown in outlook
-	hr = lpProviderAdmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_Delegate", i, lpProps, 0, 0, &sNewProfileUID);
-	if(hr != hrSuccess)
+	hr = lpProviderAdmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_Delegate", 1, asProfileProps, 0, 0, &sNewProfileUID);
+	if (hr != hrSuccess)
 		goto exit;
 
-	if(lpProps){ MAPIFreeBuffer(lpProps); lpProps = NULL; }
-
-	//Open global profile, add the store.(for show list, delete etc)
-	hr = lpProviderAdmin->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY , &lpGlobalProfSect);
-	if(hr != hrSuccess)
-		goto exit;
-
-	// Allocate array of Proptags 
-	cValues = 1;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void **)&lpsPropTagArray);
-	if(hr != hrSuccess)
-		goto exit;
-
-	//Fill array
-	lpsPropTagArray->aulPropTag[0] = PR_STORE_PROVIDERS;
-	lpsPropTagArray->cValues = cValues;
-
-	// The the prop value PR_STORE_PROVIDERS
-	hr = lpGlobalProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpGlobalProps);
-	if(HR_FAILED(hr))
-		goto exit;
-
-	hr = hrSuccess;
-
-	if(lpGlobalProps->ulPropTag != PR_STORE_PROVIDERS)
-		lpGlobalProps->Value.bin.cb = 0;
-
-	// The new size of stores provider uid
-	csNewMapiUID = lpGlobalProps->Value.bin.cb + sizeof(MAPIUID); //lpNewProfileUID
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpNewProp);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = MAPIAllocateMore(csNewMapiUID, lpNewProp, (void**)&lpNewProp->Value.bin.lpb);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpNewProp->Value.bin.cb = csNewMapiUID;
-	lpNewProp->ulPropTag = PR_STORE_PROVIDERS;
-
-	if(lpGlobalProps->Value.bin.cb > 0)
-		memcpy(lpNewProp->Value.bin.lpb, lpGlobalProps->Value.bin.lpb, lpGlobalProps->Value.bin.cb);
-
-	memcpy(lpNewProp->Value.bin.lpb+lpGlobalProps->Value.bin.cb, &sNewProfileUID, sizeof(MAPIUID));
-
-	hr = lpGlobalProfSect->SetProps(1, lpNewProp, NULL);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpGlobalProfSect->SaveChanges(0);
-	if(hr != hrSuccess)
+	hr = HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
+	if (hr != hrSuccess)
 		goto exit;
 
 exit:
-	if(lpsPropTagArray)
-		MAPIFreeBuffer(lpsPropTagArray);
+	return hr;
+}
 
-	if(lpsPropTagArray)
-		MAPIFreeBuffer(lpsPropTagArray);
+HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName, LPCWSTR lpszServerName, LPMAPIUID lpProviderUID)
+{
+	HRESULT		hr = hrSuccess;
+	MAPIUID		sNewProfileUID;
+	SPropValue	asProfileProps[2];
 
-	if(lpGlobalProfSect)
-		lpGlobalProfSect->Release();
+	if (lpProviderAdmin == NULL || lpszUserName == NULL || lpszServerName == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
-	if(lpProps)
-		MAPIFreeBuffer(lpProps);
+	asProfileProps[0].ulPropTag = PR_EC_USERNAME_W;
+	asProfileProps[0].Value.lpszW = (LPWSTR)lpszUserName;
 
-	if(lpGlobalProps)
-		MAPIFreeBuffer(lpGlobalProps);
+	asProfileProps[1].ulPropTag = PR_EC_SERVERNAME_W;
+	asProfileProps[1].Value.lpszW = (LPWSTR)lpszServerName;
 
-	if(lpNewProp)
-		MAPIFreeBuffer(lpNewProp);
+	// Create the profile, now the profile is shown in outlook
+	hr = lpProviderAdmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_archive", 2, asProfileProps, 0, 0, &sNewProfileUID);
+	if (hr != hrSuccess)
+		goto exit;
 
+	hr = HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (lpProviderUID)
+		*lpProviderUID = sNewProfileUID;
+
+exit:
 	return hr;
 }
 
@@ -3288,10 +3300,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	bool bDeclineRecurring = false;
 
 	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &lpLocalFBMessage);
-	if(hr != hrSuccess) {
-		// No FB -> all settings are FALSE
-		hr = hrSuccess;
-	} else {
+	if(hr == hrSuccess) {
 		hr = lpLocalFBMessage->GetProps((LPSPropTagArray)&sptaFBProps, 0, &cValues, &lpProps);
 		if(FAILED(hr))
 			goto exit;
@@ -3303,6 +3312,8 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 		if(lpProps[2].ulPropTag == PR_DECLINE_RECURRING_MEETING_REQUESTS)
 			bDeclineRecurring = lpProps[2].Value.b;
 	}
+	// else, hr != hrSuccess: no FB -> all settings are FALSE
+	hr = hrSuccess;
 
 	*lpbAutoAccept = bAutoAccept;
 	*lpbDeclineConflict = bDeclineConflict;
@@ -3317,3 +3328,40 @@ exit:
 	return hr;
 }
 
+
+HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
+{
+	HRESULT hr = hrSuccess;
+	ExchangeManageStorePtr ptrEMS;
+	ULONG cbStoreId;
+	EntryIdPtr ptrStoreId;
+	MsgStorePtr ptrMsgStore;
+
+	if (lpMAPISession == NULL || lpMsgStore == NULL || lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE|MDB_WRITE)) || lppMsgStore == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = lpMsgStore->QueryInterface(ptrEMS.iid, &ptrEMS);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ulFlags & MAPI_UNICODE) {
+		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
+	} else {
+		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
+	}
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid, ulFlags & MDB_WRITE, &ptrMsgStore);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrMsgStore->QueryInterface(IID_IMsgStore, (LPVOID*)lppMsgStore);
+
+exit:
+	return hr;
+}

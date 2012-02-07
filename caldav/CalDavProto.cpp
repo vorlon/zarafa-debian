@@ -1180,7 +1180,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	
 	// publish freebusy for default folder
 	if (m_ulFolderFlag & DEFAULT_FOLDER)
-		hr = HrPublishFreeBusy(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
+		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
 
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error Publishing Freebusy, error code : 0x%08X", hr);
@@ -1361,7 +1361,7 @@ HRESULT CalDAV::HrPut()
 
 	// Publish freebusy only for default Calendar
 	if(m_ulFolderFlag & DEFAULT_FOLDER)
-		hr = HrPublishFreeBusy(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
+		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
 
 	if ( hr != hrSuccess){
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error Publishing Freebusy, error code : 0x%08X", hr);

@@ -200,11 +200,12 @@ private:
 	 * has precedence if the message matches the restriction set for it. If non of the operations
 	 * restriction match for the message, nothing will be done.
 	 *
-	 * @param[in]	ptrFolder		The parent folder of the message
+	 * @param[in]	lpMessage		The message to process
+	 * @param[in]	lpFolder		The parent folder
 	 * @param[in]	cProps			The amount of props found in lpProps
 	 * @param[in]	lpProps			A list of properties containing the information to open the correct message.
 	 */
-	HRESULT ExecuteSubOperations(MAPIFolderPtr &ptrFolder, ULONG cProps, const LPSPropValue &lpProps);
+	HRESULT ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);
 
 	/**
 	 * Move an archive message to the special history folder.

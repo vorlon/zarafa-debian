@@ -102,7 +102,7 @@ enum logprefix { LP_NONE, LP_TID, LP_PID };
  */
 class ECLogger {
 private:
-	int m_ulRef;
+	unsigned m_ulRef;
 
 protected:
 	/**
@@ -155,12 +155,12 @@ public:
 	/** 
 	 * Adds reference to this object
 	 */
-	void AddRef();
+	unsigned AddRef();
 	/** 
 	 * Removes a reference from this object, and deletes it if all
 	 * references are removed.
 	 */
-	void Release();
+	unsigned Release();
 	/**
 	 * Used for log rotation. Implementations should prepare to log in a new log.
 	 *
@@ -293,6 +293,7 @@ public:
 	virtual void LogVA(int loglevel, const char *format, va_list& va);
 
 	int GetFileDescriptor();
+	void Disown();
 };
 
 ECLogger* StartLoggerProcess(ECConfig *lpConfig, ECLogger *lpFileLogger);

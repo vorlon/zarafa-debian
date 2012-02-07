@@ -248,9 +248,9 @@ tasklistmodule.prototype.SubmitMessage = function (moduleObject, element, event)
 }
 
 /**
- * this function is called when delete button is pressed from menu
- *@param array messages list of selected messages
- *@param boolean softDelete message should be soft deleted or not (for Shift + Del)
+ * Function which is called when delete button is pressed from menu
+ * @param array messages list of selected messages
+ * @param boolean softDelete message should be soft deleted or not (for Shift + Del)
  */
 tasklistmodule.prototype.deleteMessages = function (messages, softDelete)
 {
@@ -265,7 +265,7 @@ tasklistmodule.prototype.deleteMessages = function (messages, softDelete)
 			return;
 
 		// pass softdelete variable value to the server
-		data["softdelete"] = true;
+		data["softdelete"] = softDelete || false;
 		
 		data["entryid"] = new Array();
 
@@ -316,9 +316,9 @@ tasklistmodule.prototype.deleteMessages = function (messages, softDelete)
 }
 /**
  * Function which requests server to delete a task
- *@param boolean deleteOccurrence true if delete only occurrence else false to delete whole series
- *@param string entryid entryid of task
- *@param boolean softDelete message should be soft deleted or not (for Shift + Del)
+ * @param boolean deleteOccurrence true if delete only occurrence else false to delete whole series
+ * @param string entryid entryid of task
+ * @param boolean softDelete message should be soft deleted or not (for Shift + Del)
  */
 tasklistmodule.prototype.deleteMessage = function (deleteFlag, entryid, softDelete)
 {

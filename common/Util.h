@@ -78,6 +78,7 @@ public:
 	static HRESULT	HrCopySRowSet(LPSRowSet lpDest, LPSRowSet lpSrc, void *lpBase);
 	static HRESULT	HrCopySRow(LPSRow lpDest, LPSRow lpSrc, void *lpBase);
 
+	static HRESULT	HrCopyPropTagArray(LPSPropTagArray lpSrc, LPSPropTagArray *lppDest);
 	static HRESULT	HrCopyUnicodePropTagArray(ULONG ulFlags, LPSPropTagArray lpSrc, LPSPropTagArray *lppDest);
 
 	static HRESULT	HrCopyBinary(ULONG ulSize, LPBYTE lpSrc, ULONG *lpulDestSize, LPBYTE *lppDest, LPVOID lpBase = NULL);
@@ -105,7 +106,7 @@ public:
 
 	static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
 
-	static LPCTSTR	HrMAPIErrorToText(HRESULT hr);
+	static HRESULT HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase = NULL);
 
 	static bool ValidatePropTagArray(LPSPropTagArray lpPropTagArray);
 

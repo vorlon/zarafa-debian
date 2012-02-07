@@ -140,6 +140,20 @@ attributetype ( 1.3.6.1.4.1.26278.1.1.4.1
 	SUBSTR caseIgnoreSubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )
 
+attributetype ( 1.3.6.1.4.1.26278.1.1.6.1
+	NAME 'zarafaUserArchiveServers'
+	DESC 'ZARAFA: List of server names that contain an archive store for the user'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.26278.1.1.6.2
+	NAME 'zarafaUserArchiveCouplings'
+	DESC 'ZARAFA: List of username:foldername pairs that specify many-to-one archive locations'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
 objectclass	( 1.3.6.1.4.1.26278.1.1.0.0
 	NAME 'zarafa-user'
 	DESC 'Zarafa: an user of Zarafa'
@@ -149,7 +163,8 @@ objectclass	( 1.3.6.1.4.1.26278.1.1.0.0
 		zarafaQuotaOverride $ zarafaQuotaWarn $ zarafaQuotaSoft $ zarafaSendAsPrivilege $
 		zarafaQuotaHard $ zarafaAdmin $ zarafaSharedStoreOnly $ zarafaResourceType $
 		zarafaResourceCapacity $ zarafaAccount $ zarafaHidden $ zarafaAliases $
-		zarafaUserServer $ zarafaEnabledFeatures $ zarafaDisabledFeatures
+		zarafaUserServer $ zarafaEnabledFeatures $ zarafaDisabledFeatures $
+		zarafaUserArchiveServers $ zarafaUserArchiveCouplings
 		)
 	)
 

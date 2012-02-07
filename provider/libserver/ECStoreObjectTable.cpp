@@ -441,10 +441,12 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
             	continue;
             }
 
-    	    if(ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) == erSuccess) {
-    	        setCellDone.insert(std::make_pair(i,k));
-    	        continue;
-    	    }
+			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
+				if (ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
+					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
+				setCellDone.insert(std::make_pair(i,k));
+				continue;
+			}
 
 			// Handle PR_DEPTH
 			if(ulPropTag == PR_DEPTH) {
@@ -558,7 +560,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				
                 if(lpODStore->ulFolderId == 0) {
                     // Get parent folder
-                    lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId);
+                    if(lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId) != erSuccess)
+                    	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
+                    	 * the only thing we can do is return NOT_FOUND for each cell.*/
+                    	ulFolderId = 0;
                 } else {
                 	ulFolderId = lpODStore->ulFolderId;
                 }
@@ -596,9 +601,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 			if(IsTruncatableType(lpsPropTagArray->__ptr[k])) {
 				for(i=0, iterRowList = lpRowList->begin(); iterRowList != lpRowList->end(); iterRowList++, i++) {
 					if(IsTruncated(&lpsRowSet->__ptr[i].__ptr[k])) {
-						// free trucated prop if we're not allocing by soap
-						if (soap == NULL)
-							FreePropVal(&lpsRowSet->__ptr[i].__ptr[k], false);
 						
 						// We only want one column in this row
 						mapColumns.clear();
@@ -782,7 +784,16 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
             // The same column may have been requested multiple times. If that is the case, SQL will give us one result for all columns. This
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for(iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag)); iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
+
+				// free prop if we're not allocing by soap
+				if(soap == NULL && lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], false);
+					memset(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]));
+				}
+
+
                 if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
+                	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
                     iterColumns++;
                     continue;
                 }
@@ -809,6 +820,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis, str
 
 
     for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
+    	ASSERT(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
 	}
@@ -962,6 +974,13 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 			// and then use CompareDBPropTag to check the actual type in the while loop later. Same goes for PT_MV_UNICODE.
 			iterColumns = mapColumns.lower_bound(PROP_TAG(ulType, ulTag));
 			while(iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag))) {
+
+				// free prop if we're not allocing by soap
+				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
+					memset(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]));
+				}
+
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
 				// requested. Note that requesting the same ROW more than once is not supported (it is a map, not a multimap)
 				if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]) != erSuccess) {
@@ -997,6 +1016,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis, 
 	for(iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); iterColumns++) {
 		for(iterObjIds = mapObjIds.begin(); iterObjIds != mapObjIds.end(); iterObjIds++) {
 			if(setDone.count(std::make_pair(iterObjIds->second, iterColumns->second)) == 0) {
+				// We may be overwriting a value that was retrieved from the cache before.
+				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
+					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
+				}
 				CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 			}

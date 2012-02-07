@@ -51,6 +51,8 @@
 #include "archive.h"
 
 #include "ECLogger.h"
+#include "ECGetText.h"
+#include "charset/convert.h"
 #include "mapi_ptr.h"
 
 #include "helpers/storehelper.h"
@@ -59,14 +61,22 @@
 #include "archiver-session.h"
 
 #include <list>
+#include <sstream>
 
 #include "Util.h"
+#include "ECDebug.h"
 
 using namespace za::helpers;
 using namespace za::operations;
 using namespace std;
 
 typedef std::auto_ptr<Copier::Helper> HelperPtr;
+
+#ifdef UNICODE
+typedef std::wostringstream tostringstream;
+#else
+typedef std::ostringstream tostringstream;
+#endif
 
 
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
@@ -79,7 +89,38 @@ void ArchiveResult::Undo(IMAPISession *lpSession) {
 }
 
 
-HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage, ECLogger *lpLogger)
+HRESULT Archive::Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive)
+{
+	HRESULT hr = hrSuccess;
+
+	if (lpSession == NULL || lpLogger == NULL || lpptrArchive == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	try {
+		lpptrArchive->reset(new Archive(lpSession, lpLogger));
+	} catch (const std::bad_alloc &) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+	}
+
+exit:
+	return hr;
+}
+
+Archive::Archive(IMAPISession *lpSession, ECLogger *lpLogger)
+: m_ptrSession(lpSession, true)
+, m_lpLogger(lpLogger)
+{
+	m_lpLogger->AddRef();
+}
+
+Archive::~Archive()
+{
+	m_lpLogger->Release();
+}
+
+HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
@@ -103,7 +144,7 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 	SizedSPropTagArray(3, sptaMessageProps) = {3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
-	if (lpSession == NULL || lpMessage == NULL || lpLogger == NULL) {
+	if (lpMessage == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -115,7 +156,7 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 	refMsgEntry.sStoreEntryId.assign(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin);
 	refMsgEntry.sItemEntryId.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
 
-	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);
+	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -128,7 +169,7 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 		goto exit;
 
 	if (lstArchives.empty()) {
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "No archives attached to store");
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No archives attached to store");
 		goto exit;
 	}
 
@@ -136,7 +177,7 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = Session::Create(MAPISessionPtr(lpSession, true), lpLogger, &ptrSession);
+	hr = Session::Create(m_ptrSession, m_lpLogger, &ptrSession);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -144,12 +185,12 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
-	hr = InstanceIdMapper::Create(lpLogger, NULL, &ptrMapper);
+	hr = InstanceIdMapper::Create(m_lpLogger, NULL, &ptrMapper);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// First create all (mostly one) the archive messages without saving them.
-	ptrHelper.reset(new Copier::Helper(ptrSession, lpLogger, ptrMapper, NULL, ptrFolder));
+	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, ptrFolder));
 	for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
@@ -182,7 +223,7 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 		if (iArchivedMessage->second) {
 			HRESULT hrTmp = iArchivedMessage->second->Execute();
 			if (hrTmp != hrSuccess)
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
+				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
 		}
 
 		result.AddMessage(iArchivedMessage->first);
@@ -201,13 +242,13 @@ HRESULT HrArchiveMessageForDelivery(IMAPISession *lpSession, IMessage *lpMessage
 exit:
 	// On error delete all saved archives
 	if (FAILED(hr))
-		result.Undo(lpSession);
+		result.Undo(m_ptrSession);
 
 	return hr;
 }
 
 
-HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage, ECLogger *lpLogger, ArchiveResult *lpResult)
+HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
@@ -226,7 +267,7 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 	SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
-	if (lpSession == NULL || lpMessage == NULL || lpLogger == NULL) {
+	if (lpMessage == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -235,7 +276,7 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, 0, &ptrStore);
+	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, 0, &ptrStore);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -244,15 +285,18 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 		goto exit;
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
-	if (hr != hrSuccess)
-		goto exit;
-
-	if (lstArchives.empty()) {
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "No archives attached to store");
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to obtain list of attached archives. hr=0x%08x", hr);
+		SetErrorMessage(hr, _("Unable to obtain list of attached archives."));
 		goto exit;
 	}
 
-	hr = Session::Create(MAPISessionPtr(lpSession, true), lpLogger, &ptrSession);
+	if (lstArchives.empty()) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No archives attached to store");
+		goto exit;
+	}
+
+	hr = Session::Create(m_ptrSession, m_lpLogger, &ptrSession);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -260,40 +304,45 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
-	hr = InstanceIdMapper::Create(lpLogger, NULL, &ptrMapper);
+	hr = InstanceIdMapper::Create(m_lpLogger, NULL, &ptrMapper);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// First create all (mostly one) the archive messages without saving them.
-	ptrHelper.reset(new Copier::Helper(ptrSession, lpLogger, ptrMapper, NULL, MAPIFolderPtr()));	// We pass an empty MAPIFolderPtr here!
+	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, MAPIFolderPtr()));	// We pass an empty MAPIFolderPtr here!
 	for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
 		ArchiveHelperPtr ptrArchiveHelper;
 		MAPIFolderPtr ptrArchiveFolder;
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
-		hr = ArchiveHelper::Create(ptrSession, *iArchive, lpLogger, &ptrArchiveHelper);
+		hr = ArchiveHelper::Create(ptrSession, *iArchive, m_lpLogger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {
+			SetErrorMessage(hr, _("Unable to open archive."));
 			goto exit;
 		}
 
 		hr = ptrArchiveHelper->GetOutgoingFolder(&ptrArchiveFolder);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get outgoing archive folder. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get outgoing archive folder. hr=0x%08x", hr);
+			SetErrorMessage(hr, _("Unable to get outgoing archive folder."));
 			goto exit;
 		}
 
 		hr = ptrArchiveFolder->CreateMessage(&ptrArchivedMsg.iid, 0, &ptrArchivedMsg);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create message in outgoing archive folder. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create message in outgoing archive folder. hr=0x%08x", hr);
+			SetErrorMessage(hr, _("Unable to create archive message in outgoing archive folder."));
 			goto exit;
 		}
 
 		hr = ptrHelper->ArchiveMessage(lpMessage, NULL, ptrArchivedMsg, &ptrPSAction);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			SetErrorMessage(hr, _("Unable to copy message data."));
 			goto exit;
+		}
 
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Stored message in archive");
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Stored message in archive");
 		lstArchivedMessages.push_back(make_pair(ptrArchivedMsg, ptrPSAction));
 	}
 
@@ -301,14 +350,15 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 	for (iArchivedMessage = lstArchivedMessages.begin(); iArchivedMessage != lstArchivedMessages.end(); ++iArchivedMessage) {
 		hr = iArchivedMessage->first->SaveChanges(KEEP_OPEN_READONLY);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to save message in archive. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to save message in archive. hr=0x%08x", hr);
+			SetErrorMessage(hr, _("Unable to save archived message."));
 			goto exit;
 		}
 
 		if (iArchivedMessage->second) {
 			HRESULT hrTmp = iArchivedMessage->second->Execute();
 			if (hrTmp != hrSuccess)
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
+				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
 		}
 
 		result.AddMessage(iArchivedMessage->first);
@@ -320,7 +370,22 @@ HRESULT HrArchiveMessageForSending(IMAPISession *lpSession, IMessage *lpMessage,
 exit:
 	// On error delete all saved archives
 	if (FAILED(hr))
-		result.Undo(lpSession);
+		result.Undo(m_ptrSession);
 
 	return hr;
+}
+
+void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
+{
+	tostringstream	oss;
+	LPTSTR lpszDesc;
+
+	oss << lpszMessage << endl;
+	oss << _("Error code:") << _T(" ") << convert_to<tstring>(GetMAPIErrorDescription(hr))
+		<< _T(" (") << tstringify(hr, true) << _T(")") << endl;
+
+	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
+		oss << _("Error description:") << _T(" ") << lpszDesc << endl;
+
+	m_strErrorMessage.assign(oss.str());
 }

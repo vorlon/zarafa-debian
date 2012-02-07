@@ -80,6 +80,7 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(entryId* lpSrc, ULONG ulObjId, ULONG* lpcbD
 HRESULT CopySOAPEntryIdToMAPIEntryId(entryId* lpSrc, ULONG ulObjId, ULONG ulType, ULONG* lpcbDest, LPENTRYID* lppEntryIdDest, void *lpBase = NULL);
 HRESULT CopyMAPIEntryListToSOAPEntryList(ENTRYLIST *lpMsgList, struct entryList* lpsEntryList);
 HRESULT CopySOAPEntryListToMAPIEntryList(struct entryList* lpsEntryList, LPENTRYLIST* lppMsgList);
+HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS, ULONG ulFlags, LPECUSERCLIENTUPDATESTATUS *lppECUCUS);
 
 HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(struct propTagArray* lpsPropTagArray, LPSPropTagArray* lppPropTagArray, void* lpBase = NULL);
 
@@ -104,7 +105,6 @@ HRESULT SoapServerListToServerList(struct serverList *lpsServerList, ULONG ulFLa
 int gsoap_connect_unixsocket(struct soap *soap, const char *endpoint, const char *host, int port);
 
 HRESULT CreateSoapTransport(ULONG ulUIFlags, sGlobalProfileProps sProfileProps, ZarafaCmd **lppCmd);
-VOID DestroySoapTransport(ZarafaCmd *lpCmd);
 
 HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStoreId, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreID, ULONG* lpcbUnWrapStoreID, LPENTRYID* lppUnWrapStoreID);

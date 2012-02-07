@@ -70,6 +70,7 @@
 #include "ECMsgStore.h"
 #include "ECArchiveAwareMsgStore.h"
 #include "ECMsgStorePublic.h"
+#include "charset/convstring.h"
 
 
 
@@ -336,10 +337,12 @@ HRESULT CreateMsgStoreObject(char * lpszProfname, LPMAPISUP lpMAPISup, ULONG cbE
 
 	fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
 
-	if (CompareMDBProvider(lpguidMDBProvider, &ZARAFA_STORE_PUBLIC_GUID) == FALSE)
-		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &lpMsgStore);
-	else
+	if (CompareMDBProvider(lpguidMDBProvider, &ZARAFA_STORE_PUBLIC_GUID) == TRUE)
 		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &lpMsgStore);
+	else if (CompareMDBProvider(lpguidMDBProvider, &ZARAFA_STORE_ARCHIVE_GUID) == TRUE)
+		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &lpMsgStore);
+	else
+		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &lpMsgStore);
 
 	if (hr != hrSuccess)
 		goto exit;
@@ -380,3 +383,43 @@ exit:
 }
 
 
+
+HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport)
+{
+	HRESULT hr = hrSuccess;
+	utf8string strServerName;
+	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
+	char *lpszServerPath = NULL;
+	bool bIsPeer = false;
+	WSTransport *lpNewTransport = NULL;
+
+	if (lpszServerName == NULL || lpTransport == NULL || lppTransport == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	if ((ulFlags & ~MAPI_UNICODE) != 0) {
+		hr = MAPI_E_UNKNOWN_FLAGS;
+		goto exit;
+	}
+
+	strServerName = convstring(lpszServerName, ulFlags);
+	strPseudoUrl.append(strServerName);
+	hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (bIsPeer) {
+		lpNewTransport = lpTransport;
+		lpNewTransport->AddRef();
+	} else {
+		hr = lpTransport->CreateAndLogonAlternate(lpszServerPath, &lpNewTransport);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	*lppTransport = lpNewTransport;
+
+exit:
+	return hr;
+}

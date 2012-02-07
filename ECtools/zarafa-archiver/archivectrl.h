@@ -155,11 +155,11 @@ class ArchiveControlImpl : public ArchiveControl
 public:
 	static HRESULT Create(SessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiveControlPtr *lpptrArchiveControl);
 
-	eResult ArchiveAll(bool bLocalOnly);
-	eResult Archive(const char *lpszUser);
+	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags);
+	eResult Archive(const TCHAR *lpszUser, bool bAutoAttach, unsigned int ulFlags);
 
 	eResult CleanupAll(bool bLocalOnly);
-	eResult Cleanup(const char *lpszUser);
+	eResult Cleanup(const TCHAR *lpszUser);
 
 	~ArchiveControlImpl();
 
@@ -173,15 +173,15 @@ private:
 	};
 	
 private:
-	typedef HRESULT(ArchiveControlImpl::*fnProcess_t)(const char*);
+	typedef HRESULT(ArchiveControlImpl::*fnProcess_t)(const TCHAR*);
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
 
 	ArchiveControlImpl(SessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger);
 	HRESULT Init();
 
-	HRESULT DoArchive(const char *lpszUser);
-	HRESULT DoCleanup(const char *lpszUser);
+	HRESULT DoArchive(const TCHAR *lpszUser);
+	HRESULT DoCleanup(const TCHAR *lpszUser);
 	
 	HRESULT ProcessFolder(MAPIFolderPtr &ptrFolder, za::operations::ArchiveOperationPtr ptrArchiveOperation);
 
