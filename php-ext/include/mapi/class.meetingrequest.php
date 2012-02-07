@@ -274,7 +274,7 @@ class Meetingrequest {
 				
 				// Open the calendar items, and update all the recipients of the calendar item that match
 				// the email address of the response.
-				if (count ($calendaritems) >0) {
+				if (!empty($calendaritems)) {
 					 return $this->processResponse($userStore, $calendaritems[0], $basedate, $messageprops);
 				}else{
 					return false;
@@ -331,7 +331,7 @@ class Meetingrequest {
 		
 		// Open the calendar items, and update all the recipients of the calendar item that match
 		// the email address of the response.
-		if (count ($calendaritems) >0) {
+		if (!empty($calendaritems)) {
 			return $this->processResponse($this->store, $calendaritems[0], $basedate, $messageprops);
 		}else{
 			return false;
@@ -558,7 +558,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		if ($basedate) {
 			// Calendaritems with GlobalID were not found, so find main recurring item using CleanGlobalID(0x23)
-			if (count($calendaritems) == 0) {
+			if (empty($calendaritems)) {
 				// This meeting req is of an occurrance
 				$goid2 = $messageprops[$this->proptags['goid2']];
 
@@ -1080,7 +1080,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		if (!$calendaritem) {
 			$calendar = $this->openDefaultCalendar();
 
-			if(count($entryids) > 0) {
+			if(!empty($entryids)) {
 				mapi_folder_deletemessages($calendar, $entryids);
 			}
 
@@ -1463,7 +1463,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		
 		$items = $this->findCalendarItems($goid2);
 		
-		if(count($items) == 0)
+		if(empty($items))
 			return;
 		
 		// There should be just one item. If there are more, we just take the first one
@@ -1802,7 +1802,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		
 		$rows = mapi_table_queryallrows($calendarcontents, Array(PR_ENTRYID), $restrict);
 				
-		if(count($rows) == 0)
+		if(empty($rows))
 			return;
 		
 		$calendaritems = Array();
@@ -2146,7 +2146,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		// Put appointment into store resource users
 		$i = 0;
-		while(!$this->errorSetResource && $i < count($resourceRecipients)){
+		$len = count($resourceRecipients);
+		while(!$this->errorSetResource && $i < $len){
 			$request = array(array(PR_DISPLAY_NAME => $resourceRecipients[$i][PR_DISPLAY_NAME]));
 			$ab = mapi_openaddressbook($this->session);
 			$ret = mapi_ab_resolvename($ab, $request, EMS_AB_ADDRESS_LOOKUP);
@@ -2246,7 +2247,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				 * OR
 				 * 2) We were looking for occurrence item but Resource has whole series
 				 */
-				if(count($rows) == 0){
+				if(empty($rows)){
 					/**
 					 * Now search on CleanGlobalID(0x23) WHY???
 					 * Because we are looking recurring item
@@ -2258,7 +2259,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					$rows = $this->findCalendarItems($messageprops[$this->proptags['goid2']], $calFolder, true);
 
 					$newResourceMsg = false;
-					if (count($rows) != 0) {
+					if (!empty($rows)) {
 						// Since we are looking for recurring item, open every result and check for 'recurring' property.
 						foreach($rows as $row) {
 							$ResourceMsg = mapi_msgstore_openentry($userStore, $row);
@@ -2362,7 +2363,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					$this->errorSetResource = 1;
 				}
 
-				for($j=0;$j<count($resourceRecipData);$j++){
+				for($j = 0, $len = count($resourceRecipData); $j < $len; $j++){
 					// Get the EntryID
 					$props = mapi_message_getprops($resourceRecipData[$j]['msg']);
 
@@ -2387,9 +2388,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		);
 		$recipienttable = mapi_message_getrecipienttable($message);
 		$resourceRecipients = mapi_table_queryallrows($recipienttable, $this->recipprops, $getResourcesRestriction);
-		if(count($resourceRecipients) > 0){
+		if(!empty($resourceRecipients)){
 			// Set Tracking status of resource recipients to olResponseAccepted (3)
-			for($i=0;$i<count($resourceRecipients);$i++){
+			for($i = 0, $len = count($resourceRecipients); $i < $len; $i++){
 				$resourceRecipients[$i][PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusAccepted;
 				$resourceRecipients[$i][PR_RECIPIENT_TRACKSTATUS_TIME] = time();
 			}
@@ -2398,7 +2399,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		// Publish updated free/busy information
 		if(!$this->errorSetResource){
-			for($i=0;$i<count($resourceRecipData);$i++){
+			for($i = 0, $len = count($resourceRecipData); $i < $len; $i++){
 				$storeProps = mapi_msgstore_getprops($resourceRecipData[$i]['store'], array(PR_MAILBOX_OWNER_ENTRYID));
 				if (isset($storeProps[PR_MAILBOX_OWNER_ENTRYID])){
 					$pub = new FreeBusyPublish($this->session, $resourceRecipData[$i]['store'], $resourceRecipData[$i]['folder'], $storeProps[PR_MAILBOX_OWNER_ENTRYID]);
@@ -2637,7 +2638,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$recipienttable = mapi_message_getrecipienttable($message);
 		$recipients = mapi_table_queryallrows($recipienttable, $this->recipprops, $stripResourcesRestriction);
 
-		if ($basedate && count($recipients) == 0) {
+		if ($basedate && empty($recipients)) {
 			// Retrieve full list
 			$recipienttable = mapi_message_getrecipienttable($this->message);
 			$recipients = mapi_table_queryallrows($recipienttable, $this->recipprops);
@@ -2658,7 +2659,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			$recipients[] = $this->nonAcceptingResources[$i];
 		}*/
 
-		if(count($recipients) > 0) {
+		if(!empty($recipients)) {
 			// Strip out the sender/"owner" recipient
 			mapi_message_modifyrecipients($new, MODRECIP_ADD, $recipients);
 
@@ -2691,7 +2692,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		}
 
 		// Send cancellation to deleted attendees
-		if ($deletedRecips && count($deletedRecips) > 0) {
+		if ($deletedRecips && !empty($deletedRecips)) {
 			$new = $this->createOutgoingMessage();
 
 			mapi_message_modifyrecipients($new, MODRECIP_ADD, $deletedRecips);
@@ -2716,7 +2717,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$props = array();
 		$props[$this->proptags['meetingstatus']] = olMeeting;
 		$props[$this->proptags['responsestatus']] = olResponseOrganized;
-		$props[$this->proptags['requestsent']] = (count($recipients) > 0) || ($this->includesResources && !$this->errorSetResource);
+		$props[$this->proptags['requestsent']] = (!empty($recipients)) || ($this->includesResources && !$this->errorSetResource);
 		$props[$this->proptags['attendee_critical_change']] = time();
 		$props[$this->proptags['owner_critical_change']] = time();
 		$props[$this->proptags['meetingtype']] = mtgRequest;

@@ -178,7 +178,7 @@ function getPropIdsFromStrings($store, $mapping)
 		}
 	}
 	
-	if (count($ids["id"])==0){
+	if (empty($ids["id"])){
 		return $props;
 	}
 

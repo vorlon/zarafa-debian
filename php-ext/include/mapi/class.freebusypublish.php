@@ -249,7 +249,7 @@ class FreeBusyPublish {
 			if(!is_array($rows))
 				break;
 				
-			if(count($rows) == 0)
+			if(empty($rows))
 				break;
 				
             foreach ($rows as $row) {
@@ -357,7 +357,7 @@ class FreeBusyPublish {
     					$newitem["start"] = $laststart;
     					$newitem["end"] = $ts["time"];
     					$newitem["subject"] = join(",", $csubj);
-    					$newitem["status"] = count($cbusy)>0?max($cbusy):0;
+    					$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
 						if($newitem["status"] > 0)
 	    					$merged[] = $newitem;
     				} 
@@ -375,7 +375,7 @@ class FreeBusyPublish {
     					$newitem["start"] = $laststart;
     					$newitem["end"] = $ts["time"];
     					$newitem["subject"] = join(",", $csubj);
-    					$newitem["status"] = count($cbusy)>0?max($cbusy):0;
+    					$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
 						if($newitem["status"] > 0)
 	    					$merged[] = $newitem;
     				} 

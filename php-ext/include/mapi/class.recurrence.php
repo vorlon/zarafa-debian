@@ -253,7 +253,7 @@
 			$basetime = $baseday + $this->recur["startocc"] * 60;
 			$extomodify = false;
 
-			for($i=0;$i<count($this->recur["changed_occurences"]);$i++) {
+			for($i = 0, $len = count($this->recur["changed_occurences"]); $i < $len; $i++) {
 		    	if($this->isSameDay($this->recur["changed_occurences"][$i]["basedate"], $baseday))
 		    		$extomodify = &$this->recur["changed_occurences"][$i];
 		    }
@@ -393,7 +393,7 @@
 			// get all occurence items before the seleceted items occurence starttime
 			$occitems = $this->getItems($this->messageprops[$this->proptags["startdate"]], $this->toGMT($this->tz, $basedate));
 			
-			if(count($occitems) > 0) {
+			if(!empty($occitems)) {
 				// as occitems array is sorted in ascending order of startdate, to get the previous occurence we take the last items in occitems .
 				$previousitem_startdate = $occitems[count($occitems) - 1][$this->proptags["startdate"]];
 
@@ -485,7 +485,7 @@
 			 * On the first occurence of greater nextreminder break the loop
 			 * and return the value to calling function.
 			 */
-			for($i=0; $i<count($items) ;$i++)
+			for($i = 0, $len = count($items); $i < $len; $i++)
 			{
 				$item = $items[$i];
 				$tempnextreminder = $item[$this->proptags["startdate"]] - ( $item[$this->proptags["reminder_minutes"]] * 60 );
@@ -974,7 +974,7 @@
 			$recipientTable = mapi_message_getrecipienttable($message);
 			$recipientRows = mapi_table_queryallrows($recipientTable, $this->recipprops);
 				
-			if (count($recipientRows) == 0) {
+			if (empty($recipientRows)) {
 				$useMessageRecipients = true;
 				$recipientTable = mapi_message_getrecipienttable($this->message);
 				$recipientRows = mapi_table_queryallrows($recipientTable, $this->recipprops);
@@ -986,7 +986,7 @@
 				$this->addOrganizer($msgprops, $exception_recips);
 			}
 
-			if (count($exception_recips) > 0) {
+			if (!empty($exception_recips)) {
 				foreach($recipientRows as $key => $recipient) {
 					$found = false;
 					foreach($exception_recips as $excep_recip) {
@@ -995,7 +995,7 @@
 					}
 
 					if (!$found) {
-						if (count($deletedRecipients) == 0) {
+						if (empty($deletedRecipients)) {
 							if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 								$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 							} else {
@@ -1033,7 +1033,7 @@
 				$exception_recips = $recipientRows;
 			}
 
-			if (count($exception_recips) > 0) {
+			if (!empty($exception_recips)) {
 				// Set the new list of recipients on the exception message, this also removes the existing recipients
 				mapi_message_modifyrecipients($message, 0, $exception_recips);
 			}
@@ -1048,7 +1048,7 @@
 		function getAllExceptions()
 		{
 			$result = false;
-			if (count($this->recur["changed_occurences"]) > 0) {
+			if (!empty($this->recur["changed_occurences"])) {
 				$result = array();
 				foreach($this->recur["changed_occurences"] as $exception) {
 					$result[] = $exception["basedate"];

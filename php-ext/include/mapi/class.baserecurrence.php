@@ -1231,7 +1231,7 @@
 			    $occ = false;
 			    $occurrences = $this->getItems(time(), 0x7ff00000, 3, true);
 
-                for($i = 0 ; $i < count($occurrences); $i++) {
+                for($i = 0, $len = count($occurrences) ; $i < $len; $i++) {
                     // This will actually also give us appointments that have already started, but not yet ended. Since we want the next
                     // reminder that occurs after time(), we may have to skip the first few entries. We get 3 entries since that is the maximum
                     // number that would be needed (assuming reminder for item X cannot be before the previous occurrence starts). Worst case:
@@ -1905,7 +1905,7 @@
 					}
 				}
 				//to get all exception items
-				if (count($this->recur['changed_occurences']) > 0)
+				if (!empty($this->recur['changed_occurences']))
 					$this->processExceptionItems($items, $start, $end);
 			}
 
