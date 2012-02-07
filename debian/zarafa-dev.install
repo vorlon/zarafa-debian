@@ -7,7 +7,7 @@ usr/lib/libcommon_ssl.a
 usr/lib/libfreebusy.la
 usr/lib/libfreebusy.a
 usr/lib/libzarafasync.la
-usr/lib/libzarafasync.a
+usr/lib/libzarafasync.so
 usr/lib/libarchiver.la
 usr/lib/libarchiver.so
 usr/lib/libmapi.la
