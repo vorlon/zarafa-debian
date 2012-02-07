@@ -839,3 +839,40 @@ bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2)
 	return ulPropTag1 == ulPropTag2;
 }
 
+ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult)
+{
+	ECRESULT		er = erSuccess;
+	DB_RESULT		lpDBResult = NULL;
+	DB_ROW			lpDBRow = NULL;
+	std::string		strQuery;
+
+	strQuery = "SELECT `value` FROM settings WHERE `name` = '"+lpDatabase->Escape(strSettings)+"'";
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if(er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
+		er = ZARAFA_E_NOT_FOUND;
+		goto exit;
+	}
+
+	*lpulResult = atoui(lpDBRow[0]);
+
+exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+
+	return er;
+}
+
+ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int ulValue)
+{
+	ECRESULT		er = erSuccess;
+	std::string		strQuery;
+
+	strQuery = "REPLACE INTO settings (`name`, `value`) VALUES('"+lpDatabase->Escape(strSettings)+"', '"+stringify(ulValue)+"')";
+	er = lpDatabase->DoUpdate(strQuery);
+
+	return er;
+}

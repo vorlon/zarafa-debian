@@ -55,6 +55,7 @@
 
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
+#include "ECDatabaseUtils.h"
 #include "ECLogger.h"
 #include "my_getopt.h"
 
@@ -1177,10 +1178,18 @@ int running_server(char *szName, const char *szConfig)
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
 #ifdef EMBEDDED_MYSQL
-	er = lpDatabase->ValidateTables();
-	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to validate the database.");
-		goto exit;
+	unsigned int ulResult = 0;
+	// setting upgrade_tables
+	// 1 = upgrade from mysql 4.1.23 to 5.22
+	if(GetDatabaseSettingAsInteger(lpDatabase, "upgrade_tables", &ulResult) != erSuccess || ulResult == 0) {
+
+		er = lpDatabase->ValidateTables();
+		if (er != erSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to validate the database.");
+			goto exit;
+		}
+
+		SetDatabaseSetting(lpDatabase, "upgrade_tables", 1);
 	}
 #endif
 

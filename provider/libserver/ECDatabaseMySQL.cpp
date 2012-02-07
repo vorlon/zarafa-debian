@@ -1420,7 +1420,7 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 			goto exit;
 		}
 
-		m_lpLogger->Log(EC_LOGLEVEL_INFO,"%20s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
+		m_lpLogger->Log(EC_LOGLEVEL_INFO,"%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
 		if (strcmp(lpDBRow[2], "error") == 0)
 			listErrorTables.insert(listErrorTables.end(), lpDBRow[0]);
 

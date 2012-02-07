@@ -116,4 +116,7 @@ ECRESULT ParseMVPropCount(char* lpRowData, ULONG ulSize, unsigned int *lpulLastP
 unsigned int NormalizeDBPropTag(unsigned int ulPropTag);
 bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2);
 
+ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult);
+ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int ulValue);
+
 #endif // ECDATABASEUTILS_H
