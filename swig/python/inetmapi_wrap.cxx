@@ -2856,7 +2856,6 @@ SWIGINTERNINLINE PyObject*
 SWIGINTERN sending_options *new_sending_options(){
 				sending_options *sopt = new sending_options;
 				imopt_default_sending_options(sopt);
-				sopt->alternate_boundary = strdup(sopt->alternate_boundary); /* avoid free problems */
 				sopt->charset_upgrade = strdup(sopt->charset_upgrade); /* avoid free problems */
 				return sopt;
 			}
