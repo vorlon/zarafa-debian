@@ -747,11 +747,11 @@
 			
                 // Properties for this occurrence are the same as the main object, 
                 // With these properties overridden
-                $newitem = $this->messageprops;
+				$newitem = $this->messageprops;
 				$newitem[$this->proptags["startdate"]] = $occstart;
 				$newitem[$this->proptags["duedate"]] = $occend;
 				$newitem[$this->proptags["commonstart"]] = $occstart;
-                $newitem[$this->proptags["commonend"]] = $occend;
+				$newitem[$this->proptags["commonend"]] = $occend;
                 $newitem["basedate"] = $basedate;
             }
             

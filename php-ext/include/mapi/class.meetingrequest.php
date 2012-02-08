@@ -1286,7 +1286,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			if (!$this->errorSetResource) {
 				$recurr = new Recurrence($this->openDefaultStore(), $this->message);
 
-				// First send all exceptions
+				// First send meetingrequest for recurring item
+				$this->submitMeetingRequest($this->message, $cancel, $prefix, false, $recurr, false, $deletedRecips);
+
+				// Then send all meeting request for all exceptions
 				$exceptions = $recurr->getAllExceptions();
 				if ($exceptions) {
 					foreach($exceptions as $exceptionBasedate) {
@@ -1299,9 +1302,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						}
 					}
 				}
-
-				// Now we can send meetingrequest for recurring item
-				$this->submitMeetingRequest($this->message, $cancel, $prefix, false, $recurr, false, $deletedRecips);
 			}
 		} else {
 			// Basedate found, an exception is to be send
