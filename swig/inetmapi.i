@@ -30,8 +30,20 @@ typedef struct _so {
         bool add_received_date;
         bool force_tnef;
         bool force_utf8;
-	    %extend {
-			sending_options() { sending_options *sopt = new sending_options; imopt_default_sending_options(sopt); return sopt; }
+        char *charset_upgrade;
+        bool allow_send_to_everyone;
+        %extend {
+			sending_options() {
+				sending_options *sopt = new sending_options;
+				imopt_default_sending_options(sopt);
+				sopt->alternate_boundary = strdup(sopt->alternate_boundary); /* avoid free problems */
+				sopt->charset_upgrade = strdup(sopt->charset_upgrade); /* avoid free problems */
+				return sopt;
+			}
+			~sending_options() {
+				free(self->alternate_boundary);
+				free(self->charset_upgrade);
+			}
 		}
 
 } sending_options;
