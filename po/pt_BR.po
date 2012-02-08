@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-03 15:33+0100\n"
-"PO-Revision-Date: 2011-11-25 13:17+0200\n"
-"Last-Translator: Alexandre <a.paraguassu@zarafa.com>\n"
+"POT-Creation-Date: 2012-02-09 00:05+0100\n"
+"PO-Revision-Date: 2012-02-08 18:18+0200\n"
+"Last-Translator: Sebastian <s.kummer@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -95,7 +95,7 @@ msgid "Unable to open MAPI session."
 msgstr "Não foi possível iniciar sessão MAPI."
 
 #: provider/ECProps/Addin.cpp:1193 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2374
+#: provider/client/ECMsgStore.cpp:2373
 msgid "Shortcut"
 msgstr "Atalho"
 
@@ -168,7 +168,7 @@ msgstr "&Salvar"
 #: provider/ECProps/SyncConfigDlg.cpp:120
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:178
+#: provider/client/ProviderUtil.cpp:151
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -599,32 +599,32 @@ msgid "This delegate has the following permissions"
 msgstr "Esse delegado tem as seguintes permissões"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2451
+#: provider/client/ECMsgStore.cpp:2450
 msgid "Calendar"
 msgstr "Calendário"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2497
+#: provider/client/ECMsgStore.cpp:2496
 msgid "Tasks"
 msgstr "Tarefas"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:876 provider/client/ECMsgStore.cpp:2391
+#: provider/libserver/ECGenProps.cpp:904 provider/client/ECMsgStore.cpp:2390
 msgid "Inbox"
 msgstr "Caixa de Entrada"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2439
+#: provider/client/ECMsgStore.cpp:2438
 msgid "Contacts"
 msgstr "Contatos"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2485
+#: provider/client/ECMsgStore.cpp:2484
 msgid "Notes"
 msgstr "Notas"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2473
+#: provider/client/ECMsgStore.cpp:2472
 msgid "Journal"
 msgstr "Diário"
 
@@ -764,26 +764,26 @@ msgstr ""
 msgid "The folder and/or messages can not be deleted."
 msgstr "A pasta e/ou mensagem não pode ser excluída."
 
-#: provider/libserver/ECDBUpdateProgress.cpp:46
+#: provider/libserver/ECDBUpdateProgress.cpp:58
 msgid "Your cache is being upgraded..."
 msgstr "Seu cache está sendo atualizado..."
 
-#: provider/libserver/ECDBUpdateProgress.cpp:81
+#: provider/libserver/ECDBUpdateProgress.cpp:93
 msgid "Upgrade: "
 msgstr "Atualizar:"
 
-#: provider/libserver/ECGenProps.cpp:834
+#: provider/libserver/ECGenProps.cpp:862
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Pastas Públicas"
 
-#: provider/libserver/ECGenProps.cpp:878
+#: provider/libserver/ECGenProps.cpp:906
 msgid "Archive"
 msgstr "Arquivo"
 
 #: provider/client/ECMSProvider.cpp:247
-#: provider/client/ECABProviderSwitch.cpp:279
+#: provider/client/ECABProviderSwitch.cpp:277
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
 "Cannot use the profile because you are over the license limit. To continue, "
@@ -793,7 +793,7 @@ msgstr ""
 "ultrapassado. Para continuar é necessário adiqurir licenças adicionais."
 
 #: provider/client/ECMSProvider.cpp:251
-#: provider/client/ECABProviderSwitch.cpp:284
+#: provider/client/ECABProviderSwitch.cpp:282
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
 "Cannot use the profile because the server was unable to contact the license "
@@ -890,7 +890,7 @@ msgstr "Não foi possível abrir o armazenamento de certificados SSL"
 msgid "Unable to store SSL certificate in registry key."
 msgstr "Não foi possível salvar o certificado SSL no armazenamento."
 
-#: provider/client/ProviderUtil.cpp:159
+#: provider/client/ProviderUtil.cpp:132
 msgid ""
 "Unable to work online! The first time you need a network connection. Retry "
 "if you have the network connection."
@@ -898,51 +898,51 @@ msgstr ""
 "Não é possível trabalhar online! Na primeira vez você necessita de uma "
 "conexão de rede. Tente novamente quando a conexão de rede foi estabelecida."
 
-#: provider/client/ProviderUtil.cpp:177
+#: provider/client/ProviderUtil.cpp:150
 msgid "First Folder Sync..."
 msgstr "Primeira sincronização de pastas..."
 
-#: provider/client/ProviderUtil.cpp:182
+#: provider/client/ProviderUtil.cpp:155
 msgid "Sync folder items"
 msgstr "Sincronizando itens da pasta"
 
-#: provider/client/ECMsgStore.cpp:2421
+#: provider/client/ECMsgStore.cpp:2420
 msgid "Outbox"
 msgstr "Caixa de Saída"
 
-#: provider/client/ECMsgStore.cpp:2427
+#: provider/client/ECMsgStore.cpp:2426
 msgid "Deleted Items"
 msgstr "Itens Excluídos"
 
-#: provider/client/ECMsgStore.cpp:2433
+#: provider/client/ECMsgStore.cpp:2432
 msgid "Sent Items"
 msgstr "Itens Enviados"
 
-#: provider/client/ECMsgStore.cpp:2461
+#: provider/client/ECMsgStore.cpp:2460
 msgid "Drafts"
 msgstr "Rascunhos"
 
-#: provider/client/ECMsgStore.cpp:2509
+#: provider/client/ECMsgStore.cpp:2508
 msgid "Junk E-mail"
 msgstr "Lixo Eletrônico"
 
-#: provider/client/ECMsgStore.cpp:2531
+#: provider/client/ECMsgStore.cpp:2530
 msgid "RSS Feeds"
 msgstr "Feeds RSS"
 
-#: provider/client/ECMsgStore.cpp:2531
+#: provider/client/ECMsgStore.cpp:2530
 msgid "RSS Feed comment"
 msgstr "Comentário RSS Feed"
 
-#: provider/client/ECMsgStore.cpp:2535
+#: provider/client/ECMsgStore.cpp:2534
 msgid "Conversation Action Settings"
 msgstr "Configurações de ação de conversação"
 
-#: provider/client/ECMsgStore.cpp:2539
+#: provider/client/ECMsgStore.cpp:2538
 msgid "Quick Step Settings"
 msgstr "Configurações de Passo Rápido"
 
-#: provider/client/ECMsgStore.cpp:2543
+#: provider/client/ECMsgStore.cpp:2542
 msgid "Suggested Contacts"
 msgstr "Contatos sugeridos"
 
@@ -965,11 +965,11 @@ msgstr "Zarafa Archiver"
 
 #: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
-msgstr ""
+msgstr "Ocorreu um erro ao buscar a mensagem do arquivo."
 
 #: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Por favor contate o administrador do sistema."
 
 #: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
@@ -977,28 +977,28 @@ msgstr "Código de erro:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
-msgstr ""
+msgstr "A licença do Archiver não é válida."
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Servidor de arquivo não encontrado."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
-msgstr ""
+msgstr "Permissões insuficientes para acessar o servidor de arquivo."
 
 #: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Descrição de erro:"
 
-#: provider/client/ECABProviderSwitch.cpp:138
-#: provider/client/ECMSProviderSwitch.cpp:281
+#: provider/client/ECABProviderSwitch.cpp:136
+#: provider/client/ECMSProviderSwitch.cpp:272
 msgid "Your cache is being upgraded. Do you want to work online this session?"
 msgstr ""
 "Seu cache está sendo atualizado. Você deseja trabalhar nesta sessão on-line?"
 
-#: provider/client/ECABProviderSwitch.cpp:209
-#: provider/client/ECMSProviderSwitch.cpp:386
+#: provider/client/ECABProviderSwitch.cpp:207
+#: provider/client/ECMSProviderSwitch.cpp:377
 msgid "Unable to work online! Do you want to switch to offline mode?"
 msgstr "Não é possível trabalhar online! Deseja alternar para o modo offline?"
 
@@ -1239,7 +1239,7 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr "Enviada em:"
 
-#: provider/client/ECMSProviderSwitch.cpp:245
+#: provider/client/ECMSProviderSwitch.cpp:236
 msgid ""
 "Unable to connect to the online server. If you continue, no new connections "
 "will be attempted until you disable the 'Work offline' option in the 'File' "
@@ -1309,7 +1309,7 @@ msgstr ""
 
 #: provider/contacts/ZCABContainer.cpp:645
 msgid "Zarafa Contacts Folders"
-msgstr ""
+msgstr "Pastas de Contatos Zarafa"
 
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
