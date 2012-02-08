@@ -170,6 +170,8 @@ class Meetingrequest {
 		$properties["requestsent"] = "PT_BOOLEAN:PSETID_Appointment:0x8229";		// PidLidFInvited, MeetingRequestWasSent
 		$properties["startdate"] = "PT_SYSTIME:PSETID_Appointment:0x820d";
 		$properties["duedate"] = "PT_SYSTIME:PSETID_Appointment:0x820e";
+		$properties["commonstart"] = "PT_SYSTIME:PSETID_Common:0x8516";
+		$properties["commonend"] = "PT_SYSTIME:PSETID_Common:0x8517";
 		$properties["recurring"] = "PT_BOOLEAN:PSETID_Appointment:0x8223";
 		$properties["clipstart"] = "PT_SYSTIME:PSETID_Appointment:0x8235";
 		$properties["clipend"] = "PT_SYSTIME:PSETID_Appointment:0x8236";
@@ -1650,11 +1652,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		// we are sending a response for recurring meeting request (or exception), so set some required properties
 		if(isset($recurr) && $recurr) {
-			if(isset($messageprops[$this->proptags['recurring_pattern']])) {
+			if(!empty($messageprops[$this->proptags['recurring_pattern']])) {
 				$props[$this->proptags['recurring_pattern']] = $messageprops[$this->proptags['recurring_pattern']];
 			}
 
-			if(isset($messageprops[$this->proptags['recurrence_data']])) {
+			if(!empty($messageprops[$this->proptags['recurrence_data']])) {
 				$props[$this->proptags['recurrence_data']] = $messageprops[$this->proptags['recurrence_data']];
 			}
 
@@ -2583,7 +2585,9 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 		// Send all recurrence info in mail, if this is a recurrence meeting.
 		if (isset($messageprops[$this->proptags['recurring']]) && $messageprops[$this->proptags['recurring']]) {
-			$newmessageprops[$this->proptags['recurring_pattern']] = $messageprops[$this->proptags['recurring_pattern']];
+			if(!empty($messageprops[$this->proptags['recurring_pattern']])) {
+				$newmessageprops[$this->proptags['recurring_pattern']] = $messageprops[$this->proptags['recurring_pattern']];
+			}
 			$newmessageprops[$this->proptags['recurrence_data']] = $messageprops[$this->proptags['recurrence_data']];
 			$newmessageprops[$this->proptags['timezone_data']] = $messageprops[$this->proptags['timezone_data']];
 			$newmessageprops[$this->proptags['timezone']] = $messageprops[$this->proptags['timezone']];

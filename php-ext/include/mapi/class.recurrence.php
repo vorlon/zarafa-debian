@@ -182,8 +182,18 @@
 				if (!isset($exception_props[$this->proptags["startdate"]])) {
 					$props[$this->proptags["startdate"]] = $this->getOccurrenceStart($base_date);
 				}
+
 				if (!isset($exception_props[$this->proptags["duedate"]])) {
 					$props[$this->proptags["duedate"]] = $this->getOccurrenceEnd($base_date);
+				}
+
+				// synchronize commonstart/commonend with startdate/duedate
+				if(isset($props[$this->proptags["startdate"]])) {
+					$props[$this->proptags["commonstart"]] = $props[$this->proptags["startdate"]];
+				}
+
+				if(isset($props[$this->proptags["duedate"]])) {
+					$props[$this->proptags["commonend"]] = $props[$this->proptags["duedate"]];
 				}
 
 				// Save the data into an attachment
@@ -302,6 +312,15 @@
 			}
 
 			$exception_props[PR_MESSAGE_CLASS] = "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}";
+
+			// synchronize commonstart/commonend with startdate/duedate
+			if(isset($exception_props[$this->proptags["startdate"]])) {
+				$exception_props[$this->proptags["commonstart"]] = $exception_props[$this->proptags["startdate"]];
+			}
+
+			if(isset($exception_props[$this->proptags["duedate"]])) {
+				$exception_props[$this->proptags["commonend"]] = $exception_props[$this->proptags["duedate"]];
+			}
 
 			$attach = $this->getExceptionAttachment($baseday);
 			if(!$attach) {
@@ -729,8 +748,10 @@
                 // Properties for this occurrence are the same as the main object, 
                 // With these properties overridden
                 $newitem = $this->messageprops;
-                $newitem[$this->proptags["startdate"]] = $occstart;
-                $newitem[$this->proptags["duedate"]] = $occend;
+				$newitem[$this->proptags["startdate"]] = $occstart;
+				$newitem[$this->proptags["duedate"]] = $occend;
+				$newitem[$this->proptags["commonstart"]] = $occstart;
+                $newitem[$this->proptags["commonend"]] = $occend;
                 $newitem["basedate"] = $basedate;
             }
             
@@ -844,6 +865,8 @@
             // MAPI-compatible properties (you can handle an exception as a normal calendar item like this)
             $item[$this->proptags["startdate"]] = $this->toGMT($this->tz, $exception["start"]);
             $item[$this->proptags["duedate"]] = $this->toGMT($this->tz, $exception["end"]);
+            $item[$this->proptags["commonstart"]] = $item[$this->proptags["startdate"]];
+            $item[$this->proptags["commonend"]] = $item[$this->proptags["duedate"]];
             
             if(isset($exception["subject"])) {
                 $item[$this->proptags["subject"]] = $exception["subject"];
