@@ -69,8 +69,6 @@ static char THIS_FILE[] = __FILE__;
 #define DEBUG_TRANSACTION 0
 #endif
 
-#define DEBUG_SQL 1
-
 // The maximum packet size. This is automatically also the maximum
 // size of a single entry in the database.
 #define MAX_ALLOWED_PACKET			16777216
