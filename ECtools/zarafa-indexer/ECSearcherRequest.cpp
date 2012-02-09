@@ -262,6 +262,7 @@ HRESULT ECSearcherRequest::parseRequest(std::string &strRequest, command_t *lpul
 			goto exit;
 		}
 	} else if (stricmp(strCommand.c_str(), "SCOPE") == 0) {
+		// SCOPE <serverguid> <storeguid> <folder1> ... <folderN>
 		*lpulCommand = COMMAND_SCOPE;
 
 		if (strArgs.empty()) {
@@ -275,15 +276,42 @@ HRESULT ECSearcherRequest::parseRequest(std::string &strRequest, command_t *lpul
 			hr = MAPI_W_ERRORS_RETURNED;
 			goto exit;
 		}
-	} else if (stricmp(strCommand.c_str(), "QUERY") == 0) {
-		*lpulCommand = COMMAND_QUERY;
+	} else if (stricmp(strCommand.c_str(), "FIND") == 0) {
+		size_t pos_colon;
+		std::string strFields;
+		std::string strTerm;
+		
+		// FIND <field1> ... <fieldN> : <term>
+		*lpulCommand = COMMAND_FIND;
 
 		if (strArgs.empty()) {
 			hr = MAPI_W_ERRORS_RETURNED;
 			goto exit;
 		}
+		
+		pos_colon = strArgs.find_first_of(':');
+		if(pos_colon == std::string::npos) {
+			hr = MAPI_W_ERRORS_RETURNED;
+			goto exit;
+		}
+		
+		strFields.assign(strArgs, 0, pos_colon);
+		strTerm.assign(strArgs, pos_colon+1, std::string::npos);
+		
+		lplistArgs->clear();
+		lplistArgs->push_back(strFields);
+		lplistArgs->push_back(strTerm);
+		
+	} else if (stricmp(strCommand.c_str(), "QUERY") == 0) {
+		// QUERY
+		*lpulCommand = COMMAND_QUERY;
 
-		lplistArgs->assign(1, strArgs);
+		if (!strArgs.empty()) {
+			hr = MAPI_W_ERRORS_RETURNED;
+			goto exit;
+		}
+
+		lplistArgs->clear();
 	} else if (stricmp(strCommand.c_str(), "SYNCRUN") == 0) {
 		*lpulCommand = COMMAND_SYNCRUN;
 
@@ -303,34 +331,35 @@ exit:
 HRESULT ECSearcherRequest::handleRequest(command_t ulCommand, std::vector<std::string> &listArgs, std::string *lpstrResponse)
 {
 	HRESULT hr = hrSuccess;
-	std::string strStorePath;
-	string_list_t lResults;
+	std::list<unsigned int> lstResults;
+	std::list<unsigned int> lstFolders;
+	std::vector<std::string> vFields;
+	std::set<unsigned int> setFields;
+	std::string strServerGuid, strStoreGuid;
+	unsigned int ulMaxResults = 0;
 
 	switch (ulCommand) {
 	case COMMAND_PROPS:
-		hr = m_lpThreadData->lpLucene->GetIndexedProps(&lResults);
-		if (hr != hrSuccess)
-			goto exit;
-
-		*lpstrResponse = "OK:";
-		*lpstrResponse += concatenate(lResults, "; ");
+		*lpstrResponse = "OK:"; // FIXME
 		break;
 	case COMMAND_SCOPE:
-		hr = m_lpThreadData->lpFileIndex->GetStorePath(listArgs[0], listArgs[1], &strStorePath);
-		if (hr != hrSuccess) {
-			*lpstrResponse = stringify(MAPI_E_INVALID_ENTRYID, true) + ": Invalid entryid provided";
-			hr = hrSuccess;
-			goto exit;
-		}
-
+		strServerGuid = listArgs[0];
+		strStoreGuid = listArgs[1];
+		
 		listArgs.erase(listArgs.begin(), listArgs.begin() + 2);
 
 		if (m_lpSearcher) {
 			m_lpSearcher->Release();
 			m_lpSearcher = NULL;
 		}
+		
+		for(std::vector<std::string>::iterator i = listArgs.begin(); i != listArgs.end(); i++) {
+			lstFolders.push_back(atoui(i->c_str()));
+		}
+		
+		ulMaxResults = atoui(m_lpThreadData->lpConfig->GetSetting("limit_results"));
 
-		hr = m_lpThreadData->lpLucene->CreateSearcher(m_lpThreadData, strStorePath, listArgs, &m_lpSearcher);
+		hr = ECLuceneSearcher::Create(m_lpThreadData, (GUID *)hex2bin(strServerGuid).c_str(), (GUID *)hex2bin(strStoreGuid).c_str(), lstFolders, ulMaxResults, &m_lpSearcher);
 		if (hr != hrSuccess) {
 			if (hr == MAPI_E_NOT_FOUND)
 				*lpstrResponse = stringify(MAPI_E_NOT_FOUND, true) + ": Store has not yet been indexed";
@@ -344,13 +373,37 @@ HRESULT ECSearcherRequest::handleRequest(command_t ulCommand, std::vector<std::s
 
 		*lpstrResponse = "OK:";
 		break;
+	case COMMAND_FIND:
+		
+		if (!m_lpSearcher) {
+			*lpstrResponse = stringify(MAPI_E_NOT_INITIALIZED, true) + ": No scope provided";
+			goto exit;
+		}
+		
+		vFields = tokenize(listArgs[0], " ");
+		
+		for(std::vector<std::string>::iterator i = vFields.begin(); i != vFields.end(); i++) {
+			setFields.insert(atoui(i->c_str()));
+		}
+		
+		hr = m_lpSearcher->AddTerm(setFields, listArgs[1]);
+		if (hr != hrSuccess) {
+			*lpstrResponse = stringify(MAPI_E_CALL_FAILED, true) + ": bad term";
+			hr = hrSuccess;
+			goto exit;
+		}
+
+		*lpstrResponse = "OK:";		
+		
+		break;
+
 	case COMMAND_QUERY:
 		if (!m_lpSearcher) {
 			*lpstrResponse = stringify(MAPI_E_NOT_INITIALIZED, true) + ": No scope provided";
 			goto exit;
 		}
 
-		hr = m_lpSearcher->SearchEntries(listArgs.front(), &lResults);
+		hr = m_lpSearcher->SearchEntries(&lstResults);
 		if (hr != hrSuccess) {
 			*lpstrResponse = stringify(MAPI_E_CALL_FAILED, true) + ": Search failed";
 			hr = hrSuccess;
@@ -358,7 +411,11 @@ HRESULT ECSearcherRequest::handleRequest(command_t ulCommand, std::vector<std::s
 		}
 
 		*lpstrResponse = "OK:";
-		*lpstrResponse += concatenate(lResults, "; ");
+		
+		for(std::list<unsigned int>::iterator i = lstResults.begin(); i != lstResults.end(); i++) {
+			*lpstrResponse += " ";
+			*lpstrResponse += stringify(*i);
+		}
 		break;
 	case COMMAND_SYNCRUN:
 		hr = m_lpIndexer->RunSynchronization();

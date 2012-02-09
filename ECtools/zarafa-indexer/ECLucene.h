@@ -176,78 +176,6 @@ public:
 	HRESULT CreateIndexer(ECThreadData *lpThreadData, std::string &strStorePath, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer);
 
 	/**
-	 * Create ECLuceneSearcher object
-	 *
-	 * @param[in]	lpThreadData
-	 *					Reference to ECThreadData object.
-	 * @param[in]	strStorePath
-	 *					Path to store directory on harddisk.
-	 * @param[in]	listFolder
-	 *					List of folders which limits the scope of the search query for ECLuceneSearcher.
-	 * @param[out]	lppSearcher
-	 *					Reference to the created ECLuceneSearcher object.
-	 * @return HRESULT
-	 */
-	HRESULT CreateSearcher(ECThreadData *lpThreadData, std::string &strStorePath, std::vector<std::string> &listFolder, ECLuceneSearcher **lppSearcher);
-
-	/**
-	 * Perform cache optimization
-	 *
-	 * Purge all expired caches.
-	 *
-	 * @param[in]	bReset
-	 *					If set to TRUE the configured timeout value is disregarded and all caches will be purged.
-	 * @return HRESULT
-	 */
-	HRESULT Optimize(BOOL bReset);
-
-	/**
-	 * Delete all caches belonging to the given path to the store directory on harddisk
-	 *
-	 * @param[in]	strStorePath
-	 * @return VOID
-	 */
-	VOID Delete(std::string &strStorePath);
-
-	/**
-	 * Search for NShttpmail_t reference which belongs to the given proptag
-	 *
-	 * @param[in]	ulPropTag
-	 *					Property tag for which the corresponding NShttpmail_t object must be found.
-	 * @return NShttpmail_t*
-	 */
-	NShttpmail_t* GetIndexedProp(ULONG ulPropTag);
-
-	/**
-	 * Request a list of all properties which have been indexed by Lucene.
-	 *
-	 * Each list entry is formatted as follows:
-	 *     "NShttpmail_t::NShttpmail_t NShttpmail_t::strPropId"
-	 *
-	 * @param[out]	lpProps
-	 *					List of std::strings containing all indexed properties
-	 * @return HRESULT
-	 */
-	HRESULT GetIndexedProps(string_list_t *lpProps);
-
-	/**
-	 * Request a SPropTagArray with all indexed properties
-	 *
-	 * The SPropTagArray will consist of all properties indexed by Lucene, it can
-	 * optionally be merged with additional property tags provided by the lpExtra
-	 * parameter.
-	 *
-	 * @param[in]	lpExtra
-	 *					Optional parameter containing a list of extra property tags
-	 *					which should be added to the SPropTagArray returned in lppProps.
-	 * @param[out]	lppProps
-	 *					The created SPropTagArray containing all indexed properties,
-	 *					plus the optionally extra properties as provided in lpExtra.
-	 * @return HRESULT
-	 */
-	HRESULT GetIndexedProps(LPSPropTagArray lpExtra, LPSPropTagArray *lppProps);
-
-	/**
 	 * Search Single Instance Attachment cache for parsed attachment data
 	 *
 	 * @param[in]	strInstanceId
@@ -268,43 +196,6 @@ public:
 	 * @return HRESULT
 	 */
 	HRESULT UpdateAttachmentCache(std::string &strInstanceId, std::wstring &strAttachData);
-	
-	HRESULT OptimizeIndex(ECThreadData *lpThreadData, std::string strStorePath);
-
-private:
-	/**
-	 * Create ECLuceneAccess object
-	 *
-	 * Check if ECLuceneAccess object already exists in cache, or create a new
-	 * ECLuceneAccess object.
-	 *
-	 * @param[in]	lpThreadData
-	 *					Reference to ECThreadData object.
-	 * @param[in]	strStorePath
-	 *					Path to store directory on harddisk.
-	 * @param[out]	lppAccess
-	 *					Reference to the created ECLuceneAccess object.
-	 * @return HRESULT
-	 */
-	HRESULT CreateAccess(ECThreadData *lpThreadData, std::string &strStorePath, ECLuceneAccess **lppAccess);
-
-	/**
-	 * Optimize ECLuceneAccess cache based on expire time
-	 *
-	 * @param[in]	ulExpireTime
-	 *					If last access time of cache entry is lower then ulExpireTime
-	 *					then entry is considered expired.
-	 */
-	VOID OptimizeAccess(time_t ulExpireTime);
-
-	/**
-	 * Optimize Single Instance Attachment cache based on expire time
-	 *
-	 * @param[in]	ulExpireTime
-	 *					If last access time of cache entry is lower then ulExpireTime
-	 *					then entry is considered expired.
-	 */
-	VOID OptimizeCache(time_t ulExpireTime);
 
 private:
 	ECThreadData *m_lpThreadData;
@@ -315,8 +206,6 @@ private:
 
 	indexprop_map_t m_mapIndexedProps;
 	string_list_t m_listIndexedProps;
-
-	lucenestore_map_t m_mapLuceneStores;
 
 	instance_map_t m_mInstanceCache;
 

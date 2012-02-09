@@ -112,8 +112,8 @@ public:
 	ECRESULT	GetTable(unsigned int lpulTableId, ECGenericObjectTable **lppTable);
 	ECRESULT	CloseTable(unsigned int lpulTableId);
 
-	ECRESULT	UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, unsigned int ulObjId, unsigned int ulFlags, unsigned int ulObjType);
-	ECRESULT	UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, unsigned int ulChildId, unsigned int ulObjType);
+	ECRESULT	UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType);
+	ECRESULT	UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType);
 
 	ECRESULT	GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize);
 

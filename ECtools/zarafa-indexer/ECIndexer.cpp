@@ -168,13 +168,6 @@ HRESULT ECIndexer::Create(ECThreadData *lpThreadData, ECIndexer **lppIndexer)
 		goto exit;
 	}
 
-	// enable disk index optimization in indexing run at 2 am
-	hr = lpScheduler->AddSchedule(SCHEDULE_DAY, 2, ECIndexer::EnableOptimizeIndex, lpIndexer);
-	if (hr != hrSuccess) {
-		lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to schedule index optimizition");
-		goto exit;
-	}
-
 	if (lppIndexer)
 		*lppIndexer = lpIndexer;
 
@@ -231,26 +224,6 @@ LPVOID ECIndexer::RunThread(LPVOID lpVoid)
 	return NULL;
 }
 
-LPVOID ECIndexer::EnableOptimizeIndex(LPVOID lpVoid)
-{
-	ECIndexer *lpIndexer = (ECIndexer *)lpVoid;
-	if (lpIndexer->m_eOptimize < NEXT_OPTIMIZE)
-		lpIndexer->m_eOptimize = NEXT_OPTIMIZE;
-	return NULL;
-}
-
-HRESULT ECIndexer::Optimize()
-{
-	HRESULT hr = hrSuccess;
-
-	hr = m_lpThreadData->lpLucene->Optimize(FALSE);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
-}
-
 HRESULT ECIndexer::RunIndexer()
 {
 	HRESULT hr = hrSuccess;
@@ -298,14 +271,10 @@ HRESULT ECIndexer::RunIndexer()
 	while (!lpIndexerData->AllThreadsCompleted()) {
 		gettimeofday(&now, NULL);
 
-		/* Wakeup every 5 minutes to peform optimizations */
 		timeout.tv_sec = now.tv_sec + (5 * 60);
 		timeout.tv_nsec = now.tv_usec * 1000;
 
 		pthread_cond_timedwait(&m_hThreadCond, &m_hThreadLock, &timeout);
-
-		if (Optimize() != hrSuccess)
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_WARNING, "Optimization of cache memory failed");
 	}
 	pthread_mutex_unlock(&m_hThreadLock);
 
@@ -494,7 +463,7 @@ HRESULT ECIndexer::LoadUserChanges(ECSynchronization *lpSyncer, IMAPISession *lp
 		for (iter = lpChanges->lDelete.begin(); iter != lpChanges->lDelete.end(); iter++) {
 			entrydata_list_t::iterator entry = find_if(m_lUsers.begin(), m_lUsers.end(), finduser_if(*iter));
 			if (entry != m_lUsers.end()) {
-				m_lpThreadData->lpLucene->Delete((*entry)->m_strStorePath);
+//				m_lpThreadData->lpLucene->Delete((*entry)->m_strStorePath); FIXME
 
 				(*entry)->Release();
 				m_lUsers.erase(entry);
@@ -1005,18 +974,6 @@ exit:
 
 	if (lpLucene)
 		lpLucene->Release();
-
-	return hr;
-}
-
-HRESULT ECIndexer::OptimizeIndex(ECEntryData *lpEntry)
-{
-	HRESULT hr = hrSuccess;
-
-	if (m_eOptimize == RUN_OPTIMIZE) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_WARNING, "Optimizing disk index");
-		hr = m_lpThreadData->lpLucene->OptimizeIndex(m_lpThreadData, lpEntry->m_strStorePath);
-	}
 
 	return hr;
 }

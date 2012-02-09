@@ -47,23 +47,74 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,32055
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CLIENT		7,1,0,32055
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,32055"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,32055"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,32055"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"32055"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			32055
+#ifndef ECINDEXDB_H
+#define ECINDEXDB_H
+
+#include <string>
+#include <list>
+#include <map>
+#include <set>
+
+#include <mapidefs.h>
+
+class ECConfig;
+class ECLogger;
+class ECDatabaseMySQL;
+class ECAnalyzer;
+
+class storeid_t {
+public:
+    storeid_t() { };
+    storeid_t(LPMAPIUID server, LPMAPIUID store) {
+        serverGuid.assign((char *)server, sizeof(GUID));
+        storeGuid.assign((char *)store, sizeof(GUID));
+    }
+    storeid_t(LPSPropValue lpServerGuid, LPSPropValue lpStoreGuid) {
+        serverGuid.assign((char *)lpServerGuid->Value.bin.lpb, lpServerGuid->Value.bin.cb);
+        storeGuid.assign((char *)lpStoreGuid->Value.bin.lpb, lpStoreGuid->Value.bin.cb);
+    }
+        
+    std::string serverGuid;
+    std::string storeGuid;
+    
+    bool operator < (const storeid_t &other) const {
+        return std::make_pair(serverGuid, storeGuid) < std::make_pair(other.serverGuid, storeGuid);
+    }
+};
+
+typedef unsigned int folderid_t;
+typedef unsigned int docid_t;
+typedef unsigned int fieldid_t;
+
+class ECIndexDB {
+public:
+    ECIndexDB(ECConfig *lpConfig, ECLogger *lpLogger);
+    ~ECIndexDB();
+    
+    HRESULT AddTerm(storeid_t store, folderid_t folder, docid_t doc, fieldid_t field, unsigned int ulVersion, std::wstring wstrTerm);
+    HRESULT RemoveTermsStore(storeid_t store);
+    HRESULT RemoveTermsFolder(storeid_t store, folderid_t folder);
+    HRESULT RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lpulVersion);
+    HRESULT RemoveTermsDoc(storeid_t store, folderid_t folder, std::string strSourceKey);
+    
+    // We need to track the sourcekey of documents to be able to handle deletions
+    HRESULT AddSourcekey(storeid_t store, folderid_t folder, std::string strSourceKey, docid_t doc);
+    
+    HRESULT Flush();
+    
+    HRESULT QueryTerm(storeid_t store, std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
+    
+private:
+    HRESULT EnsureTransaction();
+    HRESULT GetStoreId(storeid_t store, unsigned int *lpulStoreId, bool bCreate);
+
+    ECLogger *m_lpLogger;
+    ECConfig *m_lpConfig;
+    ECAnalyzer *m_lpAnalyzer;
+    ECDatabaseMySQL *m_lpDatabase;
+    bool m_bInTransaction;
+    unsigned int m_ulChanges;
+    
+    std::map<storeid_t, unsigned int> m_mapStores;
+};
+

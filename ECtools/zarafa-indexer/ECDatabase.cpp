@@ -47,23 +47,52 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,32055
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CLIENT		7,1,0,32055
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,32055"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,32055"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,32055"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"32055"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			32055
+#include "platform.h"
+
+#include "ECDatabase.h"
+
+#define TABLEDEF_WORDS			"CREATE TABLE `words` ( \
+								    `store` int(11) NOT NULL, \
+								    `folder` int(11) NOT NULL, \
+								    `field` int(11) NOT NULL, \
+								    `doc` int(11) NOT NULL, \
+								    `term` varchar(255) NOT NULL, \
+								    `version` int(11) NOT NULL, \
+								    PRIMARY KEY  (`store`,`term`,`field`,`doc`) ) ENGINE=Innodb CHARSET=utf8" 
+              
+
+#define TABLEDEF_STORES			"CREATE TABLE `stores` ( \
+  									`id` int(11) NOT NULL auto_increment, \
+									`serverguid` varbinary(16) NOT NULL default '', \
+									`storeguid` varbinary(16) NOT NULL default '', \
+									PRIMARY KEY  (`serverguid`,`storeguid`), \
+									UNIQUE KEY `id` (`id`) ) ENGINE=InnoDb CHARSET=utf8"
+
+#define TABLEDEF_UPDATES		"CREATE TABLE `updates` ( \
+                                    `id` int(11) NOT NULL auto_increment, \
+                                    `store` int(11) NOT NULL, \
+                                    `doc` int(11) NOT NULL, \
+                                    PRIMARY KEY  (`id`), \
+                                    UNIQUE KEY `doc` (`doc`) \
+                                    ) ENGINE=InnoDB CHARSET=utf8"
+
+#define TABLEDEF_SOURCEKEYS		"CREATE TABLE `sourcekeys` ( \
+                                    `store` int(11) NOT NULL, \
+                                    `folder` int(11) NOT NULL, \
+                                    `sourcekey` varbinary(255) NOT NULL, \
+                                    `doc` int(11) NOT NULL, \
+                                    PRIMARY KEY  (`store`,`folder`,`sourcekey`) \
+                                    ) ENGINE=InnoDB CHARSET=utf8"
+                                    
+sSQLDatabase_t tables[] = 
+{
+	{"stores", TABLEDEF_STORES},
+	{"words", TABLEDEF_WORDS},
+	{"updates", TABLEDEF_UPDATES},
+	{"sourcekeys", TABLEDEF_SOURCEKEYS},
+	{NULL, NULL}
+};
+
+sSQLDatabase_t *ECDatabase::GetDatabaseDefs() {
+	return tables;
+}

@@ -71,9 +71,9 @@
 #include "ECFileIndex.h"
 #include "ECIndexerUtil.h"
 #include "ECLucene.h"
-#include "ECLuceneAccess.h"
 #include "ECLuceneIndexer.h"
 #include "ECLuceneIndexerAttachment.h"
+#include "ECIndexDB.h"
 #include "zarafa-indexer.h"
 
 #include "helpers/mapiprophelper.h"
@@ -82,15 +82,15 @@
 
 using namespace za::helpers;
 
-ECLuceneIndexer::ECLuceneIndexer(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, IMAPISession *lpAdminSession)
+ECLuceneIndexer::ECLuceneIndexer(ECThreadData *lpThreadData, IMAPISession *lpAdminSession)
 {
 	m_lpThreadData = lpThreadData;
 
-	m_lpLuceneAccess = lpLuceneAccess;
-	m_lpLuceneAccess->AddRef();
-
 	m_lpAdminSession = lpAdminSession;
 	m_lpAdminSession->AddRef();
+	
+	m_lpIndexDB = new ECIndexDB(lpThreadData->lpConfig, lpThreadData->lpLogger);
+	m_lpIndexedProps = NULL;
 }
 
 ECLuceneIndexer::~ECLuceneIndexer()
@@ -101,17 +101,17 @@ ECLuceneIndexer::~ECLuceneIndexer()
 	if (m_lpAdminSession)
 		m_lpAdminSession->Release();
 
-	if (m_lpLuceneAccess)
-		m_lpLuceneAccess->Release();
-
 	if (m_lpIndexerAttach)
 		m_lpIndexerAttach->Release();
 
 	if (m_lpMsgStore)
 		m_lpMsgStore->Release();
+		
+	if (m_lpIndexDB)
+		delete m_lpIndexDB;
 }
 
-HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer)
+HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer)
 {
 	HRESULT hr = hrSuccess;
 	ECLuceneIndexer *lpIndexer = NULL;
@@ -123,7 +123,7 @@ HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLu
 		},
 	};
 
-	lpIndexer = new ECLuceneIndexer(lpThreadData, lpLuceneAccess, lpAdminSession);
+	lpIndexer = new ECLuceneIndexer(lpThreadData, lpAdminSession);
 	if (!lpIndexer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -132,10 +132,6 @@ HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLu
 	lpIndexer->AddRef();
 
 	hr = MAPIPropHelper::GetArchiverProps(MAPIPropPtr(lpMsgStore, true), (LPSPropTagArray)&sExtra, &ptrArchiveProps);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpIndexer->m_lpThreadData->lpLucene->GetIndexedProps(ptrArchiveProps, &lpIndexer->m_lpIndexedProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -162,33 +158,22 @@ HRESULT ECLuceneIndexer::IndexEntries(sourceid_list_t &listCreateEntries, source
 	HRESULT hr = hrSuccess;
 
 	try {
-		if (m_lpLuceneAccess->IndexExists()) {
-			if (!listDeleteEntries.empty()) {
-				hr = IndexDeleteEntries(listDeleteEntries);
-				if (hr != hrSuccess)
-					goto exit;
-			}
+		if (!listDeleteEntries.empty()) {
+			hr = IndexDeleteEntries(listDeleteEntries);
+			if (hr != hrSuccess)
+				goto exit;
+		}
 
-			/* We can't dynamically update an index message, it must be deleted and recreated */
-			if (!listChangeEntries.empty()) {
-				hr = IndexDeleteEntries(listChangeEntries);
-				if (hr != hrSuccess)
-					goto exit;
-			}
+		if (!listChangeEntries.empty()) {
+			hr = IndexUpdateEntries(listChangeEntries);
+			if (hr != hrSuccess)
+				goto exit;
 		}
 
 		if (!listCreateEntries.empty()) {
 			hr = IndexStreamEntries(listCreateEntries);
 			if (hr != hrSuccess)
 				goto exit;
-		}
-
-		/* We can't dynamically update an index message, it must be deleted and recreated */
-		if (!listChangeEntries.empty()) {
-			hr = IndexStreamEntries(listChangeEntries);
-			if (hr != hrSuccess)
-				goto exit;
-
 		}
 	} catch (CLuceneError &e) {
 		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
@@ -211,67 +196,105 @@ exit:
 }
 
 
-HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
+HRESULT ECLuceneIndexer::IndexUpdateEntries(sourceid_list_t &listSourceId)
 {
 	HRESULT hr = hrSuccess;
-	lucene::index::IndexReader *lpReader = NULL;
-	lucene::index::Term sTerm;
 	sourceid_list_t::iterator iter;
-	NShttpmail_t * lpNSProp = NULL;
+	storeid_t store;
+	docid_t doc;
+	unsigned int ulVersion = 0;
+	LARGE_INTEGER lint = {{ 0, 0 }};
+	ECSerializer *lpSerializer = NULL;
 
-	lpNSProp = m_lpThreadData->lpLucene->GetIndexedProp(PR_SOURCE_KEY);
-	if (!lpNSProp)
+	lpSerializer = new ECStreamSerializer(NULL);
+	if (!lpSerializer) {
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
-
-	hr = m_lpLuceneAccess->GetLuceneReader(&lpReader);
-	if (hr != hrSuccess)
-		goto exit;
+	}
 
 	for (iter = listSourceId.begin(); iter != listSourceId.end(); iter++) {
-		std::wstring strField = lpNSProp->strNShttpmail;
-		LPSPropValue lpSK = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_SOURCE_KEY);
+		LPSPropValue lpPropHierarchyId = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_EC_HIERARCHYID);
+		LPSPropValue lpPropStoreID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_STORE_RECORD_KEY);
+		LPSPropValue lpPropServerID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_MAPPING_SIGNATURE);
 		
-		if(lpSK == NULL)
+		if(!lpPropHierarchyId || !lpPropStoreID || !lpPropServerID) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to find document id during update");
 			continue;
-			
-		std::wstring strContents = PropToString(lpSK);
+		}
 
-		sTerm.set(strField.c_str(), strContents.c_str());
+		store = storeid_t(lpPropServerID, lpPropStoreID);
+		doc = lpPropHierarchyId->Value.ul;
+		
+		hr = m_lpIndexDB->RemoveTermsDoc(store, doc, &ulVersion);
+		if(hr != hrSuccess) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Error remove old fields for update");
+			hr = hrSuccess;
+			continue;
+		}
+		
+		if (!(*iter)->lpStream) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "No data stream during message update");
+			hr = hrSuccess;
+			continue;
+		}
 
-		try {
-			lpReader->deleteDocuments(&sTerm);
-		}
-		catch (CLuceneError &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
+		/* Read number of properties from Stream */
+		hr = (*iter)->lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
+		if (hr != hrSuccess) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while reading message data stream size");
+			hr = hrSuccess;
 			continue;
 		}
-		catch (std::exception &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during delete entry: %s", e.what());
-			continue;
-		}
-		catch (...) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during delete entry");
+
+		lpSerializer->SetBuffer((*iter)->lpStream);
+
+		hr = ParseStream(storeid_t(), 0, 0, ulVersion, (*iter)->ulProps, (*iter)->lpProps, lpSerializer);
+		if (hr != hrSuccess) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while parsing message stream for update");
+			hr = hrSuccess;
 			continue;
 		}
 	}
 	
 exit:
-	if (lpReader)
-		m_lpLuceneAccess->PutLuceneReader(lpReader, true);
+	if (lpSerializer)
+		delete lpSerializer;
 
 	return hr;
 }
+
+HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
+{
+	HRESULT hr = hrSuccess;
+	sourceid_list_t::iterator iter;
+	storeid_t store;
+
+	for (iter = listSourceId.begin(); iter != listSourceId.end(); iter++) {
+		LPSPropValue lpPropSK = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_SOURCE_KEY);
+		LPSPropValue lpPropFolderId = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_EC_PARENT_HIERARCHYID);
+		LPSPropValue lpPropStoreID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_STORE_RECORD_KEY);
+		LPSPropValue lpPropServerID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_MAPPING_SIGNATURE);
+		
+		if(!lpPropSK || !lpPropFolderId || !lpPropStoreID || !lpPropServerID) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to find properties during deletion");
+			continue;
+		}
+
+		store = storeid_t(lpPropServerID, lpPropStoreID);
+		
+		m_lpIndexDB->RemoveTermsDoc(store, lpPropFolderId->Value.ul, std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb));
+	}
+	
+	return hr;
+}
+
 
 HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId)
 {
 	HRESULT hr = hrSuccess;
 	ECSerializer *lpSerializer = NULL;
-	lucene::index::IndexWriter *lpWriter = NULL;
 	LARGE_INTEGER lint = {{ 0, 0 }};
-
-	hr = m_lpLuceneAccess->GetLuceneWriter(&lpWriter);
-	if (hr != hrSuccess)
-		goto exit;
+	storeid_t store;
 
 	lpSerializer = new ECStreamSerializer(NULL);
 	if (!lpSerializer) {
@@ -280,11 +303,22 @@ HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId)
 	}
 
 	for (sourceid_list_t::iterator iter = listSourceId.begin(); iter != listSourceId.end(); iter++) {
-		lucene::document::Document sDocument;
+		LPSPropValue lpPropSK = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_SOURCE_KEY);
+		LPSPropValue lpPropFolderId = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_EC_PARENT_HIERARCHYID);
+		LPSPropValue lpPropStoreID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_STORE_RECORD_KEY);
+		LPSPropValue lpPropServerID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_MAPPING_SIGNATURE);
+		LPSPropValue lpDocID = PpropFindProp((*iter)->lpProps, (*iter)->ulProps, PR_EC_HIERARCHYID);
 
 		// quit without error, caller will check this flag too not to save sync point
 		if (m_lpThreadData->bShutdown)
 			goto exit;
+
+		if (!lpPropSK || !lpPropFolderId || !lpPropStoreID || !lpPropServerID || !lpDocID) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to find properties during add");
+			continue;
+		}
+
+		store = storeid_t(lpPropServerID, lpPropStoreID);
 
 		/* No stream, will be handled by IndexCreateEntries */
 		if (!(*iter)->lpStream)
@@ -296,28 +330,14 @@ HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId)
 			goto exit;
 
 		lpSerializer->SetBuffer((*iter)->lpStream);
+		
+		m_lpIndexDB->AddSourcekey(store, lpPropFolderId->Value.ul, std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb), lpDocID->Value.ul);
 
-		hr = ParseStream(&sDocument, (*iter)->ulProps, (*iter)->lpProps, lpSerializer);
+		hr = ParseStream(storeid_t(), 0, 0, 0, (*iter)->ulProps, (*iter)->lpProps, lpSerializer);
 		if (hr != hrSuccess) {
 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while parsing message stream");
 			hr = hrSuccess;
 			continue;
-		}
-
-		try {
-			lpWriter->addDocument(&sDocument);
-		}
-		catch (CLuceneError &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
-			goto exit;
-		}
-		catch (std::exception &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during index stream: %s", e.what());
-			goto exit;
-		}
-		catch (...) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during index stream");
-			goto exit;
 		}
 	}
 
@@ -325,13 +345,10 @@ exit:
 	if (lpSerializer)
 		delete lpSerializer;
 
-	if (lpWriter)
-		m_lpLuceneAccess->PutLuceneWriter(lpWriter);
-
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::ParseDocument(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, IMessage *lpMessage, BOOL bDefaultField)
+HRESULT ECLuceneIndexer::ParseDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, IMessage *lpMessage, BOOL bDefaultField)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpEntryId = NULL;
@@ -369,9 +386,11 @@ HRESULT ECLuceneIndexer::ParseDocument(lucene::document::Document *lpDocument, U
 		}
 
 		/* Index property */
-		hr = AddPropertyToDocument(lpDocument, &lpProps[i], lpNameIDs ? lpNameIDs[0] : NULL, bDefaultField);
-		if (hr != hrSuccess)
-			goto exit;
+		if (PROP_TYPE(lpProps[i].ulPropTag) == PT_STRING8 || PROP_TYPE(lpProps[i].ulPropTag) == PT_UNICODE) {
+			hr = AddPropertyToDocument(store, folder, doc, version, &lpProps[i], lpNameIDs ? lpNameIDs[0] : NULL, bDefaultField);
+			if (hr != hrSuccess)
+				goto exit;
+		}
 			
 		if (lpNameIDs)
 			MAPIFreeBuffer(lpNameIDs);
@@ -379,7 +398,7 @@ HRESULT ECLuceneIndexer::ParseDocument(lucene::document::Document *lpDocument, U
 	}
 
 	if (bAttach && (lpEntryId || lpMessage)) {
-		hr = ParseAttachments(lpDocument, lpEntryId, lpMessage);
+		hr = ParseAttachments(store, folder, doc, version, lpEntryId, lpMessage);
 		if (hr != hrSuccess) {
 			/* Ignore error, just index message without attachments */
 			hr = hrSuccess;
@@ -393,7 +412,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::ParseStream(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField)
+HRESULT ECLuceneIndexer::ParseStream(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpProp = NULL;
@@ -407,20 +426,29 @@ HRESULT ECLuceneIndexer::ParseStream(lucene::document::Document *lpDocument, ULO
 	if (hr != hrSuccess)
 		goto exit;
 
+	if(!doc) {
+		LPSPropValue lpPropHierarchyID = PpropFindProp(lpProps, cValues, PR_EC_HIERARCHYID);
+		LPSPropValue lpPropFolderID = PpropFindProp(lpProps, cValues, PR_EC_PARENT_HIERARCHYID);
+		LPSPropValue lpPropStoreID = PpropFindProp(lpProps, cValues, PR_STORE_RECORD_KEY);
+		LPSPropValue lpPropServerID = PpropFindProp(lpProps, cValues, PR_MAPPING_SIGNATURE);
+		
+		if(!lpPropHierarchyID || !lpPropFolderID || !lpPropStoreID || !lpPropServerID) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Document missing indexing id, skipping");
+			goto exit;
+		}
+		
+		doc = lpPropHierarchyID->Value.ul;
+		folder = lpPropFolderID->Value.ul;
+		store = storeid_t(lpPropServerID, lpPropStoreID);
+	}
+	
 	if (bIsStubbed) {
 		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processing stubbed message.");
 		FlushStream(lpSerializer);
 		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushed stream.");
 
-		hr = ParseStub(lpDocument, cValues, lpProps, bDefaultField);
+		hr = ParseStub(store, folder, doc, version, cValues, lpProps, bDefaultField);
 	} else {
-		for (unsigned int i = 0; i < cValues; i++) {
-			/* Index property */
-			hr = AddPropertyToDocument(lpDocument, &lpProps[i], NULL /* Dont support names props for base props */, bDefaultField);
-			if (hr != hrSuccess)
-				goto exit;
-		}
-
 		/* Only the toplevel contains the stream version */
 		if (!bDefaultField) {
 			if (lpSerializer->Read(&ulStreamVersion, sizeof(ulStreamVersion), 1) != erSuccess) {
@@ -459,12 +487,14 @@ HRESULT ECLuceneIndexer::ParseStream(lucene::document::Document *lpDocument, ULO
 			}
 
 			/* Index property */
-			hr = AddPropertyToDocument(lpDocument, lpProp, lpNameID, bDefaultField);
-			if (hr != hrSuccess)
-				goto exit;
+			if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE) {
+				hr = AddPropertyToDocument(store, folder, doc, version, lpProp, lpNameID, bDefaultField);
+				if (hr != hrSuccess)
+					goto exit;
+			}
 		}
 
-		hr = ParseStreamAttachments(lpDocument, lpSerializer);
+		hr = ParseStreamAttachments(store, folder, doc, version, lpSerializer);
 		if (hr != hrSuccess) {
 			/* Ignore error, just index message without attachments */
 			hr = hrSuccess;
@@ -481,7 +511,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::ParseAttachments(lucene::document::Document *lpDocument, LPSPropValue lpEntryId, IMessage *lpOrigMessage)
+HRESULT ECLuceneIndexer::ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpEntryId, IMessage *lpOrigMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMessage *lpMessage = NULL;
@@ -504,7 +534,7 @@ HRESULT ECLuceneIndexer::ParseAttachments(lucene::document::Document *lpDocument
 		goto exit;
 	}
 
-	hr = m_lpIndexerAttach->ParseAttachments(lpDocument, lpMessage);
+	hr = m_lpIndexerAttach->ParseAttachments(store, folder, doc, version, lpMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -515,7 +545,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::ParseStreamAttachments(lucene::document::Document *lpDocument, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexer::ParseStreamAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 
@@ -524,7 +554,7 @@ HRESULT ECLuceneIndexer::ParseStreamAttachments(lucene::document::Document *lpDo
 		goto exit;
 	}
 
-	hr = m_lpIndexerAttach->ParseAttachments(lpDocument, lpSerializer);
+	hr = m_lpIndexerAttach->ParseAttachments(store, folder, doc, version, lpSerializer);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -532,7 +562,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::ParseStub(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField)
+HRESULT ECLuceneIndexer::ParseStub(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField)
 {
 	HRESULT			hr = hrSuccess;
 	LPSPropValue	lpEntryID = NULL;
@@ -597,68 +627,22 @@ HRESULT ECLuceneIndexer::ParseStub(lucene::document::Document *lpDocument, ULONG
 		}
 	}
 	
-	hr = ParseDocument(lpDocument, ulProps, ptrProps.get(), ptrMessage, bDefaultField);
+	hr = ParseDocument(store, folder, doc, version, ulProps, ptrProps.get(), ptrMessage, bDefaultField);
 
 exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::AddPropertyToDocument(lucene::document::Document *lpDocument, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField)
+HRESULT ECLuceneIndexer::AddPropertyToDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField)
 {
 	HRESULT hr = hrSuccess;
-	lucene::document::Field *lpField = NULL;
-	NShttpmail_t * lpNSProp = NULL;
-	NShttpmail_t * lpStringProp = NULL;
-	std::wstring strField;
-	std::wstring strContents;
-
-	/* Check if this property needs to be indexed */
-	lpNSProp = m_lpThreadData->lpLucene->GetIndexedProp(lpProp->ulPropTag);
-	if (!lpNSProp) {
-		// Cannot find a named property in the property list. If it is a string, index it using the
-		// property ID of the property
-		unsigned int ulPropTag = lpProp->ulPropTag;
-		
-		ulPropTag = PROP_TYPE(ulPropTag) == PT_STRING8 ? CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE) : ulPropTag;
-		ulPropTag = PROP_TYPE(ulPropTag) == PT_MV_STRING8 ? CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE) : ulPropTag;
+	std::wstring strContents = PropToString(lpProp);
 	
-		if(PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_MV_UNICODE) {
-			try {
-				lpStringProp = new NShttpmail_t(GetDynamicFieldName(lpProp, lpNameID), lucene::document::Field::INDEX_TOKENIZED | lucene::document::Field::STORE_NO);
-			}
-			catch (...) {
-				hr = MAPI_E_NOT_ENOUGH_MEMORY;
-				goto exit;
-			}
-			lpNSProp = lpStringProp;
-		} else {
-			// Don't index this data
-			goto exit;
-		}
-	}
+	// FIXME do string tokenization here instead of in AddTerm()
 
-	strField = bDefaultField ? DEFAULT_FIELD : lpNSProp->strNShttpmail;
-	if (strField.empty())
-		goto exit;
-
-	strContents = PropToString(lpProp);
-	if (strContents.empty())
-		goto exit;
-
-	try {
-		lpField = new lucene::document::Field(strField.c_str(), strContents.c_str(), lpNSProp->ulStorage);
-	}
-	catch (...) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-	if (lpField)
-		lpDocument->add(*lpField);
-
-exit:
-	if (lpStringProp)
-		delete lpStringProp;
-		
+	if(!strContents.empty())
+		hr = m_lpIndexDB->AddTerm(store, folder, doc, PROP_ID(lpProp->ulPropTag), version, strContents);
+	
 	return hr;
 }
 

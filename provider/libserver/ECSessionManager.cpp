@@ -953,13 +953,16 @@ ECRESULT ECSessionManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, u
 {
     ECRESULT er = erSuccess;
 	TABLESUBSCRIPTION sSubscription;
+	std::list<unsigned int> lstObjId;
+	
+	lstObjId.push_back(ulObjId);
 
 	sSubscription.ulType = TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE;
 	sSubscription.ulRootObjectId = ulFlags & EC_SUBMIT_MASTER ? 0 : ulStoreId; // in the master queue, use 0 as root object id
 	sSubscription.ulObjectType = ulObjType;
 	sSubscription.ulObjectFlags = ulFlags & EC_SUBMIT_MASTER; // Only use MASTER flag as differentiator
 
-	er = UpdateSubscribedTables(ulType, sSubscription, ulObjId);
+	er = UpdateSubscribedTables(ulType, sSubscription, lstObjId);
 	if(er != erSuccess)
 	    goto exit;
 
@@ -968,6 +971,15 @@ exit:
 }
 
 ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, unsigned ulChildId, unsigned int ulObjType)
+{
+	std::list<unsigned int> lstChildId;
+	
+	lstChildId.push_back(ulChildId);
+	
+	return UpdateTables(ulType, ulFlags, ulObjId, lstChildId, ulObjType);
+}
+
+ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, std::list<unsigned int>& lstChildId, unsigned int ulObjType)
 {
     ECRESULT er = erSuccess;
 	TABLESUBSCRIPTION sSubscription;
@@ -980,13 +992,13 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 	sSubscription.ulObjectType = ulObjType;
 	sSubscription.ulObjectFlags = ulFlags;
 
-	er = UpdateSubscribedTables(ulType, sSubscription, ulChildId);
+	er = UpdateSubscribedTables(ulType, sSubscription, lstChildId);
 
 exit:
     return er;
 }
 
-ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, unsigned int ulChildId)
+ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, std::list<unsigned int> &lstChildId)
 {
 	SESSIONMAP::iterator	iterSession;
 	ECRESULT		er = erSuccess;
@@ -1026,9 +1038,9 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 			}
 	    	
 	    	if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_GENERIC) 
-                lpSession->GetTableManager()->UpdateTables(ulType, sSubscription.ulObjectFlags, sSubscription.ulRootObjectId, ulChildId, sSubscription.ulObjectType);
+                lpSession->GetTableManager()->UpdateTables(ulType, sSubscription.ulObjectFlags, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectType);
             else if(sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE)
-    			lpSession->GetTableManager()->UpdateOutgoingTables(ulType, sSubscription.ulRootObjectId, ulChildId, sSubscription.ulObjectFlags, sSubscription.ulObjectType);
+    			lpSession->GetTableManager()->UpdateOutgoingTables(ulType, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectFlags, sSubscription.ulObjectType);
 
 			lpBTSession->Unlock();
         }

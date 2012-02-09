@@ -56,8 +56,9 @@ class ECCacheManager;
 struct ECSearchResultArray;
 
 #include "ECGenericObjectTable.h"
+#include "ECSearchClient.h"
 #include "soapH.h"
 
-ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger *lpLogger, ECCacheManager *lpCacheManager, GUID *guidServer, unsigned int ulStoreId, ECListInt &lstFolders, struct restrictTable *lpRestrict, ECSearchResultArray **lppIndexerResults);
+ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger *lpLogger, ECCacheManager *lpCacheManager, GUID *guidServer, GUID *guidStore, ECListInt &lstFolders, struct restrictTable *lpRestrict, struct restrictTable **lppNewRestrict, std::list<unsigned int> &lstIndexerResults);
 
 #endif

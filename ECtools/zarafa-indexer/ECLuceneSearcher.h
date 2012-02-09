@@ -62,6 +62,13 @@
 
 #include "zarafa-indexer.h"
 
+class ECIndexDB;
+
+typedef struct {
+	std::set<unsigned int> setFields;
+	std::string strTerm;
+} SIndexedTerm;
+
 class ECLuceneAccess;
 
 /**
@@ -78,7 +85,7 @@ private:
 	 * @param[in]	lpLuceneAccess
 	 * @param[in]	listFolder
 	 */
-	ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults);
+	ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults);
 
 public:
 	/**
@@ -88,17 +95,32 @@ public:
 	 *
 	 * @param[in]	lpThreadData
 	 *					Reference to the ECThreadData object.
-	 * @param[in]	lpLuceneAccess
-	 *					Reference to the ECLuceneAccess object.
-	 * @param[in]	listFolder
-	 *					List of folders which limits the scope of the search query for ECLuceneSearcher.
+	 * @param[in]	lpServerGuid
+	 *					Guid of the server to search in
+	 * @param[in]	lpStoreGuid
+	 *					Guid of the store to search in
+	 * @param[in]	lstFolders
+	 *					List of folders to search in
 	 * @param[in]	ulMaxResults
 	 *					Maximum  number of results to produce
 	 * @param[out]	lppSearcher
 	 *					The created ECLuceneSearcher object.
 	 * @return HRESULT
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher);
+	static HRESULT Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher);
+
+	/**
+	 * Add a search term to be searched for
+	 *
+	 * Note that items returned by SearchEntries() must match all terms passed to AddTerm()
+	 *
+	 * @param[in]	setFields
+	 *					Fields to search in
+	 * @param[in]	strTerm
+	 *					Term to search (utf-8 encoded)
+	 * @return HRESULT
+	 */
+	HRESULT AddTerm(std::set<unsigned int> &setFields, std::string &strTerm);
 
 	/**
 	 * Destructor
@@ -108,43 +130,22 @@ public:
 	/**
 	 * Execute query to search for messages
 	 *
-	 * @param[in]	strQuery
-	 *					CLucene query to execute on the index.
 	 * @param[out]	lplistResults
-	 *					List of search results along with the score.
+	 *					List of search results
 	 * @return HRESULT
 	 */
-	HRESULT SearchEntries(std::string &strQuery, string_list_t *lplistResults);
-
-private:
-	/**
-	 * Create query filter to restrict search to only messages which match this filter.
-	 *
-	 * @param[out]	lppFilter
-	 *					The QueryFilter to restrict the search results.
-	 * @return HRESULT
-	 */
-	HRESULT CreateQueryFilter(lucene::search::QueryFilter **lppFilter);
-
-	/**
-	 * Execute query and use the given filter to restrict results.
-	 *
-	 * @param[in]	strQuery
-	 *					CLucene query to execute on the index.
-	 * @param[in]	lpFilter
-	 *					The QueryFilter to restrict the search results.
-	 * @param[out]	lplistResults
-	 *					List of search results along with the score.
-	 * @return HRESULT
-	 */
-	HRESULT SearchIndexedEntries(std::string &strQuery, lucene::search::QueryFilter *lpFilter, string_list_t *lplistResults);
+	HRESULT SearchEntries(std::list<unsigned int> *lplistResults);
 
 private:
 	ECThreadData *m_lpThreadData;
 	ECLuceneAccess *m_lpLuceneAccess;
 
-	string_list_t m_listFolder;
+	std::list<unsigned int> m_lstFolders;
+	std::string m_strStoreGuid;
+	std::string m_strServerGuid;
 	unsigned int m_ulMaxResults;
+	std::list<SIndexedTerm> m_lstSearches;
+	ECIndexDB *m_lpIndex;
 };
 
 #endif /* ECLUCENESEARCHER_H */

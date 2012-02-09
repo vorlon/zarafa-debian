@@ -200,6 +200,7 @@ public:
 	virtual ECRESULT	Clear();
 	virtual ECRESULT	Populate();
 	virtual ECRESULT	UpdateRow(unsigned int ulType, unsigned int ulObjId, unsigned int ulFlags);
+	virtual ECRESULT	UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bInitialLoad);
 	virtual ECRESULT	LoadRows(std::list<unsigned int> *lstObjId, unsigned int ulFlags);
 
 	static ECRESULT	GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict, std::list<ULONG> *lpPropTags, ULONG ulLevel);
@@ -262,7 +263,6 @@ protected:
 	
 protected:
 	virtual ECRESULT			AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bInitialLoad);
-	virtual ECRESULT			UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bInitialLoad);
     virtual ECRESULT			AddCategoryBeforeAddRow(sObjectTableKey sObjKey, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fUnread, bool *lpfHidden, ECCategory **lppCategory);
     virtual ECRESULT			RemoveCategoryAfterRemoveRow(sObjectTableKey sObjKey, unsigned int ulFlags);
 	

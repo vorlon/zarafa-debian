@@ -51,6 +51,7 @@
 #define ECSEARCHCLIENT_H
 
 #include <map>
+#include <set>
 #include <string>
 
 #include <soapH.h>
@@ -58,16 +59,10 @@
 
 #include "ECChannelClient.h"
 
-struct ECSearchResult {
-	entryId sEntryId;
-	float fScore;
-};
-
-struct ECSearchResultArray
-{
-	unsigned int __size;
-	ECSearchResult *__ptr;
-};
+typedef struct {
+    std::string strTerm;
+    std::set<unsigned int> setFields;
+} SIndexedTerm;
 
 typedef std::map<unsigned int, std::string> mapindexprops_t;
 
@@ -77,12 +72,13 @@ public:
 	~ECSearchClient();
 
 	ECRESULT GetProperties(mapindexprops_t &mapProps);
-	ECRESULT Scope(std::string &strServerMapping, entryId *lpsEntryId, entryList *lpsFolders);
-	ECRESULT Query(std::string &strQuery, ECSearchResultArray **lppsResults);
-	ECRESULT Query(std::string &strServerMapping, entryId *lpsEntryId, entryList *lpsFolders, std::string &strQuery, ECSearchResultArray **lppsResults);
+	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int>& lstMatches);
 	ECRESULT SyncRun();
+	
+private:
+	ECRESULT Scope(std::string &strServer, std::string& strStore, std::list<unsigned int>& ulFolders);
+	ECRESULT Find(std::set<unsigned int> &setFields, std::string strTerm);
+	ECRESULT Query(std::list<unsigned int> &lstMatches);
 };
-
-void FreeSearchResults(ECSearchResultArray *lpResults, bool bFreeBase = true);
 
 #endif /* ECSEARCHCLIENT_H */

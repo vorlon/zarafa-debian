@@ -76,7 +76,14 @@ libcommon_mapi_la_OBJECTS = $(am_libcommon_mapi_la_OBJECTS)
 libcommon_mapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(libcommon_mapi_la_LDFLAGS) $(LDFLAGS) -o $@
-libcommon_ssl_la_LIBADD =
+libcommon_service_la_LIBADD =
+am_libcommon_service_la_OBJECTS = ECDatabaseMySQL.lo
+libcommon_service_la_OBJECTS = $(am_libcommon_service_la_OBJECTS)
+libcommon_service_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(libcommon_service_la_LDFLAGS) $(LDFLAGS) -o $@
+am__DEPENDENCIES_1 =
+libcommon_ssl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libcommon_ssl_la_OBJECTS = SSLUtil.lo ECChannel.lo
 libcommon_ssl_la_OBJECTS = $(am_libcommon_ssl_la_OBJECTS)
 libcommon_ssl_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -120,10 +127,10 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libcommon_mapi_la_SOURCES) $(libcommon_ssl_la_SOURCES) \
-	$(libcommon_util_la_SOURCES)
+SOURCES = $(libcommon_mapi_la_SOURCES) $(libcommon_service_la_SOURCES) \
+	$(libcommon_ssl_la_SOURCES) $(libcommon_util_la_SOURCES)
 DIST_SOURCES = $(libcommon_mapi_la_SOURCES) \
-	$(libcommon_ssl_la_SOURCES) \
+	$(libcommon_service_la_SOURCES) $(libcommon_ssl_la_SOURCES) \
 	$(am__libcommon_util_la_SOURCES_DIST)
 dataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(data_DATA)
@@ -319,7 +326,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lib_LTLIBRARIES = libcommon_util.la libcommon_mapi.la libcommon_ssl.la
+lib_LTLIBRARIES = libcommon_util.la libcommon_mapi.la libcommon_ssl.la libcommon_service.la
 
 # keep subdirs for these headers
 charset_HEADERS = charset/convert.h charset/traits.h charset/utf32string.h charset/utf8string.h charset/utf16string.h charset/convstring.h charset/localeutil.h
@@ -341,13 +348,14 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
+				  ECDatabaseMySQL.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
 data_DATA = zarafa.pc
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
-	-I${top_srcdir}/libfreebusy
+	-I${top_srcdir}/libfreebusy $(MYSQL_INCLUDES)
 
 libcommon_mapi_la_LDFLAGS = -static
 libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
@@ -380,10 +388,13 @@ libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
 	ECGetText.cpp threadutil.cpp ECRestriction.cpp userutil.cpp \
 	ECFeatures.cpp ECACL.cpp ECThreadPool.cpp $(am__append_1)
 libcommon_ssl_la_LDFLAGS = -static
+libcommon_ssl_la_LIBADD = $(MYSQL_LIBS)
 libcommon_ssl_la_SOURCES = \
 			SSLUtil.cpp								\
 			ECChannel.cpp
 
+libcommon_service_la_LDFLAGS = -static
+libcommon_service_la_SOURCES = ECDatabaseMySQL.cpp
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -466,6 +477,8 @@ clean-libLTLIBRARIES:
 	done
 libcommon_mapi.la: $(libcommon_mapi_la_OBJECTS) $(libcommon_mapi_la_DEPENDENCIES) 
 	$(libcommon_mapi_la_LINK) -rpath $(libdir) $(libcommon_mapi_la_OBJECTS) $(libcommon_mapi_la_LIBADD) $(LIBS)
+libcommon_service.la: $(libcommon_service_la_OBJECTS) $(libcommon_service_la_DEPENDENCIES) 
+	$(libcommon_service_la_LINK) -rpath $(libdir) $(libcommon_service_la_OBJECTS) $(libcommon_service_la_LIBADD) $(LIBS)
 libcommon_ssl.la: $(libcommon_ssl_la_OBJECTS) $(libcommon_ssl_la_DEPENDENCIES) 
 	$(libcommon_ssl_la_LINK) -rpath $(libdir) $(libcommon_ssl_la_OBJECTS) $(libcommon_ssl_la_LIBADD) $(LIBS)
 libcommon_util.la: $(libcommon_util_la_OBJECTS) $(libcommon_util_la_DEPENDENCIES) 
@@ -484,6 +497,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChannel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECConfig.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECConfigImpl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabaseMySQL.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDebug.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDebugPrint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFeatures.Plo@am__quote@

@@ -50,7 +50,7 @@
 #include "platform.h"
 #include "instanceidmapper.h"
 #include "archiver.h"
-#include "ECDatabaseMySQL.h"
+#include "ECDatabase.h"
 #include "stringutil.h"
 
 namespace za { namespace operations {
@@ -95,7 +95,7 @@ exit:
 }
 
 InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger)
-: m_ptrDatabase(new ECDatabaseMySQL(lpLogger))
+: m_ptrDatabase(new ECDatabase(lpLogger))
 { }
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)

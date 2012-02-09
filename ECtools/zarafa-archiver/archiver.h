@@ -56,9 +56,7 @@
 
 #include "platform.h"
 
-#ifdef ARCHIVER_EXTRA
 #include <mapix.h>
-#endif
 class ECLogger;
 class ECConfig;
 
@@ -123,6 +121,8 @@ public:
 
 	virtual ~ArchiveManage() {};
 
+	static HRESULT Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, auto_ptr_type *lpptrManage);
+	
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
 	virtual eResult DetachFrom(unsigned int ulArchive) = 0;
@@ -157,9 +157,6 @@ public:
 	static const char* ARCHIVER_API GetConfigPath();
 	static const configsetting_t* ARCHIVER_API GetConfigDefaults();
 	static eResult ARCHIVER_API Create(auto_ptr_type *lpptrArchiver);
-#ifdef ARCHIVER_EXTRA
-	static HRESULT ARCHIVER_API CreateManage(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
-#endif
 
 	virtual ~Archiver() {};
 

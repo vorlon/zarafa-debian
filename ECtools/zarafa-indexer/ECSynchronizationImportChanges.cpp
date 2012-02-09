@@ -65,27 +65,28 @@
 
 #include "ECSynchronizationImportChanges.h"
 
-ECSynchronizationImportChanges::ECSynchronizationImportChanges(ECThreadData *lpThreadData, SBinary *lpFolderSourceKey,
+ECSynchronizationImportChanges::ECSynchronizationImportChanges(ECThreadData *lpThreadData, ULONG cValues, LPSPropValue lpProps,
 															   ECChangeData *lpChanges)
 {
 	m_lpThreadData = lpThreadData;
 
-	if (lpFolderSourceKey) {
-		m_sParentSourceKey.ulPropTag = PR_PARENT_SOURCE_KEY;
-		m_sParentSourceKey.Value.bin = *lpFolderSourceKey;
-	} else {
-		m_sParentSourceKey.ulPropTag = 0;
-		m_sParentSourceKey.Value.bin.cb = 0;
-		m_sParentSourceKey.Value.bin.lpb = NULL;
-	}
+    if(cValues)
+    	Util::HrCopyPropertyArray(lpProps, cValues, &m_lpProps, &m_cValues);
+    else {
+        m_cValues = 0;
+        m_lpProps = NULL;
+    }
+    
 	m_lpChanges = lpChanges;
 }
 
 ECSynchronizationImportChanges::~ECSynchronizationImportChanges()
 {
+    if(m_lpProps)
+        MAPIFreeBuffer(m_lpProps);
 }
 
-HRESULT ECSynchronizationImportChanges::Create(ECThreadData *lpThreadData, SBinary *lpFolderSourceKey,
+HRESULT ECSynchronizationImportChanges::Create(ECThreadData *lpThreadData, ULONG cValues, LPSPropValue lpProps,
 											   ECChangeData *lpChanges, REFIID refiid,
 											   LPVOID *lppSyncImportChanges)
 {
@@ -93,7 +94,7 @@ HRESULT ECSynchronizationImportChanges::Create(ECThreadData *lpThreadData, SBina
 	ECSynchronizationImportChanges *lpSyncImportChanges = NULL;
 
 	try {
-		lpSyncImportChanges = new ECSynchronizationImportChanges(lpThreadData, lpFolderSourceKey, lpChanges);
+		lpSyncImportChanges = new ECSynchronizationImportChanges(lpThreadData, cValues, lpProps, lpChanges);
 	}
 	catch (...) {
 		lpSyncImportChanges = NULL;
@@ -236,11 +237,6 @@ HRESULT ECSynchronizationImportChanges::ImportFolderChange(ULONG cValues, LPSPro
 	SPropValue sProps[2];
 	ULONG ulProps = 0;
 
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_FOLDER_TYPE);
 	if (!lpTmp || lpTmp->Value.ul != FOLDER_GENERIC)
 		goto exit;
@@ -255,10 +251,7 @@ HRESULT ECSynchronizationImportChanges::ImportFolderChange(ULONG cValues, LPSPro
 	ulProps++;
 
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_PARENT_SOURCE_KEY);
-	if (!lpTmp || !lpTmp->Value.bin.cb)
-		sProps[ulProps] = m_sParentSourceKey;
-	else
-		sProps[ulProps] = *lpTmp;
+	sProps[ulProps] = *lpTmp;
 	ulProps++;
 
 	hr = CreateSourceId(ulProps, sProps, &lpsSourceId);
@@ -279,13 +272,8 @@ HRESULT ECSynchronizationImportChanges::ImportFolderDeletion(ULONG ulFlags, LPEN
 {
 	HRESULT hr = hrSuccess;
 	sourceid_t *lpsSourceId = NULL;
-	SPropValue sProps[2];
+	SPropValue sProps[m_cValues+1];
 	ULONG ulProps = 0;
-
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
 
 	for (ULONG i = 0; i < lpSourceEntryList->cValues; i++) {
 		ulProps = 0;
@@ -294,8 +282,10 @@ HRESULT ECSynchronizationImportChanges::ImportFolderDeletion(ULONG ulFlags, LPEN
 		sProps[ulProps].Value.bin = lpSourceEntryList->lpbin[i];
 		ulProps++;
 
-		sProps[ulProps] = m_sParentSourceKey;
-		ulProps++;
+		for(unsigned int j = 0; j < m_cValues; j++) {
+    		sProps[ulProps] = m_lpProps[j];
+	    	ulProps++;
+        }
 
 		hr = CreateSourceId(ulProps, sProps, &lpsSourceId);
 		if (hr != hrSuccess)
@@ -320,11 +310,6 @@ HRESULT ECSynchronizationImportChanges::ImportMessageChange(ULONG cValues, LPSPr
 	SPropValue sProps[4];
 	ULONG ulProps = 0;
 
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
 	if (!lpTmp || !lpTmp->Value.bin.cb) {
 		hr = MAPI_E_NOT_FOUND;
@@ -335,10 +320,7 @@ HRESULT ECSynchronizationImportChanges::ImportMessageChange(ULONG cValues, LPSPr
 	ulProps++;
 
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_PARENT_SOURCE_KEY);
-	if (!lpTmp || !lpTmp->Value.bin.cb)
-		sProps[ulProps] = m_sParentSourceKey;
-	else
-		sProps[ulProps] = *lpTmp;
+	sProps[ulProps] = *lpTmp;
 	ulProps++;
 
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_ENTRYID);
@@ -376,13 +358,8 @@ HRESULT ECSynchronizationImportChanges::ImportMessageDeletion(ULONG ulFlags, LPE
 {
 	HRESULT hr = hrSuccess;
 	sourceid_t *lpsSourceId = NULL;
-	SPropValue sProps[2];
+	SPropValue sProps[m_cValues+1];
 	ULONG ulProps = 0;
-
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
 
 	for (ULONG i = 0; i < lpSourceEntryList->cValues; i++) {
 		ulProps = 0;
@@ -391,8 +368,10 @@ HRESULT ECSynchronizationImportChanges::ImportMessageDeletion(ULONG ulFlags, LPE
 		sProps[ulProps].Value.bin = lpSourceEntryList->lpbin[i];
 		ulProps++;
 
-		sProps[ulProps] = m_sParentSourceKey;
-		ulProps++;
+		for (unsigned int j = 0; j < m_cValues; j++) {
+		    sProps[ulProps] = m_lpProps[j];
+		    ulProps++;
+		}
 
 		hr = CreateSourceId(ulProps, sProps, &lpsSourceId);
 		if (hr != hrSuccess)
@@ -421,57 +400,7 @@ HRESULT ECSynchronizationImportChanges::ImportMessageMove(ULONG cbSourceKeySrcFo
 														  ULONG cbSourceKeyDestMessage, BYTE FAR * pbSourceKeyDestMessage,
 														  ULONG cbChangeNumDestMessage, BYTE FAR * pbChangeNumDestMessage)
 {
-	HRESULT hr = hrSuccess;
-	sourceid_t *lpsSourceId = NULL;
-	SPropValue sProps[2];
-	ULONG ulProps = 0;
-
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	sProps[ulProps].ulPropTag = PR_SOURCE_KEY;
-	sProps[ulProps].Value.bin.cb = cbSourceKeySrcMessage;
-	sProps[ulProps].Value.bin.lpb = pbSourceKeySrcMessage;
-	ulProps++;
-
-	sProps[ulProps].ulPropTag = PR_PARENT_SOURCE_KEY;
-	sProps[ulProps].Value.bin.cb = cbSourceKeySrcFolder;
-	sProps[ulProps].Value.bin.lpb = pbSourceKeySrcFolder;
-	ulProps++;
-
-	hr = CreateSourceId(ulProps, sProps, &lpsSourceId);
-	if (hr != hrSuccess)
-		goto exit;
-
-	m_lpChanges->InsertDelete(lpsSourceId);
-	lpsSourceId = NULL;
-
-	/* Overwrite for the actual creation */
-	ulProps = 0;
-
-	sProps[ulProps].ulPropTag = PR_SOURCE_KEY;
-	sProps[ulProps].Value.bin.cb = cbSourceKeySrcMessage;
-	sProps[ulProps].Value.bin.lpb = pbSourceKeySrcMessage;
-	ulProps++;
-
-	sProps[ulProps] = m_sParentSourceKey;
-	ulProps++;
-
-	hr = CreateSourceId(ulProps, sProps, &lpsSourceId);
-	if (hr != hrSuccess)
-		goto exit;
-
-	m_lpChanges->InsertCreate(lpsSourceId);
-	lpsSourceId = NULL;
-
-exit:
-	if ((hr != hrSuccess) && lpsSourceId)
-		MAPIFreeBuffer(lpsSourceId);
-
-	/* Always return SYNC_E_IGNORE, otherwise we should have provided the lppMessage */
-	return (hr == hrSuccess) ? SYNC_E_IGNORE : hr;
+    return MAPI_E_NOT_FOUND; // Should never happen
 }
 
 HRESULT ECSynchronizationImportChanges::ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags,
@@ -494,11 +423,6 @@ HRESULT ECSynchronizationImportChanges::ImportMessageChangeAsAStream(ULONG cValu
 	IStream *lpStream = NULL;
 	sourceid_t *lpsSourceId = NULL;
 	LPSPropValue lpTmp = NULL;
-
-	if (m_sParentSourceKey.ulPropTag != PR_PARENT_SOURCE_KEY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
 
 	lpTmp = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
 	if (!lpTmp || !lpTmp->Value.bin.cb) {

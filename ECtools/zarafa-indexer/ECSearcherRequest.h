@@ -50,6 +50,9 @@
 #ifndef ECSEARCHERREQUEST_H
 #define ECSEARCHERREQUEST_H
 
+#include <set>
+#include <string>
+
 #include <ECUnknown.h>
 
 #include "zarafa-indexer.h"
@@ -63,6 +66,7 @@ class ECIndexer;
 enum command_t {
 	COMMAND_PROPS,
 	COMMAND_SCOPE,
+	COMMAND_FIND,
 	COMMAND_QUERY,
 	COMMAND_SYNCRUN
 };

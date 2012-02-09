@@ -55,19 +55,20 @@ am_zarafa_indexer_OBJECTS = zarafa-indexer.$(OBJEXT) \
 	ECSynchronizationImportChanges.$(OBJEXT) \
 	ECIndexerUtil.$(OBJEXT) ECSearcher.$(OBJEXT) \
 	ECSearcherRequest.$(OBJEXT) ECLucene.$(OBJEXT) \
-	ECLuceneAccess.$(OBJEXT) ECLuceneIndexer.$(OBJEXT) \
-	ECLuceneIndexerAttachment.$(OBJEXT) ECLuceneSearcher.$(OBJEXT) \
-	ECAnalyzers.$(OBJEXT)
+	ECLuceneIndexer.$(OBJEXT) ECLuceneIndexerAttachment.$(OBJEXT) \
+	ECLuceneSearcher.$(OBJEXT) ECAnalyzers.$(OBJEXT) \
+	ECDatabase.$(OBJEXT) ECIndexDB.$(OBJEXT)
 zarafa_indexer_OBJECTS = $(am_zarafa_indexer_OBJECTS)
 am__DEPENDENCIES_1 =
 zarafa_indexer_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/common/libcommon_util.la \
+	${top_builddir}/common/libcommon_ssl.la \
+	${top_builddir}/common/libcommon_service.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -281,15 +282,16 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
-	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX
+	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX $(MYSQL_INCLUDES)
 
 zarafa_indexer_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(CLUCENE_LIBS)
+	${top_builddir}/common/libcommon_ssl.la \
+    ${top_builddir}/common/libcommon_service.la \
+    ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
+	$(PROG_LIBS) $(SSL_LIBS) $(CLUCENE_LIBS) $(MYSQL_LIBS)
 
 zarafa_indexer_SOURCES = \
 	zarafa-indexer.cpp zarafa-indexer.h \
@@ -305,11 +307,12 @@ zarafa_indexer_SOURCES = \
 	ECSearcher.cpp ECSearcher.h \
 	ECSearcherRequest.cpp ECSearcherRequest.h \
 	ECLucene.cpp ECLucene.h \
-	ECLuceneAccess.cpp ECLuceneAccess.h \
 	ECLuceneIndexer.cpp ECLuceneIndexer.h \
 	ECLuceneIndexerAttachment.cpp ECLuceneIndexerAttachment.h \
 	ECLuceneSearcher.cpp ECLuceneSearcher.h \
-	ECAnalyzers.cpp ECAnalyzers.h
+	ECAnalyzers.cpp ECAnalyzers.h \
+	ECDatabase.cpp ECDatabase.h \
+	ECIndexDB.cpp ECIndexDB.h
 
 all: all-am
 
@@ -384,13 +387,14 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECAnalyzers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChangeData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECEntryData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFileIndex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexDB.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerUtil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLucene.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneAccess.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneIndexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneIndexerAttachment.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneSearcher.Po@am__quote@

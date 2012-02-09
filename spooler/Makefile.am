@@ -12,6 +12,7 @@ zarafa_dagent_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
+	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
 	$(PROG_LIBS) $(SSL_LIBS)
 
 zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
@@ -20,6 +21,7 @@ zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
+	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
 	$(PROG_LIBS)
 
 zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp archive.h

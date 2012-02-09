@@ -10676,6 +10676,9 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	unsigned long		ulObjCnt = 0;
 	unsigned long		ulPropCnt = 0;
 	GUID				sGuid;
+	ECObjectTableList	rows;
+	struct rowSet		*lpRowSet = NULL; // Do not free, used in response data
+	ECODStore			ecODStore;
 
 	USE_DATABASE();
 	
@@ -10739,71 +10742,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 			goto next_object;
         }
         
-		// Find the requested properties
-		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sPropVals.__ptr = s_alloc<propVal>(soap, sPropTags.__size);
-		ulPropCnt = 0;
-		for (int j = 0; j < sPropTags.__size; ++j) {
-			// No support for attachments
-			if (sPropTags.__ptr[j] == PR_ATTACH_DATA_BIN || sPropTags.__ptr[j] == PR_EC_IMAP_EMAIL)
-				continue;
-
-			// First try to compute a static property
-			if (ECGenProps::GetPropComputedUncached(soap, lpecSession, sPropTags.__ptr[j], ulObjectId, 0, ulStoreId, ulParentId, MAPI_MESSAGE,&lpsResponse->sMsgStreams.__ptr[ulObjCnt].sPropVals.__ptr[ulPropCnt]) == erSuccess) {
-				ulPropCnt++;
-				goto next_property;
-			}
-
-			if ((sPropTags.__ptr[j] & MV_FLAG) == MV_FLAG) {
-		        strQuery = "SELECT " MVPROPCOLORDER " FROM mvproperties WHERE hierarchyid=" + stringify(ulObjectId) + " AND tag = " + stringify(PROP_ID(sPropTags.__ptr[j])) + " GROUP BY hierarchyid, tag";
-
-				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-				if(er != erSuccess)
-					goto exit;
-					
-				if(lpDatabase->GetNumRows(lpDBResult) != 1)
-					goto next_property;
-
-				lpDBRow = lpDatabase->FetchRow(lpDBResult);
-				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
-				if (lpDBRow == NULL || lpDBLen == NULL) {
-					er = ZARAFA_E_DATABASE_ERROR;
-					goto exit;
-				}
-				
-				if (atoi(lpDBRow[FIELD_NR_ID]) == 0)	// FIELD_NR_ID actualy contains the number of mv props
-					goto next_property;
-			
-				er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsResponse->sMsgStreams.__ptr[ulObjCnt].sPropVals.__ptr[ulPropCnt]);
-				if(er != erSuccess)
-					goto exit;
-            } else {
-				strQuery = "SELECT " PROPCOLORDER " FROM properties WHERE hierarchyid = " + stringify(ulObjectId) + " AND tag = " + stringify(PROP_ID(sPropTags.__ptr[j]));
-				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-				if(er != erSuccess)
-					goto exit;
-
-				if(lpDatabase->GetNumRows(lpDBResult) != 1)
-					goto next_property;
-
-				lpDBRow = lpDatabase->FetchRow(lpDBResult);
-				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
-				if (lpDBRow == NULL || lpDBLen == NULL) {
-					er = ZARAFA_E_DATABASE_ERROR;
-					goto exit;
-				}
-
-				er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsResponse->sMsgStreams.__ptr[ulObjCnt].sPropVals.__ptr[ulPropCnt]);
-				if (er != erSuccess)
-					goto exit;
-			}
-
-			ulPropCnt++;
-next_property:
-			FREE_DBRESULT();
-		}
-		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sPropVals.__size = ulPropCnt;
 
 		lpStreamInfo = new MTOMStreamInfo;							// Delete in MTOMReadClose
 		lpStreamInfo->lpecSession = lpecSession;
@@ -10826,10 +10764,27 @@ next_property:
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData.xop__Include.id = s_strcpy(soap, string("emcas-" + stringify(ulObjCnt, false)).c_str());
 
 		ulObjCnt++;
+		
+		// Remember the object ID since we need it later
+		rows.push_back(sObjectTableKey(ulObjectId, 0));
 next_object:
 		;
 	}
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
+                    
+    memset(&ecODStore, 0, sizeof(ECODStore));
+	ecODStore.ulObjType = MAPI_MESSAGE;
+	
+	// Get requested properties for all rows
+	er = ECStoreObjectTable::QueryRowData(NULL, soap, lpecSession, &rows, &sPropTags, &ecODStore, &lpRowSet, true, true);
+	if (er != erSuccess)
+	    goto exit;
+	    
+    ASSERT(lpRowSet->__size == ulObjCnt);
+    
+    for(unsigned int i = 0; i < lpRowSet->__size ; i++) {
+		lpsResponse->sMsgStreams.__ptr[i].sPropVals = lpRowSet->__ptr[i];
+    }
 
 	soap->fmimereadopen = &MTOMReadOpen;
 	soap->fmimeread = &MTOMRead;

@@ -53,6 +53,7 @@
 #include "ECLogger.h"
 #include "ECDatabaseFactory.h"
 #include "ECKeyTable.h"
+#include "ECStoreObjectTable.h"
 
 #include "soapH.h"
 
@@ -92,7 +93,6 @@ typedef struct tagsSearchFolderStats
 	ULONG ulEvents;
 	ULONGLONG ullSize;
 }sSearchFolderStats;
-
 
 /**
  * Searchfolder handler
@@ -352,6 +352,17 @@ private:
     virtual ECRESULT AddResults(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int ulObjId, unsigned int ulFlags, bool *lpfInserted);
     
     /**
+     * Add multiple search results
+     *
+     * @param[in] ulStoreId Store id of the search folder
+     * @param[in] ulFolderId Folder id of the search folder
+     * @param[in] ulObjId Object hierarchy id of the matching message
+     * @param[in] ulFlags Flags of the object (this should be in-sync with hierarchy table!). May be 0 or MSGFLAG_READ
+     * @param[out] lpulCount Int to be modified with inserted count
+     * @param[out] lpulUnread Int to be modified with inserted unread count
+     */
+    virtual ECRESULT AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread);
+    /**
      * Delete matching results from a search folder
      *
      * @param[in] ulStoreId Store id of the search folder
@@ -408,6 +419,27 @@ private:
      * @param[in] lpSearchFolders Pointer to 'this' of search folder manager instance
      */
     static void * ProcessThread(void *lpSearchFolders);
+
+    /**
+     * Process candidate rows and add them to search folder results
+     *
+     * This function processes the list of rows provides against the restriction provides, and
+     * adds rows to the given folder's result set if the rows match. Each row is evaluated seperately.
+     *
+     * @param[in] lpDatabase Database handle
+     * @param[in] lpSession Session handle
+     * @param[in] lpRestrict Restriction to match the items with
+     * @param[in] lpbCancel Pointer to cancellation boolean; processing is stopped when *lpbCancel == true
+     * @param[in] ulStoreId Store in which the items in ecRows reside
+     * @param[in] ulFolder The hierarchy of the searchfolder to update with the results
+     * @param[in] ecODStore Store information
+     * @param[in] ecRows Rows to evaluate
+     * @param[in] lpPropTags List of precomputed property tags that are needed to resolve the restriction. The first property in this array MUST be PR_MESSAGE_FLAGS.
+     * @param[in] locale Locale to use for string comparisons in the restriction
+     * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
+     * @return result
+     */
+    virtual ECRESULT ProcessCandidateRows(ECDatabase *lpDatabase, ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel, unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *ecODStore, ECObjectTableList ecRows, struct propTagArray *lpPropTags, ECLocale locale, bool bNotify);
 
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all

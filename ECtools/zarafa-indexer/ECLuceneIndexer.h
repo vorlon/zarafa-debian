@@ -59,10 +59,11 @@
 #include "ECChangeData.h"
 #include "zarafa-indexer.h"
 #include "archiver-common.h"
+#include "ECIndexDB.h"
 
-class ECLuceneAccess;
 class ECLuceneIndexerAttachment;
 class ECSerializer;
+class ECIndexDB;
 
 /**
  * Main class to perform indexing by CLucene
@@ -75,10 +76,9 @@ private:
 	 * @note Objects of ECLuceneIndexer must only be created using the Create() function.
 	 *
 	 * @param[in]	lpThreadData
-	 * @param[in]	lpLuceneAccess
 	 * @param[in]	lpAdminSession		Session needed to process stubs
 	 */
-	ECLuceneIndexer(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, IMAPISession *lpAdminSession);
+	ECLuceneIndexer(ECThreadData *lpThreadData, IMAPISession *lpAdminSession);
 
 public:
 	/**
@@ -88,8 +88,6 @@ public:
 	 *
 	 * @param[in]	lpThreadData
 	 *					Reference to the ECThreadData object.
-	 * @param[in]	lpLuceneAccess
-	 *					Reference to the ECLuceneAccess object.
 	 * @param[in]	lpMsgStore
 	 *					Reference to the IMsgStore object for the store which will be indexed.
 	 * @param[in]	lpAdminSession
@@ -98,7 +96,7 @@ public:
 	 *					The created ECLuceneIndexer object.
 	 * @return HRESULT
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer);
+	static HRESULT Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer);
 
 	/**
 	 * Destructor
@@ -129,6 +127,15 @@ private:
 	HRESULT IndexDeleteEntries(sourceid_list_t &listSourceId);
 
 	/**
+	 * Process all message updates from index
+	 *
+	 * @param[in]   listSourceId
+	 *					List containing all sourceid_t entries which should be deleted from the index.
+	 * @return HRESULT
+	 */
+	HRESULT IndexUpdateEntries(sourceid_list_t &listSourceId);
+
+	/**
 	 * Process all message creations for index using the IStream
 	 *
 	 * @param[in]	listSourceId
@@ -152,13 +159,11 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseDocument(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, IMessage *lpMessage, BOOL bDefaultField = FALSE);
+	HRESULT ParseDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, IMessage *lpMessage, BOOL bDefaultField = FALSE);
 
 	/**
 	 * Process all properties from stream and add all data into the CLucene Document
 	 *
-	 * @param[in]	lpDocument
-	 *					Reference to CLucene Document object to which all parsed data should be written to.
 	 * @param[in]	cValues
 	 *					The number of SPropValue elements in lpProps.
 	 * @param[in]	lpProps
@@ -170,7 +175,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseStream(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField = FALSE);
+	HRESULT ParseStream(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField = FALSE);
 
 	/**
 	 * Handle message attachments
@@ -186,7 +191,7 @@ private:
 	 *					Reference to IMessage object, might be NULL if lpEntryId is provided.
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachments(lucene::document::Document *lpDocument, LPSPropValue lpEntryId, IMessage *lpOrigMessage);
+	HRESULT ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpEntryId, IMessage *lpOrigMessage);
 
 	/**
 	 * Handle message attachments from stream
@@ -200,7 +205,7 @@ private:
 	 *					Serializer containing the stream from which attachments will be read.
 	 * @return HRESULT
 	 */
-	HRESULT ParseStreamAttachments(lucene::document::Document *lpDocument, ECSerializer *lpSerializer);
+	HRESULT ParseStreamAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
 
 	/**
 	 * Process all properties from message and add all data into the CLucene Document
@@ -216,7 +221,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseStub(lucene::document::Document *lpDocument, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField);
+	HRESULT ParseStub(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField);
 
 	/**
 	 * Add given property to the document as new field
@@ -232,7 +237,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT AddPropertyToDocument(lucene::document::Document *lpDocument, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField);
+	HRESULT AddPropertyToDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField);
 
 	/**
 	 * Get the name of a dynamic field
@@ -252,8 +257,8 @@ private:
 
 private:
 	ECThreadData *m_lpThreadData;
-	ECLuceneAccess *m_lpLuceneAccess;
 	ECLuceneIndexerAttachment *m_lpIndexerAttach;
+	ECIndexDB *m_lpIndexDB;
 
 	IMsgStore *m_lpMsgStore;
 	IMAPISession *m_lpAdminSession;

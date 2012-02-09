@@ -77,10 +77,11 @@ private:
 	 * Objects of ECSynchronizationImportChanges must only be created using the Create() function.
 	 *
 	 * @param[in]	lpThreadData
-	 * @param[in]	lpFolderSourceKey
+	 * @param[in]	cValues			Number of properties in lpProps
+	 * @param[in]	lpProps			Properties to add to all delete changes (apart from the sourcekey of the deleted items)
 	 * @param[in]	lpChanges
 	 */
-	ECSynchronizationImportChanges(ECThreadData *lpThreadData, SBinary *lpFolderSourceKey,
+	ECSynchronizationImportChanges(ECThreadData *lpThreadData, ULONG cValues, LPSPropValue lpProps,
 								   ECChangeData *lpChanges);
 
 public:
@@ -103,7 +104,7 @@ public:
 	 *					Interface of the type as indicated by refiid.
 	 * @return HRESULT
 	 */
-	static  HRESULT Create(ECThreadData *lpThreadData, SBinary *lpFolderSourceKey,
+	static  HRESULT Create(ECThreadData *lpThreadData, ULONG cValues, LPSPropValue lpProps,
 						   ECChangeData *lpChanges, REFIID refiid,
 						   LPVOID *lppIndexerImportChanges);
 
@@ -439,7 +440,8 @@ private:
 
 private:
 	ECThreadData *m_lpThreadData;
-	SPropValue m_sParentSourceKey;
+	LPSPropValue m_lpProps;
+	ULONG m_cValues;
 	ECChangeData *m_lpChanges;
 };
 

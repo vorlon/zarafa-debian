@@ -102,7 +102,7 @@ public:
 	 *					Reference to IMessage object for which all attachments should be indexed.
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachments(lucene::document::Document *lpDocument, IMessage *lpMessage);
+	HRESULT ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage);
 
 	/**
 	 * Parse all attachments for a certain message and add all fields into the given Document.
@@ -113,7 +113,7 @@ public:
 	 *					Serializer containing the stream with all attachments which should be indexed
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachments(lucene::document::Document *lpDocument, ECSerializer *lpSerializer);
+	HRESULT ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
 
 private:
 	/**
@@ -222,7 +222,7 @@ private:
 	 *					Array of SPropValue elements containing all Attachment properties required for indexing.
 	 * @return HRESULT
 	 */
-	HRESULT ParseEmbeddedAttachment(lucene::document::Document *lpDocument, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps);
+	HRESULT ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps);
 
 	/**
 	 * Handler for attachments which were attached with ATTACH_EMBEDDED_MSG
@@ -235,7 +235,7 @@ private:
 	 *					Reference to ECSerializer object which contains the stream which points to the attachment to index
 	 * @return HRESULT
 	 */
-	HRESULT ParseEmbeddedAttachment(lucene::document::Document *lpDocument, ECSerializer *lpSerializer);
+	HRESULT ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
 
 	/**
 	 * Handler for attachments which were attached with ATTACH_BY_VALUE
@@ -257,7 +257,7 @@ private:
 	 *					Parsed data string
 	 * @return HRESULT
 	 */
-	HRESULT ParseValueAttachment(lucene::document::Document *lpDocument, IStream *lpStream,
+	HRESULT ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
 								 tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
 								 std::wstring *lpstrParsed = NULL);
 
@@ -276,7 +276,7 @@ private:
 	 *					Array of SPropValue elements containing all Attachment properties required for indexing.
 	 * @return HRESULT
 	 */
-	HRESULT ParseValueAttachment(lucene::document::Document *lpDocument, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps);
+	HRESULT ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps);
 
 	/**
 	 * Parse single attachment from message
@@ -294,7 +294,7 @@ private:
 	 *					Array of SPropValue elements containing all Attachment properties required for indexing.
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachment(lucene::document::Document *lpDocument, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps);
+	HRESULT ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps);
 
 	/**
 	 * Parse single attachment from Stream serializer
@@ -308,7 +308,7 @@ private:
 	 *					Reference to ECSerializer object which contains the stream which points to the attachment to index
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachment(lucene::document::Document *lpDocument, ECSerializer *lpSerializer);
+	HRESULT ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
 
 private:
 	ECThreadData *m_lpThreadData;
@@ -318,9 +318,6 @@ private:
 	ULONG m_ulCache;
 
 	std::string m_strCommand;
-
-	std::wstring m_strFieldName;
-	ULONG m_ulFieldStorage;
 };
 
 #endif /* ECLUCENEINDEXERATTACHMENT_H */

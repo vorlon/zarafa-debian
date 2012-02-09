@@ -96,18 +96,6 @@ pthread_mutex_t     g_hExitMutex;
 pthread_cond_t      g_hExitSignal;
 pthread_t			g_hMainThread;
 
-void sigusr2(int sig)
-{
-	if (pthread_equal(pthread_self(), g_hMainThread)==0)
-		return;
-
-	if (!g_lpThreadData)
-		return;
-
-	g_lpThreadData->lpLucene->Optimize(TRUE);
-	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_WARNING, "All caches flushed");
-}
-
 void sighandle(int sig)
 {
 	// Win32 has unix semantics and therefore requires us to reset the signal handler.
@@ -333,106 +321,6 @@ exit:
 	return hr;
 }
 
-HRESULT clean_lock_files(bool bRemove)
-{
-	HRESULT hr = hrSuccess;
-	char *path = NULL;
-	DIR *dir = NULL;
-	struct dirent *file = NULL;
-	struct stat fileinfo;
-	map<string, string> mapHashes;
-	map<string, string>::iterator ihash;
-	list<string> lstServers;
-	vector<string> vTokens;
-	string subdir;
-	string fullpath;
-	int s;
-
-	// find all in /var/lib/zarafa/index/*/*
-	path = g_lpThreadData->lpConfig->GetSetting("index_path");
-	s = strlen(path) -1;
-	if (path[s] == '/')
-		path[s] = '\0';
-	dir = opendir(path);
-	if (!dir) {
-		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "unable to open index_path");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	while ((file = readdir(dir)) != NULL) {
-		if (file->d_name[0] == '.') continue;
-		fullpath = string(path) + "/" + file->d_name;
-		stat(fullpath.c_str(), &fileinfo);
-		if (! S_ISDIR(fileinfo.st_mode)) continue;
-		lstServers.push_back(file->d_name);
-	}
-	closedir(dir);
-
-	for (list<string>::iterator i = lstServers.begin(); i != lstServers.end(); i++) {
-		subdir = string(path) + "/" + *i;
-		dir = opendir(subdir.c_str());
-		if (!dir)
-			continue;
-		while ((file = readdir(dir)) != NULL) {
-			class MD5 hash;
-
-			if (file->d_name[0] == '.') continue;
-			stat(file->d_name, &fileinfo);
-			if (! S_ISDIR(fileinfo.st_mode)) continue;
-
-			fullpath = subdir + "/" + file->d_name + "/index";
-			hash.update((unsigned char*)fullpath.c_str(), fullpath.length());
-			hash.finalize();
-			char *hex = hash.hex_digest();
-			mapHashes.insert(pair<string,string>(hex, fullpath));
-			delete [] hex;
-		}
-		closedir(dir);
-	}
-
-	path = getenv(LUCENE_LOCK_DIR_ENV_1);
-	if (!path)
-		path = getenv(LUCENE_LOCK_DIR_ENV_2);
-	if (!path)
-		path = LUCENE_LOCK_DIR_ENV_FALLBACK;
-
-	dir = opendir(path);
-	if (!dir)
-		goto exit;
-
-	while ((file = readdir(dir)) != NULL) {
-		int lock_start = strlen(file->d_name) - strlen("-write.lock");
-		// lucene-<hash>-write.lock
-		// hash is md5sum of location + /index
-		if (lock_start <= 0 || strncmp(file->d_name, "lucene-", strlen("lucene-")) != 0 || strcmp(file->d_name+lock_start, "-write.lock") != 0)
-			continue;
-		
-		if (bRemove) {
-		    std::string strFullPath = path;
-			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Removing lockfile: %s. User may receive wrong search results!", file->d_name);
-			strFullPath += "/";
-			strFullPath += (char *)file->d_name;
-			unlink(strFullPath.c_str());
-		}
-		else if (hr == hrSuccess) {
-			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Lucene lockfiles found in %s. Some index databases may be corrupt and return invalid search results.", path);
-			hr = MAPI_E_CALL_FAILED;
-		}
-
-		vTokens = tokenize(file->d_name, '-');
-		ihash = mapHashes.find(vTokens[1]);
-		if (ihash != mapHashes.end()) {
-			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Lockfile %s belongs to lucene database in %s", file->d_name, ihash->second.c_str());
-		}
-	}
-
-exit:
-	if (dir)
-		closedir(dir);
-
-	return hr;
-}
-
 HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemonize)
 {
 	HRESULT hr = hrSuccess;
@@ -446,7 +334,6 @@ HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemoni
 	signal(SIGINT, sighandle);
 
 	signal(SIGHUP, sighup);
-	signal(SIGUSR2, sigusr2);
 
 	// Globally ignore SIGPIPE, which will often trigger due to attachment parser process
 	// Since we login without notifications, the zarafa-client doesn't ignore them for us
@@ -467,11 +354,6 @@ HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemoni
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
-
-	// remove lock files (hopefully none) if indexer wasn't shutdown properly
-	clean_lock_files(parseBool(g_lpThreadData->lpConfig->GetSetting("cleanup_lockfiles")));
-	if (hr != hrSuccess)
-		goto exit;
 
 
 	// listen before we daemonize and change to a different user
@@ -549,6 +431,13 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "" },
 		{ "run_as_group", "" },
 		{ "running_path", "/" },
+		{ "mysql_host",					"localhost" },
+		{ "mysql_port",					"3306" },
+		{ "mysql_user",					"root" },
+		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
+		{ "mysql_database",				"zarafa_indexer" },
+		{ "mysql_socket",				"" },
+		{ "mysql_group_concat_max_len", "32768" },
 		/* Logging options */
 		{ "log_method","file" },
 		{ "log_file", INDEXER_DEFAULT_LOGFILE },
@@ -565,20 +454,11 @@ int main(int argc, char *argv[]) {
 		{ "ssl_verify_file", "" },
 		{ "ssl_verify_path", "" },
 		/* operational settings */
-		{ "cleanup_lockfiles", "no" },
 		{ "limit_results", "0", CONFIGSETTING_RELOADABLE },
 		/* Indexer settings */
 		{ "index_path", "/var/lib/zarafa/index/" },
-		{ "index_sync_stream", "yes", CONFIGSETTING_UNUSED },
 		{ "index_interval", "5" },
 		{ "index_threads", "1", CONFIGSETTING_RELOADABLE },
-		{ "index_max_field_length", "10000", CONFIGSETTING_RELOADABLE },
-		{ "index_merge_factor", "10", CONFIGSETTING_RELOADABLE },
-		{ "index_max_buffered_docs", "10", CONFIGSETTING_RELOADABLE },
-		{ "index_min_merge_docs", "10", CONFIGSETTING_RELOADABLE },
-		{ "index_max_merge_docs", "2147483647", CONFIGSETTING_RELOADABLE },
-		{ "index_term_interval", "128", CONFIGSETTING_RELOADABLE },
-		{ "index_cache_timeout", "0" },
 		{ "index_attachments", "no", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_max_size", "5120", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser", INDEXER_ATTACH_PARSER, CONFIGSETTING_RELOADABLE },

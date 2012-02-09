@@ -47,23 +47,43 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,32055
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CLIENT		7,1,0,32055
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,32055"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,32055"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,32055"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,32055"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,32055"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,32055"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"32055"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			32055
+#include "platform.h"
+
+#include "ECDatabase.h"
+
+#define ZA_TABLEDEF_SERVERS			"CREATE TABLE `za_servers` ( \
+										`id` int(11) unsigned NOT NULL auto_increment, \
+										`guid` binary(16) NOT NULL, \
+										PRIMARY KEY (`id`), \
+										UNIQUE KEY `guid` (`guid`) \
+									) ENGINE=InnoDB"
+
+#define ZA_TABLEDEF_INSTANCES		"CREATE TABLE `za_instances` ( \
+										`id` int(11) unsigned NOT NULL auto_increment, \
+										`tag` smallint(6) unsigned NOT NULL, \
+										PRIMARY KEY (`id`), \
+										UNIQUE KEY `instance` (`id`, `tag`) \
+									) ENGINE=InnoDB"
+
+#define ZA_TABLEDEF_MAPPINGS		"CREATE TABLE `za_mappings` ( \
+										`server_id` int(11) unsigned NOT NULL, \
+										`val_binary` blob NOT NULL, \
+										`tag` smallint(6) unsigned NOT NULL, \
+										`instance_id` int(11) unsigned NOT NULL, \
+										PRIMARY KEY (`server_id`, `val_binary`(64), `tag`), \
+										UNIQUE KEY `instance` (`instance_id`, `tag`, `server_id`), \
+										FOREIGN KEY (`server_id`) REFERENCES za_servers(`id`) ON DELETE CASCADE, \
+										FOREIGN KEY (`instance_id`, `tag`) REFERENCES za_instances(`id`, `tag`) ON UPDATE RESTRICT ON DELETE CASCADE \
+									) ENGINE=InnoDB"
+
+sSQLDatabase_t tables[] = 
+{
+	{"servers", ZA_TABLEDEF_SERVERS},
+	{"instances", ZA_TABLEDEF_INSTANCES},
+	{"mappings", ZA_TABLEDEF_MAPPINGS},
+	{NULL, NULL}
+};
+
+sSQLDatabase_t *ECDatabase::GetDatabaseDefs() {
+	return tables;
+}

@@ -54,6 +54,12 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
+libarchiver_core_la_DEPENDENCIES =  \
+	${top_builddir}/common/libcommon_service.la
+am_libarchiver_core_la_OBJECTS = archiver.lo instanceidmapper.lo \
+	operations.lo copier.lo deleter.lo stubber.lo transaction.lo \
+	postsaveiidupdater.lo archivectrl.lo ECDatabase.lo
+libarchiver_core_la_OBJECTS = $(am_libarchiver_core_la_OBJECTS)
 am__DEPENDENCIES_1 =
 libarchiver_la_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -61,11 +67,9 @@ libarchiver_la_DEPENDENCIES =  \
 	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_libarchiver_la_OBJECTS = archiver-session.lo archiver-common.lo \
-	archivemanage.lo archiver.lo archivectrl.lo \
-	archivestatecollector.lo archivestateupdater.lo \
-	archivehelper.lo storehelper.lo mapiprophelper.lo \
-	operations.lo copier.lo deleter.lo stubber.lo transaction.lo \
-	instanceidmapper.lo postsaveiidupdater.lo ECDatabaseMySQL.lo
+	archivemanage.lo archivestatecollector.lo \
+	archivestateupdater.lo archivehelper.lo storehelper.lo \
+	mapiprophelper.lo
 libarchiver_la_OBJECTS = $(am_libarchiver_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -73,7 +77,8 @@ am_zarafa_archiver_OBJECTS = main.$(OBJEXT)
 zarafa_archiver_OBJECTS = $(am_zarafa_archiver_OBJECTS)
 zarafa_archiver_DEPENDENCIES =  \
 	${top_builddir}/common/libcommon_util.la libarchiver.la \
-	$(am__DEPENDENCIES_1)
+	libarchiver-core.la $(am__DEPENDENCIES_1) \
+	${top_builddir}/common/libcommon_service.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -95,8 +100,10 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libarchiver_la_SOURCES) $(zarafa_archiver_SOURCES)
-DIST_SOURCES = $(libarchiver_la_SOURCES) $(zarafa_archiver_SOURCES)
+SOURCES = $(libarchiver_core_la_SOURCES) $(libarchiver_la_SOURCES) \
+	$(zarafa_archiver_SOURCES)
+DIST_SOURCES = $(libarchiver_core_la_SOURCES) \
+	$(libarchiver_la_SOURCES) $(zarafa_archiver_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -282,7 +289,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lib_LTLIBRARIES = libarchiver.la
+lib_LTLIBRARIES = libarchiver.la libarchiver-core.la
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DARCHIVER_EXTRA \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/common \
@@ -297,27 +304,30 @@ libarchiver_la_SOURCES = \
 	archiver-session.cpp archiver-session.h archiver-session_fwd.h \
 	archiver-common.cpp archiver-common.h \
 	archivemanage.cpp archivemanage.h \
-	archiver.cpp archiver.h \
-	archivectrl.cpp archivectrl.h \
 	archivestatecollector.cpp archivestatecollector.h \
 	archivestateupdater.cpp archivestateupdater.h archivestateupdater_fwd.h \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
-	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \
+	helpers/mapiprophelper.cpp helpers/mapiprophelper.h 
+
+libarchiver_core_la_SOURCES = \
+	archiver.cpp archiver.h \
+	operations/instanceidmapper.cpp operations/instanceidmapper.h operations/instanceidmapper_fwd.h \
 	operations/operations.cpp operations/operations.h operations/operations_fwd.h \
 	operations/copier.cpp operations/copier.h \
 	operations/deleter.cpp operations/deleter.h \
 	operations/stubber.cpp operations/stubber.h \
 	operations/transaction.cpp operations/transaction.h operations/transaction_fwd.h \
-	operations/instanceidmapper.cpp operations/instanceidmapper.h operations/instanceidmapper_fwd.h \
 	operations/postsaveaction.h \
 	operations/postsaveiidupdater.cpp operations/postsaveiidupdater.h \
-	ECDatabaseMySQL.cpp ECDatabaseMySQL.h
+	archivectrl.cpp archivectrl.h \
+	ECDatabase.h ECDatabase.cpp
 
 zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
-	libarchiver.la \
-	$(PROG_LIBS)
+	libarchiver.la libarchiver-core.la \
+	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
 
+libarchiver_core_la_LIBADD = ${top_builddir}/common/libcommon_service.la
 zarafa_archiver_SOURCES = main.cpp
 all: all-am
 
@@ -379,6 +389,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+libarchiver-core.la: $(libarchiver_core_la_OBJECTS) $(libarchiver_core_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libarchiver_core_la_OBJECTS) $(libarchiver_core_la_LIBADD) $(LIBS)
 libarchiver.la: $(libarchiver_la_OBJECTS) $(libarchiver_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libarchiver_la_OBJECTS) $(libarchiver_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -419,7 +431,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabaseMySQL.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archivectrl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archivehelper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archivemanage.Plo@am__quote@
@@ -460,26 +472,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-archivehelper.lo: helpers/archivehelper.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT archivehelper.lo -MD -MP -MF $(DEPDIR)/archivehelper.Tpo -c -o archivehelper.lo `test -f 'helpers/archivehelper.cpp' || echo '$(srcdir)/'`helpers/archivehelper.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/archivehelper.Tpo $(DEPDIR)/archivehelper.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/archivehelper.cpp' object='archivehelper.lo' libtool=yes @AMDEPBACKSLASH@
+instanceidmapper.lo: operations/instanceidmapper.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT instanceidmapper.lo -MD -MP -MF $(DEPDIR)/instanceidmapper.Tpo -c -o instanceidmapper.lo `test -f 'operations/instanceidmapper.cpp' || echo '$(srcdir)/'`operations/instanceidmapper.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/instanceidmapper.Tpo $(DEPDIR)/instanceidmapper.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='operations/instanceidmapper.cpp' object='instanceidmapper.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o archivehelper.lo `test -f 'helpers/archivehelper.cpp' || echo '$(srcdir)/'`helpers/archivehelper.cpp
-
-storehelper.lo: helpers/storehelper.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT storehelper.lo -MD -MP -MF $(DEPDIR)/storehelper.Tpo -c -o storehelper.lo `test -f 'helpers/storehelper.cpp' || echo '$(srcdir)/'`helpers/storehelper.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/storehelper.Tpo $(DEPDIR)/storehelper.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/storehelper.cpp' object='storehelper.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o storehelper.lo `test -f 'helpers/storehelper.cpp' || echo '$(srcdir)/'`helpers/storehelper.cpp
-
-mapiprophelper.lo: helpers/mapiprophelper.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mapiprophelper.lo -MD -MP -MF $(DEPDIR)/mapiprophelper.Tpo -c -o mapiprophelper.lo `test -f 'helpers/mapiprophelper.cpp' || echo '$(srcdir)/'`helpers/mapiprophelper.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/mapiprophelper.Tpo $(DEPDIR)/mapiprophelper.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/mapiprophelper.cpp' object='mapiprophelper.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mapiprophelper.lo `test -f 'helpers/mapiprophelper.cpp' || echo '$(srcdir)/'`helpers/mapiprophelper.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o instanceidmapper.lo `test -f 'operations/instanceidmapper.cpp' || echo '$(srcdir)/'`operations/instanceidmapper.cpp
 
 operations.lo: operations/operations.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT operations.lo -MD -MP -MF $(DEPDIR)/operations.Tpo -c -o operations.lo `test -f 'operations/operations.cpp' || echo '$(srcdir)/'`operations/operations.cpp
@@ -516,19 +514,33 @@ transaction.lo: operations/transaction.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o transaction.lo `test -f 'operations/transaction.cpp' || echo '$(srcdir)/'`operations/transaction.cpp
 
-instanceidmapper.lo: operations/instanceidmapper.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT instanceidmapper.lo -MD -MP -MF $(DEPDIR)/instanceidmapper.Tpo -c -o instanceidmapper.lo `test -f 'operations/instanceidmapper.cpp' || echo '$(srcdir)/'`operations/instanceidmapper.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/instanceidmapper.Tpo $(DEPDIR)/instanceidmapper.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='operations/instanceidmapper.cpp' object='instanceidmapper.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o instanceidmapper.lo `test -f 'operations/instanceidmapper.cpp' || echo '$(srcdir)/'`operations/instanceidmapper.cpp
-
 postsaveiidupdater.lo: operations/postsaveiidupdater.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT postsaveiidupdater.lo -MD -MP -MF $(DEPDIR)/postsaveiidupdater.Tpo -c -o postsaveiidupdater.lo `test -f 'operations/postsaveiidupdater.cpp' || echo '$(srcdir)/'`operations/postsaveiidupdater.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/postsaveiidupdater.Tpo $(DEPDIR)/postsaveiidupdater.Plo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='operations/postsaveiidupdater.cpp' object='postsaveiidupdater.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o postsaveiidupdater.lo `test -f 'operations/postsaveiidupdater.cpp' || echo '$(srcdir)/'`operations/postsaveiidupdater.cpp
+
+archivehelper.lo: helpers/archivehelper.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT archivehelper.lo -MD -MP -MF $(DEPDIR)/archivehelper.Tpo -c -o archivehelper.lo `test -f 'helpers/archivehelper.cpp' || echo '$(srcdir)/'`helpers/archivehelper.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/archivehelper.Tpo $(DEPDIR)/archivehelper.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/archivehelper.cpp' object='archivehelper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o archivehelper.lo `test -f 'helpers/archivehelper.cpp' || echo '$(srcdir)/'`helpers/archivehelper.cpp
+
+storehelper.lo: helpers/storehelper.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT storehelper.lo -MD -MP -MF $(DEPDIR)/storehelper.Tpo -c -o storehelper.lo `test -f 'helpers/storehelper.cpp' || echo '$(srcdir)/'`helpers/storehelper.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/storehelper.Tpo $(DEPDIR)/storehelper.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/storehelper.cpp' object='storehelper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o storehelper.lo `test -f 'helpers/storehelper.cpp' || echo '$(srcdir)/'`helpers/storehelper.cpp
+
+mapiprophelper.lo: helpers/mapiprophelper.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mapiprophelper.lo -MD -MP -MF $(DEPDIR)/mapiprophelper.Tpo -c -o mapiprophelper.lo `test -f 'helpers/mapiprophelper.cpp' || echo '$(srcdir)/'`helpers/mapiprophelper.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/mapiprophelper.Tpo $(DEPDIR)/mapiprophelper.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='helpers/mapiprophelper.cpp' object='mapiprophelper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mapiprophelper.lo `test -f 'helpers/mapiprophelper.cpp' || echo '$(srcdir)/'`helpers/mapiprophelper.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo

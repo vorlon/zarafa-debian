@@ -10513,6 +10513,65 @@
 	  </refsection>
 
 	  <refsection>
+		<title>Explanation of the MySQL Settings parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>mysql_host</option></term>
+			<listitem>
+			  <para>The hostname of the MySQL server to use.</para>
+			  <para>Default:
+			  <replaceable>localhost</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>mysql_port</option></term>
+			<listitem>
+			  <para>The port of the MySQL server to use.</para>
+			  <para>Default: <replaceable>3306</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>mysql_user</option></term>
+			<listitem>
+			  <para>The user under which we connect with MySQL.</para>
+			  <para>Default: <replaceable>root</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>mysql_password</option></term>
+			<listitem>
+			  <para>The password to use for MySQL. Leave empty for no
+			  password.</para>
+			  <para>Default: <replaceable></replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>mysql_socket</option></term>
+			<listitem>
+				<para>The socket of the MySQL server to use. This option 
+						can be used to override the default mysql socket.
+						To use the socket, the mysql_host value must be 
+						empty or 'localhost'</para>
+			  <para>Default: <replaceable></replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>mysql_database</option></term>
+			<listitem>
+			  <para>The MySQL database to connect to.</para>
+			  <para>Default: <replaceable>zarafa</replaceable></para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+		  
+	  <refsection>
 		<title>Explanation of the SSL Settings parameters</title>
 
 		<variablelist>
@@ -10688,23 +10747,6 @@
 		  </varlistentry>
 
 		  <varlistentry>
-			<term><option>index_sync_stream</option></term>
-			<listitem>
-			  <para>Enable streaming synchronization. This can increase synchronization
-			  speed depending on the setup. During streaming synchronization all messages
-			  which will be synchronized will be downloaded in a single call requiring
-			  more overall memory. When <replaceable>index_attachments</replaceable> is
-			  disabled streaming will cause overhead because all attachments will be
-			  downloaded to the client even though they will not be indexed.</para>
-	  		  <para>This option requires <replaceable>enable_enhanced_ics</replaceable>
-			  to be enabled in the <citerefentry><refentrytitle>zarafa-server.cfg</refentrytitle>
-			  <manvolnum>5</manvolnum></citerefentry>, otherwise the indexing will still
-			  fallback to the slower synchronization.</para>
-			  <para>Default: <replaceable>yes</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
 			<term><option>index_interval</option></term>
 			<listitem>
 			  <para>Interval (in minutes) for indexing. During every interval the zarafa-indexer
@@ -10726,122 +10768,6 @@
 			</listitem>
 		  </varlistentry>
 
-		  <varlistentry>
-			<term><option>index_max_field_length</option></term>
-			<listitem>
-			  <para>Maximum number of words from a single message to index.
-			  Only the first <replaceable>index_max_field_length</replaceable>
-			  from a single message will be indexed, all words above this
-			  value will be discarded.</para>
-	  		  <para>This value is used to control the amount of required memory
-			  during the indexing process. More memory will be required during indexing
-			  when <replaceable>index_max_field_length</replaceable> is set to a higher value.</para>
-			  <para>Default: <replaceable>10000</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_merge_factor</option></term>
-			<listitem>
-			  <para>Number of index file segments per store before Lucene
-			  merges the segments into a single file.</para>
-	  		  <para>A low value will cause less memory to be used during
-			  indexing, but the increased IO access to disk causes the indexing
-			  process to be slower, while searching will be faster. A high value
-			  will speed up the indexing process while searching will be slower</para>
-			  <variablelist>
-				<varlistentry>
-				  <term><replaceable>Batch indexing</replaceable></term>
-				  <listitem>
-					<para>If <replaceable>index_interval</replaceable> is set to a high value,
-					set <replaceable>index_merge_factor</replaceable> to a high value (&gt; 10).</para>
-				  </listitem>
-				</varlistentry>
-				<varlistentry>
-				  <term><replaceable>Interactive indexing</replaceable></term>
-				  <listitem>
-					<para>If <replaceable>index_interval</replaceable> is set to a low value,
-					set <replaceable>index_merge_factor</replaceable> to a low value (&lt; 10).</para>
-				  </listitem>
-		  		</varlistentry>
-			  </variablelist>
-			  <para>Default: <replaceable>10</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_max_buffered_docs</option></term>
-			<listitem>
-			  <para>Max number of documents kept in memory before
-			  CLucene will write a new index file segment to disk.</para>
-			  <para>Larger values will increase memory usage but makes
-			  the indexing process faster.</para>
-			  <para>Default: <replaceable>10</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_min_merge_docs</option></term>
-			<listitem>
-			  <para>Minumum number of messages in a single store which
-			  are indexed in memory before the index writer flushes the
-			  index to disk as new index file segment.</para>
-			  <para>Creating new index file segments often increases IO access
-			  to disk but reduces the amount of memory required during the indexing
-			  process.</para>
-			  <para>Default: <replaceable>10</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_max_merge_docs</option></term>
-			<listitem>
-			  <para>Maximum number of documents in a index file segment, when
-			  an index file segment contains <replaceable>index_max_merge_docs</replaceable>
-			  documents it will no longer be merged with other index file segments.</para>
-	  		  <para>This will limit the total size of an index file segment but will trigger
-			  more index file segments to be created.</para>
-			  <variablelist>
-				<varlistentry>
-				  <term><replaceable>Batch indexing</replaceable></term>
-				  <listitem>
-					<para>If <replaceable>index_interval</replaceable> is set to a high value,
-					set <replaceable>index_max_merge_docs</replaceable> to a high value (&gt; 10000).</para>
-				  </listitem>
-				</varlistentry>
-				<varlistentry>
-				  <term><replaceable>Interactive indexing</replaceable></term>
-				  <listitem>
-					<para>If <replaceable>index_interval</replaceable> is set to a low value,
-					set <replaceable>index_max_merge_docs</replaceable> to a low value (&lt; 10000).</para>
-				  </listitem>
-		  		</varlistentry>
-			  </variablelist>
-			  <para>Default: <replaceable>2147483647</replaceable> (INT32_MAX)</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_term_interval</option></term>
-			<listitem>
-			  <para>The fraction of terms in the "dictionary" which should be stored
-			  in memory.  Smaller values use more memory, but make searching slightly
-			  faster, while larger values use less memory and make searching slightly
-			  slower.  Searching is typically not dominated by dictionary lookup, so
-			  tweaking this is rarely useful.</para>
-			  <para>Default: <replaceable>128</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_cache_timeout</option></term>
-			<listitem>
-			  <para>Timeout value (in seconds) for purging all caches used
-			  during the indexing process. If set to <replaceable>0</replaceable>
-			  caching will be disabled.</para>
-			  <para>Default: <replaceable>0</replaceable></para>
-			</listitem>
-		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
@@ -10991,73 +10917,6 @@
 		  </varlistentry>
 		</variablelist>
 	  </refsection>
-
-	  <refsection>
-		<title>Reloading</title>
-		<para>The following options are reloadable by sending the zarafa-indexer process a HUP signal:</para>
-		<variablelist>
-		  <varlistentry>
-			<term>log_level</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_threads</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_max_field_length</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_merge_factor</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_max_buffered_docs</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_min_merge_docs</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_max_merge_docs</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_term_interval</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachments</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_max_size</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_parser</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_parser_max_memory</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_parser_max_cputime</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_mime_filter</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-		  <varlistentry>
-			<term>index_attachment_extension_filter</term>
-			<listitem><para></para></listitem>
-		  </varlistentry>
-  		</variablelist>
-	 </refsection>
 
 	  <refsection>
 		<title>Author</title>

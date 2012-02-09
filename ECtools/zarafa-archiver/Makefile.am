@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libarchiver.la
+lib_LTLIBRARIES = libarchiver.la libarchiver-core.la
 
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DARCHIVER_EXTRA \
 	-I${top_srcdir}/mapi4linux/include \
@@ -16,28 +16,33 @@ libarchiver_la_SOURCES = \
 	archiver-session.cpp archiver-session.h archiver-session_fwd.h \
 	archiver-common.cpp archiver-common.h \
 	archivemanage.cpp archivemanage.h \
-	archiver.cpp archiver.h \
-	archivectrl.cpp archivectrl.h \
 	archivestatecollector.cpp archivestatecollector.h \
 	archivestateupdater.cpp archivestateupdater.h archivestateupdater_fwd.h \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
-	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \
+	helpers/mapiprophelper.cpp helpers/mapiprophelper.h 
+
+libarchiver_core_la_SOURCES = \
+	archiver.cpp archiver.h \
+	operations/instanceidmapper.cpp operations/instanceidmapper.h operations/instanceidmapper_fwd.h \
 	operations/operations.cpp operations/operations.h operations/operations_fwd.h \
 	operations/copier.cpp operations/copier.h \
 	operations/deleter.cpp operations/deleter.h \
 	operations/stubber.cpp operations/stubber.h \
 	operations/transaction.cpp operations/transaction.h operations/transaction_fwd.h \
-	operations/instanceidmapper.cpp operations/instanceidmapper.h operations/instanceidmapper_fwd.h \
 	operations/postsaveaction.h \
 	operations/postsaveiidupdater.cpp operations/postsaveiidupdater.h \
-	ECDatabaseMySQL.cpp ECDatabaseMySQL.h
+	archivectrl.cpp archivectrl.h \
+	ECDatabase.h ECDatabase.cpp
+
 
 bin_PROGRAMS = zarafa-archiver
 
 zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
-	libarchiver.la \
-	$(PROG_LIBS)
+	libarchiver.la libarchiver-core.la \
+	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
+
+libarchiver_core_la_LIBADD = ${top_builddir}/common/libcommon_service.la
 
 zarafa_archiver_SOURCES = main.cpp
 

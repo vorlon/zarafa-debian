@@ -102,6 +102,53 @@ Limit the number of results returned to the server\&. If set to a nonzero value,
 .sp
 Default:\fI0\fR
 .RE
+.SH "EXPLANATION OF THE MYSQL SETTINGS PARAMETERS"
+.PP
+\fBmysql_host\fR
+.RS 4
+The hostname of the MySQL server to use\&.
+.sp
+Default:
+\fIlocalhost\fR
+.RE
+.PP
+\fBmysql_port\fR
+.RS 4
+The port of the MySQL server to use\&.
+.sp
+Default:
+\fI3306\fR
+.RE
+.PP
+\fBmysql_user\fR
+.RS 4
+The user under which we connect with MySQL\&.
+.sp
+Default:
+\fIroot\fR
+.RE
+.PP
+\fBmysql_password\fR
+.RS 4
+The password to use for MySQL\&. Leave empty for no password\&.
+.sp
+Default:
+.RE
+.PP
+\fBmysql_socket\fR
+.RS 4
+The socket of the MySQL server to use\&. This option can be used to override the default mysql socket\&. To use the socket, the mysql_host value must be empty or \'localhost\'
+.sp
+Default:
+.RE
+.PP
+\fBmysql_database\fR
+.RS 4
+The MySQL database to connect to\&.
+.sp
+Default:
+\fIzarafa\fR
+.RE
 .SH "EXPLANATION OF THE SSL SETTINGS PARAMETERS"
 .PP
 \fBssl_key_file\fR
@@ -209,21 +256,6 @@ Default:
 \fI/var/lib/zarafa/index/\fR
 .RE
 .PP
-\fBindex_sync_stream\fR
-.RS 4
-Enable streaming synchronization\&. This can increase synchronization speed depending on the setup\&. During streaming synchronization all messages which will be synchronized will be downloaded in a single call requiring more overall memory\&. When
-\fIindex_attachments\fR
-is disabled streaming will cause overhead because all attachments will be downloaded to the client even though they will not be indexed\&.
-.sp
-This option requires
-\fIenable_enhanced_ics\fR
-to be enabled in the
-\fBzarafa-server.cfg\fR(5), otherwise the indexing will still fallback to the slower synchronization\&.
-.sp
-Default:
-\fIyes\fR
-.RE
-.PP
 \fBindex_interval\fR
 .RS 4
 Interval (in minutes) for indexing\&. During every interval the zarafa\-indexer will synchronize with the zarafa\-server to collect all changes for each store and update the index files for the stores accordingly\&.
@@ -239,117 +271,6 @@ Maximum number if indexing threads\&. In a multi\-server environment it is possi
 .sp
 Default:
 \fI1\fR
-.RE
-.PP
-\fBindex_max_field_length\fR
-.RS 4
-Maximum number of words from a single message to index\&. Only the first
-\fIindex_max_field_length\fR
-from a single message will be indexed, all words above this value will be discarded\&.
-.sp
-This value is used to control the amount of required memory during the indexing process\&. More memory will be required during indexing when
-\fIindex_max_field_length\fR
-is set to a higher value\&.
-.sp
-Default:
-\fI10000\fR
-.RE
-.PP
-\fBindex_merge_factor\fR
-.RS 4
-Number of index file segments per store before Lucene merges the segments into a single file\&.
-.sp
-A low value will cause less memory to be used during indexing, but the increased IO access to disk causes the indexing process to be slower, while searching will be faster\&. A high value will speed up the indexing process while searching will be slower
-.PP
-\fIBatch indexing\fR
-.RS 4
-If
-\fIindex_interval\fR
-is set to a high value, set
-\fIindex_merge_factor\fR
-to a high value (> 10)\&.
-.RE
-.PP
-\fIInteractive indexing\fR
-.RS 4
-If
-\fIindex_interval\fR
-is set to a low value, set
-\fIindex_merge_factor\fR
-to a low value (< 10)\&.
-.RE
-.sp
-Default:
-\fI10\fR
-.RE
-.PP
-\fBindex_max_buffered_docs\fR
-.RS 4
-Max number of documents kept in memory before CLucene will write a new index file segment to disk\&.
-.sp
-Larger values will increase memory usage but makes the indexing process faster\&.
-.sp
-Default:
-\fI10\fR
-.RE
-.PP
-\fBindex_min_merge_docs\fR
-.RS 4
-Minumum number of messages in a single store which are indexed in memory before the index writer flushes the index to disk as new index file segment\&.
-.sp
-Creating new index file segments often increases IO access to disk but reduces the amount of memory required during the indexing process\&.
-.sp
-Default:
-\fI10\fR
-.RE
-.PP
-\fBindex_max_merge_docs\fR
-.RS 4
-Maximum number of documents in a index file segment, when an index file segment contains
-\fIindex_max_merge_docs\fR
-documents it will no longer be merged with other index file segments\&.
-.sp
-This will limit the total size of an index file segment but will trigger more index file segments to be created\&.
-.PP
-\fIBatch indexing\fR
-.RS 4
-If
-\fIindex_interval\fR
-is set to a high value, set
-\fIindex_max_merge_docs\fR
-to a high value (> 10000)\&.
-.RE
-.PP
-\fIInteractive indexing\fR
-.RS 4
-If
-\fIindex_interval\fR
-is set to a low value, set
-\fIindex_max_merge_docs\fR
-to a low value (< 10000)\&.
-.RE
-.sp
-Default:
-\fI2147483647\fR
-(INT32_MAX)
-.RE
-.PP
-\fBindex_term_interval\fR
-.RS 4
-The fraction of terms in the "dictionary" which should be stored in memory\&. Smaller values use more memory, but make searching slightly faster, while larger values use less memory and make searching slightly slower\&. Searching is typically not dominated by dictionary lookup, so tweaking this is rarely useful\&.
-.sp
-Default:
-\fI128\fR
-.RE
-.PP
-\fBindex_cache_timeout\fR
-.RS 4
-Timeout value (in seconds) for purging all caches used during the indexing process\&. If set to
-\fI0\fR
-caching will be disabled\&.
-.sp
-Default:
-\fI0\fR
 .RE
 .SH "EXPLANATION OF THE ATTACHMENT INDEXER SETTINGS PARAMETERS"
 .PP
@@ -454,69 +375,6 @@ Default: empty
 A list of server names which should be indexed by the indexing service\&. All stores located on these servers will be indexed, all other servers will be ignored\&. If kept empty, no filtering is applied and all detected servers are indexed\&. Fields in the list are seperated by a SPACE\&.
 .sp
 Default: empty
-.RE
-.SH "RELOADING"
-.PP
-The following options are reloadable by sending the zarafa\-indexer process a HUP signal:
-.PP
-log_level
-.RS 4
-.RE
-.PP
-index_threads
-.RS 4
-.RE
-.PP
-index_max_field_length
-.RS 4
-.RE
-.PP
-index_merge_factor
-.RS 4
-.RE
-.PP
-index_max_buffered_docs
-.RS 4
-.RE
-.PP
-index_min_merge_docs
-.RS 4
-.RE
-.PP
-index_max_merge_docs
-.RS 4
-.RE
-.PP
-index_term_interval
-.RS 4
-.RE
-.PP
-index_attachments
-.RS 4
-.RE
-.PP
-index_attachment_max_size
-.RS 4
-.RE
-.PP
-index_attachment_parser
-.RS 4
-.RE
-.PP
-index_attachment_parser_max_memory
-.RS 4
-.RE
-.PP
-index_attachment_parser_max_cputime
-.RS 4
-.RE
-.PP
-index_attachment_mime_filter
-.RS 4
-.RE
-.PP
-index_attachment_extension_filter
-.RS 4
 .RE
 .SH "AUTHOR"
 .PP

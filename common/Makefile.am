@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libcommon_util.la libcommon_mapi.la libcommon_ssl.la
+lib_LTLIBRARIES = libcommon_util.la libcommon_mapi.la libcommon_ssl.la libcommon_service.la
 
 # keep subdirs for these headers
 charset_HEADERS = charset/convert.h charset/traits.h charset/utf32string.h charset/utf8string.h charset/utf16string.h charset/convstring.h charset/localeutil.h
@@ -21,6 +21,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
+				  ECDatabaseMySQL.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -30,7 +31,7 @@ datadir = $(libdir)/pkgconfig
 
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
-	-I${top_srcdir}/libfreebusy
+	-I${top_srcdir}/libfreebusy $(MYSQL_INCLUDES)
 
 libcommon_mapi_la_LDFLAGS = -static
 libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
@@ -94,9 +95,13 @@ libcommon_util_la_SOURCES += ustringutil/itercomp.cpp	\
 endif
 
 libcommon_ssl_la_LDFLAGS = -static
+libcommon_ssl_la_LIBADD = $(MYSQL_LIBS)
 libcommon_ssl_la_SOURCES = 							\
 			SSLUtil.cpp								\
 			ECChannel.cpp
+
+libcommon_service_la_LDFLAGS = -static
+libcommon_service_la_SOURCES = ECDatabaseMySQL.cpp
 
 # remove double installed headers
 install-data-hook:

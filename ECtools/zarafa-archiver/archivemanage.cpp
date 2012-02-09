@@ -119,6 +119,23 @@ exit:
 	return hr;
 }
 
+HRESULT ArchiveManage::Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
+{
+	HRESULT hr = hrSuccess;
+	ECConfig *lpsConfig = NULL; 
+	SessionPtr ptrArchiverSession;
+
+	hr = Session::Create(MAPISessionPtr(lpSession, true), NULL, lpLogger, &ptrArchiverSession);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ArchiveManageImpl::Create(ptrArchiverSession, NULL, lpszUser, lpLogger, lpptrManage);
+
+exit:
+	delete lpsConfig;
+	return hr;
+}
+
 /**
  * Constructor
  *

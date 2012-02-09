@@ -136,7 +136,7 @@ HRESULT ECSynchronization::GetAddressBookChanges(IMsgStore *lpStore, LPSTREAM lp
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, NULL, m_lpChanges,
+	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, 0, NULL, m_lpChanges,
 												IID_IECImportAddressbookChanges, (LPVOID *)&lpImporter);
 	if (hr != hrSuccess)
 		goto exit;
@@ -210,7 +210,7 @@ HRESULT ECSynchronization::GetHierarchyChanges(ECEntryData *lpEntryData, IMsgSto
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, &lpEntryData->m_sRootSourceKey, m_lpChanges,
+	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, 0, NULL, m_lpChanges,
 												IID_IExchangeImportHierarchyChanges, (LPVOID *)&lpImporter);
 	if (hr != hrSuccess)
 		goto exit;
@@ -321,9 +321,6 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 
 	m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
 
-	m_lpIndexerData->OptimizeIndex(lpEntryData);
-	// Since it is not really fatal when the optimize failed, we will just ignore the error here
-
 	hr = StopMergedChanges();
 	if (hr != hrSuccess)
 		goto exit;
@@ -348,14 +345,21 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	ULONG ulDelete = 0;
 	ULONG ulSteps = 0;
 	ULONG ulStep = 0;
+	ULONG cValues = 0;
+	LPSPropValue lpProps = NULL;
+	
+	SizedSPropTagArray(3, sptaFolderProps) = {3, { PR_RECORD_KEY, PR_STORE_RECORD_KEY, PR_MAPPING_SIGNATURE } };
 	
 	SPropTagArrayPtr ptrIncludeProps;
 
-	SizedSPropTagArray(2, sptaInclude) = {
-		2,
+	SizedSPropTagArray(5, sptaInclude) = {
+		5,
 		{
-			PR_ENTRYID,
-			PR_PARENT_ENTRYID,
+			PR_EC_HIERARCHYID,
+			PR_EC_PARENT_HIERARCHYID,
+			PR_STORE_RECORD_KEY,
+			PR_MAPPING_SIGNATURE,
+			PR_ENTRYID
 		}
 	};
 
@@ -370,6 +374,15 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		}
 	};
 	
+	hr = lpFolder->GetProps((LPSPropTagArray)&sptaFolderProps, 0, &cValues, &lpProps);
+	if(hr != hrSuccess) // We need all properties to be ok, no warnings
+		goto exit;
+		
+	// We want a PR_EC_PARENT_HIERARCHYID, so abuse PR_RECORD_KEY to find hierarchyid of folder ... *HACKISH*
+	ASSERT(lpProps[0].Value.bin.cb == sizeof(unsigned int));
+	lpProps[0].ulPropTag = PR_EC_PARENT_HIERARCHYID;
+	lpProps[0].Value.ul = *(unsigned int *)lpProps[0].Value.bin.lpb;
+	
 	hr = MAPIPropHelper::GetArchiverProps(MAPIPropPtr(lpMsgStore, true), (LPSPropTagArray)&sptaInclude, &ptrIncludeProps);
 	if (hr != hrSuccess)
 		goto exit;
@@ -382,7 +395,7 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, &lpFolderData->m_sFolderSourceKey, m_lpChanges,
+	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, cValues, lpProps, m_lpChanges,
 												IID_IExchangeImportContentsChanges, (LPVOID *)&lpImporter);
 	if (hr != hrSuccess)
 		goto exit;
@@ -410,6 +423,10 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		}
 
 		hr = lpExporter->Synchronize(&ulSteps, &ulStep);
+		
+		if(ulStep % 10 == 0) {
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Step %d of %d", ulStep, ulSteps);
+		}
 	} while ((hr == SYNC_W_PROGRESS) && !m_lpThreadData->bShutdown);
 
 	if (hr != hrSuccess) {

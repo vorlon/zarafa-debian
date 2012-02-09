@@ -68,9 +68,9 @@
 
 #include "ECIndexerUtil.h"
 #include "ECLucene.h"
-#include "ECLuceneAccess.h"
 #include "ECLuceneIndexer.h"
 #include "ECLuceneIndexerAttachment.h"
+#include "ECIndexDB.h"
 
 #include "charset/convert.h"
 
@@ -78,19 +78,11 @@
 
 ECLuceneIndexerAttachment::ECLuceneIndexerAttachment(ECThreadData *lpThreadData, ECLuceneIndexer *lpIndexer)
 {
-	NShttpmail_t *lpField;
-
 	m_lpThreadData = lpThreadData;
 	m_lpIndexer = lpIndexer;
 	m_lpCache = NULL;
 	m_ulCache = 0;
 
-
-	lpField = m_lpThreadData->lpLucene->GetIndexedProp(PR_BODY);
-	ASSERT(lpField);
-
-	m_strFieldName = lpField->strNShttpmail;
-	m_ulFieldStorage = lpField->ulStorage;
 	m_strCommand = m_lpThreadData->m_strCommand;
 }
 
@@ -465,7 +457,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(lucene::document::Document *lpDocument, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	IMessage *lpMessage = NULL;
@@ -485,7 +477,7 @@ HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(lucene::document::Doc
 			goto exit;
 	}
 
-	hr = m_lpIndexer->ParseDocument(lpDocument, ulMsgProps, lpMsgProps, lpMessage, TRUE);
+	hr = m_lpIndexer->ParseDocument(store, folder, doc, version, ulMsgProps, lpMsgProps, lpMessage, TRUE);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -499,11 +491,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(lucene::document::Document *lpDocument, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 
-	hr = m_lpIndexer->ParseStream(lpDocument, 0, NULL, lpSerializer, TRUE);
+	hr = m_lpIndexer->ParseStream(store, folder, doc, version, 0, NULL, lpSerializer, TRUE);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -511,12 +503,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(lucene::document::Document *lpDocument, IStream *lpStream,
+HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
 														tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
 														std::wstring *lpstrParsed)
 {
 	HRESULT hr = hrSuccess;
-	lucene::document::Field *lpField = NULL;
 	std::string command;
 	std::wstring wparsed;
 
@@ -586,26 +577,10 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(lucene::document::Docume
 		wparsed.append(convert_to<std::wstring>(strFilename));
 	}
 
-	try {
-		lpField = new lucene::document::Field(m_strFieldName.c_str(), wparsed.c_str(), m_ulFieldStorage);
-		if (lpField)
-			lpDocument->add(*lpField);
-	}
-	catch (CLuceneError &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
+	hr = m_lpIndexer->m_lpIndexDB->AddTerm(store, folder, doc, version, PR_BODY, wparsed);
+	if (hr != hrSuccess)
 		goto exit;
-	}
-	catch (std::exception &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during attachment field: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	catch (...) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during attachment field");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+
 	if (lpstrParsed)
 		lpstrParsed->assign(wparsed);
 
@@ -613,7 +588,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(lucene::document::Document *lpDocument, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	IStream *lpStream = NULL;
@@ -638,7 +613,7 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(lucene::document::Docume
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ParseValueAttachment(lpDocument, lpStream, strMimeTag, strExtension, strFilename, &wparsed);
+	hr = ParseValueAttachment(store, folder, doc, version, lpStream, strMimeTag, strExtension, strFilename, &wparsed);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -653,10 +628,9 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(lucene::document::Document *lpDocument, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-	lucene::document::Field *lpField = NULL;
 	IAttach *lpAttach = NULL;
 	std::wstring strAttachData;
 	LPSPropValue lpAttachNum = PpropFindProp(lpProps, ulProps, PR_ATTACH_NUM);
@@ -701,35 +675,17 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachment(lucene::document::Document *l
 
 	/* First try to see if the attachment has been cached, before actually reading the attachment data */
 	if (GetCachedAttachment(lpAttach, &strAttachData) == hrSuccess) {
-		try {
-			lpField = new lucene::document::Field(m_strFieldName.c_str(), strAttachData.c_str(), m_ulFieldStorage);
-			if (lpField)
-				lpDocument->add(*lpField);
-		}
-		catch (CLuceneError &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
-			goto exit;
-		}
-		catch (std::exception &e) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during cached attachment field: %s", e.what());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-		catch (...) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during cached attachment field");
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+		hr = m_lpIndexer->m_lpIndexDB->AddTerm(store, folder, doc, PR_BODY, version, strAttachData);
 	} else {
 		switch (ulMethod) {
 			case ATTACH_EMBEDDED_MSG:
-				hr = ParseEmbeddedAttachment(lpDocument, lpAttach, ulProps, lpProps);
+				hr = ParseEmbeddedAttachment(store, folder, doc, version, lpAttach, ulProps, lpProps);
 				if (hr != hrSuccess)
 					goto exit;
 				break;
 			case ATTACH_BY_VALUE:
 			default:
-				hr = ParseValueAttachment(lpDocument, lpAttach, ulProps, lpProps);
+				hr = ParseValueAttachment(store, folder, doc, version, lpAttach, ulProps, lpProps);
 				if (hr != hrSuccess)
 					goto exit;
 				break;
@@ -743,7 +699,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(lucene::document::Document *lpDocument, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -860,13 +816,13 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachment(lucene::document::Document *l
 
 		switch (ulMethod) {
 		case ATTACH_EMBEDDED_MSG:
-			hr = ParseEmbeddedAttachment(lpDocument, lpSerializer);
+			hr = ParseEmbeddedAttachment(store, folder, doc, version, lpSerializer);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
 		case ATTACH_BY_VALUE:
 		default:
-			hr = ParseValueAttachment(lpDocument, lpStream, strMimeTag, strExtension, strFilename);
+			hr = ParseValueAttachment(store, folder, doc, version, lpStream, strMimeTag, strExtension, strFilename);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
@@ -893,7 +849,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(lucene::document::Document *lpDocument, IMessage *lpMessage)
+HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
@@ -927,7 +883,7 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(lucene::document::Document *
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; i++) {
-			if (ParseAttachment(lpDocument, lpMessage, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps) != hrSuccess)
+			if (ParseAttachment(store, folder, doc, version, lpMessage, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps) != hrSuccess)
 				continue;
 		}
 
@@ -946,7 +902,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(lucene::document::Document *lpDocument, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -965,10 +921,10 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(lucene::document::Document *
 
 		switch (ulTmp[0]) {
 		case MAPI_ATTACH:
-			ParseAttachment(lpDocument, lpSerializer);
+			ParseAttachment(store, folder, doc, version, lpSerializer);
 			break;
 		case MAPI_MESSAGE:
-			ParseEmbeddedAttachment(lpDocument, lpSerializer);
+			ParseEmbeddedAttachment(store, folder, doc, version, lpSerializer);
 			break;
 		default:
 			/* Subobject is not an attachment, skip to next object */
@@ -980,7 +936,7 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(lucene::document::Document *
 
 		if (ulTmp[0] == MAPI_MESSAGE || ulTmp[0] == MAPI_ATTACH) {
 			// handle subobjects in message or attachment
-			hr = ParseAttachments(lpDocument, lpSerializer);
+			hr = ParseAttachments(store, folder, doc, version, lpSerializer);
 			if (hr != hrSuccess)
 				goto exit;
 		}

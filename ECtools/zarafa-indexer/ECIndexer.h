@@ -128,13 +128,6 @@ public:
 
 	HRESULT RunSynchronization();
 
-	/**
-	 * Optimize on-disk index
-	 *
-	 * @return result
-	 */
-	HRESULT OptimizeIndex(ECEntryData *lpEntryData);
-
 private:
 	/**
 	 * Main thread handler
@@ -147,15 +140,6 @@ private:
 	 */
 	static LPVOID RunThread(LPVOID lpVoid);
 
-	/** 
-	 * Enables index optimization for the next indexing run
-	 * 
-	 * @param[in] lpVoid pointer to instance of this
-	 * 
-	 * @return LPVOID
-	 */
-	static LPVOID EnableOptimizeIndex(LPVOID lpVoid);
-
 	/**
 	 * Main indexing function
 	 *
@@ -165,16 +149,6 @@ private:
 	 * @return HRESULT
 	 */
 	HRESULT RunIndexer();
-
-	/**
-	 * Optimize memory consumption
-	 *
-	 * Run Optimize() on multiple components which are performing caching. Each of those
-	 * handlers can determine if the cached should be purged to reduce memory consumption.
-	 *
-	 * @return HRESULT
-	 */
-	HRESULT Optimize();
 
 	/**
 	 * Start synchronization of user changes

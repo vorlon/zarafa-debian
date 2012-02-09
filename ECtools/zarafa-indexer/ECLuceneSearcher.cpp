@@ -52,52 +52,58 @@
 #include <algorithm>
 
 #include <mapi.h>
-#include <mapix.h>
-#include <mapiutil.h>
 #include <mapidefs.h>
-#include <mapiguid.h>
+#include <mapicode.h>
 
-#include <edkguid.h>
-
-#include <ECGuid.h>
-#include <ECTags.h>
-#include <IECMultiStoreTable.h>
-#include <stringutil.h>
-#include <Util.h>
-#include <ECIConv.h>
-
-#include "ECFileIndex.h"
-#include "ECLucene.h"
-#include "ECLuceneAccess.h"
-#include "ECLuceneSearcher.h"
-#include "zarafa-indexer.h"
-
+#include "ECIndexDB.h"
 #include "charset/convert.h"
 
-ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults)
+#include "ECLuceneSearcher.h"
+
+// Given two sorted lists A and B, modify A so that it is the sorted intersection of A and B
+void intersect(std::list<unsigned int> &a, std::list<unsigned int> &b) {
+	std::list<unsigned int>::iterator i = a.begin(), j = b.begin();
+	
+	while(i != a.end() && j != b.end()) {
+		if(*i > *j) {
+			j++;
+		}
+		else if(*i < *j) {
+			a.erase(i++);
+		}
+		else {
+			i++;
+			j++;
+		}
+	}
+	
+	// If at end of b, but not end of a, remove rest of items from a
+	if(i != a.end()) {
+		a.erase(i, a.end());
+	}
+}
+
+ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults)
 {
 	m_lpThreadData = lpThreadData;
-
-	m_lpLuceneAccess = lpLuceneAccess;
-	m_lpLuceneAccess->AddRef();
-
-	m_listFolder = listFolder;
+	m_lstFolders = lstFolders;
 	m_ulMaxResults = ulMaxResults;
+	m_strServerGuid.assign((char *)lpServerGuid, sizeof(GUID));
+	m_strStoreGuid.assign((char *)lpStoreGuid, sizeof(GUID));
+	m_lpIndex = new ECIndexDB(lpThreadData->lpConfig, lpThreadData->lpLogger);
 }
 
 ECLuceneSearcher::~ECLuceneSearcher()
 {
-	if (m_lpLuceneAccess)
-		m_lpLuceneAccess->Release();
 }
 
-HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, ECLuceneAccess *lpLuceneAccess, string_list_t &listFolder, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher)
+HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher)
 {
 	HRESULT hr = hrSuccess;
 	ECLuceneSearcher *lpSearcher = NULL;
 
 	try {
-		lpSearcher = new ECLuceneSearcher(lpThreadData, lpLuceneAccess, listFolder, ulMaxResults);
+		lpSearcher = new ECLuceneSearcher(lpThreadData, lpServerGuid, lpStoreGuid, lstFolders, ulMaxResults);
 	}
 	catch (...) {
 		lpSearcher = NULL;
@@ -119,160 +125,45 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneSearcher::SearchEntries(std::string &strQuery, string_list_t *lplistResults)
+HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 {
 	HRESULT hr = hrSuccess;
-	lucene::search::QueryFilter *lpFilter = NULL;
+	std::list<unsigned int> lstMatches;
+	bool bFirst = true;
+	
+	storeid_t store((LPMAPIUID)m_strServerGuid.c_str(), (LPMAPIUID)m_strStoreGuid.c_str());
 
-	hr = CreateQueryFilter(&lpFilter);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = SearchIndexedEntries(strQuery, lpFilter, lplistResults);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpFilter)
-		delete lpFilter;
-
-	return hr;
-}
-
-HRESULT ECLuceneSearcher::CreateQueryFilter(lucene::search::QueryFilter **lppFilter)
-{
-	HRESULT hr = hrSuccess;
-	lucene::analysis::Analyzer *lpAnalyzer = NULL;
-	lucene::search::Query *lpQuery = NULL;
-	std::wstring strQuery;
-	convert_context converter;
-
-	if (!lppFilter) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (m_listFolder.empty()) {
-		*lppFilter = NULL;
-		goto exit;
-	}
-
-	hr = m_lpLuceneAccess->GetLuceneAnalyzer(&lpAnalyzer);
-	if (hr != hrSuccess)
-		goto exit;
-
-	strQuery = FILTER_FIELD;
-	strQuery += L":(";
-	for (string_list_t::iterator iter = m_listFolder.begin(); iter != m_listFolder.end(); iter++)
-		strQuery += L" " + converter.convert_to<std::wstring>(*iter);
-	strQuery += L")";
-
-	try {
-		lpQuery = lucene::queryParser::QueryParser::parse(strQuery.c_str(), FILTER_FIELD, lpAnalyzer);
-		if (!lpQuery) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-
-		*lppFilter = new lucene::search::QueryFilter(lpQuery);
-		if (!(*lppFilter)) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-	}
-	catch (CLuceneError &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	catch (std::exception &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during query filter: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	catch (...) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during query filter");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-exit:
-	if (lpQuery)
-		delete lpQuery;
-
-	return hr;
-}
-
-HRESULT ECLuceneSearcher::SearchIndexedEntries(std::string &strQuery, lucene::search::QueryFilter *lpFilter, string_list_t *lplistResults)
-{
-	HRESULT hr = hrSuccess;
-	lucene::analysis::Analyzer *lpAnalyzer = NULL;
-	lucene::search::IndexSearcher *lpSearcher = NULL;
-	lucene::search::Query *lpQuery = NULL;
-	lucene::search::Hits *lpHits = NULL;
-	convert_context converter;
-
-	hr = m_lpLuceneAccess->GetLuceneSearcher(&lpSearcher);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = m_lpLuceneAccess->GetLuceneAnalyzer(&lpAnalyzer);
-	if (hr != hrSuccess)
-		goto exit;
-
-	try {
-		lpQuery = lucene::queryParser::QueryParser::parse(converter.convert_to<wstring>(strQuery, rawsize(strQuery), "UTF-8").c_str(), DEFAULT_FIELD, lpAnalyzer);
-		if (!lpQuery) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
-		lpHits = lpSearcher->search(lpQuery, lpFilter);
-		if (!lpHits) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-
-		for (int i = 0; i < lpHits->length(); i++) {
-			if(m_ulMaxResults && i >= m_ulMaxResults)
-				break;
-
-			lucene::document::Document *lpDoc = &lpHits->doc(i);
-			const wchar_t *lpszEntryId = lpDoc->get(UNIQUE_FIELD);
-
-			/* Actually this is a bug, why is the unique field not present? */
-			if (!lpszEntryId)
-				continue;
-
-			lplistResults->push_back(converter.convert_to<std::string>(lpszEntryId) + " " + stringify_float(lpHits->score(i)));
+	lplistResults->clear();
+	
+	// Search is performed by querying each term against the index database
+	// and doing an intersection of all terms.
+	
+	for(std::list<SIndexedTerm>::iterator i = m_lstSearches.begin(); i != m_lstSearches.end(); i++) {
+		std::wstring wstrTerm = convert_to<std::wstring>(i->strTerm, rawsize(i->strTerm), "utf-8");
+		if(bFirst)
+			hr = m_lpIndex->QueryTerm(store, m_lstFolders, i->setFields, wstrTerm, *lplistResults);
+		else {
+			hr = m_lpIndex->QueryTerm(store, m_lstFolders, i->setFields, wstrTerm, lstMatches);
 			
+			intersect(*lplistResults, lstMatches);
 		}
+		
+		bFirst = false;
 	}
-	catch (CLuceneError &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "CLucene error: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	catch (std::exception &e) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "STD error during search: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-	catch (...) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown error during search");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-exit:
-	if (lpHits)
-		delete lpHits;
-
-	if (lpQuery)
-		delete lpQuery;
-
-	if (lpSearcher)
-		m_lpLuceneAccess->PutLuceneSearcher(lpSearcher);
+	
+	m_lstSearches.clear();
 
 	return hr;
+}
+
+HRESULT ECLuceneSearcher::AddTerm(std::set<unsigned int> &setFields, std::string &strTerm)
+{
+	SIndexedTerm sIndexedTerm;
+	
+	sIndexedTerm.setFields = setFields;
+	sIndexedTerm.strTerm = strTerm;
+	
+	m_lstSearches.push_back(sIndexedTerm);
+	
+	return hrSuccess;
 }

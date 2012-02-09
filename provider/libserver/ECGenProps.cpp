@@ -145,6 +145,12 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
         subquery = "SELECT outgoingqueue.flags FROM outgoingqueue where outgoingqueue.hierarchy_id = hierarchy.id and outgoingqueue.flags & 1 = 1";
         break;
 
+    case PR_EC_PARENT_HIERARCHYID:
+        // This isn't really a subquery, because all we want is the hierarchy.parent field. Since the subquery engine is already joining with 'hierarchy' we can
+        // read directly from that table by just returning hierarchy.parent
+        subquery = "hierarchy.parent";
+        break;
+        
 	default:
 		er = ZARAFA_E_NOT_FOUND;
 		break;
@@ -237,6 +243,7 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_ENTRYID):
 		case PROP_ID(PR_PARENT_ENTRYID): 
 		case PROP_ID(PR_STORE_ENTRYID):
+		case PROP_ID(PR_STORE_RECORD_KEY):
 		case PROP_ID(PR_USER_NAME):
 		case PROP_ID(PR_MAILBOX_OWNER_NAME):
 		case PROP_ID(PR_USER_ENTRYID):
@@ -302,6 +309,7 @@ ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjT
 		case PROP_ID(PR_ENTRYID):				// generated from hierarchy
 		case PROP_ID(PR_PARENT_ENTRYID): 		// generated from hierarchy
 		case PROP_ID(PR_STORE_ENTRYID):			// generated from store id
+		case PROP_ID(PR_STORE_RECORD_KEY):		// generated from store id
 		case PROP_ID(PR_INSTANCE_KEY):			// table data only
 		case PROP_ID(PR_OBJECT_TYPE):			// generated from hierarchy
 		case PROP_ID(PR_CONTENT_COUNT):			// generated from hierarchy
@@ -473,6 +481,20 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 
 			break;
 		}
+		case PROP_ID(PR_STORE_RECORD_KEY):
+		    sPropVal.__union = SOAP_UNION_propValData_bin;
+		    
+		    sPropVal.ulPropTag = ulPropTag;
+		    sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		    sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		    sPropVal.Value.bin->__size = sizeof(GUID);
+		    er = lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulStoreId, 0, (GUID *)sPropVal.Value.bin->__ptr);
+		    if(er != erSuccess) {
+		        er = ZARAFA_E_NOT_FOUND;
+		        goto exit;
+            }
+		    break;
+		    
 		case PROP_ID(PR_USER_ENTRYID):
 			sPropTagArray.__ptr = new unsigned int[1];
 			sPropTagArray.__ptr[0] = PR_ENTRYID;
@@ -842,8 +864,6 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 	ECRESULT	er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT 	lpDBResult = NULL;
-	DB_ROW		lpDBRow = NULL;
-	DB_LENGTHS	lpDBLength = NULL;
 	std::string strQuery;
 	bool		bIsOrphan = false;
 

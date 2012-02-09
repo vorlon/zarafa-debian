@@ -149,6 +149,7 @@ public:
 	ECRESULT CheckUserLicense();
 
 	ECRESULT UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, unsigned int ulChildId, unsigned int ulObjType);
+	ECRESULT UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstObjects, unsigned int ulObjType);
 	ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, unsigned int ulObjId, unsigned int ulFlags, unsigned int ulObjType);
 
 	ECRESULT NotificationModified(unsigned int ulObjType, unsigned int ulObjId, unsigned int ulParentId = 0);
@@ -213,7 +214,7 @@ protected:
 	BTSession* 			GetSession(ECSESSIONID sessionID, bool fLockSession = false);
 	ECRESULT 			ValidateBTSession(struct soap *soap, ECSESSIONID sessionID, BTSession **lppSession, bool fLockSession = false);
 	BOOL 				IsSessionPersistent(ECSESSIONID sessionID);
-	ECRESULT			UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, unsigned int ulChildId);
+	ECRESULT			UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, std::list<unsigned int> &lstChildId);
 	ECRESULT			SaveSourceKeyAutoIncrement(unsigned long long ullNewSourceKeyAutoIncrement);
 
 	SESSIONGROUPMAP		m_mapSessionGroups;		///< map of all the session groups

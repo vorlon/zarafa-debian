@@ -460,7 +460,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				continue;
 			}
 			
-    	    if(ulPropTag == PR_PARENT_DISPLAY_A || ulPropTag == PR_PARENT_DISPLAY_W || ulPropTag == PR_EC_OUTGOING_FLAGS) {
+    	    if(ulPropTag == PR_PARENT_DISPLAY_A || ulPropTag == PR_PARENT_DISPLAY_W || ulPropTag == PR_EC_OUTGOING_FLAGS || ulPropTag == PR_EC_PARENT_HIERARCHYID) {
     	    	bRowComplete = false;
     	    	continue; // These are not in cache, even if cache is complete for an item.
 			}
@@ -1264,10 +1264,10 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     //  - not an initial load (but a table update)
     //  - no restriction
     //  - not a restriction on a folder (eg searchfolder)
-    if(!bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
+    if(1 || !bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
         er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad);
    } else {
-        // Attempt to use the indexer
+/*        // Attempt to use the indexer
         er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
         if(er != erSuccess)
             goto exit;
@@ -1348,15 +1348,12 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
             
             FreeRowSet(lpRowSet, true);
             lpRowSet = NULL;
-    	}
+    	}*/
     }
     
 exit:
 	pthread_mutex_unlock(&m_hLock);
 
-	if (lpIndexerResults)
-		FreeSearchResults(lpIndexerResults);
-	
 	if(lpRowSet)
 		FreeRowSet(lpRowSet, true);
 

@@ -47,46 +47,104 @@
  * 
  */
 
-#ifndef ANALYZERS_H
+// ECDatabaseMySQL.h: interface for the ECDatabaseMySQL class.
+//
+//////////////////////////////////////////////////////////////////////
 
-#include "CLucene/StdHeader.h"
-#include "CLucene/util/Reader.h"
-#include "CLucene/analysis/standard/StandardAnalyzer.h"
-#include "CLucene/analysis/AnalysisHeader.h"
+#ifndef ECDATABASEMYSQL_H
+#define ECDATABASEMYSQL_H
 
-#include <vector>
+#include "platform.h"
+#include "ECConfig.h"
+#include "ECLogger.h"
+#include "ZarafaCode.h"
+
+#include <pthread.h>
+#include <mysql.h>
 #include <string>
 
-/**
-* Filters e-mail tokens (like user@domain.com) into multiple tokens;
-* - user part (user)
-* - host part (domain.com)
-* - all parts (user domain com)
-* - original token (user@domain.com)
-*/
-class EmailFilter: public lucene::analysis::TokenFilter {
-public:
-	EmailFilter(lucene::analysis::TokenStream* in, bool deleteTokenStream);
-	virtual ~EmailFilter();
-	bool next(lucene::analysis::Token* token);
-private:
-	lucene::analysis::Token curtoken;
-	
-	std::vector<std::wstring> parts;
-	unsigned int part;
-};
+using namespace std;
 
-/**
- * Our analyzer is the standard analyzer plus an EmailFilter token filter
- *
- */
-class ECAnalyzer : public lucene::analysis::standard::StandardAnalyzer 
+typedef void *			DB_RESULT;	
+typedef char **			DB_ROW;	
+typedef unsigned long *	DB_LENGTHS;
+
+// The max length of a group_concat function
+#define MAX_GROUP_CONCAT_LEN		32768
+
+typedef struct _sDatabase {
+	char *lpComment;
+	char *lpSQL;
+} sSQLDatabase_t;
+
+class ECDatabaseMySQL
 {
 public:
-	ECAnalyzer();
-	virtual ~ECAnalyzer();
+	ECDatabaseMySQL(ECLogger *lpLogger);
+	virtual ~ECDatabaseMySQL();
 
-	virtual lucene::analysis::TokenStream* tokenStream(const TCHAR* fieldName, CL_NS(util)::Reader* reader);
+	ECRESULT		Connect(ECConfig *lpConfig);
+	ECRESULT		Close();
+	ECRESULT		DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool bStream = false);
+	ECRESULT		DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
+	ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL);
+	ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
+	ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId);
+	
+	virtual sSQLDatabase_t*	GetDatabaseDefs() = 0;
+
+	//Result functions
+	unsigned int	GetNumRows(DB_RESULT sResult);
+	unsigned int	GetNumRowFields(DB_RESULT sResult);
+
+	DB_ROW			FetchRow(DB_RESULT sResult);
+	DB_LENGTHS		FetchRowLengths(DB_RESULT sResult);
+
+	std::string		Escape(const std::string &strToEscape);
+	std::string		EscapeBinary(unsigned char *lpData, unsigned int ulLen);
+	std::string		EscapeBinary(std::string &strData);
+
+	std::string		GetError();
+	
+	ECRESULT		Begin();
+	ECRESULT		Commit();
+	ECRESULT		Rollback();
+	
+	unsigned int	GetMaxAllowedPacket();
+
+	// Database maintenance function(s)
+	ECRESULT		CreateDatabase(ECConfig *lpConfig);
+
+	ECLogger*		GetLogger();
+
+	// Freememory method(s)
+	void			FreeResult(DB_RESULT sResult);
+
+private:
+	ECRESULT InitEngine();
+	ECRESULT IsInnoDBSupported();
+
+	ECRESULT _Update(const string &strQuery, unsigned int *lpulAffectedRows);
+	int Query(const string &strQuery);
+	unsigned int GetAffectedRows();
+	unsigned int GetInsertId();
+
+	// Datalocking methods
+	bool Lock();
+	bool UnLock();
+
+	// Connection methods
+	bool isConnected();
+
+private:
+	bool				m_bMysqlInitialize;
+	bool				m_bConnected;
+	MYSQL				m_lpMySQL;
+	pthread_mutex_t		m_hMutexMySql;
+	bool				m_bAutoLock;
+	unsigned int 		m_ulMaxAllowedPacket;
+	bool				m_bLocked;
+	ECLogger*			m_lpLogger;
 };
 
 #endif

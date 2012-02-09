@@ -92,7 +92,17 @@ exit:
 	return er;
 }
 
-ECRESULT ECSearchClient::Scope(std::string &strServerMapping, entryId *lpsEntryId, entryList *lpsFolders)
+/**
+ * Output SCOPE command
+ *
+ * Specifies the scope of the search.
+ *
+ * @param strServer[in] Server GUID to search in
+ * @param strStore[in] Store GUID to search in
+ * @param lstFolders[in] List of folders to search in. As a special case, no folders means 'all folders'
+ * @return result
+ */
+ECRESULT ECSearchClient::Scope(std::string &strServer, std::string &strStore, std::list<unsigned int> &lstFolders)
 {
 	ECRESULT er = erSuccess;
 	std::vector<std::string> lstResponse;
@@ -102,9 +112,9 @@ ECRESULT ECSearchClient::Scope(std::string &strServerMapping, entryId *lpsEntryI
 	if (er != erSuccess)
 		goto exit;
 
-	strScope = "SCOPE " + strServerMapping + " " + bin2hex(lpsEntryId->__size, lpsEntryId->__ptr);
-	for (unsigned int i = 0; i < lpsFolders->__size; i++)
-		strScope += " " + bin2hex(lpsFolders->__ptr[i].__size, lpsFolders->__ptr[i].__ptr);
+	strScope = "SCOPE " + strServer + " " + strStore;
+	for (std::list<unsigned int>::iterator i = lstFolders.begin(); i != lstFolders.end(); i++)
+		strScope += " " + stringify(*i);
 
 	er = DoCmd(strScope, lstResponse);
 	if (er != erSuccess)
@@ -119,84 +129,107 @@ exit:
 	return er;
 }
 
-ECRESULT ECSearchClient::Query(std::string &strQuery, ECSearchResultArray **lppsResults)
+/**
+ * Output FIND command
+ *
+ * The FIND command specifies which term to look for in which fields. When multiple
+ * FIND commands are issued, items must match ALL of the terms.
+ *
+ * @param setFields[in] Fields to match (may match any of these fields)
+ * @param strTerm[in] Term to match (utf-8 encoded)
+ * @return result
+ */
+ECRESULT ECSearchClient::Find(std::set<unsigned int> &setFields, std::string strTerm)
 {
 	ECRESULT er = erSuccess;
-	ECSearchResultArray *lpResults = NULL;
 	std::vector<std::string> lstResponse;
-	locale_t loc = createlocale(LC_NUMERIC, "C");
+	std::string strFind;
 
-	if (!lppsResults) {
-		er = ZARAFA_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	strFind = "FIND";
+	for (std::set<unsigned int>::iterator i = setFields.begin(); i != setFields.end(); i++)
+		strFind += " " + stringify(*i);
+		
+	strFind += ":";
+	
+	strFind += strTerm;
 
-	er = DoCmd("QUERY " + strQuery, lstResponse);
+	er = DoCmd(strFind, lstResponse);
 	if (er != erSuccess)
 		goto exit;
 
-	lpResults = new ECSearchResultArray();
-	if (!lpResults) {
-		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
+	if (!lstResponse.empty()) {
+		er = ZARAFA_E_BAD_VALUE;
 		goto exit;
 	}
-
-	lpResults->__ptr = new ECSearchResult[lstResponse.size()];
-	if (!lpResults->__ptr) {
-		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
-	lpResults->__size = 0;
-	for (unsigned int i = 0; i < lstResponse.size(); i++) {
-		std::vector<std::string> tmp = tokenize(lstResponse[i], " ");
-		std::string strEntryId;
-
-		if (tmp.size() > 2) {
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
-		strEntryId = hex2bin(tmp[0]);
-		if (strEntryId.empty()) {
-			er = ZARAFA_E_CALL_FAILED;
-			goto exit;
-		}
-
-		lpResults->__ptr[i].sEntryId.__size = strEntryId.size();
-		lpResults->__ptr[i].sEntryId.__ptr = new unsigned char[strEntryId.size()];
-		if (!lpResults->__ptr[i].sEntryId.__ptr) {
-			er = ZARAFA_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-
-		memcpy(lpResults->__ptr[i].sEntryId.__ptr, strEntryId.c_str(), strEntryId.size());
-
-		lpResults->__ptr[i].fScore = strtod_l(tmp[1].c_str(), NULL, loc);
-		lpResults->__size++;
-	}
-
-	if (lppsResults)
-		*lppsResults = lpResults;
 
 exit:
-	if ((er != erSuccess) && lpResults)
-		FreeSearchResults(lpResults);
+	return er;
+}
 
-	freelocale(loc);
+/**
+ * Run the search query
+ *
+ * @param lstMatches[out] List of matches as hierarchy IDs
+ * @return result
+ */
+ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
+{
+	ECRESULT er = erSuccess;
+	std::vector<std::string> lstResponse;
+	std::vector<std::string> lstResponseIds;
+	
+	lstMatches.clear();
+
+	er = DoCmd("QUERY", lstResponse);
+	if (er != erSuccess)
+		goto exit;
+		
+	if (lstResponse.empty())
+		goto exit; // No matches
+
+	lstResponseIds = tokenize(lstResponse[0], " ");
+
+	for (unsigned int i = 0; i < lstResponseIds.size(); i++) {
+		lstMatches.push_back(atoui(lstResponseIds[i].c_str()));
+	}
+
+exit:
 
 	return er;
 }
 
-ECRESULT ECSearchClient::Query(std::string &strServerMapping, entryId *lpsEntryId, entryList *lpsFolders, std::string &strQuery, ECSearchResultArray **lppsResults)
+/**
+ * Do a full search query
+ *
+ * This function actually executes a number of commands:
+ *
+ * SCOPE <serverid> <storeid> <folder1> ... <folderN>
+ * FIND <field1> ... <fieldN> : <term>
+ * QUERY
+ *
+ * @param lpServerGuid[in] Server GUID to search in
+ * @param lpStoreGuid[in] Store GUID to search in
+ * @param lstFolders[in] List of folders to search in
+ * @param lstSearches[in] List of searches that items should match (AND)
+ * @param lstMatches[out] Output of matching items
+ * @return result
+ */
+ 
+ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches)
 {
 	ECRESULT er = erSuccess;
+	std::string strServer = bin2hex(sizeof(GUID), (unsigned char *)lpServerGuid);
+	std::string strStore = bin2hex(sizeof(GUID), (unsigned char *)lpStoreGuid);
 
-	er = Scope(strServerMapping, lpsEntryId, lpsFolders);
+	er = Scope(strServer, strStore, lstFolders);
 	if (er != erSuccess)
 		goto exit;
 
-	er = Query(strQuery, lppsResults);
+	for(std::list<SIndexedTerm>::iterator i = lstSearches.begin(); i != lstSearches.end(); i++) {
+		Find(i->setFields, i->strTerm);
+	}
+
+	er = Query(lstMatches);
 	if (er != erSuccess)
 		goto exit;
 
@@ -210,20 +243,3 @@ ECRESULT ECSearchClient::SyncRun()
 	return DoCmd("SYNCRUN", lstVoid);
 }
 
-void FreeSearchResults(ECSearchResultArray *lpResults, bool bFreeBase)
-{
-	if (!lpResults)
-		return;
-
-	if (lpResults->__ptr) {
-		for (unsigned int i = 0; i < lpResults->__size; i++) {
-			if (lpResults->__ptr[i].sEntryId.__ptr)
-				delete [] lpResults->__ptr[i].sEntryId.__ptr;
-		}
-
-		delete [] lpResults->__ptr;
-	}
-
-	if (bFreeBase)
-		delete lpResults;
-}

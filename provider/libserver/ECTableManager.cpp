@@ -670,7 +670,7 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	return er;
 }
 
-ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, unsigned int ulObjId, unsigned int ulFlags, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
 	map<unsigned int, TABLE_ENTRY *>::iterator iterTables;
@@ -686,7 +686,7 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 			 iterTables->second->sTable.sOutgoingQueue.ulStoreId == 0) &&
 			 iterTables->second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER)) {
 
-			er = iterTables->second->lpTable->UpdateRow(ulType, ulObjId, OBJECTTABLE_NOTIFY);
+			er = iterTables->second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
 
 			// ignore errors from the update
 			er = erSuccess;
@@ -698,7 +698,7 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 	return er;
 }
 
-ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, unsigned int ulChildId, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
 	map<unsigned int, TABLE_ENTRY *>::iterator iterTables;
@@ -716,7 +716,7 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 			iterTables->second->sTable.sGeneric.ulObjectFlags == ulFlags &&
 			iterTables->second->sTable.sGeneric.ulObjectType == ulObjType) {
 
-			er = iterTables->second->lpTable->UpdateRow(ulType, ulChildId, OBJECTTABLE_NOTIFY);
+			er = iterTables->second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
 
 			// ignore errors from the update
 			er = erSuccess;

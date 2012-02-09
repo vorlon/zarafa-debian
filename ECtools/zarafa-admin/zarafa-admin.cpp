@@ -1567,7 +1567,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 			hr = hrSuccess; /* Don't make error fatal */
 		}
 
-		hr = Archiver::CreateManage(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
+		hr = ArchiveManage::Create(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
 				cerr << "Error while obtaining archive details, " << getMapiCodeString(hr) << endl;
