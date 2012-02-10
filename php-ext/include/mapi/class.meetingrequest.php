@@ -2760,12 +2760,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 			// [0] => year, [1] => month, [2] => day, [3] => hour, [4] => minutes, [5] => seconds
 			// RecurStartDate = year * 512 + month_number * 32 + day_number
-			$newmessageprops[$this->proptags["start_recur_date"]] = (intval($startDate[0], 10) * 512) + (intval($startDate[1], 10) * 32) + intval($startDate[2], 10);
+			$newmessageprops[$this->proptags["start_recur_date"]] = (((int) $startDate[0]) * 512) + (((int) $startDate[1]) * 32) + ((int) $startDate[2]);
 			// RecurStartTime = hour * 4096 + minutes * 64 + seconds
-			$newmessageprops[$this->proptags["start_recur_time"]] = (intval($startDate[3], 10) * 4096) + (intval($startDate[4], 10) * 64) + intval($startDate[5], 10);
+			$newmessageprops[$this->proptags["start_recur_time"]] = (((int) $startDate[3]) * 4096) + (((int) $startDate[4]) * 64) + ((int) $startDate[5]);
 
-			$newmessageprops[$this->proptags["end_recur_date"]] = (intval($endDate[0], 10) * 512) + (intval($endDate[1], 10) * 32) + intval($endDate[2], 10);
-			$newmessageprops[$this->proptags["end_recur_time"]] = (intval($endDate[3], 10) * 4096) + (intval($endDate[4], 10) * 64) + intval($endDate[5], 10);
+			$newmessageprops[$this->proptags["end_recur_date"]] = (((int) $endDate[0]) * 512) + (((int) $endDate[1]) * 32) + ((int) $endDate[2]);
+			$newmessageprops[$this->proptags["end_recur_time"]] = (((int) $endDate[3]) * 4096) + (((int) $endDate[4]) * 64) + ((int) $endDate[5]);
 		}
 	}
 
