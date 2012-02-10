@@ -272,7 +272,7 @@ HRESULT ECSynchronizationImportChanges::ImportFolderDeletion(ULONG ulFlags, LPEN
 {
 	HRESULT hr = hrSuccess;
 	sourceid_t *lpsSourceId = NULL;
-	SPropValue sProps[m_cValues+1];
+	SPropValue *sProps = new SPropValue[m_cValues+1];
 	ULONG ulProps = 0;
 
 	for (ULONG i = 0; i < lpSourceEntryList->cValues; i++) {
@@ -296,6 +296,9 @@ HRESULT ECSynchronizationImportChanges::ImportFolderDeletion(ULONG ulFlags, LPEN
 	}
 
 exit:
+    if (sProps)
+        delete sProps;
+        
 	if ((hr != hrSuccess) && lpsSourceId)
 		MAPIFreeBuffer(lpsSourceId);
 
@@ -358,7 +361,7 @@ HRESULT ECSynchronizationImportChanges::ImportMessageDeletion(ULONG ulFlags, LPE
 {
 	HRESULT hr = hrSuccess;
 	sourceid_t *lpsSourceId = NULL;
-	SPropValue sProps[m_cValues+1];
+	SPropValue *sProps = new SPropValue[m_cValues+1];
 	ULONG ulProps = 0;
 
 	for (ULONG i = 0; i < lpSourceEntryList->cValues; i++) {
@@ -382,6 +385,9 @@ HRESULT ECSynchronizationImportChanges::ImportMessageDeletion(ULONG ulFlags, LPE
 	}
 
 exit:
+    if (sProps)
+        delete sProps;
+        
 	if ((hr != hrSuccess) && lpsSourceId)
 		MAPIFreeBuffer(lpsSourceId);
 
