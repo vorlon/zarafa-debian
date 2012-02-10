@@ -272,8 +272,11 @@
 						$action["restriction"]["search"] = Array($action["restriction"]["search"]);
 					}
 
-					$res_or = Array();
+					$searchprops = Array();
 					foreach($action["restriction"]["search"] as $i=>$search){
+						// Just take the last search term since they are all the same
+						$searchterms = $search["value"];
+						
 						$prop = false;
 						// convert search property to MAPI property
 						switch($search["property"]){
@@ -302,29 +305,34 @@
 								$prop = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
 								break;
 						}
-						// build restriction
-						if ($prop !== false){
-							array_push($res_or, Array(RES_AND,
-													Array(
-														Array(RES_EXIST, // check first if the property exists
-															Array(
-																ULPROPTAG=>$prop
-															)
-														),
-														Array(RES_CONTENT,
-															Array(
-																FUZZYLEVEL => FL_SUBSTRING|FL_IGNORECASE,
-																ULPROPTAG=>$prop,
-																VALUE => utf8_to_windows1252($search["value"])
-															)
-														)
-													)
-												)
-								); // array_push: $res_or
-						}
+
+						if($prop)
+							array_push($searchprops, $prop);
 					}
-					if (count($res_or)>0){
-						$this->searchRestriction = Array(RES_OR,$res_or);
+
+					$searchterms = preg_split("/\W+/", $searchterms);
+					
+					$res_and = array();
+					foreach($searchterms as $term) {
+						$res_or = array();
+						
+						foreach($searchprops as $property) {
+							array_push($res_or, 
+								Array(RES_CONTENT,
+									Array(
+										FUZZYLEVEL => FL_SUBSTRING|FL_IGNORECASE,
+										ULPROPTAG=>$property,
+										VALUE => utf8_to_windows1252($term)
+									)
+								)
+							);
+						}
+						
+						array_push($res_and, Array(RES_OR, $res_or));
+					}
+						
+					if (count($res_and)>0){
+						$this->searchRestriction = Array(RES_AND,$res_and);
 					}else{
 						$this->searchRestriction = false;
 					}
