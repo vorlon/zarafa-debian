@@ -54,18 +54,21 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
+am__DEPENDENCIES_1 =
 libarchiver_core_la_DEPENDENCIES =  \
-	${top_builddir}/common/libcommon_service.la
+	${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_service.la libarchiver.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_libarchiver_core_la_OBJECTS = archiver.lo instanceidmapper.lo \
 	operations.lo copier.lo deleter.lo stubber.lo transaction.lo \
 	postsaveiidupdater.lo archivectrl.lo ECDatabase.lo
 libarchiver_core_la_OBJECTS = $(am_libarchiver_core_la_OBJECTS)
-am__DEPENDENCIES_1 =
 libarchiver_la_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+	${top_builddir}/common/libcommon_util.la
 am_libarchiver_la_OBJECTS = archiver-session.lo archiver-common.lo \
 	archivemanage.lo archivestatecollector.lo \
 	archivestateupdater.lo archivehelper.lo storehelper.lo \
@@ -297,8 +300,7 @@ AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DARCHIVER_EXTRA \
 
 libarchiver_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(MYSQL_LIBS)
+	${top_builddir}/common/libcommon_util.la
 
 libarchiver_la_SOURCES = \
 	archiver-session.cpp archiver-session.h archiver-session_fwd.h \
@@ -309,6 +311,12 @@ libarchiver_la_SOURCES = \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
 	helpers/mapiprophelper.cpp helpers/mapiprophelper.h 
+
+libarchiver_core_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_service.la \
+	libarchiver.la \
+	$(PROG_LIBS) $(SSL_LIBS) $(MYSQL_LIBS)
 
 libarchiver_core_la_SOURCES = \
 	archiver.cpp archiver.h \
@@ -327,7 +335,6 @@ zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
 	libarchiver.la libarchiver-core.la \
 	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
 
-libarchiver_core_la_LIBADD = ${top_builddir}/common/libcommon_service.la
 zarafa_archiver_SOURCES = main.cpp
 all: all-am
 

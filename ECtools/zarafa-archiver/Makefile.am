@@ -1,4 +1,7 @@
 lib_LTLIBRARIES = libarchiver.la libarchiver-core.la
+bin_PROGRAMS = zarafa-archiver
+
+
 
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DARCHIVER_EXTRA \
 	-I${top_srcdir}/mapi4linux/include \
@@ -9,8 +12,7 @@ AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DARCHIVER_EXTRA \
 
 libarchiver_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(MYSQL_LIBS)
+	${top_builddir}/common/libcommon_util.la
 
 libarchiver_la_SOURCES = \
 	archiver-session.cpp archiver-session.h archiver-session_fwd.h \
@@ -21,6 +23,14 @@ libarchiver_la_SOURCES = \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
 	helpers/mapiprophelper.cpp helpers/mapiprophelper.h 
+
+
+
+libarchiver_core_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_service.la \
+	libarchiver.la \
+	$(PROG_LIBS) $(SSL_LIBS) $(MYSQL_LIBS)
 
 libarchiver_core_la_SOURCES = \
 	archiver.cpp archiver.h \
@@ -36,15 +46,13 @@ libarchiver_core_la_SOURCES = \
 	ECDatabase.h ECDatabase.cpp
 
 
-bin_PROGRAMS = zarafa-archiver
 
 zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
 	libarchiver.la libarchiver-core.la \
 	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
 
-libarchiver_core_la_LIBADD = ${top_builddir}/common/libcommon_service.la
-
 zarafa_archiver_SOURCES = main.cpp
+
 
 
 check-syntax:
