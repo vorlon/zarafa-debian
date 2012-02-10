@@ -100,6 +100,7 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
     lucene::analysis::TokenStream* stream = NULL;
     lucene::analysis::Token* token = NULL;
     unsigned int ulStoreId = 0;
+    bool bTerms = false;
     
     lucene::util::StringReader reader(wstrTerm.c_str());
     
@@ -121,17 +122,20 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
         delete token;
         
         m_ulChanges++;
+        bTerms = true;
     }
     
-    // Remove trailing comma
-    strQuery.resize(strQuery.size()-1);
+    if(bTerms) {
+        // Remove trailing comma
+        strQuery.resize(strQuery.size()-1);
 
-    hr = m_lpDatabase->DoInsert(strQuery);
-    if(hr != hrSuccess)
-        goto exit;
-            
-    if(m_ulChanges > 10000)
-        Flush();
+        hr = m_lpDatabase->DoInsert(strQuery);
+        if(hr != hrSuccess)
+            goto exit;
+                
+        if(m_ulChanges > 10000)
+            Flush();
+    }
 
 exit:
     if(stream)
