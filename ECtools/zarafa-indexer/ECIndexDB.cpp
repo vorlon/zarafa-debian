@@ -97,8 +97,8 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
 {
     HRESULT hr = hrSuccess;
     std::string strQuery;
-    lucene::analysis::TokenStream* stream;
-    lucene::analysis::Token* token;
+    lucene::analysis::TokenStream* stream = NULL;
+    lucene::analysis::Token* token = NULL;
     unsigned int ulStoreId = 0;
     
     lucene::util::StringReader reader(wstrTerm.c_str());
@@ -113,22 +113,30 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
     if(hr != hrSuccess)
         goto exit;
 
+    strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES";
+
     while((token = stream->next())) {
-        strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '" + m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + ")";
+        strQuery += "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '" + m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
     
-        hr = m_lpDatabase->DoInsert(strQuery);
-        if(hr != hrSuccess)
-            goto exit;
-            
         delete token;
         
         m_ulChanges++;
     }
     
+    // Remove trailing comma
+    strQuery.resize(strQuery.size()-1);
+
+    hr = m_lpDatabase->DoInsert(strQuery);
+    if(hr != hrSuccess)
+        goto exit;
+            
     if(m_ulChanges > 10000)
         Flush();
 
-exit:    
+exit:
+    if(stream)
+        delete stream;
+    
     return hr;
 }
 
