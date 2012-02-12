@@ -118,3 +118,4 @@ private:
     std::map<storeid_t, unsigned int> m_mapStores;
 };
 
+#endif
