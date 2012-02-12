@@ -61,3 +61,4 @@ public:
     sSQLDatabase_t *GetDatabaseDefs();
 };
 
+#endif
