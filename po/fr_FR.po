@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-10 00:04+0100\n"
-"PO-Revision-Date: 2011-10-25 16:15+0200\n"
+"POT-Creation-Date: 2012-02-14 00:05+0100\n"
+"PO-Revision-Date: 2012-02-13 14:55+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -124,7 +124,7 @@ msgstr ""
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
 msgid "Refusing to add primary store as shared store."
-msgstr ""
+msgstr "L'ajout de la base de stockage principale en base partagée est rejeté,"
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
 msgid "Unable to open this store."
@@ -334,10 +334,12 @@ msgstr "Erreur de connexion"
 #: provider/ECProps/SyncStatusDlg.cpp:139
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
+"Nom d'utilisateur ou mot de passe incorrect. Veuillez mettre à jour votre "
+"profil MAPI."
 
 #: provider/ECProps/SyncStatusDlg.cpp:139
 msgid "Logon error"
-msgstr ""
+msgstr "Erreur d'authentification"
 
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "synchronization done"
@@ -807,7 +809,7 @@ msgstr "Dossiers publics"
 
 #: provider/libserver/ECGenProps.cpp:926
 msgid "Archive"
-msgstr ""
+msgstr "Archive"
 
 #: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:277
@@ -989,17 +991,18 @@ msgstr "L'utilisateur existe déjà."
 
 # 93%
 #: provider/client/ECArchiveAwareMessage.cpp:451
-#, fuzzy
 msgid "Zarafa Archiver"
-msgstr "Archive Zarafa"
+msgstr "Gestionnaire d'archive Zarafa"
 
 #: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
+"Une erreur s'est produite au cours de la récupération du message des "
+"archives."
 
 #: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Veuillez contacter votre administrateur système."
 
 #: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
@@ -1008,14 +1011,18 @@ msgstr "Code erreur :"
 #: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
 msgstr ""
+"Aucune licence valide ne semble avoir été installée pour le gestionnaire "
+"d'archive."
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Impossible de localiser l'archive."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
 msgstr ""
+"Vous ne possédez pas les autorisations vous permettant d'accéder à cet "
+"archive."
 
 #: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
@@ -1346,7 +1353,7 @@ msgstr ""
 
 #: provider/contacts/ZCABContainer.cpp:645
 msgid "Zarafa Contacts Folders"
-msgstr ""
+msgstr "Répertoires de contacts Zarafa"
 
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
