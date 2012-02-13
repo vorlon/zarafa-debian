@@ -52,35 +52,34 @@
 #include "ECDatabase.h"
 
 #define TABLEDEF_WORDS			"CREATE TABLE `words` ( \
-								    `store` int(11) NOT NULL, \
-								    `folder` int(11) NOT NULL, \
-								    `field` int(11) NOT NULL, \
-								    `doc` int(11) NOT NULL, \
+								    `store` int(11) unsigned NOT NULL, \
+								    `folder` int(11) unsigned NOT NULL, \
+								    `field` smallint(11) unsigned NOT NULL, \
+								    `doc` int(11) unsigned NOT NULL, \
 								    `term` varchar(255) NOT NULL, \
-								    `version` int(11) NOT NULL, \
+								    `version` smallint(11) unsigned NOT NULL, \
 								    PRIMARY KEY  (`store`,`term`,`field`,`doc`) ) ENGINE=Innodb CHARSET=utf8" 
               
 
 #define TABLEDEF_STORES			"CREATE TABLE `stores` ( \
-  									`id` int(11) NOT NULL auto_increment, \
+  									`id` int(11) unsigned NOT NULL auto_increment, \
 									`serverguid` varbinary(16) NOT NULL default '', \
 									`storeguid` varbinary(16) NOT NULL default '', \
 									PRIMARY KEY  (`serverguid`,`storeguid`), \
 									UNIQUE KEY `id` (`id`) ) ENGINE=InnoDb CHARSET=utf8"
 
 #define TABLEDEF_UPDATES		"CREATE TABLE `updates` ( \
-                                    `id` int(11) NOT NULL auto_increment, \
-                                    `store` int(11) NOT NULL, \
-                                    `doc` int(11) NOT NULL, \
-                                    PRIMARY KEY  (`id`), \
-                                    UNIQUE KEY `doc` (`doc`) \
+                                    `store` int(11) unsigned NOT NULL, \
+                                    `doc` int(11) unsigned NOT NULL, \
+                                    `version` smallint(11) unsigned NOT NULL, \
+                                    PRIMARY KEY (`store`, `doc`) \
                                     ) ENGINE=InnoDB CHARSET=utf8"
 
 #define TABLEDEF_SOURCEKEYS		"CREATE TABLE `sourcekeys` ( \
-                                    `store` int(11) NOT NULL, \
-                                    `folder` int(11) NOT NULL, \
+                                    `store` int(11) unsigned NOT NULL, \
+                                    `folder` int(11) unsigned NOT NULL, \
                                     `sourcekey` varbinary(255) NOT NULL, \
-                                    `doc` int(11) NOT NULL, \
+                                    `doc` int(11) unsigned NOT NULL, \
                                     PRIMARY KEY  (`store`,`folder`,`sourcekey`) \
                                     ) ENGINE=InnoDB CHARSET=utf8"
                                     

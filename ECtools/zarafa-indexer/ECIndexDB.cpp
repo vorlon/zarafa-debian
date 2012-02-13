@@ -176,16 +176,41 @@ HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lp
     HRESULT hr = hrSuccess;
     std::string strQuery;
     unsigned int ulStoreId = 0;
+    DB_RESULT lpResult = NULL;
+    DB_ROW lpRow = NULL;
+    ULONG ulVersion = 0;
 
     hr = GetStoreId(store, &ulStoreId, true);
     if(hr != hrSuccess)
         goto exit;
     
-    strQuery = "REPLACE INTO updates (doc, store) VALUES (" + stringify(doc) + "," + stringify(ulStoreId) + ")";
+    strQuery = "SELECT version FROM updates WHERE store = " + stringify(ulStoreId) + " AND doc = " + stringify(doc);
     
-    hr = m_lpDatabase->DoInsert(strQuery, lpulVersion);
+    hr = m_lpDatabase->DoSelect(strQuery, &lpResult);
+    if(hr != hrSuccess)
+        goto exit;
+        
+    lpRow = m_lpDatabase->FetchRow(lpResult);
+    
+    if(!lpRow || !lpRow[0]) {
+        ulVersion = 1;
+    } else {
+        ulVersion = atoui(lpRow[0]) + 1;
+    }
+
+    strQuery = "REPLACE INTO updates (doc, store, version) VALUES (" + stringify(doc) + "," + stringify(ulStoreId) + "," + stringify(ulVersion) + ")";
+
+    hr = m_lpDatabase->DoInsert(strQuery);
+    if (hr != hrSuccess)
+        goto exit;
+
+    if(lpulVersion)  
+        *lpulVersion = ulVersion;
 
 exit:    
+    if (lpResult)
+        m_lpDatabase->FreeResult(lpResult);
+        
     return hr;
 }
 
@@ -290,7 +315,7 @@ HRESULT ECIndexDB::QueryTerm(storeid_t store, std::list<unsigned int> &lstFolder
     }
         
     strQuery += "AND words.store = " + stringify(ulStoreId) + " ";
-    strQuery += "AND (updates.id IS NULL or words.version = updates.id) ";
+    strQuery += "AND (updates.version IS NULL or words.version = updates.version) ";
     
     strQuery += "ORDER BY doc"; // We *must* output in sorted order since the caller expects this
 
