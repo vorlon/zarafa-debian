@@ -5066,6 +5066,10 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 			goto exit;
 		}
 
+		er = lpecSession->GetSecurity()->CheckDeletedParent(ulId);
+		if (er != erSuccess)
+			goto exit;
+
 	} else {
 		// Set MessageClass with the default of the store (that's the empty MessageClass)
 		strQuery = "SELECT objid FROM receivefolder WHERE storeid="+stringify(ulStoreid)+" AND messageclass=''";

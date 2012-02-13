@@ -412,6 +412,38 @@ exit:
 }
 
 /** 
+ * Check for a deleted folder as parent of ulId
+ * 
+ * @param[in] ulId object id to start checking from
+ * 
+ * @return ZARAFA_E_NOT_FOUND Error if a parent has the delete flag
+ */
+ECRESULT ECSecurity::CheckDeletedParent(ULONG ulId)
+{
+	ECRESULT er = erSuccess;
+	ULONG ulParentObjId = 0;
+	ULONG ulObjFlags = 0;
+	ULONG ulObjType = 0;
+	ECCacheManager *lpCache = m_lpSession->GetSessionManager()->GetCacheManager();
+
+	do {
+		er = lpCache->GetObject(ulId, &ulParentObjId, NULL, &ulObjFlags, &ulObjType);
+		if (er != erSuccess)
+			goto exit;
+
+		if (ulObjFlags & MSGFLAG_DELETED) {
+			er = ZARAFA_E_NOT_FOUND;
+			goto exit;
+		}
+
+		ulId = ulParentObjId;
+	} while (ulObjType != MAPI_STORE && ulParentObjId != CACHE_NO_PARENT);
+
+exit:
+	return er;
+}
+
+/** 
  * For the current user context, check the permissions on a given object
  * 
  * @param[in] ulObjId hierarchy object to check permissions on
@@ -543,6 +575,11 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 exit:
+	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder)) {
+		// writing in a deleted parent is not allowed
+		er = CheckDeletedParent(ulObjId);
+	}
+
 	if(er != erSuccess)
 		TRACE_INTERNAL(TRACE_ENTRY,"Security","ECSecurity::CheckPermission","object=%d, rights=%d", ulObjId, ulecRights);
 
