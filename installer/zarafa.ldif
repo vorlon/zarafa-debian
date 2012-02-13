@@ -1,9 +1,9 @@
 #
 ################################################################################
 #
-dn: cn=ldap/zarafa,cn=schema,cn=config
+dn: cn=,cn=schema,cn=config
 objectClass: olcSchemaConfig
-cn: ldap/zarafa
+cn: 
 #
 ################################################################################
 #

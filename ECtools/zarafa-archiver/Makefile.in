@@ -79,6 +79,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_zarafa_archiver_OBJECTS = main.$(OBJEXT)
 zarafa_archiver_OBJECTS = $(am_zarafa_archiver_OBJECTS)
 zarafa_archiver_DEPENDENCIES =  \
+	${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la libarchiver.la \
 	libarchiver-core.la $(am__DEPENDENCIES_1) \
 	${top_builddir}/common/libcommon_service.la
@@ -331,7 +333,9 @@ libarchiver_core_la_SOURCES = \
 	archivectrl.cpp archivectrl.h \
 	ECDatabase.h ECDatabase.cpp
 
-zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
+zarafa_archiver_LDADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_util.la \
 	libarchiver.la libarchiver-core.la \
 	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
 

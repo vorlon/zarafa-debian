@@ -47,7 +47,9 @@ libarchiver_core_la_SOURCES = \
 
 
 
-zarafa_archiver_LDADD = ${top_builddir}/common/libcommon_util.la \
+zarafa_archiver_LDADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libcommon_mapi.la \
+	${top_builddir}/common/libcommon_util.la \
 	libarchiver.la libarchiver-core.la \
 	$(PROG_LIBS) ${top_builddir}/common/libcommon_service.la 
 
