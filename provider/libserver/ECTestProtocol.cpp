@@ -82,7 +82,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
 		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("index_services_enabled"))) {
 			er = ECSearchClient(
 				g_lpSessionManager->GetConfig()->GetSetting("index_services_path"),
-				atoui(g_lpSessionManager->GetConfig()->GetSetting("index_services_search_timeout")) * 10	// Be a bit more patient
+				60 * 10 /* 10 minutes should be enough for everyone */
 			).SyncRun();
 		}
 	} else if (stricmp(szCommand, "run_searchfolders") == 0) {
