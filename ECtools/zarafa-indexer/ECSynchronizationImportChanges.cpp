@@ -297,7 +297,7 @@ HRESULT ECSynchronizationImportChanges::ImportFolderDeletion(ULONG ulFlags, LPEN
 
 exit:
     if (sProps)
-        delete sProps;
+        delete [] sProps;
         
 	if ((hr != hrSuccess) && lpsSourceId)
 		MAPIFreeBuffer(lpsSourceId);
@@ -386,7 +386,7 @@ HRESULT ECSynchronizationImportChanges::ImportMessageDeletion(ULONG ulFlags, LPE
 
 exit:
     if (sProps)
-        delete sProps;
+        delete [] sProps;
         
 	if ((hr != hrSuccess) && lpsSourceId)
 		MAPIFreeBuffer(lpsSourceId);

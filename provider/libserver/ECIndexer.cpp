@@ -311,6 +311,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
                 lpMultiSearches->push_back(sMultiSearch);
 
                 // Remove it from the restriction since it is now handled as a multisearch
+                delete lpRestrict->lpAnd->__ptr[i];
                 memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
                 lpRestrict->lpAnd->__size--;
             } else {
