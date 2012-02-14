@@ -65,6 +65,11 @@
 	// Enable the plugins
 	define("ENABLE_PLUGINS", true);
 
+	// If plugins should be loaded in a certain order, specify them here; seperating them by a semicolon
+	// Plugins not listed here will be included after these have been loaded
+	// This setting overrides the DISABLED_PLUGINS_LIST setting
+	define("PLUGINS_INCLUDE_ORDER", '');
+
 	// Define list of disabled plugins separated by semicolon
 	define("DISABLED_PLUGINS_LIST", '');
 
