@@ -437,7 +437,6 @@ int main(int argc, char *argv[]) {
 		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",				"zarafa_indexer" },
 		{ "mysql_socket",				"" },
-		{ "mysql_group_concat_max_len", "32768" },
 		/* Logging options */
 		{ "log_method","file" },
 		{ "log_file", INDEXER_DEFAULT_LOGFILE },

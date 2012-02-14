@@ -121,7 +121,7 @@ ECRESULT NormalizeRestrictionRemoveFalseInOr(struct restrictTable *lpRestrict)
         
     for(unsigned int i = 0; i < lpRestrict->lpOr->__size;) {
         if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i])) {
-            free(lpRestrict->lpOr->__ptr[i]);
+            delete lpRestrict->lpOr->__ptr[i];
             memmove(&lpRestrict->lpOr->__ptr[i], lpRestrict->lpOr->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpOr->__size - i - 1));
             lpRestrict->lpOr->__size--;
         } else {
@@ -182,7 +182,7 @@ ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
         // We changed something, free the previous data and create a new list of children
         delete [] lpRestrict->lpAnd->__ptr;
         
-        lpRestrict->lpAnd->__ptr = new restrictTable *[lstClauses.size()];
+        lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
         
         int n = 0;
         for(std::list<struct restrictTable *>::iterator clause = lstClauses.begin(); clause != lstClauses.end(); clause++) {
@@ -464,11 +464,16 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
     			lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d indexed matches found", lstMatches.size());
 	} else {
 	    er = ZARAFA_E_NOT_FOUND;
+	    goto exit;
     }
     
     *lppNewRestrict = lpOptimizedRestrict;
-
+    lpOptimizedRestrict = NULL;
+    
 exit:
+    if (lpOptimizedRestrict)
+        FreeRestrictTable(lpOptimizedRestrict);
+        
 	if (lpSearchClient)
 		delete lpSearchClient;
 

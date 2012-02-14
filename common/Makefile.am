@@ -95,7 +95,6 @@ libcommon_util_la_SOURCES += ustringutil/itercomp.cpp	\
 endif
 
 libcommon_ssl_la_LDFLAGS = -static
-libcommon_ssl_la_LIBADD = $(MYSQL_LIBS)
 libcommon_ssl_la_SOURCES = 							\
 			SSLUtil.cpp								\
 			ECChannel.cpp

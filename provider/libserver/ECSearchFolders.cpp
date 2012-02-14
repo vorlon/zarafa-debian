@@ -863,6 +863,27 @@ exit:
     return er;
 }
 
+/**
+ * Process a set of rows and add them to the searchresults table if they match the restriction
+ *
+ * Special note on transactioning:
+ *
+ * If you pass bNotify == false, you must begin()/commit() yourself.
+ * If you pass bNotify == true, this function will begin()/commit() for you.
+ *
+ * @param[in] lpDatabase Database
+ * @param[in] lpSession Session for the user owning the searchfolder
+ * @param[in] lpRestrict Restriction to test items against
+ * @param[in] lpbCancel Stops processing if it is set to TRUE while running (from another thread)
+ * @param[in] ulStoreId Store that the searchfolder is in
+ * @param[in] ulFolderId ID of the searchfolder
+ * @param[in] lpODStore Information for the objects in the table
+ * @param[in] ecRows Rows to process
+ * @param[in] lpPropTags Precalculated proptags needed to check lpRestrict
+ * @param[in] locale Locale to process rows in (for comparisons)
+ * @param[in] bNotify TRUE if we should notify tables in this function, see note about transactions above
+ * @return result
+ */
 ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel, unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore, ECObjectTableList ecRows, struct propTagArray *lpPropTags, ECLocale locale, bool bNotify)
 {
     ECRESULT er = erSuccess;
@@ -880,6 +901,12 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
 	ASSERT(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
     
     iterRows = ecRows.begin();
+    
+    if(bNotify) {
+        er = lpDatabase->Begin();
+        if (er != erSuccess)
+            goto exit;
+    }
     
     // Get the row data for the search
     er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
@@ -916,6 +943,10 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
         goto exit;
 
     if(bNotify) {
+        er = lpDatabase->Commit();
+        if (er != erSuccess)
+            goto exit;
+
         // Add matched row and send a notification to update views of this search (if any are open)
         m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, lstMatches, MAPI_MESSAGE);
     }
@@ -935,6 +966,9 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
     }
 
 exit:    
+    if(bNotify && lpDatabase && er != erSuccess)
+        lpDatabase->Rollback();
+        
     if(lpRowSet) {
         FreeRowSet(lpRowSet, true);
         lpRowSet = NULL;
@@ -1169,6 +1203,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_RUNNING);
     
 exit:
+    if(lpDatabase && er != erSuccess)
+        lpDatabase->Rollback();
+        
     if(lpSession) {
         lpSession->Unlock();
         m_lpSessionManager->RemoveSessionInternal(lpSession);

@@ -67,26 +67,15 @@ ECIndexDB::ECIndexDB(ECConfig *lpConfig, ECLogger *lpLogger)
 {
     m_lpConfig = lpConfig;
     m_lpLogger = lpLogger;
-    m_bInTransaction = false;
-    m_ulChanges = 0;
+    m_bConnected = false;
     
     m_lpDatabase = new ECDatabase(lpLogger);
-    
-    ECRESULT er = m_lpDatabase->Connect(lpConfig);
-    if (er == ZARAFA_E_DATABASE_NOT_FOUND) {
-        m_lpDatabase->GetLogger()->Log(EC_LOGLEVEL_INFO, "Database not found, creating database.");
-        er = m_lpDatabase->CreateDatabase(lpConfig);
-    }
     
     m_lpAnalyzer = new ECAnalyzer();
 }
 
 ECIndexDB::~ECIndexDB()
 {
-    if(m_bInTransaction) {
-        Flush();
-    }
-    
     if(m_lpDatabase)
         delete m_lpDatabase;
     if(m_lpAnalyzer)
@@ -97,6 +86,7 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
 {
     HRESULT hr = hrSuccess;
     std::string strQuery;
+    std::string strValues;
     lucene::analysis::TokenStream* stream = NULL;
     lucene::analysis::Token* token = NULL;
     unsigned int ulStoreId = 0;
@@ -106,22 +96,23 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
     
     stream = m_lpAnalyzer->tokenStream(L"", &reader);
     
+    hr = Begin();
+    if(hr != hrSuccess)
+        goto exit;
+    
     hr = GetStoreId(store, &ulStoreId, true);
     if(hr != hrSuccess)
         goto exit;
 
-    hr = EnsureTransaction();
-    if(hr != hrSuccess)
-        goto exit;
-
     strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES";
+    strValues = "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '";
 
     while((token = stream->next())) {
-        strQuery += "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '" + m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
+        strQuery += strValues;
+        strQuery += m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
     
         delete token;
         
-        m_ulChanges++;
         bTerms = true;
     }
     
@@ -132,12 +123,16 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
         hr = m_lpDatabase->DoInsert(strQuery);
         if(hr != hrSuccess)
             goto exit;
-                
-        if(m_ulChanges > 10000)
-            Flush();
     }
+    
+    hr = Commit();
+    if(hr != hrSuccess)
+        goto exit;
 
 exit:
+    if(hr != hrSuccess)
+        Rollback();
+    
     if(stream)
         delete stream;
     
@@ -180,6 +175,10 @@ HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lp
     DB_ROW lpRow = NULL;
     ULONG ulVersion = 0;
 
+    hr = Begin();
+    if(hr != hrSuccess)
+        goto exit;
+
     hr = GetStoreId(store, &ulStoreId, true);
     if(hr != hrSuccess)
         goto exit;
@@ -206,8 +205,15 @@ HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lp
 
     if(lpulVersion)  
         *lpulVersion = ulVersion;
+        
+    hr = Commit();
+    if(hr != hrSuccess)
+        goto exit;
 
 exit:    
+    if (hr != hrSuccess)
+        Rollback();
+        
     if (lpResult)
         m_lpDatabase->FreeResult(lpResult);
         
@@ -232,6 +238,10 @@ HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, folderid_t folder, std::strin
     DB_RESULT lpResult = NULL;
     unsigned int ulStoreId = 0;
 
+    hr = Begin();
+    if(hr != hrSuccess)
+        goto exit;
+
     hr = GetStoreId(store, &ulStoreId, true);
     if(hr != hrSuccess)
         goto exit;
@@ -253,25 +263,17 @@ HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, folderid_t folder, std::strin
         goto exit;
         
     hr = m_lpDatabase->DoDelete("DELETE FROM sourcekeys WHERE store = " + stringify(ulStoreId) + " AND folder = " + stringify(folder) + " AND sourcekey = " + m_lpDatabase->EscapeBinary(strSourceKey));
+    if (hr != hrSuccess)
+        goto exit;
+        
+    hr = Commit();
+    if (hr != hrSuccess)
+        goto exit;
 
 exit:    
     if (lpResult)
         m_lpDatabase->FreeResult(lpResult);
         
-    return hr;
-}
-
-
-HRESULT ECIndexDB::Flush()
-{
-    HRESULT hr = m_lpDatabase->DoInsert("COMMIT");
-    if(hr != hrSuccess)
-        goto exit;
-        
-    m_bInTransaction = false;
-    m_ulChanges = 0;
-    
-exit:
     return hr;
 }
 
@@ -284,6 +286,10 @@ HRESULT ECIndexDB::QueryTerm(storeid_t store, std::list<unsigned int> &lstFolder
     std::string strQuery;
 
     lstMatches.clear();
+    
+    hr = Begin();
+    if (hr != hrSuccess)
+        goto exit;
     
     hr = GetStoreId(store, &ulStoreId, false);
     if (hr != hrSuccess)
@@ -330,25 +336,65 @@ HRESULT ECIndexDB::QueryTerm(storeid_t store, std::list<unsigned int> &lstFolder
         }
         lstMatches.push_back(atoui(lpRow[0]));
     }
+    
+    hr = Commit();
+    if (hr != hrSuccess)
+        goto exit;
         
 exit:
+    if (hr != hrSuccess)
+        Rollback();
+        
     if (lpResult)
         m_lpDatabase->FreeResult(lpResult);
         
     return hrSuccess;
 }
 
-HRESULT ECIndexDB::EnsureTransaction()
+HRESULT ECIndexDB::Begin()
 {
     HRESULT hr = hrSuccess;
     
-    if(!m_bInTransaction) {
-        hr = m_lpDatabase->DoInsert("BEGIN");
-        if(hr != hrSuccess)
-            goto exit;
-            
-        m_bInTransaction = true;
+    if (!m_bConnected) {
+        hr = m_lpDatabase->Connect(m_lpConfig);
+        if (hr == ZARAFA_E_DATABASE_NOT_FOUND) {
+            m_lpDatabase->GetLogger()->Log(EC_LOGLEVEL_INFO, "Database not found, creating database.");
+            hr = m_lpDatabase->CreateDatabase(m_lpConfig);
+            if (hr != hrSuccess)
+                goto exit;
+        }
+        
+        m_bConnected = true;
     }
+    
+    hr = m_lpDatabase->DoInsert("BEGIN");
+    if(hr != hrSuccess)
+        goto exit;
+        
+exit:
+    return hr;
+}
+
+HRESULT ECIndexDB::Commit()
+{
+    HRESULT hr = hrSuccess;
+    
+    hr = m_lpDatabase->DoInsert("COMMIT");
+    if(hr != hrSuccess)
+        goto exit;
+        
+exit:
+    return hr;
+}
+
+HRESULT ECIndexDB::Rollback()
+{
+    HRESULT hr = hrSuccess;
+    
+    hr = m_lpDatabase->DoInsert("ROLLBACK");
+    if(hr != hrSuccess)
+        goto exit;
+        
 exit:
     return hr;
 }
@@ -428,6 +474,10 @@ HRESULT ECIndexDB::AddSourcekey(storeid_t store, folderid_t folder, std::string 
     HRESULT hr = hrSuccess;
     std::string strQuery;
     unsigned int ulStoreId = 0;
+    
+    hr = Begin();
+    if(hr != hrSuccess)
+        goto exit;
 
     hr = GetStoreId(store, &ulStoreId, true);
     if(hr != hrSuccess)
@@ -440,7 +490,12 @@ HRESULT ECIndexDB::AddSourcekey(storeid_t store, folderid_t folder, std::string 
     if(hr != hrSuccess)
         goto exit;
         
+    hr = Commit();
+        
 exit:
+    if (hr != hrSuccess)
+        Rollback();
+        
     return hr;
 }
 

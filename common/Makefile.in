@@ -82,8 +82,7 @@ libcommon_service_la_OBJECTS = $(am_libcommon_service_la_OBJECTS)
 libcommon_service_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(libcommon_service_la_LDFLAGS) $(LDFLAGS) -o $@
-am__DEPENDENCIES_1 =
-libcommon_ssl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+libcommon_ssl_la_LIBADD =
 am_libcommon_ssl_la_OBJECTS = SSLUtil.lo ECChannel.lo
 libcommon_ssl_la_OBJECTS = $(am_libcommon_ssl_la_OBJECTS)
 libcommon_ssl_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -388,7 +387,6 @@ libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
 	ECGetText.cpp threadutil.cpp ECRestriction.cpp userutil.cpp \
 	ECFeatures.cpp ECACL.cpp ECThreadPool.cpp $(am__append_1)
 libcommon_ssl_la_LDFLAGS = -static
-libcommon_ssl_la_LIBADD = $(MYSQL_LIBS)
 libcommon_ssl_la_SOURCES = \
 			SSLUtil.cpp								\
 			ECChannel.cpp

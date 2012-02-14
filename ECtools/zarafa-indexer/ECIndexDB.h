@@ -100,20 +100,21 @@ public:
     // We need to track the sourcekey of documents to be able to handle deletions
     HRESULT AddSourcekey(storeid_t store, folderid_t folder, std::string strSourceKey, docid_t doc);
     
-    HRESULT Flush();
-    
     HRESULT QueryTerm(storeid_t store, std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
     
 private:
-    HRESULT EnsureTransaction();
+    HRESULT Begin();
+    HRESULT Commit();
+    HRESULT Rollback();
+    
     HRESULT GetStoreId(storeid_t store, unsigned int *lpulStoreId, bool bCreate);
 
     ECLogger *m_lpLogger;
     ECConfig *m_lpConfig;
     ECAnalyzer *m_lpAnalyzer;
     ECDatabaseMySQL *m_lpDatabase;
-    bool m_bInTransaction;
-    unsigned int m_ulChanges;
+    
+    bool m_bConnected;
     
     std::map<storeid_t, unsigned int> m_mapStores;
 };
