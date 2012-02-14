@@ -418,7 +418,7 @@ exit:
  * 
  * @return ZARAFA_E_NOT_FOUND Error if a parent has the delete flag
  */
-ECRESULT ECSecurity::CheckDeletedParent(ULONG ulId)
+ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulParentObjId = 0;

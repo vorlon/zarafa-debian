@@ -73,7 +73,7 @@ public:
 	/* must be called once the object is created */
 	virtual ECRESULT SetUserContext(unsigned int ulUserId);
 
-	virtual ECRESULT CheckDeletedParent(ULONG ulId);
+	virtual ECRESULT CheckDeletedParent(unsigned int ulId);
 	virtual ECRESULT CheckPermission(unsigned int ulObjId, unsigned int ulCheckRights);
 
 	virtual ECRESULT GetRights(unsigned int objid, int ulType, struct rightsArray *lpsRightsArray);
