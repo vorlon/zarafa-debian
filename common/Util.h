@@ -173,7 +173,7 @@ public:
 	};
 	
 	static HRESULT ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
-	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
+	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData);
 };
 
 #define RTF_TAG_TYPE_TEXT	0x0000

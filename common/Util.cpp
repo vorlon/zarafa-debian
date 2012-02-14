@@ -4683,18 +4683,9 @@ HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strD
 	if(hr != hrSuccess)
 		goto exit;
 		
-	strData.clear();
-
-	while(1) {
-		hr = lpStream->Read(buf, sizeof(buf), &len);
-		if (hr != hrSuccess)
-			goto exit;
-			
-		if (len == 0)
-			break;
-		
-		strData.append(buf, len);
-	}
+	hr = HrStreamToString(lpStream, strData);
+	if(hr != hrSuccess)
+		goto exit;
 	
 exit:
 	if(lpStream)
@@ -4715,7 +4706,7 @@ exit:
  * @param[in] strData Data to write
  * @return result
  */
-HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData)
+HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData)
 {
 	HRESULT hr = hrSuccess;
 	IStream *lpStream = NULL;

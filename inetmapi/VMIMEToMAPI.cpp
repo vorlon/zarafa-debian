@@ -2136,7 +2136,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 				
 				if(sCodepage.Value.ul != 65001) {
 					// Convert new body part to utf-8
-					sCodepage.Value.ul = 65001;
 					strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
 				}
 				
