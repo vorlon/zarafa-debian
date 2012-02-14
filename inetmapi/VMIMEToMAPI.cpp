@@ -2127,7 +2127,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 					if (hr != hrSuccess)
 						goto exit;
 						
-					strCurrentHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), lpszCharset);
+					strCurrentHTML = m_converter.convert_to<std::string>("UTF-8", strCurrentHTML, rawsize(strCurrentHTML), lpszCharset);
 					
 					hr = Util::WriteProperty(lpMessage, PR_HTML, strCurrentHTML);
 					if (hr != hrSuccess)
