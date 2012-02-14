@@ -421,9 +421,9 @@ exit:
 ECRESULT ECSecurity::CheckDeletedParent(ULONG ulId)
 {
 	ECRESULT er = erSuccess;
-	ULONG ulParentObjId = 0;
-	ULONG ulObjFlags = 0;
-	ULONG ulObjType = 0;
+	unsigned int ulParentObjId = 0;
+	unsigned int ulObjFlags = 0;
+	unsigned int ulObjType = 0;
 	ECCacheManager *lpCache = m_lpSession->GetSessionManager()->GetCacheManager();
 
 	do {
