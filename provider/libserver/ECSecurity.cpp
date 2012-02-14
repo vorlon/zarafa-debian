@@ -100,6 +100,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#define MAX_PARENT_LIMIT 64
+
 /** 
  * ECSecurity constructor
  * 
@@ -319,7 +321,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 		// that you never have any rights for folders that are more than 64 levels of folders away from their ACL ..
 		ulDepth++;
 		
-		if(ulDepth > 64) {
+		if(ulDepth > MAX_PARENT_LIMIT) {
 			m_lpSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Maximum depth reached for object %d, deepest object: %d", ulObjId, ulCurObj);
 			er = erSuccess;
 			goto exit;
@@ -412,7 +414,8 @@ exit:
 }
 
 /** 
- * Check for a deleted folder as parent of ulId
+ * Check for a deleted folder as parent of ulId, max folder depth as
+ * defined (64).
  * 
  * @param[in] ulId object id to start checking from
  * 
@@ -424,6 +427,7 @@ ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
 	unsigned int ulParentObjId = 0;
 	unsigned int ulObjFlags = 0;
 	unsigned int ulObjType = 0;
+	unsigned int ulDepth = 0;
 	ECCacheManager *lpCache = m_lpSession->GetSessionManager()->GetCacheManager();
 
 	do {
@@ -437,7 +441,12 @@ ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
 		}
 
 		ulId = ulParentObjId;
-	} while (ulObjType != MAPI_STORE && ulParentObjId != CACHE_NO_PARENT);
+		ulDepth++;
+	} while (ulObjType != MAPI_STORE && ulParentObjId != CACHE_NO_PARENT && ulDepth <= MAX_PARENT_LIMIT);
+
+	// return error when max depth is reached, so we don't create folders and messages deeper than the limit
+	if (ulDepth == MAX_PARENT_LIMIT)
+		er = ZARAFA_E_NOT_FOUND;
 
 exit:
 	return er;
