@@ -64,6 +64,7 @@ static char THIS_FILE[]=__FILE__;
 ECStreamSerializer::ECStreamSerializer(IStream *lpBuffer)
 {
 	SetBuffer(lpBuffer);
+	m_ulRead = m_ulWritten = 0;
 }
 
 ECStreamSerializer::~ECStreamSerializer()
@@ -111,6 +112,8 @@ ECRESULT ECStreamSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 		er = ZARAFA_E_INVALID_PARAMETER;
 		break;
 	}
+	
+	m_ulWritten += size * nmemb;
 
 	return er;
 }
@@ -132,6 +135,8 @@ ECRESULT ECStreamSerializer::Read(void *ptr, size_t size, size_t nmemb)
 		er = ZARAFA_E_CALL_FAILED;
 		goto exit;
 	}
+	
+	m_ulRead += size * nmemb;
 
 	switch (size) {
 	case 1: break;
@@ -173,10 +178,21 @@ ECRESULT ECStreamSerializer::Flush()
 	return m_lpBuffer->Seek(zero, SEEK_END, NULL);
 }
 
+ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
+{
+	if(lpcbRead)
+		*lpcbRead = m_ulRead;
+		
+	if(lpcbWrite)
+		*lpcbWrite = m_ulWritten;
+		
+	return erSuccess;
+}
 
 ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer)
 {
 	SetBuffer(lpBuffer);
+	m_ulRead = m_ulWritten = 0;
 }
 
 ECFifoSerializer::~ECFifoSerializer()
@@ -225,6 +241,8 @@ ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 		er = ZARAFA_E_INVALID_PARAMETER;
 		break;
 	}
+	
+	m_ulWritten += size * nmemb;
 
 	return er;
 }
@@ -246,6 +264,8 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 		er = ZARAFA_E_CALL_FAILED;
 		goto exit;
 	}
+	
+	m_ulRead += size * nmemb;
 
 	switch (size) {
 	case 1: break;
@@ -309,4 +329,15 @@ ECRESULT ECFifoSerializer::Flush()
 
 exit:
 	return er;
+}
+
+ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
+{
+	if(lpcbRead)
+		*lpcbRead = m_ulRead;
+		
+	if(lpcbWrite)
+		*lpcbWrite = m_ulWritten;
+		
+	return erSuccess;
 }

@@ -73,6 +73,8 @@ public:
 
 	virtual ECRESULT Skip(size_t size, size_t nmemb) = 0;
 	virtual ECRESULT Flush() = 0;
+	
+	virtual ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten) = 0;
 };
 
 class ECStreamSerializer : public ECSerializer
@@ -88,9 +90,13 @@ public:
 
 	ECRESULT Skip(size_t size, size_t nmemb);
 	ECRESULT Flush();
+	
+	ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten);
 
 private:
 	IStream *m_lpBuffer;
+	ULONG m_ulRead;
+	ULONG m_ulWritten;
 };
 
 class ECFifoSerializer : public ECSerializer
@@ -106,9 +112,13 @@ public:
 
 	ECRESULT Skip(size_t size, size_t nmemb);
 	ECRESULT Flush();
+	
+	ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten);
 
 private:
 	ECFifoBuffer *m_lpBuffer;
+	ULONG m_ulRead;
+	ULONG m_ulWritten;
 };
 
 #endif /* ECSERIALIZER_H */
