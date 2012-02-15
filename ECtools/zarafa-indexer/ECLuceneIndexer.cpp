@@ -142,7 +142,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexer::IndexEntries(sourceid_list_t &listCreateEntries, sourceid_list_t &listChangeEntries, sourceid_list_t &listDeleteEntries)
+HRESULT ECLuceneIndexer::IndexEntries(sourceid_list_t &listCreateEntries, sourceid_list_t &listChangeEntries, sourceid_list_t &listDeleteEntries, ULONG *lpcbRead)
 {
 	HRESULT hr = hrSuccess;
 
@@ -154,13 +154,13 @@ HRESULT ECLuceneIndexer::IndexEntries(sourceid_list_t &listCreateEntries, source
 		}
 
 		if (!listChangeEntries.empty()) {
-			hr = IndexUpdateEntries(listChangeEntries);
+			hr = IndexUpdateEntries(listChangeEntries, lpcbRead);
 			if (hr != hrSuccess)
 				goto exit;
 		}
 
 		if (!listCreateEntries.empty()) {
-			hr = IndexStreamEntries(listCreateEntries);
+			hr = IndexStreamEntries(listCreateEntries, lpcbRead);
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -185,7 +185,7 @@ exit:
 }
 
 
-HRESULT ECLuceneIndexer::IndexUpdateEntries(sourceid_list_t &listSourceId)
+HRESULT ECLuceneIndexer::IndexUpdateEntries(sourceid_list_t &listSourceId, ULONG *lpcbRead)
 {
 	HRESULT hr = hrSuccess;
 	sourceid_list_t::iterator iter;
@@ -194,6 +194,7 @@ HRESULT ECLuceneIndexer::IndexUpdateEntries(sourceid_list_t &listSourceId)
 	unsigned int ulVersion = 0;
 	LARGE_INTEGER lint = {{ 0, 0 }};
 	ECSerializer *lpSerializer = NULL;
+	ULONG ulRead = 0, ulWritten = 0;
 
 	lpSerializer = new ECStreamSerializer(NULL);
 	if (!lpSerializer) {
@@ -243,6 +244,14 @@ HRESULT ECLuceneIndexer::IndexUpdateEntries(sourceid_list_t &listSourceId)
 			hr = hrSuccess;
 			continue;
 		}
+
+		hr = lpSerializer->Stat(&ulRead, &ulWritten);
+		if(hr != hrSuccess)
+			goto exit;
+			
+		if(lpcbRead)
+			*lpcbRead += ulRead;
+		
 	}
 	
 exit:
@@ -278,12 +287,13 @@ HRESULT ECLuceneIndexer::IndexDeleteEntries(sourceid_list_t &listSourceId)
 }
 
 
-HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId)
+HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId, ULONG *lpcbRead)
 {
 	HRESULT hr = hrSuccess;
 	ECSerializer *lpSerializer = NULL;
 	LARGE_INTEGER lint = {{ 0, 0 }};
 	storeid_t store;
+	ULONG ulWritten = 0, ulRead = 0;
 
 	lpSerializer = new ECStreamSerializer(NULL);
 	if (!lpSerializer) {
@@ -328,6 +338,14 @@ HRESULT ECLuceneIndexer::IndexStreamEntries(sourceid_list_t &listSourceId)
 			hr = hrSuccess;
 			continue;
 		}
+		
+		hr = lpSerializer->Stat(&ulRead, &ulWritten);
+		if(hr != hrSuccess)
+			goto exit;
+			
+		if(lpcbRead)
+			*lpcbRead += ulRead;
+		
 	}
 
 exit:

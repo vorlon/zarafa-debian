@@ -113,7 +113,7 @@ public:
 	 *					List containing all sourceid_t entries which should be deleted from the index.
 	 * @return HRESULT
 	 */
-	HRESULT IndexEntries(sourceid_list_t &listCreateEntries, sourceid_list_t &listChangeEntries, sourceid_list_t &listDeleteEntries);
+	HRESULT IndexEntries(sourceid_list_t &listCreateEntries, sourceid_list_t &listChangeEntries, sourceid_list_t &listDeleteEntries, ULONG *lpcbRead);
 
 private:
 	/**
@@ -132,7 +132,7 @@ private:
 	 *					List containing all sourceid_t entries which should be deleted from the index.
 	 * @return HRESULT
 	 */
-	HRESULT IndexUpdateEntries(sourceid_list_t &listSourceId);
+	HRESULT IndexUpdateEntries(sourceid_list_t &listSourceId, ULONG *lpcbRead);
 
 	/**
 	 * Process all message creations for index using the IStream
@@ -141,7 +141,7 @@ private:
 	 *					List containing all sourceid_t entries which should be added to the index.
 	 * @return HRESULT
 	 */
-	HRESULT IndexStreamEntries(sourceid_list_t &listSourceId);
+	HRESULT IndexStreamEntries(sourceid_list_t &listSourceId, ULONG *lpcbRead);
 	/**
 	 * Process all properties from message and add all data into the CLucene Document
 	 *

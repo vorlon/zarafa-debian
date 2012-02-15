@@ -340,10 +340,18 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	IExchangeImportContentsChanges *lpImporter = NULL;
 	ECLuceneIndexer *lpLucene = NULL;
 	ECChanges *lpChanges = new ECChanges();
+	ULONG ulCreate = 0;
+	ULONG ulChange = 0;
+	ULONG ulDelete = 0;
 	
 	ULONG ulSteps = 0;
 	ULONG ulStep = 0;
 	ULONG cValues = 0;
+	ULONG ulLastStatsTime = time(NULL);
+	ULONG ulStartTime = ulLastStatsTime;
+	ULONG ulTotalChange = 0;
+	ULONG ulTotalBytes = 0;
+	
 	LPSPropValue lpProps = NULL;
 	
 	SizedSPropTagArray(3, sptaFolderProps) = {3, { PR_RECORD_KEY, PR_STORE_RECORD_KEY, PR_MAPPING_SIGNATURE } };
@@ -411,16 +419,25 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	while(!m_lpThreadData->bShutdown) {
 		HRESULT hrSync = lpExporter->Synchronize(&ulSteps, &ulStep);
 		
+		m_lpChanges->CurrentSize(&ulCreate, &ulChange, &ulDelete);
+		
 		m_lpChanges->ClaimChanges(lpChanges);
 		
 		// Synchronize has written changes to m_lpChanges, process them now
-		hr = lpLucene->IndexEntries(lpChanges->lCreate, lpChanges->lChange, lpChanges->lDelete);
+		hr = lpLucene->IndexEntries(lpChanges->lCreate, lpChanges->lChange, lpChanges->lDelete, &ulTotalBytes);
 		if (hr != hrSuccess)
 			goto exit;
+
+		ulTotalChange += ulCreate + ulChange;
 			
 		if (hrSync != SYNC_W_PROGRESS)
 			break;
 			
+		if (ulLastStatsTime < time(NULL) - 10) {
+			unsigned int secs = time(NULL) - ulLastStatsTime;
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of folder processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps,str_storage(ulTotalBytes, false).c_str(), ulTotalChange, str_storage(ulTotalBytes/secs, false).c_str(), (float)ulTotalChange/secs);
+			ulLastStatsTime = time(NULL);
+		}
 	};
 
 	if (hr != hrSuccess) {
@@ -446,6 +463,8 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 
 	if (!m_bMerged)
 		m_bCompleted = TRUE;
+		
+	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed folder with %d changes (%s) in %d seconds", ulTotalChange, str_storage(ulTotalBytes, false).c_str(), time(NULL) - ulStartTime);
 
 exit:
 	if (lpChanges)
@@ -718,6 +737,12 @@ HRESULT ECSynchronization::UpdateFolderSyncBase(ECEntryData *lpEntryData, ECFold
 	ULONG ulSize = 0;
 	LPBYTE lpBuff = NULL;
 	ULONG ulBuff = 0;
+
+	hr = CreatePath(lpEntryData->m_strStorePath.c_str());
+	if (hr != hrSuccess) {
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to create folder '%s' for sync state information: %s", lpEntryData->m_strStorePath.c_str(), strerror(errno));
+		goto exit;
+	}
 
 	hr = lpFolderData->m_lpContentsSyncBase->Stat(&sStat, STATFLAG_DEFAULT);
 	if (hr != hrSuccess)

@@ -122,8 +122,8 @@ exit:
 		fclose(lpFile);
 
 	if (hr != hrSuccess)
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Cannot update synchronization base for folder %s",
-									  strFolderPath.c_str());
+		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Cannot update synchronization base for folder %s: %s",
+									  strFolderPath.c_str(), strerror(errno));
 
 	return hr;
 }
