@@ -646,7 +646,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 	if (bDSN) {
 		strSend += " RET=HDRS";
 		if (!m_strDSNTrackid.empty())
-			strSend += "; ENVID=" + m_strDSNTrackid;
+			strSend += " ENVID=" + m_strDSNTrackid;
 	}
 
 	sendRequest(strSend);
