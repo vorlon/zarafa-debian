@@ -58,53 +58,6 @@
 
 #include "zarafa-indexer.h"
 
-class ECLuceneAccess;
-class ECLuceneIndexer;
-class ECLuceneSearcher;
-
-/**
- * When no field is specified in the Query we use a default
- * field. It is not recommended to rely on which field is is set
- * as default. The client should at all times make sure the field
- * is specified in the query.
- */
-#define DEFAULT_FIELD	_T("textdescription")
-
-/**
- * The unqiue field which will be returned to the client as
- * identifier for a search result.
- */
-#define UNIQUE_FIELD	_T("entryid")
-
-/**
- * The field on which the filter is applied for a particular query.
- */
-#define FILTER_FIELD	_T("folderid")
-
-/**
- * httpmail namespace with corresponding MAPI and Lucene information.
- */
-struct NShttpmail_t {
-	/**
-	 * Constructor
-	 *
-	 * @param[in]	strNShttpmail
-	 * @param[in]	ulStorage
-	 */
-	NShttpmail_t(std::wstring strNShttpmail, unsigned int ulStorage)
-		: strNShttpmail(strNShttpmail), ulStorage(ulStorage) {}
-		
-	/**
-	 * httpmail namespace name
-	 */
-	const std::wstring strNShttpmail;
-
-	/**
-	 * Storage type (see lucene::document::Field flags)
-	 */
-	const unsigned int ulStorage;
-};
-
 /**
  * Cache entry for Single Instance Attachment data
  *
@@ -132,10 +85,7 @@ struct InstanceCacheEntry_t {
 	time_t ulTimestamp;
 };
 
-typedef std::vector<std::string> string_list_t;
-typedef std::map<unsigned int, NShttpmail_t> indexprop_map_t;
 typedef std::map<std::string, InstanceCacheEntry_t> instance_map_t;
-typedef std::map<std::string , ECLuceneAccess *> lucenestore_map_t;
 
 /**
  * Wrapper to the Lucene classes access
@@ -157,23 +107,6 @@ public:
 	 * Destructor
 	 */
 	~ECLucene();
-
-	/**
-	 * Create ECLuceneIndexer object
-	 *
-	 * @param[in]	lpThreadData
-	 *					Reference to ECThreadData object.
-	 * @param[in]	strStorePath
-	 *					Path to store directory on harddisk.
-	 * @param[in]	lpMsgStore
-	 *					Reference to the IMsgStore object of the store to index.
-	 * @param[in]	lpAdminSession
-	 * 					The admin MAPI session.
-	 * @param[out]	lppIndexer
-	 *					Reference to the created ECLuceneIndexer object.
-	 * @return HRESULT
-	 */
-	HRESULT CreateIndexer(ECThreadData *lpThreadData, std::string &strStorePath, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer);
 
 	/**
 	 * Search Single Instance Attachment cache for parsed attachment data
@@ -200,13 +133,7 @@ public:
 private:
 	ECThreadData *m_lpThreadData;
 
-	pthread_mutexattr_t m_hLockAttr;
-	pthread_mutex_t m_hLock;
 	pthread_mutex_t m_hInstanceLock;
-
-	indexprop_map_t m_mapIndexedProps;
-	string_list_t m_listIndexedProps;
-
 	instance_map_t m_mInstanceCache;
 
 	ULONG m_ulCacheTimeout;

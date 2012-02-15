@@ -76,9 +76,8 @@ private:
 	 * @note Objects of ECLuceneIndexer must only be created using the Create() function.
 	 *
 	 * @param[in]	lpThreadData
-	 * @param[in]	lpAdminSession		Session needed to process stubs
 	 */
-	ECLuceneIndexer(ECThreadData *lpThreadData, IMAPISession *lpAdminSession);
+	ECLuceneIndexer(ECThreadData *lpThreadData);
 
 public:
 	/**
@@ -96,7 +95,7 @@ public:
 	 *					The created ECLuceneIndexer object.
 	 * @return HRESULT
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer);
+	static HRESULT Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, ECLuceneIndexer **lppIndexer);
 
 	/**
 	 * Destructor

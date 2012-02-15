@@ -176,15 +176,25 @@ public:
 	 */
 	HRESULT StopMergedChanges();
 	
-	/**
-	 * Retreive all changed items detected during synchronization
-	 *
-	 * @param[out]	lppChanges
-	 *					The detected changes during synchronization.
-	 * @return HRESULT
-	 */
 	HRESULT GetNextChanges(ECChanges **lppChanges);
 
+	HRESULT LoadUserFolderChanges(ECChanges *lpChanges, ECEntryData *lpEntry, IMAPIFolder *lpRootFolder);
+	HRESULT LoadUserFolder(ECEntryData *lpEntry, ULONG ulProps, LPSPropValue lpProps);
+
+	/**
+	 * Update synchronization base for a particular folder to harddisk.
+	 *
+	 * After a folder has been synchronized, the updated synchronization base must be
+	 * written to harddisk to make it possible to continue from this point after a restart.
+	 *
+	 * @param[in]   lpEntryData
+	 *					Reference to ECEntryData object to which the folder belongs.
+	 * @param[in]   lpFolderData
+	 *					Reference to ECFolderData object for which we update the synchronization base.
+	 * @return HRESULT
+	 */
+	HRESULT UpdateFolderSyncBase(ECEntryData *lpEntryData, ECFolderData *lpFolderData);
+	
 private:
 	/**
 	 * Create change data for a new synchronization command

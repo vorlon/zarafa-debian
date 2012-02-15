@@ -63,6 +63,11 @@
 #include <ECABEntryID.h>
 #include <ECGuid.h>
 #include <IECExportAddressbookChanges.h>
+#include <restrictionutil.h>
+#include <ECLuceneIndexer.h>
+#include <ECChangeData.h>
+#include <ECFileIndex.h>
+#include <ECIndexerUtil.h>
 #include <stringutil.h>
 
 #include "ECIndexer.h"
@@ -189,6 +194,7 @@ HRESULT ECSynchronization::GetHierarchyChanges(ECEntryData *lpEntryData, IMsgSto
 	ULONG ulDelete = 0;
 	ULONG ulSteps = 0;
 	ULONG ulStep = 0;
+	ECChanges *lpChanges = new ECChanges();
 	SizedSPropTagArray(4, sptaExclude) = {
 		4,
 		{
@@ -240,21 +246,26 @@ HRESULT ECSynchronization::GetHierarchyChanges(ECEntryData *lpEntryData, IMsgSto
 	hr = lpExporter->UpdateState(lpEntryData->m_lpHierarchySyncBase);
 	if (hr != hrSuccess)
 		goto exit;
-
-	if (m_lpIndexerData) {
-		hr = m_lpIndexerData->UpdateHierarchy(this, lpEntryData, lpRootFolder);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-
+		
 	m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
-
+	
+	hr = m_lpChanges->ClaimChanges(lpChanges);
+	if(hr != hrSuccess)
+		goto exit;
+	
+	hr = LoadUserFolderChanges(lpChanges, lpEntryData, lpRootFolder);
+	if(hr != hrSuccess)
+		goto exit;
+		
 	if (!m_bMerged)
 		m_bCompleted = TRUE;
 
 exit:
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing of store '%ls': Synchronizing Hierarchy - %d creations, %d changes, %d deletions %s",
 								  lpEntryData->m_strUserName.c_str(), ulCreate, ulChange, ulDelete, (hr == hrSuccess) ? "succeeded" : "failed");
+
+	if (lpChanges)
+		delete lpChanges;
 
 	if (lpImporter)
 		lpImporter->Release();
@@ -270,9 +281,6 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpFolder = NULL;
 	ULONG ulObjType = 0;
-	ULONG ulCreate = 0;
-	ULONG ulChange = 0;
-	ULONG ulDelete = 0;
 
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing of store '%ls': Synchronizing Content",
 								  lpEntryData->m_strUserName.c_str());
@@ -303,7 +311,7 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 										  (*iter)->m_strFolderName.c_str());
 			goto exit;
 		}
-
+		
 		/* Check if we should exit now, but make sure that all collected changes are synchronized */
 		if (m_lpThreadData->bShutdown)
 			break;
@@ -313,21 +321,11 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, IMsgStor
 		lpFolder = NULL;
 	}
 
-	if (m_lpIndexerData) {
-		hr = m_lpIndexerData->UpdateContents(this, lpEntryData, lpMsgStore, lpAdminSession);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-
-	m_lpChanges->Size(&ulCreate, &ulChange, &ulDelete);
-
 	hr = StopMergedChanges();
 	if (hr != hrSuccess)
 		goto exit;
 
 exit:
-	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing of store '%ls': Synchronizing Content - %d creations, %d changes, %d deletions %s",
-								  lpEntryData->m_strUserName.c_str(), ulCreate, ulChange, ulDelete, (hr == hrSuccess) ? "succeeded" : "failed");
 
 	if (lpFolder)
 		lpFolder->Release();
@@ -340,9 +338,9 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	HRESULT hr = hrSuccess;
 	IExchangeExportChanges *lpExporter = NULL;
 	IExchangeImportContentsChanges *lpImporter = NULL;
-	ULONG ulCreate = 0;
-	ULONG ulChange = 0;
-	ULONG ulDelete = 0;
+	ECLuceneIndexer *lpLucene = NULL;
+	ECChanges *lpChanges = new ECChanges();
+	
 	ULONG ulSteps = 0;
 	ULONG ulStep = 0;
 	ULONG cValues = 0;
@@ -374,6 +372,10 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		}
 	};
 	
+	hr = ECLuceneIndexer::Create(m_lpThreadData, lpMsgStore, &lpLucene);
+	if (hr != hrSuccess)
+		goto exit;
+		
 	hr = lpFolder->GetProps((LPSPropTagArray)&sptaFolderProps, 0, &cValues, &lpProps);
 	if(hr != hrSuccess) // We need all properties to be ok, no warnings
 		goto exit;
@@ -395,6 +397,7 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	if (hr != hrSuccess)
 		goto exit;
 
+	// The importer writes changes into m_lpChanges
 	hr = ECSynchronizationImportChanges::Create(m_lpThreadData, cValues, lpProps, m_lpChanges,
 												IID_IExchangeImportContentsChanges, (LPVOID *)&lpImporter);
 	if (hr != hrSuccess)
@@ -405,29 +408,20 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	if (hr != hrSuccess)
 		goto exit;
 
-	do {
-		/*
-		 * During Streaming synchronization we should start indexing during the synchronization,
-		 * this reduces memory consumption because less messages are kept in memory and increases
-		 * synchronization speed since we use the time normally used for waiting for the stream
-		 * to be downloaded for indexing the messages which were already streamed.
-		 */
-		if (m_lpIndexerData) {
-			m_lpChanges->CurrentSize(&ulCreate, &ulChange, &ulDelete);
-
-			if ((ulCreate + ulChange + ulDelete) >= 10) {
-				hr = m_lpIndexerData->UpdateContents(this, lpEntryData, lpMsgStore, lpAdminSession);
-				if (hr != hrSuccess)
-					goto exit;
-			}
-		}
-
-		hr = lpExporter->Synchronize(&ulSteps, &ulStep);
+	while(!m_lpThreadData->bShutdown) {
+		HRESULT hrSync = lpExporter->Synchronize(&ulSteps, &ulStep);
 		
-		if(ulStep % 10 == 0) {
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Step %d of %d", ulStep, ulSteps);
-		}
-	} while ((hr == SYNC_W_PROGRESS) && !m_lpThreadData->bShutdown);
+		m_lpChanges->ClaimChanges(lpChanges);
+		
+		// Synchronize has written changes to m_lpChanges, process them now
+		hr = lpLucene->IndexEntries(lpChanges->lCreate, lpChanges->lChange, lpChanges->lDelete);
+		if (hr != hrSuccess)
+			goto exit;
+			
+		if (hrSync != SYNC_W_PROGRESS)
+			break;
+			
+	};
 
 	if (hr != hrSuccess) {
 		if (hr != SYNC_W_PROGRESS)
@@ -446,10 +440,20 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	if (hr != hrSuccess)
 		goto exit;
 
+	hr = UpdateFolderSyncBase(lpEntryData, lpFolderData);
+	if (hr != hrSuccess)
+		goto exit;
+
 	if (!m_bMerged)
 		m_bCompleted = TRUE;
 
 exit:
+	if (lpChanges)
+		delete lpChanges;
+		
+	if (lpLucene)
+		delete lpLucene;
+		
 	if (lpImporter)
 		lpImporter->Release();
 
@@ -547,3 +551,208 @@ exit:
 
 	return hr;
 }
+
+struct findfolder_if {
+	sourceid_list_t::value_type m_sValue;
+
+	findfolder_if(sourceid_list_t::value_type sValue)
+		: m_sValue(sValue) {}
+
+	bool operator()(folderdata_list_t::value_type &entry)
+	{
+		return m_sValue->lpProps[0].Value.bin == entry->m_sFolderEntryId;
+	}
+};
+
+
+HRESULT ECSynchronization::LoadUserFolderChanges(ECChanges *lpChanges, ECEntryData *lpEntry, IMAPIFolder *lpRootFolder)
+{
+	HRESULT hr = hrSuccess;
+	IMAPITable *lpTable = NULL;
+	LPSRestriction lpRestrict = NULL;
+	LPSRowSet lpRows = NULL;
+	sourceid_list_t::iterator iter;
+	SizedSPropTagArray(3, sFolderProps) = { 3, { PR_SOURCE_KEY, PR_ENTRYID, PR_DISPLAY_NAME } };
+
+	if (!lpChanges->lDelete.empty()) {
+		for (iter = lpChanges->lDelete.begin(); iter != lpChanges->lDelete.end(); iter++) {
+			folderdata_list_t::iterator entry = find_if(lpEntry->m_lFolders.begin(), lpEntry->m_lFolders.end(), findfolder_if(*iter));
+			if (entry !=lpEntry->m_lFolders.end()) {
+				(*entry)->Release();
+				lpEntry->m_lFolders.erase(entry);
+			}
+		}
+	}
+
+	if (!lpChanges->lCreate.empty()) {
+		hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpTable);
+		if (hr != hrSuccess)
+			goto exit;
+
+		CREATE_RESTRICTION(lpRestrict);
+		CREATE_RES_OR(lpRestrict, lpRestrict, lpChanges->lCreate.size());
+		lpRestrict->res.resOr.cRes = 0;
+
+		for (iter = lpChanges->lCreate.begin(); iter != lpChanges->lCreate.end(); iter++) {
+			/* Cheap copy, no need for allocation/copying */
+			DATA_RES_PROPERTY_CHEAP(lpRestrict,
+									lpRestrict->res.resOr.lpRes[lpRestrict->res.resOr.cRes],
+									RELOP_EQ, (*iter)->lpProps[0].ulPropTag, &(*iter)->lpProps[0]);
+			lpRestrict->res.resOr.cRes++;
+		}
+
+		hr = lpTable->Restrict(lpRestrict, TBL_BATCH);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = lpTable->SetColumns((LPSPropTagArray)&sFolderProps, TBL_BATCH);
+		if (hr != hrSuccess)
+			goto exit;
+
+		while (TRUE) {
+			hr = lpTable->QueryRows(25, 0, &lpRows);
+			if (hr != hrSuccess)
+				goto exit;
+
+			if (lpRows->cRows == 0)
+				break;
+
+			for (ULONG i = 0; i < lpRows->cRows; i++) {
+				hr = LoadUserFolder(lpEntry, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps);
+				if (hr != hrSuccess)
+					goto exit;
+			}
+
+			if (lpRows)
+				FreeProws(lpRows);
+			lpRows = NULL;
+		}
+	}
+
+exit:
+	if (lpRows)
+		FreeProws(lpRows);
+
+	if (lpRestrict)
+		MAPIFreeBuffer(lpRestrict);
+
+	if (lpTable)
+		lpTable->Release();
+
+	return hr;
+}
+
+HRESULT ECSynchronization::LoadUserFolder(ECEntryData *lpEntry, ULONG ulProps, LPSPropValue lpProps)
+{
+	HRESULT hr = hrSuccess;
+	ECFolderData *lpFolderData = NULL;
+	LPSPropValue lpFolderName = NULL;
+	LPSPropValue lpSourceKey = NULL;
+	LPSPropValue lpEntryId = NULL;
+	LPBYTE lpStreamData = NULL;
+	ULONG ulStreamSize = 0;
+	std::string strTmp;
+
+	hr = ECFolderData::Create(lpEntry, &lpFolderData);
+	if (hr != hrSuccess)
+		goto exit;
+
+	lpFolderName = PpropFindProp(lpProps, ulProps, PR_DISPLAY_NAME);
+	if (!lpFolderName) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
+	lpFolderData->m_strFolderName = lpFolderName->Value.LPSZ;
+
+	lpSourceKey = PpropFindProp(lpProps, ulProps, PR_SOURCE_KEY);
+	if (!lpSourceKey) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+				
+	hr = HrAddEntryData(&lpFolderData->m_sFolderSourceKey, lpEntry, &lpSourceKey->Value.bin);
+	if (hr != hrSuccess)
+		goto exit;
+
+	lpEntryId = PpropFindProp(lpProps, ulProps, PR_ENTRYID);
+	if (!lpEntryId) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
+	hr = HrAddEntryData(&lpFolderData->m_sFolderEntryId, lpEntry, &lpEntryId->Value.bin);
+	if (hr != hrSuccess)
+		goto exit;
+
+	strTmp = bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb);
+	hr = m_lpThreadData->lpFileIndex->GetStoreFolderInfoPath(lpEntry->m_strStorePath, strTmp, &lpFolderData->m_strFolderPath);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = m_lpThreadData->lpFileIndex->GetStoreFolderSyncBase(lpFolderData->m_strFolderPath, &ulStreamSize, &lpStreamData);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = CreateSyncStream(&lpFolderData->m_lpContentsSyncBase, ulStreamSize, lpStreamData);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	if (lpStreamData)
+		MAPIFreeBuffer(lpStreamData);
+
+	if ((hr != hrSuccess) && lpFolderData) {
+		lpEntry->m_lFolders.remove(lpFolderData);
+		lpFolderData->Release();
+	}
+
+	return hr;
+}
+
+HRESULT ECSynchronization::UpdateFolderSyncBase(ECEntryData *lpEntryData, ECFolderData *lpFolderData)
+{
+	HRESULT hr = hrSuccess;
+	STATSTG sStat;
+	LARGE_INTEGER liPos = {{0, 0}};
+	ULONG ulSize = 0;
+	LPBYTE lpBuff = NULL;
+	ULONG ulBuff = 0;
+
+	hr = lpFolderData->m_lpContentsSyncBase->Stat(&sStat, STATFLAG_DEFAULT);
+	if (hr != hrSuccess)
+		goto exit;
+
+	ulSize = sStat.cbSize.LowPart;
+	if (sStat.cbSize.HighPart) {
+		hr = MAPI_E_TOO_BIG;
+		goto exit;
+	}
+
+	hr = MAPIAllocateBuffer(ulSize, (LPVOID *)&lpBuff);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpFolderData->m_lpContentsSyncBase->Seek(liPos, STREAM_SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpFolderData->m_lpContentsSyncBase->Read(lpBuff, ulSize, &ulBuff);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ulSize != ulBuff) {
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+
+	m_lpThreadData->lpFileIndex->SetStoreFolderSyncBase(lpFolderData->m_strFolderPath, ulBuff, lpBuff);
+	/* Ignore return code from SetStoreFolderSyncBase, we don't care... */
+
+exit:
+	if (lpBuff)
+		MAPIFreeBuffer(lpBuff);
+
+	return hr;
+}
+

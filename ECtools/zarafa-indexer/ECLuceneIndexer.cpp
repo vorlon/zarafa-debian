@@ -82,13 +82,10 @@
 
 using namespace za::helpers;
 
-ECLuceneIndexer::ECLuceneIndexer(ECThreadData *lpThreadData, IMAPISession *lpAdminSession)
+ECLuceneIndexer::ECLuceneIndexer(ECThreadData *lpThreadData)
 {
 	m_lpThreadData = lpThreadData;
 
-	m_lpAdminSession = lpAdminSession;
-	m_lpAdminSession->AddRef();
-	
 	m_lpIndexDB = new ECIndexDB(lpThreadData->lpConfig, lpThreadData->lpLogger);
 	m_lpIndexedProps = NULL;
 }
@@ -97,9 +94,6 @@ ECLuceneIndexer::~ECLuceneIndexer()
 {
 	if (m_lpIndexedProps)
 		MAPIFreeBuffer(m_lpIndexedProps);
-
-	if (m_lpAdminSession)
-		m_lpAdminSession->Release();
 
 	if (m_lpIndexerAttach)
 		m_lpIndexerAttach->Release();
@@ -111,11 +105,10 @@ ECLuceneIndexer::~ECLuceneIndexer()
 		delete m_lpIndexDB;
 }
 
-HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer)
+HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, ECLuceneIndexer **lppIndexer)
 {
 	HRESULT hr = hrSuccess;
 	ECLuceneIndexer *lpIndexer = NULL;
-	SPropTagArrayPtr ptrArchiveProps;
 
 	SizedSPropTagArray(1, sExtra) = {
 		1, {
@@ -123,17 +116,13 @@ HRESULT ECLuceneIndexer::Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStor
 		},
 	};
 
-	lpIndexer = new ECLuceneIndexer(lpThreadData, lpAdminSession);
+	lpIndexer = new ECLuceneIndexer(lpThreadData);
 	if (!lpIndexer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 
 	lpIndexer->AddRef();
-
-	hr = MAPIPropHelper::GetArchiverProps(MAPIPropPtr(lpMsgStore, true), (LPSPropTagArray)&sExtra, &ptrArchiveProps);
-	if (hr != hrSuccess)
-		goto exit;
 
 	hr = ECLuceneIndexerAttachment::Create(lpIndexer->m_lpThreadData, lpIndexer, &lpIndexer->m_lpIndexerAttach);
 	if (hr != hrSuccess)

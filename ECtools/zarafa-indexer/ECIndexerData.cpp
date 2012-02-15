@@ -200,37 +200,3 @@ BOOL ECIndexerData::AllThreadsCompleted()
 	return m_lSyncThreads.empty();
 }
 
-HRESULT ECIndexerData::UpdateHierarchy(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMAPIFolder *lpRootFolder)
-{
-	HRESULT hr = hrSuccess;
-
-	if (!lpSyncer || !lpEntry || !lpRootFolder) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	hr = m_lpIndexer->LoadUserFolderChanges(lpSyncer, lpEntry, lpRootFolder);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
-}
-
-HRESULT ECIndexerData::UpdateContents(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession)
-{
-	HRESULT hr = hrSuccess;
-
-	if (!lpSyncer || !lpEntry || !lpMsgStore) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	hr = m_lpIndexer->LoadUserFolderContentChanges(lpSyncer, lpEntry, lpMsgStore, lpAdminSession);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
-}
-

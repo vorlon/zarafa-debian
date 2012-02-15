@@ -104,20 +104,6 @@ public:
 	~ECIndexer();
 
 	/**
-	 * Update synchronization base for a particular folder to harddisk.
-	 *
-	 * After a folder has been synchronized, the updated synchronization base must be
-	 * written to harddisk to make it possible to continue from this point after a restart.
-	 *
-	 * @param[in]   lpEntryData
-	 *					Reference to ECEntryData object to which the folder belongs.
-	 * @param[in]   lpFolderData
-	 *					Reference to ECFolderData object for which we update the synchronization base.
-	 * @return HRESULT
-	 */
-	HRESULT UpdateFolderSyncBase(ECEntryData *lpEntryData, ECFolderData *lpFolderData);
-
-	/**
 	 * Signal handler to indicate all synchronization threads have completed
 	 *
 	 * This signal allows ECIndexer to close continue processing and schedule the next synchronization  round.
@@ -216,50 +202,6 @@ private:
 	 * @return HRESULT
 	 */
 	HRESULT CheckFilterList(const std::vector<tstring> &lFilter, bool bMustContain, LPCTSTR lpszName);
-
-	/**
-	 * Collect all changes from the synchronization and update the ECEntryData object
-	 *
-	 * @param[in]	lpSyncer
-	 *					Reference to ECSynchronization object which contains all synchronized changes.
-	 * @param[in]	lpEntry
-	 *					Reference to ECEntryData object to which the folders must be attached.
-	 * @param[in]	lpRootFolder
-	 *					Root folder from where the the hierarchy is being synchronized
-	 * @return HRESULT
-	 */
-	HRESULT LoadUserFolderChanges(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMAPIFolder *lpRootFolder);
-
-	/**
-	 * Create ECFolderData object and add it to the ECEntryData object.
-	 *
-	 * Create a ECFolderData object based on the given properties, and attach the folder
-	 * to the ECEntryData object.
-	 *
-	 * @param[in]	lpEntry
-	 *					Reference to ECEntryData object to which the folder must be attached.
-	 * @param[in]	ulProps
-	 *					Number of SPropValue elements in lpProps parameter.
-	 * @param[in]	lpProps
-	 *					Array of SPropValue containing all required information about the folder.
-	 * @return HRESULT
-	 */
-	HRESULT LoadUserFolder(ECEntryData *lpEntry, ULONG ulProps, LPSPropValue lpProps);
-
-	/**
-	 * Collect all changes from the synchronization and update the ECEntryData object
-	 *
-	 * @param[in]	lpSyncer
-	 *					Reference to ECSynchronization object which contains all synchronized changes.
-	 * @param[in]	lpEntry
-	 *					Reference to ECEntryData object with all folders which have been synced
-	 * @param[in]	lpMsgStore
-	 *					Reference to IMsgStore object which is being synchronized
-	 * @param[in]	lpAdminSession
-	 * 					The MAPI admin session.
-	 * @return HRESULT
-	 */
-	HRESULT LoadUserFolderContentChanges(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession);
 
 private:
 	ECThreadData  *m_lpThreadData;

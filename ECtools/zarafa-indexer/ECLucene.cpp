@@ -76,72 +76,10 @@
 ECLucene::ECLucene(ECThreadData *lpThreadData)
 {
 	const char *lpszCacheTimeout = NULL;
-	convert_context converter;
 
 	m_lpThreadData = lpThreadData;
 
-	pthread_mutexattr_init(&m_hLockAttr);
-	pthread_mutexattr_settype(&m_hLockAttr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hLock, &m_hLockAttr);
-
 	pthread_mutex_init(&m_hInstanceLock, NULL);
-
-#define INDEX_PROP(__name, __storage, __prop) \
-	indexprop_map_t::value_type(__prop, NShttpmail_t(_T(__name), __storage))
-
-#define KEYWORD		( lucene::document::Field::INDEX_UNTOKENIZED | lucene::document::Field::STORE_YES )	///< (not?) searchable as complete item and value returned in result
-#define UNSTORED	( lucene::document::Field::INDEX_TOKENIZED | lucene::document::Field::STORE_NO )	///< searchable as tokenized item, value not returned
-#define TEXT		( lucene::document::Field::INDEX_TOKENIZED | lucene::document::Field::STORE_YES )	///< searchable as tokenized item and value returned in result
-
-	/* 
-	 * The following should actually be KEYWORD because we don't want the data
-	 * to be tokenized, unfortunately CLucene seems unable to perform searches
-	 * on untokenized fields.
-	 */
-	m_mapIndexedProps.insert(INDEX_PROP("entryid",			TEXT,		PR_ENTRYID));
-
-	/*
-	 * The following should be untokenized, but CLucene can't search on untokenized
-	 * fields. This means that instead of KEYWORD we will have to use UNSTORED. We don't
-	 * use TEXT because that will tokenize _and_ store the data which means the data will
-	 * be stored twice in the index.
-	 *
-	 * For sourcekey we have to use KEYWORD since we are using it in a 'term' when deleting
-	 * documents (which needs a 'stored' field type).
-	 */
-	m_mapIndexedProps.insert(INDEX_PROP("sourcekey",		KEYWORD,	PR_SOURCE_KEY));
-	m_mapIndexedProps.insert(INDEX_PROP("folderid",			UNSTORED,	PR_PARENT_ENTRYID));
-	m_mapIndexedProps.insert(INDEX_PROP("messageclass",		UNSTORED,	PR_MESSAGE_CLASS));
-
-	/*
-	 * We only want to search on the following fields, but we don't need
-	 * the data inside the field to be visible in a searchresult, so only
-	 * tokenize and index these fields but do not store them.
-	 */
-	m_mapIndexedProps.insert(INDEX_PROP("subject",			UNSTORED,	PR_SUBJECT));
-	m_mapIndexedProps.insert(INDEX_PROP("textdescription",	UNSTORED,	PR_BODY));
-	m_mapIndexedProps.insert(INDEX_PROP("sendername",		UNSTORED,	PR_SENDER_NAME));
-	m_mapIndexedProps.insert(INDEX_PROP("senderemail",		UNSTORED,	PR_SENDER_EMAIL_ADDRESS));
-	m_mapIndexedProps.insert(INDEX_PROP("fromname",			UNSTORED,	PR_SENT_REPRESENTING_NAME));
-	m_mapIndexedProps.insert(INDEX_PROP("fromemail",		UNSTORED,	PR_SENT_REPRESENTING_EMAIL_ADDRESS));
-	m_mapIndexedProps.insert(INDEX_PROP("displayto",		UNSTORED,	PR_DISPLAY_TO));
-	m_mapIndexedProps.insert(INDEX_PROP("displaycc",		UNSTORED,	PR_DISPLAY_CC));
-	m_mapIndexedProps.insert(INDEX_PROP("displaybcc",		UNSTORED,	PR_DISPLAY_BCC));
-
-	m_mapIndexedProps.insert(INDEX_PROP("business_telephone", UNSTORED,	PR_BUSINESS_TELEPHONE_NUMBER));
-	m_mapIndexedProps.insert(INDEX_PROP("business2_telephone",UNSTORED,	PR_BUSINESS2_TELEPHONE_NUMBER));
-	m_mapIndexedProps.insert(INDEX_PROP("department",		UNSTORED,	PR_DEPARTMENT_NAME));
-	m_mapIndexedProps.insert(INDEX_PROP("mobile_telephone",	UNSTORED,	PR_MOBILE_TELEPHONE_NUMBER));
-	m_mapIndexedProps.insert(INDEX_PROP("home_telephone",	UNSTORED,	PR_HOME_TELEPHONE_NUMBER));
-	m_mapIndexedProps.insert(INDEX_PROP("title",			UNSTORED,	PR_TITLE));
-	m_mapIndexedProps.insert(INDEX_PROP("company",			UNSTORED,	PR_COMPANY_NAME));
-	m_mapIndexedProps.insert(INDEX_PROP("display",			UNSTORED,	PR_DISPLAY_NAME));
-	m_mapIndexedProps.insert(INDEX_PROP("sensitivity",		UNSTORED,	PR_SENSITIVITY));
-
-	for (indexprop_map_t::iterator iter = m_mapIndexedProps.begin(); iter != m_mapIndexedProps.end(); iter++) {
-		if (!(iter->second.ulStorage & lucene::document::Field::INDEX_NO))
-			m_listIndexedProps.push_back(converter.convert_to<std::string>(iter->second.strNShttpmail) + " " + stringify(PROP_ID(iter->first), true));
-	}
 
 	lpszCacheTimeout = m_lpThreadData->lpConfig->GetSetting("index_cache_timeout");
 	m_ulCacheTimeout = (lpszCacheTimeout ? atoui(lpszCacheTimeout) : 0);
@@ -150,31 +88,6 @@ ECLucene::ECLucene(ECThreadData *lpThreadData)
 ECLucene::~ECLucene()
 {
 	pthread_mutex_destroy(&m_hInstanceLock);
-	pthread_mutex_destroy(&m_hLock);
-	pthread_mutexattr_destroy(&m_hLockAttr);
-}
-
-HRESULT ECLucene::CreateIndexer(ECThreadData *lpThreadData, std::string &strStorePath, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession, ECLuceneIndexer **lppIndexer)
-{
-	HRESULT hr = hrSuccess;
-	ECLuceneIndexer *lpIndexer = NULL;
-
-	hr = lpThreadData->lpFileIndex->StoreCreate(strStorePath);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ECLuceneIndexer::Create(lpThreadData, lpMsgStore, lpAdminSession, &lpIndexer);
-	if (hr != hrSuccess)
-		goto exit;
-
-	if (lppIndexer)
-		*lppIndexer = lpIndexer;
-
-exit:
-	if ((hr != hrSuccess) && lpIndexer)
-		lpIndexer->Release();
-
-	return hr;
 }
 
 HRESULT ECLucene::GetAttachmentCache(std::string &strInstanceId, std::wstring *lpstrAttachData)

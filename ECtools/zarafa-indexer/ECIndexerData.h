@@ -146,41 +146,6 @@ public:
 	 */
 	BOOL AllThreadsCompleted();
 
-	/**
-	 * Load hierarchy changes and update the ECEntryData object.
-	 *
-	 * During the hierarchy synchronization new folders might have been detected,
-	 * and other folders might have been deleted. Update the ECEntryData object
-	 * with these changes.
-	 *
-	 * @param[in]	lpSyncer
-	 *					Reference to ECSynchronization which contains all detected changes.
-	 * @param[in]	lpEntry
-	 *					Reference to ECEntryData object to which the folder must be attached.
-	 * @param[in]	lpRootFolder
-	 *					Root folder from where the the hierarchy is being synchronized
-	 * @return HRESULT
-	 */
-	HRESULT UpdateHierarchy(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMAPIFolder *lpRootFolder);
-
-	/**
-	 * Update synchronization base for a particular folder to harddisk.
-	 *
-	 * After a folder has been synchronized, the updated synchronization base must be
-	 * written to harddisk to make it possible to continue from this point after a restart.
-	 *
-	 * @param[in]	lpSyncer
-	 *					Reference to ECSynchronization which contains all detected changes.
-	 * @param[in]	lpEntry
-	 *					Reference to ECEntryData object to which the folder belongs.
-	 * @param[in]	lpMsgStore
-	 *					Reference to IMsgStore object for the store which is being synchronized.
-	 * @param[in]	lpAdminSession
-	 * 					The admin MAPI session.
-	 * @return HRESULT
-	 */
-	HRESULT UpdateContents(ECSynchronization *lpSyncer, ECEntryData *lpEntry, IMsgStore *lpMsgStore, IMAPISession *lpAdminSession);
-
 private:
 	/**
 	 * Distribute tasks over multiple servers
