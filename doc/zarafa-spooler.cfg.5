@@ -213,6 +213,14 @@ Default:
 \fIno\fR
 .RE
 .PP
+\fBenable_dsn\fR
+.RS 4
+Enable the Delivery Status Notifications (DSN) for the users\&. If a user request a DSN the spooler send the request to the MTA and as the MTA support this the user received the report in the mailbox\&. When the MTA doesn\'t support DSN the user will not receive a report\&. Ensure you have a supported MTA like postfix 2\&.3 and higher\&. If DSN is disabled and the user request a DSN then it will be ignored and the delivery report is not sent\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
 \fBcharset_upgrade\fR
 .RS 4
 Upgrades the us\-ascii charset to this charset\&. This makes sure high\-characters in recipients and attachment filenames are correctly sent when the body is in plain text\&. Not used when always_send_utf8 is enabled\&.
