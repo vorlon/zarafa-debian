@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-10 00:04+0100\n"
-"PO-Revision-Date: 2012-02-08 18:18+0200\n"
+"POT-Creation-Date: 2012-02-15 15:36+0100\n"
+"PO-Revision-Date: 2012-02-15 16:32+0200\n"
 "Last-Translator: Sebastian <s.kummer@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
 "Language: pt_BR\n"
@@ -120,7 +120,7 @@ msgstr "Não foi possível abrir a caixa padrão na sessão MAPI."
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
 msgid "Refusing to add primary store as shared store."
-msgstr ""
+msgstr "Recusando adicionar o store principal como caixa compartilhada."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
 msgid "Unable to open this store."
@@ -325,11 +325,11 @@ msgstr "Erro de conexão"
 
 #: provider/ECProps/SyncStatusDlg.cpp:139
 msgid "Username or password incorrect. Please update your MAPI profile."
-msgstr ""
+msgstr "Nome do usuário ou senha incorreta. Por favor atualizar o perfil MAPI."
 
 #: provider/ECProps/SyncStatusDlg.cpp:139
 msgid "Logon error"
-msgstr ""
+msgstr "Erro de login"
 
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "synchronization done"
@@ -1432,7 +1432,7 @@ msgstr "Você não tem a permissão para enviar como usuário ou grupo "
 msgid "The user or group you try to send as could not be found."
 msgstr "O usuário ou grupo no qual você tenta enviar não pode ser encontrado."
 
-#: spooler/mailer.cpp:2486
+#: spooler/mailer.cpp:2489
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Erro encontrado ao tentar enviar a sua mensagem. Código do erro:"
 
