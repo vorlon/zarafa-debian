@@ -125,7 +125,7 @@ public:
 	const int getRecipientErrorCount() const;
 	const std::vector<sFailedRecip> getRecipientErrorList() const;
 	void setLogger(ECLogger *lpLogger);
-
+	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 
 private:
 
@@ -164,6 +164,8 @@ private:
 	// additional data
 	std::vector<sFailedRecip> m_lstFailedRecipients;
 	ECLogger *m_lpLogger;
+	bool m_bDSNRequest;
+	std::string m_strDSNTrackid;
 };
 
 

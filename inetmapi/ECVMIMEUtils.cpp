@@ -406,6 +406,14 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
         }
         catch (vmime::exceptions::no_such_field&) { }
 
+		// Delivery report request
+		LPSPropValue lpDeliveryReport = NULL;
+		if (mapiTransport && HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &lpDeliveryReport) == hrSuccess && lpDeliveryReport->Value.b == TRUE) {
+			MAPIFreeBuffer(lpDeliveryReport);
+			mapiTransport->requestDSN(true, "");
+		}
+
+
 		// Generate the message, "stream" it and delegate the sending
 		// to the generic send() function.
 		std::ostringstream oss;

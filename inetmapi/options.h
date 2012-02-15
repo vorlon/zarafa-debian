@@ -70,6 +70,7 @@ typedef struct _so {
 	bool force_utf8;
 	char *charset_upgrade;
 	bool allow_send_to_everyone;
+	bool enable_dsn;				/**< Enable SMTP Delivery Status Notifications */
 } sending_options;
 
 void INETMAPI_API imopt_default_delivery_options(delivery_options *dopt);

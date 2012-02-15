@@ -118,7 +118,7 @@ namespace smtp {
 MAPISMTPTransport::MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured)
 	: transport(sess, getInfosInstance(), auth), m_socket(NULL),
 	  m_authentified(false), m_extendedSMTP(false), m_timeoutHandler(NULL),
-	  m_isSMTPS(secured), m_secured(false)
+	  m_isSMTPS(secured), m_secured(false), m_bDSNRequest(false)
 {
 }
 
@@ -634,8 +634,22 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 
 	// Emit the "MAIL" command
 	ref <SMTPResponse> resp;
+	string strSend;
+	bool bDSN = m_bDSNRequest;
+	
+	if(bDSN && m_extensions.find("DSN") == m_extensions.end()) {
+		if (m_lpLogger) m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "SMTP server does not support Delivery Status Notifications (DSN)");
+		bDSN = false; // Disable DSN because the server does not support this.
+	}
 
-	sendRequest("MAIL FROM: <" + expeditor.getEmail() + ">");
+	strSend = "MAIL FROM: <" + expeditor.getEmail() + ">";
+	if (bDSN) {
+		strSend += " RET=HDRS";
+		if (!m_strDSNTrackid.empty())
+			strSend += "; ENVID=" + m_strDSNTrackid;
+	}
+
+	sendRequest(strSend);
 
 	if ((resp = readResponse())->getCode() != 250)
 	{
@@ -650,7 +664,11 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		const mailbox& mbox = *recipients.getMailboxAt(i);
 		unsigned int code;
 
-		sendRequest("RCPT TO: <" + mbox.getEmail() + ">");
+		strSend = "RCPT TO: <" + mbox.getEmail() + ">";
+		if (bDSN)
+			 strSend += " NOTIFY=SUCCESS,DELAY";
+
+		sendRequest(strSend);
 		resp = readResponse();
 		code = resp->getCode();
 
@@ -717,6 +735,12 @@ void MAPISMTPTransport::setLogger(ECLogger *lpLogger)
 {                              
 	m_lpLogger = lpLogger;
 }                              
+
+void MAPISMTPTransport::requestDSN(BOOL bRequest, const std::string &strTrackid)
+{
+	m_bDSNRequest = bRequest;
+	m_strDSNTrackid = strTrackid;
+}
 
 void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 {

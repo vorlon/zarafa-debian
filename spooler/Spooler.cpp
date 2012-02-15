@@ -1127,6 +1127,7 @@ int main(int argc, char *argv[]) {
 		{ "copy_delegate_mails", "yes", CONFIGSETTING_RELOADABLE },
 		{ "expand_groups", "no", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_send", "no", CONFIGSETTING_RELOADABLE },
+		{ "enable_dsn", "yes", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 

@@ -2072,6 +2072,9 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	sopt.force_utf8 = parseBool(g_lpConfig->GetSetting("always_send_utf8"));
 	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
 
+	// Enable SMTP Delivery Status Notifications
+	sopt.enable_dsn = parseBool(g_lpConfig->GetSetting("enable_dsn"));
+
 	// so we require admin stuff now
 	hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
 	if (hr != hrSuccess) {
