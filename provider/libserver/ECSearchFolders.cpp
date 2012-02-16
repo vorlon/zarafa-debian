@@ -635,162 +635,212 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     
     // Loop through search folders for this store
     for(iterFolder = iterStore->second.begin(); iterFolder != iterStore->second.end(); iterFolder++) {
-        bIsInTargetFolder = false;
-        lCount = 0;
-        lUnreadCount = 0;
-        
-        if(iterFolder->second->lpSearchCriteria->lpFolders == NULL || iterFolder->second->lpSearchCriteria->lpRestrict == NULL)
-            continue;
-        
-        if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
-            // Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
-            for(unsigned int i=0; i<iterFolder->second->lpSearchCriteria->lpFolders->__size; i++) {
+		ULONG ulAttempts = 4;	// Random number
+		
+		do {
+			bIsInTargetFolder = false;
+			lCount = 0;
+			lUnreadCount = 0;
+			
+			if(iterFolder->second->lpSearchCriteria->lpFolders == NULL || iterFolder->second->lpSearchCriteria->lpRestrict == NULL)
+				continue;
+				
+			er = lpDatabase->Begin();
+			if (er != erSuccess)
+				goto exit;
+			
+			// Lock searchfolder
+			er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(iterFolder->first) + " FOR UPDATE", NULL);
+			if (er == ZARAFA_E_DATABASE_ERROR) {
+				DB_ERROR dberr = lpDatabase->GetLastError();
+				if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+					er = lpDatabase->Rollback();
+					if (er != erSuccess)
+						goto exit;
+				} else if (dberr != DB_E_LOCK_DEADLOCK) {
+					goto exit;
+				}
+				continue;
+			} else if (er != erSuccess) {
+				goto exit;
+			}
+			
+			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
+				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
+				for(unsigned int i=0; i<iterFolder->second->lpSearchCriteria->lpFolders->__size; i++) {
 
-				if(m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&iterFolder->second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
-					ulSCFolderId == ulFolderId)
-				{
-                    bIsInTargetFolder = true;
-                    break;
-                }
-            }
-
-            if(!bIsInTargetFolder && iterFolder->second->lpSearchCriteria->ulFlags & RECURSIVE_SEARCH) {
-                // The item is not in one of the base folders, but it may be in one of children of the folders.
-                // We do it in this order because the GetParent() calls below may cause database accesses, so
-                // we only actually do those database accesses if we have to.
-                
-                unsigned int ulAncestor = ulFolderId;
-                
-                // Get all the parents of this object (usually around 5 or 6)
-                setParents.insert(ulFolderId);
-                
-                while(1) {
-                    er = m_lpSessionManager->GetCacheManager()->GetParent(ulAncestor, &ulAncestor);
-                    if(er != erSuccess)
-                        break;
-                        
-                    setParents.insert(ulAncestor);
-                }
-                
-                // setParents now contains all the parent of this object, now we can check if any of the ancestors
-                // are in the search target
-                for(unsigned int i=0; i<iterFolder->second->lpSearchCriteria->lpFolders->__size; i++) {
-					
-					if(m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&iterFolder->second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess)
+					if(m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&iterFolder->second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess &&
+						ulSCFolderId == ulFolderId)
 					{
+						bIsInTargetFolder = true;
+						break;
+					}
+				}
 
-						iterParents = setParents.find(ulSCFolderId);
-
-						if(iterParents != setParents.end()) {
-							bIsInTargetFolder = true;
+				if(!bIsInTargetFolder && iterFolder->second->lpSearchCriteria->ulFlags & RECURSIVE_SEARCH) {
+					// The item is not in one of the base folders, but it may be in one of children of the folders.
+					// We do it in this order because the GetParent() calls below may cause database accesses, so
+					// we only actually do those database accesses if we have to.
+					
+					unsigned int ulAncestor = ulFolderId;
+					
+					// Get all the parents of this object (usually around 5 or 6)
+					setParents.insert(ulFolderId);
+					
+					while(1) {
+						er = m_lpSessionManager->GetCacheManager()->GetParent(ulAncestor, &ulAncestor);
+						if(er != erSuccess)
 							break;
+							
+						setParents.insert(ulAncestor);
+					}
+					
+					// setParents now contains all the parent of this object, now we can check if any of the ancestors
+					// are in the search target
+					for(unsigned int i=0; i<iterFolder->second->lpSearchCriteria->lpFolders->__size; i++) {
+						
+						if(m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&iterFolder->second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess)
+						{
+
+							iterParents = setParents.find(ulSCFolderId);
+
+							if(iterParents != setParents.end()) {
+								bIsInTargetFolder = true;
+								break;
+							}
 						}
 					}
-                }
-            }
-        } else {
-            // Table type DELETE, so the item is definitely not in the search path. Just delete it
-            bIsInTargetFolder = false;
-        }
-        
-        // The folder in which the modify message is, is in our search path for this searchfolder
-        if(bIsInTargetFolder) {
-            // Create a session for the target user
-            if(lpSession == NULL) {
-                er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulOwner);
-                if(er != erSuccess)
-                    goto exit;
-                    
-                lpSession->Lock();
-            }
-            
-            ecOBStore.ulStoreId = ulStoreId;
-            ecOBStore.ulFolderId = 0;
-            ecOBStore.ulFlags = 0;
-            ecOBStore.ulObjType = MAPI_MESSAGE;
-            ecOBStore.lpGuid = NULL;
+				}
+			} else {
+				// Table type DELETE, so the item is definitely not in the search path. Just delete it
+				bIsInTargetFolder = false;
+			}
+			
+			// The folder in which the modify message is, is in our search path for this searchfolder
+			if(bIsInTargetFolder) {
+				// Create a session for the target user
+				if(lpSession == NULL) {
+					er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulOwner);
+					if(er != erSuccess)
+						goto exit;
+						
+					lpSession->Lock();
+				}
+				
+				ecOBStore.ulStoreId = ulStoreId;
+				ecOBStore.ulFolderId = 0;
+				ecOBStore.ulFlags = 0;
+				ecOBStore.ulObjType = MAPI_MESSAGE;
+				ecOBStore.lpGuid = NULL;
 
-            if(ulType == ECKeyTable::TABLE_ROW_ADD || ulType == ECKeyTable::TABLE_ROW_MODIFY) {
-            	std::list<ULONG> lstPropTags;
-            	
-                // Get the restriction ready for this search folder
-                er = ECGenericObjectTable::GetRestrictPropTags(iterFolder->second->lpSearchCriteria->lpRestrict, &lstPrefix, &lpPropTags);
-                if(er != erSuccess)
-                    goto exit;
-                    
-                // Get necessary row data for the object    
-                er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, lstObjectIDs, lpPropTags, &ecOBStore, &lpRowSet, false, false);
-                if(er != erSuccess)
-                    goto exit;
-                    
-                er = RunSubRestrictions(lpSession, &ecOBStore, iterFolder->second->lpSearchCriteria->lpRestrict, lstObjectIDs, locale, &lpSubResults);
-                if(er != erSuccess)
-                    goto exit;
+				if(ulType == ECKeyTable::TABLE_ROW_ADD || ulType == ECKeyTable::TABLE_ROW_MODIFY) {
+					std::list<ULONG> lstPropTags;
+					
+					// Get the restriction ready for this search folder
+					er = ECGenericObjectTable::GetRestrictPropTags(iterFolder->second->lpSearchCriteria->lpRestrict, &lstPrefix, &lpPropTags);
+					if(er != erSuccess)
+						goto exit;
+						
+					// Get necessary row data for the object    
+					er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, lstObjectIDs, lpPropTags, &ecOBStore, &lpRowSet, false, false);
+					if(er != erSuccess)
+						goto exit;
+						
+					er = RunSubRestrictions(lpSession, &ecOBStore, iterFolder->second->lpSearchCriteria->lpRestrict, lstObjectIDs, locale, &lpSubResults);
+					if(er != erSuccess)
+						goto exit;
 
-                iterObjectIDs = lstObjectIDs->begin();
-	
-                // Check if the item matches for each item
-                for(int i=0; i < lpRowSet->__size; i++, iterObjectIDs++) {
-                    bool fMatch;
+					iterObjectIDs = lstObjectIDs->begin();
+		
+					// Check if the item matches for each item
+					for(int i=0; i < lpRowSet->__size; i++, iterObjectIDs++) {
+						bool fMatch;
 
-                    // Match the restriction
-					er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], iterFolder->second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
+						// Match the restriction
+						er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], iterFolder->second->lpSearchCriteria->lpRestrict, lpSubResults, locale, &fMatch);
 
-                    if(er == erSuccess) {
-						if (fMatch) {
-							if(lpRowSet->__ptr[i].__ptr[0].ulPropTag != PR_MESSAGE_FLAGS)
-								continue;
+						if(er == erSuccess) {
+							if (fMatch) {
+								if(lpRowSet->__ptr[i].__ptr[0].ulPropTag != PR_MESSAGE_FLAGS)
+									continue;
+									
+								// Get the read flag for this message
+								ulFlags = lpRowSet->__ptr[i].__ptr[0].Value.ul & MSGFLAG_READ;
 								
-							// Get the read flag for this message
-							ulFlags = lpRowSet->__ptr[i].__ptr[0].Value.ul & MSGFLAG_READ;
-							
-	                        // Update on-disk search folder
-                            if(AddResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, ulFlags, &fInserted) == erSuccess) {
-                            	if(fInserted) {
-									// One more match
-									lCount++;
-									if(!ulFlags)
-										lUnreadCount++;
+								// Update on-disk search folder
+								if(AddResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, ulFlags, &fInserted) == erSuccess) {
+									if(fInserted) {
+										// One more match
+										lCount++;
+										if(!ulFlags)
+											lUnreadCount++;
 
-									// Send table notification
-									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+										// Send table notification
+										m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+									} else {
+										// Row was modified, so flags has changed. Since the only possible values are MSGFLAG_READ or 0, we know the new flags.
+										
+										if(ulFlags)
+											lUnreadCount--; // New state is read, so old state was unread, so unread--
+										else
+											lUnreadCount++; // New state is unread, so old state was read, so unread++
+										
+										// Send table notification
+										m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+									}
+									
 								} else {
-									// Row was modified, so flags has changed. Since the only possible values are MSGFLAG_READ or 0, we know the new flags.
+									// AddResults will return an error if the call didn't do anything (record was already in the table).
 									
-									if(ulFlags)
-										lUnreadCount--; // New state is read, so old state was unread, so unread--
-									else
-										lUnreadCount++; // New state is unread, so old state was read, so unread++
-									
-									// Send table notification
+									// Even though, we should still send notifications since the row changed
 									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
 								}
-								
-							} else {
-								// AddResults will return an error if the call didn't do anything (record was already in the table).
-								
-								// Even though, we should still send notifications since the row changed
-								m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+							} else if (ulType == ECKeyTable::TABLE_ROW_MODIFY) {
+								// Only delete modified items, not new items
+								if (DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
+									lCount--;
+									if(!ulFlags)
+										lUnreadCount--; // Removed message was unread
+									
+									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
+								}
 							}
-						} else if (ulType == ECKeyTable::TABLE_ROW_MODIFY) {
-                            // Only delete modified items, not new items
-							if (DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
-								lCount--;
-								if(!ulFlags)
-									lUnreadCount--; // Removed message was unread
-								
-								m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
-							}
-						}
 
-                        // Ignore errors from the updates
-                        er = erSuccess;
-                    }
-                }
-            } else {
-                // Message was deleted anyway, update on-disk search folder and send table notification
+							// Ignore errors from the updates
+							er = erSuccess;
+						}
+					}
+				} else {
+					// Message was deleted anyway, update on-disk search folder and send table notification
+					for(iterObjectIDs = lstObjectIDs->begin(); iterObjectIDs != lstObjectIDs->end(); iterObjectIDs++) {
+						if (DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
+							m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE); 
+
+							lCount--;
+							if(!ulFlags)
+								lUnreadCount--; // Removed message was unread
+							
+						}
+					}
+				}
+
+				if(lpPropTags) {
+					FreePropTagArray(lpPropTags);
+					lpPropTags = NULL;
+				}
+				if(lpRowSet) {
+					FreeRowSet(lpRowSet, true);
+					lpRowSet = NULL;
+				}
+				if(lpSubResults){
+					FreeSubRestrictionResults(lpSubResults);
+					lpSubResults = NULL;
+				}
+
+			} else {
+				// Not in a target folder, remove from search results
 				for(iterObjectIDs = lstObjectIDs->begin(); iterObjectIDs != lstObjectIDs->end(); iterObjectIDs++) {
-					if (DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
+					if(DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
 						m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE); 
 
 						lCount--;
@@ -799,48 +849,53 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						
 					}
 				}
-            }
-
-            if(lpPropTags) {
-                FreePropTagArray(lpPropTags);
-                lpPropTags = NULL;
-            }
-            if(lpRowSet) {
-                FreeRowSet(lpRowSet, true);
-                lpRowSet = NULL;
-            }
-            if(lpSubResults){
-                FreeSubRestrictionResults(lpSubResults);
-                lpSubResults = NULL;
-            }
-
-        } else {
-            // Not in a target folder, remove from search results
-			for(iterObjectIDs = lstObjectIDs->begin(); iterObjectIDs != lstObjectIDs->end(); iterObjectIDs++) {
-				if(DeleteResults(ulStoreId, iterFolder->first, iterObjectIDs->ulObjId, &ulFlags) == erSuccess) {
-					m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterFolder->first, iterObjectIDs->ulObjId, MAPI_MESSAGE); 
-
-					lCount--;
-					if(!ulFlags)
-						lUnreadCount--; // Removed message was unread
-					
-				}
 			}
-        }
 
-        if(lCount || lUnreadCount) {
-            // If the searchfolder has changed, update counts and send notifications
-        	UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_COUNT, lCount);
-        	UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_UNREAD, lUnreadCount);
-        	
-			m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, iterFolder->first);
-            er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, iterFolder->first);
-            
-            if(m_lpSessionManager->GetCacheManager()->GetParent(iterFolder->first, &ulParent) == erSuccess)
-                er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, iterFolder->first, MAPI_FOLDER);
+			if(lCount || lUnreadCount) {
+				// If the searchfolder has changed, update counts and send notifications
+				er = UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_COUNT, lCount);
+				if (er == erSuccess)
+					er = UpdateFolderCount(lpDatabase, iterFolder->first, PR_CONTENT_UNREAD, lUnreadCount);
+				
+				if (er == ZARAFA_E_DATABASE_ERROR) {
+					DB_ERROR dberr = lpDatabase->GetLastError();
+					if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+						er = lpDatabase->Rollback();
+						if (er != erSuccess)
+							goto exit;
+					} else if (dberr != DB_E_LOCK_DEADLOCK) {
+						goto exit;
+					}
+					continue;
+				} else if (er != erSuccess) {
+					goto exit;
+				}
+				
+				m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, iterFolder->first);
+				er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, iterFolder->first);
+				
+				if(m_lpSessionManager->GetCacheManager()->GetParent(iterFolder->first, &ulParent) == erSuccess)
+					er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, iterFolder->first, MAPI_FOLDER);
 
-            er = erSuccess; // Ignore errors
-        }        
+				er = erSuccess; // Ignore errors
+			}        
+			
+			er = lpDatabase->Commit();
+			if (er == ZARAFA_E_DATABASE_ERROR) {
+				DB_ERROR dberr = lpDatabase->GetLastError();
+				if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+					er = lpDatabase->Rollback();
+					if (er != erSuccess)
+						goto exit;
+				} else if (dberr != DB_E_LOCK_DEADLOCK) {
+					goto exit;
+				}
+				continue;
+			} else if (er != erSuccess) {
+				goto exit;
+			}
+			ulAttempts = 1;	// Causes --ulAttempts to evaluate to false
+		} while (--ulAttempts);
     }
 
 exit:    
@@ -906,6 +961,10 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
         er = lpDatabase->Begin();
         if (er != erSuccess)
             goto exit;
+            
+        er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
+        if (er != erSuccess)
+			goto exit;
     }
     
     // Get the row data for the search
@@ -942,6 +1001,14 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
     if (er != erSuccess)
         goto exit;
 
+    if(lCount || lUnreadCount) {
+        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
+        if (er == erSuccess)
+			er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
+		if (er != erSuccess)
+			goto exit;
+	}
+
     if(bNotify) {
         er = lpDatabase->Commit();
         if (er != erSuccess)
@@ -952,17 +1019,12 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
     }
     
     // If the searchfolder counte have changed, update counts and send notifications
-    if(lCount || lUnreadCount) {
-        UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
-        UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
-    
-        if(bNotify) {
-            m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
-            m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-            
-            if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
-                m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
-        }                    
+    if((lCount || lUnreadCount) && bNotify) {
+		m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
+		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
+		
+		if(m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParent) == erSuccess)
+			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
     }
 
 exit:    
@@ -1298,6 +1360,14 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulStoreId, unsigned int ulFo
     if(er != erSuccess)
         goto exit;
         
+    er = lpDatabase->Begin();
+    if (er != erSuccess)
+		goto exit;
+	
+	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
+	if (er != erSuccess)
+		goto exit;
+        
     strQuery = "DELETE FROM searchresults WHERE folderid = " + stringify(ulFolderId);
     er = lpDatabase->DoDelete(strQuery);
     if(er != erSuccess)
@@ -1314,9 +1384,13 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulStoreId, unsigned int ulFo
 		
 	er = UpdateTProp(lpDatabase, PR_CONTENT_UNREAD, ulParentId, ulFolderId);
 	if(er != erSuccess)
-		goto exit;		
+		goto exit;
+	
+	er = lpDatabase->Commit();
 		
 exit:
+	if (er != erSuccess)
+		lpDatabase->Rollback();
         
     return er;
 }

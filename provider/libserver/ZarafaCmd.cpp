@@ -3068,8 +3068,11 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	}
 	
 	// Update folder counts
-	if(fNewItem)
-		UpdateFolderCounts(lpDatabase, ulParentObjId, ulFlags, &lpsSaveObj->modProps);
+	if(fNewItem) {
+		er = UpdateFolderCounts(lpDatabase, ulParentObjId, ulFlags, &lpsSaveObj->modProps);
+		if (er != erSuccess)
+			goto exit;
+	}
     else if(ulSyncId != 0) {
         // On modified appointments, unread flags may have changed (only possible during ICS import)
         for(int i=0; i < lpsSaveObj->modProps.__size; i++) {
@@ -3080,7 +3083,9 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
         }
 
         if (ulPrevReadState != ulNewReadState) {
-            UpdateFolderCount(lpDatabase, ulParentObjId, PR_CONTENT_UNREAD, ulNewReadState == MSGFLAG_READ ? -1 : 1);
+            er = UpdateFolderCount(lpDatabase, ulParentObjId, PR_CONTENT_UNREAD, ulNewReadState == MSGFLAG_READ ? -1 : 1);
+            if (er != erSuccess)
+				goto exit;
         }
     }
 
@@ -5418,7 +5423,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			er = g_lpSessionManager->GetCacheManager()->GetParent(iterParents->first, &ulGrandParent);
 			if(er != erSuccess)
 				goto exit;
-			UpdateFolderCount(lpDatabase, iterParents->first, PR_CONTENT_UNREAD, iterParents->second);
+			er = UpdateFolderCount(lpDatabase, iterParents->first, PR_CONTENT_UNREAD, iterParents->second);
+			if (er != erSuccess)
+				goto exit;
 		}
 	}
 	
@@ -7944,26 +7951,32 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 				// Undelete
 				if(iterCopyItems->ulFlags & MAPI_ASSOCIATED) {
 					// Associated message undeleted
-					UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_ASSOC_MSG_COUNT, -1);
-					UpdateFolderCount(lpDatabase, ulDestFolderId, PR_ASSOC_CONTENT_COUNT, 1);
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_ASSOC_MSG_COUNT, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_ASSOC_CONTENT_COUNT, 1);
 				} else {
 					// Message undeleted
-					UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_MSG_COUNT, -1);
-					UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
-					if((iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_MSG_COUNT, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
+					if(er == erSuccess && (iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
 						// Undeleted message was unread
-						UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
 					}
 				}
 			} else {
 				// Move
-				UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_COUNT, -1);
-				UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
-				if((iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
-					UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_UNREAD, -1);
-					UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
+				er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_COUNT, -1);
+				if (er == erSuccess)
+					er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
+				if(er == erSuccess && (iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_UNREAD, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
 				}
 			}
+			if (er != erSuccess)
+				goto exit;
 		} 
 
 		er = lpDatabase->Commit();
@@ -8306,15 +8319,17 @@ ECRESULT CopyObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentSto
 		// Can we copy deleted items?
 		if(ulFlags & MAPI_ASSOCIATED) {
 			// Associated message undeleted
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_ASSOC_CONTENT_COUNT, 1);
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_ASSOC_CONTENT_COUNT, 1);
 		} else {
 			// Message undeleted
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
-			if((ulFlags & MSGFLAG_READ) == 0) {
+			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
+			if(er == erSuccess && (ulFlags & MSGFLAG_READ) == 0) {
 				// Undeleted message was unread
-				UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
+				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
 			}
 		}
+		if (er != erSuccess)
+			goto exit;
 
 		// Update ICS system
 		GetSourceKey(ulDestFolderId, &sParentSourceKey);
@@ -8896,16 +8911,23 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		// Update folder counters
 		if((ulObjFlags & MSGFLAG_DELETED) == MSGFLAG_DELETED) {
 			// Undelete
-			UpdateFolderCount(lpDatabase, ulOldParent, PR_DELETED_FOLDER_COUNT, -1);
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
+			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_DELETED_FOLDER_COUNT, -1);
+			if (er == erSuccess)
+				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
+			if (er == erSuccess)
+				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
 		} else {
 			// Move
-			UpdateFolderCount(lpDatabase, ulOldParent, PR_SUBFOLDERS, -1);
-			UpdateFolderCount(lpDatabase, ulOldParent, PR_FOLDER_CHILD_COUNT, -1);
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
-			UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
+			er = UpdateFolderCount(lpDatabase, ulOldParent, PR_SUBFOLDERS, -1);
+			if (er == erSuccess)
+				er = UpdateFolderCount(lpDatabase, ulOldParent, PR_FOLDER_CHILD_COUNT, -1);
+			if (er == erSuccess)
+				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_SUBFOLDERS, 1);
+			if (er == erSuccess)
+				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_FOLDER_CHILD_COUNT, 1);
 		}
+		if (er != erSuccess)
+			goto exit;
 
         er = ECTPropsPurge::AddDeferredUpdate(lpecSession, lpDatabase, ulDestFolderId, ulOldParent, ulFolderId);
         if(er != erSuccess)
@@ -11054,7 +11076,9 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	}
 
 	// Update the folder counts
-	UpdateFolderCounts(lpDatabase, ulParentId, ulFlags, lpsStreamInfo->lpPropValArray);
+	er = UpdateFolderCounts(lpDatabase, ulParentId, ulFlags, lpsStreamInfo->lpPropValArray);
+	if (er != erSuccess)
+		goto exit;
 
 	// Set PR_CONFLICT_ITEMS if available
 	if (lpsConflictItems != NULL && lpsConflictItems->ulPropTag == PR_CONFLICT_ITEMS) {

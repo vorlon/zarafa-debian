@@ -98,6 +98,7 @@ public:
 	ECRESULT		ValidateTables();
 
 	std::string		GetError();
+	DB_ERROR		GetLastError();
 	
 	ECRESULT		Begin();
 	ECRESULT		Commit();
