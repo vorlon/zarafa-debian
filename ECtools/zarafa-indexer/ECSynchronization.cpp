@@ -467,6 +467,9 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed folder with %d changes (%s) in %d seconds", ulTotalChange, str_storage(ulTotalBytes, false).c_str(), time(NULL) - ulStartTime);
 
 exit:
+	if (lpProps)
+		MAPIFreeBuffer(lpProps);
+		
 	if (lpChanges)
 		delete lpChanges;
 		

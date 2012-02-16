@@ -103,6 +103,11 @@ public:
 	 */
 	~ECChanges();
 
+	/**
+	 * Clear all changes
+	 */
+	VOID Clear();
+
     /**
 	 * Sort both lists with created and deleted items.
 	 *

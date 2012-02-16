@@ -97,9 +97,18 @@ ECChanges::ECChanges()
 
 ECChanges::~ECChanges()
 {
+	Clear();
+}
+
+VOID ECChanges::Clear()
+{
 	for_each(lCreate.begin(), lCreate.end(), sourceid_free);
 	for_each(lChange.begin(), lChange.end(), sourceid_free);
 	for_each(lDelete.begin(), lDelete.end(), sourceid_free);
+	
+	lCreate.clear();
+	lChange.clear();
+	lDelete.clear();
 }
 
 VOID ECChanges::Sort()
@@ -258,6 +267,8 @@ HRESULT ECChangeData::ClaimChanges(ECChanges *lpChanges)
 
 	pthread_mutex_lock(&m_hThreadLock);
 
+	lpChanges->Clear();
+	
 	lpChanges->lCreate.assign(m_sChanges.lCreate.begin(), m_sChanges.lCreate.end());
 	m_sChanges.lCreate.clear();
 	m_ulCreate = 0;

@@ -95,6 +95,8 @@ ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGui
 
 ECLuceneSearcher::~ECLuceneSearcher()
 {
+	if (m_lpIndex)
+		delete m_lpIndex;
 }
 
 HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher)
