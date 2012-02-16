@@ -3510,6 +3510,72 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_sending_options_enable_dsn_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  sending_options *arg1 = (sending_options *) 0 ;
+  bool arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  bool val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:sending_options_enable_dsn_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__so, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "sending_options_enable_dsn_set" "', argument " "1"" of type '" "sending_options *""'"); 
+  }
+  arg1 = reinterpret_cast< sending_options * >(argp1);
+  ecode2 = SWIG_AsVal_bool(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "sending_options_enable_dsn_set" "', argument " "2"" of type '" "bool""'");
+  } 
+  arg2 = static_cast< bool >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    if (arg1) (arg1)->enable_dsn = arg2;
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_sending_options_enable_dsn_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  sending_options *arg1 = (sending_options *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:sending_options_enable_dsn_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__so, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "sending_options_enable_dsn_get" "', argument " "1"" of type '" "sending_options *""'"); 
+  }
+  arg1 = reinterpret_cast< sending_options * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (bool) ((arg1)->enable_dsn);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_sending_options(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   sending_options *result = 0 ;
@@ -4081,6 +4147,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"sending_options_charset_upgrade_get", _wrap_sending_options_charset_upgrade_get, METH_VARARGS, NULL},
 	 { (char *)"sending_options_allow_send_to_everyone_set", _wrap_sending_options_allow_send_to_everyone_set, METH_VARARGS, NULL},
 	 { (char *)"sending_options_allow_send_to_everyone_get", _wrap_sending_options_allow_send_to_everyone_get, METH_VARARGS, NULL},
+	 { (char *)"sending_options_enable_dsn_set", _wrap_sending_options_enable_dsn_set, METH_VARARGS, NULL},
+	 { (char *)"sending_options_enable_dsn_get", _wrap_sending_options_enable_dsn_get, METH_VARARGS, NULL},
 	 { (char *)"new_sending_options", _wrap_new_sending_options, METH_VARARGS, NULL},
 	 { (char *)"delete_sending_options", _wrap_delete_sending_options, METH_VARARGS, NULL},
 	 { (char *)"sending_options_swigregister", sending_options_swigregister, METH_VARARGS, NULL},

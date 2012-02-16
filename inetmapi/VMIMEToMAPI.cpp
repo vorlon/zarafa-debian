@@ -3320,4 +3320,5 @@ void imopt_default_sending_options(sending_options *sopt) {
 	sopt->force_utf8 = false;
 	sopt->charset_upgrade = "windows-1252";
 	sopt->allow_send_to_everyone = true;
+	sopt->enable_dsn = true;
 }

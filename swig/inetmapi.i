@@ -32,6 +32,7 @@ typedef struct _so {
         bool force_utf8;
         char *charset_upgrade;
         bool allow_send_to_everyone;
+        bool enable_dsn;
         %extend {
 			sending_options() {
 				sending_options *sopt = new sending_options;

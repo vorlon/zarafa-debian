@@ -67,6 +67,7 @@
 #include "mapiext.h"
 #include <EMSAbTag.h>
 #include "ECABEntryID.h"
+#include "mapi_ptr.h"
 
 using namespace std;
 
@@ -407,9 +408,8 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
         catch (vmime::exceptions::no_such_field&) { }
 
 		// Delivery report request
-		LPSPropValue lpDeliveryReport = NULL;
-		if (mapiTransport && HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &lpDeliveryReport) == hrSuccess && lpDeliveryReport->Value.b == TRUE) {
-			MAPIFreeBuffer(lpDeliveryReport);
+		SPropValuePtr ptrDeliveryReport;
+		if (mapiTransport && HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &ptrDeliveryReport) == hrSuccess && ptrDeliveryReport->Value.b == TRUE) {
 			mapiTransport->requestDSN(true, "");
 		}
 

@@ -81,6 +81,9 @@ class sending_options(_object):
     __swig_setmethods__["allow_send_to_everyone"] = _inetmapi.sending_options_allow_send_to_everyone_set
     __swig_getmethods__["allow_send_to_everyone"] = _inetmapi.sending_options_allow_send_to_everyone_get
     if _newclass:allow_send_to_everyone = _swig_property(_inetmapi.sending_options_allow_send_to_everyone_get, _inetmapi.sending_options_allow_send_to_everyone_set)
+    __swig_setmethods__["enable_dsn"] = _inetmapi.sending_options_enable_dsn_set
+    __swig_getmethods__["enable_dsn"] = _inetmapi.sending_options_enable_dsn_get
+    if _newclass:enable_dsn = _swig_property(_inetmapi.sending_options_enable_dsn_get, _inetmapi.sending_options_enable_dsn_set)
     def __init__(self, *args): 
         this = _inetmapi.new_sending_options(*args)
         try: self.this.append(this)
