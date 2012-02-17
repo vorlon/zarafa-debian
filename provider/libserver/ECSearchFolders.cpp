@@ -897,7 +897,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 		
 		if (ulAttempts == 0) {
 			// The only way to get here is if all attempts failed with an SQL error.
-			assert(er != ZARAFA_E_DATABASE_ERROR);
+			ASSERT(er != ZARAFA_E_DATABASE_ERROR);
 			g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_FAIL);
 		}
     }
