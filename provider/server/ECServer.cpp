@@ -286,10 +286,12 @@ exit:
 ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
+#ifndef EMBEDDED_MYSQL
 	string strQuery;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpRow = NULL;
 
+	// Only supported from mysql 5.0
 	er = lpDatabase->DoSelect("SHOW TABLE STATUS WHERE engine != 'InnoDB'", &lpResult);
 	if (er != erSuccess)
 		goto exit;
@@ -308,7 +310,7 @@ ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 exit:
 	if (lpResult)
 		lpDatabase->FreeResult(lpResult);
-
+#endif
 	return er;
 }
 
