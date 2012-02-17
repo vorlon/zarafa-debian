@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-10 00:04+0100\n"
+"POT-Creation-Date: 2012-02-17 16:37+0100\n"
 "PO-Revision-Date: 2011-10-18 13:25+0200\n"
 "Last-Translator: Remon <remon@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
@@ -14,11 +14,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:326
 msgid "Configure"
 msgstr "Instellen"
 
-#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:318
 msgid "Synchronize"
 msgstr "Synchroniseren"
 
@@ -43,11 +43,11 @@ msgstr "Afwezigheid instellingen..."
 msgid "Offline"
 msgstr "Offline"
 
-#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:328
 msgid "Configure offline synchronization"
 msgstr "Offline synchronisatie instellen"
 
-#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:320
 msgid "Start offline synchronization"
 msgstr "Start offline synchronisatie"
 
@@ -70,40 +70,40 @@ msgstr "De Afwezigheid Assistent is ingeschakeld"
 msgid "Unable to save Out of Office status"
 msgstr "Kon afwezigheidsstatus niet opslaan"
 
-#: provider/ECProps/Addin.cpp:762
+#: provider/ECProps/Addin.cpp:763
 msgid "Delegates"
 msgstr "Gemachtigden"
 
-#: provider/ECProps/Addin.cpp:886 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:887 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favorieten"
 
-#: provider/ECProps/Addin.cpp:898 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:899 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Machtigingen"
 
-#: provider/ECProps/Addin.cpp:1102 provider/ECProps/Addin.cpp:1103
+#: provider/ECProps/Addin.cpp:1103 provider/ECProps/Addin.cpp:1104
 msgid "Add to Public Favorites Folder"
 msgstr "Voeg toe aan Favorieten"
 
-#: provider/ECProps/Addin.cpp:1187
+#: provider/ECProps/Addin.cpp:1188
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Kan geen MAPI sessie openen."
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2373
 msgid "Shortcut"
 msgstr "Snelkoppeling"
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Snelkoppelingenmap"
 
-#: provider/ECProps/Addin.cpp:1193
+#: provider/ECProps/Addin.cpp:1194
 msgid "Unable to get shortcut folder."
 msgstr "Kan de snelkoppelingenmap niet openen."
 
@@ -327,35 +327,35 @@ msgstr "Sluiten"
 msgid "Connection error"
 msgstr "Verbindingsfout"
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Logon error"
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:142
+#: provider/ECProps/SyncStatusDlg.cpp:145
 msgid "synchronization done"
 msgstr "synchronisatie voltooid"
 
-#: provider/ECProps/SyncStatusDlg.cpp:147
+#: provider/ECProps/SyncStatusDlg.cpp:150
 msgid "Synchronizing folders ..."
 msgstr "Mappen synchroniseren ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:149
+#: provider/ECProps/SyncStatusDlg.cpp:152
 msgid "Looking for changes ..."
 msgstr "Zoeken naar veranderingen ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:151
+#: provider/ECProps/SyncStatusDlg.cpp:154
 msgid "Synchronizing messages ..."
 msgstr "Berichten synchroniseren ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:153
+#: provider/ECProps/SyncStatusDlg.cpp:156
 msgid "Logging in ..."
 msgstr "Bezig met aanmelden ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:155
+#: provider/ECProps/SyncStatusDlg.cpp:158
 msgid "Synchronizing ..."
 msgstr "Synchroniseren ..."
 
@@ -1364,6 +1364,14 @@ msgstr "Het certificaat is vertrouwd maar wordt niet juist geverifieerd."
 msgid "Do you wish to continue?"
 msgstr "Wilt u doorgaan?"
 
+#: zarafa-libsync/ECSync.cpp:1903
+msgid ""
+"The syncronization of a folder failed. Press retry for continue or ignore to "
+"supress all errors\r\n"
+"\r\n"
+"Please contact the system administrator if this problem persists."
+msgstr ""
+
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr "Zarafa Archief"
@@ -1441,7 +1449,7 @@ msgstr ""
 "De gebruiker of groep namens wie u probeert te verzenden kan niet worden "
 "gevonden"
 
-#: spooler/mailer.cpp:2486
+#: spooler/mailer.cpp:2489
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
 

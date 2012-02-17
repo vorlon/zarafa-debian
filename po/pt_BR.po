@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-15 15:36+0100\n"
+"POT-Creation-Date: 2012-02-17 16:37+0100\n"
 "PO-Revision-Date: 2012-02-15 16:32+0200\n"
 "Last-Translator: Sebastian <s.kummer@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
@@ -14,11 +14,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:326
 msgid "Configure"
 msgstr "Configurar"
 
-#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:318
 msgid "Synchronize"
 msgstr "Sincronizar"
 
@@ -43,11 +43,11 @@ msgstr "Assistente de ausência do escritório..."
 msgid "Offline"
 msgstr "Desconectado"
 
-#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:328
 msgid "Configure offline synchronization"
 msgstr "Configurar sincronização offline"
 
-#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:320
 msgid "Start offline synchronization"
 msgstr "Iniciar sincronização offline"
 
@@ -70,40 +70,40 @@ msgstr "Opção Ausência do escritório habilitada"
 msgid "Unable to save Out of Office status"
 msgstr "Não foi possível salvar status Ausência do escritório"
 
-#: provider/ECProps/Addin.cpp:762
+#: provider/ECProps/Addin.cpp:763
 msgid "Delegates"
 msgstr "Delegado"
 
-#: provider/ECProps/Addin.cpp:886 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:887 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favoritos"
 
-#: provider/ECProps/Addin.cpp:898 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:899 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Permissões"
 
-#: provider/ECProps/Addin.cpp:1102 provider/ECProps/Addin.cpp:1103
+#: provider/ECProps/Addin.cpp:1103 provider/ECProps/Addin.cpp:1104
 msgid "Add to Public Favorites Folder"
 msgstr "Adicionar a pasta de Favoritos Público"
 
-#: provider/ECProps/Addin.cpp:1187
+#: provider/ECProps/Addin.cpp:1188
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Não foi possível iniciar sessão MAPI."
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2373
 msgid "Shortcut"
 msgstr "Atalho"
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Pasta de atalho"
 
-#: provider/ECProps/Addin.cpp:1193
+#: provider/ECProps/Addin.cpp:1194
 msgid "Unable to get shortcut folder."
 msgstr "Não foi possível ler a pasta de atalhos."
 
@@ -323,35 +323,35 @@ msgstr "Fechar"
 msgid "Connection error"
 msgstr "Erro de conexão"
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr "Nome do usuário ou senha incorreta. Por favor atualizar o perfil MAPI."
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Logon error"
 msgstr "Erro de login"
 
-#: provider/ECProps/SyncStatusDlg.cpp:142
+#: provider/ECProps/SyncStatusDlg.cpp:145
 msgid "synchronization done"
 msgstr "sincronização concluída"
 
-#: provider/ECProps/SyncStatusDlg.cpp:147
+#: provider/ECProps/SyncStatusDlg.cpp:150
 msgid "Synchronizing folders ..."
 msgstr "Sincronizando pastas ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:149
+#: provider/ECProps/SyncStatusDlg.cpp:152
 msgid "Looking for changes ..."
 msgstr "Identificando modificações ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:151
+#: provider/ECProps/SyncStatusDlg.cpp:154
 msgid "Synchronizing messages ..."
 msgstr "Sincronizando mensagens ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:153
+#: provider/ECProps/SyncStatusDlg.cpp:156
 msgid "Logging in ..."
 msgstr "Logando ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:155
+#: provider/ECProps/SyncStatusDlg.cpp:158
 msgid "Synchronizing ..."
 msgstr "Sincronizando ..."
 
@@ -1355,6 +1355,14 @@ msgstr "Este certificado é confiável mas não pôde ser verificado corretament
 #: provider/common/SOAPSock.cpp:657
 msgid "Do you wish to continue?"
 msgstr "Deseja continuar?"
+
+#: zarafa-libsync/ECSync.cpp:1903
+msgid ""
+"The syncronization of a folder failed. Press retry for continue or ignore to "
+"supress all errors\r\n"
+"\r\n"
+"Please contact the system administrator if this problem persists."
+msgstr ""
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"

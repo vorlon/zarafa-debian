@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-10 00:04+0100\n"
+"POT-Creation-Date: 2012-02-17 16:37+0100\n"
 "PO-Revision-Date: 2010-08-19 15:46+0200\n"
 "Last-Translator: Cies <cies@zarafa.com>\n"
 "Language-Team: es_CA <es@li.org>\n"
@@ -14,11 +14,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:322
+#: provider/ECProps/Addin.cpp:500 provider/ECProps/SyncBar.cpp:326
 msgid "Configure"
 msgstr "Configurar"
 
-#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:314
+#: provider/ECProps/Addin.cpp:502 provider/ECProps/SyncBar.cpp:318
 msgid "Synchronize"
 msgstr "Sincronitza"
 
@@ -43,12 +43,12 @@ msgstr "Assistent Fora de la oficina..."
 msgid "Offline"
 msgstr ""
 
-#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:324
+#: provider/ECProps/Addin.cpp:541 provider/ECProps/SyncBar.cpp:328
 #, fuzzy
 msgid "Configure offline synchronization"
 msgstr "Configurar sincronització offline de Zarafa"
 
-#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:316
+#: provider/ECProps/Addin.cpp:543 provider/ECProps/SyncBar.cpp:320
 #, fuzzy
 msgid "Start offline synchronization"
 msgstr "Començant sincronització offline de Zarafa"
@@ -72,41 +72,41 @@ msgstr "Sistema Fora de la oficina activat"
 msgid "Unable to save Out of Office status"
 msgstr ""
 
-#: provider/ECProps/Addin.cpp:762
+#: provider/ECProps/Addin.cpp:763
 msgid "Delegates"
 msgstr ""
 
-#: provider/ECProps/Addin.cpp:886 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:887 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Preferits"
 
-#: provider/ECProps/Addin.cpp:898 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:899 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Permisos"
 
-#: provider/ECProps/Addin.cpp:1102 provider/ECProps/Addin.cpp:1103
+#: provider/ECProps/Addin.cpp:1103 provider/ECProps/Addin.cpp:1104
 #, fuzzy
 msgid "Add to Public Favorites Folder"
 msgstr "Afegir a la Carpeta Preferits de Zarafa"
 
-#: provider/ECProps/Addin.cpp:1187
+#: provider/ECProps/Addin.cpp:1188
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Impossible obrir la sessió MAPI."
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2373
 msgid "Shortcut"
 msgstr "Accés directe"
 
-#: provider/ECProps/Addin.cpp:1191 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Carpeta d'accés directe"
 
-#: provider/ECProps/Addin.cpp:1193
+#: provider/ECProps/Addin.cpp:1194
 msgid "Unable to get shortcut folder."
 msgstr "Impossible obtenir accés directe de carpeta"
 
@@ -330,35 +330,35 @@ msgstr "Tancar"
 msgid "Connection error"
 msgstr "Error de connexió"
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:139
+#: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Logon error"
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:142
+#: provider/ECProps/SyncStatusDlg.cpp:145
 msgid "synchronization done"
 msgstr "Sincronització finalitzada"
 
-#: provider/ECProps/SyncStatusDlg.cpp:147
+#: provider/ECProps/SyncStatusDlg.cpp:150
 msgid "Synchronizing folders ..."
 msgstr "Sincronitzant carpetes..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:149
+#: provider/ECProps/SyncStatusDlg.cpp:152
 msgid "Looking for changes ..."
 msgstr "Revisant canvis..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:151
+#: provider/ECProps/SyncStatusDlg.cpp:154
 msgid "Synchronizing messages ..."
 msgstr "Sincronitzant missatges..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:153
+#: provider/ECProps/SyncStatusDlg.cpp:156
 msgid "Logging in ..."
 msgstr "Entrant..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:155
+#: provider/ECProps/SyncStatusDlg.cpp:158
 msgid "Synchronizing ..."
 msgstr "Sincronitzant..."
 
@@ -1361,6 +1361,14 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr ""
 
+#: zarafa-libsync/ECSync.cpp:1903
+msgid ""
+"The syncronization of a folder failed. Press retry for continue or ignore to "
+"supress all errors\r\n"
+"\r\n"
+"Please contact the system administrator if this problem persists."
+msgstr ""
+
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr ""
@@ -1434,7 +1442,7 @@ msgstr ""
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 
-#: spooler/mailer.cpp:2486
+#: spooler/mailer.cpp:2489
 msgid "Error found while trying to send your message. Error code: "
 msgstr ""
 
