@@ -653,17 +653,16 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 			er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(iterFolder->first) + " FOR UPDATE", NULL);
 			if (er == ZARAFA_E_DATABASE_ERROR) {
 				DB_ERROR dberr = lpDatabase->GetLastError();
-				if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+				if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
 					er = lpDatabase->Rollback();
 					if (er != erSuccess)
 						goto exit;
-				} else if (dberr != DB_E_LOCK_DEADLOCK) {
+					g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+					continue;
+				} else
 					goto exit;
-				}
-				continue;
-			} else if (er != erSuccess) {
+			} else if (er != erSuccess)
 				goto exit;
-			}
 			
 			if(ulType != ECKeyTable::TABLE_ROW_DELETE) {
 				// Loop through all targets for each searchfolder, if one matches, then match the restriction with the objects
@@ -859,17 +858,16 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				
 				if (er == ZARAFA_E_DATABASE_ERROR) {
 					DB_ERROR dberr = lpDatabase->GetLastError();
-					if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+					if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
 						er = lpDatabase->Rollback();
 						if (er != erSuccess)
 							goto exit;
-					} else if (dberr != DB_E_LOCK_DEADLOCK) {
+						g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+						continue;
+					} else
 						goto exit;
-					}
-					continue;
-				} else if (er != erSuccess) {
+				} else if (er != erSuccess)
 					goto exit;
-				}
 				
 				m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, iterFolder->first);
 				er = m_lpSessionManager->NotificationModified(MAPI_FOLDER, iterFolder->first);
@@ -883,19 +881,25 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 			er = lpDatabase->Commit();
 			if (er == ZARAFA_E_DATABASE_ERROR) {
 				DB_ERROR dberr = lpDatabase->GetLastError();
-				if (dberr == DB_E_LOCK_WAIT_TIMEOUT) {
+				if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
 					er = lpDatabase->Rollback();
 					if (er != erSuccess)
 						goto exit;
-				} else if (dberr != DB_E_LOCK_DEADLOCK) {
+					g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+					continue;
+				} else
 					goto exit;
-				}
-				continue;
-			} else if (er != erSuccess) {
+			} else if (er != erSuccess)
 				goto exit;
-			}
-			ulAttempts = 1;	// Causes --ulAttempts to evaluate to false
+				
+			break;	// Break the do-while loop since we succeeded
 		} while (--ulAttempts);
+		
+		if (ulAttempts == 0) {
+			// The only way to get here is if all attempts failed with an SQL error.
+			assert(er != ZARAFA_E_DATABASE_ERROR);
+			g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_FAIL);
+		}
     }
 
 exit:    
