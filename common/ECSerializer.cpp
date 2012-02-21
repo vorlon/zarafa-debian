@@ -131,12 +131,13 @@ ECRESULT ECStreamSerializer::Read(void *ptr, size_t size, size_t nmemb)
 	er = m_lpBuffer->Read(ptr, size * nmemb, &cbRead);
 	if (er != erSuccess)
 		goto exit;
+
+	m_ulRead += cbRead;
+
 	if (cbRead != size * nmemb) {
 		er = ZARAFA_E_CALL_FAILED;
 		goto exit;
 	}
-	
-	m_ulRead += size * nmemb;
 
 	switch (size) {
 	case 1: break;
@@ -167,7 +168,10 @@ ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 	LARGE_INTEGER ff;
 
 	ff.QuadPart = size*nmemb;
+	
 	er = m_lpBuffer->Seek(ff, SEEK_CUR, NULL);
+
+	m_ulRead += size*nmemb;
 
 	return er;
 }
@@ -260,12 +264,14 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 	er = m_lpBuffer->Read(ptr, size * nmemb, STR_DEF_TIMEOUT, &cbRead);
 	if (er != erSuccess)
 		goto exit;
+
+	m_ulRead += cbRead;
+
 	if (cbRead !=  size * nmemb) {
 		er = ZARAFA_E_CALL_FAILED;
 		goto exit;
 	}
 	
-	m_ulRead += size * nmemb;
 
 	switch (size) {
 	case 1: break;

@@ -349,6 +349,9 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	ULONG cValues = 0;
 	ULONG ulLastStatsTime = time(NULL);
 	ULONG ulStartTime = ulLastStatsTime;
+	ULONG ulBlockChange = 0;
+	ULONG ulBlockBytes = 0;
+	ULONG ulBytes = 0;
 	ULONG ulTotalChange = 0;
 	ULONG ulTotalBytes = 0;
 	
@@ -424,19 +427,26 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		m_lpChanges->ClaimChanges(lpChanges);
 		
 		// Synchronize has written changes to m_lpChanges, process them now
-		hr = lpLucene->IndexEntries(lpChanges->lCreate, lpChanges->lChange, lpChanges->lDelete, &ulTotalBytes);
+		ulBytes = 0;
+		
+		hr = lpLucene->IndexEntries(lpChanges->lCreate, lpChanges->lChange, lpChanges->lDelete, &ulBytes);
 		if (hr != hrSuccess)
 			goto exit;
 
+		ulTotalBytes += ulBytes;
 		ulTotalChange += ulCreate + ulChange;
+		
+		ulBlockBytes += ulBytes;
+		ulBlockChange += ulCreate + ulChange;
 			
 		if (hrSync != SYNC_W_PROGRESS)
 			break;
 			
 		if (ulLastStatsTime < time(NULL) - 10) {
 			unsigned int secs = time(NULL) - ulLastStatsTime;
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of folder processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps,str_storage(ulTotalBytes, false).c_str(), ulTotalChange, str_storage(ulTotalBytes/secs, false).c_str(), (float)ulTotalChange/secs);
+			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of folder processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps,str_storage(ulBlockBytes, false).c_str(), ulBlockChange, str_storage(ulBlockBytes/secs, false).c_str(), (float)ulBlockChange/secs);
 			ulLastStatsTime = time(NULL);
+			ulBlockBytes = ulBlockChange = 0;
 		}
 	};
 
