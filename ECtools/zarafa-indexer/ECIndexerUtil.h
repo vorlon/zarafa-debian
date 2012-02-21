@@ -51,6 +51,7 @@
 #define ECINDEXERUTIL_H
 
 #include <string>
+#include <set>
 
 #include <ECSerializer.h>
 
@@ -124,5 +125,17 @@ HRESULT CreateSyncStream(IStream **lppStream, ULONG ulInitData = 0, LPBYTE lpIni
  * @return HRESULT
  */
 HRESULT OpenProperty(IMessage *lpMessage, ULONG ulPropTag, LPVOID lpBase, LPSPropValue lpProp);
+
+/**
+ * Parse the exclude properties setting
+ *
+ * Must be space-separated hex property tags (may have leading zeros)
+ *
+ * @param[in]		szExclude	Exclude string
+ * @param[out]		setPropIDs	Property IDs to skip
+ * @return result
+ */
+HRESULT ParseProperties(const char *szExclude, std::set<unsigned int> &setPropIDs);
+
 
 #endif /* ECINDEXERUTIL_H */

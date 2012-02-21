@@ -117,6 +117,7 @@ private:
     bool m_bConnected;
     
     std::map<storeid_t, unsigned int> m_mapStores;
+    std::set<unsigned int> m_setExcludeProps;
 };
 
 #endif

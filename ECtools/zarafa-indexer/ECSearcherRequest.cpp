@@ -66,6 +66,7 @@
 #include "ECSearcher.h"
 #include "ECSearcherRequest.h"
 #include "ECIndexer.h"
+#include "ECIndexerUtil.h"
 #include "zarafa-indexer.h"
 
 ECSearcherRequest::ECSearcherRequest(ECThreadData *lpThreadData, ECIndexer *lpIndexer, ECChannel *lpChannel, BOOL bUseSSL)
@@ -339,9 +340,24 @@ HRESULT ECSearcherRequest::handleRequest(command_t ulCommand, std::vector<std::s
 	unsigned int ulMaxResults = 0;
 
 	switch (ulCommand) {
-	case COMMAND_PROPS:
+	case COMMAND_PROPS: {
+		std::set<unsigned int> setProps;
+		std::set<unsigned int>::iterator i;
+		
 		*lpstrResponse = "OK:"; // FIXME
+		
+		hr = ParseProperties(m_lpThreadData->lpConfig->GetSetting("index_exclude_properties"), setProps);
+		if (hr != hrSuccess) {
+			*lpstrResponse = stringify(MAPI_E_NOT_FOUND, true) + ": Unable to get exclude properties from configuration";
+			goto exit;
+		}
+		
+		for(i = setProps.begin(); i!= setProps.end(); i++) {
+			*lpstrResponse += stringify(*i);
+			*lpstrResponse += " ";
+		}
 		break;
+	}
 	case COMMAND_SCOPE:
 		strServerGuid = listArgs[0];
 		strStoreGuid = listArgs[1];

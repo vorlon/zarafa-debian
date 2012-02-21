@@ -54,6 +54,7 @@
 #include "ECLogger.h"
 
 #include "ECConfig.h"
+#include "ECIndexerUtil.h"
 #include "CommonUtil.h"
 #include "stringutil.h"
 #include "charset/convert.h"
@@ -72,6 +73,8 @@ ECIndexDB::ECIndexDB(ECConfig *lpConfig, ECLogger *lpLogger)
     m_lpDatabase = new ECDatabase(lpLogger);
     
     m_lpAnalyzer = new ECAnalyzer();
+    
+    ParseProperties(lpConfig->GetSetting("index_exclude_properties"), m_setExcludeProps);
 }
 
 ECIndexDB::~ECIndexDB()
@@ -91,44 +94,48 @@ HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fiel
     lucene::analysis::Token* token = NULL;
     unsigned int ulStoreId = 0;
     bool bTerms = false;
-    
-    lucene::util::StringReader reader(wstrTerm.c_str());
-    
-    stream = m_lpAnalyzer->tokenStream(L"", &reader);
-    
-    hr = Begin();
-    if(hr != hrSuccess)
-        goto exit;
-    
-    hr = GetStoreId(store, &ulStoreId, true);
-    if(hr != hrSuccess)
-        goto exit;
 
-    strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES";
-    strValues = "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '";
-
-    while((token = stream->next())) {
-        strQuery += strValues;
-        strQuery += m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
-    
-        delete token;
+    // Check if the property is excluded from indexing
+    if (m_setExcludeProps.find(field) == m_setExcludeProps.end())
+    {    
+        lucene::util::StringReader reader(wstrTerm.c_str());
         
-        bTerms = true;
-    }
-    
-    if(bTerms) {
-        // Remove trailing comma
-        strQuery.resize(strQuery.size()-1);
+        stream = m_lpAnalyzer->tokenStream(L"", &reader);
+        
+        hr = Begin();
+        if(hr != hrSuccess)
+            goto exit;
+        
+        hr = GetStoreId(store, &ulStoreId, true);
+        if(hr != hrSuccess)
+            goto exit;
 
-        hr = m_lpDatabase->DoInsert(strQuery);
+        strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES";
+        strValues = "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '";
+
+        while((token = stream->next())) {
+            strQuery += strValues;
+            strQuery += m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
+        
+            delete token;
+            
+            bTerms = true;
+        }
+        
+        if(bTerms) {
+            // Remove trailing comma
+            strQuery.resize(strQuery.size()-1);
+
+            hr = m_lpDatabase->DoInsert(strQuery);
+            if(hr != hrSuccess)
+                goto exit;
+        }
+        
+        hr = Commit();
         if(hr != hrSuccess)
             goto exit;
     }
     
-    hr = Commit();
-    if(hr != hrSuccess)
-        goto exit;
-
 exit:
     if(hr != hrSuccess)
         Rollback();

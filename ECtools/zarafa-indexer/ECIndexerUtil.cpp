@@ -68,6 +68,8 @@
 #include "charset/convert.h"
 #include "charset/utf8string.h"
 
+#include "stringutil.h"
+
 #include "mapi_ptr.h"
 
 
@@ -841,5 +843,20 @@ HRESULT OpenProperty(IMessage *lpMessage, ULONG ulPropTag, LPVOID lpBase, LPSPro
 	lpProp->Value.LPSZ = (LPTSTR)lpTmp;
 
 exit:
+	return hr;
+}
+
+HRESULT ParseProperties(const char *szExclude, std::set<unsigned int> &setPropIDs)
+{
+	HRESULT hr = hrSuccess;
+	std::vector<std::string> vecProps = tokenize(szExclude, " ");
+	std::vector<std::string>::iterator i;
+
+	setPropIDs.clear();
+		
+	for(i = vecProps.begin(); i != vecProps.end(); i++) {
+		setPropIDs.insert(xtoi(i->c_str()));
+	}
+	
 	return hr;
 }

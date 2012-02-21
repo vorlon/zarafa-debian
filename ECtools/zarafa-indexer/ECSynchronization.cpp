@@ -340,6 +340,7 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	IExchangeImportContentsChanges *lpImporter = NULL;
 	ECLuceneIndexer *lpLucene = NULL;
 	ECChanges *lpChanges = new ECChanges();
+	
 	ULONG ulCreate = 0;
 	ULONG ulChange = 0;
 	ULONG ulDelete = 0;

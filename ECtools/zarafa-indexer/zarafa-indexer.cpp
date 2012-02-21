@@ -291,8 +291,6 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 	 * sender: apple'. This quickly makes large queries which are normally limited to 1024 clauses.
 	 */
 
-	lucene::search::BooleanQuery::setMaxClauseCount(atoui(g_lpThreadData->lpConfig->GetSetting("index_max_clauses")));
-
 	hr = ECIndexer::Create(g_lpThreadData, &lpIndexer);
 	if (hr != hrSuccess)
 		goto exit;
@@ -468,7 +466,7 @@ int main(int argc, char *argv[]) {
 		{ "index_block_users", "" },
 		{ "index_block_companies", "" },
 		{ "index_allow_servers", "" },
-		{ "index_max_clauses", "50000" },
+		{ "index_exclude_properties", "007D 0064 0C1E 0075 678E 678F" }, /* PR_TRANSPORT_MESSAGE_HEADERS, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENDER_ADDRTYPE, PR_RECEIVED_BY_ADDRTYPE, PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE */
 		{ NULL, NULL },
 	};
 
