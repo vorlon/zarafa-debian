@@ -37,6 +37,8 @@
 # GPL license
 #
 
+use File::Basename;
+
 my $optionCount = 0;
 my $optionPrint = 0;
 my $optionBadEntries = 0;
@@ -57,7 +59,7 @@ die "Usage : ol-schema-migrate-v2.pl [ -c ] [ -b ] [ -d ] schema\n" .
     "  -d\tdisplay unrecognized elements, find empty and duplicated OID\n" .
     "  -h\tthis help\n" if ($filename eq "" || ($optionHelp || (!$optionCount && !$optionPrint && !$optionBadEntries)));
 
-my @name = split('\.', $filename);
+my @name = split('\.', basename($filename));
 my $schemaName = shift(@name);
 
 if($optionCount) {
