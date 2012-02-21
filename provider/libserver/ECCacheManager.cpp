@@ -113,7 +113,7 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase
 	pthread_mutex_init(&m_hCacheCellsMutex, &mattr);
 	pthread_mutex_init(&m_hCacheIndPropMutex, &mattr);
 	
-	pthread_mutex_init(&m_hIndexedPropertiesMutex, NULL);
+	pthread_mutex_init(&m_hExcludedIndexPropertiesMutex, NULL);
 
 	pthread_mutexattr_destroy(&mattr);
 
@@ -143,7 +143,7 @@ ECCacheManager::~ECCacheManager()
 	pthread_mutex_destroy(&m_hCacheIndPropMutex);
 	pthread_mutex_destroy(&m_hCacheMutex);
 	pthread_mutex_destroy(&m_hCacheCellsMutex);
-	pthread_mutex_destroy(&m_hIndexedPropertiesMutex);
+	pthread_mutex_destroy(&m_hExcludedIndexPropertiesMutex);
 }
 
 ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
@@ -184,10 +184,10 @@ ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 	
 	pthread_mutex_unlock(&m_hCacheIndPropMutex);
 
-	pthread_mutex_lock(&m_hIndexedPropertiesMutex);
+	pthread_mutex_lock(&m_hExcludedIndexPropertiesMutex);
 	if(ulFlags & PURGE_CACHE_INDEXEDPROPERTIES)
-    	m_mapIndexedProperties.clear();
-	pthread_mutex_unlock(&m_hIndexedPropertiesMutex);
+    	m_setExcludedIndexProperties.clear();
+	pthread_mutex_unlock(&m_hExcludedIndexPropertiesMutex);
 
 	pthread_mutex_lock(&m_hCacheMutex);
 
@@ -1763,14 +1763,14 @@ exit:
  * @param[out] map Map of property ID -> text name
  * @return Result
  */ 
-ECRESULT ECCacheManager::GetIndexedProperties(std::map<unsigned int, std::string>& map)
+ECRESULT ECCacheManager::GetExcludedIndexProperties(std::set<unsigned int>& set)
 {
-	scoped_lock lock(m_hIndexedPropertiesMutex);
+	scoped_lock lock(m_hExcludedIndexPropertiesMutex);
 	
-	if(m_mapIndexedProperties.empty()) {
+	if(m_setExcludedIndexProperties.empty()) {
 		return ZARAFA_E_NOT_FOUND;
 	}
-	map = m_mapIndexedProperties;
+	set = m_setExcludedIndexProperties;
 	
 	return erSuccess;
 }
@@ -1781,11 +1781,11 @@ ECRESULT ECCacheManager::GetIndexedProperties(std::map<unsigned int, std::string
  * @param[in] map Map of property ID -> text name
  * @return result
  */
-ECRESULT ECCacheManager::SetIndexedProperties(std::map<unsigned int, std::string>& map)
+ECRESULT ECCacheManager::SetExcludedIndexProperties(std::set<unsigned int>& set)
 {
-	scoped_lock lock(m_hIndexedPropertiesMutex);
+	scoped_lock lock(m_hExcludedIndexPropertiesMutex);
 	
-	m_mapIndexedProperties = map;
+	m_setExcludedIndexProperties = set;
 	
 	return erSuccess;
 }

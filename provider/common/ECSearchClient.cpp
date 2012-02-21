@@ -69,23 +69,25 @@ ECSearchClient::~ECSearchClient()
 {
 }
 
-ECRESULT ECSearchClient::GetProperties(mapindexprops_t &mapProps)
+ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 {
 	ECRESULT er = erSuccess;
+	std::vector<std::string> lstResponse;
 	std::vector<std::string> lstProps;
 	std::vector<std::string>::iterator iter;
 
-	er = DoCmd("PROPS", lstProps);
+	er = DoCmd("PROPS", lstResponse);
 	if (er != erSuccess)
 		goto exit;
 
+	setProps.clear();
+	if (lstResponse.empty())
+		goto exit; // No properties
+
+	lstProps = tokenize(lstResponse[0], " ");
+
 	for (iter = lstProps.begin(); iter != lstProps.end(); iter++) {
-
-		std::vector<std::string> tmp = tokenize(*iter, " ");
-		if (tmp.size() != 2)
-			continue;
-
-		mapProps.insert(make_pair(xtoi(tmp[1].c_str()), tmp[0]));
+		setProps.insert(atoui(iter->c_str()));
 	}
 
 exit:

@@ -64,14 +64,14 @@ typedef struct {
     std::set<unsigned int> setFields;
 } SIndexedTerm;
 
-typedef std::map<unsigned int, std::string> mapindexprops_t;
+typedef std::set<unsigned int> setindexprops_t;
 
 class ECSearchClient : public ECChannelClient {
 public:
 	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
 	~ECSearchClient();
 
-	ECRESULT GetProperties(mapindexprops_t &mapProps);
+	ECRESULT GetProperties(setindexprops_t &mapProps);
 	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int>& lstMatches);
 	ECRESULT SyncRun();
 	

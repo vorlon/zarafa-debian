@@ -671,8 +671,8 @@ public:
 	ECRESULT DumpStats();
 	
 	// Cache list of properties indexed by zarafa-indexer
-	ECRESULT GetIndexedProperties(std::map<unsigned int, std::string>& map);
-	ECRESULT SetIndexedProperties(std::map<unsigned int, std::string>& map);
+	ECRESULT GetExcludedIndexProperties(std::set<unsigned int>& set);
+	ECRESULT SetExcludedIndexProperties(std::set<unsigned int>& set);
 
 	// Test
 	void DisableCellCache();
@@ -753,8 +753,8 @@ private:
 	ECCache<ECMapObjectToProp>	m_ObjectToPropCache;
 	
 	// Properties from zarafa-indexer
-	std::map<unsigned int, std::string> m_mapIndexedProperties;
-	pthread_mutex_t				m_hIndexedPropertiesMutex;
+	std::set<unsigned int> 		m_setExcludedIndexProperties;
+	pthread_mutex_t				m_hExcludedIndexPropertiesMutex;
 	
 	// Testing
 	bool						m_bCellCacheDisabled;

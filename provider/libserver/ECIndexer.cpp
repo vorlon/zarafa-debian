@@ -215,7 +215,7 @@ exit:
  * @param sMultiSearch[out] Found search terms for the entire lpRestrict tree
  * @return result
  */
-ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, SIndexedTerm& sMultiSearch)
+ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, SIndexedTerm& sMultiSearch)
 {
     ECRESULT er = erSuccess;
     
@@ -229,7 +229,7 @@ ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, SIndexedTerm&
             if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i]))
                 continue;
                 
-            er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], terms);
+            er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
             if (er != erSuccess)
                 goto exit;
                 
@@ -248,6 +248,11 @@ ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, SIndexedTerm&
             }
         }
     } else if(lpRestrict->ulType == RES_CONTENT && (lpRestrict->lpContent->ulFuzzyLevel & (FL_SUBSTRING | FL_IGNORECASE)) == (FL_SUBSTRING | FL_IGNORECASE)) {
+        if(setExcludeProps.find(PROP_ID(lpRestrict->lpContent->ulPropTag)) != setExcludeProps.end()) {
+            // The property cannot be searched from the indexer since it has been excluded from indexing
+            er = ZARAFA_E_NOT_FOUND;
+            goto exit;
+        }
         // Only support looking for string-type properties
         if(PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_STRING8 && PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_UNICODE) {
             er = ZARAFA_E_INVALID_PARAMETER;
@@ -298,7 +303,7 @@ exit:
  * If there are multiple OR clauses inside the initial AND clause, and the search fields DIFFER, then the FIRST 'OR'
  * field is used for the multifield search.
  */
-ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, std::list<SIndexedTerm> *lpMultiSearches)
+ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches)
 {
     ECRESULT er = erSuccess;
     SIndexedTerm sMultiSearch;
@@ -307,7 +312,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
     
     if (lpRestrict->ulType == RES_AND) {
         for(unsigned int i = 0; i < lpRestrict->lpAnd->__size;) {
-            if(NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], sMultiSearch) == erSuccess) {
+            if(NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], setExcludeProps, sMultiSearch) == erSuccess) {
                 lpMultiSearches->push_back(sMultiSearch);
 
                 // Remove it from the restriction since it is now handled as a multisearch
@@ -320,7 +325,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
         }
     } else {
         // Direct RES_CONTENT
-        if(NormalizeGetMultiSearch(lpRestrict, sMultiSearch) == erSuccess) {
+        if(NormalizeGetMultiSearch(lpRestrict, setExcludeProps, sMultiSearch) == erSuccess) {
             lpMultiSearches->push_back(sMultiSearch);
             
             // We now have to remove the entire restriction since the top-level restriction here is
@@ -351,7 +356,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
  * - Derive multi-field searches from top-level AND clause (from OR clauses with substring searches, or direct substring searches)
  */
   
-ECRESULT NormalizeGetOptimalMultiFieldSearch(struct restrictTable *lpRestrict, std::list<SIndexedTerm> *lpMultiSearches )
+ECRESULT NormalizeGetOptimalMultiFieldSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches )
 {
     ECRESULT er = erSuccess;
     
@@ -362,7 +367,7 @@ ECRESULT NormalizeGetOptimalMultiFieldSearch(struct restrictTable *lpRestrict, s
         
     // Convert a series of AND's or a single text search into a new restriction and the multisearch
     // terms
-    er = NormalizeRestrictionMultiFieldSearch(lpRestrict, lpMultiSearches);
+    er = NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
     if (er != erSuccess)
         goto exit;
 exit:
@@ -392,7 +397,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 {
     ECRESULT er = erSuccess;
 	ECSearchClient *lpSearchClient = NULL;
-	std::map<unsigned int, std::string> mapIndexedPropTags;
+	std::set<unsigned int> setExcludePropTags;
 	struct timeval tstart, tend;
 	LONGLONG	llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
@@ -414,8 +419,8 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 			goto exit;
 		}
 
-/*		if(lpCacheManager->GetIndexedProperties(mapIndexedPropTags) != erSuccess) { // FIXME
-            er = lpSearchClient->GetProperties(mapIndexedPropTags);
+		if(lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
+            er = lpSearchClient->GetProperties(setExcludePropTags);
             if (er == ZARAFA_E_NETWORK_ERROR)
                 lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while connecting to indexer on %s", lpConfig->GetSetting("index_services_path"));
             else if (er != erSuccess)
@@ -424,17 +429,17 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
             if (er != erSuccess)
                 goto exit;
                 
-            er = lpCacheManager->SetIndexedProperties(mapIndexedPropTags);
+            er = lpCacheManager->SetExcludedIndexProperties(setExcludePropTags);
             
             if (er != erSuccess)
                 goto exit;
         }  
-  */      
+
         er = CopyRestrictTable(NULL, lpRestrict, &lpOptimizedRestrict);
         if (er != erSuccess)
             goto exit;
         
-        er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, &lstMultiSearches);
+        er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, setExcludePropTags, &lstMultiSearches);
         if (er != erSuccess)
             goto exit; // Note this will happen if the restriction cannot be handled by the indexer
             
