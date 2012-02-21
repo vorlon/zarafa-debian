@@ -617,6 +617,8 @@ public:
 	ECRESULT GetOwner(unsigned int ulObjId, unsigned int *ulOwner);
 	ECRESULT GetObject(unsigned int ulObjId, unsigned int *ulParent, unsigned int *ulOwner, unsigned int *ulFlags, unsigned int *ulType = NULL);
 	ECRESULT SetObject(unsigned int ulObjId, unsigned int ulParent, unsigned int ulOwner, unsigned int ulFlags, unsigned int ulType);
+	
+	ECRESULT GetObjects(std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey,ECsObjects> &mapObjects);
 
 	ECRESULT GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int maxdepth = 100);
 	ECRESULT GetStoreAndType(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int *ulType, unsigned int maxdepth = 100);

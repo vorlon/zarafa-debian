@@ -462,6 +462,80 @@ exit:
 
 }
 
+ECRESULT ECCacheManager::GetObjects(std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey,ECsObjects> &mapObjects)
+{
+	ECRESULT	er = erSuccess;
+	DB_RESULT	lpDBResult = NULL;
+	DB_ROW		lpDBRow = NULL;
+	std::string strQuery;
+	ECDatabase	*lpDatabase = NULL;
+	unsigned int	ulObjId = 0;
+	sObjectTableKey key;
+	ECsObjects  *lpsObject = NULL;
+	ECsObjects	sObject;
+	std::list<sObjectTableKey>::iterator i;
+	std::set<sObjectTableKey> setUncached;
+	std::set<sObjectTableKey>::iterator j;
+
+	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+
+	if(er != erSuccess)
+		goto exit;
+		
+    {
+        // Get everything from the cache that we can
+    	scoped_lock lock(m_hCacheMutex);
+
+        for(i = lstObjects.begin(); i != lstObjects.end(); i++) {
+            if(m_ObjectsCache.GetCacheItem(i->ulObjId, &lpsObject) == erSuccess) {
+                mapObjects[*i] = *lpsObject;
+            } else {
+                setUncached.insert(*i);
+            }
+        }
+    }
+
+    if(!setUncached.empty()) {
+        // Get uncached items from SQL
+        strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
+        
+        for(j = setUncached.begin(); j != setUncached.end(); j++) {
+            strQuery += stringify(j->ulObjId);
+            strQuery += ",";
+        }
+        
+        strQuery.resize(strQuery.size()-1);
+        strQuery += ")";
+        
+        er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+        if (er != erSuccess)
+            goto exit;
+            
+        while(lpDBRow = lpDatabase->FetchRow(lpDBResult)) {
+            if(!lpDBRow[0] || !lpDBRow[1] || !lpDBRow[2] || !lpDBRow[3])
+                continue;
+                
+            ulObjId = atoui(lpDBRow[0]);
+                
+            sObject.ulParent = atoui(lpDBRow[1]);
+            sObject.ulOwner = atoui(lpDBRow[2]);
+            sObject.ulFlags = atoui(lpDBRow[3]);
+            sObject.ulType = atoui(lpDBRow[4]);
+            
+            key.ulObjId = ulObjId;
+            key.ulOrderId = 0;
+            
+            mapObjects[key] = sObject;
+        }
+    }
+    
+exit:
+    if (lpDBResult)
+        lpDatabase->FreeResult(lpDBResult);
+        
+    return er;
+}
+
 // Get the store that the specified object belongs to
 ECRESULT ECCacheManager::GetStore(unsigned int ulObjId, unsigned int *lpulStore, GUID *lpGuid, unsigned int maxdepth)
 {

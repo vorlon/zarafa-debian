@@ -368,6 +368,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	ECObjectTableMap::iterator		iterIDs, iterIDsErase;
 	ECObjectTableList::iterator		iterRowList;
 	sObjectTableKey					sMapKey;
+	std::map<sObjectTableKey, ECsObjects> mapObjects;
+	std::map<sObjectTableKey, ECsObjects>::iterator iterObjects;
 
 	ECListInt			listMVSortCols;//Other mvprops then normal column set
 	ECListInt::iterator	iterListInt;
@@ -549,6 +551,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
         // Some cells are not done yet, do them in column-order.
        	mapStoreIdObjIds.clear();
 
+       	// Get parent info if needed
+		if(lpODStore->ulFolderId == 0)
+			lpSession->GetSessionManager()->GetCacheManager()->GetObjects(*lpRowList, mapObjects);
+
         // Split requests into same-folder blocks
         for(k=0; k < lpsPropTagArray->__size; k++) {
         	
@@ -560,11 +566,15 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				setColumnIDs.insert(k);
 				
                 if(lpODStore->ulFolderId == 0) {
-                    // Get parent folder
-                    if(lpSession->GetSessionManager()->GetCacheManager()->GetParent(iterRowList->ulObjId, &ulFolderId) != erSuccess)
+                	iterObjects = mapObjects.find(*iterRowList);
+                	
+                	if(iterObjects != mapObjects.end())
+                		ulFolderId = iterObjects->second.ulParent;
+					else {
                     	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
                     	 * the only thing we can do is return NOT_FOUND for each cell.*/
                     	ulFolderId = 0;
+					}
                 } else {
                 	ulFolderId = lpODStore->ulFolderId;
                 }
