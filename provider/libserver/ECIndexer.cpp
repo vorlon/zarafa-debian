@@ -213,9 +213,10 @@ exit:
  *
  * @param lpRestrict[in] Restriction to parse
  * @param sMultiSearch[out] Found search terms for the entire lpRestrict tree
+ * @param setExcludeProps Set of properties that are not indexed (prop id only)
  * @return result
  */
-ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, SIndexedTerm& sMultiSearch)
+ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict, const std::set<unsigned int> &setExcludeProps, SIndexedTerm& sMultiSearch)
 {
     ECRESULT er = erSuccess;
     
@@ -303,7 +304,7 @@ exit:
  * If there are multiple OR clauses inside the initial AND clause, and the search fields DIFFER, then the FIRST 'OR'
  * field is used for the multifield search.
  */
-ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches)
+ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, const std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches)
 {
     ECRESULT er = erSuccess;
     SIndexedTerm sMultiSearch;
@@ -356,7 +357,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
  * - Derive multi-field searches from top-level AND clause (from OR clauses with substring searches, or direct substring searches)
  */
   
-ECRESULT NormalizeGetOptimalMultiFieldSearch(struct restrictTable *lpRestrict, std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches )
+ECRESULT NormalizeGetOptimalMultiFieldSearch(struct restrictTable *lpRestrict, const std::set<unsigned int> &setExcludeProps, std::list<SIndexedTerm> *lpMultiSearches )
 {
     ECRESULT er = erSuccess;
     
