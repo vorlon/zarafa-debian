@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-17 16:37+0100\n"
-"PO-Revision-Date: 2011-10-18 13:25+0200\n"
-"Last-Translator: Remon <remon@zarafa.com>\n"
+"POT-Creation-Date: 2012-02-23 00:04+0100\n"
+"PO-Revision-Date: 2012-02-22 17:47+0200\n"
+"Last-Translator: Robin <r.vandenkerkhoff@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -60,7 +60,7 @@ msgstr ""
 
 #: provider/ECProps/Addin.cpp:657
 msgid "Out of Office currently on. Would you like to turn it off?"
-msgstr "De Aanwezigheid-instelling is ingeschakeld. Wilt u deze uitschakelen?"
+msgstr "De Afwezigheidsinstelling is ingeschakeld. Wilt u deze uitschakelen?"
 
 #: provider/ECProps/Addin.cpp:657
 msgid "Out Of Office Turned On"
@@ -1366,7 +1366,7 @@ msgstr "Wilt u doorgaan?"
 
 #: zarafa-libsync/ECSync.cpp:1903
 msgid ""
-"The syncronization of a folder failed. Press retry for continue or ignore to "
+"The syncronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors\r\n"
 "\r\n"
 "Please contact the system administrator if this problem persists."
@@ -1378,7 +1378,7 @@ msgstr "Zarafa Archief"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
-msgstr "Deze map bevat de speciale archief mappen."
+msgstr "Deze map bevat de speciale archiefmappen."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
@@ -1553,6 +1553,16 @@ msgstr "Geen beschrijving beschikbaar."
 #: common/Util.cpp:1779
 msgid "MAPI error code:"
 msgstr "MAPI fout code:"
+
+#~ msgid ""
+#~ "The syncronization of a folder failed. Press retry for continue or ignore to "
+#~ "supress all errors\r\n"
+#~ "\r\n"
+#~ "Please contact the system administrator if this problem persists."
+#~ msgstr ""
+#~ "De synchronisatie van een folder is mislukt. Klik 'Opnieuw' om door te gaan "
+#~ "of 'Annuleren' om verdere foutmeldingen te voorkomen\r\n"
+#~ "Neem alstublieft contact op met de systeembeheerder als dit probleem blijft."
 
 #~ msgid "Inbox -"
 #~ msgstr "Postvak -"
