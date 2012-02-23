@@ -47,23 +47,17 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,32363
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,32363"
-#define PROJECT_VERSION_CLIENT		7,1,0,32363
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,32363"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,32363"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,32363"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,32363"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,32363"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,32363"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,32363"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,32363"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,32363"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,32363"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,32363"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"32363"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			32363
+#ifndef _FILEUTIL_H
+#define _FILEUTIL_H
+
+#include <string>
+
+HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout);
+HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer, int *lpSize = NULL);
+HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap);
+HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap);
+
+bool DupFile(ECLogger *lpLogger, FILE *lpFile, std::string &strFileName);
+
+bool UCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFileName, const std::string &strDstFileName);
+

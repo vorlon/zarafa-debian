@@ -50,8 +50,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "edkmdb.h"
 #include <mapix.h>
+#include "edkmdb.h"
 #include <string>
 
 #include "ECDefs.h"
@@ -113,20 +113,10 @@ public:
 	static HRESULT bin2hex(ULONG inLength, LPBYTE input, char **output, void *parent = NULL);
 	static HRESULT hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *output, void *parent = NULL);
 
-	static HRESULT FileLFtoCRLF(FILE *fin, FILE** fout);
-	static void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
-	static void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput);
-	static void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput);
-	static bool DupFile(ECLogger *lpLogger, FILE *lpFile, std::string &strFileName);
-
 	template <size_t N>
 	static bool StrCaseCompare(const WCHAR *lpString, const WCHAR (&lpFind)[N], size_t pos = 0) {
 		return wcsncasecmp(lpString + pos, lpFind, N-1) == 0;
 	}
-
-	static HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer, int *lpSize = NULL);
-	static HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap);
-	static void HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap);
 
 	/* DoCopyTo/DoCopyProps functions & their helpers */
 	static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs);
@@ -174,7 +164,6 @@ public:
 	
 	static HRESULT ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
 	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData);
-	static bool UCS2ToUTF8(ECLogger *lpLogger, std::string &strSrcFileName, std::string &strDstFileName);
 };
 
 #define RTF_TAG_TYPE_TEXT	0x0000
