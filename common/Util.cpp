@@ -83,11 +83,6 @@
 
 using namespace std;
 
-#include <sys/mman.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
-
 #include "ECGetText.h"
 #include "charset/convert.h"
 
@@ -2492,18 +2487,6 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 
 exit:
 	return hr;
-}
-
-/** 
- * align to page boundary (4k)
- * 
- * @param size add "padding" to size to make sure it's a multiple 4096 bytes
- * 
- * @return aligned size
- */
-static inline int mmapsize(unsigned int size)
-{
-	return (((size + 1) >> 12) + 1) << 12;
 }
 
 /** 

@@ -12,6 +12,7 @@
     #include "favoritesutil.h"
     #include "Util.h"
 	#include "ECLogger.h"
+    #include "fileutil.h"
 %}
 
 %include "wchar.i"
@@ -80,10 +81,11 @@ HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, IMAPIFolder *lpFolder, 
 class Util {
 public:
     static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
-    %extend {
-        static bool UCS2ToUTF8(std::string strFile, std::string strFileDest) {
-            return Util::UCS2ToUTF8(NULL, strFile, strFileDest);
-        }
-    }
 };
 
+// functions from common/fileutil.h
+%inline %{
+    bool ConvertFileFromUCS2ToUTF8(std::string strSrcFileName, std::string strDstFileName) {
+        return ConvertFileFromUCS2ToUTF8(NULL, strSrcFileName, strDstFileName);
+    }
+%}

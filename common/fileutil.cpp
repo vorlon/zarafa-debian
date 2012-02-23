@@ -57,6 +57,10 @@
 #include <mapicode.h> // only for MAPI error codes
 #include <mapidefs.h> // only for MAPI error codes
 
+#include <sys/mman.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <arpa/inet.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -120,6 +124,18 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 
 exit:
 	return hr;
+}
+
+/** 
+ * align to page boundary (4k)
+ * 
+ * @param size add "padding" to size to make sure it's a multiple 4096 bytes
+ * 
+ * @return aligned size
+ */
+static inline int mmapsize(unsigned int size)
+{
+	return (((size + 1) >> 12) + 1) << 12;
 }
 
 /** 
@@ -333,7 +349,7 @@ exit:
  * @param[in] strSrcFileName Source filename
  * @param[in] strDstFileName Destination filename
  */
-bool UCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFileName, const std::string &strDstFileName)
+bool ConvertFileFromUCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFileName, const std::string &strDstFileName)
 {
 	bool bResult = false;
 	int ulBufferSize = 0;
