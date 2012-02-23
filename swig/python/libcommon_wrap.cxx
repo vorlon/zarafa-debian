@@ -3041,6 +3041,9 @@ SWIG_From_unsigned_SS_int  (unsigned int value)
   return SWIG_From_unsigned_SS_long  (value);
 }
 
+SWIGINTERN bool Util_UCS2ToUTF8(std::string strFile,std::string strFileDest){
+            return Util::UCS2ToUTF8(NULL, strFile, strFileDest);
+        }
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -3787,6 +3790,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Util_UCS2ToUTF8(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std::string arg1 ;
+  std::string arg2 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:Util_UCS2ToUTF8",&obj0,&obj1)) SWIG_fail;
+  {
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "Util_UCS2ToUTF8" "', argument " "1"" of type '" "std::string""'"); 
+    }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  {
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj1, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "Util_UCS2ToUTF8" "', argument " "2"" of type '" "std::string""'"); 
+    }
+    arg2 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (bool)Util_UCS2ToUTF8(arg1,arg2);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_Util(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   Util *result = 0 ;
@@ -3858,6 +3903,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DelFavoriteFolder", _wrap_DelFavoriteFolder, METH_VARARGS, NULL},
 	 { (char *)"AddFavoriteFolder", _wrap_AddFavoriteFolder, METH_VARARGS, NULL},
 	 { (char *)"Util_GetBestBody", _wrap_Util_GetBestBody, METH_VARARGS, NULL},
+	 { (char *)"Util_UCS2ToUTF8", _wrap_Util_UCS2ToUTF8, METH_VARARGS, NULL},
 	 { (char *)"new_Util", _wrap_new_Util, METH_VARARGS, NULL},
 	 { (char *)"delete_Util", _wrap_delete_Util, METH_VARARGS, NULL},
 	 { (char *)"Util_swigregister", Util_swigregister, METH_VARARGS, NULL},

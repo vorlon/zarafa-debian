@@ -80,5 +80,10 @@ HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, IMAPIFolder *lpFolder, 
 class Util {
 public:
     static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
+    %extend {
+        static bool UCS2ToUTF8(std::string strFile, std::string strFileDest) {
+            return Util::UCS2ToUTF8(NULL, strFile, strFileDest);
+        }
+    }
 };
 
