@@ -174,6 +174,7 @@ public:
 	
 	static HRESULT ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
 	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData);
+	static bool UCS2ToUTF8(ECLogger *lpLogger, std::string &strSrcFileName, std::string &strDstFileName);
 };
 
 #define RTF_TAG_TYPE_TEXT	0x0000

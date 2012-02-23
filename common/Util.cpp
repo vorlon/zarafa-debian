@@ -4731,3 +4731,73 @@ exit:
 	return hr;
 }
 
+/**
+ * Convert file from UCS2 to UTF8
+ *
+ * @param[in] lpLogger Pointer to a log object
+ * @param[in] strSrcFileName Source filename
+ * @param[in] strDstFileName Destination filename
+ */
+bool Util::UCS2ToUTF8(ECLogger *lpLogger, std::string &strSrcFileName, std::string &strDstFileName)
+{
+	bool bResult = false;
+	int ulBufferSize = 0;
+	FILE *pfSrc = NULL;
+	FILE *pfDst = NULL;
+	char *lpBuffer = NULL;
+	bool bImmap = false;
+	std::string strConverted;
+
+	pfSrc = fopen(strSrcFileName.c_str(), "rb");
+	if(pfSrc == NULL) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open file '%s', error %d", strSrcFileName.c_str(), errno);
+		else
+			perror("Unable to create file");
+
+		goto exit;
+	}
+
+	// create new file
+	pfDst = fopen(strDstFileName.c_str(), "wb");
+	if(pfDst == NULL) {
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create file '%s', error %d", strDstFileName.c_str(), errno);
+		else
+			perror("Unable to create file");
+
+		goto exit;
+	}
+
+	if(HrMapFileToBuffer(pfSrc, &lpBuffer, &ulBufferSize, &bImmap))
+		goto exit;
+
+	try {
+		strConverted = convert_to<std::string>("UTF-8", lpBuffer, ulBufferSize, "UCS-2//IGNORE");
+	} catch (const convert_exception &e) {
+		goto exit;
+	}
+	
+	if (fwrite(strConverted.c_str(), sizeof(char), strConverted.size(), pfDst) != strConverted.size()) { 
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write to file '%s', error %d", strDstFileName.c_str(), errno);
+		else
+			perror("Write error");
+
+		goto exit;
+	}
+
+	bResult = true;
+
+exit:
+	if (lpBuffer)
+		HrUnmapFileBuffer(lpBuffer, ulBufferSize, bImmap);
+	
+	if (pfSrc)
+		fclose(pfSrc);
+
+	if (pfDst)
+		fclose(pfDst);
+
+	return bResult;
+}
