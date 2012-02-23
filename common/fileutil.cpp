@@ -364,7 +364,7 @@ bool ConvertFileFromUCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFile
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open file '%s', error %d", strSrcFileName.c_str(), errno);
 		else
-			perror("Unable to create file");
+			perror("Unable to open file");
 
 		goto exit;
 	}
