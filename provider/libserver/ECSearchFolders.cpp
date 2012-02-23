@@ -1451,7 +1451,6 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     std::string strQuery;
     unsigned int ulInserted = 0;
     unsigned int ulModified = 0;
-    unsigned int n = 0;
     
     ASSERT(lstObjId.size() == lstFlags.size());
     
@@ -1476,21 +1475,21 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     if (er != erSuccess)
         goto exit;
 
-	strQuery = "UPDATE searchresults SET flags = 0 WHERE hierarchyid IN(";
+    /*
+     * Combining the following queries in one query seems to cause MySQL to do a range- or gaplock, causing deadlocks
+     * when folders with adjacent ids are updated at the same time.
+     */
     for(std::list<unsigned int>::iterator i = lstFlags.begin(), j = lstObjId.begin(); i != lstFlags.end(); i++, j++) {
         if(*i == 0) {
-            strQuery += stringify(*j);
-            strQuery += ",";
-            n++;
+            unsigned int modified = 0;
+            
+            strQuery = "UPDATE searchresults SET flags = 0 WHERE hierarchyid = " + stringify(*j) + " AND folderid = " + stringify(ulFolderId);
+            er = lpDatabase->DoUpdate(strQuery, &modified);
+            if (er != erSuccess)
+                goto exit;
+
+            ulModified += modified;
         }
-    }
-    strQuery.resize(strQuery.size()-1);
-    strQuery += ") AND folderid = " + stringify(ulFolderId);
-    
-    if (n > 0) {
-        er = lpDatabase->DoUpdate(strQuery, &ulModified);
-        if (er != erSuccess)
-            goto exit;
     }
 
     if(lpulCount)
