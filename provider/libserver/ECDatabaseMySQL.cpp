@@ -506,6 +506,19 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 
 	if(err) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL Failed: %s, Query Size: %u, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
+		if (mysql_errno(&m_lpMySQL) == ER_LOCK_DEADLOCK) {
+			const char* lpQuery = "SHOW ENGINE INNODB STATUS";
+			err = mysql_real_query(&m_lpMySQL, lpQuery, strlen(lpQuery));
+			if (!err) {
+				MYSQL_RES *lpResult = mysql_use_result(&m_lpMySQL);
+				if (lpResult) {
+					MYSQL_ROW row = mysql_fetch_row(lpResult);
+					if (row && row[0])
+						m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s", row[0]);
+					mysql_free_result(lpResult);
+				}
+			}
+		}
 		er = ZARAFA_E_DATABASE_ERROR;
 		ASSERT(false);
 	}
