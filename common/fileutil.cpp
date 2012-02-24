@@ -385,9 +385,7 @@ bool ConvertFileFromUCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFile
 
 	try {
 		strConverted = convert_to<std::string>("UTF-8", lpBuffer, ulBufferSize, "UCS-2//IGNORE");
-	} catch (const illegal_sequence_exception &e) {
-		goto exit;
-	} catch (const convert_exception &e) {
+	} catch (const std::runtime_error &) {
 		goto exit;
 	}
 	
