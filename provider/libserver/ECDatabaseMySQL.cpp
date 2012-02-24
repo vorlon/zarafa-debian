@@ -206,6 +206,8 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger, ECConfig *lpConfig)
 	m_bAutoLock			= true;
 	m_lpLogger			= lpLogger;
 	m_lpConfig			= lpConfig;
+	m_mysql_error		= "MYSQL not initialized";
+	m_mysql_errno		= 0;
 
 	// Create a mutex handle for mysql
 	pthread_mutexattr_t mattr;
@@ -280,6 +282,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	}
 
 	m_bMysqlInitialize = true; 
+	m_mysql_error.clear();
 
 	// Set auto reconnect OFF
 	// mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off
@@ -506,6 +509,21 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 
 	if(err) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL Failed: %s, Query Size: %u, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
+		m_mysql_errno = mysql_errno(&m_lpMySQL);
+		m_mysql_error = mysql_error(&m_lpMySQL);
+		if (m_mysql_errno == ER_LOCK_DEADLOCK) {
+			const char* lpQuery = "SHOW ENGINE INNODB STATUS";
+			err = mysql_real_query(&m_lpMySQL, lpQuery, strlen(lpQuery));
+			if (!err) {
+				MYSQL_RES *lpResult = mysql_use_result(&m_lpMySQL);
+				if (lpResult) {
+					MYSQL_ROW row = mysql_fetch_row(lpResult);
+					if (row && row[0])
+						m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s", row[0]);
+					mysql_free_result(lpResult);
+				}
+			}
+		}
 		er = ZARAFA_E_DATABASE_ERROR;
 		ASSERT(false);
 	}
@@ -899,17 +917,14 @@ void ECDatabaseMySQL::ResetResult(DB_RESULT sResult) {
 
 std::string ECDatabaseMySQL::GetError()
 {
-	if(m_bMysqlInitialize == false)
-		return "MYSQL not initialized";
-
-	return mysql_error(&m_lpMySQL);
+	return m_mysql_error;
 }
 
 DB_ERROR ECDatabaseMySQL::GetLastError()
 {
 	DB_ERROR dberr;
 	
-	switch (mysql_errno(&m_lpMySQL)) {
+	switch (m_mysql_errno) {
 		case ER_LOCK_WAIT_TIMEOUT:
 			dberr = DB_E_LOCK_WAIT_TIMEOUT;
 			break;

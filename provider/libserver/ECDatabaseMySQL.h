@@ -155,6 +155,8 @@ private:
 	bool				m_bLocked;
 	static std::string	m_strDatabaseDir;
 	ECConfig *			m_lpConfig;
+	std::string			m_mysql_error;
+	int					m_mysql_errno;
 #ifdef DEBUG
     unsigned int		m_ulTransactionState;
 #endif
