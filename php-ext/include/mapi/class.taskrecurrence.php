@@ -334,7 +334,7 @@
 
 			// Update body of original message
 			$msgbody = mapi_message_openproperty($this->message, PR_BODY);
-			$msgbody = trim($this->windows1252_to_utf8($msgbody), "\0");
+			$msgbody = trim($msgbody, "\0");
 			$separator = "------------\r\n";
 
 			if (!empty($msgbody) && strrpos($msgbody, $separator) === false) {
@@ -443,23 +443,6 @@
 			mapi_savechanges($this->message);
 
 			return $result;
-		}
-
-		/**
-		* Convert from windows-1252 encoded string to UTF-8 string
-		*
-		* The same conversion rules as utf8_to_windows1252 apply.
-		*
-		* @param string $string the Windows-1252 string to convert
-		* @return string UTF-8 representation of the string
-		*/
-		function windows1252_to_utf8($string)
-		{
-			if (function_exists("iconv")){
-				return iconv("Windows-1252", "UTF-8//TRANSLIT", $string);
-			}else{
-				return utf8_encode($string); // no euro support here
-			}
 		}
 	}
 ?>
