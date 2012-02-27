@@ -353,6 +353,14 @@ typedef EID * PEID;
 // Server side message locking
 #define ZARAFA_CAP_MSGLOCK				0x0400
 
+
+//
+// Logon flags, sent with ns__logon()
+//
+// Don't allow uid based authentication (unix socket only)
+#define ZARAFA_LOGON_NO_UID_AUTH		0x0001
+
+
 // MTOM IDs
 #define MTOM_ID_EXPORTMESSAGES			"idExportMessages"
 

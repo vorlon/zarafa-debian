@@ -254,6 +254,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	unsigned int	ulCapabilities = 0;
+	unsigned int	ulLogonFlags = 0;
 	unsigned int	ulServerCapabilities = 0;
 	ECSESSIONID		ecSessionId = 0;
 	ZarafaCmd*		lpCmd = NULL;
@@ -303,10 +304,13 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid);
 		if (er == erSuccess)
 			goto auth;
+	} else {
+		if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH)
+			ulLogonFlags |= ZARAFA_LOGON_NO_UID_AUTH;
 	}
 	
 	// Login with username and password
-	if (SOAP_OK != lpCmd->ns__logon((char*)strUserName.c_str(), (char *)strPassword.c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
+	if (SOAP_OK != lpCmd->ns__logon((char*)strUserName.c_str(), (char *)strPassword.c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
 		er = ZARAFA_E_SERVER_NOT_RESPONDING;
 	else
 		er = sResponse.er;
@@ -316,7 +320,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	// then the password was also simply wrong.
 	if(er == ZARAFA_E_LOGON_FAILED && SymmetricIsCrypted(sProfileProps.strPassword) && !(sResponse.ulCapabilities & ZARAFA_CAP_CRYPT)) {
 		// Login with username and password
-		if (SOAP_OK != lpCmd->ns__logon((char *)strUserName.c_str(), (char *)SymmetricDecrypt(sProfileProps.strPassword).c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
+		if (SOAP_OK != lpCmd->ns__logon((char *)strUserName.c_str(), (char *)SymmetricDecrypt(sProfileProps.strPassword).c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
 			er = ZARAFA_E_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;

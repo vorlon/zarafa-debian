@@ -597,7 +597,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	return er;
 }
 
-ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
 {
 	ECRESULT		er			= erSuccess;
 	ECAuthSession	*lpAuthSession	= NULL;
@@ -625,7 +625,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 	}
 
 	// First, try socket authentication (dagent, won't print error)
-	if(lpAuthSession->ValidateUserSocket(soap->socket, szName) == erSuccess) {
+	if(fAllowUidAuth && lpAuthSession->ValidateUserSocket(soap->socket, szName) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_SOCKET);
 		method = "Pipe socket";
 		goto authenticated;

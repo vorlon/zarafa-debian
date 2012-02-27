@@ -40,7 +40,7 @@ def OpenECSession(user, password, path, **keywords):
     if keywords.has_key('sslkey_pass') and keywords['sslkey_pass']:
         profprops += [ SPropValue(PR_EC_SSLKEY_PASS, keywords['sslkey_pass']) ]
 
-    flags = 1
+    flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
     if keywords.has_key('flags'):
         flags = keywords['flags']
     profprops += [ SPropValue(PR_EC_FLAGS, flags) ]
