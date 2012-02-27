@@ -2873,7 +2873,7 @@ void *HandlerLMTP(void *lpArg) {
 							WCHAR wbuffer[4096];
 							for (i = (*iRecipient)->vwstrRecipients.begin(); i != (*iRecipient)->vwstrRecipients.end(); i++) {
 								swprintf(wbuffer, arraySize(wbuffer), (*iRecipient)->wstrDeliveryStatus.c_str(), i->c_str());
-								// rawsize() returns N, not contents len
+								// rawsize([N]) returns N, not contents len
 								lmtp.HrResponse(convert_to<string>(CHARSET_CHAR, wbuffer, rawsize((WCHAR*)wbuffer), CHARSET_WCHAR));
 							}
 						}
