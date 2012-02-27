@@ -61,7 +61,11 @@
  * The actual decoding is done by the inetmapi library.
  */
 /*
- * Deliver status codes: Class.Subject.Detail (rfc 1893)
+ * An LMTP reply contains:
+ * <SMTP code> <ESMTP code> <message>
+ * See RFC 1123 and 2821 for normal codes, 1893 and 2034 for enhanced codes.
+ *
+ * Enhanced Delivery status codes: Class.Subject.Detail
  *
  * Classes:
  * 2 = Success, 4 = Persistent Transient Failure, 5 = Permanent Failure
@@ -210,6 +214,7 @@ public:
 
 		/* strRCPT much match recipient string from LMTP caller */
 		wstrRCPT = wstrName;
+		vwstrRecipients.push_back(wstrName);
 
 		ulDisplayType = 0;
 		ulAdminLevel = 0;
@@ -222,34 +227,6 @@ public:
 		sSearchKey.lpb = NULL;
 	}
 
-	ECRecipient(ECRecipient &copy)
-	{
-		HRESULT hr = hrSuccess;
-
-		bResolved = copy.bResolved;
-		wstrRCPT = copy.wstrRCPT;
-
-		wstrUsername = copy.wstrUsername;
-		wstrFullname = copy.wstrFullname;
-		wstrCompany = copy.wstrCompany;
-		strSMTP = copy.strSMTP;
-		wstrServerDisplayName = copy.wstrServerDisplayName;
-		ulDisplayType = copy.ulDisplayType;
-		ulAdminLevel = copy.ulAdminLevel;
-		strAddrType = copy.strAddrType;
-		wstrEmail = copy.wstrEmail;
-		wstrDeliveryStatus = copy.wstrDeliveryStatus;
-		bHasIMAP = copy.bHasIMAP;
-
-		hr = Util::HrCopyBinary(copy.sEntryId.cb, copy.sEntryId.lpb,
-								&sEntryId.cb, &sEntryId.lpb);
-		ASSERT(hr == hrSuccess);
-
-		hr = Util::HrCopyBinary(copy.sSearchKey.cb, copy.sSearchKey.lpb,
-								&sSearchKey.cb, &sSearchKey.lpb);
-		ASSERT(hr == hrSuccess);
-	}
-
 	~ECRecipient()
 	{
 		if (sEntryId.lpb)
@@ -258,15 +235,23 @@ public:
 			MAPIFreeBuffer(sSearchKey.lpb);
 	}
 
-	// sort recipients on imap data flag
+	void combine(ECRecipient *lpRecip) {
+		vwstrRecipients.push_back(lpRecip->wstrRCPT);
+	}
+
+	// sort recipients on imap data flag, then on username so find() for combine() works correctly.
 	bool operator <(const ECRecipient &r) const {
-		return this->bHasIMAP && !r.bHasIMAP;
+		if (this->bHasIMAP == r.bHasIMAP)
+			return this->wstrUsername < r.wstrUsername;
+		else
+			return this->bHasIMAP && !r.bHasIMAP;
 	}
 
 	BOOL bResolved;
 
 	/* Information from LMTP caller */
 	std::wstring wstrRCPT;
+	std::vector<std::wstring> vwstrRecipients;
 
 	/* User properties */
 	std::wstring wstrUsername;
@@ -303,7 +288,7 @@ public:
 	}
 };
 
-typedef std::multiset<ECRecipient *, sortRecipients> recipients_t;
+typedef std::set<ECRecipient *, sortRecipients> recipients_t;
 // we group by server to correctly single-instance the email data on each server
 typedef std::map<std::wstring, recipients_t, wcscasecmp_comparison> serverrecipients_t;
 // then we group by company to minimize re-opening the addressbook
@@ -864,6 +849,7 @@ HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips, ECRecipient **l
 	HRESULT hr = hrSuccess;
 	companyrecipients_t::iterator iterCMP;
 	serverrecipients_t::iterator iterSRV;
+	recipients_t::iterator iterRecip;
 	ECRecipient *lpRecipient = *lppRecipient;
 
 	if (!lpCompanyRecips) {
@@ -878,10 +864,15 @@ HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips, ECRecipient **l
 	iterSRV = iterCMP->second.insert(serverrecipients_t::value_type(lpRecipient->wstrServerDisplayName, recipients_t())).first;
 
 	// insert into sorted set
-	iterSRV->second.insert(lpRecipient);
-
-	// The recipient is in the list, and no longer belongs to the caller
-	*lppRecipient = NULL;
+	iterRecip = iterSRV->second.find(lpRecipient);
+	if (iterRecip == iterSRV->second.end()) {
+		iterSRV->second.insert(lpRecipient);
+		// The recipient is in the list, and no longer belongs to the caller
+		*lppRecipient = NULL;
+	} else {
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Combining recipient %ls and %ls, delivering only once", lpRecipient->wstrRCPT.c_str(), (*iterRecip)->wstrUsername.c_str());
+		(*iterRecip)->combine(lpRecipient);
+	}
 
 exit:
 	return hr;
@@ -2005,13 +1996,13 @@ HRESULT HrGetSession(DeliveryArgs *lpArgs, const WCHAR *szUsername, IMAPISession
 		// if connecting fails, the mailer should try to deliver again.
 		switch (hr) {
 		case MAPI_E_NETWORK_ERROR:
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to zarafa server, using socket: '%s'", lpArgs->strPath.c_str());
+			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to zarafa server for user %ls, using socket: '%s'", szUsername, lpArgs->strPath.c_str());
 			break;
 
 		// MAPI_E_NO_ACCESS or MAPI_E_LOGON_FAILED are fatal (user does not exist)
 		case MAPI_E_LOGON_FAILED:
 			// running dagent as unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Access denied or Connection failed, using socket: '%s', error code: 0x%08X", lpArgs->strPath.c_str(), hr);
+			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Access denied or Connection failed for user %ls, using socket: '%s', error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
 			// so also log userid we're running as
 			pwd = getpwuid(getuid());
 			if (pwd && pwd->pw_name)
@@ -2345,7 +2336,7 @@ void RespondMessageExpired(recipients_t::iterator start, recipients_t::iterator 
 	convert_context converter;
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Message was expired, not delivering");
 	for (recipients_t::iterator iter = start; iter != end; iter++)
-		(*iter)->wstrDeliveryStatus = (*iter)->wstrRCPT + L" Delivery time expired";
+		(*iter)->wstrDeliveryStatus = L"250 2.4.7 %ls Delivery time expired";
 }
 
 /** 
@@ -2392,7 +2383,7 @@ HRESULT ProcessDeliveryToServer(IMAPISession *lpUserSession, IMessage *lpMessage
 		// notify LMTP client soft error to try again later
 		for (iter = listRecipients.begin(); iter != listRecipients.end(); iter++) {
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
-			(*iter)->wstrDeliveryStatus = L"450 4.5.0 " + (*iter)->wstrRCPT + L" network or permissions error to zarafa server: " + wstringify(hr, true);
+			(*iter)->wstrDeliveryStatus = L"450 4.5.0 %ls network or permissions error to zarafa server: " + wstringify(hr, true);
 		}
 
 		goto exit;
@@ -2419,7 +2410,7 @@ HRESULT ProcessDeliveryToServer(IMAPISession *lpUserSession, IMessage *lpMessage
 			// cancel already logged.
 			hr = hrSuccess;
 
-			(*iter)->wstrDeliveryStatus = L"250 2.1.5 " + (*iter)->wstrRCPT + L" Ok";
+			(*iter)->wstrDeliveryStatus = L"250 2.1.5 %ls Ok";
 		} else if (hr == MAPI_W_CANCEL_MESSAGE) {
 			/* Loop through all remaining recipients and start responding the status to LMTP */
 			RespondMessageExpired(iter, listRecipients.end());
@@ -2429,9 +2420,9 @@ HRESULT ProcessDeliveryToServer(IMAPISession *lpUserSession, IMessage *lpMessage
 				
 			/* LMTP requires different notification when Quota for user was exceeded */
 			if (hr == MAPI_E_STORE_FULL)
-				(*iter)->wstrDeliveryStatus = L"522 5.2.2 " + (*iter)->wstrRCPT + L" Quota Exceeded";
+				(*iter)->wstrDeliveryStatus = L"552 5.2.2 %ls Quota Exceeded";
 			else
-				(*iter)->wstrDeliveryStatus = L"450 4.2.0 " + (*iter)->wstrRCPT + L" Mailbox Temporarily Unavailable";
+				(*iter)->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox Temporarily Unavailable";
 		}
 
 		if (lpMessageTmp) {
@@ -2816,7 +2807,7 @@ void *HandlerLMTP(void *lpArg) {
 				hr = ResolveUser(lpArgs, lpAddrDir, lpRecipient);
 				if (hr == hrSuccess) {
 					// This is the status until it is delivered or some other error occurs
-					lpRecipient->wstrDeliveryStatus = L"450 4.2.0 " + lpRecipient->wstrRCPT + L" Mailbox Temporarily Unavailable";
+					lpRecipient->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox Temporarily Unavailable";
 					
 					hr = AddServerRecipient(&mapRCPT, &lpRecipient);
 					if (hr != hrSuccess)
@@ -2878,7 +2869,13 @@ void *HandlerLMTP(void *lpArg) {
 				for(companyrecipients_t::iterator iCompany = mapRCPT.begin(); iCompany != mapRCPT.end(); iCompany++) {
 					for(serverrecipients_t::iterator iServer = iCompany->second.begin(); iServer != iCompany->second.end(); iServer++) {
 						for(recipients_t::iterator iRecipient = iServer->second.begin(); iRecipient != iServer->second.end(); iRecipient++) {
-							lmtp.HrResponse(convert_to<string>((*iRecipient)->wstrDeliveryStatus).c_str());
+							std::vector<std::wstring>::iterator i;
+							WCHAR wbuffer[4096];
+							for (i = (*iRecipient)->vwstrRecipients.begin(); i != (*iRecipient)->vwstrRecipients.end(); i++) {
+								swprintf(wbuffer, arraySize(wbuffer), (*iRecipient)->wstrDeliveryStatus.c_str(), i->c_str());
+								// rawsize() returns N, not contents len
+								lmtp.HrResponse(convert_to<string>(CHARSET_CHAR, wbuffer, rawsize((WCHAR*)wbuffer), CHARSET_WCHAR));
+							}
 						}
 					}
 				}
