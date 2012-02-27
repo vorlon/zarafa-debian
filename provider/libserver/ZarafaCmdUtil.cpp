@@ -1969,7 +1969,7 @@ ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *
 	*lpulStoreType = atoui(lpDBRow[0]);
 
 exit:
-	if (lpDatabase && lpDBResult)
+	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
 	return er;
