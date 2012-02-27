@@ -1548,6 +1548,8 @@ unsigned int ECKeyTable::GetObjectSize()
 
 	ulSize += m_mapBookmarks.size() * sizeof(ECBookmarkMap::value_type);
 
+	pthread_mutex_unlock(&mLock);
+
 	return ulSize;
 }
 
