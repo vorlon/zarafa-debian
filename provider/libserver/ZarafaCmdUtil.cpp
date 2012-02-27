@@ -1950,6 +1950,10 @@ ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *
 	std::string strQuery;
 
 	lpDatabase = lpSession->GetDatabase();
+	if (!lpDatabase) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
 
 	strQuery = "SELECT s.type FROM stores AS s JOIN hierarchy AS h ON s.hierarchy_id=h.id AND s.user_id=h.owner AND h.type=" + stringify(MAPI_STORE) + " AND h.id=" + stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1965,7 +1969,7 @@ ECRESULT GetStoreType(ECSession *lpSession, unsigned int ulObjId, unsigned int *
 	*lpulStoreType = atoui(lpDBRow[0]);
 
 exit:
-	if (lpDBResult)
+	if (lpDatabase && lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
 	return er;
