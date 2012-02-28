@@ -164,7 +164,7 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId)
 
     m_lpIndex = new IndexDB();
 
-    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct#zcomp=zlib", PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OREADER)) {
+    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct#zcomp=zlib#opts=c", PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OREADER)) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index: %s", m_lpIndex->error().message());
         hr = MAPI_E_NOT_FOUND;
         goto exit;
