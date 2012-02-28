@@ -511,7 +511,7 @@ ECRESULT ECCacheManager::GetObjects(std::list<sObjectTableKey> &lstObjects, std:
         if (er != erSuccess)
             goto exit;
             
-        while(lpDBRow = lpDatabase->FetchRow(lpDBResult)) {
+        while((lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
             if(!lpDBRow[0] || !lpDBRow[1] || !lpDBRow[2] || !lpDBRow[3])
                 continue;
                 

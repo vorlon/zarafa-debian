@@ -1097,11 +1097,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	if(er != erSuccess)
 		goto exit;
 	ecODStore.lpGuid = &guidStore;
-
-    // Get database
-    er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
-    if(er != erSuccess)
-        goto exit;
     
     // Get the owner of the store
     er = m_lpSessionManager->GetCacheManager()->GetObject(ulStoreId, NULL, &ulUserId, NULL, NULL);
@@ -1114,6 +1109,10 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
         goto exit;
         
     lpSession->Lock();
+
+	er = lpSession->GetDatabase(&lpDatabase);
+	if(er != erSuccess)
+		goto exit;
 
     // Get target folders
 	er = m_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpSearchCrit->lpFolders, &lstFolders);
@@ -1153,7 +1152,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	if(er != erSuccess)
 		goto exit;
 	
-	if(GetIndexerResults(lpSession->GetDatabase(), m_lpSessionManager->GetConfig(), m_lpLogger, m_lpSessionManager->GetCacheManager(), &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict, &lpAdditionalRestrict, lstIndexerResults) == erSuccess) {
+	if(GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), m_lpLogger, m_lpSessionManager->GetCacheManager(), &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict, &lpAdditionalRestrict, lstIndexerResults) == erSuccess) {
 		// Get the additional restriction properties ready
 		er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
 		if(er != erSuccess)
