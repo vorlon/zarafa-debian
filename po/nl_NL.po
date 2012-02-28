@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-23 00:04+0100\n"
-"PO-Revision-Date: 2012-02-22 17:47+0200\n"
+"POT-Creation-Date: 2012-02-29 00:05+0100\n"
+"PO-Revision-Date: 2012-02-28 10:21+0200\n"
 "Last-Translator: Robin <r.vandenkerkhoff@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
@@ -627,7 +627,7 @@ msgid "Tasks"
 msgstr "Taken"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2390
+#: provider/libserver/ECGenProps.cpp:922 provider/client/ECMsgStore.cpp:2390
 msgid "Inbox"
 msgstr "Postvak IN"
 
@@ -791,13 +791,13 @@ msgstr "Uw offline bestanden wordt bijgewerkt..."
 msgid "Upgrade: "
 msgstr "Bijwerken: "
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:880
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Publieke Mappen"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:924
 msgid "Archive"
 msgstr ""
 
@@ -1364,13 +1364,17 @@ msgstr "Het certificaat is vertrouwd maar wordt niet juist geverifieerd."
 msgid "Do you wish to continue?"
 msgstr "Wilt u doorgaan?"
 
-#: zarafa-libsync/ECSync.cpp:1903
+#: zarafa-libsync/ECSync.cpp:1927
 msgid ""
 "The syncronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors\r\n"
 "\r\n"
 "Please contact the system administrator if this problem persists."
 msgstr ""
+"De synchronizatie van mappen is mislukt. Klik op opnieuw om verder te gaan "
+"of op negeer om problemen te onderdrukken.\r\n"
+" \r\n"
+"Neem contact op met de systeem beheerder als de problemen aanhouden."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
@@ -1453,19 +1457,19 @@ msgstr ""
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
 
-#: common/Util.cpp:1735
+#: common/Util.cpp:1728
 msgid "End of Session"
 msgstr "Einde van de Sessie"
 
-#: common/Util.cpp:1738
+#: common/Util.cpp:1731
 msgid "Connection lost"
 msgstr "Verbinding verbroken"
 
-#: common/Util.cpp:1741
+#: common/Util.cpp:1734
 msgid "Access denied"
 msgstr "Toegang geweigerd"
 
-#: common/Util.cpp:1744
+#: common/Util.cpp:1737
 msgid ""
 "Unable to move or copy folders. Can't copy folder. A top-level can't be "
 "copied to one of its subfolders. Or, you may not have appropriate "
@@ -1478,7 +1482,7 @@ msgstr ""
 "op de map met uw rechter muisknop, en selecteer 'Eigenschappen' in het "
 "contextmenu."
 
-#: common/Util.cpp:1747
+#: common/Util.cpp:1740
 msgid ""
 "The message store has reached its maximum size. To reduce the amount of data "
 "in this message store, select some items that you no longer need, and "
@@ -1488,7 +1492,7 @@ msgstr ""
 "store te verminderen dient u items te selecteren die u niet langer nodig "
 "heeft, en ze permanent (SHIFT + DEL) te verwijderen."
 
-#: common/Util.cpp:1750
+#: common/Util.cpp:1743
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
@@ -1496,11 +1500,11 @@ msgstr ""
 "De gebruiker heeft de operatie geannuleerd, gebruikelijk door op annuleren "
 "te klikken in een dialoog venster."
 
-#: common/Util.cpp:1753
+#: common/Util.cpp:1746
 msgid "A logon session could not be established."
 msgstr "Er kon geen login sessie tot stand komen."
 
-#: common/Util.cpp:1756
+#: common/Util.cpp:1749
 msgid ""
 "The name of the folder being moved or copied is the same as that of a "
 "subfolder in the destination folder. The message store provider requires "
@@ -1509,7 +1513,7 @@ msgstr ""
 "De naam van de map die u verplaatst of kopieert bestaat reeds in de doelmap. "
 "Mapnamen moeten uniek zijn. De actie wordt afgebroken."
 
-#: common/Util.cpp:1759
+#: common/Util.cpp:1752
 msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
@@ -1517,7 +1521,7 @@ msgstr ""
 "De actie is voltooid, maar niet alle items konden worden verwerkt, "
 "gekopieerd, verwijderd of verplaatst."
 
-#: common/Util.cpp:1762
+#: common/Util.cpp:1755
 msgid ""
 "The provider does not have enough information to complete the logon. Or, the "
 "service provider has not been configured."
@@ -1525,7 +1529,7 @@ msgstr ""
 "De MAPI provider heeft niet genoeg informatie om uw login af te ronden. Of, "
 "de MAPI service provider is niet geconfigureerd."
 
-#: common/Util.cpp:1765
+#: common/Util.cpp:1758
 msgid ""
 "One of the providers cannot log on, but this error should not disable the "
 "other services."
@@ -1533,24 +1537,24 @@ msgstr ""
 "Een van de MAPI provider kan niet inloggen, maar deze fout zou andere "
 "services niet moeten uitschakelen."
 
-#: common/Util.cpp:1768
+#: common/Util.cpp:1761
 msgid "A database error or I/O error has occurred."
 msgstr "Een database- of I/O-fout heeft zich voorgedaan."
 
-#: common/Util.cpp:1771
+#: common/Util.cpp:1764
 msgid "The subfolder being deleted contains subfolders."
 msgstr ""
 "De onderliggende map welke verwijdert wordt bevat zelf onderliggende mappen"
 
-#: common/Util.cpp:1774
+#: common/Util.cpp:1767
 msgid "The subfolder being deleted contains messages."
 msgstr "De onderliggende map die verwijdert wordt bevat berichten"
 
-#: common/Util.cpp:1777
+#: common/Util.cpp:1770
 msgid "No description available."
 msgstr "Geen beschrijving beschikbaar."
 
-#: common/Util.cpp:1779
+#: common/Util.cpp:1772
 msgid "MAPI error code:"
 msgstr "MAPI fout code:"
 

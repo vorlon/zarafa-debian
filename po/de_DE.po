@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-23 00:04+0100\n"
-"PO-Revision-Date: 2012-02-08 21:56+0200\n"
-"Last-Translator: André <welter@bitbone.de>\n"
+"POT-Creation-Date: 2012-02-29 00:05+0100\n"
+"PO-Revision-Date: 2012-02-28 13:40+0200\n"
+"Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -25,13 +25,13 @@ msgstr "Synchronisieren"
 #: provider/ECProps/Addin.cpp:504
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
-msgstr "Gemeinsame Ordner öffnen ..."
+msgstr "Gemeinsame Ordner öffnen..."
 
 #: provider/ECProps/Addin.cpp:506 provider/ECProps/Addin.cpp:547
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
-msgstr "Gelöschte Objekte wiederherstellen ..."
+msgstr "Gelöschte Objekte wiederherstellen..."
 
 #: provider/ECProps/Addin.cpp:508 provider/ECProps/Addin.cpp:549
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
@@ -61,12 +61,12 @@ msgstr ""
 #: provider/ECProps/Addin.cpp:657
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr ""
-"Abwesenheitsbenachrichtigung ist momentan aktiv. Möchten Sie diese jetzt "
+"Die Abwesenheitsbenachrichtigung ist momentan aktiv. Möchten Sie diese jetzt "
 "abschalten?"
 
 #: provider/ECProps/Addin.cpp:657
 msgid "Out Of Office Turned On"
-msgstr "Abwesenheitsbenachrichtigungen wurden abgeschaltet"
+msgstr "Die Abwesenheitsbenachrichtigung wurde abgeschaltet"
 
 #: provider/ECProps/Addin.cpp:663
 msgid "Unable to save Out of Office status"
@@ -94,7 +94,7 @@ msgstr "Dem öffentlichen Favoritenordner hinzufügen"
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
-msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden"
+msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden."
 
 #: provider/ECProps/Addin.cpp:1192 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2373
@@ -114,26 +114,27 @@ msgstr "Favoriten konnte nicht geöffnet werden"
 msgid ""
 "You are currently offline. To use this command, connect to the online server."
 msgstr ""
-"Sie sind derzeit offline. Um dieses Kommando nutzen zu können müssen Sie "
-"sich mit dem Zarafa-Server verbinden."
+"Sie sind derzeit offline. Um diesen Befehl nutzen zu können müssen Sie sich "
+"mit dem Zarafa-Server verbinden."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:138
 msgid "Unable to open default store in MAPI session."
-msgstr "Der Standardordner kann nicht geöffnet werden"
+msgstr "Der Standardordner kann nicht geöffnet werden."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
 msgid "Refusing to add primary store as shared store."
 msgstr ""
+"Das primäre Postfach kann nicht als gemeinsames Postfach eingebunden werden."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
 msgid "Unable to open this store."
-msgstr "Dieser Speicher kann nicht geöffnet werden."
+msgstr "Das Postfach kann nicht geöffnet werden."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:130
 msgid "You have insufficient permissions to open this store."
-msgstr "Sie haben nicht die Berechtigung, diesen Store zu öffnen."
+msgstr "Sie haben nicht die Berechtigung, dieses Postfach zu öffnen."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
 msgid "Access Denied"
@@ -141,11 +142,11 @@ msgstr "Zugriff verweigert"
 
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:104
 msgid "Unable to open store, access denied."
-msgstr "Dieser Store konnte nicht geöffnet werden, Zugriff verweigert."
+msgstr "Das Postfach konnte nicht geöffnet werden, Zugriff verweigert."
 
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:106
 msgid "Unable to open store."
-msgstr "Dieser Store konnte nicht geöffnet werden."
+msgstr "Das Postfach konnte nicht geöffnet werden."
 
 #: provider/ECProps/OutOfOfficeDlg.cpp:77
 msgid "I am currently Out of the Office"
@@ -296,8 +297,8 @@ msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
 msgstr ""
-"Das Berechtigungsfenster kann nicht angezeigt werden. Kontaktieren Sie Ihren "
-"Administrator"
+"Das Berechtigungsfenster kann nicht angezeigt werden.\n"
+"Kontaktieren Sie Ihren Administrator"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:237
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
@@ -332,14 +333,16 @@ msgstr "Verbindungsfehler"
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
+"Der Benutzername oder das Passwort ist falsch. Aktualisieren Sie bitte Ihr "
+"MAPI Profil."
 
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Logon error"
-msgstr ""
+msgstr "Login Fehler"
 
 #: provider/ECProps/SyncStatusDlg.cpp:145
 msgid "synchronization done"
-msgstr "Abgleich beendet"
+msgstr "Sychronisation beendet"
 
 #: provider/ECProps/SyncStatusDlg.cpp:150
 msgid "Synchronizing folders ..."
@@ -359,7 +362,7 @@ msgstr "Anmelden ..."
 
 #: provider/ECProps/SyncStatusDlg.cpp:158
 msgid "Synchronizing ..."
-msgstr "Abgleichen ..."
+msgstr "Sychronisieren ..."
 
 #: provider/ECProps/PropPage.cpp:32
 msgid "Full control"
@@ -402,7 +405,7 @@ msgstr "Die Berechtigungen konnten nicht gesetzt werden."
 
 #: provider/ECProps/PropPage.cpp:244
 msgid "Unable to get user store"
-msgstr "Der Store des Nutzers konnte nicht abgerufen werden"
+msgstr "Das Postfach des Benutzers konnte nicht abgerufen werden"
 
 #: provider/ECProps/PropPage.cpp:415 provider/client/ECDisplayTable.cpp:28
 msgid "Name"
@@ -525,7 +528,7 @@ msgstr "Posteingang (vorübergehend)"
 #: provider/ECProps/MapOtherUserDlg.cpp:120
 #: provider/client/SettingsPropPageAdvance.cpp:171
 msgid "User could not be resolved."
-msgstr "Der Name kann nicht aufgelöst werden"
+msgstr "Der Name kann nicht aufgelöst werden."
 
 #: provider/ECProps/MapOtherUserDlg.cpp:131
 msgid "Select a folder type or cancel."
@@ -576,7 +579,7 @@ msgstr "15 Minuten"
 
 #: provider/ECProps/SyncConfigDlg.cpp:85
 msgid "1 half hour"
-msgstr "1 halbe Stunde"
+msgstr "Halbe Stunde"
 
 #: provider/ECProps/SyncConfigDlg.cpp:87
 msgid "1 hour"
@@ -630,7 +633,7 @@ msgid "Tasks"
 msgstr "Aufgaben"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2390
+#: provider/libserver/ECGenProps.cpp:922 provider/client/ECMsgStore.cpp:2390
 msgid "Inbox"
 msgstr "Posteingang"
 
@@ -778,14 +781,13 @@ msgstr "Objekte werden gelöscht"
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:893
 msgid "The call succeeded, not all of the entries were successfully deleted."
 msgstr ""
-"Die Anweisung wurde ausgeführt.\\nAllerdings konnten nicht alle Vorgänge "
-"erfolgreich abgeschlossen werden."
+"Die Anweisung wurde ausgeführt.\n"
+"Allerdings konnten nicht alle Vorgänge erfolgreich abgeschlossen werden."
 
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:895
 msgid "The folder and/or messages can not be deleted."
 msgstr ""
-"Dieser Ordner und / oder diese Nachrichten kann / können nicht gelöscht "
-"werden."
+"Dieser Ordner und/oder diese Nachrichten kann/können nicht gelöscht werden."
 
 #: provider/libserver/ECDBUpdateProgress.cpp:58
 msgid "Your cache is being upgraded..."
@@ -795,13 +797,13 @@ msgstr "Ihr Cache wird aktualisiert..."
 msgid "Upgrade: "
 msgstr "Aktualisierung:"
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:880
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Alle Öffentlichen Ordner"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:924
 msgid "Archive"
 msgstr "Archiv"
 
@@ -813,7 +815,7 @@ msgid ""
 "you must purchase additional client licenses."
 msgstr ""
 "Das Profil kann nicht genutzt werden, da Sie Ihre Lizenz überschritten "
-"haben. Um fortzufahren müssen Sie weitere Client Lizenzen kaufen"
+"haben. Um fortzufahren müssen Sie weitere Client Lizenzen kaufen."
 
 #: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:282
@@ -828,13 +830,13 @@ msgstr ""
 # 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
-msgstr "Globales Adressliste"
+msgstr "Globale Adresslisten"
 
 # 75%
 # 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
-msgstr "Alle Adresslisten"
+msgstr "Zusätzliche Adresslisten"
 
 #: provider/client/SettingsTabConnection.cpp:36
 #: provider/client/SettingsDlg.cpp:134
@@ -920,8 +922,8 @@ msgid ""
 "if you have the network connection."
 msgstr ""
 "Es ist nicht möglich online zu arbeiten! Sie benötigen beim ersten Start "
-"eine Netzwerkverbindung. Versuchen Sie es erneut, wenn eine "
-"Netzwerkverbindung besteht."
+"eine Netzwerkverbindung.\n"
+"Versuchen Sie es erneut, wenn eine Netzwerkverbindung besteht."
 
 #: provider/client/ProviderUtil.cpp:150
 msgid "First Folder Sync..."
@@ -990,7 +992,7 @@ msgstr "Zarafa Archiver"
 
 #: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
-msgstr "Beim Abrufen der Mail  aus dem Archiv ist ein Fehler aufgetreten."
+msgstr "Beim Abrufen der Mail aus dem Archiv ist ein Fehler aufgetreten."
 
 #: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
@@ -1025,7 +1027,7 @@ msgstr "Ihr Cache wurde aktualisiert. Wollen Sie jetzt online arbeiten?"
 #: provider/client/ECMSProviderSwitch.cpp:377
 msgid "Unable to work online! Do you want to switch to offline mode?"
 msgstr ""
-"Es ist nicht möglich, online zu arbeiten. Möchten Sie in den Offline-Mode "
+"Es ist nicht möglich online zu arbeiten. Möchten Sie in den Offline-Mode "
 "wechseln?"
 
 #: provider/client/EntryPoint.cpp:969
@@ -1041,8 +1043,9 @@ msgid ""
 "Unable to reach the server.\n"
 "Do you want to save the settings or cancel and re-enter the settings?"
 msgstr ""
-"Verbindung zum Server war nicht möglich. Wollen Sie diese Einstellungen "
-"speichern oder abbrechen und die Verbindungsdaten neu eingeben?"
+"Verbindung zum Server war nicht möglich.\n"
+"Wollen Sie diese Einstellungen speichern oder abbrechen und die "
+"Verbindungsdaten neu eingeben?"
 
 #: provider/client/EntryPoint.cpp:1186
 msgid "Incorrect username and/or password."
@@ -1052,7 +1055,9 @@ msgstr "Falscher Benutzername und/oder falsches Passwort"
 msgid ""
 "Incorrect servername and/or port\n"
 "Check if the server is running."
-msgstr "Falscher Servername und/oder Port. Läuft der Serverprozess?"
+msgstr ""
+"Falscher Servername und/oder Port.\n"
+"Läuft der Serverprozess?"
 
 #: provider/client/EntryPoint.cpp:1190
 msgid "Incorrect version."
@@ -1063,8 +1068,8 @@ msgid ""
 "An unknown failure has occurred.\n"
 "Please contact your administrator."
 msgstr ""
-"Es ist ein unbekannter Fehler aufgetreten. Bitte kontaktieren Sie Ihren "
-"Administrator."
+"Es ist ein unbekannter Fehler aufgetreten.\n"
+"Bitte kontaktieren Sie Ihren Administrator."
 
 #: provider/client/EntryPoint.cpp:1218
 msgid "You should restart Outlook for the changes to take effect."
@@ -1073,7 +1078,7 @@ msgstr "Sie sollten Outlook neu starten damit die Änderungen übernommen werden
 #: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
 #: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
 msgid "General"
-msgstr "Generell"
+msgstr "Allgemein"
 
 #: provider/client/ECDisplayTable.cpp:29
 msgid "First:"
@@ -1271,7 +1276,7 @@ msgid ""
 msgstr ""
 "Verbindung zum Onlineserver nicht möglich. Wenn Sie weitergehen wird kein "
 "neuer Verbindungsversuch gemacht bis Sie den Punkt 'Offline arbeiten' im "
-"Menü 'Datei' ausschalten"
+"Menü 'Datei' ausschalten."
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:818
 msgid "Sync Issues"
@@ -1319,7 +1324,7 @@ msgstr "Offline (Cached) Modus"
 
 #: provider/client/SettingsDlg.cpp:167
 msgid "Detect at startup"
-msgstr "automatische Erkennung beim Start"
+msgstr "Automatische Erkennung beim Start"
 
 #: provider/client/SettingsDlg.cpp:236
 msgid ""
@@ -1328,8 +1333,9 @@ msgid ""
 "or later."
 msgstr ""
 "Der Offline oder Cached Modus wird für Outlook XP und Outlook 2002 nicht "
-"unterstützt. Falls Sie die Offline-Funktionalitäten nutzen möchten müssen "
-"Sie Outlook 2000, 2003, 2007 oder später verwenden."
+"unterstützt.\n"
+"Falls Sie die Offline-Funktionalitäten nutzen möchten müssen Sie Outlook "
+"2000, 2003, 2007 oder später verwenden."
 
 #: provider/contacts/ZCABContainer.cpp:645
 msgid "Zarafa Contacts Folders"
@@ -1368,15 +1374,19 @@ msgstr ""
 
 #: provider/common/SOAPSock.cpp:657
 msgid "Do you wish to continue?"
-msgstr "Wollen Sie fortfahren?"
+msgstr "Möchten Sie fortfahren?"
 
-#: zarafa-libsync/ECSync.cpp:1903
+#: zarafa-libsync/ECSync.cpp:1927
 msgid ""
 "The syncronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors\r\n"
 "\r\n"
 "Please contact the system administrator if this problem persists."
 msgstr ""
+"Die Synchronisation eines Ordners ist fehlgeschlagen.\n"
+"Klicken Sie Wiederholen um fortzufahren oder Ignorieren um alle Fehler zu "
+"unterdrücken\r\n"
+"\r\n"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
@@ -1384,7 +1394,7 @@ msgstr "Zarafa Archiv"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
-msgstr "Der Ordner enthält die speziellen Archivordner"
+msgstr "Der Ordner enthält die speziellen Archivordner."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
@@ -1393,7 +1403,8 @@ msgstr "Verlauf"
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
-msgstr "Der Ordner enthält Archive die mit einer neueren Version ersetzt wurden"
+msgstr ""
+"Der Ordner enthält Archive die mit einer neueren Version ersetzt wurden."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
 msgid "Outgoing"
@@ -1401,7 +1412,7 @@ msgstr "Ausgehend"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
 msgid "This folder contains archives of all outgoing messages."
-msgstr "Der Ordner beinhaltet Archive der ausgehenden Emails"
+msgstr "Der Ordner beinhaltet Archive der ausgehenden Emails."
 
 # 85%
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
@@ -1411,7 +1422,7 @@ msgstr "Gelöscht"
 # 98%
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
 msgid "This folder contains archives of messages that have been deleted."
-msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte"
+msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte."
 
 #: spooler/Spooler.cpp:481
 msgid ""
@@ -1427,7 +1438,7 @@ msgstr "Die Liste der eingehängten Archive konnte nicht geladen werden."
 
 #: spooler/archive.cpp:272
 msgid "Unable to open archive."
-msgstr "Archiv konnte nicht geöffnet werden"
+msgstr "Archiv konnte nicht geöffnet werden."
 
 #: spooler/archive.cpp:279
 msgid "Unable to get outgoing archive folder."
@@ -1459,21 +1470,21 @@ msgstr ""
 
 #: spooler/mailer.cpp:2489
 msgid "Error found while trying to send your message. Error code: "
-msgstr "Fehler beim Versuch Ihre Nachricht zu senden. Fehler Code:"
+msgstr "Fehler beim Versuch Ihre Nachricht zu senden. Fehler Code: "
 
-#: common/Util.cpp:1735
+#: common/Util.cpp:1728
 msgid "End of Session"
-msgstr "Session ist ausgelaufen"
+msgstr "Session ist abgelaufen"
 
-#: common/Util.cpp:1738
+#: common/Util.cpp:1731
 msgid "Connection lost"
 msgstr "Verbindung verloren"
 
-#: common/Util.cpp:1741
+#: common/Util.cpp:1734
 msgid "Access denied"
 msgstr "Zugriff verweigert"
 
-#: common/Util.cpp:1744
+#: common/Util.cpp:1737
 msgid ""
 "Unable to move or copy folders. Can't copy folder. A top-level can't be "
 "copied to one of its subfolders. Or, you may not have appropriate "
@@ -1487,29 +1498,29 @@ msgstr ""
 "prüfen, klicken Sie den Ordner zunächst mit der rechten Maustaste an und "
 "wählen Sie dann \"Eigenschaften\" aus dem angezeigten Menü."
 
-#: common/Util.cpp:1747
+#: common/Util.cpp:1740
 msgid ""
 "The message store has reached its maximum size. To reduce the amount of data "
 "in this message store, select some items that you no longer need, and "
 "permanently (SHIFT + DEL) delete them."
 msgstr ""
 "Der Nachrichtenspeicher hat seinen maximale Größe erreicht. Um die Größe zu "
-"verringern wählen Sie bitte nicht mehr benötigte Einträge  und löschen Sie "
+"verringern wählen Sie bitte nicht mehr benötigte Einträge und löschen Sie "
 "diese entgültig (Shift + Entf)."
 
-#: common/Util.cpp:1750
+#: common/Util.cpp:1743
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
 msgstr ""
 "Der Benutzer hat die Operation abgebrochen. Dies geschieht typischer Weise "
-"durch klicken des \"Abbrechen\"-Buttons in einer Dialog-box."
+"durch klicken des \"Abbrechen\"-Buttons in einer Dialogbox."
 
-#: common/Util.cpp:1753
+#: common/Util.cpp:1746
 msgid "A logon session could not be established."
 msgstr "Es konnte keine Anmelde-Session erstellt werden."
 
-#: common/Util.cpp:1756
+#: common/Util.cpp:1749
 msgid ""
 "The name of the folder being moved or copied is the same as that of a "
 "subfolder in the destination folder. The message store provider requires "
@@ -1519,7 +1530,7 @@ msgstr ""
 "vorhanden. Es ist notwendig, dass jeder Name nur einmal vorkommt. Die "
 "Operation wird abgebrochen."
 
-#: common/Util.cpp:1759
+#: common/Util.cpp:1752
 msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
@@ -1527,7 +1538,7 @@ msgstr ""
 "Die Operation wurde beendet, aber nicht alle Einträge wurden erfolgreich "
 "bearbeitet, kopiert, gelöscht oder verschoben."
 
-#: common/Util.cpp:1762
+#: common/Util.cpp:1755
 msgid ""
 "The provider does not have enough information to complete the logon. Or, the "
 "service provider has not been configured."
@@ -1535,7 +1546,7 @@ msgstr ""
 "Der Provider hat nicht genügend Informationen um die Anmeldung durchzuführen "
 "oder der Provider wurde noch nicht konfiguriert."
 
-#: common/Util.cpp:1765
+#: common/Util.cpp:1758
 msgid ""
 "One of the providers cannot log on, but this error should not disable the "
 "other services."
@@ -1543,23 +1554,23 @@ msgstr ""
 "Einer der Provider kann sich nicht anmelden. Dieser Fehler sollte die "
 "anderen Dienste nicht deaktivieren."
 
-#: common/Util.cpp:1768
+#: common/Util.cpp:1761
 msgid "A database error or I/O error has occurred."
 msgstr "Ein Datenbank oder I/O Fehler ist aufgetreten."
 
-#: common/Util.cpp:1771
+#: common/Util.cpp:1764
 msgid "The subfolder being deleted contains subfolders."
-msgstr "Der Unterordner der gelöscht werden soll enthält Unterordner"
+msgstr "Der Unterordner der gelöscht werden soll enthält Unterordner."
 
-#: common/Util.cpp:1774
+#: common/Util.cpp:1767
 msgid "The subfolder being deleted contains messages."
 msgstr "Der Unterordner der gelöscht werden soll enthält Nachrichten."
 
-#: common/Util.cpp:1777
+#: common/Util.cpp:1770
 msgid "No description available."
 msgstr "Keine Beschreibung vorhanden."
 
-#: common/Util.cpp:1779
+#: common/Util.cpp:1772
 msgid "MAPI error code:"
 msgstr "MAPI Fehlercode:"
 
