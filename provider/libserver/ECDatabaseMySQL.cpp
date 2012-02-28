@@ -965,9 +965,7 @@ ECRESULT ECDatabaseMySQL::Commit() {
 
 ECRESULT ECDatabaseMySQL::Rollback() {
 	ECRESULT er = erSuccess;
-	const char *lpQuery = "SHOW ENGINE INNODB STATUS";
-	int err = 0;
-	
+
 	er = Query("ROLLBACK");
 	
 #ifdef DEBUG
@@ -980,25 +978,6 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 	m_ulTransactionState = 0;
 #endif
 #endif
-
-	// We'll log the innodb status after each rollback. This shouldn't
-	// happen too much though.
-	err = mysql_real_query(&m_lpMySQL, lpQuery, strlen(lpQuery));
-	if (!err) {
-		MYSQL_RES *lpResult = mysql_use_result(&m_lpMySQL);
-		if (lpResult) {
-			MYSQL_ROW row = mysql_fetch_row(lpResult);
-			if (row) {
-				unsigned int fields = mysql_num_fields(lpResult);
-				for (unsigned int i = 0; i < fields; ++i) {
-					if (row[i]) {
-						m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s", row[i]);
-					}
-				}
-			}
-			mysql_free_result(lpResult);
-		}
-	}
 
 	return er;
 }
