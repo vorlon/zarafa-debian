@@ -988,8 +988,14 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 		MYSQL_RES *lpResult = mysql_use_result(&m_lpMySQL);
 		if (lpResult) {
 			MYSQL_ROW row = mysql_fetch_row(lpResult);
-			if (row && row[0])
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s", row[0]);
+			if (row) {
+				unsigned int fields = mysql_num_fields(lpResult);
+				for (unsigned int i = 0; i < fields; ++i) {
+					if (row[i]) {
+						m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s", row[i]);
+					}
+				}
+			}
 			mysql_free_result(lpResult);
 		}
 	}
