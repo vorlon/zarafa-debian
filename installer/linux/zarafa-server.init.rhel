@@ -84,6 +84,7 @@ stop() {
 		else
 			success $"Stopping $server: "
 		fi
+		RETVAL=0
 	else
 		echo -n $"Stopping $server: "
 		TIMEOUT=65
