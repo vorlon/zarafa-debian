@@ -10918,7 +10918,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		goto exit;
 		
 	// Lock the parent folder
-	strQuery = "SELECT val_ulong FROM properties WHERE hierarchy = " + stringify(ulParentId) + " FOR UPDATE";
+	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParentId) + " FOR UPDATE";
 	er = lpDatabase->DoSelect(strQuery, NULL);
 	if (er != erSuccess)
 		goto exit;
