@@ -59,6 +59,7 @@
 #include "charset/convert.h"
 
 #include "ECLuceneSearcher.h"
+#include "ECIndexFactory.h"
 
 // Given two sorted lists A and B, modify A so that it is the sorted intersection of A and B
 void intersect(std::list<unsigned int> &a, std::list<unsigned int> &b) {
@@ -90,13 +91,13 @@ ECLuceneSearcher::ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGui
 	m_ulMaxResults = ulMaxResults;
 	m_strServerGuid.assign((char *)lpServerGuid, sizeof(GUID));
 	m_strStoreGuid.assign((char *)lpStoreGuid, sizeof(GUID));
-	m_lpIndex = new ECIndexDB(lpThreadData->lpConfig, lpThreadData->lpLogger);
+	m_lpIndex = NULL;
 }
 
 ECLuceneSearcher::~ECLuceneSearcher()
 {
 	if (m_lpIndex)
-		delete m_lpIndex;
+		m_lpThreadData->lpIndexFactory->ReleaseIndexDB(m_lpIndex);
 }
 
 HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher)
@@ -114,6 +115,10 @@ HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid,
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
+
+	hr = lpThreadData->lpIndexFactory->GetIndexDB(lpServerGuid, lpStoreGuid, &lpSearcher->m_lpIndex);
+	if(hr != hrSuccess)
+		goto exit;
 
 	lpSearcher->AddRef();
 
@@ -133,8 +138,6 @@ HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 	std::list<unsigned int> lstMatches;
 	bool bFirst = true;
 	
-	storeid_t store((LPMAPIUID)m_strServerGuid.c_str(), (LPMAPIUID)m_strStoreGuid.c_str());
-
 	lplistResults->clear();
 	
 	// Search is performed by querying each term against the index database
@@ -143,9 +146,9 @@ HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 	for(std::list<SIndexedTerm>::iterator i = m_lstSearches.begin(); i != m_lstSearches.end(); i++) {
 		std::wstring wstrTerm = convert_to<std::wstring>(i->strTerm, rawsize(i->strTerm), "utf-8");
 		if(bFirst)
-			hr = m_lpIndex->QueryTerm(store, m_lstFolders, i->setFields, wstrTerm, *lplistResults);
+			hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, wstrTerm, *lplistResults);
 		else {
-			hr = m_lpIndex->QueryTerm(store, m_lstFolders, i->setFields, wstrTerm, lstMatches);
+			hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, wstrTerm, lstMatches);
 			
 			intersect(*lplistResults, lstMatches);
 		}

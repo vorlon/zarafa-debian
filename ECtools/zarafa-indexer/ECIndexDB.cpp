@@ -49,7 +49,6 @@
 
 #include "platform.h"
 #include "ECIndexDB.h"
-#include "ECDatabase.h"
 #include "ECAnalyzers.h"
 #include "ECLogger.h"
 
@@ -59,86 +58,186 @@
 #include "stringutil.h"
 #include "charset/convert.h"
 
+#include <unicode/coll.h>
+#include <unicode/ustring.h>
+#include <kcpolydb.h>
+#include <kcdbext.h>
+
 #include <list>
 #include <string>
 
 #include <CLucene/util/Reader.h>
 
-ECIndexDB::ECIndexDB(ECConfig *lpConfig, ECLogger *lpLogger)
+using namespace kyotocabinet;
+
+// Key/Value types for KT_TERMS
+typedef struct __attribute__((__packed__)) {
+    unsigned int folder;
+    unsigned short field;
+    unsigned int doc;
+    unsigned short version;
+    unsigned char len;
+} TERMENTRY;
+
+typedef struct {
+    unsigned int type; // Must be KT_TERMS
+    char prefix[1]; // Actually more than 1 char
+} TERMKEY;
+
+// Key/Value types for KT_VERSION
+typedef struct {
+    unsigned int type; // Must be KT_VERSION
+    unsigned int doc;
+} VERSIONKEY;
+
+typedef struct {
+    unsigned short version;
+} VERSIONVALUE;
+
+// Key/Value types for KT_SOURCEKEY
+typedef struct {
+    unsigned int type;
+    char sourcekey[1];
+} SOURCEKEYKEY;
+
+typedef struct {
+    unsigned int doc;
+} SOURCEKEYVALUE;
+    
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY };
+
+#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+
+ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger)
 {
+    UErrorCode status = U_ZERO_ERROR;
+    
     m_lpConfig = lpConfig;
     m_lpLogger = lpLogger;
-    m_bConnected = false;
-    
-    m_lpDatabase = new ECDatabase(lpLogger);
     
     m_lpAnalyzer = new ECAnalyzer();
     
     ParseProperties(lpConfig->GetSetting("index_exclude_properties"), m_setExcludeProps);
+    
+    m_lpIndex = NULL;
+
+    m_lpCollator = Collator::createInstance(status);
+	m_lpCollator->setAttribute(UCOL_STRENGTH, UCOL_PRIMARY, status);
 }
 
 ECIndexDB::~ECIndexDB()
 {
-    if(m_lpDatabase)
-        delete m_lpDatabase;
+    if(m_lpIndex) {
+        m_lpIndex->close();
+        delete m_lpIndex;
+    }
     if(m_lpAnalyzer)
         delete m_lpAnalyzer;
+        
+    if(m_lpCollator)
+        delete m_lpCollator;
 }
 
-HRESULT ECIndexDB::AddTerm(storeid_t store, folderid_t folder, docid_t doc, fieldid_t field, unsigned int version, std::wstring wstrTerm)
+HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, ECIndexDB **lppIndexDB)
+{
+    HRESULT hr = hrSuccess;
+    
+    ECIndexDB *lpIndex = new ECIndexDB(strIndexId, lpConfig, lpLogger);
+    
+    hr = lpIndex->Open(strIndexId);
+    if(hr != hrSuccess)
+        goto exit;
+
+    *lppIndexDB = lpIndex;
+        
+exit:
+    if (hr != hrSuccess && lpIndex)
+        delete lpIndex;
+        
+    return hr;
+}
+
+HRESULT ECIndexDB::Open(const std::string &strIndexId)
+{
+    HRESULT hr = hrSuccess;
+
+    m_lpIndex = new IndexDB();
+
+    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct#zcomp=zlib", PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OREADER)) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index: %s", m_lpIndex->error().message());
+        hr = MAPI_E_NOT_FOUND;
+        goto exit;
+    }
+    
+exit:    
+    return hr;
+}
+
+HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsigned int version, std::wstring wstrTerm)
 {
     HRESULT hr = hrSuccess;
     std::string strQuery;
     std::string strValues;
     lucene::analysis::TokenStream* stream = NULL;
     lucene::analysis::Token* token = NULL;
-    unsigned int ulStoreId = 0;
-    bool bTerms = false;
+    unsigned int type = KT_TERMS;
+
+    char buf[sizeof(TERMENTRY) + 256];
+    char keybuf[sizeof(unsigned int) + 256];
+    TERMENTRY *sTerm = (TERMENTRY *)buf;
+
+    // Preset all the key/value parts that will not change
+    sTerm->folder = folder;
+    sTerm->doc = doc;
+    sTerm->field = field;
+    sTerm->version = version;
+    
+    memcpy(keybuf, (char *)&type, sizeof(type));
 
     // Check if the property is excluded from indexing
     if (m_setExcludeProps.find(field) == m_setExcludeProps.end())
-    {    
+    {   
+        const wchar_t *text;
+        unsigned int len;
+        unsigned int keylen;
+        
         lucene::util::StringReader reader(wstrTerm.c_str());
         
         stream = m_lpAnalyzer->tokenStream(L"", &reader);
         
-        hr = Begin();
-        if(hr != hrSuccess)
-            goto exit;
-        
-        hr = GetStoreId(store, &ulStoreId, true);
-        if(hr != hrSuccess)
-            goto exit;
-
-        strQuery = "REPLACE into words(store, folder, doc, field, term, version) VALUES";
-        strValues = "(" + stringify(ulStoreId) + "," + stringify(folder) + "," + stringify(doc) + "," + stringify(field) + ", '";
-
         while((token = stream->next())) {
-            strQuery += strValues;
-            strQuery += m_lpDatabase->Escape(convert_to<std::string>("utf-8", token->termText(), rawsize(token->termText()), CHARSET_WCHAR)) + "'," + stringify(version) + "),";
-        
-            delete token;
+            text = token->termText();
+            len = MIN(wcslen(text), 255);
             
-            bTerms = true;
+            if(len == 0)
+                goto next;
+            
+            // Generate sortkey and put it directly into our key
+            keylen = GetSortKey(text, MIN(len, 3), keybuf + sizeof(unsigned int), 256);
+            
+            if(keylen > 256) {
+                ASSERT(false);
+                keylen = 256;
+            }
+            
+            if(len <= 3) {
+                // No more term info in the value
+                sTerm->len = 0;
+            } else {
+                sTerm->len = GetSortKey(text + 3, len - 3, buf + sizeof(TERMENTRY), 256);
+                if(sTerm->len > 256) {
+                    ASSERT(false);
+                    sTerm->len = 256;
+                }
+            }
+                
+            m_lpIndex->append(keybuf, sizeof(unsigned int) + keylen, buf, sizeof(TERMENTRY) + sTerm->len);
+            
+next:        
+            delete token;
         }
-        
-        if(bTerms) {
-            // Remove trailing comma
-            strQuery.resize(strQuery.size()-1);
-
-            hr = m_lpDatabase->DoInsert(strQuery);
-            if(hr != hrSuccess)
-                goto exit;
-        }
-        
-        hr = Commit();
-        if(hr != hrSuccess)
-            goto exit;
     }
-    
-exit:
-    if(hr != hrSuccess)
-        Rollback();
     
     if(stream)
         delete stream;
@@ -146,12 +245,7 @@ exit:
     return hr;
 }
 
-HRESULT ECIndexDB::RemoveTermsStore(storeid_t store)
-{
-    return hrSuccess;
-}
-
-HRESULT ECIndexDB::RemoveTermsFolder(storeid_t store, folderid_t folder)
+HRESULT ECIndexDB::RemoveTermsFolder(folderid_t folder)
 {
     return hrSuccess;
 }
@@ -168,61 +262,42 @@ HRESULT ECIndexDB::RemoveTermsFolder(storeid_t store, folderid_t folder)
  * must be used in the call to AddTerm(), which ensures that the new search terms
  * will be returned in future searches.
  *
- * @param[in] store Store ID to remove document from
  * @param[in] doc Document ID to remove
  * @param[out] lpulVersion Version of new terms to be added
  * @return Result
  */
-HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lpulVersion)
+HRESULT ECIndexDB::RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion)
 {
     HRESULT hr = hrSuccess;
-    std::string strQuery;
-    unsigned int ulStoreId = 0;
-    DB_RESULT lpResult = NULL;
-    DB_ROW lpRow = NULL;
-    ULONG ulVersion = 0;
-
-    hr = Begin();
-    if(hr != hrSuccess)
-        goto exit;
-
-    hr = GetStoreId(store, &ulStoreId, true);
-    if(hr != hrSuccess)
-        goto exit;
+    VERSIONKEY sKey;
+    VERSIONVALUE sValue;
+    char *value = NULL;
+    size_t cb = 0;
     
-    strQuery = "SELECT version FROM updates WHERE store = " + stringify(ulStoreId) + " AND doc = " + stringify(doc);
+    sKey.type = KT_VERSION;
+    sKey.doc = doc;
     
-    hr = m_lpDatabase->DoSelect(strQuery, &lpResult);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    lpRow = m_lpDatabase->FetchRow(lpResult);
+    value = m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
     
-    if(!lpRow || !lpRow[0]) {
-        ulVersion = 1;
+    if(!value || cb != sizeof(VERSIONVALUE)) {
+        sValue.version = 1;
     } else {
-        ulVersion = atoui(lpRow[0]) + 1;
+        sValue = *(VERSIONVALUE *)value;
+        sValue.version++;
     }
-
-    strQuery = "REPLACE INTO updates (doc, store, version) VALUES (" + stringify(doc) + "," + stringify(ulStoreId) + "," + stringify(ulVersion) + ")";
-
-    hr = m_lpDatabase->DoInsert(strQuery);
-    if (hr != hrSuccess)
+    
+    if(!m_lpIndex->set((char *)&sKey, sizeof(sKey), (char *)&sValue, sizeof(sValue))) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set version for document: %s", m_lpIndex->error().message());
+        hr = MAPI_E_NOT_FOUND;
         goto exit;
-
-    if(lpulVersion)  
-        *lpulVersion = ulVersion;
-        
-    hr = Commit();
-    if(hr != hrSuccess)
-        goto exit;
-
-exit:    
-    if (hr != hrSuccess)
-        Rollback();
-        
-    if (lpResult)
-        m_lpDatabase->FreeResult(lpResult);
+    }
+    
+    if(lpulVersion)
+        *lpulVersion = sValue.version;
+     
+exit:   
+    if (value)
+        delete [] value;
         
     return hr;
 }
@@ -237,234 +312,116 @@ exit:
  * @param[in] strSourceKey Source key to remove
  * @return Result
  */
-HRESULT ECIndexDB::RemoveTermsDoc(storeid_t store, folderid_t folder, std::string strSourceKey)
+HRESULT ECIndexDB::RemoveTermsDoc(folderid_t folder, std::string strSourceKey)
 {
     HRESULT hr = hrSuccess;
-    std::string strQuery;
-    DB_ROW lpRow = NULL;
-    DB_RESULT lpResult = NULL;
-    unsigned int ulStoreId = 0;
-
-    hr = Begin();
-    if(hr != hrSuccess)
-        goto exit;
-
-    hr = GetStoreId(store, &ulStoreId, true);
-    if(hr != hrSuccess)
-        goto exit;
+    unsigned int type = KT_SOURCEKEY;
+    std::string strKey;
+    SOURCEKEYVALUE *sValue = NULL;
+    size_t cb = 0;
     
-    strQuery = "SELECT doc FROM sourcekeys WHERE store = " + stringify(ulStoreId) + " AND folder = " + stringify(folder) + " AND sourcekey = " + m_lpDatabase->EscapeBinary(strSourceKey);
-    hr = m_lpDatabase->DoSelect(strQuery, &lpResult);
-    if (hr != hrSuccess)
-        goto exit;
-        
-    lpRow = m_lpDatabase->FetchRow(lpResult);
+    strKey.assign((char *)&type, sizeof(type));
+    strKey += strSourceKey;
     
-    if(!lpRow || !lpRow[0]) {
+    sValue = (SOURCEKEYVALUE *)m_lpIndex->get(strKey.c_str(), strKey.size(), &cb);
+    
+    if(!sValue || cb != sizeof(SOURCEKEYVALUE)) {
         hr = MAPI_E_NOT_FOUND;
         goto exit;
     }
     
-    hr = RemoveTermsDoc(store, atoui(lpRow[0]), NULL);
+    m_lpIndex->remove(strKey);
+    
+    hr = RemoveTermsDoc(sValue->doc, NULL);
     if (hr != hrSuccess)
         goto exit;
-        
-    hr = m_lpDatabase->DoDelete("DELETE FROM sourcekeys WHERE store = " + stringify(ulStoreId) + " AND folder = " + stringify(folder) + " AND sourcekey = " + m_lpDatabase->EscapeBinary(strSourceKey));
-    if (hr != hrSuccess)
-        goto exit;
-        
-    hr = Commit();
-    if (hr != hrSuccess)
-        goto exit;
-
-exit:    
-    if (lpResult)
-        m_lpDatabase->FreeResult(lpResult);
-        
+    
+exit:
+    if (sValue)
+        delete [] sValue;
+    
     return hr;
 }
 
-HRESULT ECIndexDB::QueryTerm(storeid_t store, std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &lstMatches)
+// FIXME lstFolders should be setFolders in the first place
+HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &lstMatches)
 {
     HRESULT hr = hrSuccess;
-    unsigned int ulStoreId = 0;
-    DB_ROW lpRow = NULL;
-    DB_RESULT lpResult = NULL;
-    std::string strQuery;
-
+    std::set<unsigned int> setFolders;
+    std::set<unsigned int> setMatches;
+    std::set<unsigned int>::iterator j;
+    std::list<unsigned int>::iterator i;
+    size_t len;
+    char *value = NULL;
+    unsigned int offset;
+    unsigned int type = KT_TERMS;
+    TERMENTRY *p;
+    char keybuf[sizeof(unsigned int) + 256];
+    unsigned int keylen = 0;
+    char valbuf[256];
+    unsigned int vallen = 0;
+    
     lstMatches.clear();
     
-    hr = Begin();
-    if (hr != hrSuccess)
-        goto exit;
-    
-    hr = GetStoreId(store, &ulStoreId, false);
-    if (hr != hrSuccess)
-        goto exit;
-    
-    strQuery = "SELECT DISTINCT words.doc FROM words LEFT JOIN updates ON updates.doc = words.doc AND updates.store = " + stringify(ulStoreId) + " WHERE ";
-    
-    if(setFields.empty() || wstrTerm.empty())
-        goto exit;
-    
-    strQuery += " words.field IN(";
-    for(std::set<unsigned int>::iterator i = setFields.begin(); i != setFields.end(); i++) {
-        strQuery += stringify(*i);
-        strQuery += ",";
+    // Generate a lookup set for the folders
+    for(i = lstFolders.begin(); i != lstFolders.end(); i++) {
+        setFolders.insert(*i);
     }
-    strQuery.resize(strQuery.size()-1);
-    strQuery += ") ";
-    
-    strQuery += "AND words.term LIKE '" + m_lpDatabase->Escape(convert_to<std::string>("utf-8", wstrTerm, rawsize(wstrTerm), CHARSET_WCHAR)) + "%' ";
-    
-    if(!lstFolders.empty()) {
-        strQuery += "AND words.folder IN (";
-        for(std::list<unsigned int>::iterator i = lstFolders.begin(); i != lstFolders.end(); i++) {
-            strQuery += stringify(*i);
-            strQuery += ",";
-        }
-        strQuery.resize(strQuery.size()-1);
-        strQuery += ") ";
-    }
-        
-    strQuery += "AND words.store = " + stringify(ulStoreId) + " ";
-    strQuery += "AND (updates.version IS NULL or words.version = updates.version) ";
-    
-    strQuery += "ORDER BY doc"; // We *must* output in sorted order since the caller expects this
 
-    hr = m_lpDatabase->DoSelect(strQuery, &lpResult, true);
-    if (hr != hrSuccess)
-        goto exit;
-        
-    while((lpRow = m_lpDatabase->FetchRow(lpResult))) {
-        if(lpRow[0] == NULL) {
-            ASSERT(false);
-            continue;
-        }
-        lstMatches.push_back(atoui(lpRow[0]));
-    }
+    // Make the key that we will search    
+    memcpy(keybuf, (char *)&type, sizeof(type));
+    keylen = GetSortKey(wstrTerm.c_str(), MIN(wstrTerm.size(), 3), keybuf + sizeof(unsigned int), 256);
+    keylen = MIN(256, keylen);
     
-    hr = Commit();
-    if (hr != hrSuccess)
-        goto exit;
-        
-exit:
-    if (hr != hrSuccess)
-        Rollback();
-        
-    if (lpResult)
-        m_lpDatabase->FreeResult(lpResult);
-        
-    return hrSuccess;
-}
-
-HRESULT ECIndexDB::Begin()
-{
-    HRESULT hr = hrSuccess;
-    
-    if (!m_bConnected) {
-        hr = m_lpDatabase->Connect(m_lpConfig);
-        if (hr == ZARAFA_E_DATABASE_NOT_FOUND) {
-            m_lpDatabase->GetLogger()->Log(EC_LOGLEVEL_INFO, "Database not found, creating database.");
-            hr = m_lpDatabase->CreateDatabase(m_lpConfig);
-            if (hr != hrSuccess)
-                goto exit;
-        }
-        
-        m_bConnected = true;
-    }
-    
-    hr = m_lpDatabase->DoInsert("BEGIN");
-    if(hr != hrSuccess)
-        goto exit;
-        
-exit:
-    return hr;
-}
-
-HRESULT ECIndexDB::Commit()
-{
-    HRESULT hr = hrSuccess;
-    
-    hr = m_lpDatabase->DoInsert("COMMIT");
-    if(hr != hrSuccess)
-        goto exit;
-        
-exit:
-    return hr;
-}
-
-HRESULT ECIndexDB::Rollback()
-{
-    HRESULT hr = hrSuccess;
-    
-    hr = m_lpDatabase->DoInsert("ROLLBACK");
-    if(hr != hrSuccess)
-        goto exit;
-        
-exit:
-    return hr;
-}
-
-/**
- * Map storeid (serverguid/storeguid) to an integer store ID
- *
- * We keep a small cache to make sure that we don't query the database all the time. If the store ID
- * was not found in the database, a store ID is generated. The function will therefore only fail
- * if a database error occurs.
- *
- * @param[in] store Store to map
- * @param[out] lpulStoreId Output of integer store id
- * @param[in] bCreate TRUE if we should create the id if needed
- * @return result
- */
-HRESULT ECIndexDB::GetStoreId(storeid_t store, unsigned int *lpulStoreId, bool bCreate)
-{
-    HRESULT hr = hrSuccess;
-    
-    unsigned int ulStoreId = 0;
-    std::map<storeid_t, unsigned int>::iterator i;
-    std::string strQuery;
-    DB_RESULT lpResult = NULL;
-    DB_ROW lpRow = NULL;
-
-    i = m_mapStores.find(store);
-    if(i != m_mapStores.end()) {
-        // Found in cache
-        *lpulStoreId = i->second;
-        goto exit;
-    }
-    
-    strQuery = "SELECT id FROM stores WHERE serverguid = " + m_lpDatabase->EscapeBinary(store.serverGuid) + " AND storeguid = " + m_lpDatabase->EscapeBinary(store.storeGuid);
-    
-    hr = m_lpDatabase->DoSelect(strQuery, &lpResult);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    lpRow = m_lpDatabase->FetchRow(lpResult);
-    
-    if(!lpRow || !lpRow[0]) {
-        if (bCreate) {
-            strQuery = "INSERT INTO stores (serverguid, storeguid) VALUES(" + m_lpDatabase->EscapeBinary(store.serverGuid) + "," + m_lpDatabase->EscapeBinary(store.storeGuid) + ")";
-            hr = m_lpDatabase->DoInsert(strQuery, &ulStoreId);
-            if (hr != hrSuccess)
-                goto exit;
-        } else {
-            hr = MAPI_E_NOT_FOUND;
-            goto exit;
-        }
+    if(wstrTerm.size() > 3) {
+        vallen = GetSortKey(wstrTerm.c_str() + 3, wstrTerm.size() - 3, valbuf, 256);
+        vallen = MIN(256, vallen);
     } else {
-        ulStoreId = atoui(lpRow[0]);
+        vallen = 0;
     }
+    
+    value = m_lpIndex->get(keybuf, sizeof(unsigned int) + keylen, &len);
+    offset = 0;
 
-    m_mapStores.insert(std::make_pair(store, ulStoreId));    
-    *lpulStoreId = ulStoreId;
+    if(!value)
+        goto exit; // No matches
+    
+    while(offset < len) {
+        p = (TERMENTRY *) (value + offset);
+        
+        if (setFolders.count(p->folder) == 0)
+            goto next;
+        if (setFields.count(p->field) == 0)
+            goto next;
+        if (p->len < vallen)
+            goto next;
+            
+        if (vallen == 0 || strncmp(valbuf, value + offset + sizeof(TERMENTRY), vallen) == 0) {
+            VERSIONKEY sKey;
+            VERSIONVALUE *sVersion;
+            size_t cb = 0;
+            sKey.type = KT_VERSION;
+            sKey.doc = p->doc;
+            
+            // Check if the version is ok
+            sVersion = (VERSIONVALUE *)m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
+            
+            if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
+                setMatches.insert(p->doc);
+        }
+next:
+        offset += sizeof(TERMENTRY) + p->len;            
+    }
+    
+    for(j = setMatches.begin(); j != setMatches.end(); j++) {
+        lstMatches.push_back(*j);
+    }
     
 exit:
-    if(lpResult)
-        m_lpDatabase->FreeResult(lpResult);
-
-    return hr;        
+    if (value)
+        delete [] value;
+        
+    return hr;
 }
 
 /**
@@ -476,33 +433,41 @@ exit:
  * @param[in] doc Document ID of document (hierarchyid)
  * @return result
  */
-HRESULT ECIndexDB::AddSourcekey(storeid_t store, folderid_t folder, std::string strSourceKey, docid_t doc)
+HRESULT ECIndexDB::AddSourcekey(folderid_t folder, std::string strSourceKey, docid_t doc)
 {
     HRESULT hr = hrSuccess;
-    std::string strQuery;
-    unsigned int ulStoreId = 0;
+    std::string strKey, strValue;
+    unsigned int type = KT_SOURCEKEY;
     
-    hr = Begin();
-    if(hr != hrSuccess)
-        goto exit;
-
-    hr = GetStoreId(store, &ulStoreId, true);
-    if(hr != hrSuccess)
-        goto exit;
+    strKey.assign((char *)&type, sizeof(type));
+    strKey.append(strSourceKey);
     
-    strQuery = "REPLACE INTO sourcekeys(store, folder, sourcekey, doc) VALUES(" + stringify(ulStoreId) + "," + stringify(folder) + "," + m_lpDatabase->EscapeBinary(strSourceKey) + "," + stringify(doc) + ")";
-    
-    hr = m_lpDatabase->DoInsert(strQuery);
-    
-    if(hr != hrSuccess)
-        goto exit;
+    strValue.assign((char *)&doc, sizeof(doc));
         
-    hr = Commit();
-        
-exit:
-    if (hr != hrSuccess)
-        Rollback();
+    m_lpIndex->set(strKey, strValue);
         
     return hr;
 }
 
+/**
+ * Create a sortkey from the wchar_t input passed
+ *
+ * @param wszInput Input string
+ * @param len Length of wszInput in characters
+ * @param szOutput Output buffer
+ * @param outLen Output buffer size in bytes
+ * @return Length of data written to szOutput
+ */
+size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput, size_t outLen)
+{
+    UChar in[1024];
+    int32_t inlen;
+    int32_t keylen;
+    UErrorCode error = U_ZERO_ERROR;
+
+    u_strFromWCS(in, arraySize(in), &inlen, wszInput, len, &error);
+    
+    keylen = m_lpCollator->getSortKey(in, inlen, (uint8_t *)szOutput, (int32_t)outLen);
+    
+    return keylen - 1;
+}

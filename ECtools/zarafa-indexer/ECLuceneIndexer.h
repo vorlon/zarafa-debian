@@ -75,9 +75,11 @@ private:
 	 *
 	 * @note Objects of ECLuceneIndexer must only be created using the Create() function.
 	 *
+	 * @param[in]	lpServer 		Server GUID
+	 * @param[in]	lpServer 		Store GUID
 	 * @param[in]	lpThreadData
 	 */
-	ECLuceneIndexer(ECThreadData *lpThreadData);
+	ECLuceneIndexer(GUID *lpServer, GUID *lpSTore, ECThreadData *lpThreadData);
 
 public:
 	/**
@@ -85,6 +87,8 @@ public:
 	 *
 	 * @note Creating a new ECLuceneIndexer object must always occur through this function.
 	 *
+	 * @param[in]	lpServer 		Server GUID
+	 * @param[in]	lpServer 		Store GUID
 	 * @param[in]	lpThreadData
 	 *					Reference to the ECThreadData object.
 	 * @param[in]	lpMsgStore
@@ -95,7 +99,7 @@ public:
 	 *					The created ECLuceneIndexer object.
 	 * @return HRESULT
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, IMsgStore *lpMsgStore, ECLuceneIndexer **lppIndexer);
+	static HRESULT Create(GUID *lpServer, GUID *lpStore, ECThreadData *lpThreadData, IMsgStore *lpMsgStore, ECLuceneIndexer **lppIndexer);
 
 	/**
 	 * Destructor
@@ -147,10 +151,6 @@ private:
 	 *
 	 * @param[in]	lpDocument
 	 *					Reference to CLucene Document object to which all parsed data should be written to.
-	 * @param[in]	cValues
-	 *					The number of SPropValue elements in lpProps.
-	 * @param[in]	lpProps
-	 *					Array of SPropValue elements containing all message properties required for indexing.
 	 * @param[in]	lpMessage
 	 *					Reference to IMessage object which is being indexed.
 	 * @param[in]	bDefaultField
@@ -158,7 +158,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, IMessage *lpMessage, BOOL bDefaultField = FALSE);
+	HRESULT ParseDocument(folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, BOOL bDefaultField = FALSE);
 
 	/**
 	 * Process all properties from stream and add all data into the CLucene Document
@@ -174,7 +174,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseStream(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField = FALSE);
+	HRESULT ParseStream(folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, ECSerializer *lpSerializer, BOOL bDefaultField = FALSE);
 
 	/**
 	 * Handle message attachments
@@ -190,7 +190,7 @@ private:
 	 *					Reference to IMessage object, might be NULL if lpEntryId is provided.
 	 * @return HRESULT
 	 */
-	HRESULT ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpEntryId, IMessage *lpOrigMessage);
+	HRESULT ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpEntryId, IMessage *lpOrigMessage);
 
 	/**
 	 * Handle message attachments from stream
@@ -204,7 +204,7 @@ private:
 	 *					Serializer containing the stream from which attachments will be read.
 	 * @return HRESULT
 	 */
-	HRESULT ParseStreamAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
+	HRESULT ParseStreamAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer);
 
 	/**
 	 * Process all properties from message and add all data into the CLucene Document
@@ -220,7 +220,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT ParseStub(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField);
+	HRESULT ParseStub(folderid_t folder, docid_t doc, unsigned int version, ULONG cValues, LPSPropValue lpProps, BOOL bDefaultField);
 
 	/**
 	 * Add given property to the document as new field
@@ -236,7 +236,7 @@ private:
 	 *					each property into its own dedicated field. (default FALSE)
 	 * @return HRESULT
 	 */
-	HRESULT AddPropertyToDocument(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField);
+	HRESULT AddPropertyToDocument(folderid_t folder, docid_t doc, unsigned int version, LPSPropValue lpProp, LPMAPINAMEID lpNameID, BOOL bDefaultField);
 
 	/**
 	 * Get the name of a dynamic field
@@ -261,8 +261,6 @@ private:
 
 	IMsgStore *m_lpMsgStore;
 	IMAPISession *m_lpAdminSession;
-
-	LPSPropTagArray m_lpIndexedProps;
 
 	friend class ECLuceneIndexerAttachment;
 };

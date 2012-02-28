@@ -417,7 +417,7 @@ HRESULT ECIndexer::LoadUserChanges(ECSynchronization *lpSyncer, IMAPISession *lp
 		for (iter = lpChanges->lDelete.begin(); iter != lpChanges->lDelete.end(); iter++) {
 			entrydata_list_t::iterator entry = find_if(m_lUsers.begin(), m_lUsers.end(), finduser_if(*iter));
 			if (entry != m_lUsers.end()) {
-//				m_lpThreadData->lpLucene->Delete((*entry)->m_strStorePath); FIXME
+//				m_lpThreadData->lpIndexFactory->RemoveDB((*entry)->m_strStorePath);
 
 				(*entry)->Release();
 				m_lUsers.erase(entry);
@@ -645,7 +645,7 @@ HRESULT ECIndexer::LoadUser(IMAPISession *lpAdminSession, IExchangeManageStore *
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
+	
 	lpServerName = PpropFindProp(lpProps, cbProps, PR_EC_HOMESERVER_NAME);
 	if (!lpServerName)
 		lpServerName = &sTmpServer;

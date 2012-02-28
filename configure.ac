@@ -369,6 +369,10 @@ AC_SUBST(VMIME_LIBS)
 CXXFLAGS=$CXXFLAGS_system
 CPPFLAGS=$CPPFLAGS_system
 
+PKG_CHECK_MODULES(KYOTOCABINET, kyotocabinet)
+AC_SUBST(KYOTOCABINET_CFLAGS)
+AC_SUBST(KYOTOCABINET_LIBS)
+
 dnl TODO: add checks for library on system
 AC_ARG_WITH(ical-prefix,
   AC_HELP_STRING([--with-ical-prefix=PATH],[path to the libical include files, e.g. /usr/local/include]),

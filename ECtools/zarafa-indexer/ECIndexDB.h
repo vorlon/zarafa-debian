@@ -55,69 +55,60 @@
 #include <map>
 #include <set>
 
+#include <unicode/coll.h>
 #include <mapidefs.h>
 
 class ECConfig;
 class ECLogger;
-class ECDatabaseMySQL;
 class ECAnalyzer;
-
-class storeid_t {
-public:
-    storeid_t() { };
-    storeid_t(LPMAPIUID server, LPMAPIUID store) {
-        serverGuid.assign((char *)server, sizeof(GUID));
-        storeGuid.assign((char *)store, sizeof(GUID));
-    }
-    storeid_t(LPSPropValue lpServerGuid, LPSPropValue lpStoreGuid) {
-        serverGuid.assign((char *)lpServerGuid->Value.bin.lpb, lpServerGuid->Value.bin.cb);
-        storeGuid.assign((char *)lpStoreGuid->Value.bin.lpb, lpStoreGuid->Value.bin.cb);
-    }
-        
-    std::string serverGuid;
-    std::string storeGuid;
-    
-    bool operator < (const storeid_t &other) const {
-        return std::make_pair(serverGuid, storeGuid) < std::make_pair(other.serverGuid, storeGuid);
-    }
-};
+class ECIndexFactory;
+namespace kyotocabinet {
+    class IndexDB;
+    class Compressor;
+}
 
 typedef unsigned int folderid_t;
 typedef unsigned int docid_t;
 typedef unsigned int fieldid_t;
 
+using namespace kyotocabinet;
+
 class ECIndexDB {
 public:
-    ECIndexDB(ECConfig *lpConfig, ECLogger *lpLogger);
-    ~ECIndexDB();
-    
-    HRESULT AddTerm(storeid_t store, folderid_t folder, docid_t doc, fieldid_t field, unsigned int ulVersion, std::wstring wstrTerm);
-    HRESULT RemoveTermsStore(storeid_t store);
-    HRESULT RemoveTermsFolder(storeid_t store, folderid_t folder);
-    HRESULT RemoveTermsDoc(storeid_t store, docid_t doc, unsigned int *lpulVersion);
-    HRESULT RemoveTermsDoc(storeid_t store, folderid_t folder, std::string strSourceKey);
+    HRESULT AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsigned int ulVersion, std::wstring wstrTerm);
+    HRESULT RemoveTermsFolder(folderid_t folder);
+    HRESULT RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion);
+    HRESULT RemoveTermsDoc(folderid_t folder, std::string strSourceKey);
     
     // We need to track the sourcekey of documents to be able to handle deletions
-    HRESULT AddSourcekey(storeid_t store, folderid_t folder, std::string strSourceKey, docid_t doc);
+    HRESULT AddSourcekey(folderid_t folder, std::string strSourceKey, docid_t doc);
+
+    HRESULT StartTransaction();
+    HRESULT EndTransaction();
     
-    HRESULT QueryTerm(storeid_t store, std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
+    HRESULT QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
     
 private:
-    HRESULT Begin();
-    HRESULT Commit();
-    HRESULT Rollback();
+    static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, ECIndexDB **lppIndexDB);
     
-    HRESULT GetStoreId(storeid_t store, unsigned int *lpulStoreId, bool bCreate);
+    ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
+    ~ECIndexDB();
 
+    size_t GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput, size_t outLen);
+    
+    HRESULT Open(const std::string &strIndexId);
+    
     ECLogger *m_lpLogger;
     ECConfig *m_lpConfig;
     ECAnalyzer *m_lpAnalyzer;
-    ECDatabaseMySQL *m_lpDatabase;
     
-    bool m_bConnected;
-    
-    std::map<storeid_t, unsigned int> m_mapStores;
     std::set<unsigned int> m_setExcludeProps;
+
+    IndexDB *m_lpIndex;
+    
+    Collator *m_lpCollator;
+
+    friend class ECIndexFactory; // Create / Delete of ECIndexDB only allowed from factory
+
 };
 
-#endif

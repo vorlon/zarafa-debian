@@ -76,6 +76,7 @@
 #include <md5.h>
 
 #include "ECFileIndex.h"
+#include "ECIndexFactory.h"
 #include "ECIndexer.h"
 #include "ECLucene.h"
 #include "ECSearcher.h"
@@ -190,6 +191,8 @@ ECThreadData::ECThreadData()
 
 ECThreadData::~ECThreadData()
 {
+	if (lpIndexFactory)
+		delete lpIndexFactory;
 	if (lpLucene)
 		delete lpLucene;
 	if (lpFileIndex)
@@ -538,6 +541,7 @@ int main(int argc, char *argv[]) {
 
 	g_lpThreadData->lpFileIndex = new ECFileIndex(g_lpThreadData);
 	g_lpThreadData->lpLucene = new ECLucene(g_lpThreadData);
+	g_lpThreadData->lpIndexFactory = new ECIndexFactory(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
 
 	g_lpThreadData->lpLogger->SetLogprefix(LP_TID);
 

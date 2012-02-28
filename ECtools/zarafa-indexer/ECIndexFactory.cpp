@@ -49,49 +49,83 @@
 
 #include "platform.h"
 
-#include "ECDatabase.h"
+#include <mapix.h>
+#include "stringutil.h"
 
-#define TABLEDEF_WORDS			"CREATE TABLE `words` ( \
-								    `store` int(11) unsigned NOT NULL, \
-								    `folder` int(11) unsigned NOT NULL, \
-								    `field` smallint(11) unsigned NOT NULL, \
-								    `doc` int(11) unsigned NOT NULL, \
-								    `term` varchar(255) NOT NULL, \
-								    `version` smallint(11) unsigned NOT NULL, \
-								    PRIMARY KEY  (`store`,`term`,`field`,`doc`) ) ENGINE=Innodb CHARSET=utf8" 
-              
+#include "ECIndexFactory.h"
+#include "ECIndexDB.h"
 
-#define TABLEDEF_STORES			"CREATE TABLE `stores` ( \
-  									`id` int(11) unsigned NOT NULL auto_increment, \
-									`serverguid` varbinary(16) NOT NULL default '', \
-									`storeguid` varbinary(16) NOT NULL default '', \
-									PRIMARY KEY  (`serverguid`,`storeguid`), \
-									UNIQUE KEY `id` (`id`) ) ENGINE=InnoDb CHARSET=utf8"
-
-#define TABLEDEF_UPDATES		"CREATE TABLE `updates` ( \
-                                    `store` int(11) unsigned NOT NULL, \
-                                    `doc` int(11) unsigned NOT NULL, \
-                                    `version` smallint(11) unsigned NOT NULL, \
-                                    PRIMARY KEY (`store`, `doc`) \
-                                    ) ENGINE=InnoDB CHARSET=utf8"
-
-#define TABLEDEF_SOURCEKEYS		"CREATE TABLE `sourcekeys` ( \
-                                    `store` int(11) unsigned NOT NULL, \
-                                    `folder` int(11) unsigned NOT NULL, \
-                                    `sourcekey` varbinary(255) NOT NULL, \
-                                    `doc` int(11) unsigned NOT NULL, \
-                                    PRIMARY KEY  (`store`,`folder`,`sourcekey`) \
-                                    ) ENGINE=InnoDB CHARSET=utf8"
-                                    
-sSQLDatabase_t tables[] = 
+ECIndexFactory::ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger)
 {
-	{"stores", TABLEDEF_STORES},
-	{"words", TABLEDEF_WORDS},
-	{"updates", TABLEDEF_UPDATES},
-	{"sourcekeys", TABLEDEF_SOURCEKEYS},
-	{NULL, NULL}
-};
-
-sSQLDatabase_t *ECDatabase::GetDatabaseDefs() {
-	return tables;
+    m_lpConfig = lpConfig;
+    m_lpLogger = lpLogger;
+    
+    pthread_mutex_init(&m_mutexIndexes, NULL);
 }
+
+ECIndexFactory::~ECIndexFactory()
+{
+}
+
+HRESULT ECIndexFactory::GetIndexDB(GUID *lpServer, GUID *lpStore, ECIndexDB **lppIndexDB)
+{
+    HRESULT hr = hrSuccess;
+    std::map<std::string, std::pair<unsigned int, ECIndexDB *> >::iterator i;
+    
+    std::string strStore = GetStoreId(lpServer, lpStore);
+
+    pthread_mutex_lock(&m_mutexIndexes);
+    i = m_mapIndexes.find(strStore);
+    
+    if (i != m_mapIndexes.end()) {
+        *lppIndexDB = i->second.second;
+        i->second.first++;
+    } else {
+        hr = ECIndexDB::Create(strStore, m_lpConfig, m_lpLogger, lppIndexDB);
+        if(hr != hrSuccess)
+            goto exit;
+            
+        m_mapIndexes.insert(std::make_pair(strStore, std::make_pair(1, *lppIndexDB)));
+    }
+    
+exit:
+    pthread_mutex_unlock(&m_mutexIndexes);
+    
+    return hr;
+}
+
+HRESULT ECIndexFactory::ReleaseIndexDB(ECIndexDB *lpIndexDB)
+{
+    HRESULT hr = hrSuccess;
+    std::map<std::string, std::pair<unsigned int, ECIndexDB *> >::iterator i;
+    
+    pthread_mutex_lock(&m_mutexIndexes);
+
+    for(i = m_mapIndexes.begin(); i != m_mapIndexes.end(); i++) {
+        if (i->second.second == lpIndexDB) {
+            i->second.first--;
+            
+            if(i->second.first == 0) {
+                delete i->second.second;
+                m_mapIndexes.erase(i);
+            }
+            
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&m_mutexIndexes);
+    
+    return hr;
+}
+
+HRESULT ECIndexFactory::RemoveIndexDB(std::string strId)
+{
+    return hrSuccess;
+}
+
+std::string ECIndexFactory::GetStoreId(GUID *lpServer, GUID *lpStore)
+{
+    return bin2hex(sizeof(GUID), (unsigned char *)lpServer) + "-" + bin2hex(sizeof(GUID), (unsigned char *)lpStore);
+}
+

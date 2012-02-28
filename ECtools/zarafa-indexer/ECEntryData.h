@@ -215,6 +215,7 @@ public:
 	 * new entries may only be added through the ECFolderData::Create() function.
 	 */
 	folderdata_list_t m_lFolders;
+	
 };
 
 typedef std::list<ECEntryData *> entrydata_list_t;

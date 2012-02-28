@@ -384,14 +384,15 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		}
 	};
 	
-	hr = ECLuceneIndexer::Create(m_lpThreadData, lpMsgStore, &lpLucene);
-	if (hr != hrSuccess)
-		goto exit;
-		
 	hr = lpFolder->GetProps((LPSPropTagArray)&sptaFolderProps, 0, &cValues, &lpProps);
 	if(hr != hrSuccess) // We need all properties to be ok, no warnings
 		goto exit;
 		
+	hr = ECLuceneIndexer::Create((GUID *)lpProps[2].Value.bin.lpb, (GUID *)lpProps[1].Value.bin.lpb, m_lpThreadData, lpMsgStore, &lpLucene);
+	if (hr != hrSuccess)
+		goto exit;
+		
+
 	// We want a PR_EC_PARENT_HIERARCHYID, so abuse PR_RECORD_KEY to find hierarchyid of folder ... *HACKISH*
 	ASSERT(lpProps[0].Value.bin.cb == sizeof(unsigned int));
 	lpProps[0].ulPropTag = PR_EC_PARENT_HIERARCHYID;

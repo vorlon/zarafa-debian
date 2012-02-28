@@ -457,45 +457,31 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	IMessage *lpMessage = NULL;
-	LPSPropValue lpMsgProps = NULL;
-	ULONG ulMsgProps = 0;
 
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, (LPUNKNOWN *)&lpMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpMessage->GetProps(m_lpIndexer->m_lpIndexedProps, 0, &ulMsgProps, &lpMsgProps);
-	if (hr != hrSuccess) {
-		/* Don't care if not all properties have been provided */
-		if (hr == MAPI_W_ERRORS_RETURNED || hr == MAPI_E_NOT_FOUND)
-			hr = hrSuccess;
-		else
-			goto exit;
-	}
-
-	hr = m_lpIndexer->ParseDocument(store, folder, doc, version, ulMsgProps, lpMsgProps, lpMessage, TRUE);
+	hr = m_lpIndexer->ParseDocument(folder, doc, version, lpMessage, TRUE);
 	if (hr != hrSuccess)
 		goto exit;
 
 exit:
-	if (lpMsgProps)
-		MAPIFreeBuffer(lpMsgProps);
-
 	if (lpMessage)
 		lpMessage->Release();
 
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 
-	hr = m_lpIndexer->ParseStream(store, folder, doc, version, 0, NULL, lpSerializer, TRUE);
+	hr = m_lpIndexer->ParseStream(folder, doc, version, 0, NULL, lpSerializer, TRUE);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -503,7 +489,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
+HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
 														tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
 														std::wstring *lpstrParsed)
 {
@@ -577,7 +563,7 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderi
 		wparsed.append(convert_to<std::wstring>(strFilename));
 	}
 
-	hr = m_lpIndexer->m_lpIndexDB->AddTerm(store, folder, doc, version, PR_BODY, wparsed);
+	hr = m_lpIndexer->m_lpIndexDB->AddTerm(folder, doc, version, PR_BODY, wparsed);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -588,7 +574,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	IStream *lpStream = NULL;
@@ -613,7 +599,7 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(storeid_t store, folderi
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ParseValueAttachment(store, folder, doc, version, lpStream, strMimeTag, strExtension, strFilename, &wparsed);
+	hr = ParseValueAttachment(folder, doc, version, lpStream, strMimeTag, strExtension, strFilename, &wparsed);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -628,7 +614,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps)
+HRESULT ECLuceneIndexerAttachment::ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
 	IAttach *lpAttach = NULL;
@@ -675,17 +661,17 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t f
 
 	/* First try to see if the attachment has been cached, before actually reading the attachment data */
 	if (GetCachedAttachment(lpAttach, &strAttachData) == hrSuccess) {
-		hr = m_lpIndexer->m_lpIndexDB->AddTerm(store, folder, doc, PR_BODY, version, strAttachData);
+		hr = m_lpIndexer->m_lpIndexDB->AddTerm(folder, doc, PR_BODY, version, strAttachData);
 	} else {
 		switch (ulMethod) {
 			case ATTACH_EMBEDDED_MSG:
-				hr = ParseEmbeddedAttachment(store, folder, doc, version, lpAttach, ulProps, lpProps);
+				hr = ParseEmbeddedAttachment(folder, doc, version, lpAttach, ulProps, lpProps);
 				if (hr != hrSuccess)
 					goto exit;
 				break;
 			case ATTACH_BY_VALUE:
 			default:
-				hr = ParseValueAttachment(store, folder, doc, version, lpAttach, ulProps, lpProps);
+				hr = ParseValueAttachment(folder, doc, version, lpAttach, ulProps, lpProps);
 				if (hr != hrSuccess)
 					goto exit;
 				break;
@@ -699,7 +685,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -816,13 +802,13 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachment(storeid_t store, folderid_t f
 
 		switch (ulMethod) {
 		case ATTACH_EMBEDDED_MSG:
-			hr = ParseEmbeddedAttachment(store, folder, doc, version, lpSerializer);
+			hr = ParseEmbeddedAttachment(folder, doc, version, lpSerializer);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
 		case ATTACH_BY_VALUE:
 		default:
-			hr = ParseValueAttachment(store, folder, doc, version, lpStream, strMimeTag, strExtension, strFilename);
+			hr = ParseValueAttachment(folder, doc, version, lpStream, strMimeTag, strExtension, strFilename);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
@@ -849,7 +835,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage)
+HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
@@ -883,7 +869,7 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t 
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; i++) {
-			if (ParseAttachment(store, folder, doc, version, lpMessage, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps) != hrSuccess)
+			if (ParseAttachment(folder, doc, version, lpMessage, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps) != hrSuccess)
 				continue;
 		}
 
@@ -902,7 +888,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -921,10 +907,10 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t 
 
 		switch (ulTmp[0]) {
 		case MAPI_ATTACH:
-			ParseAttachment(store, folder, doc, version, lpSerializer);
+			ParseAttachment(folder, doc, version, lpSerializer);
 			break;
 		case MAPI_MESSAGE:
-			ParseEmbeddedAttachment(store, folder, doc, version, lpSerializer);
+			ParseEmbeddedAttachment(folder, doc, version, lpSerializer);
 			break;
 		default:
 			/* Subobject is not an attachment, skip to next object */
@@ -936,7 +922,7 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(storeid_t store, folderid_t 
 
 		if (ulTmp[0] == MAPI_MESSAGE || ulTmp[0] == MAPI_ATTACH) {
 			// handle subobjects in message or attachment
-			hr = ParseAttachments(store, folder, doc, version, lpSerializer);
+			hr = ParseAttachments(folder, doc, version, lpSerializer);
 			if (hr != hrSuccess)
 				goto exit;
 		}

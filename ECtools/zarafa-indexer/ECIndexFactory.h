@@ -47,18 +47,39 @@
  * 
  */
 
-#ifndef ECDATABASE_H
-#define ECDATABASE_H
+#ifndef ECINDEXFACTORY_H
+#define ECINDEXFACTORY_H
 
-#include "ECDatabaseMySQL.h"
+#include <pthread.h>
 
-class lpLogger;
+#include "ECConfig.h"
+#include "ECLogger.h"
 
-class ECDatabase : public ECDatabaseMySQL {
+#include <map>
+
+class ECIndexDB;
+class ECLogger;
+class ECConfig;
+
+class ECIndexFactory {
 public:
-    ECDatabase(ECLogger *lpLogger) : ECDatabaseMySQL(lpLogger) {}
-        
-    sSQLDatabase_t *GetDatabaseDefs();
+    ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger);
+    ~ECIndexFactory();
+    
+    virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, ECIndexDB **lppIndexDB);
+    virtual HRESULT ReleaseIndexDB(ECIndexDB *lpIndexDB);
+
+    virtual HRESULT RemoveIndexDB(std::string strId);
+private:
+
+    std::string GetStoreId(GUID *lpServer, GUID *lpStore);
+
+    // Map ID -> refcount, index
+    std::map<std::string, std::pair<unsigned int, ECIndexDB *> > m_mapIndexes;
+    pthread_mutex_t m_mutexIndexes;
+    
+    ECConfig *m_lpConfig;
+    ECLogger *m_lpLogger;
 };
 
 #endif

@@ -59,6 +59,7 @@
 
 class ECFileIndex;
 class ECLucene;
+class ECIndexFactory;
 
 /**
  * @page zarafa_indexer1 zarafa-indexer
@@ -128,6 +129,11 @@ public:
 	 * ECLucene wrapper for CLucene classess access
 	 */
 	ECLucene *lpLucene;
+
+	/**
+	 * Index database factory
+	 */
+	ECIndexFactory *lpIndexFactory;
 
 	/**
 	 * Global parameter which indicates if server is shutting down

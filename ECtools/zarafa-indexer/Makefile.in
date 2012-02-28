@@ -57,7 +57,7 @@ am_zarafa_indexer_OBJECTS = zarafa-indexer.$(OBJEXT) \
 	ECSearcherRequest.$(OBJEXT) ECLucene.$(OBJEXT) \
 	ECLuceneIndexer.$(OBJEXT) ECLuceneIndexerAttachment.$(OBJEXT) \
 	ECLuceneSearcher.$(OBJEXT) ECAnalyzers.$(OBJEXT) \
-	ECDatabase.$(OBJEXT) ECIndexDB.$(OBJEXT)
+	ECIndexDB.$(OBJEXT) ECIndexFactory.$(OBJEXT)
 zarafa_indexer_OBJECTS = $(am_zarafa_indexer_OBJECTS)
 am__DEPENDENCIES_1 =
 zarafa_indexer_DEPENDENCIES =  \
@@ -162,6 +162,8 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTL_LIBS = @INTL_LIBS@
 KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
+KYOTOCABINET_CFLAGS = @KYOTOCABINET_CFLAGS@
+KYOTOCABINET_LIBS = @KYOTOCABINET_LIBS@
 LDAP_FLAGS = @LDAP_FLAGS@
 LDAP_LIBS = @LDAP_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -282,7 +284,7 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
-	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX $(MYSQL_INCLUDES)
+	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX
 
 zarafa_indexer_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -291,7 +293,7 @@ zarafa_indexer_LDADD = \
 	${top_builddir}/common/libcommon_ssl.la \
     ${top_builddir}/common/libcommon_service.la \
     ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(CLUCENE_LIBS) $(MYSQL_LIBS)
+	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS)
 
 zarafa_indexer_SOURCES = \
 	zarafa-indexer.cpp zarafa-indexer.h \
@@ -311,8 +313,8 @@ zarafa_indexer_SOURCES = \
 	ECLuceneIndexerAttachment.cpp ECLuceneIndexerAttachment.h \
 	ECLuceneSearcher.cpp ECLuceneSearcher.h \
 	ECAnalyzers.cpp ECAnalyzers.h \
-	ECDatabase.cpp ECDatabase.h \
-	ECIndexDB.cpp ECIndexDB.h
+	ECIndexDB.cpp ECIndexDB.h \
+	ECIndexFactory.cpp ECIndexFactory.h
 
 all: all-am
 
@@ -387,10 +389,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECAnalyzers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChangeData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECEntryData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFileIndex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexDB.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerUtil.Po@am__quote@
