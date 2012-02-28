@@ -14,41 +14,14 @@
 zarafa-msr-verify \- Compares the content of the source and destination store after a relocation.
 .SH "SYNOPSIS"
 .HP 11
-\fBzarafa\-msr\fR [\fIOPTIONS\fR] [\fIUSER\fR]
+\fBzarafa\-msr\fR [\fIOPTIONS\fR] [\fICONFIG\fR]
 .SH "DESCRIPTION"
 .PP
 Once a user has been relocated from one multi\-server node to another, this tool can be used to compare the content of the two stores in order to verify if all messages have realy been relocated\&.
+.PP
+The config file is expected to be in the same format as the one used for
+\fIzarafa\-msr\fR\&. Usually the same configuration file should be used\&.
 .SH "OPTIONS"
-.PP
-\fB\-h\fR \fIserverpath\fR
-.RS 4
-Source host to connect with\&.
-.RE
-.PP
-\fB\-f\fR \fIsslkey_file\fR
-.RS 4
-SSL key file for authentication with the source host\&.
-.RE
-.PP
-\fB\-p\fR \fIsslkey_pass\fR
-.RS 4
-Password for the SSL key file for the source host\&.
-.RE
-.PP
-\fB\-H\fR \fIserverpath\fR
-.RS 4
-Destination host to connect with\&.
-.RE
-.PP
-\fB\-F\fR \fIsslkey_file\fR
-.RS 4
-SSL key file for authentication with the destination host\&.
-.RE
-.PP
-\fB\-P\fR \fIsslkey_pass\fR
-.RS 4
-Password for the SSL key file for the destination host\&.
-.RE
 .PP
 \fB\-\-correct\fR
 .RS 4
@@ -65,4 +38,5 @@ Written by Zarafa\&.
 .SH "SEE ALSO"
 .PP
 
+\fBzarafa-msr.cfg\fR(5)
 \fBzarafa-msr\fR(1)
