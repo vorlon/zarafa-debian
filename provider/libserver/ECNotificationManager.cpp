@@ -236,7 +236,7 @@ void *ECNotificationManager::Work() {
                     
                     if(er == ZARAFA_E_NOT_FOUND) {
                         if(time(NULL) - iterRequest->second.ulRequestTime < m_ulTimeout) {
-                            // No notifications - this means we have to wait. This can happen if the session was marked active sinc
+                            // No notifications - this means we have to wait. This can happen if the session was marked active since
                             // the request was just made, and there may have been notifications still waiting for us
                             pthread_mutex_unlock(&m_mutexRequests);
                             lpecSession->Unlock();
@@ -267,11 +267,10 @@ void *ECNotificationManager::Work() {
 				if(soapresponse(notifications, iterRequest->second.soap)) {
 					// Handle error on the response
 					soap_send_fault(iterRequest->second.soap);
-				} else {
-					// Free allocated SOAP data (in GetNotifyItems())
-					soap_destroy(iterRequest->second.soap);
-					soap_end(iterRequest->second.soap);
 				}
+				// Free allocated SOAP data (in GetNotifyItems())
+				soap_destroy(iterRequest->second.soap);
+				soap_end(iterRequest->second.soap);
 
                 // Since we have responded, remove the item from our request list and pass it back to the active socket list so
                 // that the next SOAP call can be handled (probably another notification request)
