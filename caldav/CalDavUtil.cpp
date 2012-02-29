@@ -1066,8 +1066,12 @@ exit:
 	if (lpAdrList)
 		FreePadrlist(lpAdrList);
 	
-	if (lppFBData)
+	if (lppFBData) {
+		for(ULONG i = 0; i < cUsers; i++)
+			if (lppFBData[i])
+				lppFBData[i]->Release();
 		MAPIFreeBuffer(lppFBData);
+	}
 
 	return hr;
 }

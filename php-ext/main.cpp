@@ -2324,7 +2324,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	}
 
 	// Execute
-	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, 0, 0, &pRowSet);
+	MAPI_G(hr) = HrQueryAllRows(lpTable, lpTagArray, lpRestrict, NULL, 0, &pRowSet);
 
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
@@ -6542,8 +6542,12 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 exit:
 	if (lpUsers)
 		MAPIFreeBuffer(lpUsers);
-	if(lppFBData)
+	if (lppFBData) {
+		for(ULONG i = 0; i < cUsers; i++)
+			if (lppFBData[i])
+				lppFBData[i]->Release();
 		MAPIFreeBuffer(lppFBData);
+	}
 
     THROW_ON_ERROR();
     return;
