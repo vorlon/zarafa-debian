@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-23 00:04+0100\n"
+"POT-Creation-Date: 2012-02-29 16:00+0100\n"
 "PO-Revision-Date: 2012-02-13 14:55+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
@@ -636,7 +636,7 @@ msgid "Tasks"
 msgstr "Tâches"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2390
+#: provider/libserver/ECGenProps.cpp:922 provider/client/ECMsgStore.cpp:2390
 msgid "Inbox"
 msgstr "Boîte de réception"
 
@@ -801,13 +801,13 @@ msgstr "Votre cache est mis à jour..."
 msgid "Upgrade: "
 msgstr "Mise à jour : "
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:880
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Dossiers publics"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:924
 msgid "Archive"
 msgstr "Archive"
 
@@ -1387,10 +1387,10 @@ msgstr "Ce certificat est fiable mais ne peut pas être correctement vérifié."
 msgid "Do you wish to continue?"
 msgstr "Désirez-vous vraiment continuer ?"
 
-#: zarafa-libsync/ECSync.cpp:1903
+#: zarafa-libsync/ECSync.cpp:1927
 msgid ""
-"The syncronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors\r\n"
+"The synchronization of a folder failed. Press retry to continue or ignore to "
+"supress all errors.\r\n"
 "\r\n"
 "Please contact the system administrator if this problem persists."
 msgstr ""
@@ -1480,19 +1480,19 @@ msgid "Error found while trying to send your message. Error code: "
 msgstr ""
 "Erreur rencontrée à la tentative d'envoi de votre message. Code erreur : "
 
-#: common/Util.cpp:1735
+#: common/Util.cpp:1728
 msgid "End of Session"
 msgstr "Fin de la session"
 
-#: common/Util.cpp:1738
+#: common/Util.cpp:1731
 msgid "Connection lost"
 msgstr "Connexion perdue"
 
-#: common/Util.cpp:1741
+#: common/Util.cpp:1734
 msgid "Access denied"
 msgstr "Accès refusé"
 
-#: common/Util.cpp:1744
+#: common/Util.cpp:1737
 msgid ""
 "Unable to move or copy folders. Can't copy folder. A top-level can't be "
 "copied to one of its subfolders. Or, you may not have appropriate "
@@ -1506,7 +1506,7 @@ msgstr ""
 "dossier, veuillez effectuer un clic droit dessus, puis cliquer sur "
 "Propriétés dans le menu contextuel."
 
-#: common/Util.cpp:1747
+#: common/Util.cpp:1740
 msgid ""
 "The message store has reached its maximum size. To reduce the amount of data "
 "in this message store, select some items that you no longer need, and "
@@ -1517,7 +1517,7 @@ msgstr ""
 "certains éléments dont vous n'avez plus besoin, puis les supprimer de "
 "manière définitive (SHIFT + DEL)."
 
-#: common/Util.cpp:1750
+#: common/Util.cpp:1743
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
@@ -1525,11 +1525,11 @@ msgstr ""
 "L'utilisateur a annulé l'opération, probablement en cliquant sur le bouton "
 "Annuler d'une boîte de dialogue."
 
-#: common/Util.cpp:1753
+#: common/Util.cpp:1746
 msgid "A logon session could not be established."
 msgstr "L'ouverture de la session n'a pas pu être établie."
 
-#: common/Util.cpp:1756
+#: common/Util.cpp:1749
 msgid ""
 "The name of the folder being moved or copied is the same as that of a "
 "subfolder in the destination folder. The message store provider requires "
@@ -1540,7 +1540,7 @@ msgstr ""
 "boîte de messages exige que les noms de dossier soient uniques. L'opération "
 "en cours ne peut aboutir."
 
-#: common/Util.cpp:1759
+#: common/Util.cpp:1752
 msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
@@ -1548,7 +1548,7 @@ msgstr ""
 "L'opération a réussi, mais toutes les saisies n'ont pas été correctement "
 "effectuées, copiées, effacées ou déplacées"
 
-#: common/Util.cpp:1762
+#: common/Util.cpp:1755
 msgid ""
 "The provider does not have enough information to complete the logon. Or, the "
 "service provider has not been configured."
@@ -1556,7 +1556,7 @@ msgstr ""
 "Le serveur n'a pas assez d'informations pour compléter l'ouverture de la "
 "session. Ou bien, le gestionnaire de services n'a pas été configuré."
 
-#: common/Util.cpp:1765
+#: common/Util.cpp:1758
 msgid ""
 "One of the providers cannot log on, but this error should not disable the "
 "other services."
@@ -1564,25 +1564,25 @@ msgstr ""
 "Un des serveurs n'a pas pu ouvrir de session mais cette erreur ne devrait "
 "pas désactiver les autres services."
 
-#: common/Util.cpp:1768
+#: common/Util.cpp:1761
 msgid "A database error or I/O error has occurred."
 msgstr "Une erreur de base de données ou une erreur d'I/O est survenue."
 
-#: common/Util.cpp:1771
+#: common/Util.cpp:1764
 msgid "The subfolder being deleted contains subfolders."
 msgstr ""
 "Le sous-répertoire en cours de suppression contient lui-même des "
 "sous-répertoires."
 
-#: common/Util.cpp:1774
+#: common/Util.cpp:1767
 msgid "The subfolder being deleted contains messages."
 msgstr "Le sous-répertoire en cours de suppression contient des messages."
 
-#: common/Util.cpp:1777
+#: common/Util.cpp:1770
 msgid "No description available."
 msgstr "Aucune description disponible."
 
-#: common/Util.cpp:1779
+#: common/Util.cpp:1772
 msgid "MAPI error code:"
 msgstr "Code erreur MAPI :"
 

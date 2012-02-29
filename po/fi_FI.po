@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-23 00:04+0100\n"
+"POT-Creation-Date: 2012-02-29 16:00+0100\n"
 "PO-Revision-Date: 2011-02-02 11:17+0200\n"
 "Last-Translator: Verkkotaito <zarafa@verkkotaito.fi>\n"
 "Language-Team: fi_FI <fi@li.org>\n"
@@ -622,7 +622,7 @@ msgid "Tasks"
 msgstr "Tehtävät"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2390
+#: provider/libserver/ECGenProps.cpp:922 provider/client/ECMsgStore.cpp:2390
 msgid "Inbox"
 msgstr "Saapuneet"
 
@@ -785,13 +785,13 @@ msgstr ""
 msgid "Upgrade: "
 msgstr ""
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:880
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Julkiset Kansiot"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:924
 msgid "Archive"
 msgstr ""
 
@@ -1356,10 +1356,10 @@ msgstr "Varmenne on luotettu, muttei todennu oikein."
 msgid "Do you wish to continue?"
 msgstr "Haluatko jatkaa?"
 
-#: zarafa-libsync/ECSync.cpp:1903
+#: zarafa-libsync/ECSync.cpp:1927
 msgid ""
-"The syncronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors\r\n"
+"The synchronization of a folder failed. Press retry to continue or ignore to "
+"supress all errors.\r\n"
 "\r\n"
 "Please contact the system administrator if this problem persists."
 msgstr ""
@@ -1443,19 +1443,19 @@ msgstr "Käyttäjää ja tai ryhmää, jonka nimissä yrität lähettää, ei l�
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Viestiä lähetettäessä tapahtui virhe. Virhekoodi:"
 
-#: common/Util.cpp:1735
+#: common/Util.cpp:1728
 msgid "End of Session"
 msgstr "Istunnon Päätös"
 
-#: common/Util.cpp:1738
+#: common/Util.cpp:1731
 msgid "Connection lost"
 msgstr "Yhteys katkennut"
 
-#: common/Util.cpp:1741
+#: common/Util.cpp:1734
 msgid "Access denied"
 msgstr "Pääsy evätty"
 
-#: common/Util.cpp:1744
+#: common/Util.cpp:1737
 msgid ""
 "Unable to move or copy folders. Can't copy folder. A top-level can't be "
 "copied to one of its subfolders. Or, you may not have appropriate "
@@ -1468,7 +1468,7 @@ msgstr ""
 "klikkaa oikeanpuoleisella napilla kansion kohdalla, ja valitse Ominaisuudet "
 "pikavalikosta."
 
-#: common/Util.cpp:1747
+#: common/Util.cpp:1740
 msgid ""
 "The message store has reached its maximum size. To reduce the amount of data "
 "in this message store, select some items that you no longer need, and "
@@ -1478,7 +1478,7 @@ msgstr ""
 "tässä viestivarastossa, valitse joitakin kohteita mitä et enää tarvitse, ja "
 "poista ne pysyvästi (SHIFT + DEL)."
 
-#: common/Util.cpp:1750
+#: common/Util.cpp:1743
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
@@ -1486,11 +1486,11 @@ msgstr ""
 "Käyttäjä peruutti toiminnon, klikkaamalla Peruuta-painiketta "
 "keskusteluruudussa."
 
-#: common/Util.cpp:1753
+#: common/Util.cpp:1746
 msgid "A logon session could not be established."
 msgstr "Sisäänkirjautumisistuntoa ei voitu luoda."
 
-#: common/Util.cpp:1756
+#: common/Util.cpp:1749
 msgid ""
 "The name of the folder being moved or copied is the same as that of a "
 "subfolder in the destination folder. The message store provider requires "
@@ -1500,7 +1500,7 @@ msgstr ""
 "alikansion. Tämä viestivarasto vaatii yksilölliset kansionimet. Toimintoa ei "
 "suoritettu loppuun."
 
-#: common/Util.cpp:1759
+#: common/Util.cpp:1752
 msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
@@ -1508,7 +1508,7 @@ msgstr ""
 "Toiminto onnistui, mutta kaikkia kohteita ei voitu käsitellä onnistuneesti, "
 "kopioida, poistaa tai siirtää."
 
-#: common/Util.cpp:1762
+#: common/Util.cpp:1755
 msgid ""
 "The provider does not have enough information to complete the logon. Or, the "
 "service provider has not been configured."
@@ -1516,7 +1516,7 @@ msgstr ""
 "Tuottajalla ei ole riittäviä tietoja suorittaakseen sisäänkirjautumista. "
 "Tai, palveluntuottajaa ei ole vielä asetettu."
 
-#: common/Util.cpp:1765
+#: common/Util.cpp:1758
 msgid ""
 "One of the providers cannot log on, but this error should not disable the "
 "other services."
@@ -1524,23 +1524,23 @@ msgstr ""
 "Joku tuottajista ei voi kirjautua sisään, mutta tämän virheen ei pitäisi "
 "estää muiden palveluiden käyttämistä."
 
-#: common/Util.cpp:1768
+#: common/Util.cpp:1761
 msgid "A database error or I/O error has occurred."
 msgstr "Tapahtui tietokanta- tai I/O-virhe."
 
-#: common/Util.cpp:1771
+#: common/Util.cpp:1764
 msgid "The subfolder being deleted contains subfolders."
 msgstr ""
 
-#: common/Util.cpp:1774
+#: common/Util.cpp:1767
 msgid "The subfolder being deleted contains messages."
 msgstr ""
 
-#: common/Util.cpp:1777
+#: common/Util.cpp:1770
 msgid "No description available."
 msgstr ""
 
-#: common/Util.cpp:1779
+#: common/Util.cpp:1772
 msgid "MAPI error code:"
 msgstr ""
 
