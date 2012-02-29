@@ -1282,6 +1282,9 @@ exit:
     if(lpDBResult)
         lpDatabase->FreeResult(lpDBResult);
 
+    if (lpAdditionalRestrict)
+        FreeRestrictTable(lpAdditionalRestrict);
+
     return er;
 }
 
