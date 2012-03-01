@@ -1130,6 +1130,12 @@ int main(int argc, char *argv[]) {
 		{ "enable_dsn", "yes", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
+    // SIGSEGV backtrace support
+    stack_t st;
+    struct sigaction act;
+
+    memset(&st, 0, sizeof(st));
+    memset(&act, 0, sizeof(act));
 
 	setlocale(LC_CTYPE, "");
 	setlocale(LC_MESSAGES, "");
@@ -1254,13 +1260,6 @@ int main(int argc, char *argv[]) {
 		sigaddset(&signal_mask, SIGUSR2);
 	}
 
-    // SIGSEGV backtrace support
-    stack_t st;
-    struct sigaction act;
-
-    memset(&st, 0, sizeof(st));
-    memset(&act, 0, sizeof(act));
-
     st.ss_sp = malloc(65536);
     st.ss_flags = 0;
     st.ss_size = 65536;
@@ -1339,6 +1338,9 @@ exit:
 		delete g_lpConfig;
 
 	DeleteLogger(g_lpLogger);
+
+	if (st.ss_sp)
+		free(st.ss_sp);
 
 	switch(hr) {
 	case hrSuccess:
