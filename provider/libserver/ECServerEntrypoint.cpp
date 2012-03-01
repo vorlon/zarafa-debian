@@ -148,9 +148,6 @@ ECRESULT zarafa_unloadlibrary()
 	//  As you delete the keys, the function database_destroy and plugin_destroy will never called
 	//
 	pthread_key_delete(database_key);
-
-	// delete our plugin of the mainthread
-	plugin_destroy(pthread_getspecific(plugin_key));
 	pthread_key_delete(plugin_key);
 
 	// Remove all exist database objects
@@ -175,8 +172,6 @@ ECRESULT zarafa_unloadlibrary()
 	pthread_mutex_destroy(&g_hMutexDBObjectList);
 	
 	ECDatabaseMySQL::UnloadLibrary();
-
-	//FIXME: do also something with delete of objects of plugin_key
 
 	g_bInitLib = false;
 
@@ -223,6 +218,9 @@ ECRESULT zarafa_exit()
 		er = ZARAFA_E_NOT_INITIALIZED;
 		goto exit;
 	}
+
+	// delete our plugin of the mainthread: requires ECPluginFactory to be alive, because that holds the dlopen() result
+	plugin_destroy(pthread_getspecific(plugin_key));
 
 	if (g_lpSessionManager)
 		delete g_lpSessionManager;
