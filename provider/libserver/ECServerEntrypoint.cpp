@@ -148,6 +148,9 @@ ECRESULT zarafa_unloadlibrary()
 	//  As you delete the keys, the function database_destroy and plugin_destroy will never called
 	//
 	pthread_key_delete(database_key);
+
+	// delete our plugin of the mainthread
+	plugin_destroy(pthread_getspecific(plugin_key));
 	pthread_key_delete(plugin_key);
 
 	// Remove all exist database objects
