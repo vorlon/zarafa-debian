@@ -70,7 +70,7 @@ struct soap_connection_thread {
 };
 
 
-int create_pipe_socket(const char *unix_socket, ECLogger *lpLogger, bool bInit) {
+int create_pipe_socket(const char *unix_socket, ECLogger *lpLogger, bool bInit, bool bPriority) {
 	int s;
 	struct sockaddr_un saddr;
 	memset(&saddr, 0, sizeof(struct sockaddr_un));
@@ -92,8 +92,11 @@ int create_pipe_socket(const char *unix_socket, ECLogger *lpLogger, bool bInit) 
 		close(s);
 		return -1;
 	}
-	
-	chmod(unix_socket,0666);
+
+	if (bPriority)
+		chmod(unix_socket,0660); // let only the same unix user connect on the priority socket, users should not be able to abuse the socket
+	else
+		chmod(unix_socket,0666);
 	
 	if(listen(s,8) == -1) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't listen on unix socket %s", unix_socket);
@@ -209,6 +212,8 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for TCP connections on port %d", nServerPort);
+
 exit:
 	if (er != erSuccess && lpsSoap) {
 		soap_free(lpsSoap);
@@ -273,6 +278,8 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for SSL connections on port %d", nServerPort);
+
 exit:
 	if (er != erSuccess && lpsSoap) {
 		soap_free(lpsSoap);
@@ -281,7 +288,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName)
+ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriority)
 {
 	ECRESULT	er = erSuccess;
 	int			sPipe = -1;
@@ -294,11 +301,14 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName)
 
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
-	zarafa_new_soap_connection(CONNECTION_TYPE_NAMED_PIPE, lpsSoap, NULL, NULL);
+	if (bPriority)
+		zarafa_new_soap_connection(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap, NULL, NULL);
+	else
+		zarafa_new_soap_connection(CONNECTION_TYPE_NAMED_PIPE, lpsSoap, NULL, NULL);
 	
 	// Create a unix or windows pipe
 	m_strPipeName = lpPipeName;
-	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpLogger, true);
+	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpLogger, true, bPriority);
 	// This just marks the socket as being a pipe, which triggers some slightly different
 	// behaviour
 	strcpy(lpsSoap->path,"pipe");
@@ -315,6 +325,8 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName)
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
+
 exit:
 	if (er != erSuccess && lpsSoap) {
 		soap_free(lpsSoap);
@@ -327,7 +339,7 @@ SOAP_SOCKET ECSoapServerConnection::CreatePipeSocketCallback(void *lpParam)
 {
 	ECSoapServerConnection *lpThis = (ECSoapServerConnection *)lpParam;
 
-	return (SOAP_SOCKET)create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpLogger, false);
+	return (SOAP_SOCKET)create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpLogger, false, false);
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()
