@@ -10814,6 +10814,7 @@ exit:
 		for(unsigned long i=0; i < ulObjCnt; i++) {
 			CleanMTOMStreamInfo((LPMTOMStreamInfo)lpsResponse->sMsgStreams.__ptr[i].sStreamData.xop__Include.__ptr);
 		}
+		lpsResponse->sMsgStreams.__size = 0;
 	}
 
 	if(lpAttachmentStorage)
