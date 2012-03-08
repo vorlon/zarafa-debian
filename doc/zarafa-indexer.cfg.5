@@ -376,6 +376,13 @@ A list of server names which should be indexed by the indexing service\&. All st
 .sp
 Default: empty
 .RE
+.PP
+\fBterm_cache_size\fR
+.RS 4
+The size in bytes of the term cache used when writing terms to the index\&. A larger term cache will increase indexing speed when indexing large number of documents in a single store\&. This will barely affect incremental updates after the initial indexing has finished\&.
+.sp
+Default: 67108864
+.RE
 .SH "AUTHOR"
 .PP
 Written by Zarafa\&.

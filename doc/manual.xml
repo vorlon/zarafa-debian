@@ -10939,6 +10939,19 @@
 			  <para>Default: empty</para>
 			</listitem>
 		  </varlistentry>
+		  
+		  <varlistentry>
+		    <term><option>term_cache_size</option></term>
+		    <listitem>
+		      <para>The size in bytes of the term cache used when writing
+		      terms to the index. A larger term cache will increase indexing
+		      speed when indexing large number of documents in a single
+		      store. This will barely affect incremental updates after the
+		      initial indexing has finished.
+		      </para>
+		      <para>Default: 67108864</para>
+		    </listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
