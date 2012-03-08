@@ -256,7 +256,7 @@ ECRESULT ECUserStoreTable::Load() {
 	// we can't use WHERE to exclude wrong user types, because of NULL when there is a store, but not a user object
 	strQuery =
 		" SELECT u.id, u.externid, u.objectclass, u.company, s.guid, s.type, s.user_name, s.company, s.hierarchy_id, p.val_longint, m.val_hi, m.val_lo FROM users AS u"
-		"  LEFT JOIN stores AS s ON s.user_id=u.id LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
+		"  LEFT JOIN stores AS s ON s.user_id=u.id AND s.type=" + stringify(ECSTORE_TYPE_PRIVATE) + " LEFT JOIN hierarchy AS h ON h.id=s.hierarchy_id"
 		"  LEFT JOIN properties AS p ON p.hierarchyid=s.hierarchy_id and p.tag=0x0E08 and p.type=0x14"
 		"  LEFT JOIN properties AS m ON m.hierarchyid=s.hierarchy_id and m.tag=0x66A2 and m.type=0x40"
 		" UNION"
