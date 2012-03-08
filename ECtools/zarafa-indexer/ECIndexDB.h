@@ -57,21 +57,16 @@
 
 #include <unicode/coll.h>
 #include <mapidefs.h>
+#include <kchashdb.h>
 
 class ECConfig;
 class ECLogger;
 class ECAnalyzer;
 class ECIndexFactory;
-namespace kyotocabinet {
-    class IndexDB;
-    class Compressor;
-}
 
 typedef unsigned int folderid_t;
 typedef unsigned int docid_t;
 typedef unsigned int fieldid_t;
-
-using namespace kyotocabinet;
 
 class ECIndexDB {
 public:
@@ -90,6 +85,8 @@ public:
     
 private:
     static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, ECIndexDB **lppIndexDB);
+
+    HRESULT FlushCache();
     
     ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
     ~ECIndexDB();
@@ -104,11 +101,14 @@ private:
     
     std::set<unsigned int> m_setExcludeProps;
 
-    IndexDB *m_lpIndex;
+    kyotocabinet::TreeDB *m_lpIndex;
+    kyotocabinet::TinyHashMap *m_lpCache;
     
     Collator *m_lpCollator;
 
     friend class ECIndexFactory; // Create / Delete of ECIndexDB only allowed from factory
+    
+    unsigned int m_ulCacheSize;
 
 };
 

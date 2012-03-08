@@ -60,8 +60,8 @@
 
 #include <unicode/coll.h>
 #include <unicode/ustring.h>
-#include <kcpolydb.h>
-#include <kcdbext.h>
+#include <kchashdb.h>
+#include <kcmap.h>
 
 #include <list>
 #include <string>
@@ -104,7 +104,7 @@ typedef struct {
     unsigned int doc;
 } SOURCEKEYVALUE;
     
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY };
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK };
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -121,6 +121,8 @@ ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger
     ParseProperties(lpConfig->GetSetting("index_exclude_properties"), m_setExcludeProps);
     
     m_lpIndex = NULL;
+    m_lpCache = NULL;
+    m_ulCacheSize = 0;
 
     m_lpCollator = Collator::createInstance(status);
 	m_lpCollator->setAttribute(UCOL_STRENGTH, UCOL_PRIMARY, status);
@@ -128,6 +130,11 @@ ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger
 
 ECIndexDB::~ECIndexDB()
 {
+    FlushCache();
+    
+    if(m_lpCache) {
+        delete m_lpCache;
+    }
     if(m_lpIndex) {
         m_lpIndex->close();
         delete m_lpIndex;
@@ -162,9 +169,13 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId)
 {
     HRESULT hr = hrSuccess;
 
-    m_lpIndex = new IndexDB();
+    m_lpIndex = new TreeDB();
+    m_lpCache = new TinyHashMap();
 
-    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct#zcomp=zlib#opts=c", PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OREADER)) {
+    // Enable compression on the tree database
+    m_lpIndex->tune_options(TreeDB::TCOMPRESS);
+
+    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct", TreeDB::OWRITER | TreeDB::OCREATE | TreeDB::OREADER)) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index: %s", m_lpIndex->error().message());
         hr = MAPI_E_NOT_FOUND;
         goto exit;
@@ -232,13 +243,21 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
                 }
             }
                 
-            m_lpIndex->append(keybuf, sizeof(unsigned int) + keylen, buf, sizeof(TERMENTRY) + sTerm->len);
-            
+            m_lpCache->append(keybuf, sizeof(unsigned int) + keylen, buf, sizeof(TERMENTRY) + sTerm->len);
+            m_ulCacheSize += sizeof(unsigned int) + keylen + sizeof(TERMENTRY) + sTerm->len;
+
 next:        
             delete token;
         }
     }
+
+    if(m_ulCacheSize > atoui(m_lpConfig->GetSetting("term_cache_size"))) {
+        hr = FlushCache();
+        if(hr != hrSuccess)
+            goto exit;
+    }
     
+exit:    
     if(stream)
         delete stream;
     
@@ -351,15 +370,18 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
     std::set<unsigned int> setMatches;
     std::set<unsigned int>::iterator j;
     std::list<unsigned int>::iterator i;
-    size_t len;
+    size_t len = 0;
+    char *thiskey = NULL;
+    size_t thislen = 0;
     char *value = NULL;
-    unsigned int offset;
+    unsigned int offset = 0;
     unsigned int type = KT_TERMS;
-    TERMENTRY *p;
+    TERMENTRY *p = NULL;
     char keybuf[sizeof(unsigned int) + 256];
     unsigned int keylen = 0;
     char valbuf[256];
     unsigned int vallen = 0;
+    kyotocabinet::DB::Cursor *cursor = NULL;
     
     lstMatches.clear();
     
@@ -380,37 +402,69 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
         vallen = 0;
     }
     
-    value = m_lpIndex->get(keybuf, sizeof(unsigned int) + keylen, &len);
-    offset = 0;
-
-    if(!value)
-        goto exit; // No matches
+    cursor = m_lpIndex->cursor();
     
-    while(offset < len) {
-        p = (TERMENTRY *) (value + offset);
+    if(!cursor->jump(keybuf, sizeof(unsigned int) + keylen))
+        goto exit; // No matches;
         
-        if (setFolders.count(p->folder) == 0)
-            goto next;
-        if (setFields.count(p->field) == 0)
-            goto next;
-        if (p->len < vallen)
-            goto next;
+    while(1) {
+        thiskey = cursor->get_key(&thislen, false);
+        
+        if(!thiskey)
+            break;
+
+        if(thislen < 4)
+            break; // Invalid key in the database
             
-        if (vallen == 0 || strncmp(valbuf, value + offset + sizeof(TERMENTRY), vallen) == 0) {
-            VERSIONKEY sKey;
-            VERSIONVALUE *sVersion;
-            size_t cb = 0;
-            sKey.type = KT_VERSION;
-            sKey.doc = p->doc;
+        if(*(unsigned int*)thiskey != KT_TERMS)
+            break; // Key is not a term key
+        
+        if(thislen - 4 < sizeof(unsigned int) + keylen)
+            break; // Found key is shorter than the prefix we're looking for, so there are no more matches after this (since shorter keys must be after the key we're looking for)
             
-            // Check if the version is ok
-            sVersion = (VERSIONVALUE *)m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
+        if(memcmp(thiskey, keybuf, sizeof(unsigned int) + keylen) > 0)
+            break; // Found key is beyond the prefix we're looking for
             
-            if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
-                setMatches.insert(p->doc);
+        value = cursor->get_value(&len, true);
+    
+        offset = 0;
+
+        if(!value)
+            goto nextkey; // No matches
+        
+        while(offset < len) {
+            p = (TERMENTRY *) (value + offset);
+            
+            if (setFolders.count(p->folder) == 0)
+                goto nextterm;
+            if (setFields.count(p->field) == 0)
+                goto nextterm;
+            if (p->len < vallen)
+                goto nextterm;
+                
+            if (vallen == 0 || strncmp(valbuf, value + offset + sizeof(TERMENTRY), vallen) == 0) {
+                VERSIONKEY sKey;
+                VERSIONVALUE *sVersion;
+                size_t cb = 0;
+                sKey.type = KT_VERSION;
+                sKey.doc = p->doc;
+                
+                // Check if the version is ok
+                sVersion = (VERSIONVALUE *)m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
+                
+                if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
+                    setMatches.insert(p->doc);
+                    
+                delete sVersion;
+            }
+nextterm:
+            offset += sizeof(TERMENTRY) + p->len;            
         }
-next:
-        offset += sizeof(TERMENTRY) + p->len;            
+nextkey:
+        delete [] thiskey;
+        thiskey = NULL;
+        delete [] value;
+        value = NULL;
     }
     
     for(j = setMatches.begin(); j != setMatches.end(); j++) {
@@ -418,6 +472,10 @@ next:
     }
     
 exit:
+    if (cursor)
+        delete cursor;
+    if (thiskey)
+        delete [] thiskey;
     if (value)
         delete [] value;
         
@@ -470,4 +528,79 @@ size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput
     keylen = m_lpCollator->getSortKey(in, inlen, (uint8_t *)szOutput, (int32_t)outLen);
     
     return keylen - 1;
+}
+
+/**
+ * Flush cache from in-memory cache by merging the contents into the
+ * tree
+ */
+HRESULT ECIndexDB::FlushCache()
+{
+    HRESULT hr = hrSuccess;
+    char k[1024];
+    const char* kbuf, *vbuf;
+    size_t ksiz, vsiz;
+    unsigned int ulBlock = 0;
+    unsigned int key = KT_BLOCK;
+    size_t cb;
+    double dblStart = GetTimeOfDay();
+    TinyHashMap::Sorter sorter(m_lpCache);
+
+    if(m_lpCache->count() == 0)
+        goto exit; // Nothing to flush
+
+    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Flushing the cache");
+    
+    if(!m_lpIndex->begin_transaction()) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+    
+    vbuf = m_lpIndex->get((char *)&key, sizeof(key), &cb);
+    if(cb != sizeof(ulBlock) || !vbuf) {
+        ulBlock = 0;
+    } else {
+        ulBlock = *(unsigned int *)vbuf;
+    }
+    
+    if(vbuf)
+        delete [] vbuf;
+    
+    ulBlock++;
+    
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing %d values to block %d", m_lpCache->count(), ulBlock);
+    
+    if(!m_lpIndex->set((char *)&key, sizeof(key), (char *)&ulBlock, sizeof(ulBlock))) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write block id: %s", m_lpIndex->error().message());
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+    
+    while ((kbuf = sorter.get(&ksiz, &vbuf, &vsiz)) != NULL) {
+        ksiz = MIN(ksiz, sizeof(k)-sizeof(int));
+        memcpy(k, kbuf, ksiz);
+        *(unsigned int *)(k+ksiz) = ulBlock;
+        ASSERT(m_lpIndex->get(k, ksiz+sizeof(ulBlock), &cb) == NULL);
+        if (!m_lpIndex->set(k, ksiz+sizeof(ulBlock), vbuf, vsiz)) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to flush index data: %s", m_lpIndex->error().message());
+            hr = MAPI_E_DISK_ERROR;
+            goto exit;
+        }
+        sorter.step();
+    }
+
+    if(!m_lpIndex->end_transaction()) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+    
+    m_ulCacheSize = 0;
+    m_lpCache->clear();
+
+    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Flushing the cache took %.2f seconds", GetTimeOfDay() - dblStart);
+    
+exit:
+    return hr;        
 }
