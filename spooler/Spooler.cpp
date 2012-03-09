@@ -788,8 +788,10 @@ HRESULT ProcessQueue(char* szSMTP, int ulPort, char *szPath)
 	}
 
 	hr = HrAllocAdviseSink(AdviseCallback, NULL, &lpAdviseSink);	
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to allocate memory for advise sink");
 		goto exit;
+	}
 
 	// notify on new mail in the outgoing table
 	hr = lpTable->Advise(fnevTableModified, lpAdviseSink, &ulConnection);
@@ -858,6 +860,8 @@ exit:
 		}
 		if (ulCount == 60)
 			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d threads did not yet exit, closing anyway.", (int)mapSendData.size());
+	} else if (nReload) {
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Table reload requested, breaking server connection");
 	}
 
 	if (lpTable && ulConnection)
