@@ -1287,17 +1287,17 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
     lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
 
 	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id "
-	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent "
-	           "WHERE stores.type=" + stringify(ECSTORE_TYPE_PRIVATE);
+	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent ";
 
 	if(lpsEntryId) {
 		er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulStoreId);
 		if(er != erSuccess)
 			goto exit;
 
-		strQuery += " AND stores.hierarchy_id=" + stringify(ulStoreId) + " LIMIT 1";// FIXME: mysql query
+		strQuery += "WHERE stores.hierarchy_id=" + stringify(ulStoreId) + " LIMIT 1";// FIXME: mysql query
 	}else {
-		strQuery += " AND stores.user_id=" + stringify(ulUserId);
+		strQuery += "WHERE stores.user_id=" + stringify(ulUserId) 
+				 + " AND stores.type=" + stringify(ECSTORE_TYPE_PRIVATE);
 	}
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
