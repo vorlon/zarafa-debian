@@ -6543,9 +6543,7 @@ exit:
 	if (lpUsers)
 		MAPIFreeBuffer(lpUsers);
 	if (lppFBData) {
-		for(ULONG i = 0; i < cUsers; i++)
-			if (lppFBData[i])
-				lppFBData[i]->Release();
+		// do not release fbdata, it's registered in the return_value array, but not addref'd
 		MAPIFreeBuffer(lppFBData);
 	}
 
