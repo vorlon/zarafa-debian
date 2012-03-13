@@ -63,6 +63,9 @@
 #include "ECLogger.h"
 #include "mapi_ptr.h"
 
+#include "IECExchangeModifyTable.h"
+#include "PyMapiPlugin.h"
+
 using namespace std;
 
 HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo, std::wstring &wstrCc, std::wstring &wstrBcc)
@@ -749,7 +752,7 @@ exit:
 
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
-HRESULT HrProcessRules(LPMAPISESSION lpSession, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMAPIFOLDER lpOrigInbox, IMessage **lppMessage, ECLogger *lpLogger) {
+HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMAPIFOLDER lpOrigInbox, IMessage **lppMessage, ECLogger *lpLogger) {
 	HRESULT hr = hrSuccess;
     IExchangeModifyTable *lpTable = NULL;
     IMAPITable *lpView = NULL;
@@ -777,12 +780,27 @@ HRESULT HrProcessRules(LPMAPISESSION lpSession, LPADRBOOK lpAdrBook, LPMDB lpOri
     ACTIONS* lpActions = NULL;
 
 	SPropValue sForwardProps[4];
+	IECExchangeModifyTable *lpECModifyTable = NULL;
+	ULONG ulResult= 0;
 
 
     hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
     if(hr != hrSuccess)
         goto exit;
-        
+
+	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, (void**)&lpECModifyTable);
+	if(hr != hrSuccess)
+		goto exit;
+
+	hr = lpECModifyTable->DisablePushToServer();
+	if(hr != hrSuccess)
+		goto exit;
+
+	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
+	if(hr != hrSuccess)
+		goto exit;
+	//TODO do something with ulResults
+
     hr = lpTable->GetTable(0, &lpView);
     if(hr != hrSuccess)
         goto exit;
@@ -1096,6 +1114,9 @@ nextrule:
 exit:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while processing rules: 0x%08X", hr);
+
+	if (lpECModifyTable)
+		lpECModifyTable->Release();
 
 	if (lpNewMessage)
 		lpNewMessage->Release();

@@ -32,8 +32,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = zarafa-dagent$(EXEEXT) zarafa-spooler$(EXEEXT)
-subdir = spooler
+subdir = spooler/python
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
@@ -44,56 +43,13 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
-binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = $(bin_PROGRAMS)
-am_zarafa_dagent_OBJECTS = DAgent.$(OBJEXT) rules.$(OBJEXT) \
-	LMTP.$(OBJEXT) archive.$(OBJEXT) PyMapiPlugin.$(OBJEXT)
-zarafa_dagent_OBJECTS = $(am_zarafa_dagent_OBJECTS)
-am__DEPENDENCIES_1 =
-zarafa_dagent_DEPENDENCIES = ${top_builddir}/inetmapi/libinetmapi.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/common/libcommon_ssl.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
-am_zarafa_spooler_OBJECTS = Spooler.$(OBJEXT) mailer.$(OBJEXT) \
-	archive.$(OBJEXT)
-zarafa_spooler_OBJECTS = $(am_zarafa_spooler_OBJECTS)
-zarafa_spooler_DEPENDENCIES = ${top_builddir}/inetmapi/libinetmapi.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/common/libcommon_ssl.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(am__DEPENDENCIES_1)
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
-depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
-am__depfiles_maybe = depfiles
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-SOURCES = $(zarafa_dagent_SOURCES) $(zarafa_spooler_SOURCES)
-DIST_SOURCES = $(zarafa_dagent_SOURCES) $(zarafa_spooler_SOURCES)
+am__installdirs = "$(DESTDIR)$(zarafa_dagentdir)" \
+	"$(DESTDIR)$(zarafa_spoolerdir)"
+zarafa_dagentSCRIPT_INSTALL = $(INSTALL_SCRIPT)
+zarafa_spoolerSCRIPT_INSTALL = $(INSTALL_SCRIPT)
+SCRIPTS = $(zarafa_dagent_SCRIPTS) $(zarafa_spooler_SCRIPTS)
+SOURCES =
+DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -291,39 +247,14 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = python
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) $(PYTHON_INCLUDES) -DLINUX -DSWIG_TYPE_TABLE=MAPI \
-	-I${top_srcdir}/mapi4linux/include \
-	-I${top_srcdir}/inetmapi -I${top_srcdir}/provider/common -I${top_srcdir}/common \
-	-I${top_srcdir}/libfreebusy \
-	-I${top_srcdir}/ECtools/zarafa-archiver
-
-zarafa_dagent_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/common/libcommon_ssl.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
-
-zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/common/libcommon_ssl.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS)
-
-zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
-zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h
-BUILT_SOURCES = PythonSWIGRuntime.h
-all: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+SUBDIRS = plugins
+zarafa_dagentdir = ${datadir}/zarafa-dagent/python
+zarafa_dagent_SCRIPTS = mapiplugin.py  pluginmanager.py  plugintemplates.py  wraplogger.py
+zarafa_spoolerdir = ${datadir}/zarafa-spooler/python
+zarafa_spooler_SCRIPTS = mapiplugin.py  pluginmanager.py  plugintemplates.py  wraplogger.py
+all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -333,9 +264,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  spooler/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  spooler/python/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  spooler/Makefile
+	  $(AUTOMAKE) --foreign  spooler/python/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -353,75 +284,44 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-binPROGRAMS: $(bin_PROGRAMS)
+install-zarafa_dagentSCRIPTS: $(zarafa_dagent_SCRIPTS)
 	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	     || test -f $$p1 \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
+	test -z "$(zarafa_dagentdir)" || $(MKDIR_P) "$(DESTDIR)$(zarafa_dagentdir)"
+	@list='$(zarafa_dagent_SCRIPTS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f $$d$$p; then \
+	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	    echo " $(zarafa_dagentSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(zarafa_dagentdir)/$$f'"; \
+	    $(zarafa_dagentSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(zarafa_dagentdir)/$$f"; \
 	  else :; fi; \
 	done
 
-uninstall-binPROGRAMS:
+uninstall-zarafa_dagentSCRIPTS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	@list='$(zarafa_dagent_SCRIPTS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	  echo " rm -f '$(DESTDIR)$(zarafa_dagentdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(zarafa_dagentdir)/$$f"; \
+	done
+install-zarafa_spoolerSCRIPTS: $(zarafa_spooler_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(zarafa_spoolerdir)" || $(MKDIR_P) "$(DESTDIR)$(zarafa_spoolerdir)"
+	@list='$(zarafa_spooler_SCRIPTS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f $$d$$p; then \
+	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	    echo " $(zarafa_spoolerSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(zarafa_spoolerdir)/$$f'"; \
+	    $(zarafa_spoolerSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(zarafa_spoolerdir)/$$f"; \
+	  else :; fi; \
 	done
 
-clean-binPROGRAMS:
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  echo " rm -f $$p $$f"; \
-	  rm -f $$p $$f ; \
+uninstall-zarafa_spoolerSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(zarafa_spooler_SCRIPTS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	  echo " rm -f '$(DESTDIR)$(zarafa_spoolerdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(zarafa_spoolerdir)/$$f"; \
 	done
-zarafa-dagent$(EXEEXT): $(zarafa_dagent_OBJECTS) $(zarafa_dagent_DEPENDENCIES) 
-	@rm -f zarafa-dagent$(EXEEXT)
-	$(CXXLINK) $(zarafa_dagent_OBJECTS) $(zarafa_dagent_LDADD) $(LIBS)
-zarafa-spooler$(EXEEXT): $(zarafa_spooler_OBJECTS) $(zarafa_spooler_DEPENDENCIES) 
-	@rm -f zarafa-spooler$(EXEEXT)
-	$(CXXLINK) $(zarafa_spooler_OBJECTS) $(zarafa_spooler_LDADD) $(LIBS)
-
-mostlyclean-compile:
-	-rm -f *.$(OBJEXT)
-
-distclean-compile:
-	-rm -f *.tab.c
-
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DAgent.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LMTP.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PyMapiPlugin.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Spooler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/archive.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mailer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rules.Po@am__quote@
-
-.cpp.o:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
-
-.cpp.obj:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cpp.lo:
-@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -603,16 +503,14 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-recursive
-all-am: Makefile $(PROGRAMS)
+check: check-recursive
+all-am: Makefile $(SCRIPTS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(zarafa_dagentdir)" "$(DESTDIR)$(zarafa_spoolerdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-recursive
+install: install-recursive
 install-exec: install-exec-recursive
 install-data: install-data-recursive
 uninstall: uninstall-recursive
@@ -636,16 +534,13 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-recursive
 
-clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
-	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-tags
+distclean-am: clean-am distclean-generic distclean-tags
 
 dvi: dvi-recursive
 
@@ -657,11 +552,14 @@ info: info-recursive
 
 info-am:
 
-install-data-am:
+install-data-am: install-zarafa_dagentSCRIPTS \
+	install-zarafa_spoolerSCRIPTS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-dvi: install-dvi-recursive
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
 install-html: install-html-recursive
 
@@ -676,14 +574,12 @@ install-ps: install-ps-recursive
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 
 pdf: pdf-recursive
 
@@ -693,34 +589,32 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-zarafa_dagentSCRIPTS \
+	uninstall-zarafa_spoolerSCRIPTS
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
-	install-strip
+	install-data-am install-strip
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
-	all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libtool ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	all all-am check check-am clean clean-generic clean-libtool \
+	ctags ctags-recursive distclean distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-data-hook install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	install-zarafa_dagentSCRIPTS install-zarafa_spoolerSCRIPTS \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	uninstall-zarafa_dagentSCRIPTS uninstall-zarafa_spoolerSCRIPTS
 
 
-PythonSWIGRuntime.h:
-	$(SWIG_EXEC) -python -external-runtime PythonSWIGRuntime.h
-
-check-syntax:
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
-		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2
+install-data-hook:
+	mkdir -p ${localstatedir}/lib/zarafa/dagent/python/plugins/
+	mkdir -p ${localstatedir}/lib/zarafa/spooler/python/plugins/
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

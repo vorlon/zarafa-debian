@@ -87,6 +87,7 @@
 
 #include "mapi_ptr.h"
 #include "fileutil.h"
+#include "PyMapiPlugin.h"
 
 #include <errno.h>
 #include <sys/types.h>
@@ -279,6 +280,7 @@ pthread_mutex_t g_lockLMTPThreads;
 pthread_t g_mainthread;
 ECLogger *g_lpLogger = NULL;
 ECConfig *g_lpConfig = NULL;
+PyMapiPlugin *g_pyMapiPlugin = NULL;
 
 class sortRecipients {
 public:
@@ -2071,7 +2073,7 @@ HRESULT HrPostDeliveryProcessing(LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder
 	
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, g_lpLogger);
+		hr = HrProcessRules(g_pyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, g_lpLogger);
 		if (hr == MAPI_E_CANCEL)
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -2180,6 +2182,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 	IMessage *lpDeliveryMessage = NULL;
 	IMessage *lpMessageTmp = NULL;
 	IABContainer *lpAddrDir = NULL;
+	ULONG ulResult = 0;
 
 	// single user deliver did not lookup the user
 	if (lpRecip->strSMTP.empty()) {
@@ -2219,6 +2222,13 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 			hr = MAPI_W_CANCEL_MESSAGE;
 			goto exit;
 		}
+
+		hr = g_pyMapiPlugin->MessageProcessing("PostConverting", lpSession, lpAdrBook, NULL, NULL, lpDeliveryMessage, &ulResult);
+		if (hr != hrSuccess)
+			goto exit;
+
+		// TODO do something with ulResult
+
 	} else {
 		/* Copy message to prepare for new delivery */
 		hr = HrCopyMessageForDelivery(lpOrigMessage, lpTargetFolder, lpRecip, lpArgs, lpInbox, bFallbackDelivery, &lpFolder, &lpDeliveryMessage);
@@ -2240,6 +2250,13 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 			goto exit;
 	}
 
+	hr = g_pyMapiPlugin->MessageProcessing("PreDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// TODO do something with ulResult
+	//
+
 	// Do rules & out-of-office
 	hr = HrPostDeliveryProcessing(lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &lpDeliveryMessage, lpRecip, lpArgs);
 	if (hr != MAPI_E_CANCEL) {
@@ -2255,6 +2272,11 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to commit message: 0x%08X", hr);
 			goto exit;
 		}
+
+		hr = g_pyMapiPlugin->MessageProcessing("PostDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
+		if (hr != hrSuccess)
+			goto exit;
+		// TODO do something with ulResult
 
 		if (parseBool(g_lpConfig->GetSetting("archive_on_delivery"))) {
 			MAPISessionPtr ptrAdminSession;
@@ -3372,6 +3394,9 @@ int main(int argc, char *argv[]) {
 		{ "log_raw_message_path", "/tmp", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_delivery", "no", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoaccepter", "/usr/bin/zarafa-mr-accept", CONFIGSETTING_RELOADABLE },
+		{ "plugin_enabled", "yes" },
+		{ "plugin_path", "/var/lib/zarafa/dagent/plugins" },
+		{ "plugin_manager_path", "/usr/share/zarafa-dagent/python" },
 		{ NULL, NULL },
 	};
 
@@ -3537,6 +3562,10 @@ int main(int argc, char *argv[]) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
 		goto exit;
 	}
+
+	// Init plugin
+	g_pyMapiPlugin = new PyMapiPlugin();
+	g_pyMapiPlugin->Init(g_lpConfig, g_lpLogger, "DagentPluginManager");
 
 	if (bListenLMTP) {
 		if (g_bThreads)

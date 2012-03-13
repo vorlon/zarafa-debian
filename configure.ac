@@ -714,6 +714,8 @@ AC_CONFIG_FILES([Makefile
 		provider/tools/soapcpp2/Makefile
 		inetmapi/Makefile
 		spooler/Makefile
+		spooler/python/Makefile
+		spooler/python/plugins/Makefile
 		common/Makefile
 		ECtools/Makefile
 		ECtools/zarafa-admin/Makefile

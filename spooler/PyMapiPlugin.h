@@ -47,23 +47,55 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,32829
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,32829"
-#define PROJECT_VERSION_CLIENT		7,1,0,32829
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,32829"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,32829"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,32829"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,32829"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,32829"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,32829"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,32829"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,32829"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,32829"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,32829"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,32829"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"32829"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			32829
+#ifndef _PYMAPIPLUGIN_H
+#define _PYMAPIPLUGIN_H
+
+#include <Python.h>
+#include "ECLogger.h"
+#include "ECConfig.h"
+#include "PythonSWIGRuntime.h"
+#include "edkmdb.h"
+
+#include <auto_free.h>
+
+inline void my_DECREF(PyObject *obj) {
+	Py_DECREF(obj);
+}
+
+//@fixme wrong name, autofree should be auto_decref
+typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObjectAPtr;
+
+
+#define MP_CONTINUE_SUCCESS		0
+#define MP_CONTINUE_FAILED		1
+#define MP_STOP_SUCCESS			2
+#define MP_STOP_FAILED			3
+
+class PyMapiPlugin
+{
+public:
+	PyMapiPlugin(void);
+	virtual ~PyMapiPlugin(void);
+
+	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* lpPluginManagerClassName);
+	HRESULT ReloadSettings(ECConfig* lpConfig);
+	HRESULT MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult);
+	HRESULT RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult);
+
+    swig_type_info *type_p_ECLogger;
+	swig_type_info *type_p_IAddrBook;
+	swig_type_info *type_p_IMAPIFolder;
+	swig_type_info *type_p_IMAPISession;
+	swig_type_info *type_p_IMsgStore;
+	swig_type_info *type_p_IMessage;
+	swig_type_info *type_p_IExchangeModifyTable;
+
+private:
+	PyObjectAPtr m_ptrModMapiPlugin;
+	PyObjectAPtr m_ptrPyLogger;
+	PyObjectAPtr m_ptrMapiPluginManager;
+	ECLogger *m_lpLogger;
+	bool m_bEnablePlugin;
+};
+
+#endif
