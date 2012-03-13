@@ -59,12 +59,22 @@
 #include "PyMapiPlugin.h"
 #include "stringutil.h"
 
+/**
+ * workaround compile issue with ASSERT macro in vs 2008
+ *
+ * It's not possible to compile in visual studio 2008 with 
+ * ASSERT in macro using this function will fix it
+ */
+void assertbreak()
+{
+	ASSERT(FALSE);
+}
 
 #define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
 		if (!pyswigobj) {\
-			ASSERT(FALSE);\
+			assertbreak();\
 			hr = S_FALSE;\
 			goto exit;\
 		}\
@@ -75,12 +85,12 @@
 	}\
 }
 
-#define DECREF_PYOBJ(pyswigobj) { if (pyswigobj) Py_DECREF(pyswigobj); pyswigobj = NULL; }
+#define DECREF_PYOBJ(pyswigobj) { if (pyswigobj) { Py_DECREF(pyswigobj); pyswigobj = NULL;} }
 
 #define BUILD_SWIG_TYPE(pyswigobj, type) {\
 	pyswigobj = SWIG_TypeQuery(type);\
 	if (!pyswigobj) {\
-		ASSERT(FALSE);\
+		assertbreak();\
 		hr = S_FALSE;\
 		goto exit;\
 	}\
@@ -89,9 +99,10 @@
 #define PY_HANDLE_ERROR(pyobj) { \
 	if (!pyobj) { \
 		PyObject *lpErr = PyErr_Occurred(); \
-		if(lpErr) \
+		if(lpErr){ \
 			PyErr_Print(); \
-		ASSERT(FALSE);\
+		} \
+		assertbreak(); \
 		hr = S_FALSE; \
 		goto exit; \
 	}\
@@ -99,11 +110,13 @@
 
 #define PY_CALL_METHOD(pluginmanager, functionname, ulreturn, format, ...) {\
 	PyObjectAPtr ptrResult;\
-	ptrResult = PyObject_CallMethod(pluginmanager, functionname, format, __VA_ARGS__);\
-	PY_HANDLE_ERROR(ptrResult);\
-	\
-	if (ulreturn)\
-		PyArg_Parse(ptrResult, "I", ulreturn); \
+	{\
+		ptrResult = PyObject_CallMethod(pluginmanager, functionname, format, __VA_ARGS__);\
+		PY_HANDLE_ERROR(ptrResult)\
+		\
+		if (ulreturn)\
+			PyArg_Parse(ptrResult, "I", ulreturn); \
+	}\
 }
 
 
@@ -179,7 +192,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	ptrMainmod = PyImport_AddModule("__main__");
 	
 	ptrModule = PyImport_ImportModule("MAPI");
-	PY_HANDLE_ERROR(ptrModule)
+	PY_HANDLE_ERROR(ptrModule);
 
 	PyModule_AddObject(ptrMainmod, "MAPI", ptrModule);
 
@@ -205,7 +218,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	PyModule_AddObject(ptrMainmod, "mapiplugin", m_ptrModMapiPlugin);
 
 	// Init logger swig object
-	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger)
+	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
 
 	// Init plugin class	
 	ptrClass = PyObject_GetAttrString(m_ptrModMapiPlugin, lpPluginManagerClassName);
