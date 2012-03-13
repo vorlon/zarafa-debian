@@ -65,6 +65,7 @@
 
 #include <list>
 #include <string>
+#include <algorithm>
 
 #include <CLucene/util/Reader.h>
 
@@ -366,7 +367,7 @@ exit:
 HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &lstMatches)
 {
     HRESULT hr = hrSuccess;
-    std::set<unsigned int> setFolders;
+    std::set<unsigned int> setFolders(lstFolders.begin(), lstFolders.end());
     std::set<unsigned int> setMatches;
     std::set<unsigned int>::iterator j;
     std::list<unsigned int>::iterator i;
@@ -385,11 +386,6 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
     
     lstMatches.clear();
     
-    // Generate a lookup set for the folders
-    for(i = lstFolders.begin(); i != lstFolders.end(); i++) {
-        setFolders.insert(*i);
-    }
-
     // Make the key that we will search    
     memcpy(keybuf, (char *)&type, sizeof(type));
     keylen = GetSortKey(wstrTerm.c_str(), MIN(wstrTerm.size(), 3), keybuf + sizeof(unsigned int), 256);
@@ -467,9 +463,7 @@ nextkey:
         value = NULL;
     }
     
-    for(j = setMatches.begin(); j != setMatches.end(); j++) {
-        lstMatches.push_back(*j);
-    }
+    std::copy(setMatches.begin(), setMatches.end(), std::back_inserter(lstMatches));
     
 exit:
     if (cursor)
