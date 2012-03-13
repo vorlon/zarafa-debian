@@ -4031,6 +4031,17 @@ private:
 
 
 
+SWIGINTERNINLINE PyObject*
+  SWIG_From_bool  (bool value)
+{
+  return PyBool_FromLong(value ? 1 : 0);
+}
+
+SWIGINTERN void delete_ECLogger(ECLogger *self){ self->Release(); }
+SWIGINTERN void ECLogger_Log__SWIG_1(ECLogger *self,int loglevel,char const *szMessage){
+            self->Log(loglevel, szMessage);
+        }
+
 #include "swig_iunknown.h"
 typedef IUnknownImplementor<IStream> Stream;
 
@@ -4048,13 +4059,6 @@ SWIGINTERN void delete_Stream(Stream *self){ delete self; }
 
 #include <cwchar>
 #include <string>
-
-
-SWIGINTERNINLINE PyObject*
-  SWIG_From_bool  (bool value)
-{
-  return PyBool_FromLong(value ? 1 : 0);
-}
 
 
 
@@ -33770,6 +33774,288 @@ SWIGINTERN PyObject *ECSimpleLogger_swigregister(PyObject *SWIGUNUSEDPARM(self),
   return SWIG_Py_Void();
 }
 
+SWIGINTERN PyObject *_wrap_ECLogger_Log__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ECLogger_Log",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECLogger, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECLogger_Log" "', argument " "1"" of type '" "ECLogger *""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECLogger_Log" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (bool)(arg1)->Log(arg2);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECLogger_Reset(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECLogger_Reset",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECLogger, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECLogger_Reset" "', argument " "1"" of type '" "ECLogger *""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        (arg1)->Reset();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECLogger_GetFileDescriptor(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:ECLogger_GetFileDescriptor",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECLogger, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECLogger_GetFileDescriptor" "', argument " "1"" of type '" "ECLogger *""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (int)(arg1)->GetFileDescriptor();
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_ECLogger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_ECLogger",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECLogger, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ECLogger" "', argument " "1"" of type '" "ECLogger *""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        delete_ECLogger(arg1);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECLogger_Log__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ECLogger *arg1 = (ECLogger *) 0 ;
+  int arg2 ;
+  char *arg3 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:ECLogger_Log",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ECLogger, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ECLogger_Log" "', argument " "1"" of type '" "ECLogger *""'"); 
+  }
+  arg1 = reinterpret_cast< ECLogger * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ECLogger_Log" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "ECLogger_Log" "', argument " "3"" of type '" "char const *""'");
+  }
+  arg3 = reinterpret_cast< char * >(buf3);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        ECLogger_Log__SWIG_1(arg1,arg2,(char const *)arg3);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ECLogger_Log(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[4];
+  int ii;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 3); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ECLogger, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        SWIG_PYTHON_THREAD_END_BLOCK;
+        return _wrap_ECLogger_Log__SWIG_0(self, args);
+      }
+    }
+  }
+  if (argc == 3) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ECLogger, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        int res = SWIG_AsCharPtrAndSize(argv[2], 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          SWIG_PYTHON_THREAD_END_BLOCK;
+          return _wrap_ECLogger_Log__SWIG_1(self, args);
+        }
+      }
+    }
+  }
+  
+  SWIG_PYTHON_THREAD_END_BLOCK;
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'ECLogger_Log'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    Log(ECLogger *,int)\n"
+    "    Log(ECLogger *,int,char const *)\n");
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *ECLogger_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_ECLogger, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
 SWIGINTERN PyObject *_wrap_new_Stream(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   PyObject *arg1 = (PyObject *) 0 ;
@@ -35328,6 +35614,11 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_ECSimpleLogger", _wrap_delete_ECSimpleLogger, METH_VARARGS, NULL},
 	 { (char *)"disown_ECSimpleLogger", _wrap_disown_ECSimpleLogger, METH_VARARGS, NULL},
 	 { (char *)"ECSimpleLogger_swigregister", ECSimpleLogger_swigregister, METH_VARARGS, NULL},
+	 { (char *)"ECLogger_Reset", _wrap_ECLogger_Reset, METH_VARARGS, NULL},
+	 { (char *)"ECLogger_GetFileDescriptor", _wrap_ECLogger_GetFileDescriptor, METH_VARARGS, NULL},
+	 { (char *)"delete_ECLogger", _wrap_delete_ECLogger, METH_VARARGS, NULL},
+	 { (char *)"ECLogger_Log", _wrap_ECLogger_Log, METH_VARARGS, NULL},
+	 { (char *)"ECLogger_swigregister", ECLogger_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_Stream", _wrap_new_Stream, METH_VARARGS, NULL},
 	 { (char *)"Stream_Read", _wrap_Stream_Read, METH_VARARGS, NULL},
 	 { (char *)"Stream_Write", _wrap_Stream_Write, METH_VARARGS, NULL},

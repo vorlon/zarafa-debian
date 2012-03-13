@@ -1361,6 +1361,9 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 	if (len == 0) {
         PyErr_SetString(PyExc_RuntimeError, "No actions found in ACTIONS struct");
         goto exit;
+	} else if (len == -1) {
+		PyErr_SetString(PyExc_RuntimeError, "No action array found in ACTIONS struct");
+		goto exit;
 	}
 
 	hr = MAPIAllocateMore(sizeof(ACTION)*len, lpBase, (void**)&lpActions->lpAction);

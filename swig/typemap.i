@@ -404,7 +404,7 @@
 #if SWIGPYTHON
 #ifndef WIN32
 
-%typemap(in) ECLogger * (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
+%typemap(in) ECLogger *lpLogger (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {
 	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
 	if(!SWIG_IsOK(res))
@@ -414,7 +414,7 @@
 	$1 = proxy;
 }
 
-%typemap(freearg) ECLogger *
+%typemap(freearg) ECLogger *lpLogger
 {
 	$1->Release();
 }

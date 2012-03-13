@@ -4048,7 +4048,7 @@ SWIGINTERN PyObject *_wrap_IMToINet(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   }
   if (*arg4) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtr(*arg4));
-    free(*arg4);					  	     
+    delete []*arg4;					  	     
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;

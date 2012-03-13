@@ -396,7 +396,7 @@ pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la \
 noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _RecurrenceState.la
 
 # disable warnings since code is mostly generated
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common $(PYTHON_INCLUDES) -I${top_srcdir}/swig -w -DSWIG_PYTHON_OUTPUT_TUPLE
+AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common $(PYTHON_INCLUDES) -I${top_srcdir}/swig -w -DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
 _MAPICore_la_CXXFLAGS = -I${top_srcdir}/zarafa-libsync
 _MAPICore_la_LDFLAGS = -module -avoid-version
 _MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \

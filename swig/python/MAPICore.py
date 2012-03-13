@@ -1640,6 +1640,21 @@ class ECSimpleLogger(_object):
 ECSimpleLogger_swigregister = _MAPICore.ECSimpleLogger_swigregister
 ECSimpleLogger_swigregister(ECSimpleLogger)
 
+class ECLogger(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECLogger, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, ECLogger, name)
+    def __init__(self, *args, **kwargs): raise AttributeError, "No constructor defined"
+    __repr__ = _swig_repr
+    def Reset(*args): return _MAPICore.ECLogger_Reset(*args)
+    def GetFileDescriptor(*args): return _MAPICore.ECLogger_GetFileDescriptor(*args)
+    __swig_destroy__ = _MAPICore.delete_ECLogger
+    __del__ = lambda self : None;
+    def Log(*args): return _MAPICore.ECLogger_Log(*args)
+ECLogger_swigregister = _MAPICore.ECLogger_swigregister
+ECLogger_swigregister(ECLogger)
+
 class Stream(IStream):
     __swig_setmethods__ = {}
     for _s in [IStream]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))

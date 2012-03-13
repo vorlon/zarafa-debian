@@ -1561,3 +1561,28 @@ IID_ECChangeAdviseSink = DEFINE_GUID(0xc6937b5a,0x48d7,0x4017,0xa0,0x41,0x25,0x6
 IID_IECImportContentsChanges = DEFINE_GUID(0x2458600a,0xf010,0x4ee4,0xb8,0xe1,0xbf,0xd7,0xc1,0xaa,0x1e,0xc5)
 IID_IECMessageRaw = DEFINE_GUID(0x54cd0028, 0x46e7, 0x4555, 0xb6, 0x8f, 0x1a, 0xe7, 0x9d, 0x61, 0x71, 0xc1)
 IID_IECLicense = DEFINE_GUID(0xa9a55c9a, 0xd2bb, 0x461e, 0x9f, 0xf5, 0xfd, 0x4e, 0xd9, 0x84, 0x4c, 0x2e)
+
+class ACTTYPE:
+    OP_MOVE = 1
+    OP_COPY = 2
+    OP_REPLY = 3
+    OP_OOF_REPLY = 4
+    OP_DEFER_ACTION = 5
+    OP_BOUNCE = 6
+    OP_FORWARD = 7
+    OP_DELEGATE = 8
+    OP_TAG = 9
+    OP_DELETE = 10
+    OP_MARK_AS_READ = 11
+
+EDK_RULES_VERSION               = 0x1
+
+ST_DISABLED                     = 0x0000
+ST_ENABLED                      = 0x0001
+ST_ERROR                        = 0x0002
+ST_ONLY_WHEN_OOF                = 0x0004
+ST_KEEP_OOF_HIST                = 0x0008
+ST_EXIT_LEVEL                   = 0x0010
+ST_SKIP_IF_SCL_IS_SAFE          = 0x0020
+ST_RULE_PARSE_ERROR             = 0x0040
+ST_CLEAR_OOF_HIST               = 0x80000000

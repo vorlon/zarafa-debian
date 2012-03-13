@@ -11,7 +11,7 @@
 %include "cstring.i"
 %include "typemap.i"
 
-%cstring_output_allocate(char** lppbuf, free(*$1));
+%cstring_output_allocate(char** lppchardelete, delete []*$1);
 
 /* Finalize output parameters */
 %typemap(in,numinputs=0) (std::string *) (std::string temp) {
@@ -61,6 +61,6 @@ typedef struct _do {
 } delivery_options;
 
 HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IAddrBook *lpAddrBook, IMessage *lpMessage, const std::string &input, delivery_options dopt);
-HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, char** lppbuf, sending_options sopt);
+HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, char** lppchardelete, sending_options sopt);
 
 HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);

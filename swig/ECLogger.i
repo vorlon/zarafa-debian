@@ -62,3 +62,23 @@ class ECSimpleLogger : public IECSimpleLogger{
 public:
 	virtual HRESULT Log(int loglevel, const char *szMessage) = 0;
 };
+
+%include "cstring.i"
+%include "cwstring.i"
+
+class ECLogger {
+public:
+    virtual bool Log(int loglevel) = 0;
+    virtual void Reset() = 0;
+    virtual int GetFileDescriptor() = 0;
+
+    %extend {
+        ~ECLogger() { self->Release(); }
+
+        void Log(int loglevel, const char *szMessage) {
+            self->Log(loglevel, szMessage);
+        }
+    }
+
+};
+
