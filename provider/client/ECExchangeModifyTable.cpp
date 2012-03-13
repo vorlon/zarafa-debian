@@ -72,6 +72,8 @@
 #include "charset/convert.h"
 #include "utf8.h"
 
+#include "ECInterfaceDefs.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -122,6 +124,8 @@ ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *tabl
 	m_ulUniqueTag = ulUniqueTag;
 	m_ulFlags = ulFlags;
 	m_lpParent = lpParent;
+
+	m_bPushToServer = true;
 
 	m_lpParent->AddRef();
 }
@@ -233,6 +237,7 @@ HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface
 	REGISTER_INTERFACE(IID_ECExchangeModifyTable, this);
 	REGISTER_INTERFACE(IID_ECUnknown, this);
 
+	REGISTER_INTERFACE(IID_IECExchangeModifyTable, &this->m_xECExchangeModifyTable);
 	REGISTER_INTERFACE(IID_IExchangeModifyTable, &this->m_xExchangeModifyTable);
 	REGISTER_INTERFACE(IID_IUnknown, &this->m_xExchangeModifyTable);
 
@@ -326,6 +331,10 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 		}
 	}
 
+	// Do not push the data to the server
+	if (!m_bPushToServer)
+		goto done;
+
 	// The data has changed now, so save the data in the parent folder
 	if(m_ulUniqueTag == PR_RULE_ID)
 	{
@@ -353,6 +362,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 		hr = MAPI_E_CALL_FAILED;
 	}
 
+done:
 	// Mark all as saved
 	hr = m_ecTable->HrSetClean();
 	if(hr != hrSuccess)
@@ -453,6 +463,12 @@ exit:
 		MAPIFreeBuffer(lpECGroup);
 
 	return hr;
+}
+
+HRESULT ECExchangeModifyTable::DisablePushToServer()
+{
+	m_bPushToServer = false;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lpTable)
@@ -694,53 +710,20 @@ exit:
 }
 
 // wrappers for ExchangeModifyTable
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, AddRef, (void))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, Release, (void))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable)) 
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ExchangeModifyTable, ModifyTable, (ULONG, ulFlags), (LPROWLIST, lpMods))
 
-HRESULT __stdcall ECExchangeModifyTable::xExchangeModifyTable::QueryInterface(REFIID refiid , void** lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeModifyTable::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECExchangeModifyTable::xExchangeModifyTable::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECExchangeModifyTable::xExchangeModifyTable::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::Release", "");
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	return pThis->Release();
-
-}
-
-HRESULT __stdcall ECExchangeModifyTable::xExchangeModifyTable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::GetLastError", "result=0x%08x", hResult);
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	HRESULT hr = pThis->GetLastError(hResult, ulFlags, lppMAPIError);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeModifyTable::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECExchangeModifyTable::xExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::GetTable", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	HRESULT hr = pThis->GetTable(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeModifyTable::GetTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECExchangeModifyTable::xExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeModifyTable::ModifyTable", "flags=%d, rows: %s", ulFlags, RowSetToString((LPSRowSet)lpMods).c_str());
-	METHOD_PROLOGUE_(ECExchangeModifyTable , ExchangeModifyTable);
-	HRESULT hr = pThis->ModifyTable(ulFlags, lpMods);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeModifyTable::ModifyTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, AddRef, (void))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, Release, (void))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, GetTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, ModifyTable, (ULONG, ulFlags), (LPROWLIST, lpMods))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, DisablePushToServer, (void))
 
 // ExchangeRuleAction object
 
@@ -762,33 +745,8 @@ HRESULT __stdcall ECExchangeRuleAction::GetAction(ULONG ulActionNumber, LARGE_IN
 
 // wrappers for ExchageRuleAction class
 
-HRESULT __stdcall ECExchangeRuleAction::xExchangeRuleAction::QueryInterface(REFIID refiid , void** lppInterface) {
- 	TRACE_MAPI(TRACE_ENTRY, "IExchangeRuleAction::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeRuleAction , ExchangeRuleAction);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-ULONG __stdcall ECExchangeRuleAction::xExchangeRuleAction::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeRuleAction::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeRuleAction , ExchangeRuleAction);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECExchangeRuleAction::xExchangeRuleAction::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeRuleAction::Release", "");
-	METHOD_PROLOGUE_(ECExchangeRuleAction , ExchangeRuleAction);
-	return pThis->Release();
-}
-
-HRESULT __stdcall ECExchangeRuleAction::xExchangeRuleAction::ActionCount(ULONG *lpcActions) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeRuleAction::ActionCount", "");
-	METHOD_PROLOGUE_(ECExchangeRuleAction , ExchangeRuleAction);
-	return pThis->ActionCount(lpcActions);
-}
-
-HRESULT __stdcall ECExchangeRuleAction::xExchangeRuleAction::GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid,
-																		 LPACTION *lppAction) {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeRuleAction::GetAction", "");
-	METHOD_PROLOGUE_(ECExchangeRuleAction , ExchangeRuleAction);
-	return pThis->GetAction(ulActionNumber, lpruleid, lppAction);
-}
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, AddRef, (void))
+DEF_ULONGMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, Release, (void))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, ActionCount, (ULONG*, lpcActions))
+DEF_HRMETHOD(TRACE_MAPI, ECExchangeRuleAction, ExchangeRuleAction, GetAction, (ULONG, ulActionNumber), (LARGE_INTEGER*, lpruleid), (LPACTION *, lppAction))

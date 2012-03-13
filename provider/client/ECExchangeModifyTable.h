@@ -54,6 +54,7 @@
 #include "ECMemTable.h"
 #include "mapidefs.h"
 #include "edkmdb.h"
+#include "IECExchangeModifyTable.h"
 
 class ECExchangeModifyTable : public ECUnknown {
 public:
@@ -65,6 +66,8 @@ public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
+
+	virtual HRESULT __stdcall DisablePushToServer();
 
 	/* static creates */
 	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
@@ -83,6 +86,21 @@ public:
 		virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
 	} m_xExchangeModifyTable;
 
+	class xECExchangeModifyTable : public IECExchangeModifyTable {
+		// From IUnknown
+		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void** lppInterface);
+		virtual ULONG __stdcall AddRef();
+		virtual ULONG __stdcall Release();
+
+		// From IExchangeModifyTable
+		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
+		virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
+		virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
+
+		// From IECExchangeModifyTable
+		virtual HRESULT __stdcall DisablePushToServer();
+	} m_xECExchangeModifyTable;
+
 private:
 	static HRESULT HrSerializeTable(ECMemTable *lpTable, char **lppSerialized);
 	static HRESULT HrDeserializeTable(char *lpSerialized, ECMemTable *lpTable, ULONG *ulRuleId);
@@ -95,6 +113,7 @@ private:
 	ULONG	m_ulFlags;
 	ECMAPIProp *m_lpParent;
 	ECMemTable *m_ecTable;
+	bool	m_bPushToServer;
 };
 
 

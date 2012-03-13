@@ -212,6 +212,19 @@
 #define METHODSTR_HELPER1(_method)	METHODSTR_HELPER2(_method)
 #define METHODSTR_HELPER2(_method)	#_method
 
+#define DEF_ULONGMETHOD(_trace, _class, _iface, _method, ...)														\
+ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
+	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
+	ULONG ul = 0;																						\
+	try {																										\
+		METHOD_PROLOGUE_(_class, _iface);																		\
+		ul = pThis->_method(ARGS(__VA_ARGS__));																	\
+	} catch (const std::bad_alloc &) {																			\
+		ul = -1;																			\
+	}																											\
+	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__));	\
+	return ul;																									\
+}
 
 #define DEF_HRMETHOD(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
