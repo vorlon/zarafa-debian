@@ -170,7 +170,7 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId)
     HRESULT hr = hrSuccess;
 
     m_lpIndex = new TreeDB();
-    m_lpCache = new TinyHashMap();
+    m_lpCache = new TinyHashMap(1048583); // Default taken from kcdbext.h. This can be reached if each word has a key (instead of prefix)
 
     // Enable compression on the tree database
     m_lpIndex->tune_options(TreeDB::TCOMPRESS);
@@ -522,7 +522,7 @@ size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput
     int32_t inlen;
     int32_t keylen;
     UErrorCode error = U_ZERO_ERROR;
-
+    
     u_strFromWCS(in, arraySize(in), &inlen, wszInput, len, &error);
     
     keylen = m_lpCollator->getSortKey(in, inlen, (uint8_t *)szOutput, (int32_t)outLen);
