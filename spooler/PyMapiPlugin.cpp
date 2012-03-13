@@ -153,19 +153,26 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 {
 	HRESULT hr = S_OK;
 	char *lpPluginPath = NULL;
-	char *lpPManagerPath = NULL;
+	char *lpEnvPython = NULL;
 	PyObjectAPtr	ptrName;
 	PyObjectAPtr	ptrModule;
 	PyObjectAPtr	ptrMainmod;
 	PyObjectAPtr	ptrClass;
 	PyObjectAPtr	ptrArgs;
+	std::string		strEnvPython;
 
 	m_lpLogger = lpLogger;
 
-	lpPManagerPath = lpConfig->GetSetting("plugin_manager_path");
+	strEnvPython = lpConfig->GetSetting("plugin_manager_path");
 	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled"));
-	
-	setenv("PYTHONPATH", lpPManagerPath, 0);
+
+	lpEnvPython = getenv("PYTHONPATH");
+	if (lpEnvPython) 
+		strEnvPython += std::string(":") + lpEnvPython;
+
+	setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+
+	lpLogger->Log(EC_LOGLEVEL_DEBUG, "PYTHONPATH = %s", strEnvPython.c_str());
 
 	Py_Initialize();
 
