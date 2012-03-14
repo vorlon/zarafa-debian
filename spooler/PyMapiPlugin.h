@@ -78,7 +78,6 @@ public:
 	virtual ~PyMapiPlugin(void);
 
 	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* lpPluginManagerClassName);
-	HRESULT ReloadSettings(ECConfig* lpConfig);
 	HRESULT MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult);
 	HRESULT RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult);
 

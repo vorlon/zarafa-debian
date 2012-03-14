@@ -137,20 +137,8 @@ PyMapiPlugin::PyMapiPlugin(void)
 
 PyMapiPlugin::~PyMapiPlugin(void)
 {
-	Py_Finalize();
-}
-
-/**
- * Reload the settings
- */
-HRESULT PyMapiPlugin::ReloadSettings(ECConfig* lpConfig) 
-{
-	if (!lpConfig)
-		return MAPI_E_INVALID_PARAMETER;
-
-	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled"));
-
-	return S_OK;
+	if(m_bEnablePlugin)
+		Py_Finalize();
 }
 
 /**
@@ -176,8 +164,11 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 
 	m_lpLogger = lpLogger;
 
+	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled", NULL, "no"));
+	if (!m_bEnablePlugin)
+		goto exit;
+
 	strEnvPython = lpConfig->GetSetting("plugin_manager_path");
-	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled"));
 
 	lpEnvPython = getenv("PYTHONPATH");
 	if (lpEnvPython) 
