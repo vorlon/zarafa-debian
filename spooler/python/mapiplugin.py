@@ -9,13 +9,13 @@ from plugintemplates import *
 
 #@todo how to handle spam vs black/white list?
 
-class DagentPluginManager():
+class DAgentPluginManager():
 
     def __init__(self, plugindir, logger):
         self.logger = WrapLogger(logger)
         self.pluginmanager = PluginManager(plugindir, self.logger)
 
-        self.pluginmanager.loadPlugins(IMapiDagentPlugin)
+        self.pluginmanager.loadPlugins(IMapiDAgentPlugin)
 
     def PostConverting(self, session, addrbook, store, folder, message):
         return self.pluginmanager.processPluginFunction('PostConverting', session, addrbook, store, folder, message)

@@ -65,7 +65,6 @@ inline void my_DECREF(PyObject *obj) {
 //@fixme wrong name, autofree should be auto_decref
 typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObjectAPtr;
 
-
 #define MP_CONTINUE_SUCCESS		0
 #define MP_CONTINUE_FAILED		1
 #define MP_STOP_SUCCESS			2
@@ -96,5 +95,11 @@ private:
 	ECLogger *m_lpLogger;
 	bool m_bEnablePlugin;
 };
+
+
+inline void my_delete(PyMapiPlugin *obj) { delete obj; }
+
+typedef auto_free<PyMapiPlugin, auto_free_dealloc<PyMapiPlugin*, void, my_delete> >PyMapiPluginAPtr;
+
 
 #endif

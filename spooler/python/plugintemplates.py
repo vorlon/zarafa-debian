@@ -1,17 +1,14 @@
 
-
 MP_CONTINUE_SUCCESS     = 0
 MP_CONTINUE_FAILED      = 1
 MP_STOP_SUCCESS         = 2
 MP_STOP_FAILED          = 3
 
-# just ideas?
-PROCCESSING_MARK_AS_SPAM = 1234
-
-class IMapiDagentPlugin(object):
+class IMapiDAgentPlugin(object):
     prioPostConverting = 9999
     prioPreDelivery = 9999
     prioPostDelivery = 9999
+    prioPreRuleProcess = 9999
 
     def __init__(self, logger):
         self.logger = logger

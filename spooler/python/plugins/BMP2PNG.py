@@ -8,7 +8,7 @@ import StringIO
 from PIL import Image
 
 
-class exampleBMP2PNG(IMapiDagentPlugin):
+class exampleBMP2PNG(IMapiDAgentPlugin):
 
     prioPostConverting = 10
 

@@ -137,6 +137,10 @@ PyMapiPlugin::PyMapiPlugin(void)
 
 PyMapiPlugin::~PyMapiPlugin(void)
 {
+    m_ptrModMapiPlugin = NULL;
+    m_ptrPyLogger = NULL;
+	m_ptrMapiPluginManager = NULL;
+
 	if(m_bEnablePlugin)
 		Py_Finalize();
 }
@@ -157,7 +161,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	char *lpEnvPython = NULL;
 	PyObjectAPtr	ptrName;
 	PyObjectAPtr	ptrModule;
-	PyObjectAPtr	ptrMainmod;
+	PyObject*	lpMainmod = NULL;
 	PyObjectAPtr	ptrClass;
 	PyObjectAPtr	ptrArgs;
 	std::string		strEnvPython;
@@ -180,12 +184,12 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 
 	Py_Initialize();
 
-	ptrMainmod = PyImport_AddModule("__main__");
+	lpMainmod = PyImport_AddModule("__main__");
 	
 	ptrModule = PyImport_ImportModule("MAPI");
 	PY_HANDLE_ERROR(ptrModule);
 
-	PyModule_AddObject(ptrMainmod, "MAPI", ptrModule);
+	PyModule_AddObject(lpMainmod, "MAPI", ptrModule);
 
 	// Init MAPI-swig types
 	BUILD_SWIG_TYPE(type_p_IMessage, "_p_IMessage");
@@ -206,7 +210,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	m_ptrModMapiPlugin = PyImport_Import(ptrName);
 	PY_HANDLE_ERROR(m_ptrModMapiPlugin);
 
-	PyModule_AddObject(ptrMainmod, "mapiplugin", m_ptrModMapiPlugin);
+	PyModule_AddObject(lpMainmod, "mapiplugin", m_ptrModMapiPlugin);
 
 	// Init logger swig object
 	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);

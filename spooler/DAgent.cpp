@@ -270,6 +270,26 @@ public:
 	bool bHasIMAP;
 };
 
+HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **lppPyMapiPlugin)
+{
+	HRESULT hr = hrSuccess;
+	PyMapiPlugin *lpPyMapiPlugin = NULL;
+
+	if (!lpConfig || !lpLogger || !lppPyMapiPlugin) {
+		ASSERT(FALSE);
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	lpPyMapiPlugin = new PyMapiPlugin();
+	if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "DAgentPluginManager") != hrSuccess)
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize the dagent plugin manager");
+
+	*lppPyMapiPlugin = lpPyMapiPlugin;
+exit:
+	return hr;
+}
+
 //Global variables
 
 bool g_bQuit = false;
@@ -280,7 +300,6 @@ pthread_mutex_t g_lockLMTPThreads;
 pthread_t g_mainthread;
 ECLogger *g_lpLogger = NULL;
 ECConfig *g_lpConfig = NULL;
-PyMapiPlugin *g_pyMapiPlugin = NULL;
 
 class sortRecipients {
 public:
@@ -2039,7 +2058,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT HrPostDeliveryProcessing(LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder *lpInbox, IMAPIFolder *lpFolder, IMessage **lppMessage, ECRecipient *lpRecip, DeliveryArgs *lpArgs)
+HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin, LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder *lpInbox, IMAPIFolder *lpFolder, IMessage **lppMessage, ECRecipient *lpRecip, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpUserSession = NULL;
@@ -2073,7 +2092,7 @@ HRESULT HrPostDeliveryProcessing(LPADRBOOK lpAdrBook, LPMDB lpStore, IMAPIFolder
 	
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(g_pyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, g_lpLogger);
+		hr = HrProcessRules(lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, g_lpLogger);
 		if (hr == MAPI_E_CANCEL)
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -2172,7 +2191,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, bool bIsAdmin, LPADRBOOK lpAdrBook, IMessage *lpOrigMessage, bool bFallbackDelivery, std::string &strMail, ECRecipient *lpRecip, DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
+HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSession, IMsgStore *lpStore, bool bIsAdmin, LPADRBOOK lpAdrBook, IMessage *lpOrigMessage, bool bFallbackDelivery, std::string &strMail, ECRecipient *lpRecip, DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
 {
 	HRESULT hr = hrSuccess;
 	LPMDB lpTargetStore = NULL;
@@ -2223,7 +2242,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 			goto exit;
 		}
 
-		hr = g_pyMapiPlugin->MessageProcessing("PostConverting", lpSession, lpAdrBook, NULL, NULL, lpDeliveryMessage, &ulResult);
+		hr = lppyMapiPlugin->MessageProcessing("PostConverting", lpSession, lpAdrBook, NULL, NULL, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2250,7 +2269,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 			goto exit;
 	}
 
-	hr = g_pyMapiPlugin->MessageProcessing("PreDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
+	hr = lppyMapiPlugin->MessageProcessing("PreDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2258,7 +2277,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 	//
 
 	// Do rules & out-of-office
-	hr = HrPostDeliveryProcessing(lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &lpDeliveryMessage, lpRecip, lpArgs);
+	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &lpDeliveryMessage, lpRecip, lpArgs);
 	if (hr != MAPI_E_CANCEL) {
 		// ignore other errors for rules, still want to save the delivered message
 		// Save message changes, message becomes visible for the user
@@ -2273,7 +2292,7 @@ HRESULT ProcessDeliveryToRecipient(IMAPISession *lpSession, IMsgStore *lpStore, 
 			goto exit;
 		}
 
-		hr = g_pyMapiPlugin->MessageProcessing("PostDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
+		hr = lppyMapiPlugin->MessageProcessing("PostDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess)
 			goto exit;
 		// TODO do something with ulResult
@@ -2379,7 +2398,7 @@ void RespondMessageExpired(recipients_t::iterator start, recipients_t::iterator 
  * 
  * @return MAPI Error code
  */
-HRESULT ProcessDeliveryToServer(IMAPISession *lpUserSession, IMessage *lpMessage, bool bFallbackDelivery, std::string &strMail, const std::string &strServer, recipients_t &listRecipients, LPADRBOOK lpAdrBook, DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
+HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpUserSession, IMessage *lpMessage, bool bFallbackDelivery, std::string &strMail, const std::string &strServer, recipients_t &listRecipients, LPADRBOOK lpAdrBook, DeliveryArgs *lpArgs, IMessage **lppMessage, bool *lpbFallbackDelivery)
 {
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpSession = NULL;
@@ -2418,7 +2437,7 @@ HRESULT ProcessDeliveryToServer(IMAPISession *lpUserSession, IMessage *lpMessage
 		 * pointles to continue delivering the mail. However we must continue looping through all recipients
 		 * to inform the MTA we did handle the email properly.
 		 */
-		hr = ProcessDeliveryToRecipient(lpSession, lpStore, lpUserSession == NULL, lpAdrBook, lpOrigMessage, bFallbackDelivery, strMail, *iter, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
+		hr = ProcessDeliveryToRecipient(lppyMapiPlugin, lpSession, lpStore, lpUserSession == NULL, lpAdrBook, lpOrigMessage, bFallbackDelivery, strMail, *iter, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
 		if (hr == hrSuccess || hr == MAPI_E_CANCEL) {
 			if (hr == hrSuccess) {
 				LPSPropValue lpMessageId = NULL;
@@ -2499,7 +2518,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT ProcessDeliveryToSingleRecipient(IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp, recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
+HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp, recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	std::string strMail;
@@ -2516,7 +2535,7 @@ HRESULT ProcessDeliveryToSingleRecipient(IMAPISession *lpSession, LPADRBOOK lpAd
 
 	FindSpamMarker(strMail, lpArgs);
 	
-	hr = ProcessDeliveryToServer(lpSession, NULL, false, strMail, lpArgs->strPath, lstSingleRecip, lpAdrBook, lpArgs, NULL, NULL);
+	hr = ProcessDeliveryToServer(lppyMapiPlugin, lpSession, NULL, false, strMail, lpArgs->strPath, lstSingleRecip, lpAdrBook, lpArgs, NULL, NULL);
 
 exit:
 	return hr;
@@ -2534,7 +2553,7 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT ProcessDeliveryToCompany(IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp, serverrecipients_t *lpServerNameRecips, DeliveryArgs *lpArgs)
+HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp, serverrecipients_t *lpServerNameRecips, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	IMessage *lpMasterMessage = NULL;
@@ -2570,7 +2589,7 @@ HRESULT ProcessDeliveryToCompany(IMAPISession *lpSession, LPADRBOOK lpAdrBook, F
 		bool bFallbackDeliveryTmp = false;
 
 		if (!bExpired) {
-			hr = ProcessDeliveryToServer(NULL, lpMasterMessage, bFallbackDelivery, strMail, convert_to<string>(iter->first), iter->second, lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
+			hr = ProcessDeliveryToServer(lppyMapiPlugin, NULL, lpMasterMessage, bFallbackDelivery, strMail, convert_to<string>(iter->first), iter->second, lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
 			if (hr == MAPI_W_CANCEL_MESSAGE) {
 				bExpired =  true;
 				/* Don't report the error further */
@@ -2657,7 +2676,7 @@ found:
  * 
  * @return MAPI Error code
  */
-HRESULT ProcessDeliveryToList(IMAPISession *lpSession, FILE *fp, companyrecipients_t *lpCompanyRecips, DeliveryArgs *lpArgs)
+HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSession, FILE *fp, companyrecipients_t *lpCompanyRecips, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpUserSession = NULL;
@@ -2685,7 +2704,7 @@ HRESULT ProcessDeliveryToList(IMAPISession *lpSession, FILE *fp, companyrecipien
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = ProcessDeliveryToCompany(lpSession, lpAdrBook, fp, &iter->second, lpArgs);
+		hr = ProcessDeliveryToCompany(lppyMapiPlugin, lpSession, lpAdrBook, fp, &iter->second, lpArgs);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2723,6 +2742,7 @@ void *HandlerLMTP(void *lpArg) {
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
+	PyMapiPlugin *lppyMapiPlugin = NULL;	
 
 	LMTP lmtp(lpArgs->lpChannel, (char *)lpArgs->strPath.c_str(), g_lpLogger, g_lpConfig);
 
@@ -2872,11 +2892,15 @@ void *HandlerLMTP(void *lpArg) {
 
 				hr = lmtp.HrCommandDATA(tmp);
 				if (hr == hrSuccess) {
+
+					PyMapiPluginAPtr ptrPyMapiPlugin;
+					GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin); //fixme ignore error (only memory errors)
+
 					// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 					// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 					delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
 
-					hr = ProcessDeliveryToList(lpSession, tmp, &mapRCPT, lpArgs);
+					hr = ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
 
 					SaveRawMessage(tmp, "LMTP");
 					lpArgs->ulDeliveryMode = ulDeliveryMode;
@@ -2933,6 +2957,8 @@ exit:
 		lpSession->Release();
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP thread exiting");
+
+	delete lppyMapiPlugin;
 
 	if (lpArgs)
 		delete lpArgs;
@@ -3172,7 +3198,7 @@ exit:
  * @param[in]	lpArgs		Delivery arguments, according to given options on the commandline.
  * @return		MAPI Error code.
  */
-HRESULT deliver_recipient(char *recipient, bool bStringEmail, FILE *file, DeliveryArgs *lpArgs)
+HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin, char *recipient, bool bStringEmail, FILE *file, DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpSession = NULL;
@@ -3251,7 +3277,7 @@ HRESULT deliver_recipient(char *recipient, bool bStringEmail, FILE *file, Delive
 		goto exit;
 	
 	lRCPT.insert(lpSingleRecip);
-	hr = ProcessDeliveryToSingleRecipient(lpSession, lpAdrBook, fpMail, lRCPT, lpArgs);
+	hr = ProcessDeliveryToSingleRecipient(lppyMapiPlugin, lpSession, lpAdrBook, fpMail, lRCPT, lpArgs);
 
 	// Over quota is a hard error
 	if (hr == MAPI_E_STORE_FULL)
@@ -3563,10 +3589,6 @@ int main(int argc, char *argv[]) {
 		goto exit;
 	}
 
-	// Init plugin
-	g_pyMapiPlugin = new PyMapiPlugin();
-	g_pyMapiPlugin->Init(g_lpConfig, g_lpLogger, "DagentPluginManager");
-
 	if (bListenLMTP) {
 		if (g_bThreads)
 			g_mainthread = pthread_self();
@@ -3576,7 +3598,17 @@ int main(int argc, char *argv[]) {
 	} else {
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
-		hr = deliver_recipient(argv[my_optind], strip_email, fp, &sDeliveryArgs);
+
+		PyMapiPluginAPtr ptrPyMapiPlugin;
+		{
+			hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
+			if (hr != hrSuccess) {
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create plugin, possible out of memory");
+				goto exit;
+			}
+		}
+
+		hr = deliver_recipient(ptrPyMapiPlugin, argv[my_optind], strip_email, fp, &sDeliveryArgs);
 		fclose(fp);
 	}
 

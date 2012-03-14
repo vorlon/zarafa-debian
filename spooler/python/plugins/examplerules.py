@@ -5,7 +5,7 @@ from MAPI.Struct import *
 
 from plugintemplates import *
 
-class examplerules1(IMapiDagentPlugin):
+class examplerules1(IMapiDAgentPlugin):
 
     def PreRuleProcess(self, session, addrbook, store, rulestable):
         props = store.GetProps([PR_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID], 0)

@@ -46,8 +46,7 @@ class PluginManager():
                     if not inspect.isclass(v): continue
                     if k.startswith('_'): continue
 
-                    if not issubclass(v, baseclass) or v is baseclass: 
-                        #self.logger.logDebug("The class '%s' is not a instance of '%s'" % (k, baseclass) )
+                    if not issubclass(v, baseclass) or v is baseclass:
                         continue
 
                     instance = v(self.logger)
@@ -62,9 +61,10 @@ class PluginManager():
         return len(self.plugins)
 
     def processPluginFunction(self, functionname, *args):
-        pluginss = []
+        plugins = []
         self.logger.logInfo("* %s processing started" % functionname)
 
+        # get the priority of the plugin function
         for (name, i) in self.plugins:
 
            if hasattr(i, 'prio'+functionname):
@@ -72,15 +72,14 @@ class PluginManager():
            else:
                prio = 9999
 
-           pluginss.append((functionname, prio, name, i))
+           plugins.append((functionname, prio, name, i))
 
-        sortedlist = sorted(pluginss, lambda a, b: cmp(a[0], b[0]) or cmp(a[1], b[1]))
+        # sort the plugins on function name and prio
+        sortedlist = sorted(plugins, lambda a, b: cmp(a[0], b[0]) or cmp(a[1], b[1]))
 
         retval = MP_CONTINUE_SUCCESS
         for (fname, prio, cname, i) in sortedlist:
-#            print cname + "->"+ fname + " - " + functionname
             if (fname != functionname): continue
-#            print cname + "->"+ fname + " - " + functionname
             try:
                 self.logger.logInfo("** Plugin '%s.%s' priority (%d)" % (cname, fname, prio))
                 retval = getattr(i, fname)(*args)
@@ -89,10 +88,9 @@ class PluginManager():
                     retval = 0
                 self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval))
             except NotImplementedError as e:
-                #Mostly the function is not implemented
+                #Most likely the function is not implemented
                 self.logger.logDebug("!---------- %s" % e)
-                pass    
-            except RuntimeError as e:
+            except Exception as e:
                 self.logger.logError("!-- error: %s " % e)
 
             if (retval != MP_CONTINUE_SUCCESS and retval != MP_CONTINUE_FAILED):
@@ -102,3 +100,4 @@ class PluginManager():
 
         self.logger.logInfo("* %s processing done" % functionname)
         return retval
+
