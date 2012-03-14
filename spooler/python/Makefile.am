@@ -1,4 +1,7 @@
 SUBDIRS=plugins
+
+EXTRA_DIST = mapiplugin.py  pluginmanager.py  plugintemplates.py  wraplogger.py
+
 zarafa_dagentdir = ${datadir}/zarafa-dagent/python
 zarafa_dagent_SCRIPTS = mapiplugin.py  pluginmanager.py  plugintemplates.py  wraplogger.py
 
