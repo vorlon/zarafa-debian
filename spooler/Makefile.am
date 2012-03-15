@@ -31,6 +31,8 @@ zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h
 
 BUILT_SOURCES=PythonSWIGRuntime.h
 
+CLEANFILES=PythonSWIGRuntime.h
+
 PythonSWIGRuntime.h:
 	$(SWIG_EXEC) -python -external-runtime PythonSWIGRuntime.h
 
