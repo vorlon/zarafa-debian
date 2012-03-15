@@ -178,8 +178,23 @@ ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 
 ECRESULT ECStreamSerializer::Flush()
 {
-	LARGE_INTEGER zero = {{0,0}};
-	return m_lpBuffer->Seek(zero, SEEK_END, NULL);
+	ECRESULT er = erSuccess;
+	ULONG cbRead = 0;
+	char buf[16384];
+	
+	while(true) {
+		er = m_lpBuffer->Read(buf, sizeof(buf), &cbRead);
+		if (er != erSuccess)
+			goto exit;
+
+		m_ulRead += cbRead;
+
+		if(cbRead < sizeof(buf))
+			break;
+	}
+
+exit:
+	return er;
 }
 
 ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
@@ -322,14 +337,16 @@ ECRESULT ECFifoSerializer::Flush()
 {
 	ECRESULT er = erSuccess;
 	size_t cbRead = 0;
-	char buf[1024];
+	char buf[16384];
 	
 	while(true) {
-		er = m_lpBuffer->Read(buf, 1024, STR_DEF_TIMEOUT, &cbRead);
+		er = m_lpBuffer->Read(buf, sizeof(buf), STR_DEF_TIMEOUT, &cbRead);
 		if (er != erSuccess)
 			goto exit;
 
-		if(cbRead < 1024)
+		m_ulRead += cbRead;
+
+		if(cbRead < sizeof(buf))
 			break;
 	}
 

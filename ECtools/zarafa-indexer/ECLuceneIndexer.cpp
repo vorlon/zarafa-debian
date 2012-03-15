@@ -547,6 +547,7 @@ HRESULT ECLuceneIndexer::ParseStreamAttachments(folderid_t folder, docid_t doc, 
 	HRESULT hr = hrSuccess;
 
 	if (!parseBool(m_lpThreadData->lpConfig->GetSetting("index_attachments"))) {
+		lpSerializer->Flush();
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
