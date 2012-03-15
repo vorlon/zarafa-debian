@@ -3731,6 +3731,20 @@
 				<para>Default: <replaceable>no</replaceable></para>
 			</listitem>
 		  </varlistentry>
+		  
+		  <varlistentry>
+		    <term><option>embedded_attachment_limit</option></term>
+		    <listitem>
+		      <para>Defines the number of
+		      attachment-in-attachment-in-attachment levels allowed when
+		      saving and replicating a MAPI object. This limit can be made
+		      higher if needed, but will also require you to increase the
+		      stack_size in mysql to allow for correct exporting for
+		      replication.
+		      </para>
+		      <para>Default: <replaceable>no</replaceable></para>
+		    </listitem>
+		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>pam_service</option></term>

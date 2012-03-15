@@ -639,6 +639,14 @@ Default:
 \fIno\fR
 .RE
 .PP
+\fBembedded_attachment_limit\fR
+.RS 4
+Defines the number of attachment\-in\-attachment\-in\-attachment levels allowed when saving and replicating a MAPI object\&. This limit can be made higher if needed, but will also require you to increase the stack_size in mysql to allow for correct exporting for replication\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
 \fBpam_service\fR
 .RS 4
 This is the pam service name\&. Pam services can be found in /etc/pam\&.d/\&.
