@@ -216,7 +216,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
 
 	// Init plugin class	
-	ptrClass = PyObject_GetAttrString(m_ptrModMapiPlugin, lpPluginManagerClassName);
+	ptrClass = PyObject_GetAttrString(m_ptrModMapiPlugin, (char*)lpPluginManagerClassName);
 	PY_HANDLE_ERROR(ptrClass);
 
 	ptrArgs  = Py_BuildValue("(sO)", lpPluginPath, *m_ptrPyLogger);
