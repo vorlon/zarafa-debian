@@ -337,6 +337,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
             lpRestrict->ulType = RES_AND;
             lpRestrict->lpAnd = new struct restrictAnd;
             lpRestrict->lpAnd->__size = 0;
+            lpRestrict->lpAnd->__ptr = NULL;
         }
     }
     
