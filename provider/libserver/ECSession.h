@@ -103,6 +103,7 @@ public:
 	virtual ECSessionManager* GetSessionManager();
 	virtual ECUserManagement* GetUserManagement();
 	virtual ECRESULT GetDatabase(ECDatabase **lppDatabase);
+	virtual ECRESULT GetAdditionalDatabase(ECDatabase **lppDatabase);
 	ECRESULT GetServerGUID(GUID* lpServerGuid);
 	ECRESULT GetNewSourceKey(SOURCEKEY* lpSourceKey);
 

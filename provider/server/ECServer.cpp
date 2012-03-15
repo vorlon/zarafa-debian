@@ -923,6 +923,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "counter_reset", "yes", CONFIGSETTING_RELOADABLE },
 		{ "mysql_group_concat_max_len", "21844", CONFIGSETTING_RELOADABLE },
 		{ "restrict_admin_permissions", "no", 0 },
+		{ "embedded_attachment_limit", "20", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 
@@ -1253,6 +1254,12 @@ int running_server(char *szName, const char *szConfig)
 	}else if(er != erSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't update the database: %s", dbError.c_str());
 		retval = -1;
+		goto exit;
+	}
+	
+	er = lpDatabase->InitializeDBState();
+	if(er != erSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't initialize database settings");
 		goto exit;
 	}
 	

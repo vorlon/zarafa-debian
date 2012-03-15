@@ -196,6 +196,112 @@ static char *server_groups[] = {
   (char *)NULL
 };
 
+typedef struct {
+	const char *szName;
+	const char *szSQL;
+} STOREDPROCS;
+
+/**
+ * Mode 0 = All bodies
+ * Mode 1 = Best body only (RTF better than HTML) + plaintext
+ * Mode 2 = Plaintext only
+ */
+ 
+const char *szGetProps =
+"CREATE PROCEDURE GetProps(IN hid integer, IN mode integer)\n"
+"BEGIN\n"
+"  DECLARE bestbody INT;\n"
+
+"  IF mode = 1 THEN\n"
+"  	 call GetBestBody(hid, bestbody);\n"
+"  END IF;\n"
+  
+"  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, names.nameid, names.namestring, names.guid\n"
+"    FROM properties LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=hid AND (tag < 0x8500 OR names.id IS NOT NULL) AND (tag NOT IN (0x1009, 0x1013) OR mode = 0 OR (mode = 1 AND tag = bestbody) )\n"
+"  UNION\n"
+"  SELECT count(*), tag, mvproperties.type, \n"
+"          group_concat(length(mvproperties.val_ulong),':', mvproperties.val_ulong ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_string),':', mvproperties.val_string ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_binary),':', mvproperties.val_binary ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_double),':', mvproperties.val_double ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_longint),':', mvproperties.val_longint ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          names.nameid, names.namestring, names.guid \n"
+"    FROM mvproperties LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=hid AND (tag < 0x8500 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
+"END;\n";
+
+const char *szGetBestBody = 
+"CREATE PROCEDURE GetBestBody(hid integer, OUT bestbody integer)\n"
+"DETERMINISTIC\n"
+"BEGIN\n"
+"  DECLARE best INT;\n"
+"  DECLARE CONTINUE HANDLER FOR NOT FOUND\n"
+"    SET bestbody = 0 ;\n"
+"  \n"
+"  # Get body with lowest id (RTF before HTML)\n"
+"  SELECT tag INTO bestbody FROM properties WHERE hierarchyid=hid AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1;\n"
+"END;\n";
+
+const char *szStreamObj = 
+"# Read a type-5 (Message) item from the database, output properties and subobjects\n"
+"CREATE PROCEDURE StreamObj(IN rootid integer, IN maxdepth integer, IN mode integer)\n"
+"BEGIN\n"
+"DECLARE no_more_rows BOOLEAN;\n"
+"DECLARE subid INT;\n"
+"DECLARE subsubid INT;\n"
+"DECLARE subtype INT;\n"
+"DECLARE cur_hierarchy CURSOR FOR\n"
+"	SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid; \n"
+"DECLARE CONTINUE HANDLER FOR NOT FOUND\n"
+"    SET no_more_rows = TRUE;\n"
+
+"  call GetProps(rootid, mode);\n"
+
+"  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
+
+"  OPEN cur_hierarchy;\n"
+
+"  the_loop: LOOP\n"
+"    FETCH cur_hierarchy INTO subid, subtype;\n"
+
+"    IF no_more_rows THEN\n"
+"      CLOSE cur_hierarchy;\n"
+"      LEAVE the_loop;\n"
+"    END IF;\n"
+
+"    call GetProps(subid, 0);\n"
+
+"    IF subtype = 7 THEN\n"
+"      BEGIN\n"
+"        DECLARE CONTINUE HANDLER FOR NOT FOUND set subsubid = 0;\n"
+
+"        IF maxdepth > 0 THEN\n"
+"          SELECT id INTO subsubid FROM hierarchy WHERE parent=subid LIMIT 1;\n"
+"          SELECT id, hierarchy.type FROM hierarchy WHERE parent = subid LIMIT 1;\n"
+
+"          IF subsubid != 0 THEN\n"
+"            # Recurse into submessage (must be type 5 since attachments can only contain nested messages)\n"
+"            call StreamObj(subsubid, maxdepth-1, mode);\n"
+"          END IF;\n"
+"        ELSE\n"
+"          # Maximum depth reached. Output a zero-length subset to indicate that we're\n"
+"          # not recursing further.\n"
+"          SELECT id, hierarchy.type FROM hierarchy WHERE parent=subid LIMIT 0;\n"
+"        END IF;\n"
+"      END;\n"
+
+"    END IF;\n"
+"  END LOOP the_loop;\n"
+
+"END\n";
+
+STOREDPROCS stored_procedures[] = {
+	{ "GetProps", szGetProps },
+	{ "GetBestBody", szGetBestBody },
+	{ "StreamObj", szStreamObj }
+};
+
 std::string	ECDatabaseMySQL::m_strDatabaseDir;
 
 ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger, ECConfig *lpConfig)
@@ -259,6 +365,29 @@ ECRESULT ECDatabaseMySQL::InitLibrary(char* lpDatabaseDir, char* lpConfigFile, E
 	}
 
 exit:
+	return er;
+}
+
+/**
+ * Initialize anything that has to be initialized at server startup.
+ *
+ * Currently this means we're updating all the stored procedure definitions
+ */
+ECRESULT ECDatabaseMySQL::InitializeDBState()
+{
+	ECRESULT er = erSuccess;
+	
+	for(unsigned int i = 0; i < arraySize(stored_procedures); i++) {
+		er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
+		if(er != erSuccess)
+			goto exit;
+			
+		er = DoUpdate(stored_procedures[i].szSQL);
+		if(er != erSuccess)
+			goto exit;
+	}
+
+exit:	
 	return er;
 }
 
@@ -327,7 +456,7 @@ ECRESULT ECDatabaseMySQL::Connect()
 			m_lpConfig->GetSetting("mysql_password"), 
 			m_lpConfig->GetSetting("mysql_database"), 
 			(lpMysqlPort)?atoi(lpMysqlPort):0, 
-			lpMysqlSocket, 0) == NULL)
+			lpMysqlSocket, CLIENT_MULTI_STATEMENTS) == NULL)
 	{
 		if(mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR){ // Database does not exist
 			er = ZARAFA_E_DATABASE_NOT_FOUND;
@@ -388,6 +517,11 @@ ECRESULT ECDatabaseMySQL::Connect()
 		goto exit;
 	}
 #endif
+	if (Query("set max_sp_recursion_depth = 255") != 0) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set recursion depth");
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
 
 	// Force to a sane value
 	gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
@@ -571,6 +705,119 @@ exit:
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
 
+	// Autolock, unlock data
+	if(m_bAutoLock)
+		UnLock();
+
+	return er;
+}
+
+ECRESULT ECDatabaseMySQL::DoSelectMulti(const string &strQuery) {
+
+	ECRESULT er = erSuccess;
+	DB_RESULT lpResult = NULL;
+
+	_ASSERT(strQuery.length()!= 0);
+
+	// Autolock, lock data
+	if(m_bAutoLock)
+		Lock();
+		
+	if( Query(strQuery) != erSuccess ) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+	
+	m_bFirstResult = true;
+
+	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
+	
+exit:
+	if (er != erSuccess) {
+		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
+		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+	}
+
+	// Autolock, unlock data
+	if(m_bAutoLock)
+		UnLock();
+
+	return er;
+}
+
+/**
+ * Get next resultset from a multi-resultset query
+ * 
+ * @param[out] lppResult Resultset
+ * @return result
+ */
+ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
+
+	ECRESULT er = erSuccess;
+	DB_RESULT lpResult = NULL;
+
+	// Autolock, lock data
+	if(m_bAutoLock)
+		Lock();
+		
+	if(!m_bFirstResult)
+		mysql_next_result( &m_lpMySQL );
+		
+	m_bFirstResult = false;
+		
+   	lpResult = mysql_store_result( &m_lpMySQL );
+   	
+    
+	if( lpResult == NULL ) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: expected more results");
+	}
+
+	if (lppResult)
+		*lppResult = lpResult;
+	else {
+		if(lpResult)
+			FreeResult(lpResult);
+	}
+
+exit:
+	if (er != erSuccess) {
+		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
+		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+	}
+
+	// Autolock, unlock data
+	if(m_bAutoLock)
+		UnLock();
+
+	return er;
+}
+
+/**
+ * Finalize a multi-SQL call
+ *
+ * A stored procedure will output a NULL result set at the end of the stored procedure to indicate
+ * that the results have ended. This must be consumed here, otherwise the database will be left in a bad
+ * state.
+ */
+ECRESULT ECDatabaseMySQL::FinalizeMulti() {
+
+	ECRESULT er = erSuccess;
+	DB_RESULT lpResult = NULL;
+
+	mysql_next_result(&m_lpMySQL);
+	
+	lpResult = mysql_store_result(&m_lpMySQL);
+	
+	if(lpResult != NULL) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: unexpected results received at end of batch");
+		er = ZARAFA_E_DATABASE_ERROR;
+		goto exit;
+	}
+exit:
+	if(lpResult)
+		FreeResult(lpResult);
+		
 	// Autolock, unlock data
 	if(m_bAutoLock)
 		UnLock();

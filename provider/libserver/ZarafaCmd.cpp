@@ -2612,7 +2612,7 @@ exit:
 }
 
 unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, unsigned int ulStoreId, unsigned int ulParentObjId, 
-				unsigned int ulParentType, unsigned int ulFlags, unsigned int ulSyncId, struct saveObject *lpsSaveObj, struct saveObject *lpsReturnObj, bool *lpfHaveChangeKey = NULL)
+				unsigned int ulParentType, unsigned int ulFlags, unsigned int ulSyncId, struct saveObject *lpsSaveObj, struct saveObject *lpsReturnObj, unsigned int ulLevel, bool *lpfHaveChangeKey = NULL)
 {
 	ECRESULT er = erSuccess;
 	ALLOC_DBRESULT();
@@ -2627,6 +2627,11 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 	ECListDeleteItems lstDeleted;
 	FILETIME ftCreated = { 0,0 };
 	FILETIME ftModified = { 0,0 };
+
+	if (ulLevel <= 0) {
+	    er = ZARAFA_E_TOO_COMPLEX;
+	    goto exit;
+    }
 
 	// reset return object
 	lpsReturnObj->__size = 0;
@@ -2721,7 +2726,7 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 			lpsReturnObj->__ptr = s_alloc<struct saveObject>(soap, lpsReturnObj->__size);
 
 			for (int i = 0; i < lpsSaveObj->__size; i++) {
-				er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, /*myself as parent*/lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, 0, ulSyncId, &lpsSaveObj->__ptr[i], &lpsReturnObj->__ptr[i]);
+				er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, /*myself as parent*/lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, 0, ulSyncId, &lpsSaveObj->__ptr[i], &lpsReturnObj->__ptr[i], lpsReturnObj->ulObjType == MAPI_MESSAGE ? ulLevel-1 : ulLevel);
 				if (er != erSuccess)
 					goto exit;
 			}
@@ -3087,7 +3092,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
         }
     }
 
-	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId, lpsSaveObj, &sReturnObject, &fHaveChangeKey);
+	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId, lpsSaveObj, &sReturnObject, atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")), &fHaveChangeKey);
 	if (er != erSuccess)
 		goto exit;
 
@@ -10581,9 +10586,14 @@ SOAP_ENTRY_START(setServerBehavior, *result, unsigned int ulBehavior, unsigned i
 } 
 SOAP_ENTRY_END() 
 
-typedef struct _MTOMStreamInfo {
+class MTOMStreamInfo {
+public:
+    MTOMStreamInfo() { };
+    ~MTOMStreamInfo() { };
+    
 	ECSession		*lpecSession;
-	ECDatabase		*lpDatabase;
+	boost::shared_ptr<ECDatabase> lpSharedDatabase;
+	ECDatabase 		*lpDatabase;
 	ECAttachmentStorage *lpAttachmentStorage;
 	ECFifoBuffer	data;
 	unsigned int	ulObjectId;
@@ -10594,7 +10604,9 @@ typedef struct _MTOMStreamInfo {
 	ULONG			ulFlags;
 	pthread_t		hThread;
 	struct propValArray *lpPropValArray;
-} MTOMStreamInfo, *LPMTOMStreamInfo;
+};
+
+typedef MTOMStreamInfo * LPMTOMStreamInfo;
 
 void *SerializeObject(void *arg)
 {
@@ -10605,7 +10617,7 @@ void *SerializeObject(void *arg)
 	ASSERT(lpStreamInfo != NULL);
 
 	lpSink = new ECFifoSerializer(&lpStreamInfo->data);
-	SerializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink);
+	SerializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpSharedDatabase.get(), lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 
 	delete lpSink;
 	return NULL;
@@ -10624,6 +10636,11 @@ void *MTOMReadOpen(struct soap* /*soap*/, void *handle, const char *id, const ch
 			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Failed to start serialization thread for '%s'", id);
 			return NULL;
 		}
+		/*
+    	ECSerializer		*lpSink = NULL;
+    	lpSink = new ECFifoSerializer(&lpStreamInfo->data);
+		SerializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpSharedDatabase.get(), lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
+    	delete lpSink;*/
 	} else {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Got stream request for unknown id: '%s'", id);
 		return NULL;
@@ -10696,9 +10713,26 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	ECObjectTableList	rows;
 	struct rowSet		*lpRowSet = NULL; // Do not free, used in response data
 	ECODStore			ecODStore;
-
+	ECDatabase 			*lpBatchDB;
+	boost::shared_ptr<ECDatabase> lpSharedBatchDB;
+	unsigned int		ulDepth = 20;
+	unsigned int		ulMode = 0;
+	
+	if(ulFlags & SYNC_BEST_BODY)
+	  ulMode = 1;
+	else if(ulFlags & SYNC_LIMITED_IMESSAGE)
+	  ulMode = 2;
+	
 	USE_DATABASE();
 	
+	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
+	
+	er = lpecSession->GetAdditionalDatabase(&lpBatchDB);
+	if (er != erSuccess)
+	    goto exit;
+	    
+    lpSharedBatchDB.reset(lpBatchDB);
+
 	if ((lpecSession->GetCapabilities() & ZARAFA_CAP_ENHANCED_ICS) == 0) {
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
@@ -10761,6 +10795,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
         
 
 		lpStreamInfo = new MTOMStreamInfo;							// Delete in MTOMReadClose
+		lpStreamInfo->lpSharedDatabase = lpSharedBatchDB;
 		lpStreamInfo->lpecSession = lpecSession;
 		lpStreamInfo->lpAttachmentStorage = lpAttachmentStorage;
 		lpStreamInfo->ulObjectId = ulObjectId;
@@ -10770,6 +10805,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpStreamInfo->sGuid = sGuid;
 		lpStreamInfo->ulFlags = ulFlags;
 		lpStreamInfo->lpPropValArray = NULL;
+		
+		strQuery += "call StreamObj(" + stringify(ulObjectId) + "," + stringify(ulDepth) + ", " + stringify(ulMode) + ");";
 		
 		lpecSession->Lock();	    		// Increase lock count, will be unlocked in MTOMReadClose.
 		lpAttachmentStorage->AddRef();	// Released in MTOMReadClose
@@ -10788,6 +10825,11 @@ next_object:
 		;
 	}
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
+                    
+    // The results of this query will be consumed by the MTOMRead function
+    er = lpBatchDB->DoSelectMulti(strQuery);
+    if(er != erSuccess)
+        goto exit;
                     
     memset(&ecODStore, 0, sizeof(ECODStore));
 	ecODStore.ulObjType = MAPI_MESSAGE;

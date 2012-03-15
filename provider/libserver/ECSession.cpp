@@ -212,6 +212,13 @@ ECRESULT BTSession::GetDatabase(ECDatabase **lppDatabase)
 	return GetThreadLocalDatabase(this->m_lpDatabaseFactory, lppDatabase);
 }
 
+ECRESULT BTSession::GetAdditionalDatabase(ECDatabase **lppDatabase)
+{
+	std::string str;
+	return this->m_lpDatabaseFactory->CreateDatabaseObject(lppDatabase, str);
+}
+
+
 ECRESULT BTSession::GetServerGUID(GUID* lpServerGuid){
 	return 	m_lpSessionManager->GetServerGUID(lpServerGuid);
 }

@@ -75,6 +75,7 @@ public:
 	ECRESULT		Connect();
 	ECRESULT		Close();
 	ECRESULT		DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool fStreamResult = false);
+	ECRESULT		DoSelectMulti(const std::string &strQuery);
 	ECRESULT		DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
 	ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL);
 	ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
@@ -84,6 +85,8 @@ public:
 	unsigned int	GetNumRows(DB_RESULT sResult);
 	unsigned int	GetNumRowFields(DB_RESULT sResult);
 	unsigned int	GetRowIndex(DB_RESULT sResult, const std::string &strFieldname);
+	virtual ECRESULT		GetNextResult(DB_RESULT *sResult);
+	virtual ECRESULT		FinalizeMulti();
 
 	DB_ROW			FetchRow(DB_RESULT sResult);
 	DB_LENGTHS		FetchRowLengths(DB_RESULT sResult);
@@ -110,6 +113,7 @@ public:
 	ECRESULT		CreateDatabase();
 	// Main update unit
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strReport);
+	ECRESULT		InitializeDBState();
 
 	ECLogger*		GetLogger();
 
@@ -153,6 +157,7 @@ private:
 	bool				m_bAutoLock;
 	unsigned int 		m_ulMaxAllowedPacket;
 	bool				m_bLocked;
+	bool				m_bFirstResult;
 	static std::string	m_strDatabaseDir;
 	ECConfig *			m_lpConfig;
 #ifdef DEBUG

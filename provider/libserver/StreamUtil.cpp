@@ -58,6 +58,7 @@
 #include "ECGenProps.h"
 #include "ECTPropsPurge.h"
 #include "ECICS.h"
+#include "ECMemStream.h"
 
 #include "charset/convert.h"
 #include "charset/utf8string.h"
@@ -716,7 +717,7 @@ exit:
 	return er;
 }
 
-ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulParentId, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink)
+ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulRows = 0;
@@ -727,12 +728,9 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmen
 	unsigned int	ulLen = 0;
 
 	unsigned int	ulPropTag = 0;
-	unsigned int	ulBodyFlags = 0;
-	unsigned int	ulUseBody = 0;
 	struct soap		*soap = NULL;
 	struct propVal	sPropVal = {0};
 
-	ECDatabase*		lpDatabase = NULL;
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT		lpDBResult = NULL;
@@ -741,36 +739,24 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmen
 	DB_RESULT		lpDBResultNamedMV = NULL;
 	std::string		strQuery;
 	unsigned int	ulBodyTrans = 0;
+	
+	ECMemStream *	lpStream = NULL;
+	IStream *		lpIStream = NULL;
+	ECStreamSerializer *	lpTempSink = NULL;
 
 	std::list<struct propVal> sPropValList;
 
-	enum {
-		HAVE_PLAINTEXT = 1,
-		HAVE_HTML = 2,
-		HAVE_RTF = 4
-	};
-
-	static struct {
-		unsigned int ulBestBody;	// The index in ulBodyIdx for the best body
-		unsigned int ulBodyCount;	// The total number of bodies found
-		unsigned int ulBodyTrans;	// The number of bodies that will be send (when using the best body)
-		unsigned int ulWorstBody;	// THe index in ulBodyIdx for the wordt body
-	} ulaBodySelect[8] = {
-		{0,					0, 0, 0},					// No bodies found, should not happen
-		{PR_BODY,			1, 1, PR_BODY},				// Only plain text
-		{0x10130102,		1, 1, 0x10130102},			// Only HTML
-		{0x10130102,		2, 2, PR_BODY},				// Plain text and HTML
-		{PR_RTF_COMPRESSED, 1, 1, PR_RTF_COMPRESSED},	// Only RTF
-		{PR_RTF_COMPRESSED, 2, 2, PR_BODY},				// Plain text and RTF
-		{PR_RTF_COMPRESSED, 2, 1, 0x10130102},			// HTML and RTF
-		{PR_RTF_COMPRESSED, 3, 2, PR_BODY}				// Plain text, HTML and RTF
-	};
-
 	ASSERT(lpStreamCaps != NULL);
-
-	er = lpecSession->GetDatabase(&lpDatabase);
+	
+	er = ECMemStream::Create(NULL, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, NULL, NULL, NULL, &lpStream);
 	if (er != erSuccess)
 		goto exit;
+		
+	er = lpStream->QueryInterface(IID_IStream, (void **)&lpIStream);
+	if (er != erSuccess)
+		goto exit;
+	
+	lpTempSink = new ECStreamSerializer(lpIStream);
 
 	if (!lpAttachmentStorage) {
 		er = ZARAFA_E_INVALID_PARAMETER;
@@ -779,108 +765,16 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmen
 
 	// We'll (ab)use a soap structure as a memory pool.
 	soap = soap_new();
-
 	
 	// PR_SOURCE_KEY
-	if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, ulParentId, ulObjType, &sPropVal) == erSuccess)
+	if (bTop && ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
 		sPropValList.push_back(sPropVal);
 
-	// Named properties need to be handled differently as we can't just send the proptag. However the
-	// range 0x8000 - 0x84FF is handled client side and will be equal on all systems. So we handle them
-	// as if they are regular properties.
-	strQuery = "SELECT " + (std::string)PROPCOLORDER + " FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag<0x8500";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess)
-		goto exit;
-
-	er = GetValidatedPropCount(lpDatabase, lpDBResult, &ulRows);
-	if (er != erSuccess)
-		goto exit;
-
-
-	strQuery = 
-		"SELECT " + (std::string)PROPCOLORDER + ",n.nameid,n.namestring,n.guid "
-			"FROM properties JOIN names as n on (properties.tag-0x8501)=n.id "
-			"WHERE properties.hierarchyid=" + stringify(ulObjId) + " AND properties.tag>=0x8500";
-
-	er = lpDatabase->DoSelect(strQuery, &lpDBResultNamed);
-	if (er != erSuccess)
-		goto exit;
-
-	er = GetValidatedPropCount(lpDatabase, lpDBResultNamed, &ulRowsNamed);
-	if (er != erSuccess)
-		goto exit;
-
-
-	// Same for MV properties.
-	strQuery = "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag<0x8500 GROUP BY hierarchyid, tag";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResultMV);
-	if (er != erSuccess)
-		goto exit;
-
-	er = GetValidatedPropCount(lpDatabase, lpDBResultMV, &ulRowsMV);
-	if (er != erSuccess)
-		goto exit;
-
-
-	strQuery = 
-		"SELECT " + (std::string)MVPROPCOLORDER + ",n.nameid,n.namestring,n.guid "
-			"FROM mvproperties JOIN names as n on (mvproperties.tag-0x8501)=n.id "
-			"WHERE mvproperties.hierarchyid=" + stringify(ulObjId) + " AND mvproperties.tag>=0x8500 GROUP BY hierarchyid, tag";
-
-	er = lpDatabase->DoSelect(strQuery, &lpDBResultNamedMV);
-	if (er != erSuccess)
-		goto exit;
-
-	er = GetValidatedPropCount(lpDatabase, lpDBResultNamedMV, &ulRowsNamedMV);
-	if (er != erSuccess)
-		goto exit;
-
-	
-	// See which bodies are available and select the best one.
-	for (unsigned i = 0; i < ulRows; ++i) {
-		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-		if (lpDBRow == NULL || lpDBLen == NULL) {
-			er = ZARAFA_E_DATABASE_ERROR;
-			goto exit;
-		}
-
-		ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]), atoi(lpDBRow[FIELD_NR_TAG]));
-		switch (ulPropTag) {
-		case PR_BODY:
-			ulBodyFlags |= HAVE_PLAINTEXT;
-			break;
-
-		case 0x10130102:	/* PR_HTML */
-			ulBodyFlags |= HAVE_HTML;
-			break;
-
-		case PR_RTF_COMPRESSED:
-			ulBodyFlags |= HAVE_RTF;
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	assert(ulBodyFlags >= 0 && ulBodyFlags < 8);
-	
-	if (ulFlags & (SYNC_LIMITED_IMESSAGE))
-		ulBodyTrans = ulaBodySelect[ulBodyFlags].ulWorstBody ? 1 : 0; // Sending only one body
-	else if(ulFlags & (SYNC_BEST_BODY))
-		ulBodyTrans = ulaBodySelect[ulBodyFlags].ulBodyTrans; // Sending best body + plain so either 1 or 2 bodies (1 if best == plain)
-	else
-		ulBodyTrans = ulaBodySelect[ulBodyFlags].ulBodyCount; // Sending all bodies
-
-	ulCount = ulRows + ulRowsNamed + ulRowsMV + ulRowsNamedMV - ulaBodySelect[ulBodyFlags].ulBodyCount + ulBodyTrans + sPropValList.size();
-	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+	er = lpDatabase->GetNextResult(&lpDBResult);
 	if (er != erSuccess)
 		goto exit;
 
 	// Regular properties
-	lpDatabase->ResetResult(lpDBResult);
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL) {
@@ -888,70 +782,28 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmen
 			goto exit;
 		}
 
-		// Filter out the unwanted body properties
-		if (ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE)) {
-			/* We only want the best body (RTF) plus plain text */
-			if (ulFlags & SYNC_BEST_BODY)
-				ulUseBody = ulaBodySelect[ulBodyFlags].ulBestBody;
-	
-			/* We only want the simplest body (plain text) */
-			if (ulFlags & SYNC_LIMITED_IMESSAGE)
-				ulUseBody = ulaBodySelect[ulBodyFlags].ulWorstBody;
-
-			ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]), atoi(lpDBRow[FIELD_NR_TAG]));
-			if ((ulPropTag == 0x10130102 || ulPropTag == PR_RTF_COMPRESSED) && (ulPropTag != ulUseBody))
-				continue;
-		}
-
-		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpSink);
+		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpTempSink);
 		if (er != erSuccess)
 			goto exit;
-	}
-
-	// Named properties
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResultNamed)) != NULL) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResultNamed);
-		if (lpDBRow == NULL || lpDBLen == NULL) {
-			er = ZARAFA_E_DATABASE_ERROR;
-			goto exit;
-		}
-
-		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpSink);
-		if (er != erSuccess)
-			goto exit;
-	}
-
-	// Regular MV properties
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResultMV)) != NULL) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResultMV);
-		if (lpDBRow == NULL || lpDBLen == NULL) {
-			er = ZARAFA_E_DATABASE_ERROR;
-			goto exit;
-		}
-
-		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpSink);
-		if (er != erSuccess)
-			goto exit;
-	}
-
-	// Named MV properties
-	while ((lpDBRow = lpDatabase->FetchRow(lpDBResultNamedMV)) != NULL) {
-		lpDBLen = lpDatabase->FetchRowLengths(lpDBResultNamedMV);
-		if (lpDBRow == NULL || lpDBLen == NULL) {
-			er = ZARAFA_E_DATABASE_ERROR;
-			goto exit;
-		}
-
-		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpSink);
-		if (er != erSuccess)
-			goto exit;
+			
+		ulCount++;
 	}
 
 	for (std::list<struct propVal>::const_iterator it = sPropValList.begin(); it != sPropValList.end(); ++it) {
-		er = SerializePropVal(lpStreamCaps, *it, lpSink);
+		er = SerializePropVal(lpStreamCaps, *it, lpTempSink);
 		if (er != erSuccess)
 			goto exit;
+			
+		ulCount++;
 	}
+
+	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+	if (er != erSuccess)
+		goto exit;
+
+	er = lpSink->Write(lpStream->GetBuffer(), 1, lpStream->GetSize());
+	if (er != erSuccess)
+		goto exit;
 
 	if (ulObjType == MAPI_ATTACH) {
 		
@@ -975,16 +827,17 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmen
 		}
 	}
 
-
-
 exit:
+	if (lpStream)
+		lpStream->Release();
+		
+	if (lpIStream)
+		lpIStream->Release();
+
+	if (lpTempSink)
+		delete lpTempSink;
+		
 	if (lpDatabase) {
-		if (lpDBResultNamedMV)
-			lpDatabase->FreeResult(lpDBResultNamedMV);
-		if (lpDBResultMV)
-			lpDatabase->FreeResult(lpDBResultMV);
-		if (lpDBResultNamed)
-			lpDatabase->FreeResult(lpDBResultNamed);
 		if (lpDBResult)
 			lpDatabase->FreeResult(lpDBResult);
 	}
@@ -997,35 +850,24 @@ exit:
 	return er;
 }
 
-ECRESULT SerializeObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink)
+ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulStreamVersion = STREAM_VERSION;
-	unsigned int	ulObjType = 0;
-	unsigned int	ulParentId = 0;
 	unsigned int	ulSubObjId = 0;
 	unsigned int	ulSubObjType = 0;
 	unsigned int	ulCount = 0;
 
-	ECDatabase*		lpDatabase = NULL;
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT		lpDBResult = NULL;
 	std::string		strQuery;
 
-	er = lpecSession->GetDatabase(&lpDatabase);
-	if (er != erSuccess)
-		goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, &ulObjType);
-	if (er != erSuccess)
-		goto exit;
-
 	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
 	}
-
+	
 	if (lpStreamCaps == NULL) {
 		lpStreamCaps = STREAM_CAPS_CURRENT;	// Set to current stream capabilities.
 
@@ -1039,25 +881,24 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachme
 			goto exit;
 	}
 
-	er = SerializeProps(lpecSession, lpAttachmentStorage, lpStreamCaps, ulObjId, ulObjType, ulParentId, ulStoreId, lpsGuid, ulFlags, lpSink);
+	er = SerializeProps(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulObjId, ulObjType, ulStoreId, lpsGuid, ulFlags, lpSink, bTop);
 	if (er != erSuccess)
 		goto exit;
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		// Serialize sub objects
-		strQuery = "SELECT id,type FROM hierarchy WHERE parent=" + stringify(ulObjId);
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		er = lpStreamDatabase->GetNextResult(&lpDBResult);
 		if (er != erSuccess)
 			goto exit;
 
-		ulCount = lpDatabase->GetNumRows(lpDBResult);
+		ulCount = lpStreamDatabase->GetNumRows(lpDBResult);
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 		if (er != erSuccess)
 			goto exit;
 
 		for (unsigned i = 0; i < ulCount; ++i) {
-			lpDBRow = lpDatabase->FetchRow(lpDBResult);
-			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+			lpDBRow = lpStreamDatabase->FetchRow(lpDBResult);
+			lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
 
 			if (lpDBRow == NULL || lpDBLen == NULL) {
 				er = ZARAFA_E_DATABASE_ERROR;
@@ -1074,23 +915,23 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECAttachmentStorage *lpAttachme
 			if (er != erSuccess)
 				goto exit;
 
-			er = SerializeObject(lpecSession, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulStoreId, lpsGuid, ulFlags, lpSink);
+			er = SerializeObject(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
 			if (er != erSuccess)
 				goto exit;
 		}
 	}
 
+	if(bTop)
+		lpStreamDatabase->FinalizeMulti();
 
 exit:
 	if (er != erSuccess) {
-		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_ERROR, "SerializeObject failed with error code 0x%08x", er);
+		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_ERROR, "SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
 	}
 
-	if (lpDatabase) {
-		if (lpDBResult)
-			lpDatabase->FreeResult(lpDBResult);
-	}
-
+	if (lpDBResult)
+		lpStreamDatabase->FreeResult(lpDBResult);
+		
 	return er;
 }
 

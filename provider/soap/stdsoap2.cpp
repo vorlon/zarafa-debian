@@ -5186,6 +5186,12 @@ SOAP_FMAC2
 soap_array_reference(struct soap *soap, const void *p, const struct soap_array *a, int n, int t)
 { register int i;
   struct soap_plist *pp;
+  /* WARNING, THIS IS A HACK */
+  /* We remove this functionality since in practice soap_array_pointer_lookup() will never return
+   * anything for us, and therefore the functionality introduced here is useless, but uses huge
+   * amounts of CPU time when outputting large arrays (2 million items takes over an hour!)
+   */
+  return 0;
   if (!p || !a->__ptr)
     return 1;
   i = soap_array_pointer_lookup(soap, p, a, n, t, &pp);

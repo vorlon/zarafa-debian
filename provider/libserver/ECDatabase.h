@@ -86,6 +86,7 @@ public:
 	virtual ECRESULT		DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) = 0;
 	virtual ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL) = 0;
 	virtual ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) = 0;
+	virtual	ECRESULT		DoSelectMulti(const std::string &strQuery) = 0;
 	// Sequence generator - Do NOT CALL THIS FROM WITHIN A TRANSACTION.
 	virtual ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId) = 0;
 
@@ -93,6 +94,8 @@ public:
 	virtual unsigned int	GetNumRows(DB_RESULT sResult) = 0;
 	virtual unsigned int	GetNumRowFields(DB_RESULT sResult) = 0;
 	virtual unsigned int	GetRowIndex(DB_RESULT sResult, const std::string &strFieldname) = 0;
+	virtual ECRESULT		GetNextResult(DB_RESULT *sResult) = 0;
+	virtual	ECRESULT		FinalizeMulti() = 0;
 
 	virtual DB_ROW			FetchRow(DB_RESULT sResult) = 0;
 	virtual DB_LENGTHS		FetchRowLengths(DB_RESULT sResult) = 0;
@@ -119,6 +122,7 @@ public:
 	// Database functions
 	virtual ECRESULT		CreateDatabase() = 0;
 	virtual ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strReport) = 0;
+	virtual ECRESULT		InitializeDBState() = 0;
 
 	// Get logger
 	virtual ECLogger*		GetLogger() = 0;
