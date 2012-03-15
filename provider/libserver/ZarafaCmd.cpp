@@ -10827,10 +10827,12 @@ next_object:
 	lpsResponse->sMsgStreams.__size = ulObjCnt;
                     
     // The results of this query will be consumed by the MTOMRead function
-    er = lpBatchDB->DoSelectMulti(strQuery);
-    if(er != erSuccess)
-        goto exit;
-                    
+    if(!strQuery.empty()) {
+        er = lpBatchDB->DoSelectMulti(strQuery);
+        if(er != erSuccess)
+            goto exit;
+    }
+                 
     memset(&ecODStore, 0, sizeof(ECODStore));
 	ecODStore.ulObjType = MAPI_MESSAGE;
 	
