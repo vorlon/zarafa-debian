@@ -1,5 +1,5 @@
 
-class WrapLogger():
+class WrapLogger:
 
     def __init__(self, logger):
         self.logger = logger

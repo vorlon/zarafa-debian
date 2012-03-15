@@ -11,7 +11,7 @@ MP_CONTINUE_FAILED      = 1
 MP_STOP_SUCCESS         = 2
 MP_STOP_FAILED          = 3
 
-class PluginManager():
+class PluginManager:
     def __init__(self, plugindir, logger):
         self.logger = logger
         self.plugindir = plugindir
@@ -53,7 +53,7 @@ class PluginManager():
                     self.logger.logInfo("** Adding plugin '%s'" % k) # fixme, use a plugin meta name ?
                     self.plugins.append((k, instance))
 
-            except Exception as e:
+            except Exception, e:
                 self.logger.logError("!-- failed to load: %s" % p)
                 self.logger.logError("!-- error: %s " % e)
 
@@ -87,10 +87,10 @@ class PluginManager():
                     self.logger.logWarn("!- Plugin '%s.%s' wrong return value expect 'int' type. fallback on default return code" % (cname, fname))
                     retval = 0
                 self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval))
-            except NotImplementedError as e:
+            except NotImplementedError, e:
                 #Most likely the function is not implemented
                 self.logger.logDebug("!---------- %s" % e)
-            except Exception as e:
+            except Exception, e:
                 self.logger.logError("!-- error: %s " % e)
 
             if (retval != MP_CONTINUE_SUCCESS and retval != MP_CONTINUE_FAILED):
