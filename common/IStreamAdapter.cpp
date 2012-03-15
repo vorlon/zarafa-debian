@@ -107,19 +107,19 @@ HRESULT IStreamAdapter::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 
 HRESULT IStreamAdapter::Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
 {
-	if(dwOrigin == 0) {
+	if(dwOrigin == SEEK_SET) {
 		if (dlibMove.QuadPart < 0)
 			m_pos = 0;
 		else
 			m_pos = dlibMove.QuadPart;
 	}
-	else if(dwOrigin == 1) {
+	else if(dwOrigin == SEEK_CUR) {
 		if (dlibMove.QuadPart < 0 && m_pos < -dlibMove.QuadPart)
 			m_pos = 0;
 		else
 			m_pos += dlibMove.QuadPart;
 	}
-	else if(dwOrigin == 2) {
+	else if(dwOrigin == SEEK_END) {
 		if (dlibMove.QuadPart < 0 && m_str.size() < -dlibMove.QuadPart)
 			m_pos = 0;
 		else

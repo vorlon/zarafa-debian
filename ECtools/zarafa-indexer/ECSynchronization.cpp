@@ -426,8 +426,6 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		hr = hrSuccess;
 	}
 
-	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "State %s", bin2hex(strState).c_str());
-	
 	if (hr != hrSuccess)
 		goto exit;
 
