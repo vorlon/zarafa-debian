@@ -49,6 +49,8 @@
 
 #include "platform.h"
 
+#include <algorithm>
+
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
@@ -75,7 +77,7 @@ ULONG IStreamAdapter::Release() { return 1; }
 
 HRESULT IStreamAdapter::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {
-	size_t toread = std::min(cb, m_str.size() - m_pos);
+	size_t toread = std::min(cb, (ULONG)(m_str.size() - m_pos));
 	
 	memcpy(pv, m_str.data() + m_pos, toread);
 	
