@@ -284,6 +284,14 @@ public:
 		return helpers::convert_from(RowSetToString(lpRowSet));
 	}
 
+	static string_type toString(LPROWLIST lpRowList) {
+		return helpers::convert_from(RowListToString(lpRowList));
+	}
+
+	static string_type toString(LPACTION lpAction) {
+		return helpers::convert_from(ActionToString(lpAction));
+	}
+
 	static string_type toString(LPSPropProblemArray lpPropblemArray) {
 		return helpers::convert_from(ProblemArrayToString(lpPropblemArray));
 	}

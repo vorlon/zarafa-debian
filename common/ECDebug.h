@@ -54,6 +54,7 @@
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
+#include "edkmdb.h"
 
 #include "ECDefs.h"
 
@@ -86,6 +87,9 @@ std::string RestrictionToString(LPSRestriction lpRestriction, unsigned int inden
 std::string RowToString(LPSRow lpRow);
 std::string RowSetToString(LPSRowSet lpRows);
 std::string AdrRowSetToString(LPADRLIST lpAdrList, LPFlagList lpFlagList);
+std::string RowEntryToString(LPROWENTRY lpRowEntry);
+std::string RowListToString(LPROWLIST lprowList);
+std::string ActionToString(LPACTION lpAction);
 
 std::string SortOrderToString(LPSSortOrder lpSort);
 std::string SortOrderSetToString(LPSSortOrderSet lpSortCriteria);

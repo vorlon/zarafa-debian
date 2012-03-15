@@ -2319,6 +2319,39 @@ std::string RowSetToString(LPSRowSet lpRows)
 	return strResult;
 }
 
+std::string RowEntryToString(LPROWENTRY lpRowEntry)
+{
+	std::string strResult;
+	if(lpRowEntry == NULL)
+		return "NULL";
+
+	strResult = "rowflags"+ stringify(lpRowEntry->ulRowFlags, true) + "\n";
+	for(unsigned int i=0; i < lpRowEntry->cValues; i++)		
+		strResult += PropNameFromPropTag(lpRowEntry->rgPropVals[i].ulPropTag)+" : "+PropValueToString(&lpRowEntry->rgPropVals[i]) + "\n";
+
+	return strResult;
+}
+
+std::string RowListToString(LPROWLIST lpRowList)
+{
+	std::string strResult;
+
+	if(lpRowList == NULL)
+		return "NULL";
+
+	for(unsigned int i=0; i < lpRowList->cEntries; i++)
+	{
+		strResult+= "row "+stringify(i) + " : " + RowEntryToString(&lpRowList->aEntries[i]) + "\n";
+	}
+
+	return strResult;
+}
+
+std::string ActionToString(LPACTION lpAction)
+{
+	return "NOT IMPLEMENTED";
+}
+
 std::string SortOrderToString(LPSSortOrder lpSort)
 {
 	std::string strResult;
