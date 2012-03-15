@@ -119,6 +119,26 @@ public:
 	 */
 	HRESULT IndexEntries(sourceid_list_t &listCreateEntries, sourceid_list_t &listChangeEntries, sourceid_list_t &listDeleteEntries, ULONG *lpcbRead);
 
+	/**
+	 * Set sync state of folder
+	 * 
+	 * @param[in]	strEntryID Entry ID of folder to set state for
+	 * @param[in]	strState State of the folder (from UpdateState() of exporter)
+	 *
+	 * @return HRESULT
+	 */
+	HRESULT SetSyncState(const std::string& strEntryID, const std::string& strState);
+
+	/**
+	 * Get sync state of folder
+	 * 
+	 * @param[in]	strEntryID Entry ID of folder to set state for
+	 * @param[out]	strState State of the folder (from UpdateState() of exporter)
+	 *
+	 * @return HRESULT
+	 */
+	HRESULT GetSyncState(const std::string& strEntryID, std::string& strState);
+
 private:
 	/**
 	 * Process all message deletions from index

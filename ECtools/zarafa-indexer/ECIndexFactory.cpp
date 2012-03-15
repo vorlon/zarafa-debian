@@ -67,7 +67,7 @@ ECIndexFactory::~ECIndexFactory()
 {
 }
 
-HRESULT ECIndexFactory::GetIndexDB(GUID *lpServer, GUID *lpStore, ECIndexDB **lppIndexDB)
+HRESULT ECIndexFactory::GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, ECIndexDB **lppIndexDB)
 {
     HRESULT hr = hrSuccess;
     std::map<std::string, std::pair<unsigned int, ECIndexDB *> >::iterator i;
@@ -81,7 +81,7 @@ HRESULT ECIndexFactory::GetIndexDB(GUID *lpServer, GUID *lpStore, ECIndexDB **lp
         *lppIndexDB = i->second.second;
         i->second.first++;
     } else {
-        hr = ECIndexDB::Create(strStore, m_lpConfig, m_lpLogger, lppIndexDB);
+        hr = ECIndexDB::Create(strStore, m_lpConfig, m_lpLogger, bCreate, lppIndexDB);
         if(hr != hrSuccess)
             goto exit;
             

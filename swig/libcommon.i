@@ -13,6 +13,7 @@
     #include "Util.h"
 	#include "ECLogger.h"
     #include "fileutil.h"
+	#include "IStreamAdapter.h"
 %}
 
 %include "wchar.i"
@@ -89,3 +90,62 @@ public:
         return ConvertFileFromUCS2ToUTF8(NULL, strSrcFileName, strDstFileName);
     }
 %}
+
+%feature("notabstract") IStreamAdapter;
+
+// this is a way to make std::string objects that you can pass to the IStreamAdapter
+%{
+std::string *new_StdString(char *szData) { return new std::string(szData); }
+void delete_StdString(std::string *string) { delete string; }
+typedef std::string std_string;
+%}
+
+class std_string {
+public:
+	%extend {
+		std_string(char *szData) { return new_StdString(szData); }
+		~std_string() { delete self; };
+	}
+};
+
+class IStreamAdapter {
+public:
+	// Hard to typemap so using other method below
+    // virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *OUTPUT) = 0;
+    virtual HRESULT Write(const char *pv, ULONG cb, ULONG *OUTPUT) = 0;
+	%extend {
+		HRESULT Read(ULONG cb, char **lpOutput, ULONG *ulRead) {
+			char *buffer;
+			HRESULT hr = MAPIAllocateBuffer(cb, (void **)&buffer);
+
+			if(hr != hrSuccess)
+				goto exit;			
+
+			self->Read(buffer, cb, ulRead);
+
+			*lpOutput = buffer;
+		exit:
+			return hr;
+		}
+    }
+    virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
+    virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;
+    virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) = 0;
+    virtual HRESULT Commit(DWORD grfCommitFlags) = 0;
+    virtual HRESULT Revert() = 0;
+    virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
+    virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
+    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
+    virtual HRESULT Clone(IStream **ppstm) = 0;
+
+	%extend {
+		IStreamAdapter(std_string *strData) {
+			IStreamAdapter *lpStream = new IStreamAdapter(*(std::string *)strData);
+			return lpStream;
+		}
+		~IStreamAdapter() {
+			self->Release();
+		}
+	}
+};
+

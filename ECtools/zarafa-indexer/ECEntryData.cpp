@@ -70,8 +70,6 @@ ECFolderData::ECFolderData()
 
 	m_sFolderEntryId.cb = 0;
 	m_sFolderEntryId.lpb = NULL;
-
-	m_lpContentsSyncBase = NULL;
 }
 
 HRESULT ECFolderData::Create(ECEntryData *lpEntryData, ECFolderData **lppFolderData)
@@ -109,9 +107,6 @@ ECFolderData::~ECFolderData()
 		MAPIFreeBuffer(m_sFolderSourceKey.lpb);
 	if (m_sFolderEntryId.lpb)
 		MAPIFreeBuffer(m_sFolderEntryId.lpb);
-
-	if (m_lpContentsSyncBase)
-		m_lpContentsSyncBase->Release();
 }
 
 ECEntryData::ECEntryData()

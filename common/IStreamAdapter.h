@@ -47,39 +47,34 @@
  * 
  */
 
-#ifndef ECINDEXFACTORY_H
-#define ECINDEXFACTORY_H
+#ifndef ISTREAMADAPTER_H
+#define ISTREAMADAPTER_H
 
-#include <pthread.h>
-
-#include "ECConfig.h"
-#include "ECLogger.h"
-
-#include <map>
-
-class ECIndexDB;
-class ECLogger;
-class ECConfig;
-
-class ECIndexFactory {
+class IStreamAdapter : public IStream {
 public:
-    ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger);
-    ~ECIndexFactory();
+    IStreamAdapter(std::string& str);
+    ~IStreamAdapter();
     
-    virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, ECIndexDB **lppIndexDB);
-    virtual HRESULT ReleaseIndexDB(ECIndexDB *lpIndexDB);
-
-    virtual HRESULT RemoveIndexDB(std::string strId);
+    virtual HRESULT QueryInterface(REFIID iid, void **pv);
+    virtual ULONG AddRef();
+    virtual ULONG Release();
+    virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);
+    virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten);
+    virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
+    virtual HRESULT SetSize(ULARGE_INTEGER libNewSize);
+    virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
+    virtual HRESULT Commit(DWORD grfCommitFlags);
+    virtual HRESULT Revert(void);
+    virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
+    virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
+    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
+    virtual HRESULT Clone(IStream **ppstm);
+    
+    IStream * get();
 private:
-
-    std::string GetStoreId(GUID *lpServer, GUID *lpStore);
-
-    // Map ID -> refcount, index
-    std::map<std::string, std::pair<unsigned int, ECIndexDB *> > m_mapIndexes;
-    pthread_mutex_t m_mutexIndexes;
-    
-    ECConfig *m_lpConfig;
-    ECLogger *m_lpLogger;
+    size_t	m_pos;
+    std::string& m_str;
 };
 
 #endif
+

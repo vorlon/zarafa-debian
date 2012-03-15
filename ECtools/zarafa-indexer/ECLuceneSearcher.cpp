@@ -116,7 +116,7 @@ HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid,
 		goto exit;
 	}
 
-	hr = lpThreadData->lpIndexFactory->GetIndexDB(lpServerGuid, lpStoreGuid, &lpSearcher->m_lpIndex);
+	hr = lpThreadData->lpIndexFactory->GetIndexDB(lpServerGuid, lpStoreGuid, false, &lpSearcher->m_lpIndex);
 	if(hr != hrSuccess)
 		goto exit;
 

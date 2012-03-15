@@ -105,7 +105,7 @@ typedef struct {
     unsigned int doc;
 } SOURCEKEYVALUE;
     
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK };
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE };
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -147,13 +147,13 @@ ECIndexDB::~ECIndexDB()
         delete m_lpCollator;
 }
 
-HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, ECIndexDB **lppIndexDB)
+HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, ECIndexDB **lppIndexDB)
 {
     HRESULT hr = hrSuccess;
     
     ECIndexDB *lpIndex = new ECIndexDB(strIndexId, lpConfig, lpLogger);
     
-    hr = lpIndex->Open(strIndexId);
+    hr = lpIndex->Open(strIndexId, bCreate);
     if(hr != hrSuccess)
         goto exit;
 
@@ -166,9 +166,10 @@ exit:
     return hr;
 }
 
-HRESULT ECIndexDB::Open(const std::string &strIndexId)
+HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate)
 {
     HRESULT hr = hrSuccess;
+    std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct";
 
     m_lpIndex = new TreeDB();
     m_lpCache = new TinyHashMap(1048583); // Default taken from kcdbext.h. This can be reached if each word has a key (instead of prefix)
@@ -176,8 +177,15 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId)
     // Enable compression on the tree database
     m_lpIndex->tune_options(TreeDB::TCOMPRESS);
 
-    if(!m_lpIndex->open(std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct", TreeDB::OWRITER | TreeDB::OCREATE | TreeDB::OREADER)) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index: %s", m_lpIndex->error().message());
+    if(bCreate) {
+        if(CreatePath(m_lpConfig->GetSetting("index_path")) < 0) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Path '%s' not found or unable to create: %s", m_lpConfig->GetSetting("index_path"), strerror(errno));
+        }
+    }
+
+    if(!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | (bCreate ? TreeDB::OCREATE : 0 ))) {
+        if(bCreate)
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
         hr = MAPI_E_NOT_FOUND;
         goto exit;
     }
@@ -598,3 +606,53 @@ HRESULT ECIndexDB::FlushCache()
 exit:
     return hr;        
 }
+
+/**
+ * Set the sync state for a folder. This can be read back from GetSyncState()
+ * 
+ * @param[in] strFolder Folder ID
+ * @param[in] strState State blob
+ * @return result
+ */
+HRESULT ECIndexDB::SetSyncState(const std::string& strFolder, const std::string& strState)
+{
+    HRESULT hr = hrSuccess;
+    unsigned int ulBlock = KT_STATE;
+    
+    std::string strKey((const char *)&ulBlock, sizeof(ulBlock));
+    strKey += strFolder;
+    
+    if(!m_lpIndex->set(strKey, strState)) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set state for folder");
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+    
+exit:
+    return hr;
+}
+
+/**
+ * Get the sync state for a folder.
+ * 
+ * @param[in] strFolder Folder ID
+ * @param[in] strState State blob
+ * @return result
+ */
+HRESULT ECIndexDB::GetSyncState(const std::string& strFolder, std::string& strState)
+{
+    HRESULT hr = hrSuccess;
+    unsigned int ulBlock = KT_STATE;
+    
+    std::string strKey((const char *)&ulBlock, sizeof(ulBlock));
+    strKey += strFolder;
+    
+    if(!m_lpIndex->get(strKey, &strState)) {
+        hr = MAPI_E_NOT_FOUND;
+        goto exit;
+    }
+    
+exit:
+    return hr;
+}
+

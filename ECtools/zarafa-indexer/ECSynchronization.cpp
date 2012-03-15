@@ -74,6 +74,7 @@
 #include "ECIndexerData.h"
 #include "ECSynchronization.h"
 #include "ECSynchronizationImportChanges.h"
+#include "IStreamAdapter.h"
 #include "zarafa-indexer.h"
 
 #include "mapi_ptr.h"
@@ -354,7 +355,9 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 	ULONG ulBlockBytes = 0;
 	ULONG ulBytes = 0;
 	ULONG ulTotalChange = 0;
-	ULONG ulTotalBytes = 0;
+	unsigned long long ulTotalBytes = 0;
+	std::string strState;
+	IStreamAdapter stream(strState);
 	
 	LPSPropValue lpProps = NULL;
 	
@@ -415,8 +418,20 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 												IID_IExchangeImportContentsChanges, (LPVOID *)&lpImporter);
 	if (hr != hrSuccess)
 		goto exit;
+		
+	hr = lpLucene->GetSyncState(std::string((const char *)lpFolderData->m_sFolderEntryId.lpb, lpFolderData->m_sFolderEntryId.cb), strState);
+	if (hr == MAPI_E_NOT_FOUND) {
+		// Never synced yet
+		strState.clear();
+		hr = hrSuccess;
+	}
 
-	hr = lpExporter->Config(lpFolderData->m_lpContentsSyncBase, SYNC_ASSOCIATED | SYNC_NORMAL | SYNC_NEW_MESSAGE | SYNC_LIMITED_IMESSAGE, lpImporter, NULL,
+	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "State %s", bin2hex(strState).c_str());
+	
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpExporter->Config(&stream, SYNC_ASSOCIATED | SYNC_NORMAL | SYNC_NEW_MESSAGE | SYNC_LIMITED_IMESSAGE, lpImporter, NULL,
 							ptrIncludeProps, (LPSPropTagArray)&sptaExclude, 0);
 	if (hr != hrSuccess)
 		goto exit;
@@ -465,11 +480,11 @@ HRESULT ECSynchronization::GetContentsChanges(ECEntryData *lpEntryData, ECFolder
 		hr = hrSuccess;
 	}
 
-	hr = lpExporter->UpdateState(lpFolderData->m_lpContentsSyncBase);
+	hr = lpExporter->UpdateState(&stream);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = UpdateFolderSyncBase(lpEntryData, lpFolderData);
+		
+	hr = lpLucene->SetSyncState(std::string((const char *)lpFolderData->m_sFolderEntryId.lpb, lpFolderData->m_sFolderEntryId.cb), strState);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -683,9 +698,6 @@ HRESULT ECSynchronization::LoadUserFolder(ECEntryData *lpEntry, ULONG ulProps, L
 	LPSPropValue lpFolderName = NULL;
 	LPSPropValue lpSourceKey = NULL;
 	LPSPropValue lpEntryId = NULL;
-	LPBYTE lpStreamData = NULL;
-	ULONG ulStreamSize = 0;
-	std::string strTmp;
 
 	hr = ECFolderData::Create(lpEntry, &lpFolderData);
 	if (hr != hrSuccess)
@@ -719,79 +731,11 @@ HRESULT ECSynchronization::LoadUserFolder(ECEntryData *lpEntry, ULONG ulProps, L
 	if (hr != hrSuccess)
 		goto exit;
 
-	strTmp = bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb);
-	hr = m_lpThreadData->lpFileIndex->GetStoreFolderInfoPath(lpEntry->m_strStorePath, strTmp, &lpFolderData->m_strFolderPath);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = m_lpThreadData->lpFileIndex->GetStoreFolderSyncBase(lpFolderData->m_strFolderPath, &ulStreamSize, &lpStreamData);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = CreateSyncStream(&lpFolderData->m_lpContentsSyncBase, ulStreamSize, lpStreamData);
-	if (hr != hrSuccess)
-		goto exit;
-
 exit:
-	if (lpStreamData)
-		MAPIFreeBuffer(lpStreamData);
-
 	if ((hr != hrSuccess) && lpFolderData) {
 		lpEntry->m_lFolders.remove(lpFolderData);
 		lpFolderData->Release();
 	}
-
-	return hr;
-}
-
-HRESULT ECSynchronization::UpdateFolderSyncBase(ECEntryData *lpEntryData, ECFolderData *lpFolderData)
-{
-	HRESULT hr = hrSuccess;
-	STATSTG sStat;
-	LARGE_INTEGER liPos = {{0, 0}};
-	ULONG ulSize = 0;
-	LPBYTE lpBuff = NULL;
-	ULONG ulBuff = 0;
-
-	hr = CreatePath(lpEntryData->m_strStorePath.c_str());
-	if (hr != hrSuccess) {
-		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to create folder '%s' for sync state information: %s", lpEntryData->m_strStorePath.c_str(), strerror(errno));
-		goto exit;
-	}
-
-	hr = lpFolderData->m_lpContentsSyncBase->Stat(&sStat, STATFLAG_DEFAULT);
-	if (hr != hrSuccess)
-		goto exit;
-
-	ulSize = sStat.cbSize.LowPart;
-	if (sStat.cbSize.HighPart) {
-		hr = MAPI_E_TOO_BIG;
-		goto exit;
-	}
-
-	hr = MAPIAllocateBuffer(ulSize, (LPVOID *)&lpBuff);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpFolderData->m_lpContentsSyncBase->Seek(liPos, STREAM_SEEK_SET, NULL);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpFolderData->m_lpContentsSyncBase->Read(lpBuff, ulSize, &ulBuff);
-	if (hr != hrSuccess)
-		goto exit;
-
-	if (ulSize != ulBuff) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	m_lpThreadData->lpFileIndex->SetStoreFolderSyncBase(lpFolderData->m_strFolderPath, ulBuff, lpBuff);
-	/* Ignore return code from SetStoreFolderSyncBase, we don't care... */
-
-exit:
-	if (lpBuff)
-		MAPIFreeBuffer(lpBuff);
 
 	return hr;
 }

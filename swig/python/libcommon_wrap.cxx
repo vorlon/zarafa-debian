@@ -2509,29 +2509,36 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 #define SWIGTYPE_p_IMAPIFolder swig_types[1]
 #define SWIGTYPE_p_IMAPIProp swig_types[2]
 #define SWIGTYPE_p_IMAPISession swig_types[3]
-#define SWIGTYPE_p_LPSPropValue swig_types[4]
-#define SWIGTYPE_p_Util swig_types[5]
-#define SWIGTYPE_p___int64 swig_types[6]
-#define SWIGTYPE_p_char swig_types[7]
-#define SWIGTYPE_p_float swig_types[8]
-#define SWIGTYPE_p_int swig_types[9]
-#define SWIGTYPE_p_long swig_types[10]
-#define SWIGTYPE_p_p_IMAPIFolder swig_types[11]
-#define SWIGTYPE_p_p_char swig_types[12]
-#define SWIGTYPE_p_p_unsigned_long swig_types[13]
-#define SWIGTYPE_p_short swig_types[14]
-#define SWIGTYPE_p_signed___int64 swig_types[15]
-#define SWIGTYPE_p_signed_char swig_types[16]
-#define SWIGTYPE_p_std__string swig_types[17]
-#define SWIGTYPE_p_std__wstring swig_types[18]
-#define SWIGTYPE_p_unsigned___int64 swig_types[19]
-#define SWIGTYPE_p_unsigned_char swig_types[20]
-#define SWIGTYPE_p_unsigned_int swig_types[21]
-#define SWIGTYPE_p_unsigned_long swig_types[22]
-#define SWIGTYPE_p_unsigned_short swig_types[23]
-#define SWIGTYPE_p_wchar_t swig_types[24]
-static swig_type_info *swig_types[26];
-static swig_module_info swig_module = {swig_types, 25, 0, 0, 0, 0};
+#define SWIGTYPE_p_IStream swig_types[4]
+#define SWIGTYPE_p_IStreamAdapter swig_types[5]
+#define SWIGTYPE_p_LARGE_INTEGER swig_types[6]
+#define SWIGTYPE_p_LPSPropValue swig_types[7]
+#define SWIGTYPE_p_STATSTG swig_types[8]
+#define SWIGTYPE_p_ULARGE_INTEGER swig_types[9]
+#define SWIGTYPE_p_Util swig_types[10]
+#define SWIGTYPE_p___int64 swig_types[11]
+#define SWIGTYPE_p_char swig_types[12]
+#define SWIGTYPE_p_float swig_types[13]
+#define SWIGTYPE_p_int swig_types[14]
+#define SWIGTYPE_p_long swig_types[15]
+#define SWIGTYPE_p_p_IMAPIFolder swig_types[16]
+#define SWIGTYPE_p_p_IStream swig_types[17]
+#define SWIGTYPE_p_p_char swig_types[18]
+#define SWIGTYPE_p_p_unsigned_long swig_types[19]
+#define SWIGTYPE_p_short swig_types[20]
+#define SWIGTYPE_p_signed___int64 swig_types[21]
+#define SWIGTYPE_p_signed_char swig_types[22]
+#define SWIGTYPE_p_std__string swig_types[23]
+#define SWIGTYPE_p_std__wstring swig_types[24]
+#define SWIGTYPE_p_std_string swig_types[25]
+#define SWIGTYPE_p_unsigned___int64 swig_types[26]
+#define SWIGTYPE_p_unsigned_char swig_types[27]
+#define SWIGTYPE_p_unsigned_int swig_types[28]
+#define SWIGTYPE_p_unsigned_long swig_types[29]
+#define SWIGTYPE_p_unsigned_short swig_types[30]
+#define SWIGTYPE_p_wchar_t swig_types[31]
+static swig_type_info *swig_types[33];
+static swig_module_info swig_module = {swig_types, 32, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2635,6 +2642,7 @@ namespace swig {
     #include "Util.h"
 	#include "ECLogger.h"
     #include "fileutil.h"
+	#include "IStreamAdapter.h"
 
 
 #include <cwchar>
@@ -3047,6 +3055,161 @@ SWIG_From_unsigned_SS_int  (unsigned int value)
         return ConvertFileFromUCS2ToUTF8(NULL, strSrcFileName, strDstFileName);
     }
 
+
+std::string *new_StdString(char *szData) { return new std::string(szData); }
+void delete_StdString(std::string *string) { delete string; }
+typedef std::string std_string;
+
+SWIGINTERN std_string *new_std_string(char *szData){ return new_StdString(szData); }
+SWIGINTERN void delete_std_string(std_string *self){ delete self; }
+SWIGINTERN HRESULT IStreamAdapter_Read(IStreamAdapter *self,ULONG cb,char **lpOutput,ULONG *ulRead){
+			char *buffer;
+			HRESULT hr = MAPIAllocateBuffer(cb, (void **)&buffer);
+
+			if(hr != hrSuccess)
+				goto exit;			
+
+			self->Read(buffer, cb, ulRead);
+
+			*lpOutput = buffer;
+		exit:
+			return hr;
+		}
+
+SWIGINTERN int
+SWIG_AsVal_long (PyObject *obj, long* val)
+{
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return SWIG_OK;
+  } else if (PyLong_Check(obj)) {
+    long v = PyLong_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    long v = PyInt_AsLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_AddCast(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AddCast(SWIG_AsVal_double (obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, LONG_MAX)) {
+	if (val) *val = (long)(d);
+	return res;
+      }
+    }
+  }
+#endif
+  return SWIG_TypeError;
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_long_SS_long (PyObject *obj, long long *val)
+{
+  int res = SWIG_TypeError;
+  if (PyLong_Check(obj)) {
+    long long v = PyLong_AsLongLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  } else {
+    long v;
+    res = SWIG_AsVal_long (obj,&v);
+    if (SWIG_IsOK(res)) {
+      if (val) *val = v;
+      return res;
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    const double mant_min = -mant_max;
+    double d;
+    res = SWIG_AsVal_double (obj,&d);
+    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
+      if (val) *val = (long long)(d);
+      return SWIG_AddCast(res);
+    }
+    res = SWIG_TypeError;
+  }
+#endif
+  return res;
+}
+
+
+SWIGINTERNINLINE PyObject* 
+SWIG_From_long_SS_long  (long long value)
+{
+  return ((value < LONG_MIN) || (value > LONG_MAX)) ?
+    PyLong_FromLongLong(value) : PyInt_FromLong(static_cast< long >(value)); 
+}
+
+
+SWIGINTERNINLINE PyObject* 
+SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
+{
+  return (value > LONG_MAX) ?
+    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(static_cast< long >(value)); 
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_long_SS_long (PyObject *obj, unsigned long long *val)
+{
+  int res = SWIG_TypeError;
+  if (PyLong_Check(obj)) {
+    unsigned long long v = PyLong_AsUnsignedLongLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  } else {
+    unsigned long v;
+    res = SWIG_AsVal_unsigned_SS_long (obj,&v);
+    if (SWIG_IsOK(res)) {
+      if (val) *val = v;
+      return res;
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    double d;
+    res = SWIG_AsVal_double (obj,&d);
+    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
+      if (val) *val = (unsigned long long)(d);
+      return SWIG_AddCast(res);
+    }
+    res = SWIG_TypeError;
+  }
+#endif
+  return res;
+}
+
+SWIGINTERN IStreamAdapter *new_IStreamAdapter(std_string *strData){
+			IStreamAdapter *lpStream = new IStreamAdapter(*(std::string *)strData);
+			return lpStream;
+		}
+SWIGINTERN void delete_IStreamAdapter(IStreamAdapter *self){
+			self->Release();
+		}
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -3890,6 +4053,725 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_new_std_string(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  PyObject * obj0 = 0 ;
+  std_string *result = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:new_std_string",&obj0)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_std_string" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = reinterpret_cast< char * >(buf1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (std_string *)new_std_string(arg1);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std_string, SWIG_POINTER_NEW |  0 );
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_std_string(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std_string *arg1 = (std_string *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_std_string",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_std_string, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_std_string" "', argument " "1"" of type '" "std_string *""'"); 
+  }
+  arg1 = reinterpret_cast< std_string * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    delete_std_string(arg1);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *std_string_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_std_string, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Write(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  char *arg2 = (char *) 0 ;
+  ULONG arg3 ;
+  ULONG *arg4 = (ULONG *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 = 0 ;
+  int alloc2 = 0 ;
+  ULONG temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IStreamAdapter_Write",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Write" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IStreamAdapter_Write" "', argument " "2"" of type '" "(const char *pv, ULONG cb)""'");
+  }
+  arg2 = (char *) buf2;					       
+  arg3 = (ULONG) size2 - 1;
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Write((char const *)arg2,arg3,arg4);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_int((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_unsigned_long, new_flags));
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Read(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  ULONG arg2 ;
+  char **arg3 = (char **) 0 ;
+  ULONG *arg4 = (ULONG *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  char *temp3 = 0 ;
+  ULONG tempn3 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  arg3 = &temp3; arg4 = &tempn3;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IStreamAdapter_Read",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Read" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IStreamAdapter_Read" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)IStreamAdapter_Read(arg1,arg2,arg3,arg4);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  if (*arg3) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg3,*arg4));
+    MAPIFreeBuffer(*arg3);
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Seek(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  LARGE_INTEGER arg2 ;
+  DWORD arg3 ;
+  ULARGE_INTEGER *arg4 = (ULARGE_INTEGER *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val3 ;
+  int ecode3 = 0 ;
+  ULARGE_INTEGER u4 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  {
+    arg4 = &u4;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IStreamAdapter_Seek",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Seek" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    long long l = 0;
+    SWIG_AsVal_long_SS_long (obj1, &l);  
+    
+    (&arg2)->QuadPart = l;
+  }
+  ecode3 = SWIG_AsVal_unsigned_SS_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IStreamAdapter_Seek" "', argument " "3"" of type '" "DWORD""'");
+  } 
+  arg3 = static_cast< DWORD >(val3);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Seek(arg2,arg3,arg4);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_long_SS_long  (arg4->QuadPart));
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_SetSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  ULARGE_INTEGER arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IStreamAdapter_SetSize",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_SetSize" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj1, &l);  
+    
+    (&arg2)->QuadPart = l;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->SetSize(arg2);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_CopyTo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  IStream *arg2 = (IStream *) 0 ;
+  ULARGE_INTEGER arg3 ;
+  ULARGE_INTEGER *arg4 = (ULARGE_INTEGER *) 0 ;
+  ULARGE_INTEGER *arg5 = (ULARGE_INTEGER *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  ULARGE_INTEGER u4 ;
+  ULARGE_INTEGER u5 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  {
+    arg4 = &u4;
+  }
+  {
+    arg5 = &u5;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IStreamAdapter_CopyTo",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_CopyTo" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_IStream, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IStreamAdapter_CopyTo" "', argument " "2"" of type '" "IStream *""'"); 
+  }
+  arg2 = reinterpret_cast< IStream * >(argp2);
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj2, &l);  
+    
+    (&arg3)->QuadPart = l;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->CopyTo(arg2,arg3,arg4,arg5);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_long_SS_long  (arg4->QuadPart));
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_long_SS_long  (arg5->QuadPart));
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Commit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  DWORD arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IStreamAdapter_Commit",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Commit" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IStreamAdapter_Commit" "', argument " "2"" of type '" "DWORD""'");
+  } 
+  arg2 = static_cast< DWORD >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Commit(arg2);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Revert(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:IStreamAdapter_Revert",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Revert" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Revert();
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_LockRegion(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  ULARGE_INTEGER arg2 ;
+  ULARGE_INTEGER arg3 ;
+  DWORD arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IStreamAdapter_LockRegion",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_LockRegion" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj1, &l);  
+    
+    (&arg2)->QuadPart = l;
+  }
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj2, &l);  
+    
+    (&arg3)->QuadPart = l;
+  }
+  ecode4 = SWIG_AsVal_unsigned_SS_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IStreamAdapter_LockRegion" "', argument " "4"" of type '" "DWORD""'");
+  } 
+  arg4 = static_cast< DWORD >(val4);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->LockRegion(arg2,arg3,arg4);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_UnlockRegion(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  ULARGE_INTEGER arg2 ;
+  ULARGE_INTEGER arg3 ;
+  DWORD arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:IStreamAdapter_UnlockRegion",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_UnlockRegion" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj1, &l);  
+    
+    (&arg2)->QuadPart = l;
+  }
+  {
+    unsigned long long l = 0;
+    SWIG_AsVal_unsigned_SS_long_SS_long (obj2, &l);  
+    
+    (&arg3)->QuadPart = l;
+  }
+  ecode4 = SWIG_AsVal_unsigned_SS_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IStreamAdapter_UnlockRegion" "', argument " "4"" of type '" "DWORD""'");
+  } 
+  arg4 = static_cast< DWORD >(val4);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->UnlockRegion(arg2,arg3,arg4);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Stat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  STATSTG *arg2 = (STATSTG *) 0 ;
+  DWORD arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  unsigned int val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IStreamAdapter_Stat",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Stat" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_STATSTG, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IStreamAdapter_Stat" "', argument " "2"" of type '" "STATSTG *""'"); 
+  }
+  arg2 = reinterpret_cast< STATSTG * >(argp2);
+  ecode3 = SWIG_AsVal_unsigned_SS_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IStreamAdapter_Stat" "', argument " "3"" of type '" "DWORD""'");
+  } 
+  arg3 = static_cast< DWORD >(val3);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Stat(arg2,arg3);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_IStreamAdapter_Clone(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  IStream **arg2 = (IStream **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  IStream *temp2 ;
+  PyObject * obj0 = 0 ;
+  HRESULT result;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  temp2 = NULL; arg2 = &temp2;
+  if (!PyArg_ParseTuple(args,(char *)"O:IStreamAdapter_Clone",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Clone" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (HRESULT)(arg1)->Clone(arg2);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)*(arg2), SWIGTYPE_p_IStream, SWIG_SHADOW | SWIG_OWNER));
+  }
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_IStreamAdapter(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std_string *arg1 = (std_string *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  IStreamAdapter *result = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:new_IStreamAdapter",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_std_string, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_IStreamAdapter" "', argument " "1"" of type '" "std_string *""'"); 
+  }
+  arg1 = reinterpret_cast< std_string * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (IStreamAdapter *)new_IStreamAdapter(arg1);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_IStreamAdapter, SWIG_POINTER_NEW |  0 );
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_IStreamAdapter(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IStreamAdapter *arg1 = (IStreamAdapter *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_IStreamAdapter",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IStreamAdapter" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
+  }
+  arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    delete_IStreamAdapter(arg1);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return resultobj;
+fail:
+  SWIG_PYTHON_THREAD_END_BLOCK;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *IStreamAdapter_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_IStreamAdapter, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"CHtmlToTextParser_Parse", _wrap_CHtmlToTextParser_Parse, METH_VARARGS, NULL},
 	 { (char *)"CHtmlToTextParser_GetText", _wrap_CHtmlToTextParser_GetText, METH_VARARGS, NULL},
@@ -3910,6 +4792,23 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_Util", _wrap_delete_Util, METH_VARARGS, NULL},
 	 { (char *)"Util_swigregister", Util_swigregister, METH_VARARGS, NULL},
 	 { (char *)"ConvertFileFromUCS2ToUTF8", _wrap_ConvertFileFromUCS2ToUTF8, METH_VARARGS, NULL},
+	 { (char *)"new_std_string", _wrap_new_std_string, METH_VARARGS, NULL},
+	 { (char *)"delete_std_string", _wrap_delete_std_string, METH_VARARGS, NULL},
+	 { (char *)"std_string_swigregister", std_string_swigregister, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Write", _wrap_IStreamAdapter_Write, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Read", _wrap_IStreamAdapter_Read, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Seek", _wrap_IStreamAdapter_Seek, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_SetSize", _wrap_IStreamAdapter_SetSize, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_CopyTo", _wrap_IStreamAdapter_CopyTo, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Commit", _wrap_IStreamAdapter_Commit, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Revert", _wrap_IStreamAdapter_Revert, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_LockRegion", _wrap_IStreamAdapter_LockRegion, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_UnlockRegion", _wrap_IStreamAdapter_UnlockRegion, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Stat", _wrap_IStreamAdapter_Stat, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_Clone", _wrap_IStreamAdapter_Clone, METH_VARARGS, NULL},
+	 { (char *)"new_IStreamAdapter", _wrap_new_IStreamAdapter, METH_VARARGS, NULL},
+	 { (char *)"delete_IStreamAdapter", _wrap_delete_IStreamAdapter, METH_VARARGS, NULL},
+	 { (char *)"IStreamAdapter_swigregister", IStreamAdapter_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
@@ -3920,7 +4819,12 @@ static swig_type_info _swigt__p_CHtmlToTextParser = {"_p_CHtmlToTextParser", "CH
 static swig_type_info _swigt__p_IMAPIFolder = {"_p_IMAPIFolder", "IMAPIFolder *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IMAPIProp = {"_p_IMAPIProp", "IMAPIProp *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IMAPISession = {"_p_IMAPISession", "IMAPISession *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_IStream = {"_p_IStream", "IStream *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_IStreamAdapter = {"_p_IStreamAdapter", "IStreamAdapter *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_LARGE_INTEGER = {"_p_LARGE_INTEGER", "LARGE_INTEGER *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LPSPropValue = {"_p_LPSPropValue", "LPSPropValue *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_STATSTG = {"_p_STATSTG", "STATSTG *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_ULARGE_INTEGER = {"_p_ULARGE_INTEGER", "ULARGE_INTEGER *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_Util = {"_p_Util", "Util *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p___int64 = {"_p___int64", "__int64 *|LONGLONG *|LONG64 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "CHAR *|TCHAR *|char *|CCHAR *", 0, 0, (void*)0, 0};
@@ -3928,6 +4832,7 @@ static swig_type_info _swigt__p_float = {"_p_float", "FLOAT *|float *", 0, 0, (v
 static swig_type_info _swigt__p_int = {"_p_int", "BOOL *|INT32 *|int *|INT *|INT_PTR *|LONG32 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_long = {"_p_long", "SHANDLE_PTR *|LONG_PTR *|LONG *|HRESULT *|long *|SSIZE_T *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_IMAPIFolder = {"_p_p_IMAPIFolder", "IMAPIFolder **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_IStream = {"_p_p_IStream", "IStream **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "PTCH *|PCTSTR *|LPCTSTR *|LPTCH *|PUTSTR *|LPUTSTR *|PCUTSTR *|LPCUTSTR *|char **|PTSTR *|LPTSTR *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_unsigned_long = {"_p_p_unsigned_long", "unsigned long **|PLCID *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_short = {"_p_short", "HALF_PTR *|short *|SHORT *|INT16 *", 0, 0, (void*)0, 0};
@@ -3935,6 +4840,7 @@ static swig_type_info _swigt__p_signed___int64 = {"_p_signed___int64", "INT64 *|
 static swig_type_info _swigt__p_signed_char = {"_p_signed_char", "signed char *|INT8 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__wstring = {"_p_std__wstring", "std::wstring *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std_string = {"_p_std_string", "std_string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned___int64 = {"_p_unsigned___int64", "UINT64 *|DWORD64 *|unsigned __int64 *|DWORDLONG *|ULONGLONG *|ULONG64 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_char = {"_p_unsigned_char", "FCHAR *|unsigned char *|UCHAR *|BYTE *|TBYTE *|UINT8 *|BOOLEAN *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "UINT32 *|DWORD32 *|UINT *|unsigned int *|UINT_PTR *|ULONG32 *", 0, 0, (void*)0, 0};
@@ -3947,7 +4853,12 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_IMAPIFolder,
   &_swigt__p_IMAPIProp,
   &_swigt__p_IMAPISession,
+  &_swigt__p_IStream,
+  &_swigt__p_IStreamAdapter,
+  &_swigt__p_LARGE_INTEGER,
   &_swigt__p_LPSPropValue,
+  &_swigt__p_STATSTG,
+  &_swigt__p_ULARGE_INTEGER,
   &_swigt__p_Util,
   &_swigt__p___int64,
   &_swigt__p_char,
@@ -3955,6 +4866,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_int,
   &_swigt__p_long,
   &_swigt__p_p_IMAPIFolder,
+  &_swigt__p_p_IStream,
   &_swigt__p_p_char,
   &_swigt__p_p_unsigned_long,
   &_swigt__p_short,
@@ -3962,6 +4874,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_signed_char,
   &_swigt__p_std__string,
   &_swigt__p_std__wstring,
+  &_swigt__p_std_string,
   &_swigt__p_unsigned___int64,
   &_swigt__p_unsigned_char,
   &_swigt__p_unsigned_int,
@@ -3974,7 +4887,12 @@ static swig_cast_info _swigc__p_CHtmlToTextParser[] = {  {&_swigt__p_CHtmlToText
 static swig_cast_info _swigc__p_IMAPIFolder[] = {  {&_swigt__p_IMAPIFolder, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IMAPIProp[] = {  {&_swigt__p_IMAPIProp, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IMAPISession[] = {  {&_swigt__p_IMAPISession, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IStream[] = {  {&_swigt__p_IStream, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IStreamAdapter[] = {  {&_swigt__p_IStreamAdapter, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_LARGE_INTEGER[] = {  {&_swigt__p_LARGE_INTEGER, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LPSPropValue[] = {  {&_swigt__p_LPSPropValue, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_STATSTG[] = {  {&_swigt__p_STATSTG, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_ULARGE_INTEGER[] = {  {&_swigt__p_ULARGE_INTEGER, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_Util[] = {  {&_swigt__p_Util, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p___int64[] = {  {&_swigt__p___int64, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
@@ -3982,6 +4900,7 @@ static swig_cast_info _swigc__p_float[] = {  {&_swigt__p_float, 0, 0, 0},{0, 0, 
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_long[] = {  {&_swigt__p_long, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_IMAPIFolder[] = {  {&_swigt__p_p_IMAPIFolder, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_IStream[] = {  {&_swigt__p_p_IStream, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_unsigned_long[] = {  {&_swigt__p_p_unsigned_long, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_short[] = {  {&_swigt__p_short, 0, 0, 0},{0, 0, 0, 0}};
@@ -3989,6 +4908,7 @@ static swig_cast_info _swigc__p_signed___int64[] = {  {&_swigt__p_signed___int64
 static swig_cast_info _swigc__p_signed_char[] = {  {&_swigt__p_signed_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__string[] = {  {&_swigt__p_std__string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__wstring[] = {  {&_swigt__p_std__wstring, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std_string[] = {  {&_swigt__p_std_string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned___int64[] = {  {&_swigt__p_unsigned___int64, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_char[] = {  {&_swigt__p_unsigned_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
@@ -4001,7 +4921,12 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_IMAPIFolder,
   _swigc__p_IMAPIProp,
   _swigc__p_IMAPISession,
+  _swigc__p_IStream,
+  _swigc__p_IStreamAdapter,
+  _swigc__p_LARGE_INTEGER,
   _swigc__p_LPSPropValue,
+  _swigc__p_STATSTG,
+  _swigc__p_ULARGE_INTEGER,
   _swigc__p_Util,
   _swigc__p___int64,
   _swigc__p_char,
@@ -4009,6 +4934,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_int,
   _swigc__p_long,
   _swigc__p_p_IMAPIFolder,
+  _swigc__p_p_IStream,
   _swigc__p_p_char,
   _swigc__p_p_unsigned_long,
   _swigc__p_short,
@@ -4016,6 +4942,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_signed_char,
   _swigc__p_std__string,
   _swigc__p_std__wstring,
+  _swigc__p_std_string,
   _swigc__p_unsigned___int64,
   _swigc__p_unsigned_char,
   _swigc__p_unsigned_int,

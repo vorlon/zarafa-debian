@@ -87,7 +87,7 @@ ECLuceneIndexer::ECLuceneIndexer(GUID *lpServer, GUID *lpStore, ECThreadData *lp
 {
 	m_lpThreadData = lpThreadData;
 
-	lpThreadData->lpIndexFactory->GetIndexDB(lpServer, lpStore, &m_lpIndexDB);
+	lpThreadData->lpIndexFactory->GetIndexDB(lpServer, lpStore, true, &m_lpIndexDB);
 }
 
 ECLuceneIndexer::~ECLuceneIndexer()
@@ -616,4 +616,14 @@ std::wstring ECLuceneIndexer::GetDynamicFieldName(LPSPropValue lpProp, LPMAPINAM
 	}
 	
 	return strName;
+}
+
+HRESULT ECLuceneIndexer::SetSyncState(const std::string& strEntryID, const std::string& strState)
+{
+	return m_lpIndexDB->SetSyncState(strEntryID, strState);
+}
+
+HRESULT ECLuceneIndexer::GetSyncState(const std::string& strEntryID, std::string &strState)
+{
+	return m_lpIndexDB->GetSyncState(strEntryID, strState);
 }

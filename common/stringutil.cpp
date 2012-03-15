@@ -751,3 +751,4 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 	}
 	lpstrOutput->swap(strOutput);
 }
+

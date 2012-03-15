@@ -111,16 +111,6 @@ public:
 	 * Foldername, only used for debug messages.
 	 */
 	tstring m_strFolderName;
-
-	/**
-	 * Path to the harddisk file where to store the synchronization base physically
-	 */
-	std::string m_strFolderPath;
-
-	/**
-	 * Synchronization base for contents changes in this folder.
-	 */
-	LPSTREAM m_lpContentsSyncBase;
 };
 
 typedef std::list<ECFolderData *> folderdata_list_t;

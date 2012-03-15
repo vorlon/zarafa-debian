@@ -82,9 +82,12 @@ public:
     HRESULT EndTransaction();
     
     HRESULT QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
+
+    HRESULT	SetSyncState(const std::string& strFolder, const std::string& strState);
+    HRESULT	GetSyncState(const std::string& strFolder, std::string& strState);
     
 private:
-    static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, ECIndexDB **lppIndexDB);
+    static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, ECIndexDB **lppIndexDB);
 
     HRESULT FlushCache();
     
@@ -93,7 +96,7 @@ private:
 
     size_t GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput, size_t outLen);
     
-    HRESULT Open(const std::string &strIndexId);
+    HRESULT Open(const std::string &strIndexId, bool bCreate);
     
     ECLogger *m_lpLogger;
     ECConfig *m_lpConfig;
