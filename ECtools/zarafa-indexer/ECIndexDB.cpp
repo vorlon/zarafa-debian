@@ -58,6 +58,7 @@
 #include "stringutil.h"
 #include "charset/convert.h"
 
+#include <arpa/inet.h>
 #include <unicode/coll.h>
 #include <unicode/ustring.h>
 #include <kchashdb.h>
@@ -84,6 +85,36 @@ typedef struct {
     unsigned int type; // Must be KT_TERMS
     char prefix[1]; // Actually more than 1 char
 } TERMKEY;
+
+/**
+ * The format for the term entries
+ *
+ * The key is
+ *
+ * 4 bytes  | N bytes
+ * KT_TERMS | Prefix
+ *
+ * And the value is
+ *
+ * 4 bytes  | 2 bytes | 4 bytes | 2 bytes   | 1 byte | len bytes | ... REPEAT for each document
+ * folderid | fieldid | docid   | versionid | len    | postfix
+ *
+ * 
+ *
+ * This is the format that is used in the in-memory TinyHashMap. However, when writing to the on-disk
+ * btree, the key format is
+ *
+ * 4 bytes  | N byes | 1 byte | 4 bytes
+ * KT_TERMS | Prefix | NUL    | BLOCKID
+ *
+ * eg. \0\0\0\0aaa\0\1\0\0\0\0 -> contains all documents with words with prefix 'aaa'
+ *
+ * NOTE: the prefix isn't actually the real prefix, but an ICU sortkey of the prefix.
+ *
+ * The reason for this is that when we're writing to the on-disk cache, we don't want to append to the previous
+ * value since this is inefficient (read / append / write). So we have a BLOCKID which is just a counter that
+ * increments by one each time we flush to disk. This makes each write a write to a unique value.
+ */
 
 // Key/Value types for KT_VERSION
 typedef struct {
@@ -204,7 +235,7 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
     unsigned int type = KT_TERMS;
 
     char buf[sizeof(TERMENTRY) + 256];
-    char keybuf[sizeof(unsigned int) + 256];
+    char keybuf[sizeof(unsigned int) + 256 + 1];
     TERMENTRY *sTerm = (TERMENTRY *)buf;
 
     // Preset all the key/value parts that will not change
@@ -423,7 +454,7 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
         if(*(unsigned int*)thiskey != KT_TERMS)
             break; // Key is not a term key
         
-        if(thislen - 4 < sizeof(unsigned int) + keylen)
+        if(thislen - (4+1) < sizeof(unsigned int) + keylen)
             break; // Found key is shorter than the prefix we're looking for, so there are no more matches after this (since shorter keys must be after the key we're looking for)
             
         if(memcmp(thiskey, keybuf, sizeof(unsigned int) + keylen) > 0)
@@ -580,11 +611,13 @@ HRESULT ECIndexDB::FlushCache()
     }
     
     while ((kbuf = sorter.get(&ksiz, &vbuf, &vsiz)) != NULL) {
-        ksiz = MIN(ksiz, sizeof(k)-sizeof(int));
+        ksiz = MIN(ksiz, sizeof(k)-sizeof(int)-1);
         memcpy(k, kbuf, ksiz);
-        *(unsigned int *)(k+ksiz) = ulBlock;
-        ASSERT(m_lpIndex->get(k, ksiz+sizeof(ulBlock), &cb) == NULL);
-        if (!m_lpIndex->set(k, ksiz+sizeof(ulBlock), vbuf, vsiz)) {
+        // Value in the DB is <sortkey>\0<blockid>
+        *(k+ksiz)=0;
+        *(unsigned int *)(k+ksiz+1) = htonl(ulBlock);
+        ASSERT(m_lpIndex->get(k, ksiz+sizeof(ulBlock)+1, &cb) == NULL);
+        if (!m_lpIndex->set(k, ksiz+sizeof(ulBlock)+1, vbuf, vsiz)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to flush index data: %s", m_lpIndex->error().message());
             hr = MAPI_E_DISK_ERROR;
             goto exit;
