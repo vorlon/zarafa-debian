@@ -111,8 +111,6 @@ ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, str
 	// Do backward-compatibility fixup
 	if(lpSearchCriteria->lpRestrict)
 	{
-    	BackwardCompRestrict4_1(lpSearchCriteria->lpRestrict);
-
 		// Copy the restriction
 		er = CopyRestrictTable(NULL, lpSearchCriteria->lpRestrict, &lpNewSearchCriteria->lpRestrict);
 		if (er != erSuccess)

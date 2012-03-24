@@ -144,12 +144,13 @@ bool CHtmlToTextParser::Parse(const WCHAR *lpwHTML)
 			fAddSpace = false;
 			fTextMode = true;
 
-			if(*lpwHTML == '&' && parseEntity(lpwHTML) ) {
-				//nothing
-			} else {
+			// if (skippable and not parsed)
+			if (!(fScriptMode || fHeadMode || fStyleMode)) {
+				if (parseEntity(lpwHTML))
+					continue;
 				addChar(*lpwHTML);
-				lpwHTML++;
 			}
+			lpwHTML++;
 		}
 	}
 

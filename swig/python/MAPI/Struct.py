@@ -6,7 +6,11 @@ from MAPI.Defs import *
 class MAPIStruct:
     def __init__(self): pass
     def __eq__(self, other):
+        if other is None:
+            return False
         return self.__dict__ == other.__dict__
+    def __repr__(self):
+        return repr(self.__dict__)
 
 class SPropValue(MAPIStruct):
     def __init__(self, ulPropTag, Value):
@@ -15,6 +19,8 @@ class SPropValue(MAPIStruct):
     def __repr__(self):
         return "SPropValue(0x%08X, %s)" % (self.ulPropTag, repr(self.Value))
     def __cmp__(self, other):
+        if other is None:
+            return 1
         if self.ulPropTag != other.ulPropTag:
             return cmp(self.ulPropTag,other.ulPropTag)
         return cmp(self.Value,other.Value)
@@ -235,3 +241,12 @@ class ROWENTRY(MAPIStruct):
     def __init__(self, ulRowFlags, rgPropVals):
         self.ulRowFlags = ulRowFlags
         self.rgPropVals = rgPropVals
+
+class ECQUOTA(MAPIStruct):
+    def __init__(self, bUseDefaultQuota, bIsUserDefaultQuota, llWarnSize, llSoftSize, llHardSize):
+        self.bUseDefaultQuota = bUseDefaultQuota
+        self.bIsUserDefaultQuota = bIsUserDefaultQuota
+        self.llWarnSize = llWarnSize
+        self.llSoftSize = llSoftSize
+        self.llHardSize = llHardSize
+        

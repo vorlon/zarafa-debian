@@ -52,7 +52,9 @@
 
 #include "m4l.common.h"
 #include <mapidefs.h>
+#include <mapispi.h>
 #include <list>
+#include <map>
 
 using namespace std;
 
@@ -199,6 +201,94 @@ public:
     virtual ~M4LMAPIAdviseSink();
 
     virtual ULONG __stdcall OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications);
+
+    // iunknown passthru
+    virtual ULONG __stdcall AddRef();
+    virtual ULONG __stdcall Release();
+    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
+};
+
+
+/* for ABContainer */
+class M4LMAPIContainer : public IMAPIContainer, public M4LMAPIProp {
+public:
+	M4LMAPIContainer();
+    virtual ~M4LMAPIContainer();
+
+    virtual HRESULT __stdcall GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable);
+    virtual HRESULT __stdcall GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable);
+    virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk);
+    virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags);
+    virtual HRESULT __stdcall GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState);
+
+    // imapiprop passthru
+    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
+    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags);
+    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray);
+    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray);
+    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk);
+    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
+			   LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
+			   LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+			      LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
+				    LPMAPINAMEID** lpppPropNames);
+    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags);
+
+    // iunknown passthru
+    virtual ULONG __stdcall AddRef();
+    virtual ULONG __stdcall Release();
+    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
+};
+
+
+typedef struct _s_abentry {
+	MAPIUID muid;
+	string displayname;
+	LPABPROVIDER lpABProvider;
+	LPABLOGON lpABLogon;
+} abEntry;
+
+class M4LABContainer : public IABContainer, public M4LMAPIContainer {
+private:
+	/*  */
+	const std::list<abEntry> &m_lABEntries;
+
+public:
+	M4LABContainer(const std::list<abEntry> &lABEntries);
+	virtual ~M4LABContainer();
+
+    virtual HRESULT __stdcall CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry);
+    virtual HRESULT __stdcall CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
+    virtual HRESULT __stdcall DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags);
+    virtual HRESULT __stdcall ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
+
+	// imapicontainer passthu
+    virtual HRESULT __stdcall GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable);
+    virtual HRESULT __stdcall GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable);
+    virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk);
+    virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags);
+    virtual HRESULT __stdcall GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList, ULONG* lpulSearchState);
+
+    // imapiprop passthru
+    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
+    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags);
+    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray);
+    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray);
+    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk);
+    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
+			   LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
+			   LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+			      LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems);
+    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
+				    LPMAPINAMEID** lpppPropNames);
+    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags);
 
     // iunknown passthru
     virtual ULONG __stdcall AddRef();

@@ -395,6 +395,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	LPSPropValue lpUsrEidProp = NULL; 
 	LPSPropValue lpMappedProp = NULL;
 	LPADRLIST lpAdrList	= NULL;	
+	LPENTRYID lpDDEntryID = NULL;
+	ULONG cbDDEntryID;
 	IABContainer *lpAddrFolder = NULL;
 	FlagList *lpFlagList = NULL;
 	std::list<icalrecip>::iterator iIcalRecip;
@@ -411,10 +413,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	// ignore error
 	if(m_lpMailUser)
 		HrGetOneProp(m_lpMailUser, PR_ENTRYID, &lpUsrEidProp);
-	
-	hr = m_lpAdrBook->OpenEntry(0,NULL,0,0,&ulObjType,(LPUNKNOWN*)&lpAddrFolder);
-	if(hr != hrSuccess)
-		goto exit;
 
 	ulRecpCnt = lplstIcalRecip->size();
 
@@ -441,6 +439,14 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = (WCHAR *)iIcalRecip->strEmail.c_str();
 		lpFlagList->ulFlag[ulRecpCnt] = MAPI_UNRESOLVED;
 	}
+
+	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, &IID_IABContainer, 0, &ulObjType, (LPUNKNOWN*)&lpAddrFolder);
+	if (hr != hrSuccess)
+		goto exit;
 
 	hr = lpAddrFolder->ResolveNames(NULL, MAPI_UNICODE, lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
@@ -504,6 +510,9 @@ exit:
 
 	if (lpAddrFolder)
 		lpAddrFolder->Release();
+
+	if (lpDDEntryID)
+		MAPIFreeBuffer(lpDDEntryID);
 
 	return hr;
 }
@@ -3099,9 +3108,8 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	if (hr != hrSuccess)
 		goto exit;
 
-//	ASSERT(lpRows->cRows == 1);
-
 	if (lpRows->cRows == 0) {
+		// if this is a cancel message, no exceptions are present, so ignore.
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}

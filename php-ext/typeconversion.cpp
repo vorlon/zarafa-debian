@@ -2225,3 +2225,64 @@ exit:
 		MAPIFreeBuffer(lpGUIDs);
 	return MAPI_G(hr);
 }
+
+HRESULT NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **pret TSRMLS_DC)
+{
+	zval *zvalRet = NULL;
+	zval *zvalProps = NULL;
+	unsigned int i = 0;
+	
+	MAPI_G(hr) = hrSuccess;
+	
+	MAKE_STD_ZVAL(zvalRet);
+	array_init(zvalRet);
+	
+	for(i=0;i<cNotifs;i++) {
+		zval *zvalNotif = NULL;
+		MAKE_STD_ZVAL(zvalNotif);
+		array_init(zvalNotif);
+		
+		add_assoc_long(zvalNotif, "eventtype", lpNotifs[i].ulEventType);
+		switch(lpNotifs[i].ulEventType) {
+			case fnevNewMail:
+				add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.newmail.lpEntryID, lpNotifs[i].info.newmail.cbEntryID, 1);
+				add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.newmail.lpParentID, lpNotifs[i].info.newmail.cbParentID, 1);
+				add_assoc_long(zvalNotif, "flags", lpNotifs[i].info.newmail.ulFlags);
+				add_assoc_string(zvalNotif, "messageclass", (char *)lpNotifs[i].info.newmail.lpszMessageClass, 1);
+				add_assoc_long(zvalNotif, "messageflags", lpNotifs[i].info.newmail.ulMessageFlags);
+				break;
+			case fnevObjectCreated:
+			case fnevObjectDeleted:
+			case fnevObjectModified:
+			case fnevObjectMoved:
+			case fnevObjectCopied:
+			case fnevSearchComplete:
+				if(lpNotifs[i].info.obj.lpEntryID)
+					add_assoc_stringl(zvalNotif, "entryid", (char *)lpNotifs[i].info.obj.lpEntryID, lpNotifs[i].info.obj.cbEntryID, 1);
+				add_assoc_long(zvalNotif, "objtype", lpNotifs[i].info.obj.ulObjType);
+				if(lpNotifs[i].info.obj.lpParentID)
+					add_assoc_stringl(zvalNotif, "parentid", (char *)lpNotifs[i].info.obj.lpParentID, lpNotifs[i].info.obj.cbParentID, 1);
+				if(lpNotifs[i].info.obj.lpOldID)
+					add_assoc_stringl(zvalNotif, "oldid", (char *)lpNotifs[i].info.obj.lpOldID, lpNotifs[i].info.obj.cbOldID, 1);
+				if(lpNotifs[i].info.obj.lpOldParentID)
+					add_assoc_stringl(zvalNotif, "oldparentid", (char *)lpNotifs[i].info.obj.lpOldParentID, lpNotifs[i].info.obj.cbOldParentID, 1);
+	
+				if(lpNotifs[i].info.obj.lpPropTagArray) {
+					MAPI_G(hr) = PropTagArraytoPHPArray(lpNotifs[i].info.obj.lpPropTagArray->cValues, lpNotifs[i].info.obj.lpPropTagArray, &zvalProps TSRMLS_CC);
+					if(MAPI_G(hr) != hrSuccess)
+						goto exit;
+					add_assoc_zval(zvalNotif, "proptagarray", zvalProps);
+				}
+				break;
+			default:
+				break;
+		}
+			
+		add_next_index_zval(zvalRet, zvalNotif);
+	}
+	
+	*pret = zvalRet;
+	
+exit:	
+	return MAPI_G(hr);
+}

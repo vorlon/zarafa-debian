@@ -54,17 +54,18 @@
 	class TodayTaskListModule extends ListModule
 	{
 		/**
+		 * @var Array properties of task item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		 * Constructor
 		 * @param int $id unique id.
 		 * @param array $data list of all actions.
 		 */
 		function TodayTaskListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getTaskProperties();
-
 			parent::ListModule($id, $data, array(OBJECT_SAVE, TABLE_SAVE, TABLE_DELETE));
-			$this->sort = array();
-			$this->sort[$this->properties["duedate"]] = TABLE_SORT_DESCEND;
 		}
 
 		/**
@@ -148,6 +149,22 @@
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getTaskProperties($store);
+
+			$this->sort = array();
+			$this->sort[$this->properties["duedate"]] = TABLE_SORT_DESCEND;
 		}
 	}
 ?>

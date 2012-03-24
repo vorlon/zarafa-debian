@@ -79,6 +79,9 @@ ruleslistmodule.prototype.init = function(id, element, title, data)
 	
 	this.events["rowcolumn"]["rule_state"] = new Object();
 	this.events["rowcolumn"]["rule_state"]["click"] = eventListChangeCompleteStatus;
+
+	// remove column events, to disable sorting on columns
+	delete this.events["column"];
 }
 
 // the only reason we override the execute function is that we want to both

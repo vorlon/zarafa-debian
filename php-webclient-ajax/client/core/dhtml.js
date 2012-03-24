@@ -1008,7 +1008,7 @@ function checkMenuState(moduleObject, element, event)
 	}
 	
 	// Check defaultmenu
-	if(srcElement.className.indexOf("arrow") < 0) {
+	if(srcElement.className && srcElement.className.indexOf("arrow") < 0) {
 		var defaultmenu = dhtml.getElementById("defaultmenu");
 
 		if(defaultmenu) {
@@ -1017,7 +1017,7 @@ function checkMenuState(moduleObject, element, event)
 	}
 	
 	// Check ComboBox's
-	if(srcElement.className.indexOf("arrow") < 0) {
+	if(srcElement.className && srcElement.className.indexOf("arrow") < 0) {
 		var comboBoxes = dhtml.comboBoxes;
 		
 		for(var i in comboBoxes)

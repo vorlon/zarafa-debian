@@ -376,6 +376,81 @@ exit:
 	return er;
 }
 
+ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
+{
+	ECRESULT er = erSuccess;
+	string strQuery, strTable;
+	string::size_type start, end;
+	DB_RESULT lpResult = NULL;
+	DB_ROW lpRow = NULL;
+
+	strQuery = "SHOW CREATE TABLE `tproperties`";
+	er = lpDatabase->DoSelect(strQuery, &lpResult);
+	if (er != erSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		goto exit;
+	}
+
+	er = ZARAFA_E_DATABASE_ERROR;
+
+	lpRow = lpDatabase->FetchRow(lpResult);
+	if (!lpRow || !lpRow[1]) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No tproperties table definition found");
+		goto exit;
+	}
+
+	strTable = lpRow[1];
+
+	start = strTable.find("PRIMARY KEY");
+	if (start == string::npos) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No primary key found in tproperties table");
+		goto exit;
+	}
+
+	end = strTable.find(")", start);
+	if (end == string::npos) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No end of primary key found in tproperties table");
+		goto exit;
+	}
+
+	strTable.erase(end, string::npos);
+	strTable.erase(0, start);
+
+	// correct:
+	// PRIMARY KEY (`folderid`,`tag`,`hierarchyid`,`type`),
+	// incorrect:
+	// PRIMARY KEY `ht` (`folderid`,`tag`,`type`,`hierarchyid`)
+	// `ht` part seems to be optional
+	start = strTable.find_first_of(',');
+	if (start != string::npos)
+		start = strTable.find_first_of(',', start+1);
+	if (start == string::npos) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
+		goto exit;
+	}
+
+	// start+1:end == `type`,`hierarchyid`
+	strTable.erase(0, start+1);
+
+	// if not correct...
+	if (strTable.compare("`hierarchyid`,`type`") != 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "**** WARNING: Installation is not optimal! ****");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  The primary key of the tproperties table is incorrect.");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Please read the following page on how to update your installation to get much better performance:");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  http://www.zarafa.com/wiki/index.php/Zarafa_Alerts");
+	}
+
+	er = erSuccess;
+
+exit:
+
+	if (lpResult)
+		lpDatabase->FreeResult(lpResult);
+
+	return er;
+}
+
 /**
  * Checks the server_hostname value of the configuration, and if
  * empty, gets the current FQDN through DNS lookups, and updates the
@@ -1078,8 +1153,10 @@ int running_server(char *szName, const char *szConfig)
 	er = lpDatabaseFactory->UpdateDatabase(m_bForceDatabaseUpdate, dbError);
 
 	// remove lock file
-	fclose(tmplock);
-	unlink("/tmp/zarafa-upgrade-lock");
+	if (tmplock) {
+		fclose(tmplock);
+		unlink("/tmp/zarafa-upgrade-lock");
+	}
 
 	if(er == ZARAFA_E_INVALID_VERSION) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: %s", dbError.c_str());
@@ -1113,6 +1190,11 @@ int running_server(char *szName, const char *szConfig)
 
 	// check attachment database started with, and maybe reject startup
 	er = check_database_attachments(lpDatabase);
+	if (er != erSuccess)
+		goto exit;
+
+	// check upgrade problem with wrong sequence in tproperties table primary key
+	er = check_database_tproperties_key(lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 

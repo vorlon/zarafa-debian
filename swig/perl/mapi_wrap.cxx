@@ -2211,8 +2211,12 @@ SWIG_AsVal_bool SWIG_PERL_DECL_ARGS_2(SV *obj, bool* val)
   return SWIG_TypeError;
 }
 
-SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ return new MAPINotifSink(); }
-SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ delete self; }
+SWIGINTERN MAPINotifSink *new_MAPINotifSink(){ 
+			MAPINotifSink *lpSink = NULL;
+			MAPINotifSink::Create(&lpSink); 
+			return lpSink; 
+		}
+SWIGINTERN void delete_MAPINotifSink(MAPINotifSink *self){ self->Release(); }
 
 // Hack to get around OP_DELETE being an enum in perl\lib\core\opnames.h and EdkMdb.h
 namespace EdkMdb {
@@ -20303,6 +20307,7 @@ XS(_wrap_IECServiceAdmin_CreateCompany) {
     HRESULT result;
     dXSARGS;
     
+    arg2 = NULL;
     ULONG ulFlags = 0;
     {
       arg4 = &cbEntryID4; arg5 = &lpEntryID4;
@@ -20346,6 +20351,10 @@ XS(_wrap_IECServiceAdmin_CreateCompany) {
       }
     }
     
+    {
+      if(arg2)
+      MAPIFreeBuffer(arg2);
+    }
     
     {
       if(*arg5)
@@ -20354,6 +20363,10 @@ XS(_wrap_IECServiceAdmin_CreateCompany) {
     XSRETURN(argvi);
   fail:
     
+    {
+      if(arg2)
+      MAPIFreeBuffer(arg2);
+    }
     
     {
       if(*arg5)
@@ -20436,6 +20449,7 @@ XS(_wrap_IECServiceAdmin_SetCompany) {
     HRESULT result;
     dXSARGS;
     
+    arg2 = NULL;
     ULONG ulFlags = 0;
     if ((items < 3) || (items > 3)) {
       SWIG_croak("Usage: IECServiceAdmin_SetCompany(self,lpECCompany,ulFlags);");
@@ -20471,10 +20485,18 @@ XS(_wrap_IECServiceAdmin_SetCompany) {
       }
     }
     
+    {
+      if(arg2)
+      MAPIFreeBuffer(arg2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      if(arg2)
+      MAPIFreeBuffer(arg2);
+    }
     
     SWIG_croak_null();
   }
@@ -21285,21 +21307,24 @@ XS(_wrap_IECServiceAdmin_GetQuota) {
     IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
     ULONG arg2 ;
     LPENTRYID arg3 ;
-    LPECQUOTA *arg4 = (LPECQUOTA *) 0 ;
+    bool arg4 ;
+    LPECQUOTA *arg5 = (LPECQUOTA *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     int res2 ;
     char *buf2 = 0 ;
     size_t size2 ;
     int alloc2 = 0 ;
-    void *argp4 = 0 ;
-    int res4 = 0 ;
+    bool val4 ;
+    int ecode4 = 0 ;
+    LPECQUOTA temp5 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
+    temp5 = NULL; arg5 = &temp5;
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: IECServiceAdmin_GetQuota(self,cbUserId,lpUserId,lppsQuota);");
+      SWIG_croak("Usage: IECServiceAdmin_GetQuota(self,cbUserId,lpUserId,bGetUserDefault);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -21319,22 +21344,29 @@ XS(_wrap_IECServiceAdmin_GetQuota) {
         arg3 = reinterpret_cast< LPENTRYID >(buf2);
       }
     }
-    res4 = SWIG_ConvertPtr(ST(2), &argp4,SWIGTYPE_p_LPECQUOTA, 0 |  0 );
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_GetQuota" "', argument " "4"" of type '" "LPECQUOTA *""'"); 
-    }
-    arg4 = reinterpret_cast< LPECQUOTA * >(argp4);
-    result = (arg1)->GetQuota(arg2,arg3,arg4);
+    ecode4 = SWIG_AsVal_bool SWIG_PERL_CALL_ARGS_2(ST(2), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IECServiceAdmin_GetQuota" "', argument " "4"" of type '" "bool""'");
+    } 
+    arg4 = static_cast< bool >(val4);
+    result = (arg1)->GetQuota(arg2,arg3,arg4,arg5);
     {
       if(FAILED(result)) {
         Do_Exception(result);
       }
+    }
+    {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = sv_2mortal(newRV_noinc((SV *)HV_from_LPECQUOTA(*(arg5)))); argvi++  ;
     }
     
     {
       if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     }
     
+    {
+      if(*arg5)
+      MAPIFreeBuffer(*arg5);
+    }
     XSRETURN(argvi);
   fail:
     
@@ -21342,6 +21374,10 @@ XS(_wrap_IECServiceAdmin_GetQuota) {
       if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     }
     
+    {
+      if(*arg5)
+      MAPIFreeBuffer(*arg5);
+    }
     SWIG_croak_null();
   }
 }
@@ -21359,12 +21395,11 @@ XS(_wrap_IECServiceAdmin_SetQuota) {
     char *buf2 = 0 ;
     size_t size2 ;
     int alloc2 = 0 ;
-    void *argp4 ;
-    int res4 = 0 ;
     int argvi = 0;
     HRESULT result;
     dXSARGS;
     
+    arg4 = NULL;
     if ((items < 3) || (items > 3)) {
       SWIG_croak("Usage: IECServiceAdmin_SetQuota(self,cbUserId,lpUserId,lpsQuota);");
     }
@@ -21387,14 +21422,10 @@ XS(_wrap_IECServiceAdmin_SetQuota) {
       }
     }
     {
-      res4 = SWIG_ConvertPtr(ST(2), &argp4, SWIGTYPE_p_LPECQUOTA,  0 );
-      if (!SWIG_IsOK(res4)) {
-        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IECServiceAdmin_SetQuota" "', argument " "4"" of type '" "LPECQUOTA""'"); 
-      }  
-      if (!argp4) {
-        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IECServiceAdmin_SetQuota" "', argument " "4"" of type '" "LPECQUOTA""'");
+      if(!SvOK(ST(2))) {
+        arg4 = NULL;
       } else {
-        arg4 = *(reinterpret_cast< LPECQUOTA * >(argp4));
+        arg4 = HV_to_LPECQUOTA((HV *)SvRV(ST(2)));
       }
     }
     result = (arg1)->SetQuota(arg2,arg3,arg4);
@@ -21407,11 +21438,19 @@ XS(_wrap_IECServiceAdmin_SetQuota) {
     {
       if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     }
+    {
+      if(arg4)
+      MAPIFreeBuffer(arg4);
+    }
     XSRETURN(argvi);
   fail:
     
     {
       if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    }
+    {
+      if(arg4)
+      MAPIFreeBuffer(arg4);
     }
     SWIG_croak_null();
   }

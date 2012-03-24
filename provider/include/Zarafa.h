@@ -226,6 +226,7 @@ enum
 
 #define TRANSPORT_ADDRESS_TYPE_SMTP		_T("SMTP")
 #define TRANSPORT_ADDRESS_TYPE_ZARAFA	_T("ZARAFA")
+#define TRANSPORT_ADDRESS_TYPE_FAX		_T("FAX")
 
 typedef EID * PEID;
 
@@ -318,6 +319,9 @@ typedef EID * PEID;
 
 // Default freebusy publish months
 #define ECFREEBUSY_DEFAULT_PUBLISH_MONTHS		6
+
+#define TABLE_CAP_STRING	255
+#define TABLE_CAP_BINARY	511
 
 //
 // Capabilities bitmask, sent with ns__logon()

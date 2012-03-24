@@ -59,13 +59,17 @@
 	class DatePickerListModule extends ListModule
 	{
 		/**
+		 * @var Array properties of appointment item that will be used to get data
+		 */
+		var $properties = null;
+
+		/**
 		 * Constructor
 		 * @param int $id unique id.
 		 * @param array $data list of all actions.
 		 */
 		function DatePickerListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getAppointmentProperties();
 			parent::ListModule($id, $data, array(TABLE_SAVE, TABLE_DELETE));
 		}
 		
@@ -238,6 +242,19 @@
 			} 
 			
 			return $items;
-		} 
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getAppointmentProperties($store);
+		}
 	}
 ?>

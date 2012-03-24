@@ -168,6 +168,10 @@ ListModule.prototype.init = function(id, element, title, data, uniqueid)
 	// unique ids of selected messages, used to select old selected messages when reloading WA
 	this.oldSelectedMessageIds = new Array();
 
+	// flag to indicate that when reloading WA message selection should be preserved or not,
+	// if no selection is found then by default it will select the first message
+	this.preserveSelectionOnReload = true;
+
 	// View Object
 	this.viewController = new ViewController();
 
@@ -490,9 +494,11 @@ ListModule.prototype.messageList = function(action)
 		this.executeOnLoad();
 	}
 
-	// Call the function to select the old selected items if there is any, after reloading the mail list with new mails.
-	// if there isn't any row selected previously then we need to select first item
-	this.selectOldSelectedMessages();
+	if(this.preserveSelectionOnReload) {
+		// Call the function to select the old selected items if there is any, after reloading the mail list with new mails.
+		// if there isn't any row selected previously then we need to select first item
+		this.selectOldSelectedMessages();
+	}
 
 	/**
 	 * when searching in public folders we are not using search folders,
@@ -3296,7 +3302,8 @@ ListModule.prototype.selectOldSelectedMessages = function()
 	}
 
 	// clear the variable to stop calling this function each time.
-	this.oldSelectedMessageIds = new Array();}
+	this.oldSelectedMessageIds = new Array();
+}
 
 /**
  * Defining a global function to store old selected email's entryid 

@@ -511,7 +511,6 @@ struct restrictCompare {
 struct restrictContent {
 	unsigned int ulFuzzyLevel;
 	unsigned int ulPropTag;
-	char *szSearchString;		// unused from version 4.11 (only for backward comp..)
 	struct propVal *lpProp;
 };
 
@@ -1131,7 +1130,7 @@ int ns__syncUsers(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompan
 int ns__setLockState(ULONG64 ulSessionId, entryId sEntryId, bool bLocked, unsigned int *result); 
 
 // Quota
-int ns__GetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct quotaResponse* lpsQuota);
+int ns__GetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota);
 int ns__SetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct quota* lpsQuota, unsigned int *result);
 int ns__AddQuotaRecipient(ULONG64 ulSessionId, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
 int ns__DeleteQuotaRecipient(ULONG64 ulSessionId, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);

@@ -1798,6 +1798,10 @@
 							}
 						}
 						else if(isset($this->recur["nday"]) && isset($this->recur["weekdays"])) { // Nth [weekday] of every N months
+						    // Sanitize input
+						    if($this->recur["weekdays"] == 0)
+						        $this->recur["weekdays"] = 1;
+						        
 							// If nday is not set to the last day in the month
 							if ($this->recur["nday"] < 5) {
 								// keep the track of no. of time correct selection pattern(like 2nd weekday, 4th fiday, etc.)is matched 

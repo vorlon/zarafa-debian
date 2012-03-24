@@ -183,6 +183,12 @@ if ! test "$want_oss" = "yes"; then
    OFFLINE_CONFIG
 fi
 
+# MAPI config files
+AC_ARG_WITH(mapi-configdir,
+  AC_HELP_STRING([--with-mapi-configdir=PATH],[path to install the libmapi config (provider) files (default /etc/mapi)]),
+  [MAPICONFIGDIR=${withval}],[MAPICONFIGDIR=/etc/mapi])
+AC_SUBST(MAPICONFIGDIR)
+
 # user create scripts location
 AC_ARG_WITH(userscript-prefix,
   AC_HELP_STRING([--with-userscript-prefix=PATH],[path to install the userscripts in (default /etc/zarafa/userscripts)]),
@@ -489,6 +495,7 @@ AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
 LIBS=$LDAP_LIBS
 CXXFLAGS="$CXXFLAGS $LDAP_FLAGS"
 AC_CHECK_FUNCS([ldap_start_tls_s])
+AC_CHECK_FUNCS([ldap_create_page_control])
 LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
@@ -701,6 +708,7 @@ AC_CONFIG_FILES([Makefile
 		php-ext/Makefile
 		provider/Makefile
 		provider/client/Makefile
+		provider/contacts/Makefile
 		provider/common/Makefile
 		provider/include/Makefile
 		provider/libserver/Makefile
@@ -770,6 +778,7 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Install prefix	:	$prefix
+Mapiconfig dir	:	$MAPICONFIGDIR
 Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
 Indexer scripts dir	:	$INDEXERSCRIPTSDIR

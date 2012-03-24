@@ -202,7 +202,7 @@ This option is only available in multi\-tenancy Zarafa\&.
 .PP
 \fB\-\-set\-system\-admin\fR \fIcompanyname\fR
 .RS 4
-Set system administrator for the tentant specified by
+Set system administrator for the tenant specified by
 \fI\-I\fR\&.
 .sp
 Please be aware that this option does not provide the user with administrator privileges\&. The system administrator is considered the main contact person for a company, it will for example be used as default sender for quota warning emails\&.
@@ -238,7 +238,7 @@ This option is only available in multi\-tenancy Zarafa\&.
 .PP
 \fB\-\-list\-view\fR
 .RS 4
-List all tentants in the remote\-view list of the tenant specified by
+List all tenants in the remote\-view list of the tenant specified by
 \fI\-I\fR\&. The tenants in this list are able to view all members of the specified tenant in their Address Book\&.
 .sp
 This option is only available in multi\-tenancy Zarafa\&.
@@ -547,14 +547,14 @@ Override the default server quota settings for all user within the specified ten
 .PP
 \fB\-\-udqw\fR \fIvalue in Mb\fR
 .RS 4
-Set the warning quota level for all users within the specified tentant\&. The user may receive a warning email when this level is reached\&. See
+Set the warning quota level for all users within the specified tenant\&. The user may receive a warning email when this level is reached\&. See
 \fBzarafa-monitor\fR(1)
 for warning emails\&.
 .RE
 .PP
 \fB\-\-udqs\fR \fIvalue in Mb\fR
 .RS 4
-Set the soft quota level for all users within the specified tentant\&. The user will be unable to receive new emails, bouncing the email back to the sender\&. See
+Set the soft quota level for all users within the specified tenant\&. The user will be unable to receive new emails, bouncing the email back to the sender\&. See
 \fBzarafa-monitor\fR(1)
 for warning emails\&.
 .RE
@@ -638,7 +638,11 @@ to create new stores; this means that folders in the new store will be in the la
 .RE
 .SH "CONFIG"
 .PP
-Normally, no configuration file is used or required\&. The following options can be set in the configuation file:
+Normally, no configuration file is used or required\&. If the file
+\fI/etc/zarafa/admin\&.cfg\fR
+exists, it is used as configuration file, but no error checking is performed\&. This way, you can use any config file from a zarafa program, eg\&. zarafa\-spooler or zarafa\-dagent, to load SSL settings\&.
+.PP
+The following options can be set in the configuation file:
 .PP
 \fBserver_socket\fR
 .RS 4

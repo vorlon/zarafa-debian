@@ -57,6 +57,11 @@
 	 */
 	class StickyNoteItemModule extends ItemModule
 	{
+		/**
+		 * @var Array properties of sticky note item that will be used to get data
+		 */
+		var $properties = null;
+
 		var $plaintext;
 
 		/**
@@ -66,11 +71,22 @@
 		 */
 		function StickyNoteItemModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getStickyNoteProperties();
-			
 			$this->plaintext = true;
-			
+
 			parent::ItemModule($id, $data);
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getStickyNoteProperties($store);
 		}
 	}
 ?>

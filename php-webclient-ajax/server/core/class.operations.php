@@ -2601,6 +2601,7 @@
 				if ($message) {
 					if ($action['deleteFlag'] == 'occurrence') {
 						$recur = new TaskRecurrence($store, $message);
+						$action['deleteOccurrence'] = true;
 						$occurrenceDeleted = $recur->deleteOccurrence($action);
 					} else if ($action['deleteFlag'] == 'decline' || $action['deleteFlag'] == 'complete') {
 						$taskReq = new TaskRequest($store, $message, $GLOBALS["mapisession"]->getSession());
@@ -3122,7 +3123,7 @@
 			foreach($rows as $k=>$row){
 				$rows[$k]["properties"][PR_RULE_SEQUENCE] = $seq;
 				$seq++;
-				unset($rows[$k][PR_RULE_ID]); // remove RULE_ID because this is the property Outlook does its sort when displaying rules instead of RULE_SEQUENCE!
+				unset($rows[$k]["properties"][PR_RULE_ID]); // remove RULE_ID because this is the property Outlook does its sort when displaying rules instead of RULE_SEQUENCE!
 			}
 			
 			// sort the rules, so they will get a RULE_ID in the right order when adding the rules

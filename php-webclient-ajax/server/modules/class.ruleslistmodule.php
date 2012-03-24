@@ -54,7 +54,12 @@
 	 * Rules Module
 	 */
 	class RulesListModule extends ListModule
-	{	
+	{
+		/**
+		 * @var Array properties of rule item that will be used to get data
+		 */
+		var $properties = null;
+
 		/**
 		 * Constructor
 		 * @param int $id unique id.
@@ -62,15 +67,10 @@
 		 */
 		function RulesListModule($id, $data)
 		{
-			$this->properties = $GLOBALS["properties"]->getRulesProperties();
-
 			// Default Columns
 			$this->tablecolumns = $GLOBALS["TableColumns"]->getRuleListTableColumns();
 
 			parent::ListModule($id, $data, array());
-
-			$this->sort = array();
-			$this->sort[$this->properties["rule_name"]] = TABLE_SORT_ASCEND;
 		}
 		
 		/**
@@ -83,10 +83,12 @@
 			
 			foreach($this->data as $action)
 			{
+				$store = $this->getActionStore($action);
+
+				$this->generatePropertyTags($store, false, $action);
+
 				switch($action["attributes"]["type"]) {
 				case 'list':
-					$store = $this->getActionStore($action);
-				
 					$rules = $this->ruleList($store, $action);
 					
 					if($rules) {
@@ -103,8 +105,6 @@
 					};
 					break;
 				case 'setRules':
-					$store = $this->getActionStore($action);
-
 					if (isset($action["rules"])){
 						$this->setRules($store, $action["rules"]);
 					}
@@ -129,6 +129,22 @@
 		function setRules($store, $rules)
 		{
 			$result = $GLOBALS["operations"]->updateRules($store, $rules, $this->properties);
+		}
+
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->properties = $GLOBALS["properties"]->getRulesProperties($store);
+
+			$this->sort = array();
+			$this->sort[$this->properties["rule_name"]] = TABLE_SORT_ASCEND;
 		}
 	}
 ?>

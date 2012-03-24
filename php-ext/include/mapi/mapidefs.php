@@ -491,6 +491,12 @@ define("ZARAFA_STORE_PUBLIC_GUID"                ,makeGuid("{D47F4A09-D3BD-493C-
 define("ZARAFA_STORE_DELEGATE_GUID"              ,makeGuid("{7C7C1085-BC6D-4E53-9DAB-8A53F8DEF808}"));    // other store
 define('ZARAFA_STORE_ARCHIVER_GUID'              ,makeGuid("{BC8953AD-2E3F-4172-9404-896FF459870F}"));    // archive store
 
+/* global profile section guid */
+define('pbGlobalProfileSectionGuid'              ,makeGuid("{C8B0DB13-05AA-1A10-9BB0-00AA002FC45A}"));
+
+/* Zarafa Contacts provider GUID */
+define('ZARAFA_CONTACTS_GUID'                    ,makeGuid("{30047F72-92E3-DA4F-B86A-E52A7FE46571}"));
+
 /* Permissions */
 
 // Get permission type
@@ -628,5 +634,19 @@ define('mtgDelegatorCopy',						0x00100000);	// This is set on the delegator's c
 
 define('MAPI_ONE_OFF_UNICODE',					0x8000);		// the flag that defines whether the embedded strings are Unicode in one off entryids.
 define('MAPI_ONE_OFF_NO_RICH_INFO',				0x0001);		// the flag that specifies whether the recipient gets TNEF or not.
+
+/* Mask flags for mapi_msgstore_advise */
+define('fnevCriticalError',           0x00000001);
+define('fnevNewMail',                 0x00000002);
+define('fnevObjectCreated',           0x00000004);
+define('fnevObjectDeleted',           0x00000008);
+define('fnevObjectModified',          0x00000010);
+define('fnevObjectMoved',             0x00000020);
+define('fnevObjectCopied',            0x00000040);
+define('fnevSearchComplete',          0x00000080);
+define('fnevTableModified',           0x00000100);
+define('fnevStatusObjectModified',    0x00000200);
+define('fnevReservedForMapi',         0x40000000);
+define('fnevExtended',                0x80000000);
 
 ?>

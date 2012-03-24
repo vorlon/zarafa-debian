@@ -1903,7 +1903,6 @@ public:
 		ULONG i = 0;
 		LPSPropValue lpProps = NULL;
 		LPSPropValue lpFind = NULL;
-		SPropValue sError;
 		convert_context converter;
 
 		MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, (void **) &lpProps);

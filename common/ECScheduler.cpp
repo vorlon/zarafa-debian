@@ -136,10 +136,10 @@ bool ECScheduler::hasExpired(time_t ttime, LPECSCHEDULE lpSchedule)
 	struct tm tmLastRunTime;
 	struct tm tmtime;
 
-	tmtime = *gmtime(&ttime);
+	localtime_r(&ttime, &tmtime);
 
 	if(lpSchedule->tLastRunTime > 0)
-		tmLastRunTime = *gmtime(&lpSchedule->tLastRunTime);
+		localtime_r(&lpSchedule->tLastRunTime, &tmLastRunTime);
 	else
 		memset(&tmLastRunTime, 0, sizeof(tmLastRunTime));
 

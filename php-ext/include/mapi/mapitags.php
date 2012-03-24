@@ -1227,8 +1227,13 @@ define('PR_EMS_AB_REPORTS'                    ,mapi_prop_tag(PT_BINARY,     0x80
 define('PR_EMS_AB_REPORTS_MV'                 ,mapi_prop_tag(PT_MV_BINARY,  0x800E));
 define('PR_EMS_AB_IS_MEMBER_OF_DL'            ,mapi_prop_tag(PT_MV_BINARY,  0x8008));
 define('PR_EMS_AB_OWNER'                      ,mapi_prop_tag(PT_BINARY,     0x800C));
-define('PR_EMS_AB_ROOM_CAPACITY.'			  ,mapi_prop_tag(PT_LONG,		0x0807));
+define('PR_EMS_AB_ROOM_CAPACITY'			  ,mapi_prop_tag(PT_LONG,		0x0807));
 
 define('PR_EC_ARCHIVE_SERVERS'                ,mapi_prop_tag(PT_MV_TSTRING,	0x67c4));
+
+/* zarafa contacts provider properties */
+define('PR_ZC_CONTACT_STORE_ENTRYIDS'         ,mapi_prop_tag(PT_MV_BINARY, PR_EC_BASE+0x11));
+define('PR_ZC_CONTACT_FOLDER_ENTRYIDS'        ,mapi_prop_tag(PT_MV_BINARY, PR_EC_BASE+0x12));
+define('PR_ZC_CONTACT_FOLDER_NAMES'           ,mapi_prop_tag(PT_MV_TSTRING, PR_EC_BASE+0x13));
 
 ?>

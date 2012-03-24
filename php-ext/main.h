@@ -92,6 +92,7 @@ static int le_freebusy_enumblock;
 static int le_mapi_exportchanges;
 static int le_mapi_importhierarchychanges;
 static int le_mapi_importcontentschanges;
+static int le_mapi_advisesink;
 
 /**
 * When adding or changing a entry here, don't forget to 
@@ -118,6 +119,7 @@ static char* name_fb_enumblock = "Freebusy Enumblock Interface";
 static char* name_mapi_exportchanges = "ICS Export Changes";
 static char* name_mapi_importhierarchychanges = "ICS Import Hierarchy Changes";
 static char* name_mapi_importcontentschanges = "ICS Import Contents Changes";
+static char* name_mapi_advisesink = "MAPI Advise sink";
 
 /**
 * common used variables
@@ -151,6 +153,7 @@ ZEND_FUNCTION(mapi_openmsgstore);
 ZEND_FUNCTION(mapi_openmsgstore_exchange);
 ZEND_FUNCTION(mapi_openmsgstore_zarafa);
 ZEND_FUNCTION(mapi_openmsgstore_zarafa_other);
+ZEND_FUNCTION(mapi_openprofilesection);
 
 ZEND_FUNCTION(mapi_openentry);
 ZEND_FUNCTION(mapi_openaddressbook);
@@ -164,6 +167,11 @@ ZEND_FUNCTION(mapi_msgstore_openentry);
 ZEND_FUNCTION(mapi_msgstore_getreceivefolder);
 ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey);
 ZEND_FUNCTION(mapi_msgstore_openmultistoretable);
+ZEND_FUNCTION(mapi_msgstore_advise);
+ZEND_FUNCTION(mapi_msgstore_unadvise);
+
+ZEND_FUNCTION(mapi_sink_create);
+ZEND_FUNCTION(mapi_sink_timedwait);
 
 ZEND_FUNCTION(mapi_table_queryallrows);
 ZEND_FUNCTION(mapi_table_queryrows);
@@ -322,6 +330,8 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet);
 #if SUPPORT_EXCEPTIONS
 ZEND_FUNCTION(mapi_enable_exceptions);
 #endif
+
+ZEND_FUNCTION(mapi_feature);
 
 // Destructor functions needed for the PHP resources. 
 static void _php_free_mapi_session(zend_rsrc_list_entry *rsrc TSRMLS_DC);

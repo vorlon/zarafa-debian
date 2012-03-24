@@ -108,6 +108,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->m_ulLastChange = syncChangeNone;
 	this->m_bBusySyncRTF = FALSE;
 	this->m_ulBodyType = bodyTypeUnknown;
+	this->m_bRecipsDirty = FALSE;
 
 	this->HrAddPropHandlers(PR_RTF_IN_SYNC,				GetPropHandler       ,DefaultSetPropIgnore,		(void*) this, TRUE,  FALSE);
 	this->HrAddPropHandlers(PR_HASATTACH,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -892,6 +893,8 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			goto exit;
 	}
 
+	m_bRecipsDirty = TRUE;
+
 exit:
 	if(lpRecipProps)
 		ECFreeBuffer(lpRecipProps);
@@ -910,7 +913,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	LPSPropValue lpsPropArray = NULL;
 	LPMAPITABLE lpRecipientTable = NULL;
 	LPSRowSet lpsRow = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
 	LPMAPITABLE lpTable = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
@@ -962,11 +964,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		hr = MAPI_E_NO_RECIPIENTS;
 		goto exit;
 	}
-	
-	hr = lpRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &lpPropTagArray);
-
-	if (hr != hrSuccess)
-		goto exit;
 
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
 	while(TRUE){
@@ -1102,9 +1099,6 @@ exit:
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
 
-	if(lpPropTagArray)
-		ECFreeBuffer(lpPropTagArray);
-
 	if(lpRecipientTable)
 		lpRecipientTable->Release();
 
@@ -1203,7 +1197,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			if (hr != hrSuccess)
 				goto exit;
 
-			//hr = GetMsgStore()->lpSupport->ReadReceipt(0, lpThisMessage, &lpNewMessage); //Use Mapi support object
 			hr = ClientUtil::ReadReceipt(0, lpThisMessage, &lpNewMessage);
 			if(hr != hrSuccess)
 				goto exit;
@@ -1347,6 +1340,8 @@ HRESULT ECMessage::SyncRecips()
 			lpRows = NULL;
 		}
 	}
+
+	m_bRecipsDirty = FALSE;
 
 exit:
 	if(lpRows)
@@ -2031,7 +2026,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	case PROP_ID(PR_DISPLAY_TO):
 	case PROP_ID(PR_DISPLAY_CC):
 	case PROP_ID(PR_DISPLAY_BCC):
-		if(lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != erSuccess) {
+		if((lpMessage->m_bRecipsDirty && lpMessage->SyncRecips() != erSuccess) || lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != erSuccess) {
 			lpsPropValue->ulPropTag = ulPropTag;
 			if(PROP_TYPE(ulPropTag) == PT_UNICODE)
 				lpsPropValue->Value.lpszW = L"";

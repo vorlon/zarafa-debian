@@ -1,5 +1,8 @@
 lib_LTLIBRARIES = libzarafaclient.la
 
+sysconf_configdir = ${MAPICONFIGDIR}
+dist_sysconf_config_DATA = zarafa.inf
+
 AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX	\
 	$(GSOAP_CFLAGS) $(SSL_CFLAGS)				\
 	-I${top_srcdir}/provider/include			\

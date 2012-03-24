@@ -495,6 +495,9 @@ HRESULT ZarafaFsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 			case 4:
 				Value.lpszA = "Yearly";
 				break;
+			default:
+				Value.lpszA = "Invalid";
+				break;
 			}
 
 			hr = AddMissingProperty(lpMessage, "dispidRecurrencePattern",

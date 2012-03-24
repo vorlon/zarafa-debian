@@ -1354,71 +1354,6 @@ exit:
 }
 
 /** 
- * Get the combined store sizes of all users and public of a given company
- * 
- * @param[in] ulCompanyId internal company id
- * @param[out] lpllCompanySize complete size of all users and public
- * 
- * @return Zarafa error code
- */
-ECRESULT ECSecurity::GetCompanySize(unsigned int ulCompanyId, long long* lpllCompanySize)
-{
-	ECRESULT		er = erSuccess;
-	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT		lpDBResult = NULL;
-	DB_ROW			lpDBRow = NULL;
-
-	std::string		strQuery;
-	long long		llCompanySize = 0;
-
-	lpDatabase = m_lpSession->GetDatabase();
-	if (!lpDatabase) {
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	}
-
-	strQuery =
-		"SELECT SUM(p.val_longint) "
-		"FROM users AS u "
-		"JOIN hierarchy AS h "
-			"ON u.id = h.owner "
-		"JOIN properties AS p "
-			"ON h.id = p.hierarchyid "
-		"WHERE "
-			"(u.company = " + stringify(ulCompanyId) + " "  /* Member of company */
-			 "OR u.id = " + stringify(ulCompanyId) + ") "   /* Public store of company */
-			"AND p.tag = " + stringify(PROP_ID(PR_MESSAGE_SIZE_EXTENDED)) + " "
-			"AND p.type = " + stringify(PROP_TYPE(PR_MESSAGE_SIZE_EXTENDED));
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		goto exit;
-
-	if(lpDatabase->GetNumRows(lpDBResult) != 1) {
-		*lpllCompanySize = 0;
-		goto exit;
-	}
-
-	lpDBRow = lpDatabase->FetchRow(lpDBResult);
-	if(lpDBRow == NULL) {
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	}
-
-	if (lpDBRow[0] == NULL)
-		llCompanySize = 0;
-	else
-		llCompanySize = _atoi64(lpDBRow[0]);
-
-	*lpllCompanySize = llCompanySize;
-
-exit:
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
-	return er;
-}
-
-/** 
  * Gets the quota status value (ok, warn, soft, hard) for a given
  * store and store size
  * 
@@ -1469,7 +1404,7 @@ ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize
 		goto exit;
 	}
 
-	er = GetUserQuota(ulUserId, &quotadetails);
+	er = GetUserQuota(ulUserId, false, &quotadetails);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1495,7 +1430,7 @@ exit:
  * 
  * @return Zarafa error code
  */
-ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails)
+ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, quotadetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;
 	char* lpszWarnQuota = NULL;
@@ -1514,13 +1449,15 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetai
 	if (er != erSuccess)
 		goto exit;
 
+	ASSERT(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
+
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
 		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
 		(sExternId.objclass == CONTAINER_ADDRESSLIST))
 			goto exit;
 
-	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails);
+	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
 	if (er != erSuccess)
 		goto exit;
 

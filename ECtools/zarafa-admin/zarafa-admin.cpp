@@ -439,10 +439,17 @@ void print_quota(LPECQUOTA lpQuota, LPECQUOTASTATUS lpQuotaStatus, bool isPublic
 {
 	if (lpQuota) {
 		// watch the not:
-		cout << "Quota overrides:\t" << (!lpQuota->bUseDefaultQuota?"yes":"no") << endl;
-		cout << "Warning level:\t\t" << str_storage(lpQuota->llWarnSize) << endl;
-		cout << "Soft level:\t\t" << str_storage(lpQuota->llSoftSize) << endl;
-		cout << "Hard level:\t\t" << str_storage(lpQuota->llHardSize) << endl;
+		if (!isPublic)
+			cout << "Current user store quota settings:" << endl;
+		else
+			cout << "Current public store quota settings:" << endl;
+			
+		cout << " Quota overrides:\t" << (!lpQuota->bUseDefaultQuota?"yes":"no") << endl;
+		cout << " Warning level:\t\t" << str_storage(lpQuota->llWarnSize) << endl;
+		if(!isPublic) {
+			cout << " Soft level:\t\t" << str_storage(lpQuota->llSoftSize) << endl;
+			cout << " Hard level:\t\t" << str_storage(lpQuota->llHardSize) << endl;
+		}
 	}
 
 	if (lpQuotaStatus) {
@@ -483,7 +490,7 @@ HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid, LPENTRYID lpEid, 
 		goto exit;
 	}
 
-	hr = lpServiceAdmin->GetQuota(cbEid, lpEid, &lpsQuota);
+	hr = lpServiceAdmin->GetQuota(cbEid, lpEid, false, &lpsQuota);
 	if (hr != hrSuccess) {
 		cerr << "Unable to update quota, probably not found." << endl;
 		goto exit;
@@ -1588,7 +1595,7 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 
 	/* Group quota is not completely implemented at this time on the server... */
 	if (ulClass != DISTLIST_GROUP) {
-		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, &lpsQuota);
+		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, false, &lpsQuota);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show object quota, " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
@@ -1600,6 +1607,15 @@ HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore, objectc
 			} else
 				print_quota(lpsQuota, lpsQuotaStatus, (ulClass == CONTAINER_COMPANY));
 		}
+	}
+	
+	if (ulClass == CONTAINER_COMPANY) {
+		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, true, &lpsQuota);
+		if (hr != hrSuccess) {
+			cerr << "Unable to get user default quota for company, " << getMapiCodeString(hr) << endl;
+			hr = hrSuccess; /* not fatal */
+		} else
+			print_quota(lpsQuota, NULL, false);
 	}
 
 	if (cUsers) {
@@ -2960,7 +2976,7 @@ int main(int argc, char* argv[])
 
 	hr = HrOpenDefaultStore(lpSession,&lpMsgStore);
 	if(hr != hrSuccess) {
-		cerr << "Unable to open Admin store." << endl;
+		cerr << "Unable to open Admin store, " << stringify(hr,true) << endl;
 		goto exit;
 	}
 

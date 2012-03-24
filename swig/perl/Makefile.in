@@ -55,8 +55,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 MAPICore_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/swig/libswigcommon.la $(am__DEPENDENCIES_1)
+	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1)
 am__objects_1 = mapi_wrap.lo
 am_MAPICore_la_OBJECTS = conversion.lo director_util.lo \
 	$(am__objects_1)
@@ -171,6 +170,7 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MAPICONFIGDIR = @MAPICONFIGDIR@
 MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
@@ -283,7 +283,6 @@ MAPICore_la_LDFLAGS = -module -avoid-version
 MAPICore_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
-						${top_builddir}/swig/libswigcommon.la \
 						$(PROG_LIBS)
 
 CLEANFILES = mapi_wrap.cxx MAPICore.pm

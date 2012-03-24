@@ -93,7 +93,7 @@ bool isICSChange(unsigned int ulChange){
 	}
 }
 
-ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap, ECSession *lpSession, bool bUseV1, unsigned int cbEntryId, char *lpEntryId, xsd__base64Binary *lpSourceKey)
+ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap, ECSession *lpSession, bool bUseV1, unsigned int cbEntryId, char *lpEntryId, unsigned int ulCompanyFilter, xsd__base64Binary *lpSourceKey)
 {
 	ECRESULT			er			= erSuccess;
 	unsigned int		cbAbeid		= cbEntryId;
@@ -106,6 +106,24 @@ ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap, ECSession *lpSession
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
+	}
+
+	if (ulCompanyFilter != 0) {
+		string strQuery = "SELECT 0 from users where id = " + stringify(lpAbeid->ulId) + " AND company = " + stringify(ulCompanyFilter);
+		DB_RESULT		lpDBResult = NULL;
+		DB_ROW			lpDBRow = NULL;
+		
+		er = lpSession->GetDatabase()->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess)
+			goto exit;
+		
+		lpDBRow = lpSession->GetDatabase()->FetchRow(lpDBResult);
+		lpSession->GetDatabase()->FreeResult(lpDBResult);
+		if (lpDBRow == NULL) {
+			// no rows, so filtered object
+			er = ZARAFA_E_NO_ACCESS;
+			goto exit;
+		}
 	}
 
 	if (lpAbeid->ulVersion == 1 && !bUseV1)
@@ -126,6 +144,9 @@ ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap, ECSession *lpSession
 		er = lpSession->GetUserManagement()->GetABSourceKeyV1(lpAbeid->ulId, &sSourceKey);
 		if (er != erSuccess)
 			goto exit;
+
+		lpAbeid = (PABEID)(unsigned char*)sSourceKey;
+		cbAbeid = sSourceKey.size();
 	}
 
 	lpSourceKey->__size = cbAbeid;
@@ -904,7 +925,18 @@ nextFolder:
 			lpChanges->__size = i;
 		}
 	} else if(ulChangeType == ICS_SYNC_AB) {
+		// filter on the current logged on company (0 when non-hosted server)
+		// since we need to filter, we can't filter on "viewable
+		// companies" because after updating the allowed viewable, we
+		// won't see the changes as newly created anymore, and thus
+		// still don't have that company in the offline gab.
+		unsigned int ulCompanyId = 0;
+
+		// returns 0 for ZARAFA_UID_SYSTEM on hosted environments, and then the filter correctly doesn't filter anything.
+		lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
+
 	    if(ulChangeId > 0) {
+			// sourcekey is actually an entryid .. don't let the naming confuse you
             strQuery = "SELECT id, sourcekey, parentsourcekey, change_type FROM abchanges WHERE change_type & " + stringify(ICS_AB) + " AND id > " + stringify(ulChangeId) + " ORDER BY id";
 
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -933,8 +965,12 @@ nextFolder:
                 }
 
                 lpChanges->__ptr[i].ulChangeId = atoui(lpDBRow[0]);
-                er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, lpDBLen[1], lpDBRow[1], &lpChanges->__ptr[i].sSourceKey);
+                er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, lpDBLen[1], lpDBRow[1], ulCompanyId, &lpChanges->__ptr[i].sSourceKey);
                 if (er != erSuccess) {
+					// upgrade ulMaxChange on filtered object to skip in the future earlier.
+					if (er == ZARAFA_E_NO_ACCESS && atoui(lpDBRow[0]) > ulMaxChange)
+						ulMaxChange = atoui(lpDBRow[0]);
+					
                     er = erSuccess;
                     continue;
                 }
@@ -974,8 +1010,11 @@ nextFolder:
             
             lpDatabase->FreeResult(lpDBResult);
             lpDBResult = NULL;
-            
-            strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2)"; // Skip 'everyone' and 'system'
+
+			// Skip 'everyone', 'system' and users outside our company space, except when we're system (zarafa-indexer loads full addressbook)
+            strQuery = "SELECT id, objectclass, externid FROM users WHERE id not in (1,2)";
+			if (lpSession->GetSecurity()->GetUserId() != ZARAFA_UID_SYSTEM)
+				strQuery += " AND company = " + stringify(ulCompanyId);
             
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)

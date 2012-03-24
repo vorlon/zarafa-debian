@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-25 00:03+0100\n"
+"POT-Creation-Date: 2012-01-03 15:33+0100\n"
 "PO-Revision-Date: 2011-11-24 12:09+0200\n"
 "Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
@@ -302,7 +302,7 @@ msgstr "Hinzufügen"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:252
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
-#: provider/client/ECABContainer.cpp:243 provider/client/ECABContainer.cpp:298
+#: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:229
 msgid "Global Address Book"
 msgstr "Globales Adressbuch"
@@ -617,7 +617,7 @@ msgid "Tasks"
 msgstr "Aufgaben"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:858 provider/client/ECMsgStore.cpp:2391
+#: provider/libserver/ECGenProps.cpp:876 provider/client/ECMsgStore.cpp:2391
 msgid "Inbox"
 msgstr "Posteingang"
 
@@ -782,17 +782,17 @@ msgstr "Ihr Cache wird aktualisiert..."
 msgid "Upgrade: "
 msgstr "Aktualisierung:"
 
-#: provider/libserver/ECGenProps.cpp:816
+#: provider/libserver/ECGenProps.cpp:834
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Alle Öffentlichen Ordner"
 
-#: provider/libserver/ECGenProps.cpp:860
+#: provider/libserver/ECGenProps.cpp:878
 msgid "Archive"
 msgstr "Archiv"
 
-#: provider/client/ECMSProvider.cpp:246
+#: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:279
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
@@ -802,7 +802,7 @@ msgstr ""
 "Das Profil kann nicht genutzt werden, da Sie Ihre Lizenz überschritten "
 "haben. Um fortzufahren müssen Sie weitere Client Lizenzen kaufen"
 
-#: provider/client/ECMSProvider.cpp:250
+#: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:284
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
@@ -813,13 +813,13 @@ msgstr ""
 "Lizenzdienst aufbauen konnte. Bitte wenden Sie sich an Ihren Administrator."
 
 # 75%
-#: provider/client/ECABContainer.cpp:245 provider/client/ECABContainer.cpp:300
+#: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Globales Adressliste"
 
 # 75%
 # 80%
-#: provider/client/ECABContainer.cpp:247 provider/client/ECABContainer.cpp:302
+#: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Alle Adresslisten"
 
@@ -971,35 +971,35 @@ msgid "User already exists."
 msgstr "Der Benutzer existiert bereits."
 
 # 93%
-#: provider/client/ECArchiveAwareMessage.cpp:446
+#: provider/client/ECArchiveAwareMessage.cpp:451
 msgid "Zarafa Archiver"
 msgstr "Zarafa Archiver"
 
-#: provider/client/ECArchiveAwareMessage.cpp:448
+#: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr "Beim Abrufen der Mail  aus dem Archiv ist ein Fehler aufgetreten."
 
-#: provider/client/ECArchiveAwareMessage.cpp:450
+#: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
 msgstr "Wenden Sie sich an Ihren Systemadministrator."
 
-#: provider/client/ECArchiveAwareMessage.cpp:453 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr "Fehlercode:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:462
+#: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
 msgstr "Es ist keine gültige Archiver Lizenz vorhanden."
 
-#: provider/client/ECArchiveAwareMessage.cpp:466
+#: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
 msgstr "Das Archiv konnte nicht gefunden werden."
 
-#: provider/client/ECArchiveAwareMessage.cpp:470
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
 msgstr "Sie haben nicht die nötige Berechtigung um auf das Archiv zuzugreifen."
 
-#: provider/client/ECArchiveAwareMessage.cpp:477 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Fehlerbeschreibung:"
 
@@ -1260,19 +1260,19 @@ msgstr ""
 "neuer Verbindungsversuch gemacht bis Sie den Punkt 'Offline arbeiten' im "
 "Menü 'Datei' ausschalten"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:808
+#: provider/client/ECExchangeImportContentsChanges.cpp:818
 msgid "Sync Issues"
 msgstr "Sychronisierungsprobleme"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:812
+#: provider/client/ECExchangeImportContentsChanges.cpp:824
 msgid "Conflicts"
 msgstr "Konflikte"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:816
+#: provider/client/ECExchangeImportContentsChanges.cpp:830
 msgid "Local Failures"
 msgstr "Lokale Fehler"
 
-#: provider/client/ECExchangeImportContentsChanges.cpp:820
+#: provider/client/ECExchangeImportContentsChanges.cpp:836
 msgid "Server Failures"
 msgstr "Server Fehler"
 
@@ -1318,6 +1318,10 @@ msgstr ""
 "unterstützt. Falls Sie die Offline-Funktionalitäten nutzen möchten müssen "
 "Sie Outlook 2000, 2003, 2007 oder später verwenden."
 
+#: provider/contacts/ZCABContainer.cpp:645
+msgid "Zarafa Contacts Folders"
+msgstr ""
+
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
 msgstr "Das SSL Object konnte nicht vom Konto bezogen werden"
@@ -1353,38 +1357,38 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr "Wollen Sie fortfahren?"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:782
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
 msgstr "Zarafa Archiv"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:783
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
 msgid "This folder contains the special archive folders."
 msgstr "Der Ordner enthält die speziellen Archivordner"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:787
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
 msgid "History"
 msgstr "Verlauf"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:788
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr "Der Ordner enthält Archive die mit einer neueren Version ersetzt wurden"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:792
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
 msgid "Outgoing"
 msgstr "Ausgehend"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:793
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Der Ordner beinhaltet Archive der ausgehenden Emails"
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:797
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
 msgid "Deleted"
 msgstr "Gelöscht"
 
 # 98%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:798
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte"
 

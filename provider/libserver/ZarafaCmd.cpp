@@ -769,12 +769,14 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 	ECRESULT	er = erSuccess;
 	ECSession 	*lpecSession = NULL;
 
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, false);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
 	if(er != erSuccess)
 		goto exit;
 
     if(lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
         SaveLogonTime(lpecSession, false);
+
+	lpecSession->Unlock();
 
     // lpecSession is discarded. It is not locked, so we can do that. We only did the 'validatesession'
     // call to see if the session id existed in the first place, and the request is coming from the correct
@@ -1577,7 +1579,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
             goto exit;
 
 		// Quota information
-		if (lpecSession->GetSecurity()->GetUserQuota(ulStoreOwner, &sDetails) == erSuccess)
+		if (lpecSession->GetSecurity()->GetUserQuota(ulStoreOwner, false, &sDetails) == erSuccess)
 		{
 			// PR_QUOTA_WARNING_THRESHOLD
 			sPropVal.ulPropTag = PR_QUOTA_WARNING_THRESHOLD;
@@ -4054,10 +4056,6 @@ SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrict
 	if(er != erSuccess)
 		goto exit;
 
-	// NOTE: This is a workaround for version 4.1 backward compatibility
-	if(lpsRestrict)
-		BackwardCompRestrict4_1(lpsRestrict);
-
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
 		if (er != erSuccess)
@@ -4185,10 +4183,6 @@ SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulB
 
 	if(er != erSuccess)
 		goto exit;
-
-	// NOTE: This is a workaround for version 4.1 backward compatibility
-	if(lpsRestrict)
-		BackwardCompRestrict4_1(lpsRestrict);
 
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpsRestrict);
@@ -9773,7 +9767,7 @@ SOAP_ENTRY_END()
 // Quota
 //
 
-SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, struct quotaResponse* lpsQuota)
+SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota)
 {
 	quotadetails_t	quotadetails;
 
@@ -9789,7 +9783,7 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 		goto exit;
 	}
 
-	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, &quotadetails);
+	er = lpecSession->GetSecurity()->GetUserQuota(ulUserid, bGetUserDefault, &quotadetails);
 	if(er != erSuccess)
 	    goto exit;
 
@@ -10059,13 +10053,9 @@ SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entr
 			goto exit;
 	}
 
-	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER) {
+	if (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_MAILUSER || sExternId.objclass == CONTAINER_COMPANY) {
 		er = lpecSession->GetSecurity()->GetUserSize(ulUserid, &llStoreSize);
 		if(er != erSuccess)
-			goto exit;
-	} else if (sExternId.objclass == CONTAINER_COMPANY) {
-		er = lpecSession->GetSecurity()->GetCompanySize(ulUserid, &llStoreSize);
-		if (er != erSuccess)
 			goto exit;
 	} else {
 		er = ZARAFA_E_INVALID_PARAMETER;

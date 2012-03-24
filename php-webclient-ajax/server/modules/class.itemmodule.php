@@ -79,9 +79,10 @@
 			{
 				if(isset($action["attributes"]) && isset($action["attributes"]["type"])) {
 					$store = $this->getActionStore($action);
-
 					$parententryid = $this->getActionParentEntryID($action);
 					$entryid = $this->getActionEntryID($action);
+
+					$this->generatePropertyTags($store, $entryid, $action);
 
 					$overQouta = $this->checkOverQoutaRestriction($store, $action);
 					if(!empty($overQouta)) {

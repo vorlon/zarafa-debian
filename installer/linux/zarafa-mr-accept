@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 # -*- Mode: php -*-
 
-<?
+<?php
 /*
  * Copyright 2005 - 2011  Zarafa B.V.
  * 
@@ -66,8 +66,6 @@ define('POLICY_DECLINE_RECURRING_MEETING_REQUESTS',		0x0002);
 define('POLICY_DECLINE_CONFLICTING_MEETING_REQUESTS', 	0x0004);
 
 define('RECURRENCE_AVAILABILITY_RANGE', 60 * 60 * 24 * 180); // 180 days
-
-define('PR_EMS_AB_ROOM_CAPACITY', mapi_prop_tag(PT_LONG, 0x0807));
 
 $DEBUG = 1;
 

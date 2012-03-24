@@ -250,7 +250,7 @@ class IMessageProcessor
 {
 public:
 	virtual ~IMessageProcessor() {};
-	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) = 0;
+	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;
 	virtual ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) = 0;
 	virtual ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) = 0;
 	virtual unsigned int GetMaxChangeId() const = 0;
@@ -268,7 +268,7 @@ class NonLegacyIncrementalProcessor : public IMessageProcessor
 {
 public:
 	NonLegacyIncrementalProcessor(unsigned int ulChangeId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
 	unsigned int GetMaxChangeId() const;
@@ -281,7 +281,7 @@ NonLegacyIncrementalProcessor::NonLegacyIncrementalProcessor(unsigned int ulChan
 	: m_ulMaxChangeId(ulChangeId)
 { }
 
-ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
+ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	// Since all changes are truly new changes, we'll just set the changetype to whatever we receive
 	ASSERT(lpulChangeType);
@@ -289,6 +289,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 	ASSERT(lpDBRow && lpDBRow[icsID]);
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
+	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
 	m_ulMaxChangeId = std::max(m_ulMaxChangeId, lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0);
 	return erSuccess;
 }
@@ -325,7 +326,7 @@ class NonLegacyFullProcessor : public IMessageProcessor
 {
 public:
 	NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
 	unsigned int GetMaxChangeId() const;
@@ -342,7 +343,7 @@ NonLegacyFullProcessor::NonLegacyFullProcessor(unsigned int ulChangeId, unsigned
 	, m_ulMaxChangeId(ulChangeId)
 { }
 
-ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
+ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	// This processor will allways be used with the FullQueryGenerator, which means that the provided
 	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
@@ -361,6 +362,8 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 		if (ulChange > m_ulChangeId && (ulSourceSync == 0 || ulSourceSync != m_ulSyncId))	
 			*lpulChangeType = ICS_MESSAGE_NEW;
 	}
+	
+	*lpulFlags = 0; // Flags are only useful for ICS_FLAG
 
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
@@ -402,7 +405,7 @@ class LegacyProcessor : public IMessageProcessor
 {
 public:
 	LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId, const MESSAGESET &setMessages, unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
 	unsigned int GetMaxChangeId() const;
@@ -432,7 +435,7 @@ LegacyProcessor::LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId,
 		m_setMessages.clear();
 }
 
-ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
+ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	unsigned int			ulMsgFlags = 0;
 	MESSAGESET::iterator	iterMessage;
@@ -444,6 +447,7 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	ASSERT(lpDBRow && lpDBRow[icsSourceKey] && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
 	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
+	*lpulFlags = 0;
 	ulMsgFlags = atoui(lpDBRow[icsMsgFlags]);
 	iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
 	if (iterMessage == m_setMessages.end()) {
@@ -457,8 +461,14 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 		// The message is synced!
 		if (ulMsgFlags & MSGFLAG_DELETED)		// Deleted
 			*lpulChangeType = ICS_HARD_DELETE;
-		else if (iterMessage->second.ulLastChangeId > m_ulChangeId && iterMessage->second.ulLastSourceSync != m_ulSyncId)		// Modified (but not by the requestee)
-			*lpulChangeType = ICS_MESSAGE_CHANGE;
+		else if (iterMessage->second.ulChangeTypes) {		// Modified
+			if(iterMessage->second.ulChangeTypes & (ICS_CHANGE_FLAG_NEW | ICS_CHANGE_FLAG_CHANGE))
+				*lpulChangeType = ICS_MESSAGE_CHANGE;
+			else if(iterMessage->second.ulChangeTypes & ICS_CHANGE_FLAG_FLAG) {
+				*lpulChangeType = ICS_MESSAGE_FLAG;
+				*lpulFlags = iterMessage->second.ulFlags;
+			}
+		}
 		else
 			*lpulChangeType = 0;	// Ignore
 		
@@ -521,7 +531,7 @@ class FirstSyncProcessor : public IMessageProcessor
 {
 public:
 	FirstSyncProcessor(unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
 	unsigned int GetMaxChangeId() const;
@@ -534,7 +544,7 @@ FirstSyncProcessor::FirstSyncProcessor(unsigned int ulMaxFolderChange)
 	: m_ulMaxFolderChange(ulMaxFolderChange)
 { }
 
-ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
+ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	// This processor will allways be used with the FullQueryGenerator, which means that the provided
 	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
@@ -543,6 +553,7 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	ASSERT(lpDBRow && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
 	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
+	*lpulFlags = 0; // Only useful for ICS_FLAG type changes
 	if (atoui(lpDBRow[icsMsgFlags]) & MSGFLAG_DELETED)
 		*lpulChangeType = 0;	// Ignore
 	else
@@ -762,6 +773,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRow(DB_ROW lpDBRow, DB_LENGTHS lpDBLe
 	ECRESULT		er = erSuccess;
 	bool			fMatch = true;
 	unsigned int	ulChangeType = 0;
+	unsigned int	ulFlags = 0;
 	
 	ASSERT(lpDBRow);
 	ASSERT(lpDBLen);
@@ -783,9 +795,9 @@ ECRESULT ECGetContentChangesHelper::ProcessRow(DB_ROW lpDBRow, DB_LENGTHS lpDBLe
 	
 	ASSERT(m_lpMsgProcessor);
 	if (fMatch) {
-		er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType);
+		er = m_lpMsgProcessor->ProcessAccepted(lpDBRow, lpDBLen, &ulChangeType, &ulFlags);
 		if (m_lpsRestrict)
-			m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]), SAuxMessageData(SOURCEKEY(lpDBLen[icsParentSourceKey], lpDBRow[icsParentSourceKey]), 0, m_ulSyncId)));
+			m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]), SAuxMessageData(SOURCEKEY(lpDBLen[icsParentSourceKey], lpDBRow[icsParentSourceKey]), ICS_CHANGE_FLAG_NEW, ulFlags)));
 	} else
 		er = m_lpMsgProcessor->ProcessRejected(lpDBRow, lpDBLen, &ulChangeType);
 	
@@ -817,11 +829,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRow(DB_ROW lpDBRow, DB_LENGTHS lpDBLe
 
 	m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ulChangeType;
 
-	if (lpDBRow[icsFlags])
-		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = atoui(lpDBRow[icsFlags]);
-	else
-		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = 0;
-
+	m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = ulFlags;
 
 	m_ulChangeCnt++;
 	
@@ -923,7 +931,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	 * at all is rare, having all messages isn't.
 	 **/
 	if (m_lpsRestrict && m_setNewMessages.empty())
-		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, m_ulSyncId)));
+		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, 0)));
 
 
 	if (!m_setNewMessages.empty()) {
@@ -1079,10 +1087,10 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 	DB_LENGTHS		lpDBLen;
 	
 	strQuery = 
-		"SELECT m.sourcekey, m.parentsourcekey, c.id, c.sourcesync "
+		"SELECT m.sourcekey, m.parentsourcekey, c.change_type, c.flags "
 		"FROM syncedmessages as m "
 			"LEFT JOIN changes as c "
-				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey "
+				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey AND c.id > " + stringify(ulChangeId) + " AND c.sourcesync != " + stringify(ulSyncId) + " "
 		"WHERE sync_id=" + stringify(ulSyncId) + " AND change_id=" + stringify(ulChangeId);
 	ASSERT(m_lpDatabase);
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1098,13 +1106,9 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			goto exit;
 		}
 
-		iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), (lpDBRow[2]?atoui(lpDBRow[2]):0), (lpDBRow[3]?atoui(lpDBRow[3]):0))));
+		iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
 		if (iResult.second == false && lpDBRow[2]) {
-			unsigned int ulLastChangeId = atoui(lpDBRow[2]);
-			if (ulLastChangeId > iResult.first->second.ulLastChangeId) {
-				iResult.first->second.ulLastChangeId = ulLastChangeId;
-				iResult.first->second.ulLastSourceSync = (lpDBRow[3]?atoui(lpDBRow[3]):0);
-			}
+			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 		}
 	}
 	

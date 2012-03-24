@@ -54,6 +54,7 @@
 #include <pthread.h>
 
 #include "m4l.common.h"
+#include "m4l.mapisvc.h"
 #include <mapispi.h>
 #include <mapix.h>
 
@@ -93,13 +94,14 @@ class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
 private:
 	LPMAPISESSION		session;
 	LPMAPIUID			lpsProviderUID;
+	SVCService*			service;
 
 	pthread_mutex_t		m_advises_mutex;
 	M4LSUPPORTADVISES	m_advises;
 	ULONG				m_connections;
 
 public:
-	M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID sProviderUID);
+	M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID sProviderUID, SVCService* lpService);
 	virtual ~M4LMAPISupport();
 
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError); 

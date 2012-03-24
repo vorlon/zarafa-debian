@@ -55,6 +55,9 @@
 	 */
 	class AddressbookItemModule extends ItemModule
 	{
+		var $userDetailProperties = null;
+		var $abObjectDetailProperties = null;
+		var $groupDetailProperties = null;
 
 		/**
 		 * Constructor
@@ -63,10 +66,6 @@
 		 */
 		function AddressbookItemModule($id, $data)
 		{
-			$this->userDetailProperties = $GLOBALS["properties"]->getAddressBookItemMailuserProperties();
-			$this->abObjectDetailProperties = $GLOBALS["properties"]->getAddressBookItemABObjectProperties();
-			$this->groupDetailProperties = $GLOBALS["properties"]->getAddressBookItemDistlistProperties();
-			
 			parent::ItemModule($id, $data);
 		}
 
@@ -360,5 +359,19 @@
 			return $result;
 		}
 
+		/**
+		 * Function will generate property tags based on passed MAPIStore to use
+		 * in module. These properties are regenerated for every request so stores
+		 * residing on different servers will have proper values for property tags.
+		 * @param MAPIStore $store store that should be used to generate property tags.
+		 * @param Binary $entryid entryid of message/folder
+		 * @param Array $action action data sent by client
+		 */
+		function generatePropertyTags($store, $entryid, $action)
+		{
+			$this->userDetailProperties = $GLOBALS["properties"]->getAddressBookItemMailuserProperties($store);
+			$this->abObjectDetailProperties = $GLOBALS["properties"]->getAddressBookItemABObjectProperties($store);
+			$this->groupDetailProperties = $GLOBALS["properties"]->getAddressBookItemDistlistProperties($store);
+		}
 	}
 ?>
