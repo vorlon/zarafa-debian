@@ -2,3 +2,4 @@ usr/lib/libzarafaclient.so*
 usr/lib/libzarafasync.so.*
 usr/lib/libmapi.so.*
 usr/share/locale/*/LC_MESSAGES/*mo
+etc/mapi/zarafa.inf
