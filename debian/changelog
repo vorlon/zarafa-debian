@@ -1,3 +1,29 @@
+giraffe (7.0.5-1~1.gbp05eaf4) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @05eaf43b59f342c87248b0a5d125ddb8ab726548 **
+
+  [ Guido Günther ]
+  * [6dbdff8] Change project name to giraffe
+  * [ce5202f] Change maintainer to pkg-giraffe
+  * [b691d5e] Switch DH_VERBOSE to false
+  * [11a4382] Don't try to remove non existant directory
+
+  [ Matthias Geerdsen ]
+  * [2a1aa8f] fix libboost dependencies for sid
+  * [7dd25fa] zarafa-webaccess-mobile is no longer shipped
+  * [a90de06] use autotools-dev debhelpers for config.{sub,guess} updating
+  * [d09323c] fix installation of libzarafasync
+  * [072134d] rebase patch to new upstream
+  * [11d8d22] add patch to fix casting problem with gzfile (from Mandriva)
+  * [0f96759] add patch to fix php compatibilty issue pval -> zval
+  * [ee82ed2] fix libvime0 for version in sid, add zarafa-contacts package
+  * [6a5a9fb] add zarafa-contacts package
+  * [c6d60f3] add /etc/mapi to zarafa-client
+  * [e73e75a] fix typo in package name
+  * [05eaf43] add patch to remove hex2bin() declaration, it is available in php 5.4.0
+
+ -- Matthias Geerdsen <matthias@vorlons.info>  Sun, 25 Mar 2012 11:13:39 +0200
+
 giraffe (7.0.3~beta1-1~1.gbpe4c14c) UNRELEASED; urgency=low
 
   ** SNAPSHOT build @e4c14c384782481ae8adde0c376927d45caca787 **
