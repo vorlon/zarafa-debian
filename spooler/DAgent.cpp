@@ -2742,7 +2742,6 @@ void *HandlerLMTP(void *lpArg) {
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
-	PyMapiPlugin *lppyMapiPlugin = NULL;	
 
 	LMTP lmtp(lpArgs->lpChannel, (char *)lpArgs->strPath.c_str(), g_lpLogger, g_lpConfig);
 
@@ -2957,8 +2956,6 @@ exit:
 		lpSession->Release();
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP thread exiting");
-
-	delete lppyMapiPlugin;
 
 	if (lpArgs)
 		delete lpArgs;

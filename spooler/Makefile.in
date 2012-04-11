@@ -320,6 +320,7 @@ zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp
 zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h
 BUILT_SOURCES = PythonSWIGRuntime.h
 CLEANFILES = PythonSWIGRuntime.h
+EXTRA_DIST = PythonSWIGRuntime.h
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

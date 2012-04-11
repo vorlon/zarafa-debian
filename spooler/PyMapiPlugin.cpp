@@ -119,7 +119,6 @@ void assertbreak()
 	}\
 }
 
-
 PyMapiPlugin::PyMapiPlugin(void)
 {
 	m_lpLogger = NULL;
