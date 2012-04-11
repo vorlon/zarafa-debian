@@ -242,6 +242,9 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 	HRESULT hr = hrSuccess;
 	PyObjectAPtr ptrPySession, ptrPyAddrBook, ptrPyStore, ptrPyMessage, ptrPyFolderInbox, ptrPyLogger;
 
+	if (!m_bEnablePlugin)
+		goto exit;
+
 	if (!lpFunctionName || !lpMapiSession || !lpAdrBook) {
 		hr = MAPI_E_INVALID_PARAMETER; 
 		goto exit;
@@ -251,9 +254,6 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
-	if (!m_bEnablePlugin)
-		goto exit;
 
 	NEW_SWIG_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
 	NEW_SWIG_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
@@ -281,6 +281,9 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 	int result = 0;
     PyObjectAPtr  ptrPySession, ptrPyAddrBook, ptrPyStore, ptrEMTIn;
 
+	if (!m_bEnablePlugin)
+		goto exit;
+
 	if (!lpFunctionName || !lpMapiSession || !lpAdrBook || !lpEMTRules) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -291,9 +294,6 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 		goto exit;
 	}
 	
-	if (!m_bEnablePlugin)
-		goto exit;
-
 	NEW_SWIG_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
 	NEW_SWIG_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
 	NEW_SWIG_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
