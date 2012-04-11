@@ -9,7 +9,7 @@ from plugintemplates import *
 
 #@todo how to handle spam vs black/white list?
 
-class DAgentPluginManager:
+class DAgentPluginManager(object):
 
     def __init__(self, plugindir, logger):
         self.logger = WrapLogger(logger)
