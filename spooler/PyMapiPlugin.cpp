@@ -189,8 +189,6 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	ptrModule = PyImport_ImportModule("MAPI");
 	PY_HANDLE_ERROR(ptrModule);
 
-	PyModule_AddObject(lpMainmod, "MAPI", ptrModule);
-
 	// Init MAPI-swig types
 	BUILD_SWIG_TYPE(type_p_IMessage, "_p_IMessage");
 	BUILD_SWIG_TYPE(type_p_IMAPISession, "_p_IMAPISession");
@@ -203,14 +201,11 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	lpPluginPath = lpConfig->GetSetting("plugin_path");
 
 	// Import python plugin framework
-	// @todo use a file import
 	// @todo error unable to find file xxx
 	ptrName = PyString_FromString("mapiplugin");
 
 	m_ptrModMapiPlugin = PyImport_Import(ptrName);
 	PY_HANDLE_ERROR(m_ptrModMapiPlugin);
-
-	PyModule_AddObject(lpMainmod, "mapiplugin", m_ptrModMapiPlugin);
 
 	// Init logger swig object
 	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
