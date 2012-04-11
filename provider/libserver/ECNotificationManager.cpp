@@ -140,10 +140,9 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
         if(soapresponse(notifications, iterRequest->second.soap)) {
             // Handle error on the response
             soap_send_fault(iterRequest->second.soap);
-        } else {
-            soap_destroy(iterRequest->second.soap);
-            soap_end(iterRequest->second.soap);
-        }        
+        }
+		soap_destroy(iterRequest->second.soap);
+		soap_end(iterRequest->second.soap);
         lpItem = iterRequest->second.soap;
     
         // Pass the socket back to the socket manager (which will probably close it since the client should not be holding two notification sockets)
