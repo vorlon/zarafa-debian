@@ -11,7 +11,7 @@ MP_CONTINUE_FAILED      = 1
 MP_STOP_SUCCESS         = 2
 MP_STOP_FAILED          = 3
 
-class PluginManager(object):
+class PluginManager:
     def __init__(self, plugindir, logger):
         self.logger = logger
         self.plugindir = plugindir
