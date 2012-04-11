@@ -2325,7 +2325,7 @@ std::string RowEntryToString(LPROWENTRY lpRowEntry)
 	if(lpRowEntry == NULL)
 		return "NULL";
 
-	strResult = "rowflags"+ stringify(lpRowEntry->ulRowFlags, true) + "\n";
+	strResult = "rowflags: "+ stringify(lpRowEntry->ulRowFlags, true) + "\n";
 	for(unsigned int i=0; i < lpRowEntry->cValues; i++)		
 		strResult += PropNameFromPropTag(lpRowEntry->rgPropVals[i].ulPropTag)+" : "+PropValueToString(&lpRowEntry->rgPropVals[i]) + "\n";
 
@@ -2349,7 +2349,7 @@ std::string RowListToString(LPROWLIST lpRowList)
 
 std::string ActionToString(LPACTION lpAction)
 {
-	return "NOT IMPLEMENTED";
+	return "Action struct: NOT IMPLEMENTED";
 }
 
 std::string SortOrderToString(LPSSortOrder lpSort)
