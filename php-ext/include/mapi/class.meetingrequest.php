@@ -643,7 +643,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
      * your calendar.
 	 *@param boolean $tentative true if user as tentative accepted the meeting
 	 *@param boolean $sendresponse true if a response has to be send to organizer
-	 *@param boolean $move true if meeting request has to be move to calendar after changing msgclass
+	 *@param boolean $move true if the meeting request should be moved to the deleted items after processing
 	 *@param string $newProposedStartTime contains starttime if user has proposed other time
 	 *@param string $newProposedEndTime contains endtime if user has proposed other time
 	 *@param string $basedate start of day of occurrence for which user has accepted the recurrent meeting
@@ -817,7 +817,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					}
 				}
 				mapi_savechanges($calendarItem);
-				if ($move) mapi_folder_deletemessages($calFolder, array($props[PR_ENTRYID]));
+				if ($move) {
+					$wastebasket = $this->openDefaultWastebasket();
+					mapi_folder_copymessages($calFolder, Array($props[PR_ENTRYID]), $wastebasket, MESSAGE_MOVE);
+				}
 				$entryid = $props[PR_ENTRYID];
 			} else {
 				/**
