@@ -1045,8 +1045,39 @@
               <para>Default:
               <replaceable>/usr/bin/zarafa-mr-accept</replaceable></para>
           	</listitem>
-          </varlistentry>
-		</variablelist>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>plugin_enabled</option></term>
+			<listitem>
+					<para>Enable or disable the dagent plugin framework.</para>
+				<para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>plugin_manager_path</option></term>
+			<listitem>
+					<para>The path to the dagent plugin manager.</para>
+				<para>Default: <replaceable>/usr/share/zarafa-dagent/python</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>plugin_path</option></term>
+			<listitem>
+				<para>Path to the activated dagent plugins. This folder contains symlinks 
+				to the zarafa plugins and custom scripts. The plugins are installed in 
+				'/usr/share/zarafa-dagent/python/plugins/'. To activate a plugin create a symbolic
+				link in the <replaceable>plugin_path</replaceable> directory.</para>
+				<para>Example:
+				$ ln -s /usr/share/zarafa-dagent/python/plugins/BMP2PNG.py /var/lib/zarafa/dagent/plugins/BMP2PNG.py
+				</para>
+				<para>Default: <replaceable>/var/lib/zarafa/dagent/plugins</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+	     </variablelist>
 	  </refsection>
 
 	  <refsection>

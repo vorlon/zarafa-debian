@@ -221,6 +221,34 @@ If the script is successful (exitcode is 0), then no other actions are performed
 Default:
 \fI/usr/bin/zarafa\-mr\-accept\fR
 .RE
+.PP
+\fBplugin_enabled\fR
+.RS 4
+Enable or disable the dagent plugin framework\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBplugin_manager_path\fR
+.RS 4
+The path to the dagent plugin manager\&.
+.sp
+Default:
+\fI/usr/share/zarafa\-dagent/python\fR
+.RE
+.PP
+\fBplugin_path\fR
+.RS 4
+Path to the activated dagent plugins\&. This folder contains symlinks to the zarafa plugins and custom scripts\&. The plugins are installed in \'/usr/share/zarafa\-dagent/python/plugins/\'\&. To activate a plugin create a symbolic link in the
+\fIplugin_path\fR
+directory\&.
+.sp
+Example: $ ln \-s /usr/share/zarafa\-dagent/python/plugins/BMP2PNG\&.py /var/lib/zarafa/dagent/plugins/BMP2PNG\&.py
+.sp
+Default:
+\fI/var/lib/zarafa/dagent/plugins\fR
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the zarafa\-dagent process a HUP signal:
