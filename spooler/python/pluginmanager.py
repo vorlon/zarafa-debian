@@ -19,6 +19,10 @@ class PluginManager(object):
             raise Exception('Invalid plugins directory')
 
         directory = os.path.abspath(self.plugindir)
+        if os.path.isdir(directory) == False:
+            self.logger.logWarn("! Plugins directory '%s' doesn't exists. Plugins not loaded." % directory)
+            return 0
+
         plugins = glob.glob(directory + "/*.py")
 
         self.logger.logInfo("** Checking plugins in %s" % directory)
