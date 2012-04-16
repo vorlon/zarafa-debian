@@ -91,8 +91,6 @@ class PluginManager(object):
             except Exception, e:
                 self.logger.logError("!-- error: %s " % e)
 
-            stuk
-
             if (retval == MP_EXIT):
                 break
 
