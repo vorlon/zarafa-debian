@@ -376,6 +376,7 @@ exit:
 ECRESULT ECDatabaseMySQL::InitializeDBState()
 {
 	ECRESULT er = erSuccess;
+
 	
 	for(unsigned int i = 0; i < arraySize(stored_procedures); i++) {
 		er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
