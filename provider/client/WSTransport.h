@@ -97,9 +97,6 @@ enum
     NUM_RFT_PROPS
 };
 
-#define TRANS_LOCK_NONE						0
-#define TRANS_LOCK_MSG_STREAM_EXPORTER		1
-
 class WSTransport : public ECUnknown {
 protected:
 	WSTransport(ULONG ulUIFlags);
@@ -333,8 +330,6 @@ private:
 
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
-	virtual HRESULT LockSoap(ULONG ulToken);
-	virtual HRESULT UnLockSoap(ULONG ulToken);
 
 	//TODO: Move this function to the right file
 	static ECRESULT TrySSOLogon(ZarafaCmd* lpCmd, LPCSTR szServer, utf8string strUsername, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid);
@@ -345,8 +340,6 @@ private:
 protected:
 	ZarafaCmd*		m_lpCmd;
 	pthread_mutex_t m_hDataLock;
-	pthread_cond_t	m_hTokenCond;
-	ULONG			m_ulLockToken;
 	ECSESSIONID		m_ecSessionId;
 	ECSESSIONGROUPID m_ecSessionGroupId;
 	SESSIONRELOADLIST m_mapSessionReload;
