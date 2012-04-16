@@ -2339,6 +2339,8 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 				hr = HrNewMailNotification(lpTargetStore, lpDeliveryMessage);
 				if (hr != hrSuccess)
 					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
+				else
+					g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Send 'New Mail' notification");
 
 				hr = hrSuccess;
 			}
