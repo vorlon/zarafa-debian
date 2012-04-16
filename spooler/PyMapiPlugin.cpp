@@ -120,10 +120,14 @@ void assertbreak()
 			PyTracebackObject* traceback = (PyTracebackObject*)(*ptraceback);\
 			\
 			char *pStrErrorMessage = "Unknown";\
+			char *pStrType = "Unknown";\
 			if (*pvalue) \
 				pStrErrorMessage = PyString_AsString(pvalue);\
+			if (*ptype)\
+				pStrType = PyString_AsString(ptype);\
 			\
 			if (m_lpLogger) {\
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);\
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);\
 				\
 				while (traceback && traceback->tb_next != NULL) {\
@@ -164,8 +168,10 @@ void assertbreak()
  * 
  */
 #define PY_PARSE_TUPLE_HELPER(format, ...) {\
-	if(!PyArg_ParseTuple(ptrResult, format, __VA_ARGS__)) \
+	if(!PyArg_ParseTuple(ptrResult, format, __VA_ARGS__)) { \
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Wrong return value from the pluginmanager or plugin"); \
 		PY_HANDLE_ERROR(false) \
+	} \
 }
 
 PyMapiPlugin::PyMapiPlugin(void)
@@ -378,7 +384,7 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrFolder, lpFolder, type_p_IMAPIFolder)
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrMessage, lpMessage, type_p_IMessage)
 
-	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("II", lpulResult, lpulDoCallexe), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrFolder, *ptrMessage);
+	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I|I", lpulResult, lpulDoCallexe), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrFolder, *ptrMessage);
 
 exit:
 	return hr;
