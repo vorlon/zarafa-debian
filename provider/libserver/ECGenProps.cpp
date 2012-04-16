@@ -742,7 +742,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
 						sPropVal.Value.ul |= MAPI_ACCESS_READ;
 
-					if( (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
+					if( bOwner == true || (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
 						sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
 					
 					if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
