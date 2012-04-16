@@ -294,10 +294,7 @@ exit:
 
 bool g_bQuit = false;
 bool g_bTempfail = true; // Most errors are tempfails
-bool g_bThreads = false;
 unsigned int g_nLMTPThreads = 0;
-pthread_mutex_t g_lockLMTPThreads;
-pthread_t g_mainthread;
 ECLogger *g_lpLogger = NULL;
 ECConfig *g_lpConfig = NULL;
 
@@ -320,11 +317,6 @@ void sigterm(int) {
 }
 
 void sighup(int sig) {
-
-	// In Win32, the signal is sent in a separate, special signal thread. So this test is
-	// not needed or required.
-	if (g_bThreads && pthread_equal(pthread_self(), g_mainthread)==0)
-		return;
 
 	if (g_lpConfig) {
 		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
@@ -2960,12 +2952,6 @@ exit:
 	if (lpArgs)
 		delete lpArgs;
 
-	if (g_bThreads) {
-		pthread_mutex_lock(&g_lockLMTPThreads);
-		g_nLMTPThreads--;
-		pthread_mutex_unlock(&g_lockLMTPThreads);
-	}
-
 	return NULL;
 }
 
@@ -3001,23 +2987,8 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX) {
 		nMaxThreads = 20;
 	}
+
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Maximum LMTP threads set to %d", nMaxThreads);
-
-	if (g_bThreads) {
-		g_lpLogger->SetLogprefix(LP_TID);
-		pthread_mutex_init(&g_lockLMTPThreads, NULL);
-
-		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not set thread attribute to detached");
-			goto exit;
-		}
-
-		// 1Mb of stack space per thread
-		if (pthread_attr_setstacksize(&ThreadAttr, 1024 * 1024)) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not set thread stack size to 1Mb");
-			goto exit;
-		}
-	}
 
 	
 	// Setup sockets
@@ -3062,14 +3033,15 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	// this must be done before we do anything with pthreads
 	if (bDaemonize && unix_daemonize(g_lpConfig, g_lpLogger))
 		goto exit;
+	
 	if (!bDaemonize)
 		setsid();
+
 	unix_create_pidfile(servicename, g_lpConfig, g_lpLogger);
 	if (unix_runas(g_lpConfig, g_lpLogger))
 		goto exit;
 
-	if (g_bThreads == false)
-		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
+	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
@@ -3096,22 +3068,12 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 		}
 
 		// don't start more "threads" that lmtp_max_threads config option
-		if (g_bThreads) {
-			pthread_mutex_lock(&g_lockLMTPThreads);
-			if (g_nLMTPThreads == nMaxThreads) {
-				pthread_mutex_unlock(&g_lockLMTPThreads);
-				Sleep(100);
-				continue;
-			}
-			g_nLMTPThreads++;
-			pthread_mutex_unlock(&g_lockLMTPThreads);
-		} else {
-			if (g_nLMTPThreads == nMaxThreads) {
-				Sleep(100);
-				continue;
-			}
-			g_nLMTPThreads++;
+		if (g_nLMTPThreads == nMaxThreads) {
+			Sleep(100);
+			continue;
 		}
+
+		g_nLMTPThreads++;
 
 		// One socket has signalled a new incoming connection
 		DeliveryArgs *lpDeliveryArgs = new DeliveryArgs();
@@ -3127,22 +3089,13 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 				continue;
 			}
 
-			if (g_bThreads) {
-				if (pthread_create(&thread, &ThreadAttr, HandlerLMTP, lpDeliveryArgs) != 0) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create LMTP thread.");
-					// just keep running
-					delete lpDeliveryArgs;
-					hr = hrSuccess;
-				}
-			} else {
-				if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create LMTP process.");
-					// just keep running
-				}
-				// main handler always closes information it doesn't need
-				delete lpDeliveryArgs;
-				hr = hrSuccess;
+			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0) {
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create LMTP process.");
+				// just keep running
 			}
+			// main handler always closes information it doesn't need
+			delete lpDeliveryArgs;
+			hr = hrSuccess;
 		
 			continue;
 		}
@@ -3153,23 +3106,21 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP service will now exit");
 
-	if (g_bThreads == false) {
-		// in forked mode, send all children the exit signal
-		signal(SIGTERM, SIG_IGN);
-		kill(0, SIGTERM);
-		int i = 30;						// wait max 30 seconds
-		while (g_nLMTPThreads && i) {
-			if (i % 5 == 0)
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", g_nLMTPThreads);
-			sleep(1);
-			i--;
-		}
+	// in forked mode, send all children the exit signal
+	signal(SIGTERM, SIG_IGN);
+	kill(0, SIGTERM);
 
-		if (g_nLMTPThreads)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", g_nLMTPThreads);
-		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP service shutdown complete");
+	// wait max 30 seconds
+	for (int i = 30; g_nLMTPThreads && i; i--) {
+		if (i % 5 == 0)
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", g_nLMTPThreads);
+		sleep(1);
 	}
+
+	if (g_nLMTPThreads)
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", g_nLMTPThreads);
+	else
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP service shutdown complete");
 
 	MAPIUninitialize();
 
@@ -3403,7 +3354,7 @@ int main(int argc, char *argv[]) {
 		{ "pid_file", "/var/run/zarafa-dagent.pid" },
 		{ "lmtp_port", "2003" },
 		{ "lmtp_max_threads", "20" },
-		{ "process_model", "fork" },
+		{ "process_model", "", CONFIGSETTING_UNUSED },
 		{ "log_method", "file" },
 		{ "log_file", "-" },
 		{ "log_level", "2", CONFIGSETTING_RELOADABLE },
@@ -3559,8 +3510,6 @@ int main(int argc, char *argv[]) {
 	if (!bExplicitConfig && loglevel)
 		g_lpLogger->SetLoglevel(loglevel);
 
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)
-		g_bThreads = true;
 
 	/* Warn users that we are using the default configuration */
 	if (bDefaultConfigWarning && bExplicitConfig) {
@@ -3587,8 +3536,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (bListenLMTP) {
-		if (g_bThreads)
-			g_mainthread = pthread_self();
 
 
 		hr = running_service(argv[0], bDaemonize, &sDeliveryArgs);

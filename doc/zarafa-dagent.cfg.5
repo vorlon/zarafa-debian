@@ -104,17 +104,6 @@ The password of the SSL key file that is set in sslkey_file\&.
 Default: value not set\&.
 .RE
 .PP
-\fBprocess_model\fR
-.RS 4
-You can change the process model between
-\fIfork\fR
-and
-\fIthread\fR\&. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user\&. In the threaded model, a crash means all users are affected, and will not be able to use the service\&.
-.sp
-Default:
-\fIfork\fR
-.RE
-.PP
 \fBlmtp_port\fR
 .RS 4
 Port to listen to for LMTP requests
