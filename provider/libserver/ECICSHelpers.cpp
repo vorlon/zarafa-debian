@@ -701,12 +701,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 * Initial sync
 		 * We want all message that were not created by the current client (m_ulSyncId).
 		 */
-		if(m_lpsRestrict == NULL && m_ulFlags & SYNC_CATCHUP) {
-			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
-			m_lpQueryCreator = new NullQueryCreator(m_sFolderSourceKey, m_ulFlags);
-		} else {
-			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
-		}
+		m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
 		m_lpMsgProcessor = new FirstSyncProcessor(m_ulMaxFolderChange);
 	} else {
 		/*
