@@ -1,8 +1,10 @@
 
-MP_CONTINUE_SUCCESS     = 0
-MP_CONTINUE_FAILED      = 1
-MP_STOP_SUCCESS         = 2
-MP_STOP_FAILED          = 3
+MP_CONTINUE         = 0
+MP_FAILED           = 1
+MP_STOP_SUCCESS     = 2
+MP_STOP_FAILED      = 3
+MP_EXIT             = 4
+
 
 class IMapiDAgentPlugin(object):
     prioPostConverting = 9999

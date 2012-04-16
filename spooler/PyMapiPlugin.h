@@ -65,10 +65,16 @@ inline void my_DECREF(PyObject *obj) {
 //@fixme wrong name, autofree should be auto_decref
 typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObjectAPtr;
 
-#define MP_CONTINUE_SUCCESS		0
-#define MP_CONTINUE_FAILED		1
-#define MP_STOP_SUCCESS			2
-#define MP_STOP_FAILED			3
+#define MAKE_CUSTOM_SCODE(sev,fac,code) \
+				(((unsigned int)(sev)<<31) | ((unsigned int)(1)<<29) | ((unsigned int)(fac)<<16) | ((unsigned int)(code)))
+
+#define MAPI_E_MP_STOP		MAKE_CUSTOM_SCODE(1, FACILITY_ITF, 0x1)
+
+#define MP_CONTINUE			0	// Continue with the next hook
+#define MP_FAILED			1	// Whole process failed
+#define MP_STOP_SUCCESS		2	// Stop with the message processing go to the next recipient. Recpient return code OK
+#define MP_STOP_FAILED		3	// Stop with the message processing go to the next recipient. Recpient return code failed
+#define MP_EXIT				4	// Exit the all the hook calls and go father with the mail process.
 
 class PyMapiPlugin
 {

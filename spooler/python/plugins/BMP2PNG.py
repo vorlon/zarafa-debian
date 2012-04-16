@@ -16,11 +16,11 @@ class BMP2PNGExample(IMapiDAgentPlugin):
         props = message.GetProps([PR_HASATTACH], 0)
 
         if (props[0].Value == False):
-            return MP_CONTINUE_SUCCESS;
+            return MP_CONTINUE
 
         self.FindBMPAttachmentsAndConvert(message)
 
-        return MP_CONTINUE_SUCCESS
+        return MP_CONTINUE
 
     def FindBMPAttachmentsAndConvert(self, message, embedded=False):
         # Get the attachments

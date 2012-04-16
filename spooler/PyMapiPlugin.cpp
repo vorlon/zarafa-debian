@@ -73,11 +73,8 @@ void assertbreak()
 #define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
-		if (!pyswigobj) {\
-			assertbreak();\
-			hr = S_FALSE;\
-			goto exit;\
-		}\
+		PY_HANDLE_ERROR(pyswigobj) \
+		\
 		objpointer->AddRef();\
 	} else {\
 		pyswigobj = Py_None;\
@@ -100,7 +97,16 @@ void assertbreak()
 	if (!pyobj) { \
 		PyObject *lpErr = PyErr_Occurred(); \
 		if(lpErr){ \
-			PyErr_Print(); \
+			PyObjectAPtr ptype, pvalue, ptraceback;\
+			PyErr_Fetch(&ptype, &pvalue, &ptraceback);\
+			char *pStrErrorMessage = PyString_AsString(pvalue);\
+			char *lpszTraceback = PyString_AsString(ptraceback);\
+			if (m_lpLogger) {\
+				if (!pStrErrorMessage) pStrErrorMessage = (char*)"Unknown";\
+				if (!lpszTraceback) lpszTraceback = (char*)"Unknown";\
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);\
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s", lpszTraceback);\
+			}\
 		} \
 		assertbreak(); \
 		hr = S_FALSE; \

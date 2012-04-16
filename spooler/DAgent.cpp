@@ -2266,6 +2266,12 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 		goto exit;
 
 	// TODO do something with ulResult
+	if (ulResult == MP_STOP_SUCCESS) {
+	    if (lppMessage) lpDeliveryMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
+    	if (lpbFallbackDelivery) *lpbFallbackDelivery = bFallbackDelivery;
+
+		goto exit;
+	}
 
 	// Do rules & out-of-office
 	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &lpDeliveryMessage, lpRecip, lpArgs);

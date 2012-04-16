@@ -26,5 +26,4 @@ class examplerules1(IMapiDAgentPlugin):
                 ]
         rulestable.ModifyTable(0, rowlist)
 
-        return MP_CONTINUE_SUCCESS
-
+        return MP_CONTINUE

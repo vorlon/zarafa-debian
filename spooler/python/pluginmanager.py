@@ -5,11 +5,7 @@ import sys
 import inspect
 import operator
 
-
-MP_CONTINUE_SUCCESS     = 0
-MP_CONTINUE_FAILED      = 1
-MP_STOP_SUCCESS         = 2
-MP_STOP_FAILED          = 3
+from plugintemplates import *
 
 class PluginManager(object):
     def __init__(self, plugindir, logger):
@@ -77,14 +73,16 @@ class PluginManager(object):
         # sort the plugins on function name and prio
         sortedlist = sorted(plugins, lambda a, b: cmp(a[0], b[0]) or cmp(a[1], b[1]))
 
-        retval = MP_CONTINUE_SUCCESS
+        retval = MP_CONTINUE
         for (fname, prio, cname, i) in sortedlist:
             if (fname != functionname): continue
             try:
                 self.logger.logInfo("** Plugin '%s.%s' priority (%d)" % (cname, fname, prio))
+
                 retval = getattr(i, fname)(*args)
-                if (type(retval) != type(int)):
-                    self.logger.logWarn("!- Plugin '%s.%s' wrong return value expect 'int' type. fallback on default return code" % (cname, fname))
+
+                if (type(retval) != int and type(retval) != long):
+                    self.logger.logWarn("!- Plugin '%s.%s' returned a wrong return value type '%s'  expect 'int' or 'long' type. fallback on default return code" % (cname, fname, type(retval)))
                     retval = 0
                 self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval))
             except NotImplementedError, e:
@@ -93,10 +91,10 @@ class PluginManager(object):
             except Exception, e:
                 self.logger.logError("!-- error: %s " % e)
 
-            if (retval != MP_CONTINUE_SUCCESS and retval != MP_CONTINUE_FAILED):
-                break
+            stuk
 
-            #fixme: do we want to break if there is another exception here?
+            if (retval == MP_EXIT):
+                break
 
         self.logger.logInfo("* %s processing done" % functionname)
         return retval
