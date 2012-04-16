@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-29 00:06+0200\n"
-"PO-Revision-Date: 2012-03-28 09:23+0200\n"
-"Last-Translator: dionysius <d.markus@zarafa.com>\n"
+"POT-Creation-Date: 2012-04-02 16:24+0200\n"
+"PO-Revision-Date: 2012-03-30 15:14+0200\n"
+"Last-Translator: Martijn <martijn@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -37,7 +37,7 @@ msgstr "Verwijderde Items Herstellen..."
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
-msgstr "Afwezigheid instellingen..."
+msgstr "Afwezigheidsassistent..."
 
 #: provider/ECProps/Addin.cpp:513
 msgid "Offline"
@@ -60,11 +60,11 @@ msgstr ""
 
 #: provider/ECProps/Addin.cpp:658
 msgid "Out of Office currently on. Would you like to turn it off?"
-msgstr "De Afwezigheidsinstelling is ingeschakeld. Wilt u deze uitschakelen?"
+msgstr "De Afwezigheidsassistent is ingeschakeld. Wilt u deze uitschakelen?"
 
 #: provider/ECProps/Addin.cpp:658
 msgid "Out Of Office Turned On"
-msgstr "De Afwezigheid Assistent is ingeschakeld"
+msgstr "De Afwezigheidsassistent is ingeschakeld"
 
 #: provider/ECProps/Addin.cpp:664
 msgid "Unable to save Out of Office status"
@@ -186,7 +186,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Toevoegen aan favorieten niet mogelijk"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:158
+#: provider/ECProps/ECDelegatePropPage.cpp:162
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr "Kon de eigenschappenpagina niet ophalen"
@@ -234,37 +234,37 @@ msgstr "Alleen directe submappen toevoegen"
 msgid "Unable to get folder data"
 msgstr "Kon map gegevens niet ophalen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:124
+#: provider/ECProps/ECDelegatePropPage.cpp:128
 msgid "Saving changes failed."
 msgstr "Opslaan van wijzigingen is mislukt."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:127
+#: provider/ECProps/ECDelegatePropPage.cpp:131
 msgid "Saving rules failed: "
 msgstr "Opslaan van regels is mislukt:"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:168
+#: provider/ECProps/ECDelegatePropPage.cpp:172
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr "Kon geen sessie maken"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:174
+#: provider/ECProps/ECDelegatePropPage.cpp:178
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr "Kon het adresboek niet ophalen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:179
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 msgid "Add..."
 msgstr "Toevoegen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:180
+#: provider/ECProps/ECDelegatePropPage.cpp:184
 msgid "Remove..."
 msgstr "Verwijderen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:181
+#: provider/ECProps/ECDelegatePropPage.cpp:185
 msgid "Permissions..."
 msgstr "Machtigingen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:182
+#: provider/ECProps/ECDelegatePropPage.cpp:186
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -275,13 +275,13 @@ msgstr ""
 "anderen zonder verstuur-namens rechten te geven, open de map eigenschappen "
 "en wijzig de opties in de rechten tab."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:187
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 "Verzend vergader verzoeken en antwoorden enkel aan mijn delegates, niet aan "
 "mij"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:190
+#: provider/ECProps/ECDelegatePropPage.cpp:194
 msgid ""
 "The server is not available. Either there are network problems or server is "
 "down for maintenance."
@@ -289,7 +289,7 @@ msgstr ""
 "De server is niet beschikbaar. Dit kan het gevold zijn van onderhoud aan de "
 "server, of netwerk problemen."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:192
+#: provider/ECProps/ECDelegatePropPage.cpp:196
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
@@ -297,13 +297,13 @@ msgstr ""
 "Kan het delegatievenster niet initialiseren.\n"
 "Neem contact op met uw systeembeheerder."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:237
+#: provider/ECProps/ECDelegatePropPage.cpp:243
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Toevoegen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:252
+#: provider/ECProps/ECDelegatePropPage.cpp:258
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
