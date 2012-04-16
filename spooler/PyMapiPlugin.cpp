@@ -74,7 +74,7 @@ void assertbreak()
 #define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
-		PY_HANDLE_ERROR(pyswigobj) \
+		PY_HANDLE_ERROR(m_lpLogger, pyswigobj) \
 		\
 		objpointer->AddRef();\
 	} else {\
@@ -86,7 +86,7 @@ void assertbreak()
 #define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
-		PY_HANDLE_ERROR(pyswigobj) \
+		PY_HANDLE_ERROR(m_lpLogger, pyswigobj) \
 		\
 	} else {\
 		pyswigobj = Py_None;\
@@ -110,53 +110,64 @@ void assertbreak()
  * 
  * note: The traceback doesn't work very well
  */
-#define PY_HANDLE_ERROR(pyobj) { \
-	if (!pyobj) { \
-		PyObject *lpErr = PyErr_Occurred(); \
-		if(lpErr){ \
-			PyObjectAPtr ptype, pvalue, ptraceback;\
-			PyErr_Fetch(&ptype, &pvalue, &ptraceback);\
-			\
-			PyTracebackObject* traceback = (PyTracebackObject*)(*ptraceback);\
-			\
-			char *pStrErrorMessage = "Unknown";\
-			char *pStrType = "Unknown";\
-			if (*pvalue) \
-				pStrErrorMessage = PyString_AsString(pvalue);\
-			if (*ptype)\
-				pStrType = PyString_AsString(ptype);\
-			\
-			if (m_lpLogger) {\
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);\
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);\
-				\
-				while (traceback && traceback->tb_next != NULL) {\
-					PyFrameObject *frame = (PyFrameObject *)traceback->tb_frame;\
-					if (frame) {\
-						int line = frame->f_lineno;\
-						const char *filename = PyString_AsString(frame->f_code->co_filename); \
-						const char *funcname = PyString_AsString(frame->f_code->co_name); \
-						\
-						m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s(%d) %s", filename, line, funcname);\
-					} else { \
-						 m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: Unknown");\
-					}\
-					\
-					traceback = traceback->tb_next;\
-				}\
-			}\
-		} \
-		assertbreak(); \
-		hr = S_FALSE; \
+HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
+{
+	HRESULT hr = hrSuccess;
+
+	if (!pyobj) 
+	{ 
+		PyObject *lpErr = PyErr_Occurred();
+		if(lpErr) {
+			PyObjectAPtr ptype, pvalue, ptraceback;
+			PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+			
+			PyTracebackObject* traceback = (PyTracebackObject*)(*ptraceback);
+			
+			char *pStrErrorMessage = "Unknown";
+			char *pStrType = "Unknown";
+
+			if (*pvalue) pStrErrorMessage = PyString_AsString(pvalue);
+			if (*ptype) pStrType = PyString_AsString(ptype);
+			
+			if (lpLogger)
+			{
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python type: %s", pStrType);
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);
+				
+				while (traceback && traceback->tb_next != NULL) {
+					PyFrameObject *frame = (PyFrameObject *)traceback->tb_frame;
+					if (frame) {
+						int line = frame->f_lineno;
+						const char *filename = PyString_AsString(frame->f_code->co_filename); 
+						const char *funcname = PyString_AsString(frame->f_code->co_name); 
+						
+						lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s(%d) %s", filename, line, funcname);
+					} else { 
+						lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: Unknown");
+					}
+					
+					traceback = traceback->tb_next;
+				}
+			}
+		} 
+		assertbreak(); 
+		hr = S_FALSE; 
+	}
+
+	return hr;
+}
+
+#define PY_HANDLE_ERROR(logger, pyobj) { \
+	hr = PyHandleError(logger, pyobj);\
+	if (hr != hrSuccess) \
 		goto exit; \
-	}\
 }
 
 #define PY_CALL_METHOD(pluginmanager, functionname, returnmacro, format, ...) {\
 	PyObjectAPtr ptrResult;\
 	{\
 		ptrResult = PyObject_CallMethod(pluginmanager, functionname, format, __VA_ARGS__);\
-		PY_HANDLE_ERROR(ptrResult)\
+		PY_HANDLE_ERROR(m_lpLogger, ptrResult)\
 		\
 		returnmacro\
 	}\
@@ -170,7 +181,7 @@ void assertbreak()
 #define PY_PARSE_TUPLE_HELPER(format, ...) {\
 	if(!PyArg_ParseTuple(ptrResult, format, __VA_ARGS__)) { \
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Wrong return value from the pluginmanager or plugin"); \
-		PY_HANDLE_ERROR(false) \
+		PY_HANDLE_ERROR(m_lpLogger, false) \
 	} \
 }
 
@@ -241,7 +252,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	lpMainmod = PyImport_AddModule("__main__");
 	
 	ptrModule = PyImport_ImportModule("MAPI");
-	PY_HANDLE_ERROR(ptrModule);
+	PY_HANDLE_ERROR(m_lpLogger, ptrModule);
 
 	// Init MAPI-swig types
 	BUILD_SWIG_TYPE(type_p_IMessage, "_p_IMessage");
@@ -259,20 +270,20 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	ptrName = PyString_FromString("mapiplugin");
 
 	m_ptrModMapiPlugin = PyImport_Import(ptrName);
-	PY_HANDLE_ERROR(m_ptrModMapiPlugin);
+	PY_HANDLE_ERROR(m_lpLogger, m_ptrModMapiPlugin);
 
 	// Init logger swig object
-	NEW_SWIG_INTERFACE_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
+	NEW_SWIG_INTERFACE_POINTER_OBJ(m_ptrPyLogger, m_lpLogger,  type_p_ECLogger);
 
 	// Init plugin class	
 	ptrClass = PyObject_GetAttrString(m_ptrModMapiPlugin, (char*)lpPluginManagerClassName);
-	PY_HANDLE_ERROR(ptrClass);
+	PY_HANDLE_ERROR(m_lpLogger, ptrClass);
 
 	ptrArgs  = Py_BuildValue("(sO)", lpPluginPath, *m_ptrPyLogger);
-	PY_HANDLE_ERROR(ptrArgs);
+	PY_HANDLE_ERROR(m_lpLogger, ptrArgs);
 
 	m_ptrMapiPluginManager = PyObject_CallObject(ptrClass, ptrArgs);
-	PY_HANDLE_ERROR(m_ptrMapiPluginManager);
+	PY_HANDLE_ERROR(m_lpLogger, m_ptrMapiPluginManager);
 exit:
 	return hr;
 }
