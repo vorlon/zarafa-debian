@@ -71,14 +71,14 @@ class Disclaimer(IMapiSpoolerPlugin):
 
         self.logger.logDebug("*--- The message bestbody 0x%08X" % bodytag)
         if PROP_ID(bodytag) == PROP_ID(PR_BODY):
-            disclaimer = self.getDisclaimer('txt', company)
+            disclaimer = "\r\n" + self.getDisclaimer('txt', company)
 
             bodystream = message.OpenProperty(PR_BODY, IID_IStream, 0, MAPI_MODIFY)
             bodystream.Seek(0, STREAM_SEEK_END)
             bodystream.Write(disclaimer)
             bodystream.Commit(0)
         elif bodytag == PR_HTML:
-            disclaimer = self.getDisclaimer('html', company)
+            disclaimer = "<br>" + self.getDisclaimer('html', company)
 
             stream = message.OpenProperty(PR_HTML, IID_IStream, 0, MAPI_MODIFY)
             stream.Seek(0, STREAM_SEEK_END)
