@@ -278,6 +278,41 @@ Messages that are archived this way are not attached to the original message in 
 Default:
 \fIno\fR
 .RE
+.PP
+\fBplugin_enabled\fR
+.RS 4
+Enable or disable the spooler plugin framework\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBplugin_manager_path\fR
+.RS 4
+The path to the spooler plugin manager\&.
+.sp
+Default:
+\fI/usr/share/zarafa\-spooler/python\fR
+.RE
+.PP
+\fBplugin_path\fR
+.RS 4
+Path to the activated spooler plugins\&. This folder contains symlinks to the zarafa plugins and custom scripts\&. The plugins are installed in
+\fI/usr/share/zarafa\-spooler/python/plugins\fR\&. To activate a plugin create a symbolic link in the
+\fIplugin_path\fR
+directory\&.
+.sp
+Example:
+.sp
+
+\fBln\fR
+\fB\-s\fR
+\fI/usr/share/zarafa\-spooler/python/plugins/BMP2PNG\&.py\fR
+\fI/var/lib/zarafa/spooler/plugins/BMP2PNG\&.py\fR
+.sp
+Default:
+\fI/var/lib/zarafa/spooler/plugins\fR
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the zarafa\-spooler process a HUP signal:

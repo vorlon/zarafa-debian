@@ -6617,6 +6617,40 @@
             </listitem>
           </varlistentry>
 
+		  <varlistentry>
+			<term><option>plugin_enabled</option></term>
+			<listitem>
+					<para>Enable or disable the spooler plugin framework.</para>
+				<para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>plugin_manager_path</option></term>
+			<listitem>
+					<para>The path to the spooler plugin manager.</para>
+				<para>Default: <replaceable>/usr/share/zarafa-spooler/python</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>plugin_path</option></term>
+			<listitem>
+				<para>Path to the activated spooler plugins. This folder contains symlinks 
+				to the zarafa plugins and custom scripts. The plugins are installed in 
+				<replaceable>/usr/share/zarafa-spooler/python/plugins</replaceable>. To activate a plugin create a symbolic
+				link in the <replaceable>plugin_path</replaceable> directory.</para>
+				<para>Example:</para>
+				<para>
+					<command>ln</command>
+					<option>-s</option>
+				    <replaceable>/usr/share/zarafa-spooler/python/plugins/BMP2PNG.py</replaceable> <replaceable>/var/lib/zarafa/spooler/plugins/BMP2PNG.py</replaceable>
+				</para>
+				<para>Default: <replaceable>/var/lib/zarafa/spooler/plugins</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+
 		</variablelist>
 	  </refsection>
 
