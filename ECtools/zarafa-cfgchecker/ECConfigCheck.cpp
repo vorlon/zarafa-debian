@@ -293,7 +293,7 @@ int ECConfigCheck::testCharset(config_check_t *check)
 		fread(buffer, sizeof(buffer), 1, fp);
 		output = buffer;
 
-		fclose(fp);
+		pclose(fp);
 
 		if (output.find(check->value1) == string::npos) {
 			printError(check->option1, "contains unknown chartype \"" + check->value1 + "\"");

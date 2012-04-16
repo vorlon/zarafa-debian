@@ -8618,7 +8618,8 @@ ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession, unsigned i
 exit:
     if(lpDatabase && er != erSuccess && er != ZARAFA_W_PARTIAL_COMPLETION) {
         lpDatabase->Rollback();
-		lpAttachmentStorage->Rollback();
+		if (lpAttachmentStorage)
+			lpAttachmentStorage->Rollback();
 	}
 
 	if (lpAttachmentStorage)

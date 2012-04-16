@@ -1395,7 +1395,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulStoreId, unsigned int ulFo
 	er = lpDatabase->Commit();
 		
 exit:
-	if (er != erSuccess)
+	if (er != erSuccess && lpDatabase)
 		lpDatabase->Rollback();
         
     return er;
