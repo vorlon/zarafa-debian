@@ -2066,7 +2066,7 @@ ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared, const std::set<unsign
 {
     ECRESULT er = erSuccess;
     std::string strQuery;
-    std::set<unsigned int>::iterator i;
+    std::set<unsigned int>::const_iterator i;
 
     if(setParents.empty())
         goto exit;
@@ -2104,7 +2104,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag, const std:
     std::string strQuery;
     
     // See if we can get the object IDs for the passed objects from the cache
-    for(std::set<std::string>::iterator i = setIds.begin(); i != setIds.end(); i++) {
+    for(std::set<std::string>::const_iterator i = setIds.begin(); i != setIds.end(); i++) {
         if(g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, i->size(), (unsigned char *)i->data(), &ulId) == erSuccess) {
             if(ulTag == PROP_ID(PR_SOURCE_KEY))
                 setFolders.insert(ulId);
