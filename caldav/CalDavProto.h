@@ -72,8 +72,6 @@ public:
 	HRESULT HrHandleCommand(const std::string &strMethod);
 
 protected:
-	std::string m_strCalHome;
-
 	/* entry points in webdav class */
 	/* HRESULT HrPropfind(); */
 	/* HRESULT HrReport(); */

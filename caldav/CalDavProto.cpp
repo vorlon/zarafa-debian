@@ -73,6 +73,7 @@ struct sMymap {
 	{ PR_DISPLAY_NAME_W, "displayname" },
 	{ PR_CONTAINER_CLASS_A, "resourcetype" },
 	{ PR_DISPLAY_NAME_W, "owner" },
+	{ PR_DISPLAY_NAME_W, "calendar-home-set" },
 	{ PR_ENTRYID, "calendar-data" },
 	{ PR_COMMENT_W, "calendar-description" },
 	{ PR_DISPLAY_TYPE, "calendar-user-type" },
@@ -219,7 +220,6 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	std::list<WEBDAVPROPERTY>::iterator iter;		
 	WEBDAVPROP *lpsDavProp = NULL;
 	WEBDAVRESPONSE sDavResp;
-	IMAPIProp *lpMapiProp = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropVal = NULL;
 	ULONG cbsize = 0;
@@ -228,19 +228,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 
 	// number of properties requested by client.
 	cbsize = lpsDavProp->lstProps.size();
-	
-	if(m_ulUrlFlag & REQ_PUBLIC)
-		m_strCalHome = "/caldav/public/" + urlEncode(m_wstrFldName, "utf-8");
-	else
-		m_strCalHome = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/" + urlEncode(m_wstrFldName, "utf-8");
-	
-	if (m_ulUrlFlag & REQ_PUBLIC && m_wstrFldName.empty())
-		lpMapiProp = m_lpDefStore;
-	else if (m_lpUsrFld && !m_wstrFldName.empty())
-		lpMapiProp = m_lpUsrFld;
-	else
-		lpMapiProp = m_lpActiveStore;
-	
+
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), (void **) &lpPropTagArr);
 	if (hr != hrSuccess)
 	{
@@ -249,7 +237,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	}
 
 	lpPropTagArr->cValues = cbsize;
-
+	
 	// Get corresponding mapi properties.
 	iter = lpsDavProp->lstProps.begin();
 	for(int i = 0; iter != lpsDavProp->lstProps.end(); iter++, i++)
@@ -257,7 +245,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 		lpPropTagArr->aulPropTag[i] = GetPropmap((char*)iter->sPropName.strPropname.c_str());
 	}
 
-	hr = lpMapiProp->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
+	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
 	if (FAILED(hr))
 	{
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error in GetProps for user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
@@ -1562,7 +1550,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	// @todo, check input url not to have 3rd level path? .. see input/output list above.
 
 	if(!(m_ulUrlFlag & REQ_PUBLIC))
-		strReqUrl = "/caldav/" + urlEncode(m_wstrUser, "utf-8") + "/";
+		strReqUrl = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";
 	else
 		strReqUrl = "/caldav/public/";
 
@@ -2067,7 +2055,9 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 	std::string strProperty;
 	std::string strIcal;
 	std::string strOwnerURL;
+	std::string strCurrentUserURL;
 	std::string strPrincipalURL;
+	std::string strCalHome;
 	LPSPropValue lpFoundProp = NULL;
 	WEBDAVPROP sWebProp;
 	WEBDAVPROP sWebPropNotFound;
@@ -2082,13 +2072,24 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 	else
 		ulFolderType = OTHER_FOLDER;
 
-	// owner always /caldav/loginuser/
+	// owner is DAV namespace, the owner of the resource (url)
+	strOwnerURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";
+	strCurrentUserURL = "/caldav/" + urlEncode(m_wstrUser, "utf-8") + "/";
 	// principal always /caldav/m_wstrFldOwner/, except public: full url
-	strOwnerURL = "/caldav/" + urlEncode(m_wstrUser, "utf-8") + "/";
 	if (m_ulUrlFlag & REQ_PUBLIC) {
 		m_lpRequest->HrGetRequestUrl(&strPrincipalURL);
+		strCalHome = strPrincipalURL;
 	} else {
 		strPrincipalURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";
+
+		// @todo, displayname of default calendar if empty() ? but see todo in usage below also.
+		if (!m_wstrFldName.empty()) {
+			strCalHome = strPrincipalURL + urlEncode(m_wstrFldName, "utf-8") + "/";
+		} else {
+			lpFoundProp = PpropFindProp(lpProps, ulPropCount, PR_DISPLAY_NAME_W);
+			if (lpFoundProp)
+				strCalHome = strPrincipalURL + urlEncode(lpFoundProp->Value.lpszW, "utf-8") + "/";
+		}
 	}
 
 	HrSetDavPropName(&(sWebProp.sPropName), "prop", CALDAVNSDEF);
@@ -2140,11 +2141,8 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 				sWebVal.strValue = "mailto:" + SPropValToString(lpFoundProp);
 			sWebProperty.lstValues.push_back(sWebVal);
 
-			// @todo why is m_wstrCalHome a m_ variable when it's only used here?
-			if (!m_strCalHome.empty()) {
-				sWebVal.strValue = m_strCalHome;
-				sWebProperty.lstValues.push_back(sWebVal);
-			}
+			sWebVal.strValue = strPrincipalURL;
+			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "acl" || strProperty == "current-user-privilege-set") {
 			
@@ -2180,12 +2178,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 
 		} else if (strProperty == "schedule-inbox-URL" && (m_ulUrlFlag & REQ_PUBLIC) == 0) {
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
-			sWebVal.strValue = strOwnerURL + "Inbox";
+			sWebVal.strValue = strCurrentUserURL + "Inbox/";
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "schedule-outbox-URL" && (m_ulUrlFlag & REQ_PUBLIC) == 0) {
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
-			sWebVal.strValue = strOwnerURL + "Outbox";
+			sWebVal.strValue = strCurrentUserURL + "Outbox/";
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "supported-calendar-component-set") {
@@ -2243,16 +2241,30 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 
 			sWebProperty.strValue = "/caldav/";
 
-		} else if (strProperty == "current-user-principal" || strProperty == "owner") {
+		} else if (strProperty == "current-user-principal") {
+			// webdav rfc5397
+			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
+			sWebVal.strValue = strCurrentUserURL;
+			sWebProperty.lstValues.push_back(sWebVal);
+
+		} else if (strProperty == "owner") {
 
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
 			sWebVal.strValue = strOwnerURL;
 			sWebProperty.lstValues.push_back(sWebVal);
 
-		} else if (strProperty == "calendar-home-set" || strProperty == "principal-URL") {
+		} else if (strProperty == "principal-URL") {
 
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
 			sWebVal.strValue = strPrincipalURL;
+			sWebProperty.lstValues.push_back(sWebVal);
+
+		} else if (strProperty == "calendar-home-set" && !strCalHome.empty()) {
+			// Purpose: Identifies the URL of any WebDAV collections that contain
+			//          calendar collections owned by the associated principal resource.
+			// @todo, so we should list every calendar in strPrincipalURL ?
+			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
+			sWebVal.strValue = strCalHome;
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "calendar-user-type") {
