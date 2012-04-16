@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-24 00:04+0100\n"
+"POT-Creation-Date: 2012-03-27 00:05+0200\n"
 "PO-Revision-Date: 2012-03-23 03:57+0200\n"
 "Last-Translator: Sebastian <s.kummer@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
@@ -622,7 +622,7 @@ msgid "Tasks"
 msgstr "Tarefas"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:922 provider/client/ECMsgStore.cpp:2397
+#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2397
 msgid "Inbox"
 msgstr "Caixa de Entrada"
 
@@ -785,13 +785,13 @@ msgstr "Seu cache está sendo atualizado..."
 msgid "Upgrade: "
 msgstr "Atualizar:"
 
-#: provider/libserver/ECGenProps.cpp:880
+#: provider/libserver/ECGenProps.cpp:882
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Pastas Públicas"
 
-#: provider/libserver/ECGenProps.cpp:924
+#: provider/libserver/ECGenProps.cpp:926
 msgid "Archive"
 msgstr "Arquivo"
 
@@ -1549,6 +1549,23 @@ msgstr "Nenhuma descrição disponível"
 #: common/Util.cpp:1772
 msgid "MAPI error code:"
 msgstr "Código de erro do MAPI:"
+
+#: installer/linux/zarafa-mr-accept:403
+msgid "Recurring meetings are not allowed"
+msgstr ""
+
+#: installer/linux/zarafa-mr-accept:453
+msgid "The requested time slot is unavailable"
+msgstr ""
+
+#: installer/linux/zarafa-mr-accept:455
+msgid "The requested time slots are unavailble on the following dates:"
+msgstr ""
+
+#: installer/linux/zarafa-mr-accept:458
+#, php-format
+msgid "%x %X"
+msgstr ""
 
 #~ msgid "Inbox -"
 #~ msgstr "Caixa -"
