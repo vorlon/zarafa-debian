@@ -1,4 +1,4 @@
-EXTRA_DIST = examplerules.py BMP2PNG.py
+EXTRA_DIST = examplerules.py BMP2PNG.py disclaimer.py
 
 zarafa_dagentdir = ${datadir}/zarafa-dagent/python/plugins
 zarafa_dagent_SCRIPTS=examplerules.py BMP2PNG.py
