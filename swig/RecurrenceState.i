@@ -116,7 +116,7 @@ def Summarize(rs):
         print "  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i)))
     print "Modified occurrence times:"
     # beware of the crash!
-    m = rs.lstDeletedInstanceDates
+    m = rs.lstModifiedInstanceDates
     for i in m:
         print "  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i)))
     if rs.ulReaderVersion2 == 0:
