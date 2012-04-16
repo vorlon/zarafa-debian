@@ -87,6 +87,9 @@ class PluginManager(object):
 
                 self.logger.logDebug("** Plugin '%s.%s' return result %s"  % (cname, fname, repr(retval) ))
 
+                if (type(retval) == int or type(retval) == long):
+                    self.logger.logDebug("!- Plugin '%s.%s' convert return value type '%s' to a 'tuple'"  % (cname, fname, type(retval)))
+                    retval = retval,
                 if (type(retval) != tuple):
                     self.logger.logWarn("!- Plugin '%s.%s' returned a wrong return value type '%s' except 'tuple'. Fallback on defaults" % (cname, fname, type(retval)))
                     retval = MP_CONTINUE,
