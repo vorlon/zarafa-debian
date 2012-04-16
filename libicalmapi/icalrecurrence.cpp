@@ -120,7 +120,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	
 	// use localtime for calculating weekday as in UTC time 
 	// the weekday can change to previous day for time 00:00 am
-	dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));	
+	dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
 	gmtime_safe(&dtLocalStart, &tm);
 	
 	if (bIsAllday)
@@ -359,11 +359,22 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 		goto exit;
 	}
 	icRecId = icalvalue_get_datetime(icalproperty_get_value(lpicProp));
-	if(icRecId.is_date)
-		ttOriginalTime = icaltime_as_timet(icRecId);
-	else
-		ttOriginalTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
-	
+	ttOriginalTime = icaltime_as_timet(icRecId);
+	/*
+	 * The definition of the timestamp in RECURRENCE-ID and
+	 * PidLidExceptionReplaceTime are the same:
+	 * The start time of the original occurrence in the recurring
+	 * rule, thus containing the timestamp at the correct time too.
+	 *
+	 * However, (see ZCP-9456), exchange may send us the start of day
+	 * of the occurrence. Because other calculations on this timestamp
+	 * also use the StartOfDay() function, it may be set to the
+	 * previous day when this item has a timezone of GMT+x. We
+	 * therefor use the localtime in the property as a UTC timestamp
+	 * to avoid issues. This means we write an invalid value for the
+	 * property according to the specs, but it doesn't seem to matter
+	 * much.
+	 */
 	lpEx->tBaseDate = ttOriginalTime;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
@@ -761,17 +772,18 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 {
 	HRESULT hr = hrSuccess;
 	OccrInfo *lpFBBlocksAll = NULL;
-	ULONG lpcValues = 0;
+	ULONG cValues = 0;
 	bool bIsValid = true;
 
 	if (lpEx.tStartDate > lpEx.tBaseDate) {
 
-		hr = lpItem->lpRecurrence->HrGetItems(lpItem->lpRecurrence->StartOfDay(lpEx.tBaseDate) , lpItem->lpRecurrence->StartOfDay(lpEx.tStartDate) + 1439 * 60 , NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &lpcValues);
+		hr = lpItem->lpRecurrence->HrGetItems(lpItem->lpRecurrence->StartOfDay(lpEx.tBaseDate), lpItem->lpRecurrence->StartOfDay(lpEx.tStartDate) + 1439 * 60,
+											  NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
 		if (hr != hrSuccess)
 			goto exit;
 
-		for (ULONG i = 0 ; i < lpcValues ; i++)	{
-			if(lpEx.tBaseDate < lpFBBlocksAll[i].tBaseDate) {
+		for (ULONG i = 0; i < cValues; i++) {
+			if (lpEx.tBaseDate < lpFBBlocksAll[i].tBaseDate) {
 				bIsValid = false;
 				break;
 			}
@@ -779,13 +791,13 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 
 	} else {
 
-		hr = lpItem->lpRecurrence->HrGetItems(lpItem->lpRecurrence->StartOfDay(lpEx.tStartDate) , lpItem->lpRecurrence->StartOfDay(lpEx.tBaseDate) + 1439 * 60 , NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &lpcValues);
+		hr = lpItem->lpRecurrence->HrGetItems(lpItem->lpRecurrence->StartOfDay(lpEx.tStartDate), lpItem->lpRecurrence->StartOfDay(lpEx.tBaseDate) + 1439 * 60,
+											  NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
 		if (hr != hrSuccess)
 			goto exit;
 
-		for (ULONG i = 0 ; i < lpcValues ; i++)	{
-
-			if(lpEx.tBaseDate > lpFBBlocksAll[i].tBaseDate) {
+		for (ULONG i = 0; i < cValues; i++) {
+			if (lpEx.tBaseDate > lpFBBlocksAll[i].tBaseDate) {
 				bIsValid = false;
 				break;
 			}
