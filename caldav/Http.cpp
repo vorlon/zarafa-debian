@@ -61,69 +61,76 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 /** 
- * Parse the incoming URL into known peices:
+ * Parse the incoming URL into known pieces:
  *
  * /<service>/[username][/foldername][/uid.ics]
  * service: ical or caldav, mandatory
  * username: open store of this user, "public" for public folders. optional: default comes from HTTP Authenticate header.
  * foldername: folder name in store to open. multiple forms possible (normal name, prefix_guid, prefix_entryid).
  * 
- * @param[in] wstrUrl incoming url
+ * @param[in] strUrl incoming url
  * @param[out] lpulFlag url flags (service type and public marker)
- * @param[out] lpwstrUrlUser owner of lpwstrFolder
- * @param[out] lpwstrFolder folder id or name
+ * @param[out] lpstrUrlUser owner of lpstrFolder
+ * @param[out] lpstrFolder folder id or name
  * 
  * @return 
  */
-HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *lpwstrUrlUser, std::wstring *lpwstrFolder)
+HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpstrUrlUser, std::string *lpstrFolder)
 {
-	std::wstring wstrService;
-	std::wstring wstrFolder;
-	std::wstring wstrUrlUser;
-	vector<std::wstring> vcUrlTokens;
-	vector<std::wstring>::iterator iterToken;
+	HRESULT hr = hrSuccess;
+	std::string strService;
+	std::string strFolder;
+	std::string strUrlUser;
+	vector<std::string> vcUrlTokens;
+	vector<std::string>::iterator iterToken;
 	ULONG ulFlag = 0;
 	
-	vcUrlTokens = tokenize(wstrUrl.substr(1,wstrUrl.length()), L'/', true);
-	if (vcUrlTokens.empty())
+	vcUrlTokens = tokenize(strUrl, L'/', true);
+	if (vcUrlTokens.empty()) {
+		hr = MAPI_E_NOT_FOUND;
 		goto exit;
+	}
 
-	if (vcUrlTokens.back().rfind(L".ics") != string::npos) {
+	if (vcUrlTokens.back().rfind(".ics") != string::npos) {
 		// Guid is retrieved using StripGuid().
 		vcUrlTokens.pop_back();
 	} else {
 		// request is for folder not a calendar entry
 		ulFlag |= REQ_COLLECTION;
 	}
-	
 	if (vcUrlTokens.empty())
 		goto exit;
+	if (vcUrlTokens.size() > 3) {
+		// sub folders are not allowed
+		hr = MAPI_E_TOO_COMPLEX;
+		goto exit;
+	}
 
 	iterToken = vcUrlTokens.begin();
 	
-	wstrService = *iterToken++;
+	strService = *iterToken++;
 	
 	//change case of Service name ICAL -> ical CALDaV ->caldav
-	std::transform(wstrService.begin(), wstrService.end(), wstrService.begin(), (int(*)(int)) std::tolower);
+	std::transform(strService.begin(), strService.end(), strService.begin(), ::tolower);
 	
-	if (!wstrService.compare(L"ical"))
+	if (!strService.compare("ical"))
 		ulFlag |= SERVICE_ICAL;
-	else if (!wstrService.compare(L"caldav"))
+	else if (!strService.compare("caldav"))
 		ulFlag |= SERVICE_CALDAV;
 	else
 		ulFlag |= SERVICE_UNKNOWN;
 
 	if (iterToken == vcUrlTokens.end())
 		goto exit;
-	wstrUrlUser = *iterToken++;
-	if (!wstrUrlUser.empty()) {
+	strUrlUser = *iterToken++;
+	if (!strUrlUser.empty()) {
 		//change case of folder owner USER -> user, UseR -> user
-		std::transform(wstrUrlUser.begin(), wstrUrlUser.end(), wstrUrlUser.begin(), (int(*)(int)) std::tolower);
+		std::transform(strUrlUser.begin(), strUrlUser.end(), strUrlUser.begin(), ::tolower);
 	}
 
 	// check if the request is for public folders and set the bool flag
 	// @note: request for public folder not have user's name in the url
-	if (!wstrUrlUser.compare(L"public"))
+	if (!strUrlUser.compare("public"))
 		ulFlag |= REQ_PUBLIC;
 
 	if (iterToken == vcUrlTokens.end())
@@ -131,20 +138,19 @@ HRESULT HrParseURL(const std::wstring &wstrUrl, ULONG *lpulFlag, std::wstring *l
 
 	// @todo subfolder/folder/ is not allowed! only subfolder/item.ics
 	for ( ;iterToken != vcUrlTokens.end(); iterToken++) 
-			wstrFolder = wstrFolder + *iterToken + L"/";
+			strFolder = strFolder + *iterToken + "/";
 
-	wstrFolder.erase(wstrFolder.length() - 1);
-
+	strFolder.erase(strFolder.length() - 1);
 	
 exit:
 	if (lpulFlag)
 		*lpulFlag = ulFlag;
 	
-	if (lpwstrUrlUser)
-		lpwstrUrlUser->swap(wstrUrlUser);
+	if (lpstrUrlUser)
+		lpstrUrlUser->swap(strUrlUser);
 
-	if (lpwstrFolder)
-		lpwstrFolder->swap(wstrFolder);
+	if (lpstrFolder)
+		lpstrFolder->swap(strFolder);
 
 	return hrSuccess;
 }
@@ -357,17 +363,18 @@ HRESULT Http::HrGetRequestUrl(std::string *strURL)
 }
 
 /**
- * Returns the full path of request(e.g. /caldav/user/folder)
+ * Returns the full decoded path of request(e.g. /caldav/user name/folder)
+ * (eg. %20 is converted to ' ')
  * @param[out]	strReqPath		Return string for path
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	Empty path in request
  */
-HRESULT Http::HrGetUrl(std::wstring *wstrUrl)
+HRESULT Http::HrGetUrl(std::string *strUrl)
 {
 	HRESULT hr = hrSuccess;
 
 	if (!m_strPath.empty())
-		hr = X2W(m_strPath, wstrUrl);
+		strUrl->assign(urlDecode(m_strPath));
 	else
 		hr = MAPI_E_NOT_FOUND;
 
@@ -493,7 +500,7 @@ HRESULT Http::HrGetCharSet(std::string *strCharset)
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	No destination set in request
  */
-HRESULT Http::HrGetDestination(std::wstring *wstrDestination)
+HRESULT Http::HrGetDestination(std::string *strDestination)
 {
 	HRESULT hr = hrSuccess;
 	std::string strHost;
@@ -511,7 +518,7 @@ HRESULT Http::HrGetDestination(std::wstring *wstrDestination)
 	strDest.substr(strHost.length(), strDest.length() - strHost.length());
 
 	if (!strDest.empty())
-		X2W(strDest, wstrDestination);
+		*strDestination = strDest;
 	else
 		hr = MAPI_E_NOT_FOUND;
 exit:

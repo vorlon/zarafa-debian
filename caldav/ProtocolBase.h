@@ -78,8 +78,8 @@ protected:
 	IMAPIFolder *m_lpIPMSubtree;	//!< IPMSubtree of active store, used for CopyFolder/CreateFolder
 
 	SPropTagArray *m_lpNamedProps; //!< named properties of the active store
-	std::wstring m_wstrFldName;
 	std::wstring m_wstrFldOwner;
+	std::wstring m_wstrFldName;
 
 	std::string m_strUserEmail;
 	std::wstring m_wstrUserFullName;
@@ -93,10 +93,10 @@ protected:
 
 	bool CheckFolderAccess(IMsgStore *lpStore, IMAPIFolder *lpRootFolder, IMAPIFolder *lpCurrentFolder) const;
 	
-	std::string W2U(std::wstring); //!< convert widestring to utf-8
-	std::wstring U2W(std::string); //!< convert utf-8 to widestring
+	std::string W2U(const std::wstring&); //!< convert widestring to utf-8
+	std::string W2U(const WCHAR* lpwWideChar);
+	std::wstring U2W(const std::string&); //!< convert utf-8 to widestring
 	std::string SPropValToString(SPropValue * lpSprop);
-	std::wstring SPropValToWString(SPropValue * lpSprop);
 };
 
 #endif

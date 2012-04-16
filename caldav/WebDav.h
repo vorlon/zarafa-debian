@@ -71,7 +71,7 @@ typedef struct {
 
 typedef struct {
 	WEBDAVPROPNAME sPropName;
-	std::wstring wstrValue;
+	std::string strValue;
 } WEBDAVVALUE;
 
 typedef struct {
@@ -82,7 +82,7 @@ typedef struct {
 typedef struct {
 	WEBDAVPROPNAME sPropName;
 	std::list<WEBDAVVALUE> lstValues;
-	std::wstring wstrValue;
+	std::string strValue;
 	std::list<WEBDAVITEM> lstItems;
 } WEBDAVPROPERTY;
 

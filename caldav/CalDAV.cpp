@@ -628,7 +628,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	HRESULT hr = hrSuccess;
 	std::wstring wstrUser;
 	std::wstring wstrPass;
-	std::wstring wstrUrl;
+	std::string strUrl;
 	std::string strMethod;
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
 	std::string strCharset;
@@ -667,7 +667,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	// 
 	lpRequest->HrSetKeepAlive(KEEP_ALIVE_TIME);
 
-	hr = lpRequest->HrGetUrl(&wstrUrl);
+	hr = lpRequest->HrGetUrl(&strUrl);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Url is empty for method : %s",strMethod.c_str());
 		lpRequest->HrResponseHeader(400,"Bad Request");
@@ -676,7 +676,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	}
 
 	// ignore error here
-	HrParseURL(wstrUrl, &ulFlag);
+	HrParseURL(strUrl, &ulFlag);
 
 	if (ulFlag & SERVICE_CALDAV)
 		// this header is always present in a caldav response, but not in ical.

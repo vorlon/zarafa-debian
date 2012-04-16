@@ -100,7 +100,7 @@ HRESULT HrGetUserInfo(IMAPISession *lpSession, IMsgStore *lpDefStore, std::strin
 //Strip the input to get Guid Value
 //eg input: caldav/Calendar/ai-43873034lakljk403-3245.ics
 //return: ai-43873034lakljk403-3245
-std::string StripGuid(const std::wstring &wstrInput);
+std::string StripGuid(const std::string &strInput);
 
 //Returns Calendars of Folder and sorted by PR_ENTRY_ID.
 HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBinary *lpsbEid, IMAPITable **lppTable);

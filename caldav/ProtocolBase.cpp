@@ -109,9 +109,11 @@ ProtocolBase::~ProtocolBase()
 HRESULT ProtocolBase::HrInitializeClass()
 {
 	HRESULT hr = hrSuccess;
-	std::wstring wstrUrl;
+	std::string strUrl;
 	std::string strMethod;
 	std::string strAgent;
+	string strFldOwner;
+	string strFldName;
 	LPSPropValue lpDefaultProp = NULL;
 	LPSPropValue lpFldProp = NULL;
 	bool blCreateIFNf = false;
@@ -133,11 +135,13 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 * /caldav/user/folder/id.ics		| a message (note: not ending in /)
 	 */
 
-	m_lpRequest->HrGetUrl(&wstrUrl);
+	m_lpRequest->HrGetUrl(&strUrl);
 	m_lpRequest->HrGetUser(&m_wstrUser);
 	m_lpRequest->HrGetMethod(&strMethod);	
 
-	HrParseURL(wstrUrl, &m_ulUrlFlag, &m_wstrFldOwner, &m_wstrFldName);
+	HrParseURL(strUrl, &m_ulUrlFlag, &strFldOwner, &strFldName);
+	m_wstrFldOwner = U2W(strFldOwner);
+	m_wstrFldName = U2W(strFldName);
 	bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
 	if (m_wstrFldOwner.empty())
 		m_wstrFldOwner = m_wstrUser;
@@ -273,8 +277,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 * Workaround for old users with sunbird / lightning on old url base.
 	 */
 	{
-		vector<wstring> parts;
-		parts = tokenize(wstrUrl, '/', true);
+		vector<string> parts;
+		parts = tokenize(strUrl, '/', true);
 
 		m_lpRequest->HrGetDepth(&ulDepth);
 		m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
@@ -285,19 +289,19 @@ HRESULT ProtocolBase::HrInitializeClass()
 			// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
 			// We therefore redirect them to the default calendar url.
 			if (parts.empty())
-				parts.push_back(L"caldav");
+				parts.push_back("caldav");
 			if (parts.size() == 1)
-				parts.push_back(m_wstrUser);
+				parts.push_back(W2U(m_wstrUser));
 			if (parts.size() < 3) {
 				SPropValuePtr ptrDisplayName;
-				wstring strLocation = L"/" + parts[0] + L"/" + parts[1];
+				string strLocation = "/" + parts[0] + "/" + parts[1];
 
 				if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &ptrDisplayName) == hrSuccess) {
 					std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
-					strLocation += L"/" + m_converter.convert_to<wstring>(part) + L"/";
+					strLocation += "/" + part + "/";
 				} else {
 					// return 404 ?
-					strLocation += L"/Calendar/";
+					strLocation += "/Calendar/";
 				}
 
 				m_lpRequest->HrResponseHeader(301, "Moved Permanently");
@@ -354,17 +358,27 @@ exit:
  * @param[in]	strWinChar	source string(windows-1252) to be converted
  * @return		string		converted string (utf-8)
  */
-std::string ProtocolBase::W2U(std::wstring strWideChar)
+std::string ProtocolBase::W2U(const std::wstring &strWideChar)
 {
 	return m_converter.convert_to<string>(m_strCharset.c_str(), strWideChar, rawsize(strWideChar), CHARSET_WCHAR);
 }
 
 /**
+ * converts widechar to utf-8 string
+ * @param[in]	strWinChar	source string(windows-1252) to be converted
+ * @return		string		converted string (utf-8)
+ */
+std::string ProtocolBase::W2U(const WCHAR* lpwWideChar)
+{
+	return m_converter.convert_to<string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
+}
+
+/**
  * converts utf-8 string to widechar
  * @param[in]	strUtfChar	source string(utf-8) to be converted
- * @return		string		converted string (windows-1252)
+ * @return		wstring		converted wide string
  */
-std::wstring ProtocolBase::U2W(std::string strUtfChar)
+std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
 {
 	return m_converter.convert_to<wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());	
 }
@@ -407,51 +421,6 @@ std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_LONG)
 	{
 		strRetVal = stringify(lpSprop->Value.ul, false);
-	}
-
-	return strRetVal;
-}
-
-/**
- * Convert SPropValue to string
- * 
- * @param[in]	lpSprop		SPropValue to be converted
- * @return		wstring
- */
-std::wstring ProtocolBase::SPropValToWString(SPropValue * lpSprop)
-{
-	FILETIME ft;
-	time_t tmUnixTime;
-	std::wstring strRetVal;	
-
-	if (lpSprop == NULL) {
-		return std::wstring();
-	}
-
-	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
-	{
-		ft = lpSprop->Value.ft;
-		FileTimeToUnixTime(ft, &tmUnixTime);
-		strRetVal = wstringify_int64(tmUnixTime, false);
-	}
-	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)
-	{
-		strRetVal = U2W(lpSprop->Value.lpszA);
-	}
-	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_UNICODE)
-	{
-		strRetVal = lpSprop->Value.lpszW;
-	}
-	//Global UID
-	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_BINARY)
-	{
-		string strTmp;
-		HrGetICalUidFromBinUid(lpSprop->Value.bin, &strTmp);	
-		strRetVal = U2W(strTmp);
-	}
-	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_LONG)
-	{
-		strRetVal = wstringify(lpSprop->Value.ul, false);
 	}
 
 	return strRetVal;

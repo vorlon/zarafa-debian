@@ -75,7 +75,7 @@
 #define REQ_COLLECTION	0x08
 #define	REQ_SHARED		0x10
 
-HRESULT HrParseURL(const std::wstring &stUrl, ULONG *lpulFlag, std::wstring *lpwstrUrlUser = NULL, std::wstring *lpwstrFolder = NULL);
+HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstrUrlUser = NULL, std::string *lpstrFolder = NULL);
 
 class Http
 {
@@ -95,12 +95,12 @@ public:
 	HRESULT HrGetUser(std::wstring *strUser);	
 	HRESULT HrGetPass(std::wstring *strPass);
 	HRESULT HrGetRequestUrl(std::string *strURL);
-	HRESULT HrGetUrl(std::wstring *strURL);
+	HRESULT HrGetUrl(std::string *strURL);
 	HRESULT HrGetBody(std::string *strBody);
 	HRESULT HrGetDepth(ULONG *ulDepth);
 	HRESULT HrGetCharSet(std::string *strCharset);
 	HRESULT HrGetIfMatch(std::string *strIfMatch);
-	HRESULT HrGetDestination(std::wstring *wstrDestination);
+	HRESULT HrGetDestination(std::string *strDestination);
 
 	HRESULT HrResponseHeader(unsigned int ulCode, std::string strResponse);
 	HRESULT HrResponseHeader(std::string strHeader, std::string strValue);

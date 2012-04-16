@@ -476,44 +476,29 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty)
 }
 
 /**
- * Convert a wchar_t to a char by simply masking the lower 7 bit.
- * Only the lower 7 bit are used since that's the only part thats
- * compatible.
- *
- * @param[in]	wc	The wide character to 'convert'.
- * @return		The lower 7 bit of wc.
- */
-static inline char w2c(wchar_t wc) {
-	ASSERT((wc & ~0x7f) == 0);
-	return wc & 0x7f;
-}
-
-/**
  * Return the GUID value from the input string
  *
- * Input string is of format '/Calendar/asbxjk3-3980434-xn49cn4930.ics',
+ * Input string is of format '/caldav/Calendar name/asbxjk3-3980434-xn49cn4930.ics',
  * function returns 'asbxjk3-3980434-xn49cn4930'
  *
  * @param[in]	strInput	Input string contaning guid
  * @return		string		string countaing guid
  */
-std::string StripGuid(const std::wstring &wstrInput)
+std::string StripGuid(const std::string &strInput)
 {
 	size_t ulFound = -1;
 	size_t ulFoundSlash = -1;
 	std::string strRetVal;
 
-	ulFoundSlash = wstrInput.rfind('/');
+	ulFoundSlash = strInput.rfind('/');
 	if(ulFoundSlash == string::npos)
 		ulFoundSlash = 0;
 	else
 		ulFoundSlash++;
 
-	ulFound = wstrInput.rfind(L".ics");
-	if(ulFound != wstring::npos) {
-		strRetVal.reserve(ulFound - ulFoundSlash);
-		transform(wstrInput.begin() + ulFoundSlash, wstrInput.begin() + ulFound, back_inserter(strRetVal), &w2c);
-	}
+	ulFound = strInput.rfind(".ics");
+	if(ulFound != wstring::npos)
+		strRetVal.assign(strInput.begin() + ulFoundSlash, strInput.begin() + ulFound);
 
 	return strRetVal;
 }

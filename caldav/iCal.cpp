@@ -577,7 +577,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
 	std::string strUid;
-	std::wstring wstrUrl;
+	std::string strUrl;
 	LPSRestriction lpsRestriction = NULL;
 	MAPITablePtr lpContents;	
 	SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
@@ -588,10 +588,8 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 		goto exit;
 	}
 
-	m_lpRequest->HrGetUrl(&wstrUrl);
-
-	if (!wstrUrl.empty())
-		strUid = StripGuid(wstrUrl);
+	m_lpRequest->HrGetUrl(&strUrl);
+	strUid = StripGuid(strUrl);
 
 	if (!strUid.empty()) {
 		hr = HrMakeRestriction(strUid, m_lpNamedProps, &lpsRestriction);

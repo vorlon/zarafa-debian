@@ -631,9 +631,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		strGuid.erase(0, found);
 		strGuid.erase(strGuid.length() - 4);
 		strGuid = urlDecode(strGuid);
-
-		sWebVal.wstrValue.reserve(strGuid.length());
-		copy(strGuid.begin(), strGuid.end(), back_inserter(sWebVal.wstrValue));	// Only valid with chars from the ASCII range.
+		sWebVal.strValue = strGuid;
 
 		sRptMGet.lstWebVal.push_back(sWebVal);
 		lpXmlChildNode = lpXmlChildNode->next;
@@ -725,7 +723,7 @@ HRESULT WebDav::HrPropertySearch()
 
 		lpXmlChildNode = lpXmlChildNode->next;		
 		if(lpXmlChildNode->children->content)
-			sWebVal.wstrValue.assign(convert_to<wstring>((char*)lpXmlChildNode->children->content, rawsize((char*)lpXmlChildNode->children->content), "UTF-8"));
+			sWebVal.strValue.assign((char*)lpXmlChildNode->children->content);
 		sRptMGet.lstWebVal.push_back(sWebVal);
 		if(lpXmlNode->next)
 			lpXmlNode = lpXmlNode->next;
@@ -823,31 +821,31 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		HrSetDavPropName(&sWebProperty.sPropName,"recipient", CALDAVNS);
 		HrSetDavPropName(&sWebVal.sPropName,"href", CALDAVNSDEF);
 		
-		sWebVal.wstrValue = U2W("mailto:" + itFbUserInfo->strUser);
+		sWebVal.strValue = "mailto:" + itFbUserInfo->strUser;
 		sWebProperty.lstValues.push_back(sWebVal);
 		sWebResPonse.lstProps.push_back(sWebProperty);
 
 		sWebProperty.lstValues.clear();
 		
 		HrSetDavPropName(&sWebProperty.sPropName,"request-status", CALDAVNS);
-		sWebProperty.wstrValue = itFbUserInfo->strIcal.empty()?L"3.7;Invalid Calendar User":L"2.0;Success";
+		sWebProperty.strValue = itFbUserInfo->strIcal.empty()?"3.7;Invalid Calendar User":"2.0;Success";
 		sWebResPonse.lstProps.push_back(sWebProperty);
 		
 		if (!itFbUserInfo->strIcal.empty()) {	
 			HrSetDavPropName(&sWebProperty.sPropName,"calendar-data", CALDAVNS);
-			sWebProperty.wstrValue = U2W(itFbUserInfo->strIcal);
+			sWebProperty.strValue = itFbUserInfo->strIcal;
 		} else {
 			HrSetDavPropName(&sWebProperty.sPropName,"error",CALDAVNSDEF);
 			
 			HrSetDavPropName(&sWebVal.sPropName,"recipient-exists", CALDAVNS);
-			sWebVal.wstrValue.clear();
+			sWebVal.strValue.clear();
 			sWebProperty.lstValues.push_back(sWebVal);
 			
 		}
 		sWebResPonse.lstProps.push_back(sWebProperty);
 
 		HrSetDavPropName(&sWebProperty.sPropName,"responsedescription", CALDAVNS);
-		sWebProperty.wstrValue = L"OK";
+		sWebProperty.strValue = "OK";
 		sWebResPonse.lstProps.push_back(sWebProperty);
 
 		sWebMStatus.lstResp.push_back(sWebResPonse);
@@ -886,7 +884,7 @@ HRESULT WebDav::WriteData(xmlTextWriterPtr xmlWriter, WEBDAVVALUE sWebVal, std::
 	{
 		ulRet = xmlTextWriterWriteElement(xmlWriter,
 										  (const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
-										  (const xmlChar *)converter.convert_to<char*>("UTF-8", sWebVal.wstrValue, rawsize(sWebVal.wstrValue), CHARSET_WCHAR));
+										  (const xmlChar *)sWebVal.strValue.c_str());
 		goto exit;
 	}
 
@@ -902,11 +900,11 @@ HRESULT WebDav::WriteData(xmlTextWriterPtr xmlWriter, WEBDAVVALUE sWebVal, std::
 	/*Write xml none of the form
 	 *	<D:href>/caldav/user/calendar/entryGUID.ics</D:href>
 	 */
-	ulRet =	xmlTextWriterWriteElementNS	(xmlWriter,
+	ulRet =	xmlTextWriterWriteElementNS(xmlWriter,
 										(const xmlChar *)szNsPrefix->c_str(),
 										(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
 										(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()),
-										(const xmlChar *)converter.convert_to<char*>("UTF-8", sWebVal.wstrValue, rawsize(sWebVal.wstrValue), CHARSET_WCHAR));
+										(const xmlChar *)sWebVal.strValue.c_str());
 	if (ulRet == -1) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -1070,11 +1068,11 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriterPtr xmlWriter, std::string *lp
 		WEBDAVPROPERTY sWebProperty;
 		sWebProperty = *iterProp;
 		
-		if (!sWebProperty.wstrValue.empty())
+		if (!sWebProperty.strValue.empty())
 		{
 			WEBDAVVALUE sWebVal;
 			sWebVal.sPropName = sWebProperty.sPropName;
-			sWebVal.wstrValue = sWebProperty.wstrValue;
+			sWebVal.strValue = sWebProperty.strValue;
 			//<getctag xmlns="xxxxxxxxxxx">xxxxxxxxxxxxxxxxx</getctag>
 			WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
 		}
@@ -1089,7 +1087,7 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriterPtr xmlWriter, std::string *lp
 			WEBDAVVALUE sWebVal;
 			sWebVal = sWebProperty.lstValues.front();
 			//<collection/>
-			if (!sWebVal.wstrValue.empty())
+			if (!sWebVal.strValue.empty())
 				WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
 			else
 			{
@@ -1098,7 +1096,7 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriterPtr xmlWriter, std::string *lp
 			}
 			sWebProperty.lstValues.pop_front();
 		}
-		if (sWebProperty.wstrValue.empty())
+		if (sWebProperty.strValue.empty())
 			ulRet = xmlTextWriterEndElement(xmlWriter);
 		iterProp++;
 	}
@@ -1138,11 +1136,11 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriterPtr xmlWriter, std::string *lpstrN
 		WEBDAVPROPERTY sWebProperty;
 		sWebProperty = *iterProp;
 		
-		if (!sWebProperty.wstrValue.empty())
+		if (!sWebProperty.strValue.empty())
 		{
 			WEBDAVVALUE sWebVal;
 			sWebVal.sPropName = sWebProperty.sPropName;
-			sWebVal.wstrValue = sWebProperty.wstrValue;
+			sWebVal.strValue = sWebProperty.strValue;
 			//<getctag xmlns="xxxxxxxxxxx">xxxxxxxxxxxxxxxxx</getctag>
 			WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
 		}
@@ -1160,7 +1158,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriterPtr xmlWriter, std::string *lpstrN
 			WEBDAVVALUE sWebVal;
 			sWebVal = sWebProperty.lstValues.front();
 			//<collection/>
-			if (!sWebVal.wstrValue.empty())
+			if (!sWebVal.strValue.empty())
 				WriteData(xmlWriter,sWebVal,lpstrNsPrefix);
 			else
 			{
@@ -1171,7 +1169,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriterPtr xmlWriter, std::string *lpstrN
 		}
 		//end tag if started
 		//</resourcetype>
-		if (sWebProperty.wstrValue.empty())
+		if (sWebProperty.strValue.empty())
 			ulRet = xmlTextWriterEndElement(xmlWriter);
 
 		iterProp++;
@@ -1218,7 +1216,7 @@ HRESULT WebDav::HrWriteItems(xmlTextWriterPtr xmlWriter, std::string *lpstrNsPre
 			}
 			blFirst = false;
 
-			if (!sDavItem.sDavValue.wstrValue.empty())
+			if (!sDavItem.sDavValue.strValue.empty())
 			{
 				WriteData(xmlWriter,sDavItem.sDavValue,lpstrNsPrefix);
 				sDavItem.ulDepth = sDavItem.ulDepth - 1;
@@ -1236,7 +1234,7 @@ HRESULT WebDav::HrWriteItems(xmlTextWriterPtr xmlWriter, std::string *lpstrNsPre
 			 xmlTextWriterEndElement(xmlWriter);
 			}
 			
-			if (!sDavItem.sDavValue.wstrValue.empty())
+			if (!sDavItem.sDavValue.strValue.empty())
 			{
 				WriteData(xmlWriter,sDavItem.sDavValue,lpstrNsPrefix);
 				sDavItem.ulDepth = sDavItem.ulDepth - 1;
@@ -1387,7 +1385,7 @@ HRESULT WebDav::HrPropPatch()
 			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, CALDAVNSDEF);
 
 		if (lpXmlNode->children && lpXmlNode->children->content) {
-			sProperty.wstrValue = convert_to<wstring>((char *)lpXmlNode->children->content, rawsize((char *)lpXmlNode->children->content), "UTF-8");
+			sProperty.strValue = (char *)lpXmlNode->children->content;
 		}
 
 		sDavProp.lstProps.push_back(sProperty);
@@ -1492,7 +1490,7 @@ HRESULT WebDav::HrMkCalendar()
 			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,CALDAVNSDEF);
 
 		if (lpXmlNode->children && lpXmlNode->children->content)
-			sProperty.wstrValue = convert_to<wstring>((char*)lpXmlNode->children->content, rawsize((char*)lpXmlNode->children->content), "UTF-8");
+			sProperty.strValue = (char*)lpXmlNode->children->content;
 		sDavProp.lstProps.push_back(sProperty);	
 
 		lpXmlNode = lpXmlNode->next;
