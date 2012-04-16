@@ -92,6 +92,8 @@
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
 
+#include "threadutil.h"
+
 using namespace std;
 
 #ifdef _DEBUG
@@ -127,6 +129,7 @@ WSTransport::WSTransport(ULONG ulUIFlags)
     pthread_mutexattr_t attr;
     
 	m_lpCmd = NULL;
+	m_ulLockToken = TRANS_LOCK_NONE;
 	m_ecSessionGroupId = 0;
 	m_ecSessionId = 0;
 	m_ulReloadId = 1;
@@ -140,6 +143,8 @@ WSTransport::WSTransport(ULONG ulUIFlags)
 	pthread_mutex_init(&m_hDataLock, &attr);
 	pthread_mutex_init(&m_mutexSessionReload, &attr);
 	pthread_mutex_init(&m_ResolveResultCacheMutex, &attr);
+	pthread_cond_init(&m_hTokenCond, NULL);
+	pthread_mutexattr_destroy(&attr);
 }
 
 WSTransport::~WSTransport()
@@ -151,6 +156,7 @@ WSTransport::~WSTransport()
 	pthread_mutex_destroy(&m_hDataLock);
 	pthread_mutex_destroy(&m_mutexSessionReload);
 	pthread_mutex_destroy(&m_ResolveResultCacheMutex);
+	pthread_cond_destroy(&m_hTokenCond);
 }
 
 HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
@@ -236,6 +242,8 @@ exit:
 HRESULT WSTransport::LockSoap()
 {
 	pthread_mutex_lock(&m_hDataLock);
+	while (m_ulLockToken != TRANS_LOCK_NONE)
+		pthread_cond_wait(&m_hTokenCond, &m_hDataLock);
 	return erSuccess;
 }
 
@@ -246,6 +254,59 @@ HRESULT WSTransport::UnLockSoap()
 		soap_end(m_lpCmd->soap);
 
 	pthread_mutex_unlock(&m_hDataLock);
+	return erSuccess;
+}
+
+/**
+ * Lock the transport for a 'long' period. This allows the UnLockSoap to
+ * be called from a different thread. This is required for the WSMessageStreamExporter,
+ * which locks the transport and returns to user code, which could be using threads
+ * causing all sorts of trouble (ZCP-9419).
+ * 
+ * @param[in]	ulToken		The token used to identify the lock. The token must
+ * 							be matched in the call to UnLockSoap.
+ * 
+ * The tokens are defined in WSTransport.h.
+ */
+HRESULT WSTransport::LockSoap(ULONG ulToken)
+{
+	/*
+	 * @Note: I'm not sure if a token is really needed because the only real purpose
+	 *        it has is that it's matched during UnLockSoap(token). It's not possible
+	 *        to lock the transport if it's already locked with any token. And there
+	 *        should be no code calling UnLockSoap without first calling LockSoap.
+	 *        The only reason to not make m_ulLockToken a boolean and use it as the
+	 *        generic way of locking is that this doesn't allow for recursive locks,
+	 *        which are currently used for the regular locking strategy.
+	 */
+	if (ulToken == TRANS_LOCK_NONE)
+		return MAPI_E_INVALID_PARAMETER;
+
+	scoped_lock lock(m_hDataLock);
+	while (m_ulLockToken != TRANS_LOCK_NONE)
+		pthread_cond_wait(&m_hTokenCond, &m_hDataLock);
+
+	m_ulLockToken = ulToken;
+	return erSuccess;
+}
+
+/**
+ * Unlock the transport if it was locked using a token. This allows the unlock to
+ * be performed from another thread than the lock.
+ * 
+ * @param[in]	ulToken		The token that was used to lock the transport.
+ */
+HRESULT WSTransport::UnLockSoap(ULONG ulToken)
+{
+	if (ulToken == TRANS_LOCK_NONE)
+		return MAPI_E_INVALID_PARAMETER;
+
+	scoped_lock lock(m_hDataLock);
+	if (ulToken == m_ulLockToken) {
+		m_ulLockToken = TRANS_LOCK_NONE;
+		pthread_cond_signal(&m_hTokenCond);
+	}
+	
 	return erSuccess;
 }
 
@@ -1235,19 +1296,19 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lp
 	sPropTags.__size = lpsProps->cValues;
 	sPropTags.__ptr = (unsigned int*)lpsProps->aulPropTag;
 
-	LockSoap();
+	LockSoap(TRANS_LOCK_MSG_STREAM_EXPORTER);
 
 	// Make sure to get the mime attachments ourselves
 	soap_post_check_mime_attachments(m_lpCmd->soap);
 
 	if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, &sResponse) != SOAP_OK) {
-		UnLockSoap();
+		UnLockSoap(TRANS_LOCK_MSG_STREAM_EXPORTER);
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
 
 	if (sResponse.sMsgStreams.__size > 0 && !soap_check_mime_attachments(m_lpCmd->soap)) {
-		UnLockSoap();
+		UnLockSoap(TRANS_LOCK_MSG_STREAM_EXPORTER);
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}

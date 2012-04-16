@@ -185,7 +185,7 @@ WSMessageStreamExporter::~WSMessageStreamExporter()
 	}
 
 	if (m_ptrTransport)
-		m_ptrTransport->UnLockSoap();
+		m_ptrTransport->UnLockSoap(TRANS_LOCK_MSG_STREAM_EXPORTER);
 
 	for (StreamInfoMap::iterator i = m_mapStreamInfo.begin(); i != m_mapStreamInfo.end(); ++i)
 		delete i->second;
