@@ -2855,6 +2855,8 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 	// subject
 	try {
 		vmHeader->Subject()->getValue()->generate(os);
+		// encoded subjects never contain ", so escape won't break those.
+		buffer = StringEscape(buffer.c_str(), "\"", '\\');
 		lItems.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} catch (vmime::exception &e) {
 		lItems.push_back("NIL");
