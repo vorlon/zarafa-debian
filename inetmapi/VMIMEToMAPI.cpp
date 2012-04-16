@@ -2148,12 +2148,24 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 				
 				// Everything is utf-8 now
 				sCodepage.Value.ul = 65001;
+				bodyCharset = "utf-8";
 			}
 			
 			m_mailState.ulLastCP = sCodepage.Value.ul;
 			
 			sCodepage.ulPropTag = PR_INTERNET_CPID;
 			HrSetOneProp(lpMessage, &sCodepage);
+
+			// we may have received a text part to append to the HTML body
+			if (vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>()->getSubType() == vmime::mediaTypes::TEXT_PLAIN) {
+				// escape and wrap with <pre> tags
+				std::wstring strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), bodyCharset.getName().c_str());
+				strHTML = "<pre>";
+				hr = Util::HrTextToHtml(strwBody.c_str(), strHTML, sCodepage.Value.ul);
+				if (hr != hrSuccess)
+					goto exit;
+				strHTML += "</pre>";
+			}
 		}
 		catch (vmime::exception& e) {
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "VMIME exception on html body: %s", e.what());
