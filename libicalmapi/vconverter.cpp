@@ -2466,6 +2466,8 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	bool blxmozgen = false;
 	bool blisItemReccr = false;
 	char *lpszTemp = NULL;
+	LONG lRemindBefore = 0;
+	time_t ttReminderTime = 0;
 	
 	// find bool, skip if error or false
 	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
@@ -2473,12 +2475,14 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		goto exit;
 
 	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
-	if (!lpPropVal) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpPropVal)
+		lRemindBefore = lpPropVal->Value.l;
 
-	hr = HrParseReminder(lpPropVal->Value.l, &lpAlarm);
+	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
+	if (lpPropVal)
+		FileTimeToUnixTime(lpPropVal->Value.ft, &ttReminderTime);
+
+	hr = HrParseReminder(lRemindBefore, ttReminderTime, &lpAlarm);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2952,8 +2956,16 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			// the value is NOT saved in the exception attachment.
 			// That's why I don't open the attachment if the value isn't going to be present anyway.
 			// Also, it (the default) is present in the main item ... not very logical.
-			if (ulModifications & ARO_REMINDERDELTA)
+			LONG lRemindBefore = 0;
+			time_t ttReminderTime = 0;
+			if (ulModifications & ARO_REMINDERDELTA) {
 				lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
+				lRemindBefore = lpProp ? lpProp->Value.l : 15;
+
+				lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_LONG));
+				if (lpProp)
+					FileTimeToUnixTime(lpProp->Value.ft, &ttReminderTime);
+			}
 
 			// add new valarm
 			// although a previous valarm should not be here, the webaccess always says it's been changed, so we remove the old one too
@@ -2965,7 +2977,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			lpicComp = NULL;
 
 			if (cRecurrence.getModifiedReminder(i) != 0) {
-				hr = HrParseReminder(lpProp ? lpProp->Value.l : 15, &lpicComp);
+				hr = HrParseReminder(lRemindBefore, ttReminderTime, &lpicComp);
 				if (hr == hrSuccess)
 					icalcomponent_add_component(lpicException, lpicComp);
 			}

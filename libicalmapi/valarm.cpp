@@ -78,7 +78,7 @@ static char THIS_FILE[] = __FILE__;
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER	invalid parameters
  */
-HRESULT HrParseReminder(LONG lRemindBefore, icalcomponent **lppAlarm)
+HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, icalcomponent **lppAlarm)
 {
 	HRESULT hr = hrSuccess;
 	icalcomponent *lpVAlarm = NULL;
@@ -94,9 +94,11 @@ HRESULT HrParseReminder(LONG lRemindBefore, icalcomponent **lppAlarm)
 
 	memset((void *) &sittTrigger, 0, sizeof(icaltriggertype));
 
-	lpVAlarm = icalcomponent_new_valarm();
+	if (ttReminderTime)
+		sittTrigger.time = icaltime_from_timet(ttReminderTime, false);			// given in UTC
+	sittTrigger.duration = icaldurationtype_from_int(-1 * lRemindBefore * 60);	// set seconds
 
-	sittTrigger.duration = icaldurationtype_from_int(-1 * lRemindBefore * 60); // set seconds
+	lpVAlarm = icalcomponent_new_valarm();
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_trigger(sittTrigger));
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_action(ICAL_ACTION_DISPLAY));
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_description("Reminder"));
