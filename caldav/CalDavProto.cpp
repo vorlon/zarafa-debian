@@ -1112,8 +1112,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &lpMessage);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Entry to be deleted not found, assuming deleted: 0x%08X", hr);
-		hr = hrSuccess;
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Entry to be deleted not found: 0x%08X", hr);
 		goto exit;
 	}
 	
