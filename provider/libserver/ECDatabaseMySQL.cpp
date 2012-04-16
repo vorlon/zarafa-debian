@@ -1234,6 +1234,14 @@ unsigned int ECDatabaseMySQL::GetMaxAllowedPacket() {
     return m_ulMaxAllowedPacket;
 }
 
+void ECDatabaseMySQL::ThreadInit() {
+	mysql_thread_init();
+}
+
+void ECDatabaseMySQL::ThreadEnd() {
+	mysql_thread_end();
+}
+
 ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 {
 	ECRESULT	er = erSuccess;

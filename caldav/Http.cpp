@@ -86,10 +86,9 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	ULONG ulFlag = 0;
 	
 	vcUrlTokens = tokenize(strUrl, L'/', true);
-	if (vcUrlTokens.empty()) {
-		hr = MAPI_E_NOT_FOUND;
+	if (vcUrlTokens.empty())
+		// root should be present, no flags are set. mostly used on OPTIONS command
 		goto exit;
-	}
 
 	if (vcUrlTokens.back().rfind(".ics") != string::npos) {
 		// Guid is retrieved using StripGuid().
@@ -152,7 +151,7 @@ exit:
 	if (lpstrFolder)
 		lpstrFolder->swap(strFolder);
 
-	return hrSuccess;
+	return hr;
 }
 
 Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
@@ -226,6 +225,8 @@ HRESULT Http::HrReadHeaders()
 	} while(hr == hrSuccess);
 
 	hr = HrParseHeaders();
+	if (hr != hrSuccess)
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "parsing headers failed: 0x%08X", hr);
 
 exit:
 	return hr;

@@ -1464,29 +1464,34 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	IMAPIFolder *lpUsrFld = NULL;
 	SPropValue sPropValSet[2];
 	ULONG ulPropTag = 0;
+	std::string strContainerClass = "IPF.Appointment";
 
 	for (list<WEBDAVPROPERTY>::iterator i = lpsDavProp->lstProps.begin(); i != lpsDavProp->lstProps.end(); i++) {
 		if (i->sPropName.strPropname.compare("displayname") == 0) {
 			wstrNewFldName = U2W(i->strValue);
-			break;
+		} else if (i->sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
+			if (i->strValue.compare("VTODO") == 0)
+				strContainerClass = "IPF.Task";
+			else if (i->strValue.compare("VCALENDAR") != 0) {
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", i->strValue.c_str());
+				hr = MAPI_E_INVALID_PARAMETER;
+				goto exit;
+			}
 		}
-		// @todo find supported-calendar-component-set and create correct folder type:
-		// <C:supported-calendar-component-set>
-		//   <C:comp name="VTODO"/>
-		// </C:supported-calendar-component-set>
 	}
 	if (wstrNewFldName.empty()) {
 		hr = MAPI_E_COLLISION;
 		goto exit;
 	}
 
+	// @todo handle conflicts better. caldav conflicts on the url (guid), not the folder name...
+
 	hr = m_lpIPMSubtree->CreateFolder(FOLDER_GENERIC, (LPTSTR)wstrNewFldName.c_str(), NULL, NULL, MAPI_UNICODE, &lpUsrFld);
 	if (hr != hrSuccess)
 		goto exit;
 	
 	sPropValSet[0].ulPropTag = PR_CONTAINER_CLASS_A;
-	sPropValSet[0].Value.lpszA = "IPF.Appointment";
-	// @todo: can also be IPF.Tasks .. and we need the correct PR_ICON_INDEX
+	sPropValSet[0].Value.lpszA = (char*)strContainerClass.c_str();
 	sPropValSet[1].ulPropTag = PR_COMMENT_A;
 	sPropValSet[1].Value.lpszA = "Created by CalDAV Gateway";
 
@@ -1495,9 +1500,12 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 		goto exit;
 	
 	ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_FLDID], PT_UNICODE);
+	// saves the url name (guid) into the guid named property, @todo fix function name to reflect action better
 	hr = HrAddProperty(lpUsrFld, ulPropTag, true, &m_wstrFldName);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot Add named property, error code : 0x%08X", hr);
+		goto exit;
+	}
 
 	// @todo set all xml properties as named properties on this folder
 

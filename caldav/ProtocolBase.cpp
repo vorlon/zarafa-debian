@@ -203,7 +203,11 @@ HRESULT ProtocolBase::HrInitializeClass()
 		goto exit;
 
 	// get active user info
-	hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
+	if (bIsPublic) {
+		hr = m_lpLoginUser->QueryInterface(IID_IMailUser, (void**)&m_lpActiveUser);
+	} else {
+		hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
+	}
 	if(hr != hrSuccess)
 		goto exit;
 

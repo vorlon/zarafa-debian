@@ -47,6 +47,8 @@
  * 
  */
 
+
+
 #include "platform.h"
 
 /* Returns the rows for a contents- or hierarchytable
@@ -1543,6 +1545,7 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
         }
     }
     
+    soap_init(&xmlsoap);
 	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
     xmlsoap.os = &os;
     
@@ -1587,6 +1590,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 
     // The collapse state is the serialized collapse state as returned by GetCollapseState(), which we need to parse here
     soap_init(&xmlsoap);
+	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
     xmlsoap.is = &is;
     
     soap_default_collapseState(&xmlsoap, lpCollapseState);

@@ -10615,10 +10615,14 @@ void *SerializeObject(void *arg)
 	lpStreamInfo = (LPMTOMStreamInfo)arg;
 	ASSERT(lpStreamInfo != NULL);
 
+	lpStreamInfo->lpSharedDatabase->ThreadInit();
+
 	lpSink = new ECFifoSerializer(&lpStreamInfo->data);
 	SerializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpSharedDatabase.get(), lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 
 	delete lpSink;
+
+	lpStreamInfo->lpSharedDatabase->ThreadEnd();
 	return NULL;
 }
 

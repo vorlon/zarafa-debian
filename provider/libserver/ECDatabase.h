@@ -143,6 +143,9 @@ public:
 	// Return the maximum size of any query we can send
 	virtual unsigned int	GetMaxAllowedPacket() = 0;
 
+	virtual void			ThreadInit() = 0;
+	virtual void			ThreadEnd() = 0;
+
 	// Function requires m_bForceUpdate variable
 	friend ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);
 };

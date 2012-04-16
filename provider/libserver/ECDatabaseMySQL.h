@@ -109,6 +109,9 @@ public:
 	
 	unsigned int	GetMaxAllowedPacket();
 
+	void			ThreadInit();
+	void			ThreadEnd();
+
 	// Database maintenance functions
 	ECRESULT		CreateDatabase();
 	// Main update unit

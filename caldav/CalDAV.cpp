@@ -675,8 +675,12 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 		goto exit;
 	}
 
-	// ignore error here
-	HrParseURL(strUrl, &ulFlag);
+	hr = HrParseURL(strUrl, &ulFlag);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Client request is invalid: 0x%08X", hr);
+		lpRequest->HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
+		goto exit;
+	}
 
 	if (ulFlag & SERVICE_CALDAV)
 		// this header is always present in a caldav response, but not in ical.
@@ -698,7 +702,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	} else {
 		hr = HrAuthenticate(wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession);
 		if (hr != hrSuccess)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Login failed (0x%08X), resending authentication request", hr);	
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Login failed (0x%08X), resending authentication request", hr);
 	}
 	if (hr != hrSuccess) {
 		if(ulFlag & SERVICE_ICAL)
@@ -723,6 +727,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	else
 	{
 		hr = MAPI_E_CALL_FAILED;
+		lpRequest->HrResponseHeader(404, "Request not valid for ical or caldav services");
 		goto exit;
 	}
 
