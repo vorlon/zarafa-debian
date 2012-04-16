@@ -2328,6 +2328,9 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 		}
 
 		if (lpArgs->bNewmailNotify) {
+
+			ulNewMailNotify = TRUE;
+
 			hr = lppyMapiPlugin->RequestCallExecution("SendNewMailNotify",  lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulNewMailNotify, &ulResult);
 			if (hr != hrSuccess) {
 				// Plugin failed so fallback on the original state
