@@ -4,9 +4,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Zarafa WebAccess\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-15 00:05+0100\n"
-"PO-Revision-Date: 2012-02-14 18:23+0200\n"
-"Last-Translator: Joep <joep@zarafa.com>\n"
+"POT-Creation-Date: 2012-03-21 00:06+0100\n"
+"PO-Revision-Date: 2012-03-20 15:58+0200\n"
+"Last-Translator: Erwin <erwin@ecm2.nl>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -20,8 +20,8 @@ msgid "Can't save this message as a file"
 msgstr "Kan dit bericht niet als bestand opslaan"
 
 #: php-webclient-ajax/client/download_message.php:81
-#: php-webclient-ajax/server/core/class.operations.php:3582
-#: php-webclient-ajax/server/core/class.operations.php:3598
+#: php-webclient-ajax/server/core/class.operations.php:3584
+#: php-webclient-ajax/server/core/class.operations.php:3600
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:552
 #: php-webclient-ajax/client/modules/itemmodule.js:1618
 msgid "Untitled"
@@ -212,7 +212,7 @@ msgstr "Aan"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:121
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:490
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:24
-#: php-webclient-ajax/server/core/class.operations.php:2746
+#: php-webclient-ajax/server/core/class.operations.php:2748
 #: php-webclient-ajax/server/core/class.tablecolumns.php:19
 #: php-webclient-ajax/server/core/class.tablecolumns.php:154
 #: php-webclient-ajax/server/core/class.tablecolumns.php:170
@@ -1135,7 +1135,7 @@ msgid "From"
 msgstr "Van"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:86
-#: php-webclient-ajax/server/core/class.operations.php:2747
+#: php-webclient-ajax/server/core/class.operations.php:2749
 #: php-webclient-ajax/server/core/class.tablecolumns.php:177
 #: php-webclient-ajax/server/core/class.tablecolumns.php:203
 #: php-webclient-ajax/client/modules/printmessageitem.js:63
@@ -3600,13 +3600,13 @@ msgid "The message store has exceeded its soft quota limit."
 msgstr "De opslagruimte heeft het zachte quota limiet overschreden."
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:200
-#: php-webclient-ajax/server/core/class.operations.php:2548
+#: php-webclient-ajax/server/core/class.operations.php:2550
 msgid "Task Accepted:"
 msgstr "Taak geaccepteerd:"
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:202
-#: php-webclient-ajax/server/core/class.operations.php:2551
-#: php-webclient-ajax/server/core/class.operations.php:2608
+#: php-webclient-ajax/server/core/class.operations.php:2553
+#: php-webclient-ajax/server/core/class.operations.php:2610
 msgid "Task Declined:"
 msgstr "Taak geweigerd:"
 
@@ -3695,34 +3695,34 @@ msgstr "Geweigerd"
 msgid "Not Responded"
 msgstr "Niet gereageerd"
 
-#: php-webclient-ajax/server/core/class.operations.php:2554
+#: php-webclient-ajax/server/core/class.operations.php:2556
 msgid "Task Request:"
 msgstr "Taakverzoek:"
 
-#: php-webclient-ajax/server/core/class.operations.php:2564
-#: php-webclient-ajax/server/core/class.operations.php:2609
+#: php-webclient-ajax/server/core/class.operations.php:2566
+#: php-webclient-ajax/server/core/class.operations.php:2611
 msgid "Task Updated:"
 msgstr "Taak bijgewerkt:"
 
-#: php-webclient-ajax/server/core/class.operations.php:2564
-#: php-webclient-ajax/server/core/class.operations.php:2609
+#: php-webclient-ajax/server/core/class.operations.php:2566
+#: php-webclient-ajax/server/core/class.operations.php:2611
 msgid "Task Completed:"
 msgstr "Taak voltooid:"
 
-#: php-webclient-ajax/server/core/class.operations.php:2745
+#: php-webclient-ajax/server/core/class.operations.php:2747
 msgid "Your message did not reach some or all of the intended recipients"
 msgstr "Uw bericht heeft enkele of alle ontvangers niet bereikt"
 
-#: php-webclient-ajax/server/core/class.operations.php:2748
+#: php-webclient-ajax/server/core/class.operations.php:2750
 msgid "The following recipient(s) could not be reached"
 msgstr "De volgende geadresseerde(n) zijn niet bereikt"
 
-#: php-webclient-ajax/server/core/class.operations.php:3096
+#: php-webclient-ajax/server/core/class.operations.php:3098
 msgid "Untitled rule"
 msgstr "Niet benoemde regel"
 
-#: php-webclient-ajax/server/core/class.operations.php:3220
-#: php-webclient-ajax/server/core/class.operations.php:3231
+#: php-webclient-ajax/server/core/class.operations.php:3222
+#: php-webclient-ajax/server/core/class.operations.php:3233
 msgid "Canceled: "
 msgstr "geannuleerd:"
 
@@ -5964,7 +5964,7 @@ msgstr "Onbekende fout"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:138
 msgid "Connection to server lost"
-msgstr "Verbinding met server verboken"
+msgstr "Verbinding met server verbroken"
 
 #: php-webclient-ajax/client/core/xmlrequest.js:154
 msgid "Unknown server or connection problem"
