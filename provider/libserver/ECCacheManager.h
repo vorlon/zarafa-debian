@@ -617,6 +617,8 @@ public:
 	ECRESULT GetOwner(unsigned int ulObjId, unsigned int *ulOwner);
 	ECRESULT GetObject(unsigned int ulObjId, unsigned int *ulParent, unsigned int *ulOwner, unsigned int *ulFlags, unsigned int *ulType = NULL);
 	ECRESULT SetObject(unsigned int ulObjId, unsigned int ulParent, unsigned int ulOwner, unsigned int ulFlags, unsigned int ulType);
+	// Query cache only
+	ECRESULT QueryParent(unsigned int ulObjId, unsigned int *ulParent);
 	
 	ECRESULT GetObjects(std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey,ECsObjects> &mapObjects);
 
@@ -662,10 +664,17 @@ public:
 	ECRESULT SetComplete(unsigned int ulObjId);
 	
 	// Cache Index properties
+	
+	// Read-through
 	ECRESULT GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData);
 	ECRESULT GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
+	
 	ECRESULT RemoveIndexData(unsigned int ulObjId);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData);
+	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId);
+	
+	// Read cache only
+	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
 
 	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
 
