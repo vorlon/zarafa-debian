@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-27 00:05+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2011-06-10 18:08+0200\n"
 "Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
 "Language-Team: it_IT <it@li.org>\n"
@@ -185,7 +185,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Impossibile aggiungere la cartella ai preferiti"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:158
+#: provider/ECProps/ECDelegatePropPage.cpp:167
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr "Impossibile ottenere il sito della pagina proprietà"
@@ -233,37 +233,37 @@ msgstr "Aggiungi solo sottocartelle immediate"
 msgid "Unable to get folder data"
 msgstr "Impossibile ottenere i dati della cartella"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:124
+#: provider/ECProps/ECDelegatePropPage.cpp:133
 msgid "Saving changes failed."
 msgstr "Impossibile salvare le modifiche."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:127
+#: provider/ECProps/ECDelegatePropPage.cpp:136
 msgid "Saving rules failed: "
 msgstr "Impossibile salvare le regole: "
 
-#: provider/ECProps/ECDelegatePropPage.cpp:168
+#: provider/ECProps/ECDelegatePropPage.cpp:177
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr "Impossibile ottenere la sessione"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:174
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr "Impossibile scaricare la rubrica"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:179
+#: provider/ECProps/ECDelegatePropPage.cpp:188
 msgid "Add..."
 msgstr "Aggiungi..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:180
+#: provider/ECProps/ECDelegatePropPage.cpp:189
 msgid "Remove..."
 msgstr "Rimuovi..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:181
+#: provider/ECProps/ECDelegatePropPage.cpp:190
 msgid "Permissions..."
 msgstr "Permessi..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:182
+#: provider/ECProps/ECDelegatePropPage.cpp:191
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -275,12 +275,12 @@ msgstr ""
 "tuo conto, aprire le proprietà di ogni cartella e cambiare i permessi nella "
 "scheda Permessi."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:192
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 "Invia richieste di riunione e risposte unicamente ai miei delegati, non a me"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:190
+#: provider/ECProps/ECDelegatePropPage.cpp:199
 msgid ""
 "The server is not available. Either there are network problems or server is "
 "down for maintenance."
@@ -288,7 +288,7 @@ msgstr ""
 "Il server non è disponibile. Potrebbero esserci problemi di rete o Zarafa "
 "potrebbe essere in manutenzione."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:192
+#: provider/ECProps/ECDelegatePropPage.cpp:201
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
@@ -296,13 +296,13 @@ msgstr ""
 "Impossibile inizializzare la finestra di delegazione\n"
 "Contattare il proprio amministratore di sistema."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:237
+#: provider/ECProps/ECDelegatePropPage.cpp:248
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Aggiungi"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:252
+#: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
@@ -648,8 +648,7 @@ msgstr "Diario"
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:140
 msgid "Delegate receives copies of meeting-related messages sent to me"
 msgstr ""
-"Il delegato riceve copia dei messaggi relativi alle riunioni a me "
-"indirizzati"
+"Il delegato riceve copia dei messaggi relativi alle riunioni a me indirizzati"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:141
 msgid "Automatically send a message to delegate summarizing these permissions"
@@ -811,8 +810,8 @@ msgid ""
 "you must purchase additional client licenses."
 msgstr ""
 "Non è possibile inizializzare il client Zarafa in quanto è stato superato il "
-"limite di licenza. Per continuare è necessario acquistare una licenza "
-"client addizionale."
+"limite di licenza. Per continuare è necessario acquistare una licenza client "
+"addizionale."
 
 #: provider/client/ECMSProvider.cpp:251
 #: provider/client/ECABProviderSwitch.cpp:282
@@ -1040,8 +1039,7 @@ msgid ""
 "Do you want to save the settings or cancel and re-enter the settings?"
 msgstr ""
 "Impossibile stabilire connessione al server.\n"
-"Si desidera salvare le impostazioni o annullare e reinserire le "
-"impostazioni?"
+"Si desidera salvare le impostazioni o annullare e reinserire le impostazioni?"
 
 #: provider/client/EntryPoint.cpp:1186
 msgid "Incorrect username and/or password."
@@ -1444,17 +1442,17 @@ msgstr ""
 msgid "Unable to save archived message."
 msgstr ""
 
-#: spooler/mailer.cpp:1688
+#: spooler/mailer.cpp:1710
 msgid "You are not allowed to send as user or group "
 msgstr "Non ti è permesso di inviare e-mail per conto di "
 
-#: spooler/mailer.cpp:1690
+#: spooler/mailer.cpp:1712
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 "Impossibile trovare l'utente o il gruppo per conto di cui si sta tentando di "
 "inviare e-mail."
 
-#: spooler/mailer.cpp:2489
+#: spooler/mailer.cpp:2537
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Errore durante l'invio del messaggio. Codice di errore: "
 
@@ -1576,85 +1574,3 @@ msgstr ""
 #, php-format
 msgid "%x %X"
 msgstr ""
-
-#~ msgid "Inbox -"
-#~ msgstr "Cassetta postale -"
-
-#~ msgid "Adding local folders"
-#~ msgstr "Aggiunta delle cartelle locali in corso..."
-
-#~ msgid "Adding remote folders"
-#~ msgstr "Aggiunta delle cartelle remote in corso..."
-
-#~ msgid "Removing local folders"
-#~ msgstr "Rimozione delle cartelle locali in corso..."
-
-#~ msgid "Removing remote folders"
-#~ msgstr "Rimozione delle cartelle remote in corso..."
-
-#~ msgid "Modifying local messages"
-#~ msgstr "Modifica dei messaggi locali in corso..."
-
-#~ msgid "Modifying remote messages"
-#~ msgstr "Modifica dei messaggi remoti in corso..."
-
-#~ msgid "Reading stores"
-#~ msgstr "Lettura delle caselle di posta in corso..."
-
-#~ msgid "Starting Synchronisation"
-#~ msgstr "Inizio della sincronizzazione"
-
-#~ msgid "Zarafa Delegates"
-#~ msgstr "Delegati Zarafa"
-
-#~ msgid ""
-#~ "You are currently offline. To use this command, connect to the Zarafa online "
-#~ "server."
-#~ msgstr ""
-#~ "Al momento si è offline. Per usare questo comando, connettersi con il server "
-#~ "Zarafa online."
-
-#~ msgid "Start Zarafa offline synchronization"
-#~ msgstr "Inizia sincronizzazione offline con Zarafa"
-
-#~ msgid "Configure Zarafa offline synchronization"
-#~ msgstr "Configura sincronizzazione offline con Zarafa"
-
-#~ msgid "Zarafa Favorites"
-#~ msgstr "Preferiti Zarafa"
-
-#~ msgid "Error"
-#~ msgstr "Errore"
-
-#~ msgid "Zarafa license"
-#~ msgstr "Licenza Zarafa"
-
-#~ msgid "Incorrect Zarafa version."
-#~ msgstr "Versione Zarafa Incorretta"
-
-#~ msgid "Cached Zarafa Mode"
-#~ msgstr "Modalità Cached Zarafa"
-
-#~ msgid ""
-#~ "Zarafa does not support offline or cached mode for Outlook XP and Outlook "
-#~ "2002. If you wish to use offline functionality of Zarafa, please use Outlook "
-#~ "2000, 2003, 2007 or later."
-#~ msgstr ""
-#~ "Zarafa non supporta la modalità offline e cache per Outlook XP e Outlook "
-#~ "2002. Se si desidera utilizzare la funzionalità offline di Zarafa, si prega "
-#~ "di utilizzare Outlook 2000,2003,2007 o versioni successive."
-
-#~ msgid "Zarafa Offline"
-#~ msgstr "Zarafa Offline"
-
-#~ msgid "Unable to get MAPI information"
-#~ msgstr "Impossibile ottenere informazioni MAPI"
-
-#~ msgid "Unable to get Folder information"
-#~ msgstr "Impossibile ottenere informazioni cartella"
-
-#~ msgid "You can only use this function with Zarafa profiles."
-#~ msgstr "Potete utilizzare questa funzione solo con i profili di Zarafa."
-
-#~ msgid "test"
-#~ msgstr "test"

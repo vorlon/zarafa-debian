@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-06 00:04+0100\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2012-02-05 19:01+0200\n"
 "Last-Translator: Oshri <oshri@ateranetworks.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,10 +23,10 @@ msgid "Can't save this message as a file"
 msgstr "לא ניתן לשמור הודעה זאת כקובץ"
 
 #: php-webclient-ajax/client/download_message.php:81
-#: php-webclient-ajax/server/core/class.operations.php:3582
-#: php-webclient-ajax/server/core/class.operations.php:3598
+#: php-webclient-ajax/server/core/class.operations.php:3584
+#: php-webclient-ajax/server/core/class.operations.php:3600
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:552
-#: php-webclient-ajax/client/modules/itemmodule.js:1618
+#: php-webclient-ajax/client/modules/itemmodule.js:1622
 msgid "Untitled"
 msgstr "ללא נושא"
 
@@ -204,8 +204,8 @@ msgstr "פרטים"
 #: php-webclient-ajax/server/core/class.tablecolumns.php:202
 #: php-webclient-ajax/client/modules/printmessageitem.js:64
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:57
-#: php-webclient-ajax/client/modules/itemmodule.js:1578
-#: php-webclient-ajax/client/modules/itemmodule.js:1595
+#: php-webclient-ajax/client/modules/itemmodule.js:1582
+#: php-webclient-ajax/client/modules/itemmodule.js:1599
 msgid "To"
 msgstr "אל"
 
@@ -215,7 +215,7 @@ msgstr "אל"
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:121
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:490
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/vacation.php:24
-#: php-webclient-ajax/server/core/class.operations.php:2746
+#: php-webclient-ajax/server/core/class.operations.php:2748
 #: php-webclient-ajax/server/core/class.tablecolumns.php:19
 #: php-webclient-ajax/server/core/class.tablecolumns.php:154
 #: php-webclient-ajax/server/core/class.tablecolumns.php:170
@@ -708,8 +708,8 @@ msgstr "פריטים שנמחקו"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:24
 #: php-webclient-ajax/client/layout/dialogs/modal/createfolder.php:77
 #: php-webclient-ajax/client/widgets/menu.js:11
-#: php-webclient-ajax/client/layout/js/appointment.js:745
-#: php-webclient-ajax/client/layout/js/appointment.js:746
+#: php-webclient-ajax/client/layout/js/appointment.js:749
+#: php-webclient-ajax/client/layout/js/appointment.js:750
 msgid "Appointment"
 msgstr "פגישה"
 
@@ -725,7 +725,7 @@ msgstr "מעקב"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:90
 #: php-webclient-ajax/client/modules/freebusymodule.js:19
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:668
-#: php-webclient-ajax/client/layout/js/appointment.js:1550
+#: php-webclient-ajax/client/layout/js/appointment.js:1570
 #: php-webclient-ajax/client/layout/js/readmail.js:31
 msgid "Start time"
 msgstr "זמן התחלה"
@@ -733,7 +733,7 @@ msgstr "זמן התחלה"
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:91
 #: php-webclient-ajax/client/modules/freebusymodule.js:18
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:669
-#: php-webclient-ajax/client/layout/js/appointment.js:1551
+#: php-webclient-ajax/client/layout/js/appointment.js:1571
 #: php-webclient-ajax/client/layout/js/readmail.js:32
 msgid "End time"
 msgstr "זמן סיום"
@@ -871,7 +871,7 @@ msgstr "דקות"
 #: php-webclient-ajax/client/layout/js/appointment.js:165
 #: php-webclient-ajax/client/layout/js/task.js:60
 #: php-webclient-ajax/client/layout/js/task.js:72
-#: php-webclient-ajax/client/layout/js/task.js:774
+#: php-webclient-ajax/client/layout/js/task.js:782
 msgid "hour"
 msgstr "שעה"
 
@@ -892,7 +892,7 @@ msgstr "שעה"
 #: php-webclient-ajax/client/layout/js/appointment.js:165
 #: php-webclient-ajax/client/layout/js/task.js:60
 #: php-webclient-ajax/client/layout/js/task.js:72
-#: php-webclient-ajax/client/layout/js/task.js:774
+#: php-webclient-ajax/client/layout/js/task.js:782
 msgid "hours"
 msgstr "שעות"
 
@@ -903,9 +903,9 @@ msgstr "שעות"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:74
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:76
 #: php-webclient-ajax/client/core/utils.js:1674
-#: php-webclient-ajax/client/layout/js/appointment.js:1030
-#: php-webclient-ajax/client/layout/js/task.js:776
-#: php-webclient-ajax/client/layout/js/task.js:782
+#: php-webclient-ajax/client/layout/js/appointment.js:1034
+#: php-webclient-ajax/client/layout/js/task.js:784
+#: php-webclient-ajax/client/layout/js/task.js:790
 msgid "day"
 msgstr "יום"
 
@@ -923,30 +923,30 @@ msgstr "יום"
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:63
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:64
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.php:77
-#: php-webclient-ajax/client/layout/js/appointment.js:1034
-#: php-webclient-ajax/client/layout/js/task.js:776
-#: php-webclient-ajax/client/layout/js/task.js:782
+#: php-webclient-ajax/client/layout/js/appointment.js:1038
+#: php-webclient-ajax/client/layout/js/task.js:784
+#: php-webclient-ajax/client/layout/js/task.js:790
 msgid "days"
 msgstr "ימים"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:391
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:65
-#: php-webclient-ajax/client/layout/js/appointment.js:1039
-#: php-webclient-ajax/client/layout/js/task.js:786
+#: php-webclient-ajax/client/layout/js/appointment.js:1043
+#: php-webclient-ajax/client/layout/js/task.js:794
 msgid "week"
 msgstr "שבוע"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:392
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:66
-#: php-webclient-ajax/client/layout/js/appointment.js:1043
-#: php-webclient-ajax/client/layout/js/task.js:786
+#: php-webclient-ajax/client/layout/js/appointment.js:1047
+#: php-webclient-ajax/client/layout/js/task.js:794
 msgid "weeks"
 msgstr "שבועות"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/appointment.php:393
 #: php-webclient-ajax/client/layout/dialogs/modal/recurrence.php:222
 #: php-webclient-ajax/client/core/utils.js:1633
-#: php-webclient-ajax/client/layout/js/appointment.js:1048
+#: php-webclient-ajax/client/layout/js/appointment.js:1052
 msgid "month"
 msgstr "חודש"
 
@@ -976,8 +976,8 @@ msgstr "חופשי"
 #: php-webclient-ajax/client/views/table.view.js:1071
 #: php-webclient-ajax/client/layout/js/advancedfind.js:259
 #: php-webclient-ajax/client/layout/js/advancedfind.js:284
-#: php-webclient-ajax/client/layout/js/appointment.js:1306
-#: php-webclient-ajax/client/layout/js/appointment.js:1379
+#: php-webclient-ajax/client/layout/js/appointment.js:1326
+#: php-webclient-ajax/client/layout/js/appointment.js:1399
 #: php-webclient-ajax/client/layout/js/attachitem.js:296
 #: php-webclient-ajax/client/layout/js/attachitem.js:321
 msgid "Tentative"
@@ -1013,7 +1013,7 @@ msgstr "התגובה הבאה לפגישה זאת התקבלה"
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:138
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:664
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:665
-#: php-webclient-ajax/client/layout/js/appointment.js:1547
+#: php-webclient-ajax/client/layout/js/appointment.js:1567
 #: php-webclient-ajax/client/layout/js/readmail.js:27
 #: php-webclient-ajax/client/layout/js/readmail.js:28
 msgid "Propose New Time"
@@ -1074,7 +1074,7 @@ msgstr "חברים"
 #: php-webclient-ajax/client/modules/distlistmodule.js:95
 #: php-webclient-ajax/client/modules/contactlistmodule.js:49
 #: php-webclient-ajax/client/layout/js/signatures.js:18
-#: php-webclient-ajax/client/layout/js/appointment.js:1171
+#: php-webclient-ajax/client/layout/js/appointment.js:1191
 #: php-webclient-ajax/client/layout/js/restoreitems.js:138
 #: php-webclient-ajax/client/layout/js/delegates.js:8
 msgid "Name"
@@ -1138,7 +1138,7 @@ msgid "From"
 msgstr "מאת"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:86
-#: php-webclient-ajax/server/core/class.operations.php:2747
+#: php-webclient-ajax/server/core/class.operations.php:2749
 #: php-webclient-ajax/server/core/class.tablecolumns.php:177
 #: php-webclient-ajax/server/core/class.tablecolumns.php:203
 #: php-webclient-ajax/client/modules/printmessageitem.js:63
@@ -1150,8 +1150,8 @@ msgstr "נשלח"
 #: php-webclient-ajax/client/layout/dialogs/standard/createmail.php:466
 #: php-webclient-ajax/client/modules/printmessageitem.js:65
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:58
-#: php-webclient-ajax/client/modules/itemmodule.js:1581
-#: php-webclient-ajax/client/modules/itemmodule.js:1598
+#: php-webclient-ajax/client/modules/itemmodule.js:1585
+#: php-webclient-ajax/client/modules/itemmodule.js:1602
 msgid "CC"
 msgstr "עותק לידיעה"
 
@@ -1189,7 +1189,7 @@ msgstr "תאריך סיום"
 
 #: php-webclient-ajax/client/layout/dialogs/standard/readmail.php:160
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:72
-#: php-webclient-ajax/client/modules/itemmodule.js:1223
+#: php-webclient-ajax/client/modules/itemmodule.js:1227
 msgid "When"
 msgstr "מתי"
 
@@ -1751,9 +1751,9 @@ msgid ""
 "folder)."
 msgstr ""
 "נציגים יכולים לשלוח פריטים בשמך, ואופציונלית לראות או לערוך פריטים בחנותך. "
-"ניתן להגדיר זאת בכפתור \"ערוך נציגים\" בלשונית המאפיינים של חלון ההגדות. ניתן "
-"להגדיר אפשרות גישה לתיקיות שלך ללא פריבילגית \"שלח בשם\" בלשונית \"הרשאות\" "
-"בתיקיית המאפיינים (כניסה על ידי קליק ימני על התיקיה)."
+"ניתן להגדיר זאת בכפתור \"ערוך נציגים\" בלשונית המאפיינים של חלון ההגדות. "
+"ניתן להגדיר אפשרות גישה לתיקיות שלך ללא פריבילגית \"שלח בשם\" בלשונית "
+"\"הרשאות\" בתיקיית המאפיינים (כניסה על ידי קליק ימני על התיקיה)."
 
 # 83%
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:3
@@ -3280,7 +3280,7 @@ msgid "Preferences"
 msgstr "מאפיינים"
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/preferences.php:15
-#: php-webclient-ajax/client/login.php:68
+#: php-webclient-ajax/client/login.php:75
 msgid "Language"
 msgstr "שפה"
 
@@ -3430,15 +3430,15 @@ msgstr "לא יכול להתחבר לסרבר של זרפה"
 msgid "You have been automatically logged out"
 msgstr "בוצעה התנתקות אוטומטית"
 
-#: php-webclient-ajax/client/login.php:64
+#: php-webclient-ajax/client/login.php:71
 msgid "Password"
 msgstr "סיסמא"
 
-#: php-webclient-ajax/client/login.php:71
+#: php-webclient-ajax/client/login.php:78
 msgid "Last used language"
 msgstr "שפת שימוש אחרונה"
 
-#: php-webclient-ajax/client/login.php:84
+#: php-webclient-ajax/client/login.php:91
 msgid "Logon"
 msgstr "התחבר"
 
@@ -3530,8 +3530,7 @@ msgid ""
 "Unable to set some permissions. Permissions are only allowed on users and "
 "security groups."
 msgstr ""
-"לא ניתן להגידר חלק מן ההרשאות. ניתן ליישם הרשאות רק על משתמשים וקבוצות "
-"אבטחה."
+"לא ניתן להגידר חלק מן ההרשאות. ניתן ליישם הרשאות רק על משתמשים וקבוצות אבטחה."
 
 #: php-webclient-ajax/server/modules/class.propertiesmodule.php:62
 msgid "Unable to set all permissions."
@@ -3608,13 +3607,13 @@ msgid "The message store has exceeded its soft quota limit."
 msgstr "אחסון ההודעות חרג מהמכסה שלו."
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:200
-#: php-webclient-ajax/server/core/class.operations.php:2548
+#: php-webclient-ajax/server/core/class.operations.php:2550
 msgid "Task Accepted:"
 msgstr "משימה התקבלה"
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:202
-#: php-webclient-ajax/server/core/class.operations.php:2551
-#: php-webclient-ajax/server/core/class.operations.php:2608
+#: php-webclient-ajax/server/core/class.operations.php:2553
+#: php-webclient-ajax/server/core/class.operations.php:2610
 msgid "Task Declined:"
 msgstr "משימה סורבה"
 
@@ -3647,22 +3646,22 @@ msgid "Organizor"
 msgstr "מארגן"
 
 #: php-webclient-ajax/server/core/class.operations.php:1000
-#: php-webclient-ajax/client/layout/js/appointment.js:1290
-#: php-webclient-ajax/client/layout/js/appointment.js:1372
+#: php-webclient-ajax/client/layout/js/appointment.js:1310
+#: php-webclient-ajax/client/layout/js/appointment.js:1392
 msgid "Required"
 msgstr "דרוש"
 
 # 75%
 #: php-webclient-ajax/server/core/class.operations.php:1004
-#: php-webclient-ajax/client/layout/js/appointment.js:1293
-#: php-webclient-ajax/client/layout/js/appointment.js:1373
+#: php-webclient-ajax/client/layout/js/appointment.js:1313
+#: php-webclient-ajax/client/layout/js/appointment.js:1393
 msgid "Optional"
 msgstr "אופציונלי"
 
 #: php-webclient-ajax/server/core/class.operations.php:1008
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
-#: php-webclient-ajax/client/layout/js/appointment.js:1296
-#: php-webclient-ajax/client/layout/js/appointment.js:1374
+#: php-webclient-ajax/client/layout/js/appointment.js:1316
+#: php-webclient-ajax/client/layout/js/appointment.js:1394
 msgid "Resource"
 msgstr "משאב"
 
@@ -3670,9 +3669,9 @@ msgstr "משאב"
 #: php-webclient-ajax/client/modules/itemmodule.js:528
 #: php-webclient-ajax/client/views/table.view.js:1032
 #: php-webclient-ajax/client/layout/js/advancedfind.js:253
-#: php-webclient-ajax/client/layout/js/appointment.js:1212
-#: php-webclient-ajax/client/layout/js/appointment.js:1319
-#: php-webclient-ajax/client/layout/js/appointment.js:1377
+#: php-webclient-ajax/client/layout/js/appointment.js:1232
+#: php-webclient-ajax/client/layout/js/appointment.js:1339
+#: php-webclient-ajax/client/layout/js/appointment.js:1397
 #: php-webclient-ajax/client/layout/js/attachitem.js:290
 msgid "No Response"
 msgstr "אין תשובה"
@@ -3682,8 +3681,8 @@ msgstr "אין תשובה"
 #: php-webclient-ajax/client/modules/itemmodule.js:537
 #: php-webclient-ajax/client/views/table.view.js:1044
 #: php-webclient-ajax/client/layout/js/advancedfind.js:262
-#: php-webclient-ajax/client/layout/js/appointment.js:1309
-#: php-webclient-ajax/client/layout/js/appointment.js:1380
+#: php-webclient-ajax/client/layout/js/appointment.js:1329
+#: php-webclient-ajax/client/layout/js/appointment.js:1400
 #: php-webclient-ajax/client/layout/js/attachitem.js:299
 msgid "Accepted"
 msgstr "התקבל"
@@ -3693,46 +3692,46 @@ msgstr "התקבל"
 #: php-webclient-ajax/client/modules/itemmodule.js:540
 #: php-webclient-ajax/client/views/table.view.js:1048
 #: php-webclient-ajax/client/layout/js/advancedfind.js:265
-#: php-webclient-ajax/client/layout/js/appointment.js:1312
-#: php-webclient-ajax/client/layout/js/appointment.js:1381
+#: php-webclient-ajax/client/layout/js/appointment.js:1332
+#: php-webclient-ajax/client/layout/js/appointment.js:1401
 #: php-webclient-ajax/client/layout/js/attachitem.js:302
 msgid "Declined"
 msgstr "נדחה"
 
 #: php-webclient-ajax/server/core/class.operations.php:1041
-#: php-webclient-ajax/client/layout/js/appointment.js:1315
-#: php-webclient-ajax/client/layout/js/appointment.js:1382
+#: php-webclient-ajax/client/layout/js/appointment.js:1335
+#: php-webclient-ajax/client/layout/js/appointment.js:1402
 msgid "Not Responded"
 msgstr "לא התקבלה תגובה"
 
-#: php-webclient-ajax/server/core/class.operations.php:2554
+#: php-webclient-ajax/server/core/class.operations.php:2556
 msgid "Task Request:"
 msgstr "בקשת משימה:"
 
-#: php-webclient-ajax/server/core/class.operations.php:2564
-#: php-webclient-ajax/server/core/class.operations.php:2609
+#: php-webclient-ajax/server/core/class.operations.php:2566
+#: php-webclient-ajax/server/core/class.operations.php:2611
 msgid "Task Updated:"
 msgstr "משימה עודכנה"
 
-#: php-webclient-ajax/server/core/class.operations.php:2564
-#: php-webclient-ajax/server/core/class.operations.php:2609
+#: php-webclient-ajax/server/core/class.operations.php:2566
+#: php-webclient-ajax/server/core/class.operations.php:2611
 msgid "Task Completed:"
 msgstr "משימה הושלמה:"
 
-#: php-webclient-ajax/server/core/class.operations.php:2745
+#: php-webclient-ajax/server/core/class.operations.php:2747
 msgid "Your message did not reach some or all of the intended recipients"
 msgstr "ההודעה שלך לא הגיע לחלק או לכל המיועדים"
 
-#: php-webclient-ajax/server/core/class.operations.php:2748
+#: php-webclient-ajax/server/core/class.operations.php:2750
 msgid "The following recipient(s) could not be reached"
 msgstr "לא ניתן היה להשיג את המיועד/ים הבא/ים "
 
-#: php-webclient-ajax/server/core/class.operations.php:3096
+#: php-webclient-ajax/server/core/class.operations.php:3098
 msgid "Untitled rule"
 msgstr "כלל ללא כותרת"
 
-#: php-webclient-ajax/server/core/class.operations.php:3220
-#: php-webclient-ajax/server/core/class.operations.php:3231
+#: php-webclient-ajax/server/core/class.operations.php:3222
+#: php-webclient-ajax/server/core/class.operations.php:3233
 msgid "Canceled: "
 msgstr "בוטל:"
 
@@ -3904,7 +3903,7 @@ msgstr "מיין לפי מצב \"עסוק\""
 #: php-webclient-ajax/server/core/class.tablecolumns.php:304
 #: php-webclient-ajax/client/modules/distlistmodule.js:94
 #: php-webclient-ajax/client/modules/stickynotelistmodule.js:22
-#: php-webclient-ajax/client/layout/js/appointment.js:1170
+#: php-webclient-ajax/client/layout/js/appointment.js:1190
 msgid "Icon"
 msgstr "סמל"
 
@@ -4570,11 +4569,11 @@ msgid ""
 "meeting?"
 msgstr "האם ברצונך לשלוח עדכון למשתתפים בנוגע לשנויים בפגישה זו?"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:542
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:543
 msgid "Resources have been planned."
 msgstr "משאבים תוכננו"
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:564
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:565
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:544
 #, c-format
 msgid ""
@@ -4587,25 +4586,26 @@ msgstr ""
 "ההרשאות המתאימות לחשבון זה. או שתכניס את השם כמשתתף נדרש או אופציונלי או "
 "שתצור קשר עם המנהל שלך לגבי קבלת הרשאות לקבוע  '%s'."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:567
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
 #, c-format
 msgid ""
 "\"%s\" has declined your meeting because \"%s\" does not automatically "
 "accept meeting requests. "
-msgstr "\"%s\" סירב לפגישה שלך כיון ש \"%s\" אינו מקבל באופן אוטומטי בקשות לפגישות."
+msgstr ""
+"\"%s\" סירב לפגישה שלך כיון ש \"%s\" אינו מקבל באופן אוטומטי בקשות לפגישות."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:570
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:571
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:550
 #, c-format
 msgid ""
 "\"%s\" has declined your meeting because it is recurring. You must book each "
 "meeting separetly with this recurrence."
 msgstr ""
-"\"%s\" סירב לפגישה אתך כיון שזו פגישה חוזרת. הנך צריך לקבוע כל פגישה בנפרד עם "
-"חזרה זו."
+"\"%s\" סירב לפגישה אתך כיון שזו פגישה חוזרת. הנך צריך לקבוע כל פגישה בנפרד "
+"עם חזרה זו."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:573
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:574
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:553
 #, c-format
 msgid ""
@@ -4614,7 +4614,7 @@ msgid ""
 msgstr ""
 "\"%s\" אינו פנוי בזמן הספציפי הזה. הנך צריך למצוא זמן אחר או למצוא משאב אחר."
 
-#: php-webclient-ajax/client/modules/appointmentitemmodule.js:576
+#: php-webclient-ajax/client/modules/appointmentitemmodule.js:577
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:556
 msgid "Meeting was not scheduled."
 msgstr "הפגישה לא נקבעה"
@@ -4623,7 +4623,8 @@ msgstr "הפגישה לא נקבעה"
 msgid ""
 "When searching this type of folder, you can not search other folders at the "
 "same time"
-msgstr "כאשר הנך מחפש בסוג זה של תיקיה, אינך יכול לחפש בתיקיות אחרות באותו הזמן"
+msgstr ""
+"כאשר הנך מחפש בסוג זה של תיקיה, אינך יכול לחפש בתיקיות אחרות באותו הזמן"
 
 #: php-webclient-ajax/client/modules/hierarchyselectmodule.js:427
 msgid ""
@@ -4725,8 +4726,8 @@ msgstr "%a %x"
 #: php-webclient-ajax/client/layout/js/dialog.js:699
 #: php-webclient-ajax/client/layout/js/dialog.js:972
 #: php-webclient-ajax/client/layout/js/dialog.js:979
-#: php-webclient-ajax/client/layout/js/appointment.js:1071
-#: php-webclient-ajax/client/layout/js/appointment.js:1092
+#: php-webclient-ajax/client/layout/js/appointment.js:1075
+#: php-webclient-ajax/client/layout/js/appointment.js:1096
 #: php-webclient-ajax/client/layout/js/task.js:96
 #: php-webclient-ajax/client/layout/js/task.js:100
 #: php-webclient-ajax/client/layout/js/task.js:102
@@ -5308,7 +5309,7 @@ msgid "%d/%m/%Y %H:%M"
 msgstr "%d/%m/%Y %H:%M"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:679
-#: php-webclient-ajax/client/layout/js/appointment.js:1561
+#: php-webclient-ajax/client/layout/js/appointment.js:1581
 #: php-webclient-ajax/client/layout/js/readmail.js:42
 msgid "Comment"
 msgstr "הערה"
@@ -5415,34 +5416,34 @@ msgstr "מארגן הפגשיה"
 msgid "Not Yet Responded"
 msgstr "עדיין לא התקבלה תגובה"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1154
+#: php-webclient-ajax/client/modules/itemmodule.js:1158
 msgid "New Meeting Time Proposed"
 msgstr "הוצע זמן חדש לפגישה"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1155
-#: php-webclient-ajax/client/modules/itemmodule.js:1156
-#: php-webclient-ajax/client/modules/itemmodule.js:1228
-#: php-webclient-ajax/client/modules/itemmodule.js:1229
+#: php-webclient-ajax/client/modules/itemmodule.js:1159
+#: php-webclient-ajax/client/modules/itemmodule.js:1160
+#: php-webclient-ajax/client/modules/itemmodule.js:1232
+#: php-webclient-ajax/client/modules/itemmodule.js:1233
 msgid "%A, %B %e, %Y %H:%M"
 msgstr "%A, %B %e, %Y %H:%M"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1161
+#: php-webclient-ajax/client/modules/itemmodule.js:1165
 msgid "GMT"
 msgstr "זמן שעון גריניץ'"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1232
+#: php-webclient-ajax/client/modules/itemmodule.js:1236
 msgid "Where"
 msgstr "איפה"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1278
+#: php-webclient-ajax/client/modules/itemmodule.js:1282
 msgid "You will lose the modified data. Do you want to continue?"
 msgstr "הנתונים ששונו יאבדו. האם ברצונך להמשיך?"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1509
+#: php-webclient-ajax/client/modules/itemmodule.js:1513
 msgid "Add to message body"
 msgstr "הוסף לגוף ההודעה"
 
-#: php-webclient-ajax/client/modules/itemmodule.js:1677
+#: php-webclient-ajax/client/modules/itemmodule.js:1681
 msgid "This meeting request is out-of-date and will now be deleted."
 msgstr "פג תוקף בקשה זו והיא תמחק כעת."
 
@@ -6701,7 +6702,8 @@ msgstr "עליך לציין שם משתמש!"
 #: php-webclient-ajax/client/layout/js/recurrence.js:38
 msgid ""
 "The start date and end date for the range of recurrence can not be same."
-msgstr "תאריך ההתחלה ותאריך הסיום של טווח התאריכים לא יכולים להיות אותו התאריך."
+msgstr ""
+"תאריך ההתחלה ותאריך הסיום של טווח התאריכים לא יכולים להיות אותו התאריך."
 
 #: php-webclient-ajax/client/layout/js/recurrence.js:40
 msgid ""
@@ -6847,91 +6849,91 @@ msgstr ""
 "לא ניתן לשלוח את בקשת הפגישה הזו כיוון שאין לה מיועדים. האם ברצונך לשמור "
 "ולסגור את פגישה זו במקום?"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:762
-#: php-webclient-ajax/client/layout/js/appointment.js:763
-#: php-webclient-ajax/client/layout/js/appointment.js:783
-#: php-webclient-ajax/client/layout/js/appointment.js:784
+#: php-webclient-ajax/client/layout/js/appointment.js:766
+#: php-webclient-ajax/client/layout/js/appointment.js:767
+#: php-webclient-ajax/client/layout/js/appointment.js:787
+#: php-webclient-ajax/client/layout/js/appointment.js:788
 msgid "Meeting"
 msgstr "פגישה"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:819
+#: php-webclient-ajax/client/layout/js/appointment.js:823
 msgid "Meeting has been canceled."
 msgstr "הפגישה בוטלה"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1024
+#: php-webclient-ajax/client/layout/js/appointment.js:1028
 msgid "Occurs every"
 msgstr "מופיע כל"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1028
+#: php-webclient-ajax/client/layout/js/appointment.js:1032
 msgid "workday"
 msgstr "ימי העבודה"
 
 # 83%
-#: php-webclient-ajax/client/layout/js/appointment.js:1052
+#: php-webclient-ajax/client/layout/js/appointment.js:1056
 msgid "months"
 msgstr "חודשים"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1057
+#: php-webclient-ajax/client/layout/js/appointment.js:1061
 msgid "year"
 msgstr "שנה"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1061
+#: php-webclient-ajax/client/layout/js/appointment.js:1065
 msgid "years"
 msgstr "שנים"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1067
+#: php-webclient-ajax/client/layout/js/appointment.js:1071
 msgid "effective"
 msgstr "החל מ"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1079
+#: php-webclient-ajax/client/layout/js/appointment.js:1083
 msgid "for 1 occurrence"
 msgstr "למשך מופע 1"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1081
+#: php-webclient-ajax/client/layout/js/appointment.js:1085
 #, c-format
 msgid "for %d occurrences"
 msgstr "למשך %d מופעים"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1088
+#: php-webclient-ajax/client/layout/js/appointment.js:1092
 msgid "until"
 msgstr "עד"
 
 # 75%
-#: php-webclient-ajax/client/layout/js/appointment.js:1097
+#: php-webclient-ajax/client/layout/js/appointment.js:1101
 msgid "from"
 msgstr "מ"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1101
+#: php-webclient-ajax/client/layout/js/appointment.js:1105
 msgid "to"
 msgstr "עד"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1172
+#: php-webclient-ajax/client/layout/js/appointment.js:1192
 msgid "Attendance"
 msgstr "נוכחות"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1173
+#: php-webclient-ajax/client/layout/js/appointment.js:1193
 msgid "Response"
 msgstr "תגובה"
 
 # 88%
-#: php-webclient-ajax/client/layout/js/appointment.js:1211
-#: php-webclient-ajax/client/layout/js/appointment.js:1287
-#: php-webclient-ajax/client/layout/js/appointment.js:1303
-#: php-webclient-ajax/client/layout/js/appointment.js:1371
-#: php-webclient-ajax/client/layout/js/appointment.js:1378
+#: php-webclient-ajax/client/layout/js/appointment.js:1231
+#: php-webclient-ajax/client/layout/js/appointment.js:1307
+#: php-webclient-ajax/client/layout/js/appointment.js:1323
+#: php-webclient-ajax/client/layout/js/appointment.js:1391
+#: php-webclient-ajax/client/layout/js/appointment.js:1398
 msgid "Organizer"
 msgstr "מארגן"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1264
+#: php-webclient-ajax/client/layout/js/appointment.js:1284
 msgid "attendee accepted"
 msgstr "משתתף קיבל"
 
-#: php-webclient-ajax/client/layout/js/appointment.js:1264
+#: php-webclient-ajax/client/layout/js/appointment.js:1284
 msgid "tentatively accepted"
 msgstr "קיבל בהיסוס"
 
 # 75%
-#: php-webclient-ajax/client/layout/js/appointment.js:1264
+#: php-webclient-ajax/client/layout/js/appointment.js:1284
 msgid "declined"
 msgstr "סרב"
 
@@ -7064,7 +7066,7 @@ msgstr "תאריך היעד עבור משימה זו עבר. האם אתה בט�
 msgid "Please enter correct date"
 msgstr "אנא הזן תאריך מתאים"
 
-#: php-webclient-ajax/client/layout/js/task.js:721
+#: php-webclient-ajax/client/layout/js/task.js:729
 msgid ""
 "If you create an unassigned copy of this task, you will own the copy, and "
 "you will no longer receive updates for the task you assigned."
@@ -7103,6 +7105,3 @@ msgstr "חץ למעלה"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.js:11
 msgid "DOWN ARROW"
 msgstr "חץ למטה"
-
-#~ msgid "Sort on Attendee"
-#~ msgstr "מיין לפי משתתפים"

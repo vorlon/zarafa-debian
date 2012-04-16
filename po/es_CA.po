@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-27 00:05+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2010-08-19 15:46+0200\n"
 "Last-Translator: Cies <cies@zarafa.com>\n"
 "Language-Team: es_CA <es@li.org>\n"
@@ -57,8 +57,8 @@ msgstr "Començant sincronització offline de Zarafa"
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
-"Obrir altres carpetes d'usuari amb informació compartida "
-"d'Outlook(Calendari, Correu electrònic, etc.)"
+"Obrir altres carpetes d'usuari amb informació compartida d'Outlook"
+"(Calendari, Correu electrònic, etc.)"
 
 #: provider/ECProps/Addin.cpp:658
 msgid "Out of Office currently on. Would you like to turn it off?"
@@ -189,7 +189,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Impossible afegir carpeta a preferits"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:158
+#: provider/ECProps/ECDelegatePropPage.cpp:167
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr ""
@@ -237,37 +237,37 @@ msgstr "Afegir només les carpetes immediates"
 msgid "Unable to get folder data"
 msgstr "Impossible obtenir la data de la carpeta"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:124
+#: provider/ECProps/ECDelegatePropPage.cpp:133
 msgid "Saving changes failed."
 msgstr "No s'han guardat els canvis."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:127
+#: provider/ECProps/ECDelegatePropPage.cpp:136
 msgid "Saving rules failed: "
 msgstr "No s'han guardat les normes."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:168
+#: provider/ECProps/ECDelegatePropPage.cpp:177
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr ""
 
-#: provider/ECProps/ECDelegatePropPage.cpp:174
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr ""
 
-#: provider/ECProps/ECDelegatePropPage.cpp:179
+#: provider/ECProps/ECDelegatePropPage.cpp:188
 msgid "Add..."
 msgstr "Afegir..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:180
+#: provider/ECProps/ECDelegatePropPage.cpp:189
 msgid "Remove..."
 msgstr "Eliminar..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:181
+#: provider/ECProps/ECDelegatePropPage.cpp:190
 msgid "Permissions..."
 msgstr "Permisos..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:182
+#: provider/ECProps/ECDelegatePropPage.cpp:191
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -279,11 +279,11 @@ msgstr ""
 "representació com a privilegis, anar a propietats de cada carpeta i canviar "
 "les opcions en la etiqueta Permisos."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:192
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 
-#: provider/ECProps/ECDelegatePropPage.cpp:190
+#: provider/ECProps/ECDelegatePropPage.cpp:199
 #, fuzzy
 msgid ""
 "The server is not available. Either there are network problems or server is "
@@ -292,7 +292,7 @@ msgstr ""
 "Zarafa no està disponible. Hi h aproblemes de xarxa o Zarafa està fora de "
 "servei per manteniment."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:192
+#: provider/ECProps/ECDelegatePropPage.cpp:201
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
@@ -300,13 +300,13 @@ msgstr ""
 "No s'ha pogut inicialitzar la finestre de delegació. Siusplau, contacti amb "
 "el seu administrador."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:237
+#: provider/ECProps/ECDelegatePropPage.cpp:248
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Afegir"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:252
+#: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
@@ -1434,15 +1434,15 @@ msgstr ""
 msgid "Unable to save archived message."
 msgstr ""
 
-#: spooler/mailer.cpp:1688
+#: spooler/mailer.cpp:1710
 msgid "You are not allowed to send as user or group "
 msgstr ""
 
-#: spooler/mailer.cpp:1690
+#: spooler/mailer.cpp:1712
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 
-#: spooler/mailer.cpp:2489
+#: spooler/mailer.cpp:2537
 msgid "Error found while trying to send your message. Error code: "
 msgstr ""
 
@@ -1486,8 +1486,8 @@ msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
 msgstr ""
-"El usuari ha cencelat la operació, normalment clicant sobre el botó "
-"Cancel.lar del diàleg."
+"El usuari ha cencelat la operació, normalment clicant sobre el botó Cancel."
+"lar del diàleg."
 
 #: common/Util.cpp:1746
 msgid "A logon session could not be established."
@@ -1563,85 +1563,3 @@ msgstr ""
 #, php-format
 msgid "%x %X"
 msgstr ""
-
-#~ msgid "Inbox -"
-#~ msgstr "Safata d'Entrada -"
-
-#~ msgid "Adding local folders"
-#~ msgstr "S'estan afegint les carpetes locals"
-
-#~ msgid "Adding remote folders"
-#~ msgstr "S'estan afegint les carpetes remotes"
-
-#~ msgid "Removing local folders"
-#~ msgstr "S'estan esborrant les carpetes locals"
-
-#~ msgid "Removing remote folders"
-#~ msgstr "Borrar carpetes remotes"
-
-#~ msgid "Modifying local messages"
-#~ msgstr "S'estan modificant els missatges locals"
-
-#~ msgid "Modifying remote messages"
-#~ msgstr "S'estan modificant els missatges remots"
-
-#~ msgid "Reading stores"
-#~ msgstr "S'estan llegint els magatzems"
-
-#~ msgid "Starting Synchronisation"
-#~ msgstr "S'ha iniciat la sincronització"
-
-#~ msgid "Zarafa Delegates"
-#~ msgstr "Delegats Zarafa"
-
-#~ msgid ""
-#~ "You are currently offline. To use this command, connect to the Zarafa online "
-#~ "server."
-#~ msgstr ""
-#~ "Esta actualment offline. Per utilitzar aquest comandament, s'ha de conectar "
-#~ "al servidor Zarafa."
-
-#~ msgid "Start Zarafa offline synchronization"
-#~ msgstr "Començant sincronització offline de Zarafa"
-
-#~ msgid "Configure Zarafa offline synchronization"
-#~ msgstr "Configurar sincronització offline de Zarafa"
-
-#~ msgid "Zarafa Favorites"
-#~ msgstr "Preferits Zarafa"
-
-#~ msgid "Error"
-#~ msgstr "Error"
-
-#~ msgid "Zarafa license"
-#~ msgstr "Llicència de Zarafa"
-
-#~ msgid "Incorrect Zarafa version."
-#~ msgstr "Versió de Zarafa incorrecta."
-
-#~ msgid "Cached Zarafa Mode"
-#~ msgstr "Mode memòria cau de Zarafa"
-
-#~ msgid ""
-#~ "Zarafa does not support offline or cached mode for Outlook XP and Outlook "
-#~ "2002. If you wish to use offline functionality of Zarafa, please use Outlook "
-#~ "2000, 2003, 2007 or later."
-#~ msgstr ""
-#~ "Zarafa no soporta el mode memòria cau o Offline per Outlook XP i Outlook "
-#~ "2002. Si desitja utilitzar la funció offline de Zarafa, siusplau utilitzi "
-#~ "Outlook 2000, 2003, 2007 o versions posteriors."
-
-#~ msgid "Zarafa Offline"
-#~ msgstr "Zarafa offline"
-
-#~ msgid "Unable to get MAPI information"
-#~ msgstr "Impossible obtenir informació MAPI"
-
-#~ msgid "Unable to get Folder information"
-#~ msgstr "Impossible obtenir informació de carpeta"
-
-#~ msgid "You can only use this function with Zarafa profiles."
-#~ msgstr "Vostè només pot utilitzar aquesta funció amb perfils Zarafa."
-
-#~ msgid "test"
-#~ msgstr "test"

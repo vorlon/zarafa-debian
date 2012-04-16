@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-27 00:05+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2011-02-02 11:17+0200\n"
 "Last-Translator: Verkkotaito <zarafa@verkkotaito.fi>\n"
 "Language-Team: fi_FI <fi@li.org>\n"
@@ -186,7 +186,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Kansiota ei pystytty lisäämään suosikkeihin"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:158
+#: provider/ECProps/ECDelegatePropPage.cpp:167
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr "Omaisuudet-ikkunaa ei pystytä avaamaan"
@@ -234,37 +234,37 @@ msgstr "Lisää vain viereiset alikansiot"
 msgid "Unable to get folder data"
 msgstr "Kansion dataa ei voitu noutaa"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:124
+#: provider/ECProps/ECDelegatePropPage.cpp:133
 msgid "Saving changes failed."
 msgstr "Muutosten tallennus epäonnistui."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:127
+#: provider/ECProps/ECDelegatePropPage.cpp:136
 msgid "Saving rules failed: "
 msgstr "Sääntöjen tallennus epäonnistui:"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:168
+#: provider/ECProps/ECDelegatePropPage.cpp:177
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr "Istunto ei saatavilla"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:174
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr "Osoitekirja ei saatavilla"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:179
+#: provider/ECProps/ECDelegatePropPage.cpp:188
 msgid "Add..."
 msgstr "Lisää..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:180
+#: provider/ECProps/ECDelegatePropPage.cpp:189
 msgid "Remove..."
 msgstr "Poista..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:181
+#: provider/ECProps/ECDelegatePropPage.cpp:190
 msgid "Permissions..."
 msgstr "Oikeudet..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:182
+#: provider/ECProps/ECDelegatePropPage.cpp:191
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -273,14 +273,14 @@ msgid ""
 msgstr ""
 "Valtuutetut henkilöt voivat lähettää kohteita sinun puolestasi. Myöntääksesi "
 "muille oikeudet sinun kansioihin, ilman että annat myös lähetysoikeudet, "
-"valitse jokaisen halutun kansion kohdalla Ominaisuudet, ja sieltä Oikeudet "
-"-välilehti."
+"valitse jokaisen halutun kansion kohdalla Ominaisuudet, ja sieltä Oikeudet -"
+"välilehti."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:192
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 
-#: provider/ECProps/ECDelegatePropPage.cpp:190
+#: provider/ECProps/ECDelegatePropPage.cpp:199
 msgid ""
 "The server is not available. Either there are network problems or server is "
 "down for maintenance."
@@ -288,20 +288,20 @@ msgstr ""
 "Zarafa ei vastaa. Verkossa on ongelmia tai Zarafa on ajettu alas "
 "ylläpitotoimenpiteitä varten."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:192
+#: provider/ECProps/ECDelegatePropPage.cpp:201
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
 msgstr ""
 "Valtuutusikkunan alustus ei onnistunut. Ota yhteys järjestelmänvalvojaan."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:237
+#: provider/ECProps/ECDelegatePropPage.cpp:248
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Lisää"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:252
+#: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
@@ -1431,15 +1431,15 @@ msgstr ""
 msgid "Unable to save archived message."
 msgstr ""
 
-#: spooler/mailer.cpp:1688
+#: spooler/mailer.cpp:1710
 msgid "You are not allowed to send as user or group "
 msgstr "Sinulla ei ole oikeuksia lähettää käyttäjänä tai ryhmänä"
 
-#: spooler/mailer.cpp:1690
+#: spooler/mailer.cpp:1712
 msgid "The user or group you try to send as could not be found."
 msgstr "Käyttäjää ja tai ryhmää, jonka nimissä yrität lähettää, ei löydy."
 
-#: spooler/mailer.cpp:2489
+#: spooler/mailer.cpp:2537
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Viestiä lähetettäessä tapahtui virhe. Virhekoodi:"
 
@@ -1560,111 +1560,3 @@ msgstr ""
 #, php-format
 msgid "%x %X"
 msgstr ""
-
-#~ msgid "Inbox -"
-#~ msgstr "Saapuneet -"
-
-#~ msgid "Adding local folders"
-#~ msgstr "Lisätään paikallisia kansioita"
-
-#~ msgid "Adding remote folders"
-#~ msgstr "Lisätään etäkansioita"
-
-#~ msgid "Removing local folders"
-#~ msgstr "Poistetaan paikallisia kansioita"
-
-#~ msgid "Removing remote folders"
-#~ msgstr "Poistetaan etäkansioita"
-
-#~ msgid "Modifying local messages"
-#~ msgstr "Muokataan paikallisia viestejä"
-
-#~ msgid "Modifying remote messages"
-#~ msgstr "Muokataan etäviestejä"
-
-#~ msgid "Reading stores"
-#~ msgstr "Luetaan varastoja"
-
-#~ msgid "Starting Synchronisation"
-#~ msgstr "Aloitetaan Synkronointi"
-
-#~ msgid ""
-#~ "Unable to restore the archived message. The reference data is incomplete or "
-#~ "invalid."
-#~ msgstr ""
-#~ "Arkistoitua viestiä ei voitu palauttaa. Viitetiedot ovat puutteelliset tai "
-#~ "virheelliset."
-
-#~ msgid "You are not licensed to restore archived messages."
-#~ msgstr "Sinulla ei ole oikeuksia palauttaa arkistoituja viestejä."
-
-#~ msgid ""
-#~ "Unable to restore the archived message. Failed to connect to the archive "
-#~ "server."
-#~ msgstr ""
-#~ "Arkistoitua viestiä ei voitu palauttaa. Yhteyttä arkistointipalvelimeen ei "
-#~ "saatu."
-
-#~ msgid "Unknown"
-#~ msgstr "<Tuntematon>"
-
-#~ msgid "Zarafa Delegates"
-#~ msgstr "Valtuutetut"
-
-#~ msgid ""
-#~ "You are currently offline. To use this command, connect to the Zarafa online "
-#~ "server."
-#~ msgstr ""
-#~ "Olet yhteydettömässä tilassa. Käyttääksesi tätä komentoa, sinun täytyy olla "
-#~ "yhdistetty palvelimelle."
-
-#~ msgid "Start Zarafa offline synchronization"
-#~ msgstr "Aloita offline-tilan synkronointi"
-
-#~ msgid "Configure Zarafa offline synchronization"
-#~ msgstr "Aseta offline-tilan synkronointi"
-
-#~ msgid "Zarafa Favorites"
-#~ msgstr "Suosikit"
-
-#~ msgid "Error"
-#~ msgstr "Virhe"
-
-#~ msgid "Zarafa license"
-#~ msgstr "Ohjelmistolisenssi"
-
-#~ msgid "Registry error"
-#~ msgstr "Rekisteröitymisvirhe"
-
-#~ msgid "Incorrect Zarafa version."
-#~ msgstr "Väärä ohjelmaversio."
-
-#~ msgid "Cached Zarafa Mode"
-#~ msgstr "Välimuistiin Tallennettu Tila"
-
-#~ msgid ""
-#~ "Zarafa does not support offline or cached mode for Outlook XP and Outlook "
-#~ "2002. If you wish to use offline functionality of Zarafa, please use Outlook "
-#~ "2000, 2003, 2007 or later."
-#~ msgstr ""
-#~ "Ohjelma ei tue yhteydetöntä tilaa tai välimuistiin tallennettua tilaa "
-#~ "Outlook XP:lle tai Outlook 2002:lle. Jos haluat käyttää tätä "
-#~ "toiminnallisuutta, ole hyvä ja käytä Outlook 2000, 2003, 2007 tai uudempaa."
-
-#~ msgid "Zarafa Offline"
-#~ msgstr "Yhteydetön Tila"
-
-#~ msgid "Restoring archived message..."
-#~ msgstr "Palautetaan arkistoitua viestiä..."
-
-#~ msgid "Unable to get MAPI information"
-#~ msgstr "MAPI dataa ei voitu noutaa"
-
-#~ msgid "Unable to get Folder information"
-#~ msgstr "Kansion tietoja ei voitu noutaa"
-
-#~ msgid "You can only use this function with Zarafa profiles."
-#~ msgstr "Tätä toimintoa voi käyttää vain Zarafa profiilien kanssa"
-
-#~ msgid "test"
-#~ msgstr "testi"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-02 16:24+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2012-03-30 15:14+0200\n"
 "Last-Translator: Martijn <martijn@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
@@ -55,8 +55,8 @@ msgstr "Start offline synchronisatie"
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
-"Open de mappen van een andere Outlook mappen delende gebruiker (Agenda, "
-"E-mail, etc)"
+"Open de mappen van een andere Outlook mappen delende gebruiker (Agenda, E-"
+"mail, etc)"
 
 #: provider/ECProps/Addin.cpp:658
 msgid "Out of Office currently on. Would you like to turn it off?"
@@ -186,7 +186,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Toevoegen aan favorieten niet mogelijk"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:162
+#: provider/ECProps/ECDelegatePropPage.cpp:167
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr "Kon de eigenschappenpagina niet ophalen"
@@ -234,37 +234,37 @@ msgstr "Alleen directe submappen toevoegen"
 msgid "Unable to get folder data"
 msgstr "Kon map gegevens niet ophalen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:128
+#: provider/ECProps/ECDelegatePropPage.cpp:133
 msgid "Saving changes failed."
 msgstr "Opslaan van wijzigingen is mislukt."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:131
+#: provider/ECProps/ECDelegatePropPage.cpp:136
 msgid "Saving rules failed: "
 msgstr "Opslaan van regels is mislukt:"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:172
+#: provider/ECProps/ECDelegatePropPage.cpp:177
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr "Kon geen sessie maken"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:178
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr "Kon het adresboek niet ophalen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:188
 msgid "Add..."
 msgstr "Toevoegen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:184
+#: provider/ECProps/ECDelegatePropPage.cpp:189
 msgid "Remove..."
 msgstr "Verwijderen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:185
+#: provider/ECProps/ECDelegatePropPage.cpp:190
 msgid "Permissions..."
 msgstr "Machtigingen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:186
+#: provider/ECProps/ECDelegatePropPage.cpp:191
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -275,13 +275,13 @@ msgstr ""
 "anderen zonder verstuur-namens rechten te geven, open de map eigenschappen "
 "en wijzig de opties in de rechten tab."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:187
+#: provider/ECProps/ECDelegatePropPage.cpp:192
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 "Verzend vergader verzoeken en antwoorden enkel aan mijn delegates, niet aan "
 "mij"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:194
+#: provider/ECProps/ECDelegatePropPage.cpp:199
 msgid ""
 "The server is not available. Either there are network problems or server is "
 "down for maintenance."
@@ -289,7 +289,7 @@ msgstr ""
 "De server is niet beschikbaar. Dit kan het gevold zijn van onderhoud aan de "
 "server, of netwerk problemen."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:196
+#: provider/ECProps/ECDelegatePropPage.cpp:201
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
@@ -297,13 +297,13 @@ msgstr ""
 "Kan het delegatievenster niet initialiseren.\n"
 "Neem contact op met uw systeembeheerder."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:243
+#: provider/ECProps/ECDelegatePropPage.cpp:248
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Toevoegen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:258
+#: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
@@ -1445,17 +1445,17 @@ msgstr "Niet in staat bericht data te kopiëren."
 msgid "Unable to save archived message."
 msgstr "Niet in staat het gearchiveerde bericht op te slaan."
 
-#: spooler/mailer.cpp:1688
+#: spooler/mailer.cpp:1710
 msgid "You are not allowed to send as user or group "
 msgstr "Het is U niet toegestaan te verzenden als gebruiker of groep "
 
-#: spooler/mailer.cpp:1690
+#: spooler/mailer.cpp:1712
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 "De gebruiker of groep namens wie u probeert te verzenden kan niet worden "
 "gevonden"
 
-#: spooler/mailer.cpp:2489
+#: spooler/mailer.cpp:2537
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fout gedetecteerd bij het verzenden van uw bericht. Fout code: "
 
@@ -1576,132 +1576,3 @@ msgstr "De aangevraagde tijden zijn niet beschikbaar op de volgende datums:"
 #, php-format
 msgid "%x %X"
 msgstr "%x %X"
-
-#~ msgid ""
-#~ "The syncronization of a folder failed. Press retry to continue or ignore to "
-#~ "supress all errors\r\n"
-#~ "\r\n"
-#~ "Please contact the system administrator if this problem persists."
-#~ msgstr ""
-#~ "De synchronizatie van mappen is mislukt. Klik op opnieuw om verder te gaan "
-#~ "of op negeer om problemen te onderdrukken.\r\n"
-#~ " \r\n"
-#~ "Neem contact op met de systeem beheerder als de problemen aanhouden."
-
-#~ msgid ""
-#~ "The syncronization of a folder failed. Press retry for continue or ignore to "
-#~ "supress all errors\r\n"
-#~ "\r\n"
-#~ "Please contact the system administrator if this problem persists."
-#~ msgstr ""
-#~ "De synchronisatie van een folder is mislukt. Klik 'Opnieuw' om door te gaan "
-#~ "of 'Annuleren' om verdere foutmeldingen te voorkomen\r\n"
-#~ "Neem alstublieft contact op met de systeembeheerder als dit probleem blijft."
-
-#~ msgid "Inbox -"
-#~ msgstr "Postvak -"
-
-#~ msgid "Adding local folders"
-#~ msgstr "Lokale mappen toevoegen"
-
-#~ msgid "Adding remote folders"
-#~ msgstr "Toevoegen remote mappen"
-
-#~ msgid "Removing local folders"
-#~ msgstr "Lokale mappen verwijderen"
-
-#~ msgid "Removing remote folders"
-#~ msgstr "Verwijderen remote folders"
-
-#~ msgid "Modifying local messages"
-#~ msgstr "Bijwerken lokale berichten"
-
-#~ msgid "Modifying remote messages"
-#~ msgstr "Bijwerken remote berichten"
-
-#~ msgid "Reading stores"
-#~ msgstr "Stores lezen"
-
-#~ msgid "Starting Synchronisation"
-#~ msgstr "Starten synchronisatie"
-
-#~ msgid ""
-#~ "Unable to restore the archived message. The reference data is incomplete or "
-#~ "invalid."
-#~ msgstr ""
-#~ "Kon het gearchiveerde bericht niet ophalen. De verwijzing is niet compleet "
-#~ "of ongeldig."
-
-#~ msgid "You are not licensed to restore archived messages."
-#~ msgstr "U bent niet gelicenceerd gearchiveerde berichten te herstellen."
-
-#~ msgid ""
-#~ "Unable to restore the archived message. Failed to connect to the archive "
-#~ "server."
-#~ msgstr ""
-#~ "Kon het gearchiveerde bericht niet herstellen. Het verbinden met de archief "
-#~ "server is mislukt."
-
-#~ msgid "Unknown"
-#~ msgstr "Onbekend"
-
-#~ msgid "Zarafa Delegates"
-#~ msgstr "Zarafa Gemachtigden"
-
-#~ msgid ""
-#~ "You are currently offline. To use this command, connect to the Zarafa online "
-#~ "server."
-#~ msgstr ""
-#~ "U bent nu offline. Maak verbinding met de Zarafa server om dit commando te "
-#~ "gebruiken."
-
-#~ msgid "Start Zarafa offline synchronization"
-#~ msgstr "Start Zarafa offline synchronisatie"
-
-#~ msgid "Configure Zarafa offline synchronization"
-#~ msgstr "Zarafa offline synchronisatie configureren"
-
-#~ msgid "Zarafa Favorites"
-#~ msgstr "Zarafa Favorieten"
-
-#~ msgid "Error"
-#~ msgstr "Foutmelding"
-
-#~ msgid "Zarafa license"
-#~ msgstr "Zarafa licentie"
-
-#~ msgid "Registry error"
-#~ msgstr "'Registry' fout"
-
-#~ msgid "Incorrect Zarafa version."
-#~ msgstr "Foute Zarafa versie"
-
-#~ msgid "Cached Zarafa Mode"
-#~ msgstr "Cached Zarafa Modus"
-
-#~ msgid ""
-#~ "Zarafa does not support offline or cached mode for Outlook XP and Outlook "
-#~ "2002. If you wish to use offline functionality of Zarafa, please use Outlook "
-#~ "2000, 2003, 2007 or later."
-#~ msgstr ""
-#~ "Zarafa heeft geen ondersteuning voor het gebruik van offline mappen voor "
-#~ "Outlook XP en Outlook 2002. Als u offline mappen wilt gebruiken, gebruik dan "
-#~ "Outlook 2000, 2003, 2007 of later."
-
-#~ msgid "Zarafa Offline"
-#~ msgstr "Zarafa zonder verbinding"
-
-#~ msgid "Restoring archived message..."
-#~ msgstr "Gearchiveerd bericht wordt terug gehaald..."
-
-#~ msgid "Unable to get MAPI information"
-#~ msgstr "Kan geen MAPI informatie verkrijgen"
-
-#~ msgid "Unable to get Folder information"
-#~ msgstr "Map informatie verkrijgen is niet mogelijk"
-
-#~ msgid "You can only use this function with Zarafa profiles."
-#~ msgstr "U kunt deze functie alleen met Zarafa profielen gebruiken."
-
-#~ msgid "test"
-#~ msgstr "test"

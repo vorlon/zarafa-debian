@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-10 13:34+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2011-12-20 18:06+0200\n"
 "Last-Translator: Terry <shenhuitao2000@163.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1685,7 +1685,6 @@ msgstr "提醒"
 #: php-webclient-ajax/client/layout/dialogs/standard/reminder.php:36
 #: php-webclient-ajax/client/modules/reminderlistmodule.js:246
 #, c-format, php-format
-#, c-format, php-format,
 msgid "%d reminders are selected"
 msgstr "已选择%d 的提醒"
 
@@ -1746,8 +1745,9 @@ msgid ""
 "Permissions tab of the folder Preferences (accessed by right clicking the "
 "folder)."
 msgstr ""
-"委托人可以代表你发送项目, 并可以选择查看或编辑你的储存库. 你可以在设置视窗內的偏好标签的'编辑委托人...' 按钮來设置. "
-"你若要让其他人进入你的文件夹, 而不给予发送代表特权, 你可以以权限标签來设置 (右键单击该文件夹來进入)."
+"委托人可以代表你发送项目, 并可以选择查看或编辑你的储存库. 你可以在设置视窗內"
+"的偏好标签的'编辑委托人...' 按钮來设置. 你若要让其他人进入你的文件夹, 而不给"
+"予发送代表特权, 你可以以权限标签來设置 (右键单击该文件夹來进入)."
 
 #: php-webclient-ajax/client/layout/dialogs/modal/attachitem.php:3
 msgid "Attach Items"
@@ -3564,7 +3564,9 @@ msgstr "无法设置委托人权限"
 msgid ""
 "Unable to reschedule occurrence: either the new occurrence skips over an "
 "existing occurrence, or an occurrence is already present on this day."
-msgstr "无法重新安排事项: 因为现有事项存在因此新事项不能产生, 或同一事项已经出现在这一天."
+msgstr ""
+"无法重新安排事项: 因为现有事项存在因此新事项不能产生, 或同一事项已经出现在这"
+"一天."
 
 #: php-webclient-ajax/server/modules/class.advancedfindlistmodule.php:97
 msgid ""
@@ -3581,7 +3583,9 @@ msgstr "信息储存已超过其硬性额定限制."
 msgid ""
 "To reduce the amount of data in this message store, select some items that "
 "you no longer need, and permanently (SHIFT + DEL) delete them."
-msgstr "要减少此邮件存储的数据量, 选择一些你不再需要的项目,  并以(SHIFT+ Del) 永久删除它们."
+msgstr ""
+"要减少此邮件存储的数据量, 选择一些你不再需要的项目,  并以(SHIFT+ Del) 永久删"
+"除它们."
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:42
 msgid "The message store has exceeded its soft quota limit."
@@ -4467,7 +4471,8 @@ msgstr "无法复制这个项目. 无法打开用户%s日历: 接入被拒绝"
 msgid ""
 "You received a more recent update to this meeting. This meeting request is "
 "out of date. You cannot respond this request."
-msgstr "你已收到了会议最近最新的信息. 此会议要求已过时. 你可以不必对这一要求作出反应."
+msgstr ""
+"你已收到了会议最近最新的信息. 此会议要求已过时. 你可以不必对这一要求作出反应."
 
 #: php-webclient-ajax/client/modules/maillistmodule.js:173
 msgid ""
@@ -4549,8 +4554,9 @@ msgid ""
 "enter the name as a required or optional attendee or talk to your "
 "administrator about giving you permission to schedule \"%s\"."
 msgstr ""
-"你已标记\"%s\"为资源. 你不能安排一个以\"%s\"的会议, 因为你没有该帐户的适当权限. 你可以把名称输入为必需的或可选与会者,  "
-"或向管理员要求让你能够安排\"%s\"的权限."
+"你已标记\"%s\"为资源. 你不能安排一个以\"%s\"的会议, 因为你没有该帐户的适当权"
+"限. 你可以把名称输入为必需的或可选与会者,  或向管理员要求让你能够安排\"%s\"的"
+"权限."
 
 #: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:547
@@ -4567,7 +4573,8 @@ msgstr "\"%s\" 已拒绝你的会议, 因为\"%s\" 不能自动接受会议要�
 msgid ""
 "\"%s\" has declined your meeting because it is recurring. You must book each "
 "meeting separetly with this recurrence."
-msgstr "\"%s\" 已拒绝你的会议, 因为此会议是重复性的. 你必须分别预订此重复性会议."
+msgstr ""
+"\"%s\" 已拒绝你的会议, 因为此会议是重复性的. 你必须分别预订此重复性会议."
 
 #: php-webclient-ajax/client/modules/appointmentitemmodule.js:574
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:553
@@ -4592,7 +4599,9 @@ msgstr "当搜索这类型的文件夹时, 你不能在同一时间搜索其他�
 msgid ""
 "The folder you selected does not let you search folders at the same time. To "
 "search other folders, clear the checkbox next to this folder"
-msgstr "所选的文件夹不会让你在同一时间搜索其他文件夹. 如要搜索其他文件夹, 你必须先清除此文件夹旁边的复选框."
+msgstr ""
+"所选的文件夹不会让你在同一时间搜索其他文件夹. 如要搜索其他文件夹, 你必须先清"
+"除此文件夹旁边的复选框."
 
 #: php-webclient-ajax/client/modules/reminderlistmodule.js:205
 #, c-format
@@ -4727,7 +4736,9 @@ msgstr "于%s到期"
 msgid ""
 "Could not find Contact '%s'. It may have been deleted or moved from its "
 "original location. Would you like to remove it from this list?"
-msgstr "找不到联系人'%s'. 他可能已被删除或从其原来位置已被移动. 你想从这份名单中删除他吗?"
+msgstr ""
+"找不到联系人'%s'. 他可能已被删除或从其原来位置已被移动. 你想从这份名单中删除"
+"他吗?"
 
 #: php-webclient-ajax/client/modules/freebusymodule.js:92
 msgid "Update"
@@ -4883,7 +4894,9 @@ msgstr "你必须先输入这个联系人的有效电子邮件地址, 然后才�
 msgid ""
 "Some of these contacts do not have e-mail addresses specified. E-mail "
 "addresses are required for sending them e-mail."
-msgstr "有些联系人沒有指定的电子邮件地址. 如果要向他们发送电子邮件, 你需要其电子邮件地址."
+msgstr ""
+"有些联系人沒有指定的电子邮件地址. 如果要向他们发送电子邮件, 你需要其电子邮件"
+"地址."
 
 #: php-webclient-ajax/client/modules/listmodule.js:132
 msgid "Delete messages"
@@ -5054,7 +5067,9 @@ msgstr "下载所有附件"
 msgid ""
 "This meeting request was updated after this message was sent. You should "
 "open the latest update or open the item from the calendar."
-msgstr "在信息被发送后, 这次会议的要求已被更新. 你应该打开最新的会议要求或从日历中打开该项目."
+msgstr ""
+"在信息被发送后, 这次会议的要求已被更新. 你应该打开最新的会议要求或从日历中打"
+"开该项目."
 
 #: php-webclient-ajax/client/modules/readmailitemmodule.js:294
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:284
@@ -5394,7 +5409,9 @@ msgid ""
 "You changed the date of this occurrence. If you want to change the date of "
 "all occurrences, you must first open the appointment series. Do you want to "
 "change only this occurrence?"
-msgstr "你已更改了这个事件的日期. 如果你想更改所有事件的日期, 你必须首先打开该约会系列. 你只是想更改这一个事件?"
+msgstr ""
+"你已更改了这个事件的日期. 如果你想更改所有事件的日期, 你必须首先打开该约会系"
+"列. 你只是想更改这一个事件?"
 
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:697
 #: php-webclient-ajax/client/views/calendar.day.view.js:1411
@@ -6003,7 +6020,9 @@ msgid ""
 "You are changing details for a meeting on your calendar while you are not "
 "the meeting organizer. If the organizer sends a meeting update, your changes "
 "will be lost. Do you want to continue?"
-msgstr "你正在更改日历上的会议细节, 不过你是不是此会议的组织者. 如果此会议组织者发送会议更新, 你所更改的一切将丢失. 你要继续吗?"
+msgstr ""
+"你正在更改日历上的会议细节, 不过你是不是此会议的组织者. 如果此会议组织者发送"
+"会议更新, 你所更改的一切将丢失. 你要继续吗?"
 
 #: php-webclient-ajax/client/views/print.calendar.weekview.js:41
 msgid "%A %d %B"
@@ -6423,7 +6442,9 @@ msgstr "任务要求"
 msgid ""
 "You must specify a valid date and/or time. Check your entries in this dialog "
 "box to make sure they represent a valid date and/or time."
-msgstr "你必须指定一个有效的日期和/或时间. 在此对话框中检查, 以确认你所输入的是有效的日期和/或时间."
+msgstr ""
+"你必须指定一个有效的日期和/或时间. 在此对话框中检查, 以确认你所输入的是有效的"
+"日期和/或时间."
 
 #: php-webclient-ajax/client/widgets/pagination.js:45
 msgid "Go to the first page"
@@ -6571,7 +6592,9 @@ msgid ""
 "original text formatting of your HTML signature. \n"
 "\n"
 "Do you want to proceed?"
-msgstr "你的签名已以纯文字模式编辑. 如果保存你将失去原来文本格式的HTML签名. 你要继续吗?"
+msgstr ""
+"你的签名已以纯文字模式编辑. 如果保存你将失去原来文本格式的HTML签名. 你要继续"
+"吗?"
 
 #: php-webclient-ajax/client/layout/js/signatures.js:482
 msgid "Enter new signature name"
@@ -6743,7 +6766,8 @@ msgstr "您输入的结束日期发生在开始日期之前."
 msgid ""
 "This meeting request cannot be sent since it has no recipients. Would you "
 "like to save and close this meeting instead?"
-msgstr "这次会议的要求不能被发送, 因为它没有收件人. 你是否想保存并关闭这个会议呢?"
+msgstr ""
+"这次会议的要求不能被发送, 因为它没有收件人. 你是否想保存并关闭这个会议呢?"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:766
 #: php-webclient-ajax/client/layout/js/appointment.js:767
@@ -6961,7 +6985,9 @@ msgstr "请输入正确的日期"
 msgid ""
 "If you create an unassigned copy of this task, you will own the copy, and "
 "you will no longer receive updates for the task you assigned."
-msgstr "如果你创建了这个未分配任务的副本, 你将拥有这副本, 你也将不再收到你分配的任务更新."
+msgstr ""
+"如果你创建了这个未分配任务的副本, 你将拥有这副本, 你也将不再收到你分配的任务"
+"更新."
 
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/calendar.js:165
 msgid "This combination of Vertical Size and Calendar resolution is invalid"
@@ -6994,24 +7020,3 @@ msgstr "向上箭头"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.js:11
 msgid "DOWN ARROW"
 msgstr "向下箭头"
-
-#~ msgid "Sort on Attendee"
-#~ msgstr "以与会者排序"
-
-#~ msgid "Check Address"
-#~ msgstr "检查地址"
-
-#~ msgid "Address details"
-#~ msgstr "地址详情"
-
-#~ msgid "Show this again when address is incomplete or unclear"
-#~ msgstr "当地址不完整或不清楚时再次显示这项"
-
-#~ msgid "default"
-#~ msgstr "默认"
-
-#~ msgid "Unable to restore archived message"
-#~ msgstr "无法恢复存档的讯息"
-
-#~ msgid "Convert to Task"
-#~ msgstr "转换为任务"

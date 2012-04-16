@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-27 00:05+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2012-02-28 13:40+0200\n"
 "Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
@@ -55,8 +55,8 @@ msgstr "Starte Zarafa Offline Synchronisation"
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
-"Die öffentlichen Outlook-Ordner eines anderen Benutzers öffnen (Kalender, "
-"E-Mail, etc.)"
+"Die öffentlichen Outlook-Ordner eines anderen Benutzers öffnen (Kalender, E-"
+"Mail, etc.)"
 
 #: provider/ECProps/Addin.cpp:658
 msgid "Out of Office currently on. Would you like to turn it off?"
@@ -188,7 +188,7 @@ msgid "Unable to add folder to favorites"
 msgstr "Das Hinzufügen des Ordners zu den Favoriten war nicht möglich"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:158
+#: provider/ECProps/ECDelegatePropPage.cpp:167
 #: provider/ECProps/PropPage.cpp:385
 msgid "Unable to get property page site"
 msgstr "Konnte die Seiteneigenschaften nicht beziehen"
@@ -236,37 +236,37 @@ msgstr "Nur direkte Unterordner hinzufügen"
 msgid "Unable to get folder data"
 msgstr "Keine Ordnerinhalte gefunden"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:124
+#: provider/ECProps/ECDelegatePropPage.cpp:133
 msgid "Saving changes failed."
 msgstr "Die Änderungen konnten nicht gespeichert werden"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:127
+#: provider/ECProps/ECDelegatePropPage.cpp:136
 msgid "Saving rules failed: "
 msgstr "Die Regel konnte nicht gespeichert werden"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:168
+#: provider/ECProps/ECDelegatePropPage.cpp:177
 #: provider/ECProps/PropPage.cpp:231
 msgid "Unable to get session"
 msgstr "Konnte die Sitzung nicht wiederherstellen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:174
+#: provider/ECProps/ECDelegatePropPage.cpp:183
 #: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
 msgid "Unable to get addressbook"
 msgstr "Konnte das Adressbuch nicht beziehen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:179
+#: provider/ECProps/ECDelegatePropPage.cpp:188
 msgid "Add..."
 msgstr "Hinzufügen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:180
+#: provider/ECProps/ECDelegatePropPage.cpp:189
 msgid "Remove..."
 msgstr "Entfernen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:181
+#: provider/ECProps/ECDelegatePropPage.cpp:190
 msgid "Permissions..."
 msgstr "Berechtigungen..."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:182
+#: provider/ECProps/ECDelegatePropPage.cpp:191
 msgid ""
 "Delegates can send items on your behalf. To grant permission to others to "
 "access your folders without also giving them send-on-behalf-of privileges, "
@@ -278,13 +278,13 @@ msgstr ""
 "müssen Sie dies für jeden Ordner über den Berechtigungsreiter in den "
 "Eigenschaften festlegen."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:183
+#: provider/ECProps/ECDelegatePropPage.cpp:192
 msgid "Send meeting requests and response only to my delegates, not to me"
 msgstr ""
 "Besprechungsanfrage senden und nur meinen Stellvertretern antworten, nicht "
 "mir."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:190
+#: provider/ECProps/ECDelegatePropPage.cpp:199
 msgid ""
 "The server is not available. Either there are network problems or server is "
 "down for maintenance."
@@ -292,7 +292,7 @@ msgstr ""
 "Der Server ist nicht erreichbar. Entweder es existiert ein Netzwerkproblem "
 "oder der Server ist wegen Wartungsarbeiten nicht erreichbar."
 
-#: provider/ECProps/ECDelegatePropPage.cpp:192
+#: provider/ECProps/ECDelegatePropPage.cpp:201
 msgid ""
 "Could not initialize delegation window\n"
 "Please contact your administrator."
@@ -300,13 +300,13 @@ msgstr ""
 "Das Berechtigungsfenster kann nicht angezeigt werden.\n"
 "Kontaktieren Sie Ihren Administrator"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:237
+#: provider/ECProps/ECDelegatePropPage.cpp:248
 #: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: provider/ECProps/ECDelegatePropPage.cpp:252
+#: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
@@ -1073,7 +1073,8 @@ msgstr ""
 
 #: provider/client/EntryPoint.cpp:1218
 msgid "You should restart Outlook for the changes to take effect."
-msgstr "Sie sollten Outlook neu starten damit die Änderungen übernommen werden."
+msgstr ""
+"Sie sollten Outlook neu starten damit die Änderungen übernommen werden."
 
 #: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
 #: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
@@ -1452,19 +1453,19 @@ msgstr "Die Nachricht konnte nicht kopiert werden."
 msgid "Unable to save archived message."
 msgstr "Die archivierte Nachricht konnte nicht gespeichert werden."
 
-#: spooler/mailer.cpp:1688
+#: spooler/mailer.cpp:1710
 msgid "You are not allowed to send as user or group "
 msgstr ""
 "Es ist nicht erlaubt unter diesem Benutzer- oder Gruppennamen E-Mails zu "
 "versenden."
 
-#: spooler/mailer.cpp:1690
+#: spooler/mailer.cpp:1712
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 "Der Benutzer/die Gruppe in deren Namen der Versand erfolgen soll kann nicht "
 "gefunden werden."
 
-#: spooler/mailer.cpp:2489
+#: spooler/mailer.cpp:2537
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Fehler beim Versuch Ihre Nachricht zu senden. Fehler Code: "
 
@@ -1586,124 +1587,3 @@ msgstr ""
 #, php-format
 msgid "%x %X"
 msgstr ""
-
-#~ msgid ""
-#~ "The syncronization of a folder failed. Press retry to continue or ignore to "
-#~ "supress all errors\r\n"
-#~ "\r\n"
-#~ "Please contact the system administrator if this problem persists."
-#~ msgstr ""
-#~ "Die Synchronisation eines Ordners ist fehlgeschlagen.\n"
-#~ "Klicken Sie Wiederholen um fortzufahren oder Ignorieren um alle Fehler zu "
-#~ "unterdrücken\r\n"
-#~ "\r\n"
-
-#~ msgid "Inbox -"
-#~ msgstr "Postfach -"
-
-#~ msgid "This folder contains archived of messages that have been deleted."
-#~ msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte"
-
-#~ msgid "Adding local folders"
-#~ msgstr "Lokale Ordner werden angelegt"
-
-#~ msgid "Adding remote folders"
-#~ msgstr "Remote-Ordner werden angelegt"
-
-#~ msgid "Removing local folders"
-#~ msgstr "Lokale Ordner werden gelöscht"
-
-#~ msgid "Removing remote folders"
-#~ msgstr "Remote-Ordner werden gelöscht"
-
-#~ msgid "Modifying local messages"
-#~ msgstr "Lokale Nachrichten werden aktualisiert"
-
-#~ msgid "Modifying remote messages"
-#~ msgstr "Remote-Nachrichten werden aktualisiert"
-
-#~ msgid "Reading stores"
-#~ msgstr "Stores werden gelesen"
-
-#~ msgid "Starting Synchronisation"
-#~ msgstr "Synchronisation wird gestartet"
-
-#~ msgid ""
-#~ "Unable to restore the archived message. The reference data is incomplete or "
-#~ "invalid."
-#~ msgstr ""
-#~ "Die archivierte Nachricht konnte nicht hergestellt werden. Die Referenzdaten "
-#~ "sind unvollständig oder inkorrekt."
-
-#~ msgid "You are not licensed to restore archived messages."
-#~ msgstr ""
-#~ "Ihre Lizenz enthält nicht die Funktion der Wiederherstellung von "
-#~ "archivierten Nachrichten."
-
-#~ msgid ""
-#~ "Unable to restore the archived message. Failed to connect to the archive "
-#~ "server."
-#~ msgstr ""
-#~ "Die archivierte Nachricht konnte nicht wiederhergestellt werden. Der "
-#~ "Archivserver konnte nicht erreicht werden."
-
-#~ msgid "Unknown"
-#~ msgstr "Unbekannt"
-
-#~ msgid "Zarafa Delegates"
-#~ msgstr "Zarafa Freigaben"
-
-#~ msgid ""
-#~ "You are currently offline. To use this command, connect to the Zarafa online "
-#~ "server."
-#~ msgstr ""
-#~ "Sie sind derzeit offline. Um dieses Kommando zu nutzen müssen Sie sich mit "
-#~ "dem Zarafa-Server verbinden."
-
-#~ msgid "Start Zarafa offline synchronization"
-#~ msgstr "Starte Zarafa Offline Synchronisation"
-
-#~ msgid "Configure Zarafa offline synchronization"
-#~ msgstr "Eigenschaften der Zarafa Offline Synchronisation"
-
-#~ msgid "Zarafa Favorites"
-#~ msgstr "Zarafa Favoriten"
-
-#~ msgid "Error"
-#~ msgstr "Fehler"
-
-#~ msgid "Zarafa license"
-#~ msgstr "Zarafa Lizenz"
-
-#~ msgid "Incorrect Zarafa version."
-#~ msgstr "Falsche Zarafa-Version"
-
-#~ msgid "Cached Zarafa Mode"
-#~ msgstr "Cached Zarafa Mode"
-
-#~ msgid ""
-#~ "Zarafa does not support offline or cached mode for Outlook XP and Outlook "
-#~ "2002. If you wish to use offline functionality of Zarafa, please use Outlook "
-#~ "2000, 2003, 2007 or later."
-#~ msgstr ""
-#~ "Derzeit unterstützt Zarafa keinen Offline- oder Cached-Modus für Outlook XP "
-#~ "/ 2002. Bitte arbeiten Sie mit Outlook 2000, 2003, 2007 oder späteren "
-#~ "Versionen, um vom Zarafa Offline-Modus zu profitieren."
-
-#~ msgid "Zarafa Offline"
-#~ msgstr "Zarafa Offline"
-
-#~ msgid "Restoring archived message..."
-#~ msgstr "Wiederherstellen von archivierten Nachrichten..."
-
-#~ msgid "Unable to get MAPI information"
-#~ msgstr "Es sind keine MAPI Informationen verfügbar"
-
-#~ msgid "Unable to get Folder information"
-#~ msgstr "Keine Ordnerinformationen gefunden"
-
-#~ msgid "You can only use this function with Zarafa profiles."
-#~ msgstr "Diese Funktion kann nur in einem Zarafa Profil verwendet werden"
-
-#~ msgid "test"
-#~ msgstr "Test"

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-10 13:34+0200\n"
+"POT-Creation-Date: 2012-04-11 12:24+0200\n"
 "PO-Revision-Date: 2010-08-18 16:57+0200\n"
 "Last-Translator: Cies <cies@zarafa.com>\n"
 "Language-Team: sv_SE <sv@li.org>\n"
@@ -3607,7 +3607,6 @@ msgid "Conflicts with another appointment on your Calendar."
 msgstr "Konflikt med ett annat möte i din Kalender."
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:488
-#, php-format
 #, fuzzy
 msgid ""
 "%s occurrences of this recurring appointment conflict with other "
@@ -3617,7 +3616,6 @@ msgstr ""
 "Kalender."
 
 #: php-webclient-ajax/server/modules/class.itemmodule.php:489
-#, php-format
 #, fuzzy
 msgid ""
 "%s occurrence of this recurring appointment conflicts with other appointment "
@@ -4628,9 +4626,9 @@ msgid ""
 "enter the name as a required or optional attendee or talk to your "
 "administrator about giving you permission to schedule \"%s\"."
 msgstr ""
-"Du har markerat \"%s\" som en resurs. Du kan dock inte boka ett möte med \"%s\" "
-"då du inte har rättigheter för den användaren. Antingen så lägger du till \"%"
-"s\" som ofrivillig eller frivillig deltagare. Eller så pratar du med din "
+"Du har markerat \"%s\" som en resurs. Du kan dock inte boka ett möte med \"%s"
+"\" då du inte har rättigheter för den användaren. Antingen så lägger du till "
+"\"%s\" som ofrivillig eller frivillig deltagare. Eller så pratar du med din "
 "administratör för att få tillgång till att boka \"%s\""
 
 #: php-webclient-ajax/client/modules/appointmentitemmodule.js:568
@@ -4650,8 +4648,8 @@ msgid ""
 "\"%s\" has declined your meeting because it is recurring. You must book each "
 "meeting separetly with this recurrence."
 msgstr ""
-"\"%s\" har avböjt din mötes förfrågan då det är ett återkommande möte. Du får "
-"boka varje möte separat med detta kontakt."
+"\"%s\" har avböjt din mötes förfrågan då det är ett återkommande möte. Du "
+"får boka varje möte separat med detta kontakt."
 
 #: php-webclient-ajax/client/modules/appointmentitemmodule.js:574
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:553
@@ -4660,8 +4658,8 @@ msgid ""
 "\"%s\" is already booked for this specified time. You must use another time "
 "or find another resource."
 msgstr ""
-"\"%s\" är redan uppbokad för denna specifika tid. Du måste hitta en annan tid "
-"eller använda en annan resurs."
+"\"%s\" är redan uppbokad för denna specifika tid. Du måste hitta en annan "
+"tid eller använda en annan resurs."
 
 #: php-webclient-ajax/client/modules/appointmentitemmodule.js:577
 #: php-webclient-ajax/client/modules/appointmentlistmodule.js:556
@@ -5182,14 +5180,12 @@ msgid "Copy/Move Message"
 msgstr "Kopiera/Flytta meddelande"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:53
-#, c-format
 #, fuzzy
 msgid "%s on behalf of %s"
 msgstr "på begäran av"
 
 #: php-webclient-ajax/client/modules/printmessageitem.js:58
-#, c-format
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "on behalf of %s"
 msgstr "på begäran av"
 
@@ -5747,8 +5743,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/core/utils.js:1639
 #: php-webclient-ajax/client/core/utils.js:1653
-#, c-format
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "effective %s"
 msgstr "Gäller från"
 
@@ -6817,8 +6812,7 @@ msgid "%d-%m-%Y %H:%M"
 msgstr "%d-%m-%Y %H:%M"
 
 #: php-webclient-ajax/client/layout/js/appointment.js:183
-#, c-format
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid ""
 "%d attendee proposed a new time for this meeting. Click the Scheduling tab "
 "for details."
@@ -6827,8 +6821,7 @@ msgstr ""
 "för detaljer."
 
 #: php-webclient-ajax/client/layout/js/appointment.js:185
-#, c-format
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid ""
 "%d attendees proposed a new time for this meeting. Click the Scheduling tab "
 "for details."
@@ -7109,112 +7102,3 @@ msgstr "UPPIL"
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/shortcuts.js:11
 msgid "DOWN ARROW"
 msgstr "NEDPIL"
-
-#~ msgid "Check Address"
-#~ msgstr "Kontrollera Adress"
-
-#~ msgid "Address details"
-#~ msgstr "Adressuppgifter"
-
-#~ msgid "Show this again when address is incomplete or unclear"
-#~ msgstr "Visa igen när adressen är ofullständig eller oklar"
-
-#~ msgid "Convert to Task"
-#~ msgstr "Konvertera till Uppgift"
-
-#~ msgid "Calender"
-#~ msgstr "Kalender"
-
-#~ msgid "Work"
-#~ msgstr "Arbete"
-
-#~ msgid "Prepare Required"
-#~ msgstr "Förberedelse krävs"
-
-#~ msgid "Phone Interview"
-#~ msgstr "Telefonintervju"
-
-#~ msgid "Startdate"
-#~ msgstr "Startdatum"
-
-#~ msgid "Enddate"
-#~ msgstr "Slutdatum"
-
-#~ msgid "Propose new time"
-#~ msgstr "Föreslå ny tid"
-
-#~ msgid ""
-#~ "Delegates can send items on your behalf. To grant  permissions to others to "
-#~ "access\n"
-#~ "\t\tyour folders without also giving them send-on-behalf-of privileges, go "
-#~ "to properties for each\n"
-#~ "\t\tfolder and change the options on the Permissions tab."
-#~ msgstr ""
-#~ "Representanter får skicka saker i ditt namn. För att göra dina mappar "
-#~ "åtkomliga åt andra utan att ge tillstånd att skicka via ombud, ändra under "
-#~ "Tillstånds-fliken i mappens Egenskaper."
-
-#~ msgid "Show Outlook Today in this style"
-#~ msgstr "Visa Outlook Idag i denna stil"
-
-#~ msgid "ReplyAll"
-#~ msgstr "BesvaraAlla"
-
-#~ msgid "New mail check timeout"
-#~ msgstr "Timeout för kontroll av ny e-post"
-
-#~ msgid "Install JSON extension for PHP to use this feature"
-#~ msgstr "Installera JSON-tillägget i PHP för att använda den här funktionen"
-
-#~ msgid "Sort On due by"
-#~ msgstr "Sortera efter förfallotid"
-
-#~ msgid "Sort On Icon"
-#~ msgstr "Sortera efter ikon"
-
-#~ msgid "Sort On File As"
-#~ msgstr "Sortera efter Arkivera som"
-
-#~ msgid "Sort On Display Name"
-#~ msgstr "Sortera efter visat namn"
-
-#~ msgid "Pager Telephonenumber"
-#~ msgstr "Telefonnummer Personsökare"
-
-#~ msgid "Sort On Pager Telephonenumber"
-#~ msgstr "Sortera efter Telefonnummer Personsökare"
-
-#~ msgid "Sort On Subject"
-#~ msgstr "Sortera efter ämne"
-
-#~ msgid "This will delete meeting '"
-#~ msgstr "Detta tar bort möte '"
-
-#~ msgid "Special date"
-#~ msgstr "Särskilt datum"
-
-#~ msgid "Sent_to"
-#~ msgstr "Skickat_till"
-
-#~ msgid "Organized by"
-#~ msgstr "Organiseras av"
-
-#~ msgid "Distributionlist"
-#~ msgstr "Sändlista"
-
-#~ msgid " of "
-#~ msgstr "av"
-
-#~ msgid "All instances of this recurring appointment occur in the past."
-#~ msgstr "alla instanser av detta återkommande möte sker i dåtid."
-
-#~ msgid "would you like to continue?"
-#~ msgstr "vill du fortsätta?"
-
-#~ msgid ""
-#~ "Would you like to delete selected items permanently, after that you will not "
-#~ "be able to restore them anyway?"
-#~ msgstr "Vill du radera markerade poster helt? Efteråt kan de inte återskapas."
-
-#~ msgid "Please select a row first to delete"
-#~ msgstr "Var god välj en rad som raderas först"
