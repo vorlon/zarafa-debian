@@ -197,16 +197,6 @@ class Meetingrequest {
 	}
 
 	/**
-	 * Function will return the current user store.
-	 * @param resource $store the current userstore.
-	 * 
-	 */
-	function getStore()
-	{
-		return $this->store;
-	}
-
-	/**
 	 * Sets the direct booking property. This is an alternative to the setting of the direct booking
 	 * property through the constructor. However, setting it in the constructor is prefered.
 	 * @param Boolean $directBookingSetting
