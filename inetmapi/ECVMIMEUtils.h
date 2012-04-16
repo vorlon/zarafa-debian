@@ -68,19 +68,7 @@ public:
 	ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port);
 	virtual	~ECVMIMESender();
 
-#ifdef DEBUG
-	HRESULT printMail(vmime::message *lpVMMessage);
-#endif
 	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone);
-};
-
-class ECScreenSender : public ECSender
-{
-public:
-	ECScreenSender(ECLogger *newlpLogger);
-	virtual	~ECScreenSender();
-
-	HRESULT sendMail(vmime::ref<vmime::message> vmMessage);
 };
 
 #endif

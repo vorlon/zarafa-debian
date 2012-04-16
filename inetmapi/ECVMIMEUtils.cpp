@@ -104,18 +104,6 @@ ECVMIMESender::ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int
 ECVMIMESender::~ECVMIMESender() {
 }
 
-// copied from vmime net/transport.cpp
-static void extractMailboxes(vmime::mailboxList& recipients, const vmime::addressList& list)
-{
-	for (int i = 0 ; i < list.getAddressCount() ; ++i)
-	{
-		vmime::ref <vmime::mailbox> mbox = list.getAddressAt(i)->clone().dynamicCast <vmime::mailbox>();
-
-		if (mbox != NULL)
-			recipients.appendMailbox(mbox);
-	}
-}
-
 /**
  * Adds all the recipients from a table into the passed recipient list
  *
@@ -494,30 +482,5 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 	}
 
 exit:
-	return hr;
-}
-
-ECScreenSender::ECScreenSender(ECLogger *newlpLogger) : ECSender(newlpLogger, NULL, 0)
-{
-}
-
-ECScreenSender::~ECScreenSender()
-{
-}
-
-HRESULT ECScreenSender::sendMail(vmime::ref<vmime::message> vmMessage)
-{
-	HRESULT hr = hrSuccess;
-	string mail;
-
-	try {
-		mail = vmMessage->generate();
-		cout << endl << endl << "----------" << endl << endl <<
-			mail << endl << endl << "----------" << endl;
-	}
-	catch (...) {
-		cerr << "exception.\n";
-		hr = MAPI_E_CALL_FAILED;
-	}
 	return hr;
 }
