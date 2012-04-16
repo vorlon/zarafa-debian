@@ -2737,6 +2737,8 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::ref<vmime::mailbox> mbox)
 	// (( "personal name" NIL "mailbox name" "domain name" ))
 
 	mbox->getName().generate(os);
+	// encoded names never contain "
+	buffer = StringEscape(buffer.c_str(), "\"", '\\');
 	lMBox.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 
 	lMBox.push_back("NIL");	// at-domain-list (source route) ... whatever that means
