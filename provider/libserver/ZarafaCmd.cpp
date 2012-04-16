@@ -7894,8 +7894,6 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 		if(er != erSuccess)
 			goto exit;
 			
-        g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "New source key: %s", bin2hex(iterCopyItems->sNewSourceKey.size(), iterCopyItems->sNewSourceKey).c_str());
-
         // Update source key (changes on move)
 		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(iterCopyItems->ulId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(iterCopyItems->sNewSourceKey, iterCopyItems->sNewSourceKey.size()) + ")";
 		er = lpDatabase->DoUpdate(strQuery);

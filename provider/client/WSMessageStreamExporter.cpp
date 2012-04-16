@@ -69,7 +69,7 @@ static char THIS_FILE[] = __FILE__;
  *                          could be less if those messages didn't exist anymore on the server. This makes sure the client can still
  *                          request those streams and an appropriate error can be returned.
  * @param[in]	streams		The streams (or actually the information about the streams).
- * @param[in]	lpTransport	Pointer to the parent transport. Used to get the streams from the network. This transmust MUST be used 
+ * @param[in]	lpTransport	Pointer to the parent transport. Used to get the streams from the network. This transport MUST be used 
  *                          exclusively by this WSMessageStreamExporter only.
  * @param[out]	lppStreamExporter	The new instance.
  */

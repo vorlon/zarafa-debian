@@ -4,6 +4,7 @@ MP_FAILED           = 1
 MP_STOP_SUCCESS     = 2
 MP_STOP_FAILED      = 3
 MP_EXIT             = 4
+MP_RETRY_LATER      = 5
 
 
 class IMapiDAgentPlugin(object):
@@ -30,3 +31,13 @@ class IMapiDAgentPlugin(object):
 
     def SendNewMailNotify(self, session, addrbook, store, folder, message):
          raise NotImplementedError('SendNewMailNotify not implemented, function ignored')
+
+
+class IMapiSpoolerPlugin(object):
+    prioPreSending = 9999
+
+    def __init__(self, logger):
+        self.logger = logger
+
+    def PreSending(self, session, addrbook, store, folder, message):
+        raise NotImplementedError('PreSending not implemented, function ignored')

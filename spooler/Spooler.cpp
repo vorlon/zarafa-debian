@@ -1133,6 +1133,9 @@ int main(int argc, char *argv[]) {
 		{ "expand_groups", "no", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_send", "no", CONFIGSETTING_RELOADABLE },
 		{ "enable_dsn", "yes", CONFIGSETTING_RELOADABLE },
+        { "plugin_enabled", "yes" },
+        { "plugin_path", "/var/lib/zarafa/spooler/plugins" },
+        { "plugin_manager_path", "/usr/share/zarafa-spooler/python" },
 		{ NULL, NULL },
 	};
     // SIGSEGV backtrace support

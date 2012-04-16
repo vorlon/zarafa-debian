@@ -7,7 +7,6 @@ from wraplogger import WrapLogger
 from pluginmanager import PluginManager
 from plugintemplates import *
 
-#@todo how to handle spam vs black/white list?
 
 class DAgentPluginManager(object):
 
@@ -31,3 +30,15 @@ class DAgentPluginManager(object):
 
     def SendNewMailNotify(self, session, addrbook, store, folder, message):
         return self.pluginmanager.processPluginFunction('SendNewMailNotify', session, addrbook, store, folder, message)
+
+
+class SpoolerPluginManager(object):
+
+    def __init__(self, plugindir, logger):
+        self.logger = WrapLogger(logger)
+        self.pluginmanager = PluginManager(plugindir, self.logger)
+
+        self.pluginmanager.loadPlugins(IMapiSpoolerPlugin)
+
+    def PreSending(self, session, addrbook, store, folder, message):
+         return self.pluginmanager.processPluginFunction('PreSending', session, addrbook, store, folder, message)

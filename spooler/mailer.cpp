@@ -78,12 +78,34 @@
 #include "charset/convert.h"
 #include "charset/convstring.h"
 
+#include "PyMapiPlugin.h"
+
 #include <list>
 #include <algorithm>
 using namespace std;
 
 extern ECConfig *g_lpConfig;
 extern ECLogger *g_lpLogger;
+
+HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **lppPyMapiPlugin)
+{
+    HRESULT hr = hrSuccess;
+    PyMapiPlugin *lpPyMapiPlugin = NULL;
+
+    if (!lpConfig || !lpLogger || !lppPyMapiPlugin) {
+        ASSERT(FALSE);
+        hr = MAPI_E_INVALID_PARAMETER;
+        goto exit;
+    }
+
+    lpPyMapiPlugin = new PyMapiPlugin();
+    if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "SpoolerPluginManager") != hrSuccess)
+        lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize the spooler plugin manager");
+
+    *lppPyMapiPlugin = lpPyMapiPlugin;
+exit:
+    return hr;
+}
 
 /**
  * Expand all rows in the lpTable to normal user recipient
@@ -2062,6 +2084,9 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	LPSPropValue	lpAutoForward	= NULL;
 	LPSPropValue	lpMsgClass		= NULL;
 
+	PyMapiPluginAPtr ptrPyMapiPlugin;
+	ULONG ulResult = 0;
+
 	ArchiveResult	archiveResult;
 
 	sending_options sopt;
@@ -2074,6 +2099,13 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 
 	// Enable SMTP Delivery Status Notifications
 	sopt.enable_dsn = parseBool(g_lpConfig->GetSetting("enable_dsn"));
+
+	// Init plugin system
+	hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system");
+		goto exit;
+	}
 
 	// so we require admin stuff now
 	hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
@@ -2262,23 +2294,6 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 		goto exit;
 	}
 
-	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
-		ArchivePtr ptrArchive;
-		
-		hr = Archive::Create(lpAdminSession, g_lpLogger, &ptrArchive);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate archive object: 0x%08X", hr);
-			goto exit;
-		}
-		
-		hr = ptrArchive->HrArchiveMessageForSending(lpMessage, &archiveResult);
-		if (hr != hrSuccess) {
-			if (ptrArchive->HaveErrorMessage())
-				lpMailer->setError(ptrArchive->GetErrorMessage());
-			goto exit;
-		}
-	}
-
 	if (lpRepStore && parseBool(g_lpConfig->GetSetting("copy_delegate_mails",NULL,"yes"))) {
 		// copy the original message with the actual sender data
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)
@@ -2349,6 +2364,39 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to remove duplicate recipients");
 	}
+
+
+	hr = ptrPyMapiPlugin->MessageProcessing("PreSending", lpUserSession, lpAddrBook, lpUserStore, NULL, lpMessage, &ulResult);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (ulResult == MP_RETRY_LATER) {
+		hr = MAPI_E_WAIT;
+		goto exit;
+	} else if (ulResult == MP_FAILED) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Plugin error, hook gives a failed error.");
+		hr = MAPI_E_CANCEL;
+		goto exit;
+	}
+
+	// Archive the message
+	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
+		ArchivePtr ptrArchive;
+		
+		hr = Archive::Create(lpAdminSession, g_lpLogger, &ptrArchive);
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate archive object: 0x%08X", hr);
+			goto exit;
+		}
+		
+		hr = ptrArchive->HrArchiveMessageForSending(lpMessage, &archiveResult);
+		if (hr != hrSuccess) {
+			if (ptrArchive->HaveErrorMessage())
+				lpMailer->setError(ptrArchive->GetErrorMessage());
+			goto exit;
+		}
+	}
+
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
 	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt, g_lpLogger);

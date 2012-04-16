@@ -92,7 +92,12 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
 		}
 	} else if (stricmp(szCommand, "run_searchfolders") == 0) {
 		lpSession->GetSessionManager()->GetSearchFolders()->FlushAndWait();
-	}
+	} else if (stricmp(szCommand, "kill_sessions") == 0) {
+	    ECSESSIONID id = lpSession->GetSessionId();
+	    
+	    // Remove all sessions except our own
+	    er = lpSession->GetSessionManager()->CancelAllSessions(id);
+    }
     
 exit:
     return er;

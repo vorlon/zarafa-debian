@@ -61,7 +61,7 @@ zarafa_dagent_DEPENDENCIES = ${top_builddir}/inetmapi/libinetmapi.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am_zarafa_spooler_OBJECTS = Spooler.$(OBJEXT) mailer.$(OBJEXT) \
-	archive.$(OBJEXT)
+	archive.$(OBJEXT) PyMapiPlugin.$(OBJEXT)
 zarafa_spooler_OBJECTS = $(am_zarafa_spooler_OBJECTS)
 zarafa_spooler_DEPENDENCIES = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -70,7 +70,7 @@ zarafa_spooler_DEPENDENCIES = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -316,10 +316,10 @@ zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS)
+	$(PROG_LIBS) $(PYTHON_LIBS)
 
 zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
-zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h
+zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
 BUILT_SOURCES = PythonSWIGRuntime.h
 CLEANFILES = PythonSWIGRuntime.h
 EXTRA_DIST = PythonSWIGRuntime.h

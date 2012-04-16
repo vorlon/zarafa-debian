@@ -24,10 +24,10 @@ zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS)
+	$(PROG_LIBS) $(PYTHON_LIBS)
 
 zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
-zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h
+zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
 
 BUILT_SOURCES=PythonSWIGRuntime.h
 
