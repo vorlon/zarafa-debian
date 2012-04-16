@@ -1567,9 +1567,13 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
 
-	m_lpRequest->HrGetRequestUrl(&strReqUrl);
-	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
-		strReqUrl.append(1, '/');
+	// @todo, check input url not to have 3rd level path? .. see input/output list above.
+
+	if(!(m_ulUrlFlag & REQ_PUBLIC))
+		strReqUrl = "/caldav/" + urlEncode(m_wstrUser, "utf-8") + "/";
+	else
+		strReqUrl = "/caldav/public/";
+
 
 	// all folder properties to fill request.
 	cbsize = lpsDavProp->lstProps.size() + 2;
@@ -1694,10 +1698,9 @@ nowaste:
 				continue;
 			}
 			// @todo FOLDER_PREFIX only needed for ulPropTagFldId versions
-			if(m_ulUrlFlag & REQ_PUBLIC)
-				wstrFldPath = m_wstrUser + L"/" + FOLDER_PREFIX + wstrFldPath + L"/";
-			else
-				wstrFldPath = FOLDER_PREFIX + wstrFldPath + L"/";
+			// but it doesn't seem we return named folders here? why not?
+
+			wstrFldPath = FOLDER_PREFIX + wstrFldPath + L"/";
 
 			HrSetDavPropName(&(sDavResponse.sHRef.sPropName), "href", lpsDavProp->sPropName.strNS);
 			sDavResponse.sHRef.strValue = strReqUrl + W2U(wstrFldPath);
