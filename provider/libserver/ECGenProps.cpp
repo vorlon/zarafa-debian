@@ -186,8 +186,10 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 		case PROP_ID(PR_CONTENT_UNREAD):
 			if(ulObjType == MAPI_MESSAGE)
 				ulPropTagRequired = PR_MESSAGE_FLAGS;
-			else
+			else {
 				er = ZARAFA_E_NOT_FOUND;
+				goto exit;
+			}
 			break;
 		default:
 			er = ZARAFA_E_NOT_FOUND;
@@ -740,7 +742,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 					if( (ulRights&ecRightsReadAny)==ecRightsReadAny)
 						sPropVal.Value.ul |= MAPI_ACCESS_READ;
 
-					if( bOwner == true || (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
+					if( (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
 						sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
 					
 					if(ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT 
