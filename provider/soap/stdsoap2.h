@@ -655,7 +655,7 @@ extern "C" {
 #if defined(SYMBIAN)
 # define LONG64 long
 # define ULONG64 unsigned LONG64
-#else
+#elif !defined(WIN32) || defined(CYGWIN) || defined(__GLIBC__) || defined(__GNU__)
 # ifndef LONG64
 #  if defined(HAVE_STDINT_H)
 #   include <stdint.h>
@@ -681,6 +681,12 @@ extern "C" {
 #   define ULONG64 unsigned LONG64
 #  endif
 # endif
+#elif defined(UNDER_CE)
+# define LONG64 __int64
+# define ULONG64 unsigned LONG64
+#elif defined(__BORLANDC__)
+# define LONG64 __int64
+# define ULONG64 unsigned LONG64
 #endif
 
 #ifndef SOAP_LONG_FORMAT
@@ -691,7 +697,9 @@ extern "C" {
 # define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
 #endif
 
-#if   defined(SYMBIAN)
+#if defined(WIN32) && !defined(CYGWIN)
+# define soap_int32 __int32
+#elif defined(SYMBIAN)
 # define soap_int32 long
 #elif defined(PALM)
 # define soap_int32 Int32
