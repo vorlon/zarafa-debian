@@ -507,7 +507,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 exit:
 	if (hr == hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Number of items in folder returned: %u", ulCensorFlag);
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Number of items in folder returned: %u", ulItemCount);
 
 	if (lpsRestriction)
 		FREE_RESTRICTION(lpsRestriction);
