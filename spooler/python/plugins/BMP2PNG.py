@@ -33,13 +33,16 @@ class BMP2PNG(IMapiDAgentPlugin):
                 break
 
             for row in rows:
-                if (row[0].ulPropTag != PR_ATTACH_NUM or row[2].ulPropTag != PR_ATTACH_METHOD or row[3].ulPropTag != PR_ATTACH_MIME_TAG):
-                    self.logger.logDebug("!--- Attachment found but the row is incomplete, attachment number, method or mimetype is missing")
+                if (row[0].ulPropTag != PR_ATTACH_NUM or row[2].ulPropTag != PR_ATTACH_METHOD):
+                    self.logger.logDebug("!--- Attachment found but the row is incomplete, attachment number or method data is invalid. Data: %s" % (row) )
                     continue
 
                 attnum = row[0].Value
                 method = row[2].Value
-                itype = row[3].Value.upper()
+                itype = ''
+                if (row[3].ulPropTag == PR_ATTACH_MIME_TAG):
+                    itype = row[3].Value.upper()
+
                 if (method == ATTACH_BY_VALUE and itype.find('BMP') >=0):
                     try:
                         self.ConvertBMP2PNG(message, attnum)
@@ -49,9 +52,12 @@ class BMP2PNG(IMapiDAgentPlugin):
                 elif (method == ATTACH_EMBEDDED_MSG):
                     self.logger.logDebug("*--- [%d] Embedded message found" % (attnum))
 
-                    embeddedmsg = message.OpenAttach(attnum, IID_IMessage, 0)
+                    attach = message.OpenAttach(attnum, None, MAPI_MODIFY)
+                    embeddedmsg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
+                    
                     if (self.FindBMPAttachmentsAndConvert(embeddedmsg, True) == True):
                         changes = True
+                        attach.SaveChanges(0)
                 else:
                      self.logger.logDebug("*--- [%d] Not supported attachment method %d" % (attnum, method))
 
