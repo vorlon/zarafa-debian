@@ -2266,7 +2266,6 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 		goto exit;
 
 	// TODO do something with ulResult
-	//
 
 	// Do rules & out-of-office
 	hr = HrPostDeliveryProcessing(lppyMapiPlugin, lpAdrBook, lpTargetStore, lpInbox, lpTargetFolder, &lpDeliveryMessage, lpRecip, lpArgs);
@@ -2742,7 +2741,13 @@ void *HandlerLMTP(void *lpArg) {
 	LPADRBOOK	 lpAdrBook = NULL;
 	IABContainer *lpAddrDir = NULL;
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker for LMTP request");
+	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker for LMTP request pid %d", getpid());
+
+	char *lpEnvGDB  = getenv("GDB");
+	if (lpEnvGDB && parseBool(lpEnvGDB)) {
+		Sleep(10000); //wait 10 seconds so you can attach gdb
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker for LMTP request");
+	}
 
 	hr = HrGetSession(lpArgs, ZARAFA_SYSTEM_USER_W, &lpSession);
 	if (hr != hrSuccess)
