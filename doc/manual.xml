@@ -1068,10 +1068,13 @@
 			<listitem>
 				<para>Path to the activated dagent plugins. This folder contains symlinks 
 				to the zarafa plugins and custom scripts. The plugins are installed in 
-				'/usr/share/zarafa-dagent/python/plugins/'. To activate a plugin create a symbolic
+				<replaceable>/usr/share/zarafa-dagent/python/plugins</replaceable>. To activate a plugin create a symbolic
 				link in the <replaceable>plugin_path</replaceable> directory.</para>
-				<para>Example:
-				$ ln -s /usr/share/zarafa-dagent/python/plugins/BMP2PNG.py /var/lib/zarafa/dagent/plugins/BMP2PNG.py
+				<para>Example:</para>
+				<para>
+					<command>ln</command>
+					<option>-s</option>
+				    <replaceable>/usr/share/zarafa-dagent/python/plugins/BMP2PNG.py</replaceable> <replaceable>/var/lib/zarafa/dagent/plugins/BMP2PNG.py</replaceable>
 				</para>
 				<para>Default: <replaceable>/var/lib/zarafa/dagent/plugins</replaceable></para>
 			</listitem>
