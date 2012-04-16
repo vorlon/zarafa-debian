@@ -7999,7 +7999,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 
 	for(iterCopyItems=lstCopyItems.begin(); iterCopyItems != lstCopyItems.end(); iterCopyItems++) {
 		// Cache update for object
-		g_lpSessionManager->GetCacheManager()->SetObject(iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulOwner, iterCopyItems->ulFlags, iterCopyItems->ulType);
+		g_lpSessionManager->GetCacheManager()->SetObject(iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulOwner, iterCopyItems->ulFlags & ~MSGFLAG_DELETED /* possible undelete */, iterCopyItems->ulType);
 
 		// Remove old sourcekey and entryid and add them
 		g_lpSessionManager->GetCacheManager()->RemoveIndexData(iterCopyItems->ulId);
