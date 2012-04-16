@@ -87,11 +87,6 @@ public:
         memcpy(lpData, (char *)&guid, sizeof(guid)); 
         memcpy(lpData+sizeof(GUID), &ullId, ulSize - sizeof(GUID)); 
     }
-    SOURCEKEY(struct xsd__base64Binary &sourcekey) {
-        this->lpData = new char[sourcekey.__size];
-        memcpy(this->lpData, sourcekey.__ptr, sourcekey.__size);
-        this->ulSize = sourcekey.__size;
-    }
     ~SOURCEKEY() { 
         if(lpData) delete [] lpData; 
     }
@@ -128,8 +123,6 @@ public:
 	}
     
     operator unsigned char *() const { return (unsigned char *)lpData; }
-    
-    operator const std::string () const { return std::string((char *)lpData, ulSize); }
     
     unsigned int 	size() const { return ulSize; }
 	bool			empty() const { return ulSize == 0; } 

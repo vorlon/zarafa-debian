@@ -3352,15 +3352,10 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	unsigned int	ulParentId = 0;
 	unsigned int	ulParentObjType = 0;
 	unsigned int	ulOwnerId = 0;
-	USE_DATABASE();
 
 	bool			bIsShortTerm = false;
 	
 	struct saveObject sSavedObject;
-
-	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
 	
 	/*
 	 * 2 Reasons to send ZARAFA_E_UNABLE_TO_COMPLETE (and have the client try to open the store elsewhere):
@@ -3486,7 +3481,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	g_lpStatsCollector->Increment(SCN_DATABASE_MROPS);
 
 exit:
-    lpDatabase->Commit();
+	;
 }
 SOAP_ENTRY_END()
 
@@ -7698,12 +7693,8 @@ typedef struct{
 	unsigned int ulNewId;
 	unsigned int ulFlags;
 	unsigned int ulMessageFlags;
-	unsigned int ulOwner;
 	SOURCEKEY 	 sSourceKey;
 	SOURCEKEY	 sParentSourceKey;
-	SOURCEKEY	 sNewSourceKey;
-	EntryId	 	 sOldEntryId;
-	EntryId	 	 sNewEntryId;
 }COPYITEM;
 
 // Move one or more messages and/or moved a softdeleted message to a normal message
@@ -7732,9 +7723,8 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 	std::list<COPYITEM> lstCopyItems;
 	std::list<COPYITEM>::iterator iterCopyItems;
 
+	SOURCEKEY	sNewSourceKey;
 	SOURCEKEY	sDestFolderSourceKey;
-
-    std::map<unsigned int, PARENTINFO> mapFolderCounts;
 
 	entryId*	lpsNewEntryId = NULL;
 	entryId*	lpsOldEntryId = NULL;
@@ -7765,7 +7755,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 	GetSourceKey(ulDestFolderId, &sDestFolderSourceKey);
 
 	// Get all items for the object list
-	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + 
+	strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + 
 			   " LEFT JOIN properties AS p2 ON p2.hierarchyid=h.id AND p2.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND p2.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE h.id IN(";
 
 	for(iObjectId = lplObjectIds->begin(); iObjectId != lplObjectIds->end(); iObjectId++) {
@@ -7774,30 +7764,33 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 
 		strQuery += stringify(*iObjectId);
 	}
-	strQuery += ")";
+	strQuery += ") FOR UPDATE"; // Lock the records so they cannot change until we're done moving them
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
 
+	// object doesn't exist, ignore it. FIXME we should issue a warning to the client
+	//if(lpDatabase->GetNumRows(lpDBResult) != lpEntryList->__size)
+	// Then do something
+
 	// First, put all the root objects in the list
 	while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 	{
-		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL) // no id, type or parent folder?
+		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) // no id, type or parent folder?
 			continue;
 
 		sItem.ulId		= atoi(lpDBRow[0]);
 		sItem.ulParent	= atoi(lpDBRow[1]);
 		sItem.ulType	= atoi(lpDBRow[2]);
 		sItem.ulFlags	= atoi(lpDBRow[3]);
-		sItem.ulOwner	= atoi(lpDBRow[4]);
-		sItem.ulMessageFlags = lpDBRow[6] ? atoi(lpDBRow[6]) : 0;
+		sItem.ulMessageFlags = lpDBRow[5] ? atoi(lpDBRow[5]) : 0;
 
 		if (sItem.ulType != MAPI_MESSAGE) {
 			bPartialCompletion = true;
 			continue;
 		}
-		
+
 		GetSourceKey(sItem.ulId, &sItem.sSourceKey);
 		GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);
 
@@ -7814,7 +7807,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 			}
 
 			lstCopyItems.push_back(sItem);
-			ulItemSize += (lpDBRow[5] != NULL)? atoi(lpDBRow[5]) : 0;
+			ulItemSize += (lpDBRow[4] != NULL)? atoi(lpDBRow[4]) : 0;
 
 			// check if it a deleted item
 			if(lpDBRow[3] != NULL && (atoi(lpDBRow[3])&MSGFLAG_DELETED ) == MSGFLAG_DELETED)
@@ -7824,7 +7817,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 			er = erSuccess;
 		}
 	}
-	
+
 	// Free database results
 	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL;}
 
@@ -7861,6 +7854,12 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 		if(iterCopyItems->ulParent == ulDestFolderId && (iterCopyItems->ulFlags&MSGFLAG_DELETED) == 0)
 			continue;
 
+		er = lpDatabase->Begin();
+		if(er != erSuccess)
+			goto exit;
+
+		FreeEntryId(lpsOldEntryId, true);
+		lpsOldEntryId = NULL;
 
 		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(iterCopyItems->ulId, NULL, &lpsOldEntryId);
 		if(er != erSuccess) {
@@ -7869,35 +7868,26 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 			// FIXME: Delete from list: iterCopyItems
 			continue;
 		}
-		
-		iterCopyItems->sOldEntryId = EntryId(lpsOldEntryId);
-
-		FreeEntryId(lpsOldEntryId, true);
-		lpsOldEntryId = NULL;
-
-		er = CreateEntryId(guidStore, MAPI_MESSAGE, &lpsNewEntryId);
-		if(er != erSuccess)
-			goto exit;
-			
-        iterCopyItems->sNewEntryId = EntryId(lpsNewEntryId);
 
 		FreeEntryId(lpsNewEntryId, true);
 		lpsNewEntryId = NULL;
 
+		er = CreateEntryId(guidStore, MAPI_MESSAGE, &lpsNewEntryId);
+		if(er != erSuccess)
+			goto exit;
+
         // Update entryid (changes on move)
-		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(iterCopyItems->ulId) + ", 0x0FFF," + lpDatabase->EscapeBinary(iterCopyItems->sNewEntryId, iterCopyItems->sNewEntryId.size()) + ")";
+		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(iterCopyItems->ulId) + ", 0x0FFF," + lpDatabase->EscapeBinary(lpsNewEntryId->__ptr, lpsNewEntryId->__size) + ")";
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
 			goto exit;
 
-		er = lpSession->GetNewSourceKey(&iterCopyItems->sNewSourceKey);
+		er = lpSession->GetNewSourceKey(&sNewSourceKey);
 		if(er != erSuccess)
 			goto exit;
-			
-        g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "New source key: %s", bin2hex(iterCopyItems->sNewSourceKey.size(), iterCopyItems->sNewSourceKey).c_str());
 
         // Update source key (changes on move)
-		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(iterCopyItems->ulId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(iterCopyItems->sNewSourceKey, iterCopyItems->sNewSourceKey.size()) + ")";
+		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(iterCopyItems->ulId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(sNewSourceKey, sNewSourceKey.size()) + ")";
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
 			goto exit;
@@ -7948,10 +7938,10 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 		// a move is a delete in the originating folder and a new in the destination folder except for softdelete that is a change
 		if(iterCopyItems->ulParent != ulDestFolderId){
 			AddChange(lpSession, ulSyncId, iterCopyItems->sSourceKey, iterCopyItems->sParentSourceKey, ICS_MESSAGE_HARD_DELETE);
-			AddChange(lpSession, ulSyncId, iterCopyItems->sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
+			AddChange(lpSession, ulSyncId, sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
 		}else if(iterCopyItems->ulFlags & MSGFLAG_DELETED) {
 			// Restore a softdeleted message
-			AddChange(lpSession, ulSyncId, iterCopyItems->sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
+			AddChange(lpSession, ulSyncId, sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
 		}
 
 		er = ECTPropsPurge::AddDeferredUpdate(lpSession, lpDatabase, ulDestFolderId, iterCopyItems->ulParent, iterCopyItems->ulId);
@@ -7964,56 +7954,48 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 				// Undelete
 				if(iterCopyItems->ulFlags & MAPI_ASSOCIATED) {
 					// Associated message undeleted
-					mapFolderCounts[iterCopyItems->ulParent].lDeletedAssoc--;
-					mapFolderCounts[ulDestFolderId].lAssoc++;
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_ASSOC_MSG_COUNT, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_ASSOC_CONTENT_COUNT, 1);
 				} else {
 					// Message undeleted
-					mapFolderCounts[iterCopyItems->ulParent].lDeleted--;
-					mapFolderCounts[ulDestFolderId].lItems++;
-					if((iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_DELETED_MSG_COUNT, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
+					if(er == erSuccess && (iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
 						// Undeleted message was unread
-						mapFolderCounts[ulDestFolderId].lUnread++;
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
 					}
 				}
 			} else {
 				// Move
-				mapFolderCounts[iterCopyItems->ulParent].lItems--;
-				mapFolderCounts[ulDestFolderId].lItems++;
-				if((iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
-				    mapFolderCounts[iterCopyItems->ulParent].lUnread--;
-				    mapFolderCounts[ulDestFolderId].lUnread++;
+				er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_COUNT, -1);
+				if (er == erSuccess)
+					er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
+				if(er == erSuccess && (iterCopyItems->ulMessageFlags & MSGFLAG_READ) == 0) {
+					er = UpdateFolderCount(lpDatabase, iterCopyItems->ulParent, PR_CONTENT_UNREAD, -1);
+					if (er == erSuccess)
+						er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
 				}
 			}
 			if (er != erSuccess)
 				goto exit;
 		} 
-    }
-    
-    er = ApplyFolderCounts(lpDatabase, mapFolderCounts);
-    if(er != erSuccess)
-        goto exit;
 
-	// change the size if it is a soft delete item
-	if(bUpdateDeletedSize == true)
-		UpdateObjectSize(lpDatabase, ulDestStoreId, MAPI_STORE, UPDATE_ADD, ulItemSize);
+		er = lpDatabase->Commit();
+		if(er != erSuccess)
+			goto exit;
 
-	for(iterCopyItems=lstCopyItems.begin(); iterCopyItems != lstCopyItems.end(); iterCopyItems++) {
-		// Cache update for object
-		g_lpSessionManager->GetCacheManager()->SetObject(iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulOwner, iterCopyItems->ulFlags, iterCopyItems->ulType);
+		// Cache update for objects, fnevObjectDeleted is used to allow update object cache
+		g_lpSessionManager->GetCacheManager()->Update(fnevObjectDeleted, iterCopyItems->ulId);
 
 		// Remove old sourcekey and entryid and add them
 		g_lpSessionManager->GetCacheManager()->RemoveIndexData(iterCopyItems->ulId);
 
-		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), iterCopyItems->sNewSourceKey.size(), iterCopyItems->sNewSourceKey, iterCopyItems->ulId);
+		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), sNewSourceKey.size(), sNewSourceKey, iterCopyItems->ulId);
 
-		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_ENTRYID), iterCopyItems->sNewEntryId.size(), iterCopyItems->sNewEntryId, iterCopyItems->ulId);
-    }
-    
-    er = lpDatabase->Commit();
-    if(er != erSuccess)
-        goto exit;
+		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_ENTRYID), lpsNewEntryId->__size, lpsNewEntryId->__ptr, iterCopyItems->ulId);
 
-    for(iterCopyItems=lstCopyItems.begin(); iterCopyItems != lstCopyItems.end(); iterCopyItems++) {
 		// update destenation folder after PR_ENTRYID update
 		if(cCopyItems < EC_TABLE_CHANGE_THRESHOLD) {
 			//Update messages
@@ -8023,11 +8005,16 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 		}
 
 		// Update Store object
-		g_lpSessionManager->NotificationMoved(iterCopyItems->ulType, iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulParent, iterCopyItems->sOldEntryId);
+		g_lpSessionManager->NotificationMoved(iterCopyItems->ulType, iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulParent, lpsOldEntryId);
 
 		lstParent.push_back(iterCopyItems->ulParent);
 		
 	}
+
+
+	// change the size if it is a soft delete item
+	if(bUpdateDeletedSize == true)
+		UpdateObjectSize(lpDatabase, ulDestStoreId, MAPI_STORE, UPDATE_ADD, ulItemSize);
 
 
 	lstParent.sort();
@@ -8656,7 +8643,6 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 	ECListInt			lObjectIds;
 	ECListIntIterator	iObjectId;
 	size_t				cObjectItems = 0;
-	std::set<EntryId> setEntryIds;
 
 	USE_DATABASE();
 
@@ -8664,15 +8650,6 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	
-	for(unsigned int i=0; i < aMessages->__size; i++) {
-	    setEntryIds.insert(EntryId(aMessages->__ptr[i]));
-	}
-	setEntryIds.insert(EntryId(sDestFolderId));
-	
-	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE);
-	if(er != erSuccess)
-	    goto exit;
 
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if(er != erSuccess)
@@ -8727,8 +8704,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 	if(bPartialCompletion && er == erSuccess)
 		er = ZARAFA_W_PARTIAL_COMPLETION;
 exit:
-    lpDatabase->Commit();
-    
+    ;
 }
 SOAP_ENTRY_END()
 
@@ -9457,13 +9433,7 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 	unsigned int	ulObjId = 0;
 	unsigned int	ulObjType = 0;
 	unsigned int	ulDBFlags = 0;
-	
-	USE_DATABASE();
 
-	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
-	
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
@@ -9494,8 +9464,7 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
         }
     }
 exit:
-    lpDatabase->Commit();
-    
+    ;
 }
 SOAP_ENTRY_END()
 
@@ -10324,13 +10293,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 	unsigned int	ulStoreId = 0;
 	unsigned int	ulStoreFound = 0;
 	EID				eid;
-	
-	USE_DATABASE();
 
-	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
-	
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreId);
 	if(er != erSuccess)
 	    goto exit;
@@ -10338,7 +10301,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 	er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), folderSourceKey.__size, folderSourceKey.__ptr, &ulFolderId);
 	if(er != erSuccess)
 		goto exit;
-		
+
 	if(messageSourceKey.__size != 0) {
 		er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), messageSourceKey.__size, messageSourceKey.__ptr, &ulMessageId);
 		if(er != erSuccess)
@@ -10383,7 +10346,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 		goto exit;
 
 exit:
-    lpDatabase->Commit();
+	;
 }
 SOAP_ENTRY_END()
 
@@ -10706,7 +10669,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	boost::shared_ptr<ECDatabase> lpSharedBatchDB;
 	unsigned int		ulDepth = 20;
 	unsigned int		ulMode = 0;
-	std::set<SOURCEKEY> setParentSourcekeys;
 	
 	if(ulFlags & SYNC_BEST_BODY)
 	  ulMode = 1;
@@ -10714,15 +10676,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	  ulMode = 2;
 	
 	USE_DATABASE();
-
-	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
-	    setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
-	}
-
-	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
-
+	
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
 	
 	er = lpecSession->GetAdditionalDatabase(&lpBatchDB);
@@ -10770,7 +10724,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
         }
 		
 		if (ulParentId != ulParentCheck) {
-		    ASSERT(false);
 			goto next_object;
 		}
 		
@@ -10853,8 +10806,6 @@ next_object:
 	g_lpStatsCollector->Increment(SCN_DATABASE_MROPS, (int)ulObjCnt);
 	
 exit:
-    lpDatabase->Commit();
-    
 	if (er != erSuccess) {
 		//clean data which normaly done in MTOMReadClose
 		for(unsigned long i=0; i < ulObjCnt; i++) {

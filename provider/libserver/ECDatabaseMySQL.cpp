@@ -86,8 +86,6 @@ static char THIS_FILE[] = __FILE__;
 #define DEBUG_TRANSACTION 0
 #endif
 
-#define DEBUG_SQL 1
-
 // The maximum packet size. This is automatically also the maximum
 // size of a single entry in the database. This means that PR_BODY, PR_COMPRESSED_RTF
 // etc. cannot grow larger than 16M. This shouldn't be such a problem in practice.
@@ -1136,7 +1134,7 @@ std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ul
 	return "'" + escaped + "'";
 }
 
-std::string ECDatabaseMySQL::EscapeBinary(const std::string& strData)
+std::string ECDatabaseMySQL::EscapeBinary(std::string& strData)
 {
 	return EscapeBinary((unsigned char *)strData.c_str(), strData.size());
 }
