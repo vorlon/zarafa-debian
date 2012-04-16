@@ -1104,15 +1104,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	LPSPropValue lpProps = NULL;
 	IMessage *lpMessage = NULL;
 	LPENTRYLIST lpEntryList= NULL;
-	SPropValuePtr ptrAccess;
-
 	SizedSPropTagArray(3, lpPropTagArr) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
-
-	hr = HrGetOneProp(m_lpUsrFld, PR_ACCESS, &ptrAccess);
-	if (hr != hrSuccess || (ptrAccess->Value.ul & MAPI_ACCESS_DELETE) == 0) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
 
 	m_lpRequest->HrGetIfMatch(&strIfMatch);
 
@@ -1120,7 +1112,8 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &lpMessage);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Entry to be deleted not found : 0x%08X", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Entry to be deleted not found, assuming deleted: 0x%08X", hr);
+		hr = hrSuccess;
 		goto exit;
 	}
 	
