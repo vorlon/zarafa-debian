@@ -73,7 +73,6 @@
 #define SERVICE_CALDAV	0x02
 #define REQ_PUBLIC		0x04
 #define REQ_COLLECTION	0x08
-#define	REQ_SHARED		0x10
 
 HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstrUrlUser = NULL, std::string *lpstrFolder = NULL);
 

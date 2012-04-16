@@ -66,7 +66,8 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *l
 	m_lpDefStore = NULL;
 	m_lpAddrBook = NULL;
 	m_lpActiveStore = NULL;
-	m_lpImailUser = NULL;
+	m_lpLoginUser = NULL;
+	m_lpActiveUser = NULL;
 	m_lpNamedProps = NULL;
 	m_blFolderAccess = true;
 	m_ulFolderFlag = 0;
@@ -79,8 +80,11 @@ ProtocolBase::~ProtocolBase()
 	if (m_lpNamedProps)
 		MAPIFreeBuffer(m_lpNamedProps);
 
-	if (m_lpImailUser)
-		m_lpImailUser->Release();
+	if (m_lpLoginUser)
+		m_lpLoginUser->Release();
+
+	if (m_lpActiveUser)
+		m_lpActiveUser->Release();
 
 	if (m_lpIPMSubtree)
 		m_lpIPMSubtree->Release();
@@ -165,7 +169,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		goto exit;
 	}
 
-	hr = HrGetUserInfo(m_lpSession, m_lpDefStore, &m_strUserEmail, &m_wstrUserFullName, &m_lpImailUser);
+	hr = HrGetOwner(m_lpSession, m_lpDefStore, &m_lpLoginUser);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -196,6 +200,11 @@ HRESULT ProtocolBase::HrInitializeClass()
 	// Retrieve named properties
 	hr = HrLookupNames(m_lpActiveStore, &m_lpNamedProps);
 	if (hr != hrSuccess)
+		goto exit;
+
+	// get active user info
+	hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
+	if(hr != hrSuccess)
 		goto exit;
 
 

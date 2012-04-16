@@ -51,6 +51,7 @@
 #include "CalDavUtil.h"
 #include "EMSAbTag.h"
 #include "charset/convert.h"
+#include "mapi_ptr.h"
 
 using namespace std;
 
@@ -504,56 +505,33 @@ std::string StripGuid(const std::string &strInput)
 }
 
 /**
- * Get Users information like user's name, email address
+ * Get owner of given store
+ *
  * @param[in]	lpSession			IMAPISession object pointer of the user
- * @param[in]	lpDefStore			Default store of the user
- * @param[out]	strEmailaddress		Email address of the user
- * @param[out]	strUserName			Name of the user
- * @param[out]	lppImailUser		IMailUser Object pointer of the user
+ * @param[in]	lpDefStore			Default store to get ownership info from
+ * @param[out]	lppImailUser		IMailUser Object pointer of the owner
  *
  * @return		HRESULT
  */
-HRESULT HrGetUserInfo(IMAPISession *lpSession, IMsgStore *lpDefStore, std::string *lpstrEmailaddress, std::wstring *lpstrUserName, IMailUser **lppImailUser)
+HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppImailUser)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpSProp = NULL;
+	SPropValuePtr ptrSProp;
 	IMailUser *lpMailUser = NULL;
 	ULONG ulObjType = 0;
-	ULONG cProps = 0;
 
-	SizedSPropTagArray(2, sptaUserProps) = {2, {PR_SMTP_ADDRESS_A, PR_DISPLAY_NAME_W}};
-
-	hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &lpSProp);
+	hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &ptrSProp);
 	if(hr != hrSuccess)
 		goto exit;
 	
-	hr = lpSession->OpenEntry(lpSProp->Value.bin.cb, (LPENTRYID)lpSProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMailUser);
+	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, (LPENTRYID)ptrSProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMailUser);
 	if(hr != hrSuccess)
 		goto exit;
 
-	MAPIFreeBuffer(lpSProp);
-	lpSProp = NULL;
-
-	hr = lpMailUser->GetProps((LPSPropTagArray)&sptaUserProps, 0, &cProps, &lpSProp);
-	if(hr != hrSuccess)
-		goto exit;
-
-	if(lpstrEmailaddress)
-		lpstrEmailaddress->assign(lpSProp[0].Value.lpszA);
-
-	if(lpstrUserName)
-		lpstrUserName->assign(lpSProp[1].Value.lpszW);
-
-	if(lpMailUser && lppImailUser)
-	{
-		*lppImailUser = lpMailUser;
-		lpMailUser = NULL;
-	}
+	*lppImailUser = lpMailUser;
+	lpMailUser = NULL;
 
 exit:
-	if(lpSProp)
-		MAPIFreeBuffer(lpSProp);
-
 	if(lpMailUser)
 		lpMailUser->Release();
 

@@ -95,7 +95,7 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty);
 HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty);
 
 //Retrieve the User's Email address.
-HRESULT HrGetUserInfo(IMAPISession *lpSession, IMsgStore *lpDefStore, std::string *strEmailaddresss, std::wstring *strUserName, IMailUser **lppMailUser);
+HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppMailUser);
 
 //Strip the input to get Guid Value
 //eg input: caldav/Calendar/ai-43873034lakljk403-3245.ics

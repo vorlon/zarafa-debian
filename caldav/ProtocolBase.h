@@ -73,17 +73,16 @@ protected:
 	IMsgStore *m_lpDefStore;		//!< We always need the store of the user that is logged in.
 	IMsgStore *m_lpActiveStore;		//!< The store we're acting on
 	IAddrBook *m_lpAddrBook;
-	IMailUser *m_lpImailUser;		//!< the logged in user
+	IMailUser *m_lpLoginUser;		//!< the logged in user
+	IMailUser *m_lpActiveUser;		//!< the owner of m_lpActiveStore
 	IMAPIFolder *m_lpUsrFld;		//!< The active folder (calendar, inbox, outbox)
 	IMAPIFolder *m_lpIPMSubtree;	//!< IPMSubtree of active store, used for CopyFolder/CreateFolder
 
 	SPropTagArray *m_lpNamedProps; //!< named properties of the active store
-	std::wstring m_wstrFldOwner;
-	std::wstring m_wstrFldName;
+	std::wstring m_wstrFldOwner;   //!< url owner part
+	std::wstring m_wstrFldName;	   //!< url foldername part
 
-	std::string m_strUserEmail;
-	std::wstring m_wstrUserFullName;
-	std::wstring m_wstrUser;
+	std::wstring m_wstrUser;	//!< login username (http auth user)
 
 	bool m_blFolderAccess;		//!< can we delete the current folder
 	ULONG m_ulUrlFlag;

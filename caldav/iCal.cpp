@@ -236,7 +236,7 @@ HRESULT iCal::HrHandleIcalPost()
 	m_lpRequest->HrGetBody(&strIcal);
 	if(!strIcal.empty())
 	{
-		hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpImailUser, 0);
+		hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 		if (hr!=hrSuccess)
 			goto exit;
 	}
@@ -579,7 +579,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	std::string strUid;
 	std::string strUrl;
 	LPSRestriction lpsRestriction = NULL;
-	MAPITablePtr lpContents;	
+	MAPITablePtr ptrContents;	
 	SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
 
@@ -588,42 +588,39 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 		goto exit;
 	}
 
-	m_lpRequest->HrGetUrl(&strUrl);
-	strUid = StripGuid(strUrl);
-
-	if (!strUid.empty()) {
-		hr = HrMakeRestriction(strUid, m_lpNamedProps, &lpsRestriction);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-
-	hr = m_lpUsrFld->GetContentsTable(0, &lpContents);
+	hr = m_lpUsrFld->GetContentsTable(0, &ptrContents);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error retrieving calendar entries, error code : 0x%08X",hr);
 		goto exit;
 	}
 
-	hr = lpContents->SetColumns((LPSPropTagArray)&sPropEntryIdcol, 0);
+	hr = ptrContents->SetColumns((LPSPropTagArray)&sPropEntryIdcol, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
-	if (lpsRestriction)	{
-		hr = lpContents->Restrict(lpsRestriction, TBL_BATCH);
+	m_lpRequest->HrGetUrl(&strUrl);
+	strUid = StripGuid(strUrl);
+	if (!strUid.empty()) {
+		// single item requested
+		hr = HrMakeRestriction(strUid, m_lpNamedProps, &lpsRestriction);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrContents->Restrict(lpsRestriction, TBL_BATCH);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error restricting calendar entries, error code : 0x%08X",hr);
 			goto exit;
 		}
-	}
-	
-	if (!strUid.empty()) {
-		hr = lpContents->GetRowCount(0, &ulRows);
+
+		// single item not present, return 404
+		hr = ptrContents->GetRowCount(0, &ulRows);
 		if (hr != hrSuccess || ulRows != 1) {
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
 	}
 	
-	hr = lpContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
+	hr = ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
 
 exit:
 	if (lpsRestriction)
