@@ -220,6 +220,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	std::list<WEBDAVPROPERTY>::iterator iter;		
 	WEBDAVPROP *lpsDavProp = NULL;
 	WEBDAVRESPONSE sDavResp;
+	IMAPIProp *lpMapiProp = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropVal = NULL;
 	ULONG cbsize = 0;
@@ -228,6 +229,12 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 
 	// number of properties requested by client.
 	cbsize = lpsDavProp->lstProps.size();
+
+	// @todo, we only select the store so we don't have a PR_CONTAINER_CLASS property when querying calendar list.
+	if(m_wstrFldName.empty() || m_wstrFldName.compare(L"Inbox") == 0 || m_wstrFldName.compare(L"Outbox") == 0)
+		lpMapiProp = m_lpActiveStore;
+	else
+		lpMapiProp = m_lpUsrFld;
 
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), (void **) &lpPropTagArr);
 	if (hr != hrSuccess)
@@ -245,7 +252,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 		lpPropTagArr->aulPropTag[i] = GetPropmap((char*)iter->sPropName.strPropname.c_str());
 	}
 
-	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
+	hr = lpMapiProp->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
 	if (FAILED(hr))
 	{
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error in GetProps for user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
@@ -260,7 +267,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	m_lpRequest->HrGetRequestUrl(&sDavResp.sHRef.strValue);
 
 	// map values and properties in WEBDAVRESPONSE structure.
-	hr = HrMapValtoStruct(lpSpropVal, cbsize, NULL, 0, 0, &(lpsDavProp->lstProps), &sDavResp);
+	hr = HrMapValtoStruct(lpSpropVal, cbsize, NULL, 0, false, &(lpsDavProp->lstProps), &sDavResp);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -315,13 +322,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
 	ULONG ulItemCount = 0;
-	ULONG ulDepth = 0;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	ulTagTsRef = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
-	m_lpRequest->HrGetDepth(&ulDepth);
 	m_lpRequest->HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
 		strReqUrl.append(1, '/');
@@ -476,7 +481,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			else
 				ulCensorFlag = 0;
 
-			hr = HrMapValtoStruct(lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal, ulCensorFlag, ulDepth, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
+			hr = HrMapValtoStruct(lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal, ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
 
 			ulItemCount++;
 			lpsWebMStatus->lstResp.push_back(sWebResponse);
@@ -547,9 +552,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
-	ULONG ulDepth = 0;
 
-	m_lpRequest->HrGetDepth(&ulDepth);
 	m_lpRequest->HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
 		strReqUrl.append(1, '/');
@@ -640,7 +643,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		}
 
 		if(hr == hrSuccess)
-			hr = HrMapValtoStruct(lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal, ulCensorFlag, ulDepth, &sDavProp.lstProps, &sWebResponse);
+			hr = HrMapValtoStruct(lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal, ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
 		else {
 			// no: "status" can only be in <D:propstat xmlns:D="DAV:"> tag, so fix in HrMapValtoStruct
 			HrSetDavPropName(&(sWebResponse.sStatus.sPropName), "status", CALDAVNSDEF);
@@ -775,9 +778,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::string strReq;	
-	ULONG ulDepth = 0;
 
-	m_lpRequest->HrGetDepth(&ulDepth);
 	m_lpRequest->HrGetRequestUrl(&strReq);
 
 	// Open Global Address book
@@ -881,7 +882,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 			HrSetDavPropName(&(sWebResponse.sHRef.sPropName), "href", CALDAVNSDEF);
 			sWebResponse.sHRef.strValue = strReq + urlEncode(lpsPropVal->Value.lpszW, "utf-8") + "/";
 			
-			hr = HrMapValtoStruct(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, NULL, 0, ulDepth, &sDavProp.lstProps, &sWebResponse);
+			hr = HrMapValtoStruct(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, NULL, 0, true, &sDavProp.lstProps, &sWebResponse);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to convert user properties to entry for user %ls", lpsPropVal->Value.lpszW);
 				continue;
@@ -1545,11 +1546,9 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	std::list<WEBDAVPROPERTY>::iterator iter;
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
-	ULONG ulDepth = 0;
 
 	// @todo, check input url not to have 3rd level path? .. see input/output list above.
 
-	m_lpRequest->HrGetDepth(&ulDepth);
 	if(!(m_ulUrlFlag & REQ_PUBLIC))
 		strReqUrl = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";
 	else
@@ -1585,8 +1584,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		if (FAILED(hr))
 			goto exit;
 
-		// always depth 1?
-		hr = HrMapValtoStruct(lpsPropSingleFld, cbsize, NULL, 0, ulDepth, &lpsDavProp->lstProps, &sDavResponse);
+		hr = HrMapValtoStruct(lpsPropSingleFld, cbsize, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1689,7 +1687,7 @@ nowaste:
 
 			iter = lpsDavProp->lstProps.begin();
 			
-			HrMapValtoStruct(lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, 1, &lpsDavProp->lstProps, &sDavResponse);
+			HrMapValtoStruct(lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 
 			lpsMulStatus->lstResp.push_back(sDavResponse);
 			sDavResponse.lstsPropStat.clear();
@@ -2048,14 +2046,14 @@ exit:
  * @param[in]	ulPropCount		Count of propety values present in lpProps
  * @param[in]	lpMtIcal		mapi to ical conversion object pointer
  * @param[in]	ulFlags			Flags used during mapi to ical conversion (currently only censor flag)
- * @param[in]	ulDepth			Depth of request (or forced a level)
+ * @param[in]	bPropsFirst		first lpProps parameter, then defaults if true
  * @param[in]	lstDavProps		Pointer to structure containing properties requested by client
  * @param[out]	lpsResponse		Pointer to Response structure
  * @return		HRESULT
  * @retval		hrSuccess		Always returns hrSuccess
  */
 // @todo cleanup this code, and fix url values
-HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiToICal *lpMtIcal, ULONG ulFlags, ULONG ulDepth, std::list<WEBDAVPROPERTY> *lstDavProps, WEBDAVRESPONSE *lpsResponse)
+HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiToICal *lpMtIcal, ULONG ulFlags, bool bPropsFirst, std::list<WEBDAVPROPERTY> *lstDavProps, WEBDAVRESPONSE *lpsResponse)
 {
 	HRESULT hr = hrSuccess;
 	std::list<WEBDAVPROPERTY>::iterator iterProperty;
@@ -2138,9 +2136,9 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 				sWebProperty.lstValues.push_back(sWebVal);
 			}
 
-		} else if (strProperty == "displayname" && (ulDepth == 0 || lpFoundProp)) {
+		} else if (strProperty == "displayname" && (!bPropsFirst || lpFoundProp)) {
 			// foldername from given properties (propfind command) username from properties (propsearch command) or fullname of user ("root" props)
-			if (lpFoundProp)
+			if (bPropsFirst)
 				sWebProperty.strValue = SPropValToString(lpFoundProp);
 			else
 				sWebProperty.strValue = W2U(ptrFullname->Value.lpszW);
@@ -2276,9 +2274,10 @@ HRESULT CalDAV::HrMapValtoStruct(LPSPropValue lpProps, ULONG ulPropCount, MapiTo
 		} else if (strProperty == "calendar-home-set" && !strCalHome.empty()) {
 			// Purpose: Identifies the URL of any WebDAV collections that contain
 			//          calendar collections owned by the associated principal resource.
-			// @todo, so we should list every calendar in strPrincipalURL ?
+			// apple seems to use this as the root container where you have your calendars (and would create more)
+			// MKCALENDAR would be called with this url as a base.
 			HrSetDavPropName(&(sWebVal.sPropName), "href", CALDAVNSDEF);
-			sWebVal.strValue = strCalHome;
+			sWebVal.strValue = strPrincipalURL;
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "calendar-user-type") {
