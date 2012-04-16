@@ -253,7 +253,7 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
   # possibly wide version failed, force check normal version
     NCURSES_LIBS=-lncurses
     LIBS=$NCURSES_LIBS
-	AC_CHECK_FUNCS([initscr], [AC_DEFINE([HAVE_NCURSES], [1], [ncurses library available])])
+	AC_CHECK_FUNCS([cbreak], [AC_DEFINE([HAVE_NCURSES], [1], [ncurses library available])])
   ])
 
   LIBS=$libs_keep
