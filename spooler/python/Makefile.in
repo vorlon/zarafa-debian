@@ -614,8 +614,8 @@ uninstall-am: uninstall-zarafa_dagentSCRIPTS \
 
 
 install-data-hook:
-	mkdir -p ${DESTDIR}/${localstatedir}/lib/zarafa/dagent/python/plugins/
-	mkdir -p ${DESTDIR}/${localstatedir}/lib/zarafa/spooler/python/plugins/
+	mkdir -p ${DESTDIR}/${localstatedir}/lib/zarafa/dagent/plugins/
+	mkdir -p ${DESTDIR}/${localstatedir}/lib/zarafa/spooler/plugins/
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
