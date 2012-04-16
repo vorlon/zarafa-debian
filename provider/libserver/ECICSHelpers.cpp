@@ -258,20 +258,14 @@ std::string FullQueryCreator::CreateOrderQuery()
 class NullQueryCreator : public CommonQueryCreator
 {
 public:
-	NullQueryCreator(const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags);
+	NullQueryCreator();
 	
 private:
 	std::string CreateBaseQuery();
 	std::string CreateOrderQuery();
-	
-private:
-	ECDatabase		*m_lpDatabase;
-	const SOURCEKEY	&m_sFolderSourceKey;
-	unsigned int	m_ulFilteredSourceSync;
 };
 
-NullQueryCreator::NullQueryCreator(const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags) : CommonQueryCreator(ulFlags)
-	, m_sFolderSourceKey(sFolderSourceKey)
+NullQueryCreator::NullQueryCreator() : CommonQueryCreator(SYNC_CATCHUP)
 { }
 	
 std::string NullQueryCreator::CreateBaseQuery()
@@ -701,7 +695,13 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 * Initial sync
 		 * We want all message that were not created by the current client (m_ulSyncId).
 		 */
-		m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
+	    if(m_sFolderSourceKey.empty()) {
+			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
+  		    ASSERT((m_ulFlags & SYNC_CATCHUP) == SYNC_CATCHUP);
+			m_lpQueryCreator = new NullQueryCreator();
+		} else {
+			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
+		}
 		m_lpMsgProcessor = new FirstSyncProcessor(m_ulMaxFolderChange);
 	} else {
 		/*
