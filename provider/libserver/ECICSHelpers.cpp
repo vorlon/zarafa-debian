@@ -727,12 +727,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 				 * This request is also without a restriction. We can use an
 				 * incremental query.
 				 */
-				if(m_ulFlags & SYNC_CATCHUP) {
-					// Optimization: doing a CATCHUP on a non-filtered sync doesn't need to get any changes
-					m_lpQueryCreator = new NullQueryCreator(m_sFolderSourceKey, m_ulFlags);
-				} else {
-					m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
-				}
+				m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
 				m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulMaxFolderChange);
 			} else {
 				/*
