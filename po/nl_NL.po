@@ -3,9 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-27 00:05+0200\n"
-"PO-Revision-Date: 2012-02-29 17:11+0200\n"
-"Last-Translator: michel <michel@zarafa.com>\n"
+"POT-Creation-Date: 2012-03-29 00:06+0200\n"
+"PO-Revision-Date: 2012-03-28 09:23+0200\n"
+"Last-Translator: dionysius <d.markus@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "Kan de standaard store in de MAPI sessie niet openen."
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
 msgid "Refusing to add primary store as shared store."
-msgstr ""
+msgstr "Weigert om de primaire store als gedeelde store toe te voegen."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
 msgid "Unable to open this store."
@@ -330,10 +330,11 @@ msgstr "Verbindingsfout"
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
+"Gebruikersnaam of wachtwoord niet correct. Pas a.u.b. uw MAPI-profiel aan."
 
 #: provider/ECProps/SyncStatusDlg.cpp:142
 msgid "Logon error"
-msgstr ""
+msgstr "Loginfout"
 
 #: provider/ECProps/SyncStatusDlg.cpp:145
 msgid "synchronization done"
@@ -799,7 +800,7 @@ msgstr "Publieke Mappen"
 
 #: provider/libserver/ECGenProps.cpp:926
 msgid "Archive"
-msgstr ""
+msgstr "Archief"
 
 #: provider/client/ECMSProvider.cpp:247
 #: provider/client/ECABProviderSwitch.cpp:277
@@ -979,17 +980,18 @@ msgstr "Gebruiker is al aanwezig."
 
 # 93%
 #: provider/client/ECArchiveAwareMessage.cpp:451
-#, fuzzy
 msgid "Zarafa Archiver"
-msgstr "Zarafa Archief"
+msgstr "Zarafa Archiver"
 
 #: provider/client/ECArchiveAwareMessage.cpp:453
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
+"Een fout is naar voren gekomen tijdens het ophalen van het bericht uit de "
+"archive"
 
 #: provider/client/ECArchiveAwareMessage.cpp:455
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Neem alstublieft contact op met uw systeem administrator"
 
 #: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
 msgid "Error code:"
@@ -997,15 +999,15 @@ msgstr "Fout code:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:467
 msgid "It seems no valid archiver license is installed."
-msgstr ""
+msgstr "Er is mogelijk geen geldige licentie voor archiver geïnstalleerd."
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Het archief kon niet gevonden worden."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "You don't have sufficient access to the archive."
-msgstr ""
+msgstr "U heeft niet de correcte rechten om het archief te openen"
 
 #: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
 msgid "Error description:"
@@ -1330,7 +1332,7 @@ msgstr ""
 
 #: provider/contacts/ZCABContainer.cpp:645
 msgid "Zarafa Contacts Folders"
-msgstr ""
+msgstr "Zarafa Contacten Mappen"
 
 #: provider/common/SOAPSock.cpp:481
 msgid "Unable to get SSL object from store"
@@ -1560,20 +1562,20 @@ msgstr "MAPI fout code:"
 
 #: installer/linux/zarafa-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr ""
+msgstr "Terugkerende afspraken zijn niet toegestaan."
 
 #: installer/linux/zarafa-mr-accept:453
 msgid "The requested time slot is unavailable"
-msgstr ""
+msgstr "De aangevraagde tijdspanne is niet beschikbaar"
 
 #: installer/linux/zarafa-mr-accept:455
 msgid "The requested time slots are unavailble on the following dates:"
-msgstr ""
+msgstr "De aangevraagde tijden zijn niet beschikbaar op de volgende datums:"
 
 #: installer/linux/zarafa-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
 
 #~ msgid ""
 #~ "The syncronization of a folder failed. Press retry to continue or ignore to "
