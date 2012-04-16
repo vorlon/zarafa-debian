@@ -29,4 +29,5 @@ class DAgentPluginManager(object):
     def PreRuleProcess(self, session, addrbook, store, rulestable):
         return self.pluginmanager.processPluginFunction('PreRuleProcess', session, addrbook, store, rulestable)
 
-
+    def SendNewMailNotify(self, session, addrbook, store, folder, message):
+        return self.pluginmanager.processPluginFunction('SendNewMailNotify', session, addrbook, store, folder, message)

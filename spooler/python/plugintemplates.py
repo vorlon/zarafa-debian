@@ -11,6 +11,7 @@ class IMapiDAgentPlugin(object):
     prioPreDelivery = 9999
     prioPostDelivery = 9999
     prioPreRuleProcess = 9999
+    prioSendNewMailNotify = 9999
 
     def __init__(self, logger):
         self.logger = logger
@@ -27,3 +28,5 @@ class IMapiDAgentPlugin(object):
     def PreRuleProcess(self, session, addrbook, store, rulestable):
          raise NotImplementedError('PreRuleProcess not implemented, function ignored')
 
+    def SendNewMailNotify(self, session, addrbook, store, folder, message):
+         raise NotImplementedError('SendNewMailNotify not implemented, function ignored')

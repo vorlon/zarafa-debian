@@ -74,7 +74,7 @@ typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObj
 #define MP_FAILED			1	// Whole process failed
 #define MP_STOP_SUCCESS		2	// Stop with the message processing go to the next recipient. Recpient return code OK
 #define MP_STOP_FAILED		3	// Stop with the message processing go to the next recipient. Recpient return code failed
-#define MP_EXIT				4	// Exit the all the hook calls and go father with the mail process.
+#define MP_EXIT				4	// Exit the all the hook calls and go futher with the mail process.
 
 class PyMapiPlugin
 {
@@ -85,6 +85,7 @@ public:
 	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* lpPluginManagerClassName);
 	HRESULT MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult);
 	HRESULT RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult);
+	HRESULT RequestCallExecution(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore,  IMAPIFolder *lpFolder, IMessage *lpMessage, ULONG *lpulDoCallexe, ULONG *lpulResult);
 
     swig_type_info *type_p_ECLogger;
 	swig_type_info *type_p_IAddrBook;

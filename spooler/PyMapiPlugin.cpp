@@ -58,6 +58,7 @@
 #include <mapiguid.h>
 #include "PyMapiPlugin.h"
 #include "stringutil.h"
+#include "frameobject.h"
 
 /**
  * workaround compile issue with ASSERT macro in vs 2008
@@ -70,7 +71,7 @@ void assertbreak()
 	ASSERT(FALSE);
 }
 
-#define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
+#define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
 		PY_HANDLE_ERROR(pyswigobj) \
@@ -79,6 +80,17 @@ void assertbreak()
 	} else {\
 		pyswigobj = Py_None;\
 	    Py_INCREF(Py_None);\
+	}\
+}
+
+#define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
+	if (objpointer) {\
+		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
+		PY_HANDLE_ERROR(pyswigobj) \
+		\
+	} else {\
+		pyswigobj = Py_None;\
+		Py_INCREF(Py_None);\
 	}\
 }
 
@@ -93,19 +105,41 @@ void assertbreak()
 	}\
 }
 
+/**
+ * Handle the python errors
+ * 
+ * note: The traceback doesn't work very well
+ */
 #define PY_HANDLE_ERROR(pyobj) { \
 	if (!pyobj) { \
 		PyObject *lpErr = PyErr_Occurred(); \
 		if(lpErr){ \
 			PyObjectAPtr ptype, pvalue, ptraceback;\
 			PyErr_Fetch(&ptype, &pvalue, &ptraceback);\
-			char *pStrErrorMessage = PyString_AsString(pvalue);\
-			char *lpszTraceback = PyString_AsString(ptraceback);\
+			\
+			PyTracebackObject* traceback = (PyTracebackObject*)(*ptraceback);\
+			\
+			char *pStrErrorMessage = "Unknown";\
+			if (*pvalue) \
+				pStrErrorMessage = PyString_AsString(pvalue);\
+			\
 			if (m_lpLogger) {\
-				if (!pStrErrorMessage) pStrErrorMessage = (char*)"Unknown";\
-				if (!lpszTraceback) lpszTraceback = (char*)"Unknown";\
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python error: %s", pStrErrorMessage);\
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s", lpszTraceback);\
+				\
+				while (traceback && traceback->tb_next != NULL) {\
+					PyFrameObject *frame = (PyFrameObject *)traceback->tb_frame;\
+					if (frame) {\
+						int line = frame->f_lineno;\
+						const char *filename = PyString_AsString(frame->f_code->co_filename); \
+						const char *funcname = PyString_AsString(frame->f_code->co_name); \
+						\
+						m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: %s(%d) %s", filename, line, funcname);\
+					} else { \
+						 m_lpLogger->Log(EC_LOGLEVEL_ERROR, "  Python trace: Unknown");\
+					}\
+					\
+					traceback = traceback->tb_next;\
+				}\
 			}\
 		} \
 		assertbreak(); \
@@ -114,15 +148,24 @@ void assertbreak()
 	}\
 }
 
-#define PY_CALL_METHOD(pluginmanager, functionname, ulreturn, format, ...) {\
+#define PY_CALL_METHOD(pluginmanager, functionname, returnmacro, format, ...) {\
 	PyObjectAPtr ptrResult;\
 	{\
 		ptrResult = PyObject_CallMethod(pluginmanager, functionname, format, __VA_ARGS__);\
 		PY_HANDLE_ERROR(ptrResult)\
 		\
-		if (ulreturn)\
-			PyArg_Parse(ptrResult, "I", ulreturn); \
+		returnmacro\
 	}\
+}
+
+/** 
+ * Helper macro to parse the python return values which work together 
+ * with the macro PY_CALL_METHOD.
+ * 
+ */
+#define PY_PARSE_TUPLE_HELPER(format, ...) {\
+	if(!PyArg_ParseTuple(ptrResult, format, __VA_ARGS__)) \
+		PY_HANDLE_ERROR(false) \
 }
 
 PyMapiPlugin::PyMapiPlugin(void)
@@ -213,7 +256,7 @@ HRESULT PyMapiPlugin::Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* l
 	PY_HANDLE_ERROR(m_ptrModMapiPlugin);
 
 	// Init logger swig object
-	NEW_SWIG_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
+	NEW_SWIG_INTERFACE_POINTER_OBJ(m_ptrPyLogger, m_lpLogger, type_p_ECLogger);
 
 	// Init plugin class	
 	ptrClass = PyObject_GetAttrString(m_ptrModMapiPlugin, (char*)lpPluginManagerClassName);
@@ -261,14 +304,15 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 		goto exit;
 	}
 
-	NEW_SWIG_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
-	NEW_SWIG_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
-	NEW_SWIG_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
-	NEW_SWIG_POINTER_OBJ(ptrPyFolderInbox, lpInbox, type_p_IMAPIFolder)
-	NEW_SWIG_POINTER_OBJ(ptrPyMessage, lpMessage, type_p_IMessage)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyFolderInbox, lpInbox, type_p_IMAPIFolder)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyMessage, lpMessage, type_p_IMessage)
 
 	// Call the python function and get the (hr) return code back
-	PY_CALL_METHOD(m_ptrMapiPluginManager, (char*)lpFunctionName, lpulResult, "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrPyFolderInbox, *ptrPyMessage);
+	PY_CALL_METHOD(m_ptrMapiPluginManager, (char*)lpFunctionName, PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrPyFolderInbox, *ptrPyMessage);
+
 
 exit:
 	return hr;
@@ -284,7 +328,6 @@ exit:
 HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;
-	int result = 0;
     PyObjectAPtr  ptrPySession, ptrPyAddrBook, ptrPyStore, ptrEMTIn;
 
 	if (!m_bEnablePlugin)
@@ -300,14 +343,43 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 		goto exit;
 	}
 	
-	NEW_SWIG_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
-	NEW_SWIG_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
-	NEW_SWIG_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
-	NEW_SWIG_POINTER_OBJ(ptrEMTIn, lpEMTRules, type_p_IExchangeModifyTable)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrEMTIn, lpEMTRules, type_p_IExchangeModifyTable)
 
-	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), lpulResult, "OOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrEMTIn);
-	
+	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("I", lpulResult), "OOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrEMTIn);
+
 exit:
 	return hr;
 }
 
+HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore,  IMAPIFolder *lpFolder, IMessage *lpMessage, ULONG *lpulDoCallexe, ULONG *lpulResult)
+{
+	HRESULT hr = hrSuccess;
+	PyObjectAPtr  ptrPySession, ptrPyAddrBook, ptrPyStore, ptrFolder, ptrMessage;
+
+	if (!m_bEnablePlugin)
+		goto exit;
+
+	if (!lpFunctionName || !lpMapiSession || !lpAdrBook || !lpulDoCallexe) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	if (!m_ptrMapiPluginManager) {
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrFolder, lpFolder, type_p_IMAPIFolder)
+	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrMessage, lpMessage, type_p_IMessage)
+
+	PY_CALL_METHOD(m_ptrMapiPluginManager, ((char*)lpFunctionName), PY_PARSE_TUPLE_HELPER("II", lpulResult, lpulDoCallexe), "OOOOO", *ptrPySession, *ptrPyAddrBook, *ptrPyStore, *ptrFolder, *ptrMessage);
+
+exit:
+	return hr;
+}

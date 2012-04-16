@@ -2194,6 +2194,7 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 	IMessage *lpMessageTmp = NULL;
 	IABContainer *lpAddrDir = NULL;
 	ULONG ulResult = 0;
+	ULONG ulNewMailNotify = 0;
 
 	// single user deliver did not lookup the user
 	if (lpRecip->strSMTP.empty()) {
@@ -2327,8 +2328,20 @@ HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin, IMAPISession *l
 		}
 
 		if (lpArgs->bNewmailNotify) {
-			if (HrNewMailNotification(lpTargetStore, lpDeliveryMessage) != hrSuccess)
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
+			hr = lppyMapiPlugin->RequestCallExecution("SendNewMailNotify",  lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulNewMailNotify, &ulResult);
+			if (hr != hrSuccess) {
+				// Plugin failed so fallback on the original state
+				ulNewMailNotify = lpArgs->bNewmailNotify;
+				hr = hrSuccess;
+			}
+
+			if (ulNewMailNotify == true) {
+				hr = HrNewMailNotification(lpTargetStore, lpDeliveryMessage);
+				if (hr != hrSuccess)
+					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
+
+				hr = hrSuccess;
+			}
 		}
 	}
 

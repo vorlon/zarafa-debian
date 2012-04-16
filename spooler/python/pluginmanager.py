@@ -73,7 +73,7 @@ class PluginManager(object):
         # sort the plugins on function name and prio
         sortedlist = sorted(plugins, lambda a, b: cmp(a[0], b[0]) or cmp(a[1], b[1]))
 
-        retval = MP_CONTINUE
+        retval = MP_CONTINUE,
         for (fname, prio, cname, i) in sortedlist:
             if (fname != functionname): continue
             try:
@@ -81,17 +81,25 @@ class PluginManager(object):
 
                 retval = getattr(i, fname)(*args)
 
-                if (type(retval) != int and type(retval) != long):
-                    self.logger.logWarn("!- Plugin '%s.%s' returned a wrong return value type '%s'  expect 'int' or 'long' type. fallback on default return code" % (cname, fname, type(retval)))
-                    retval = 0
-                self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval))
+                self.logger.logDebug("** Plugin '%s.%s' return result %s"  % (cname, fname, repr(retval) ))
+
+                if (type(retval) != tuple):
+                    self.logger.logWarn("!- Plugin '%s.%s' returned a wrong return value type '%s' except 'tuple'. Fallback on defaults" % (cname, fname, type(retval)))
+                    retval = MP_CONTINUE,
+                elif (type(retval[0]) != int and type(retval[0]) != long):
+                    self.logger.logWarn("!- Plugin '%s.%s' returned a wrong return value type '%s' expect 'int' or 'long' type. Fallback on defaults" % (cname, fname, type(retval[0])))
+                    retval = MP_CONTINUE,
+
+                self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval[0]))
             except NotImplementedError, e:
                 #Most likely the function is not implemented
                 self.logger.logDebug("!---------- %s" % e)
             except Exception, e:
                 self.logger.logError("!-- error: %s " % e)
+                self.logger.logError("!- Plugin '%s.%s' call ignored please check the plugin" % (cname, fname))
+                retval = MP_CONTINUE,
 
-            if (retval == MP_EXIT):
+            if (retval[0] == MP_EXIT):
                 break
 
         self.logger.logInfo("* %s processing done" % functionname)
