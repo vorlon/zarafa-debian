@@ -56,7 +56,7 @@
 #include <string>
 
 #include "ECICS.h"
-#include "ECMAPIFolder.h"
+#include "ECMAPIProp.h"
 
 #include <ECLogger.h>
 #include <ECUnknown.h>
@@ -67,11 +67,11 @@
 
 class ECExchangeExportChanges : public ECUnknown {
 protected:
-	ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigned int ulSyncType);
+	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);
 	virtual ~ECExchangeExportChanges();
 
 public:
-	static	HRESULT Create(ECMAPIFolder *lpFolder, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
+	static	HRESULT Create(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 
@@ -124,7 +124,9 @@ private:
 
 	unsigned long	m_ulSyncType;
 	bool			m_bConfiged;
-	ECMAPIFolder*	m_lpFolder;
+	ECMsgStore*		m_lpStore;
+	std::string		m_sourcekey;
+	std::wstring	m_strDisplay;
 	LPSTREAM		m_lpStream;
 	ULONG			m_ulFlags;
 	ULONG			m_ulSyncId;

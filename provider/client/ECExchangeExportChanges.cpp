@@ -84,12 +84,14 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-ECExchangeExportChanges::ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigned int ulSyncType)
+ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)
 {
 	ECSyncLog::GetLogger(&m_lpLogger);
 
-	m_lpFolder = lpFolder;
+	m_lpStore = lpStore;
+	m_sourcekey = sk;
+	m_strDisplay = szDisplay ? szDisplay : L"<Unknown>";
 	m_ulSyncType = ulSyncType;
 
 	m_bConfiged = false;
@@ -112,7 +114,7 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMAPIFolder *lpFolder, unsigne
 	m_clkStart = 0;
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 
-	m_lpFolder->AddRef();
+	m_lpStore->AddRef();
 }
 
 ECExchangeExportChanges::~ECExchangeExportChanges(){
@@ -122,8 +124,8 @@ ECExchangeExportChanges::~ECExchangeExportChanges(){
 	if(m_lpChangePropTagArray)
 		MAPIFreeBuffer(m_lpChangePropTagArray);
 
-	if(m_lpFolder)
-		m_lpFolder->Release();
+	if(m_lpStore)
+		m_lpStore->Release();
 
 	if(m_lpStream)
 		m_lpStream->Release();
@@ -155,16 +157,16 @@ HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 	return hrSuccess;
 }
 
-HRESULT ECExchangeExportChanges::Create(ECMAPIFolder *lpFolder, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
+HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
 	HRESULT hr = hrSuccess;
 	ECExchangeExportChanges *lpEEC = NULL;
 	
-	if(!lpFolder || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY)){
+	if(!lpStore || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY)){
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	lpEEC = new ECExchangeExportChanges(lpFolder, ulSyncType);
+	lpEEC = new ECExchangeExportChanges(lpStore, sourcekey, szDisplay, ulSyncType);
 
 	hr = lpEEC->QueryInterface(IID_IExchangeExportChanges, (void **)lppExchangeExportChanges);
 
@@ -250,10 +252,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	ULONG 		* ulDefaultProps = ulDefaultContentProps;
 	BOOL		bCanStream = FALSE;
 	bool		bFound = false;
-	LPSPropValue lpPropSourceKey = NULL;
-	LPSPropValue lpPropDisplayName = NULL;
 
-	SBinary		sbNull = {0};
 	bool		bForceImplicitStateUpdate = false;
 	ECSyncSettings *lpSyncSettings = ECSyncSettings::GetInstance();
 
@@ -262,6 +261,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	ChangeMap		mapChanges;
 	ChangeMapIter	iterLastChange;
 	ChangeList		lstChange;
+	std::string	sourcekey;
 	
 	if(m_bConfiged){
 		hr = MAPI_E_UNCONFIGURED;
@@ -295,7 +295,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
 			if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
-				m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(ZARAFA_CAP_ENHANCED_ICS, &bCanStream);
+				m_lpStore->lpTransport->HrCheckCapabilityFlags(ZARAFA_CAP_ENHANCED_ICS, &bCanStream);
 				if (bCanStream == TRUE) {
 					LOG_DEBUG(m_lpLogger, "%s", "Exporter supports enhanced ICS, checking importer...");
 					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
@@ -389,43 +389,29 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	LOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, m_setProcessedChanges.size());
 
-	if (m_lpLogger->Log(EC_LOGLEVEL_INFO))
-		HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_DISPLAY_NAME_W, &lpPropDisplayName);// ignore error, used for logging
-
 	if(ulSyncId == 0) {
-		LOG_DEBUG(m_lpLogger, "Getting new sync id for %s folder '%ls'...", (m_lpFolder->GetMsgStore()->IsOfflineStore() ? "offline" : "online"), (lpPropDisplayName)?lpPropDisplayName->Value.lpszW:L"<Unknown>");
+		LOG_DEBUG(m_lpLogger, "Getting new sync id for %s folder '%ls'...", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
 
 		// Ignore any trailing garbage in the stream
-		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "Unable to get source key of folder, hr=0x%08x", hr);
-			goto exit;
-		}
-
-		if((lpPropSourceKey->Value.bin.cb < 24) && (lpPropSourceKey->Value.bin.lpb[lpPropSourceKey->Value.bin.cb-1] & 0x80)) {
+		if((m_sourcekey.size() < 24) && (m_sourcekey[m_sourcekey.size()-1] & 0x80)) {
 			// If we're getting a truncated sourcekey, untruncate it now so we can pass it to GetChanges()
 
-			LPSPropValue lpPropUntruncated;
-			MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpPropUntruncated);
-			lpPropUntruncated->ulPropTag = PR_SOURCE_KEY;
-			MAPIAllocateMore(24, lpPropUntruncated, (void **)&lpPropUntruncated->Value.bin.lpb);
-			memset(lpPropUntruncated->Value.bin.lpb, 0, 24);
-			lpPropUntruncated->Value.bin.cb = 24;
-			memcpy(lpPropUntruncated->Value.bin.lpb, lpPropSourceKey->Value.bin.lpb, lpPropSourceKey->Value.bin.cb);
-			lpPropUntruncated->Value.bin.lpb[lpPropSourceKey->Value.bin.cb-1] &= ~0x80; // Clear truncation bit
-
-			MAPIFreeBuffer(lpPropSourceKey);
-			lpPropSourceKey = lpPropUntruncated;
+			sourcekey = m_sourcekey;
+			sourcekey[m_sourcekey.size()-1] &= ~0x80;
+			sourcekey.append('\x00');
+			sourcekey.append('\x00');			
+		} else {
+			sourcekey = m_sourcekey;
 		}
-
+		
 		// Register our sync with the server, get a sync ID
-		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(lpPropSourceKey->Value.bin , 0, 0, m_ulSyncType, 0, &ulSyncId);
+		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, 0, 0, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "Unable to update sync status on server, hr=0x%08x", hr);
 			goto exit;
 		}
 
-		LOG_DEBUG(m_lpLogger, "New sync id for %s folder '%ls': %u", (m_lpFolder->GetMsgStore()->IsOfflineStore() ? "offline" : "online"), (lpPropDisplayName)?lpPropDisplayName->Value.lpszW:L"<Unknown>", ulSyncId);
+		LOG_DEBUG(m_lpLogger, "New sync id for %s folder '%ls': %u", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str(), ulSyncId);
 
 		bForceImplicitStateUpdate = true;
 	}
@@ -435,7 +421,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		m_lpChanges = NULL;
 	}
 
-	hr = m_lpFolder->GetMsgStore()->lpTransport->HrGetChanges(lpPropSourceKey ? lpPropSourceKey->Value.bin : sbNull, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &m_lpChanges);
+	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &m_lpChanges);
 	if(hr != hrSuccess) {
 		LOG_DEBUG(m_lpLogger, "Unable to get changes from server, hr=0x%08x", hr);
 		goto exit;
@@ -444,7 +430,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "%s folder: %ls changes: %u syncid: %u changeid: %u", (m_lpFolder->GetMsgStore()->IsOfflineStore() ? "offline" : "online"), (lpPropDisplayName)?lpPropDisplayName->Value.lpszW:L"<Unknown>", m_ulChanges, m_ulSyncId, m_ulChangeId);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "%s folder: %ls changes: %u syncid: %u changeid: %u", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
 
 	/**
 	 * Filter the changes.
@@ -572,7 +558,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	m_bConfiged = true;
 
 	if (bForceImplicitStateUpdate) {
-		LOG_DEBUG(m_lpLogger, "Forcing state update for %s folder '%ls'", (m_lpFolder->GetMsgStore()->IsOfflineStore() ? "offline" : "online"), (lpPropDisplayName)?lpPropDisplayName->Value.lpszW:L"<Unknown>");
+		LOG_DEBUG(m_lpLogger, "Forcing state update for %s folder '%ls'", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
 		/** 
 		 * bForceImplicitStateUpdate is only set to true when the StateStream contained a ulSyncId of 0. In that
 		 * case the ulChangeId can't be enything other then 0. As ulChangeId is assigned to m_ulChangeId and neither
@@ -583,11 +569,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 exit:
-	if(lpPropDisplayName)
-		MAPIFreeBuffer(lpPropDisplayName);
-
-	if(lpPropSourceKey)
-		ECFreeBuffer(lpPropSourceKey);
 		
 	return hr;
 }
@@ -668,13 +649,7 @@ progress:
 		// processed change list. If we can't save the new state the the server, we just keep the previous
 		// change ID and the (large) change list. This allows us always to have a state, even when we can't
 		// communicate with the server.
-		hr = HrGetOneProp(&m_lpFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropSourceKey);
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "Unable to get source folder's source key, hr=0x%08x", hr);
-			goto exit;
-		}
-
-		if(m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(lpPropSourceKey->Value.bin , m_ulSyncId, m_ulMaxChangeId, m_ulSyncType, 0, &m_ulSyncId) == hrSuccess) {
+		if(m_lpStore->lpTransport->HrSetSyncStatus(m_sourcekey, m_ulSyncId, m_ulMaxChangeId, m_ulSyncType, 0, &m_ulSyncId) == hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "Done: syncid=%u, changeid=%u/%u", m_ulSyncId, m_ulChangeId, m_ulMaxChangeId);
 
 			m_ulChangeId = m_ulMaxChangeId;
@@ -902,7 +877,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	SizedSPropTagArray(1, sptAttach) = { 1, {PR_ATTACH_NUM} };
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
-		hr = m_lpFolder->GetMsgStore()->EntryIDFromSourceKey(
+		hr = m_lpStore->EntryIDFromSourceKey(
 			m_lstChange.at(m_ulStep).sParentSourceKey.cb, 
 			m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
 			m_lstChange.at(m_ulStep).sSourceKey.cb,
@@ -919,7 +894,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			goto exit;
 		}
 		
-		hr = m_lpFolder->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
+		hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
 		if(hr == MAPI_E_NOT_FOUND){
 			hr = hrSuccess;
 			goto next;
@@ -1251,7 +1226,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 
 	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsDone()) {
 		LOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
-		hr = m_lpFolder->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
+		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// There was nothing to export (see ExportMessageChangesAsStream documentation)
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
@@ -1435,7 +1410,6 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 
 	LPMAPIFOLDER	lpFolder = NULL;
 	LPSPropValue	lpPropArray = NULL;
-	LPSPropValue	lpPropSK = NULL;
 	LPSPropValue	lpPropVal = NULL;
 	LPSPropValue	lpPropFolderType = NULL;
 
@@ -1450,26 +1424,13 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	ULONG			ulProp = 0;
 	ULONG			ulRead = 0;
 
-	SizedSPropTagArray(1, sptSK) = { 1, {PR_SOURCE_KEY} };
-	
 	//PR_LAST_MODIFICATION_TIME missing in documentation
 	//The array must contain at least the PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, and MAPI PR_DISPLAY_NAME properties.
 	//SizedSPropTagArray(6, sptFolder) = { 6, {PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_DISPLAY_NAME, PR_LAST_MODIFICATION_TIME} };
 
-	hr = m_lpFolder->GetProps((LPSPropTagArray)&sptSK, 0, &ulCount, &lpPropSK);
-	if(hr != hrSuccess) {
-		LOG_DEBUG(m_lpLogger, "%s", "Unable to get parent folder properties");
-		goto exit;
-	}
-
-	if(!lpPropSK){
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
 
-		hr = m_lpFolder->GetMsgStore()->EntryIDFromSourceKey(
+		hr = m_lpStore->EntryIDFromSourceKey(
 			m_lstChange.at(m_ulStep).sSourceKey.cb, 
 			m_lstChange.at(m_ulStep).sSourceKey.lpb,
 			0, NULL,
@@ -1482,7 +1443,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 		
-		hr = m_lpFolder->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpFolder);
+		hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpFolder);
 		if(hr != hrSuccess){
 			hr = hrSuccess;
 			goto next;
@@ -1565,7 +1526,7 @@ nextprop:
 		//assume the parent is the folder which it is syncing.
 
 		lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_PARENT_SOURCE_KEY);
-		if(lpPropVal && lpPropSK->Value.bin.cb == lpPropVal->Value.bin.cb && memcmp(lpPropVal->Value.bin.lpb, lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb)==0){
+		if(lpPropVal && m_sourcekey.size() == lpPropVal->Value.bin.cb && memcmp(lpPropVal->Value.bin.lpb, m_sourcekey.c_str(), m_sourcekey.size())==0){
 			lpPropVal->Value.bin.cb = 0;
 		}
 
@@ -1620,9 +1581,6 @@ exit:
 
 	if(lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
-
-	if(lpPropSK)
-		MAPIFreeBuffer(lpPropSK);
 
 	if(lpFolder)
 		lpFolder->Release();

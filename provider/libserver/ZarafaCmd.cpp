@@ -10259,18 +10259,27 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 	if (er != erSuccess)
 		goto exit;
 
-	er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, &ulFolderId);
-	if(er != erSuccess)
-	    goto exit;
-
-	//Check security
-	if(ulChangeType == ICS_SYNC_CONTENTS){
-		er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
-	}else if(ulChangeType == ICS_SYNC_HIERARCHY){
-		er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
-	}else{
-		er = ZARAFA_E_INVALID_TYPE;
-	}
+    if(sSourceKey.size()) {
+    	er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, &ulFolderId);
+    	if(er != erSuccess)
+	        goto exit;
+    } else {
+        ulFolderId = 0;
+    }
+    
+    if(ulFolderId == 0) {
+        if(lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
+            er = ZARAFA_E_NO_ACCESS;
+    } else {
+        //Check security
+        if(ulChangeType == ICS_SYNC_CONTENTS){
+            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
+        }else if(ulChangeType == ICS_SYNC_HIERARCHY){
+            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
+        }else{
+            er = ZARAFA_E_INVALID_TYPE;
+        }
+    }
 	if(er != erSuccess)
 		goto exit;
 

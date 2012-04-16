@@ -70,6 +70,7 @@
 #include "ClientUtil.h"
 
 #include "ECDebug.h"
+#include "mapi_ptr.h"
 
 #include <edkmdb.h>
 #include <mapiext.h>
@@ -333,7 +334,8 @@ exit:
 HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
 {
 	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-
+	SPropValuePtr ptrSK, ptrDisplay;
+	
 	if (lpiid == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -360,11 +362,25 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		else if(*lpiid == IID_IExchangeImportContentsChanges)
 			hr = ECExchangeImportContentsChanges::Create(this, (LPEXCHANGEIMPORTCONTENTSCHANGES*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		if(*lpiid == IID_IExchangeExportChanges)
-			hr = ECExchangeExportChanges::Create(this, ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		if(*lpiid == IID_IExchangeExportChanges) {
+			hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &ptrSK);
+			if(hr != hrSuccess)
+				goto exit;
+				
+			HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME_W, &ptrDisplay); // ignore error
+				
+			hr = ECExchangeExportChanges::Create(this->GetMsgStore(), std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		}
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
-		if(*lpiid == IID_IExchangeExportChanges)
-			hr = ECExchangeExportChanges::Create(this, ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		if(*lpiid == IID_IExchangeExportChanges) {
+			hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &ptrSK);
+			if(hr != hrSuccess)
+				goto exit;
+				
+			HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME, &ptrDisplay); // ignore error
+				
+			hr = ECExchangeExportChanges::Create(this->GetMsgStore(), std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		}
 	} else {
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}
@@ -1052,56 +1068,6 @@ HRESULT ECMAPIFolder::GetSupportMask(DWORD * pdwSupportMask)
 	}
 
 	*pdwSupportMask = FS_SUPPORTS_SHARING; //Indicates that the folder supports sharing.
-exit:
-	return hr;
-}
-
-/**
- * Export a set of messages as stream.
- *
- * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
- * @param[in]	sChanges	The complete set of changes available.
- * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
- * @param[in]	ulCount		The number of messages to export, starting at ulStart. This number will be decreased if less messages are available.
- * @param[in]	lpsProps	The set of proptags that will be returned as regular properties outside the stream.
- * @param[out]	lppsStreamExporter	The streamexporter that must be used to get the individual streams.
- *
- * @retval	MAPI_E_INVALID_PARAMETER	ulStart is larger than the number of changes available.
- * @retval	MAPI_E_UNABLE_TO_COMPLETE	ulCount is 0 after trunctation.
- */
-HRESULT ECMAPIFolder::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
-{
-	HRESULT hr = hrSuccess;
-	WSMessageStreamExporterPtr ptrStreamExporter;
-	WSTransportPtr ptrTransport;
-
-	if (ulStart > sChanges.size()) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (ulStart + ulCount > sChanges.size())
-		ulCount = sChanges.size() - ulStart;
-
-	if (ulCount == 0) {
-		hr = MAPI_E_UNABLE_TO_COMPLETE;
-		goto exit;
-	}
-
-	// Need to clone the transport since we want to be able to use our own transport for other things
-	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
-	// with other MAPI calls which would normally be impossible since the stream is kept open between
-	// Synchronize() calls.
-	hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
-	if (hr != hrSuccess)
-		goto exit;
-
-	*lppsStreamExporter = ptrStreamExporter.release();
-
 exit:
 	return hr;
 }

@@ -673,18 +673,27 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             lpDatabase->FreeResult(lpDBResult);
         lpDBResult = NULL;
 
-        er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
-        if(er != erSuccess)
-            goto exit;
-
-        if(ulChangeType == ICS_SYNC_CONTENTS) {
-            er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
-        }else if(ulChangeType == ICS_SYNC_HIERARCHY){
-            er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
-        }else{
-            er = ZARAFA_E_INVALID_TYPE;
+        if(!sFolderSourceKey.empty()) {
+            er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
+            if(er != erSuccess)
+                goto exit;
+        } else {
+            ulFolderId = 0;
         }
-
+        
+        if(ulFolderId == 0) {
+            if(lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
+                er = ZARAFA_E_NO_ACCESS;
+        } else {
+            if(ulChangeType == ICS_SYNC_CONTENTS) {
+                er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
+            }else if(ulChangeType == ICS_SYNC_HIERARCHY){
+                er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
+            }else{
+                er = ZARAFA_E_INVALID_TYPE;
+            }
+        }
+        
         if(er != erSuccess)
             goto exit;
 	}
@@ -698,7 +707,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		if (er != erSuccess)
 			goto exit;
 			
-		while ((lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
+		while (lpDBResult && (lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 		
 			er = lpHelper->ProcessRow(lpDBRow, lpDBLen);
@@ -721,33 +730,41 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// We traverse the tree by just looking at the current hierarchy. This means we will not traverse into deleted
 		// folders and changes within those deleted folders will therefore never reach whoever is requesting changes. In
 		// practice this shouldn't matter because the folder above will be deleted correctly.
-
-		lstFolderIds.push_back(ulFolderId);
+        lstFolderIds.push_back(ulFolderId);
 
 		// Recursive loop through all folders
 		for(lpFolderId = lstFolderIds.begin(); lpFolderId != lstFolderIds.end(); lpFolderId++){
-
-			// We cannot traverse folders that we have no permission to. This means that changes under the inaccessible folder
-			// will disappear - this will cause the sync peer to go out-of-sync. Fix would be to remember changes in security
-			// as deletes and adds.
-
-			if(lpSession->GetSecurity()->CheckPermission(*lpFolderId, ecSecurityFolderVisible) != erSuccess){
+			if(*lpFolderId == 0) {
+			    if(lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
+			        er = ZARAFA_E_NO_ACCESS;
+			        goto exit;
+                }
+            } else if(lpSession->GetSecurity()->CheckPermission(*lpFolderId, ecSecurityFolderVisible) != erSuccess){
+                // We cannot traverse folders that we have no permission to. This means that changes under the inaccessible folder
+                // will disappear - this will cause the sync peer to go out-of-sync. Fix would be to remember changes in security
+                // as deletes and adds.
 				continue;
 			}
 
 			if(ulChangeId != 0){
-
-				if(g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), *lpFolderId, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
-					goto nextFolder; // Item is hard deleted?
+			
+			    if(*lpFolderId != 0) {
+    				if(g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), *lpFolderId, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
+	    				goto nextFolder; // Item is hard deleted?
+                }
 
 				// Search folder changed folders
 				strQuery = 	"SELECT changes.id "
 							"FROM changes "
-							"WHERE parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData, cbSourceKeyData) + 
-							"  AND changes.id > " + stringify(ulChangeId) + 								// Change ID is N or later
+							"WHERE "
+							"  changes.id > " + stringify(ulChangeId) + 									// Change ID is N or later
 							"  AND changes.change_type >= " + stringify(ICS_FOLDER) +						// query optimizer
 							"  AND changes.change_type & " + stringify(ICS_FOLDER) + " != 0" +				// Change is a folder change
 							"  AND changes.sourcesync != " + stringify(ulSyncId);
+							
+                if(*lpFolderId != 0) {
+                    strQuery += "  AND parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData, cbSourceKeyData);
+                }
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
@@ -773,30 +790,32 @@ nextFolder:
 				}
 			}
 
-			// Get subfolders for recursion
-			strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(*lpFolderId) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
+			if(*lpFolderId != 0) {
+                // Get subfolders for recursion
+                strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(*lpFolderId) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
 
-			if(ulFlags & SYNC_NO_SOFT_DELETIONS) {
-				strQuery += " AND hierarchy.flags & 1024 = 0";
-			}
+                if(ulFlags & SYNC_NO_SOFT_DELETIONS) {
+                    strQuery += " AND hierarchy.flags & 1024 = 0";
+                }
 
-			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if(er != erSuccess)
-				goto exit;
+                er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+                if(er != erSuccess)
+                    goto exit;
 
-			while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) ){
+                while( (lpDBRow = lpDatabase->FetchRow(lpDBResult)) ){
 
-				if( lpDBRow == NULL || lpDBRow[0] == NULL){
-					er = ZARAFA_E_DATABASE_ERROR; // this should never happen
-					goto exit;
-				}
+                    if( lpDBRow == NULL || lpDBRow[0] == NULL){
+                        er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+                        goto exit;
+                    }
 
-				lstFolderIds.push_back(atoui(lpDBRow[0]));
-			}
+                    lstFolderIds.push_back(atoui(lpDBRow[0]));
+                }
 
-			if(lpDBResult)
-				lpDatabase->FreeResult(lpDBResult);
-			lpDBResult = NULL;
+                if(lpDBResult)
+                    lpDatabase->FreeResult(lpDBResult);
+                lpDBResult = NULL;
+            }
 		}
 
 		lstChanges.sort();
@@ -805,6 +824,12 @@ nextFolder:
 		// We now have both a list of all folders, and and list of changes.
 
 		if(ulChangeId == 0) {
+		    if(ulFolderId == 0 && (ulFlags & SYNC_CATCHUP) == 0) {
+		        // Do not allow initial sync of all server folders
+		        er = ZARAFA_E_NO_SUPPORT;
+		        goto exit;
+            }
+            
 			// New sync, just return all the folders as changes
 			lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstFolderIds.size());
@@ -823,51 +848,54 @@ nextFolder:
 			ulMaxChange = (lpDBRow[0] == NULL ? 0 : atoui(lpDBRow[0]));
 
 			i = 0;
-			for(lpFolderId = lstFolderIds.begin(); lpFolderId != lstFolderIds.end(); lpFolderId++) {
+			
+			if((ulFlags & SYNC_CATCHUP) == 0) {
+                for(lpFolderId = lstFolderIds.begin(); lpFolderId != lstFolderIds.end(); lpFolderId++) {
 
-				if(*lpFolderId == ulFolderId)
-					continue; // don't send the folder itself as a change
+                    if(*lpFolderId == ulFolderId)
+                        continue; // don't send the folder itself as a change
 
-				strQuery = 	"SELECT sourcekey.val_binary, parentsourcekey.val_binary "
-							"FROM hierarchy "
-							"JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-							"JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-							"WHERE hierarchy.id=" + stringify(*lpFolderId);
+                    strQuery = 	"SELECT sourcekey.val_binary, parentsourcekey.val_binary "
+                                "FROM hierarchy "
+                                "JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
+                                "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
+                                "WHERE hierarchy.id=" + stringify(*lpFolderId);
 
-				if(lpDBResult)
-					lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
+                    if(lpDBResult)
+                        lpDatabase->FreeResult(lpDBResult);
+                    lpDBResult = NULL;
 
-				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-				if(er != erSuccess)
-					goto exit;
+                    er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+                    if(er != erSuccess)
+                        goto exit;
 
-				lpDBRow = lpDatabase->FetchRow(lpDBResult);
-				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+                    lpDBRow = lpDatabase->FetchRow(lpDBResult);
+                    lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
-				if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
-					continue;
+                    if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
+                        continue;
 
-				lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
+                    lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
 
-				lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[0]);
-				lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
-				memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
+                    lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[0]);
+                    lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
+                    memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
 
-				lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
-				lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
-				memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
+                    lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
+                    lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
+                    memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
 
-				lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_CHANGE;
+                    lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_CHANGE;
 
-				lpChanges->__ptr[i].ulFlags = 0;
+                    lpChanges->__ptr[i].ulFlags = 0;
 
-				if(lpDBResult)
-					lpDatabase->FreeResult(lpDBResult);
-				lpDBResult = NULL;
+                    if(lpDBResult)
+                        lpDatabase->FreeResult(lpDBResult);
+                    lpDBResult = NULL;
 
-				i++;
-			}
+                    i++;
+                }
+            }
 			lpChanges->__size = i;
 		} else {
 			// Return all the found changes

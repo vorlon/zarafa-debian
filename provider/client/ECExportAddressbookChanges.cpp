@@ -161,10 +161,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	abeid.ulId = 1; // 1 is the first container
     
     // The parent source key is the entryid of the AB container that we're sync'ing
-    SBinary sSourceKeyFolder;
-    sSourceKeyFolder.lpb = (BYTE *)&abeid;
-    sSourceKeyFolder.cb = sizeof(ABEID);
-
 	if(m_lpChanges)
 		MAPIFreeBuffer(m_lpChanges);
 	m_lpChanges = NULL;
@@ -173,7 +169,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 		MAPIFreeBuffer(m_lpRawChanges);
 	m_lpRawChanges = NULL;
 
-    hr = m_lpMsgStore->lpTransport->HrGetChanges(sSourceKeyFolder, 0, m_ulChangeId, ICS_SYNC_AB, 0, NULL, &ulNewSyncId, &m_ulChanges, &m_lpRawChanges);
+    hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string((char *)&abeid, sizeof(ABEID)), 0, m_ulChangeId, ICS_SYNC_AB, 0, NULL, &ulNewSyncId, &m_ulChanges, &m_lpRawChanges);
     if(hr != hrSuccess)
         goto exit;
 

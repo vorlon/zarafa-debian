@@ -114,14 +114,17 @@ std::string CommonQueryCreator::CreateQuery()
 {
 	std::string strQuery = CreateBaseQuery();
 	
-	if ((m_ulFlags & SYNC_ASSOCIATED) == 0)
-		strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = 0) ";
+	if(!strQuery.empty()) {
+		
+		if ((m_ulFlags & SYNC_ASSOCIATED) == 0)
+			strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = 0) ";
 
-	if ((m_ulFlags & SYNC_NORMAL) == 0)
-		strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = " + stringify(MSGFLAG_ASSOCIATED) + ") ";
+		if ((m_ulFlags & SYNC_NORMAL) == 0)
+			strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = " + stringify(MSGFLAG_ASSOCIATED) + ") ";
 
-	strQuery += CreateOrderQuery();
-	
+		strQuery += CreateOrderQuery();
+	}
+		
 	return strQuery;
 }
 
@@ -168,9 +171,11 @@ std::string IncrementalQueryCreator::CreateBaseQuery()
 					"LEFT JOIN hierarchy ON hierarchy.id = indexedproperties.hierarchyid ";
 	}
 	strQuery +=	"WHERE changes.id > " + stringify(m_ulChangeId) + 																	/* Get changes from change ID N onwards */
-				"  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) + 	/* Where change took place in Folder X */
 				"  AND changes.change_type & " + stringify(ICS_MESSAGE) +															/* And change type is message */
 				"  AND changes.sourcesync != " + stringify(m_ulSyncId);																/* And we didn't generate this change ourselves */
+
+	if(!m_sFolderSourceKey.empty()) 
+		strQuery += "  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());	/* Where change took place in Folder X */
 
 	if (m_ulFlags & SYNC_NO_DELETIONS) {
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_SOFT_DELETE) +
@@ -222,6 +227,8 @@ std::string FullQueryCreator::CreateBaseQuery()
 {
 	std::string strQuery;
 
+	ASSERT(!m_sFolderSourceKey.empty());
+	
 	strQuery =  "SELECT 0 as id, sourcekey.val_binary as sourcekey, parentsourcekey.val_binary, " + stringify(ICS_MESSAGE_NEW) + ", NULL, hierarchy.flags, changes.sourcesync "
 				"FROM hierarchy "
 				"JOIN indexedproperties as sourcekey ON sourcekey.hierarchyid = hierarchy.id AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
@@ -242,6 +249,40 @@ std::string FullQueryCreator::CreateOrderQuery()
 	return " ORDER BY hierarchy.id DESC";
 }
 
+
+/**
+ * NullQueryCreator: Returns no query at all. This is only used for SYNC_CATCHUP syncs that
+ * do not have a restriction set. (When a restriction is set, we still need to generate the message set
+ * so we cannot optimize anything out then).
+ **/
+class NullQueryCreator : public CommonQueryCreator
+{
+public:
+	NullQueryCreator(const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags);
+	
+private:
+	std::string CreateBaseQuery();
+	std::string CreateOrderQuery();
+	
+private:
+	ECDatabase		*m_lpDatabase;
+	const SOURCEKEY	&m_sFolderSourceKey;
+	unsigned int	m_ulFilteredSourceSync;
+};
+
+NullQueryCreator::NullQueryCreator(const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags) : CommonQueryCreator(ulFlags)
+	, m_sFolderSourceKey(sFolderSourceKey)
+{ }
+	
+std::string NullQueryCreator::CreateBaseQuery()
+{
+	return std::string();
+}
+
+std::string NullQueryCreator::CreateOrderQuery()
+{
+	return std::string();
+}
 
 /**
  * IMessageProcessor: Interface to the message processors.
@@ -267,7 +308,7 @@ public:
 class NonLegacyIncrementalProcessor : public IMessageProcessor
 {
 public:
-	NonLegacyIncrementalProcessor(unsigned int ulChangeId);
+	NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
@@ -277,8 +318,8 @@ private:
 	unsigned int m_ulMaxChangeId;
 };
 
-NonLegacyIncrementalProcessor::NonLegacyIncrementalProcessor(unsigned int ulChangeId)
-	: m_ulMaxChangeId(ulChangeId)
+NonLegacyIncrementalProcessor::NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId)
+	: m_ulMaxChangeId(ulMaxChangeId)
 { }
 
 ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
@@ -290,7 +331,6 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
-	m_ulMaxChangeId = std::max(m_ulMaxChangeId, lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0);
 	return erSuccess;
 }
 
@@ -630,7 +670,16 @@ ECRESULT ECGetContentChangesHelper::Init()
 
 	ASSERT(m_lpDatabase);
 
-	strQuery = "SELECT MAX(id) FROM changes WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
+	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 && (m_ulFlags & SYNC_CATCHUP) != SYNC_CATCHUP) {
+		// Disallow full initial exports on server level since they are insanely large
+		er = ZARAFA_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	strQuery = "SELECT MAX(id) FROM changes";
+	if(!m_sFolderSourceKey.empty())
+		strQuery += " WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
+		
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;
@@ -652,7 +701,12 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 * Initial sync
 		 * We want all message that were not created by the current client (m_ulSyncId).
 		 */
-		m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
+		if(m_lpsRestrict == NULL && m_ulFlags & SYNC_CATCHUP) {
+			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
+			m_lpQueryCreator = new NullQueryCreator(m_sFolderSourceKey, m_ulFlags);
+		} else {
+			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
+		}
 		m_lpMsgProcessor = new FirstSyncProcessor(m_ulMaxFolderChange);
 	} else {
 		/*
@@ -673,8 +727,13 @@ ECRESULT ECGetContentChangesHelper::Init()
 				 * This request is also without a restriction. We can use an
 				 * incremental query.
 				 */
-				m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
-				m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulChangeId);
+				if(m_ulFlags & SYNC_CATCHUP) {
+					// Optimization: doing a CATCHUP on a non-filtered sync doesn't need to get any changes
+					m_lpQueryCreator = new NullQueryCreator(m_sFolderSourceKey, m_ulFlags);
+				} else {
+					m_lpQueryCreator = new IncrementalQueryCreator(m_lpDatabase, m_ulSyncId, m_ulChangeId, m_sFolderSourceKey, m_ulFlags);
+				}
+				m_lpMsgProcessor = new NonLegacyIncrementalProcessor(m_ulMaxFolderChange);
 			} else {
 				/*
 				 * This request is WITH a restriction. This means the client
@@ -737,12 +796,21 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	ASSERT(m_lpQueryCreator);
 	strQuery = m_lpQueryCreator->CreateQuery();
 	
-	ASSERT(m_lpDatabase);
-	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess)
-		goto exit;
+	if(!strQuery.empty()) {
+		ASSERT(m_lpDatabase);
+		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess)
+			goto exit;
+	} else {
+		lpDBResult = NULL;
+		ulChanges = 0;
+	}
 		
-	ulChanges = m_lpDatabase->GetNumRows(lpDBResult) + m_setLegacyMessages.size();
+	if(lpDBResult)
+		ulChanges = m_lpDatabase->GetNumRows(lpDBResult) + m_setLegacyMessages.size();
+	else
+		ulChanges = 0;
+		
 	m_lpChanges = (icsChangesArray*)soap_malloc(m_soap, sizeof *m_lpChanges);
 	m_lpChanges->__ptr = (icsChange*)soap_malloc(m_soap, sizeof *m_lpChanges->__ptr * ulChanges);
 	m_lpChanges->__size = 0;

@@ -268,8 +268,8 @@ public:
 
 
 	// Incremental Change Synchronization
-	virtual HRESULT HrGetChanges(SBinary sSourceKeyFolder, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, LPSRestriction lpRestrict, ULONG *lpulMaxChangeId, ULONG* lpcChanges, ICSCHANGE **lpsChanges);
-	virtual HRESULT HrSetSyncStatus(SBinary sSourceKeyFolder, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId);
+	virtual HRESULT HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, LPSRestriction lpRestrict, ULONG *lpulMaxChangeId, ULONG* lpcChanges, ICSCHANGE **lpsChanges);
+	virtual HRESULT HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId);
 
 	virtual HRESULT HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG ulFolderSourceKeySize, BYTE * lpFolderSourceKey, ULONG ulMessageSourceKeySize, BYTE * lpMessageSourceKey, ULONG * lpcbEntryID, LPENTRYID * lppEntryID);
 	virtual HRESULT HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCSTATE *lplstSyncState);

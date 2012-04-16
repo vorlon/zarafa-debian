@@ -4239,7 +4239,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrGetChanges(SBinary sSourceKeyFolder, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, LPSRestriction lpsRestrict, ULONG *lpulMaxChangeId, ULONG* lpcChanges, ICSCHANGE **lppChanges){
+HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, LPSRestriction lpsRestrict, ULONG *lpulMaxChangeId, ULONG* lpcChanges, ICSCHANGE **lppChanges){
 	HRESULT						hr = hrSuccess;
 	ECRESULT					er = erSuccess;
 	struct icsChangeResponse	sResponse;
@@ -4248,8 +4248,8 @@ HRESULT WSTransport::HrGetChanges(SBinary sSourceKeyFolder, ULONG ulSyncId, ULON
 	struct xsd__base64Binary	sSourceKey;
 	struct restrictTable		*lpsSoapRestrict = NULL;
 	
-	sSourceKey.__ptr = sSourceKeyFolder.lpb;
-	sSourceKey.__size = sSourceKeyFolder.cb;
+	sSourceKey.__ptr = (unsigned char *)sourcekey.c_str();
+	sSourceKey.__size = sourcekey.size();
 
 	LockSoap();
 
@@ -4306,14 +4306,14 @@ exit:
 	return hr;
 }
 
-HRESULT WSTransport::HrSetSyncStatus(SBinary sSourceKeyFolder, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId){
+HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId){
 	HRESULT				hr = hrSuccess;
 	ECRESULT			er = erSuccess;
 	struct setSyncStatusResponse sResponse;
 	struct xsd__base64Binary sSourceKey;
 	
-	sSourceKey.__size = sSourceKeyFolder.cb;
-	sSourceKey.__ptr = sSourceKeyFolder.lpb;
+	sSourceKey.__size = sourcekey.size();
+	sSourceKey.__ptr = (unsigned char *)sourcekey.c_str();
 
 	LockSoap();
 
