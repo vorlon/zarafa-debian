@@ -850,7 +850,7 @@ exit:
 		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
 		m_lpRequest->HrResponseBody(strXml);
 	} else {
-		m_lpRequest->HrResponseHeader(200, "OK");
+		m_lpRequest->HrResponseHeader(404, "Not found");
 	}
 
 	return hr;
