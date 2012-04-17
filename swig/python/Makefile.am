@@ -153,7 +153,7 @@ mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ..
 inetmapi_wrap.cxx: ../typemap.i ../inetmapi.i typemap_python.i helpers_python.i
 	$(SWIG_EXEC) -I${top_srcdir}/swig -Wall -python -c++ -threads -o ${top_builddir}/swig/python/inetmapi_wrap.cxx ${top_srcdir}/swig/inetmapi.i
 
-icalmapi_wrap.cxx: ../typemap.i ../icalmapi.i typemap_python.i helpers_python.i
+icalmapi_wrap.cxx: ../typemap.i ../icalmapi.i typemap_python.i helpers_python.i ../../libicalmapi/icalmapi.h
 	$(SWIG_EXEC) -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy -I${top_srcdir/swig} -Wall -python -c++ -threads -o ${top_builddir}/swig/python/icalmapi_wrap.cxx ${top_srcdir}/swig/icalmapi.i
 
 archiver_wrap.cxx: ../archiver.i archiver_python.i

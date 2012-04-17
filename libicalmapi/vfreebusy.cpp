@@ -108,8 +108,8 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
  * @param[in]  ulBlocks Number of blocks in lpsFbblk
  * @param[in]  tDtStart Unix timestamp with the start date
  * @param[in]  tDtEnd Unix timestamp with the end date
- * @param[in]  strOrganiser The email address of the organiser, @todo make const ref
- * @param[in]  strUser The email address of an attendee, @todo make list? make const ref
+ * @param[in]  strOrganiser The email address of the organiser
+ * @param[in]  strUser The email address of an attendee
  * @param[in]  strUID UID of the freebusy data
  * @param[out] lpicFbComponent new VFREEBUSY ical component
  * 
@@ -138,7 +138,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	ittStamp = icaltime_from_timet_with_zone(tDtStart, false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTSTART_PROPERTY);
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
@@ -148,7 +148,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	ittStamp = icaltime_from_timet_with_zone(tDtEnd, false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTEND_PROPERTY);
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}	
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
@@ -158,7 +158,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	ittStamp = icaltime_from_timet_with_zone(time(NULL), false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTSTAMP_PROPERTY);
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}	
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
@@ -167,7 +167,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	//UID
 	lpicProp = icalproperty_new(ICAL_UID_PROPERTY);
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 	icalproperty_set_uid(lpicProp, strUID.c_str());
@@ -176,7 +176,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	//ORGANIZER
 	lpicProp = icalproperty_new(ICAL_ORGANIZER_PROPERTY);
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}	
 	icalproperty_set_organizer(lpicProp, strOrganiser.c_str());
@@ -186,7 +186,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	strEmail = "mailto:" + strUser;
 	lpicProp = icalproperty_new_attendee(strEmail.c_str());
 	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
+		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 	
@@ -206,7 +206,7 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 		// FREEBUSY
 		lpicProp = icalproperty_new(ICAL_FREEBUSY_PROPERTY);
 		if (!lpicProp) {
-			hr = MAPI_E_INVALID_PARAMETER;
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;
 		}
 

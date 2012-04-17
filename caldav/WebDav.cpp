@@ -828,25 +828,14 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		sWebProperty.lstValues.clear();
 		
 		HrSetDavPropName(&sWebProperty.sPropName,"request-status", CALDAVNS);
-		sWebProperty.strValue = itFbUserInfo->strIcal.empty()?"3.7;Invalid Calendar User":"2.0;Success";
+		sWebProperty.strValue = itFbUserInfo->strIcal.empty() ? "3.8;No authority" : "2.0;Success";
 		sWebResPonse.lstProps.push_back(sWebProperty);
 		
 		if (!itFbUserInfo->strIcal.empty()) {	
 			HrSetDavPropName(&sWebProperty.sPropName,"calendar-data", CALDAVNS);
 			sWebProperty.strValue = itFbUserInfo->strIcal;
-		} else {
-			HrSetDavPropName(&sWebProperty.sPropName,"error",CALDAVNSDEF);
-			
-			HrSetDavPropName(&sWebVal.sPropName,"recipient-exists", CALDAVNS);
-			sWebVal.strValue.clear();
-			sWebProperty.lstValues.push_back(sWebVal);
-			
+			sWebResPonse.lstProps.push_back(sWebProperty);
 		}
-		sWebResPonse.lstProps.push_back(sWebProperty);
-
-		HrSetDavPropName(&sWebProperty.sPropName,"responsedescription", CALDAVNS);
-		sWebProperty.strValue = "OK";
-		sWebResPonse.lstProps.push_back(sWebProperty);
 
 		sWebMStatus.lstResp.push_back(sWebResPonse);
 	}
@@ -856,9 +845,13 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		goto exit;
 
 exit:
-	m_lpRequest->HrResponseHeader(200, "OK");
-	m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
-	m_lpRequest->HrResponseBody(strXml);
+	if (hr == hrSuccess) {
+		m_lpRequest->HrResponseHeader(200, "OK");
+		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+		m_lpRequest->HrResponseBody(strXml);
+	} else {
+		m_lpRequest->HrResponseHeader(200, "OK");
+	}
 
 	return hr;
 }

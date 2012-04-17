@@ -1800,10 +1800,10 @@ HRESULT CalDAV::HrHandlePost()
 	if (hr != hrSuccess)
 		goto exit;
 
-	if (lpIcalToMapi->GetItemCount() == 1)
-		hr = HrHandleMeeting(lpIcalToMapi);
-	else
+	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)
 		hr = HrHandleFreebusy(lpIcalToMapi);
+	else
+		hr = HrHandleMeeting(lpIcalToMapi);
 
 exit:
 	if (lpIcalToMapi)
@@ -1832,7 +1832,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	WEBDAVFBINFO sWebFbInfo;
 	SPropValuePtr ptrEmail;
 
-	hr = lpIcalToMapi->GetItemInfo(&tStart, &tEnd, &strUID, &lstUsers);	
+	hr = lpIcalToMapi->GetFreeBusyInfo(&tStart, &tEnd, &strUID, &lstUsers);	
 	if (hr != hrSuccess)
 		goto exit;
 

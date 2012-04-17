@@ -77,13 +77,8 @@ public:
 	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags);
 	ULONG GetItemCount();
 	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid);
-	HRESULT GetItemInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUId, std::list<std::string> **lplstUsers);
 	HRESULT GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage);
-	
-	time_t m_tFbStart;
-	time_t m_tFbEnd;
-	std::string m_strUID;
-	std::list<std::string> m_lstUsers;
+	HRESULT GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUId, std::list<std::string> **lplstUsers);
 
 private:
 	void Clean();
@@ -101,6 +96,13 @@ private:
 	 * Use GetItem() to get one of these messages
 	 */
 	std::vector<icalitem*> m_vMessages;
+
+	// freebusy information
+	bool m_bHaveFreeBusy;
+	time_t m_tFbStart;
+	time_t m_tFbEnd;
+	std::string m_strUID;
+	std::list<std::string> m_lstUsers;
 };
 
 /** 
@@ -162,6 +164,8 @@ void ICalToMapiImpl::Clean()
 		delete (*i);
 	}
 	m_vMessages.clear();
+
+	m_bHaveFreeBusy = false;
 	m_lstUsers.clear();
 	m_tFbStart = 0;
 	m_tFbEnd = 0;
@@ -290,6 +294,8 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 		switch(icalcomponent_isa(lpicComponent)) {			
 		case ICAL_VFREEBUSY_COMPONENT:
 			hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
+			if (hr == hrSuccess)
+				m_bHaveFreeBusy = true;
 			break;
 		case ICAL_VEVENT_COMPONENT:
 		case ICAL_VTODO_COMPONENT:
@@ -380,23 +386,28 @@ exit:
 }
 
 /** 
- * Get information of the freebusy data in the parsed ical.
- * @todo return an error if no freebusy data was ever parsed.
+ * Get information of the freebusy data in the parsed ical. All parameters are optional.
  * 
  * @param[out] lptstart The start time of the freebusy data
  * @param[out] lptend  The end time of the freebusy data
  * @param[out] lpstrUID The UID of the freebusy data
- * @param[out] lplstUsers A list of the email addresses of users in freebusy data
+ * @param[out] lplstUsers A list of the email addresses of users in freebusy data, @note: internal data returned!
  * 
- * @return always hrSuccess
+ * @return MAPI error code
  */
-HRESULT ICalToMapiImpl::GetItemInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUID, std::list<std::string> **lplstUsers)
+HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUID, std::list<std::string> **lplstUsers)
 {
+	if (!m_bHaveFreeBusy)
+		return MAPI_E_NOT_FOUND;
 
-	*lptend = m_tFbEnd;
-	*lptstart = m_tFbStart;
-	*lpstrUID = m_strUID;
-	*lplstUsers = &m_lstUsers;
+	if (lptstart)
+		*lptend = m_tFbEnd;
+	if (lptend)
+		*lptstart = m_tFbStart;
+	if (lpstrUID)
+		*lpstrUID = m_strUID;
+	if (lplstUsers)
+		*lplstUsers = &m_lstUsers;
 
 	return hrSuccess;
 }

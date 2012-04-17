@@ -871,8 +871,8 @@ exit:
  * @param[in]	lplstUsers		List of attendees whose freebusy is requested
  * @param[out]	lpFbInfo		Structure which stores the retrieved ical data for the attendees
  *
- * @return		HRESULT
- * @retval						Always returns hrSuccess, invalid users have empty string in ical data.
+ * @return MAPI error code
+ * @retval hrSuccess valid users have freebusy blocks, invalid users have empty string in ical data. (see xml converter for request-status code)
  */
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
@@ -892,64 +892,80 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::iterator itUsers;
 	LPADRLIST lpAdrList = NULL;
+	FlagList *lpFlagList = NULL;
 	LPSPropValue lpEntryID = NULL;
 
+	EntryIdPtr ptrEntryId;
+	ULONG cbEntryId		= 0;
+	ULONG ulObj			= 0;
+	ABContainerPtr ptrABDir;
+
+	hr = lpAddrBook->GetDefaultDir(&cbEntryId, &ptrEntryId);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, NULL, 0, &ulObj, &ptrABDir);
+	if (hr != hrSuccess)
+		goto exit;
+
+
 	cUsers = lplstUsers->size();
+
+	hr = MAPIAllocateBuffer(CbNewSRowSet(cUsers), (void **)&lpAdrList);
+	if(hr != hrSuccess)
+		goto exit;
+
+	lpAdrList->cEntries = cUsers;
+
+	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), (void **) &lpFlagList);
+	if (hr != hrSuccess)
+		goto exit;
+
+	lpFlagList->cFlags = cUsers;
+
+	
+	for (itUsers = lplstUsers->begin(), cUsers = 0; itUsers != lplstUsers->end(); itUsers++, cUsers++) {
+		lpAdrList->aEntries[cUsers].cValues = 1;
+
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
+		if(hr != hrSuccess)
+			goto exit;
+
+		lpAdrList->aEntries[cUsers].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
+		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = (char*)itUsers->c_str();
+
+		lpFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;
+	}
+
+	// NULL or sptaAddrListProps containing just PR_ENTRYID?
+	hr = ptrABDir->ResolveNames(NULL, EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
+	if (hr != hrSuccess)
+		goto exit;
+		
 
 	hr = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, (void**)&lpUsers);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = MAPIAllocateBuffer(sizeof(ADRLIST), (void **)&lpAdrList);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpAdrList->cEntries = 1;
-	lpAdrList->aEntries[0].cValues = 1;
-	
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
-
 	// Get the user entryids
-	itUsers = lplstUsers->begin();
-	for (cUsers = 0; itUsers != lplstUsers->end(); itUsers++) {
+	for (cUsers = 0; cUsers < lpAdrList->cEntries; cUsers++) {
 
-		lpAdrList->aEntries[0].rgPropVals[0].Value.lpszA = (char*)itUsers->c_str();
-
-		hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAdrList);
-		if (hr != hrSuccess)
-			goto exit;
-
-		if (lpAdrList->cEntries != 1) {
-			hr = MAPI_E_NOT_FOUND;
+		if (lpFlagList->ulFlag[cUsers] == MAPI_RESOLVED) {
+			lpEntryID = PpropFindProp(lpAdrList->aEntries[cUsers].rgPropVals, lpAdrList->aEntries[cUsers].cValues, PR_ENTRYID);
 		} else {
-			lpEntryID = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
-			if (!lpEntryID)
-				hr = MAPI_E_NOT_FOUND;
+			lpEntryID = NULL;
 		}
-		if (hr != hrSuccess)
-		{
-			sWebFbUserInfo.strUser = *itUsers;
-			sWebFbUserInfo.strIcal.clear();
-
-			lpFbInfo->lstFbUserInfo.push_back(sWebFbUserInfo);
-			continue;
+		if (lpEntryID) {
+			lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
+			hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
+			if (hr != hrSuccess)
+				goto exit;
+			memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
+		} else {
+			lpUsers[cUsers].m_cbEid = 0;
+			lpUsers[cUsers].m_lpEid = NULL;
 		}
-
-		lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
-		hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
-		if (hr != hrSuccess)
-			goto exit;
-		memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
-		cUsers++;
 	}
-
-	// cUsers contains now the number of users we need to get FB for
-	if (cUsers == 0)
-		goto exit;
 
 	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
 	if (hr != hrSuccess)
@@ -962,12 +978,13 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	UnixTimeToFileTime(lpFbInfo->tStart, &ftStart);
 	UnixTimeToFileTime(lpFbInfo->tEnd, &ftEnd);
-	strIcal.clear();
 
 	itUsers = lplstUsers->begin();
 	// iterate through all users
 	for(ULONG i = 0; i < cUsers; i++)
 	{
+		strIcal.clear();
+
 		if (!lppFBData[i])
 			goto next;
 		
@@ -1001,7 +1018,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		
 next:
 		sWebFbUserInfo.strUser = *itUsers;
-		sWebFbUserInfo.strIcal = strIcal ;
+		sWebFbUserInfo.strIcal = strIcal;
 		lpFbInfo->lstFbUserInfo.push_back(sWebFbUserInfo);
 
 		itUsers++;
@@ -1017,7 +1034,6 @@ next:
 		lpsFBblks = NULL;
 
 		lblkFetched = 0;
-		strIcal.clear();
 	}
 	// ignoring ical data for unknown users.
 	hr = hrSuccess;
@@ -1038,4 +1054,3 @@ exit:
 
 	return hr;
 }
-
