@@ -231,7 +231,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	cbsize = lpsDavProp->lstProps.size();
 
 	// @todo, we only select the store so we don't have a PR_CONTAINER_CLASS property when querying calendar list.
-	if(m_wstrFldName.empty() || m_wstrFldName.compare(L"Inbox") == 0 || m_wstrFldName.compare(L"Outbox") == 0)
+	if(m_wstrFldName.empty())
 		lpMapiProp = m_lpActiveStore;
 	else
 		lpMapiProp = m_lpUsrFld;
@@ -925,14 +925,12 @@ exit:
 
 
 /**
- * Handles deletion of folder & message
- * 
  * Function moves a folder or message to the deleted items folder
+ * @note does not check if-match: if you had a message modified which you now want to delete, we delete anyway
  * 
- * @return	mapi error codes
+ * @return	mapi error code
  * @retval	MAPI_E_NO_ACCESS	Insufficient permissions on folder or request to delete default folder.
  * @retval	MAPI_E_NOT_FOUND	Message or folder to be deleted not found.
- *
  */
 HRESULT CalDAV::HrHandleDelete()
 {
@@ -1040,10 +1038,6 @@ exit:
 		m_lpRequest->HrResponseHeader(403, "Forbidden");
 		m_lpRequest->HrResponseBody("This item cannot be deleted");
 	}
-	else if (hr == MAPI_E_DECLINE_COPY)
-	{
-		m_lpRequest->HrResponseHeader(412, "Precondition Failed");
-	}
 	else if (hr != hrSuccess)
 	{
 		m_lpRequest->HrResponseHeader(404, "Not Found");
@@ -1086,15 +1080,11 @@ exit:
 HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolder)
 {
 	HRESULT hr = hrSuccess;
-	std::string strIfMatch;
 	SBinary sbEid = {0,0};
-	ULONG cValues = 0;
 	LPSPropValue lpProps = NULL;
 	IMessage *lpMessage = NULL;
-	LPENTRYLIST lpEntryList= NULL;
-	SizedSPropTagArray(3, lpPropTagArr) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
-
-	m_lpRequest->HrGetIfMatch(&strIfMatch);
+	LPENTRYLIST lpEntryList = NULL;
+	bool bMatch = false;
 
 	//Find Entry With Particular Guid
 	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &lpMessage);
@@ -1103,7 +1093,13 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Entry to be deleted not found: 0x%08X", hr);
 		goto exit;
 	}
-	
+
+	bMatch = ! m_lpRequest->CheckIfMatch(lpMessage);
+	if (bMatch) {
+		hr = MAPI_E_DECLINE_COPY;
+		goto exit;
+	}
+
 	// Check if the user is accessing a shared folder
 	// Check for delegate permissions on shared folder
 	// Check if the entry to be deleted in private
@@ -1115,18 +1111,11 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&lpPropTagArr, 0, &cValues, &lpProps);
-	if (FAILED(hr))
+	hr = HrGetOneProp(lpMessage, PR_ENTRYID, &lpProps);
+	if (hr != hrSuccess)
 		goto exit;
 
-	if (!strIfMatch.empty() && strIfMatch !=  SPropValToString(&lpProps[1]))
-	{
-		hr = MAPI_E_DECLINE_COPY;
-		goto exit;
-	}
-
-	if (lpProps[0].ulPropTag != PT_ERROR)
-		sbEid = lpProps[0].Value.bin;
+	sbEid = lpProps[0].Value.bin;
 	
 	//Create Entrylist
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpEntryList);
@@ -1189,11 +1178,8 @@ HRESULT CalDAV::HrPut()
 	std::string strGuid;
 	std::string strUrl;
 	std::string strIcal;
-	std::string strIcalMod;
-	std::string strModTime;
 	std::string strIfMatch;
-	LPSPropValue lpPropOldModtime = NULL;
-	LPSPropValue lpPropNewModtime = NULL;
+	SPropValuePtr ptrPropModTime;
 	LPSPropValue lpsPropVal = NULL;
 	eIcalType etype = VEVENT;
 	SBinary sbUid;
@@ -1202,10 +1188,9 @@ HRESULT CalDAV::HrPut()
 	IMessage *lpMessage = NULL;
 	ICalToMapi *lpICalToMapi = NULL;
 	bool blNewEntry = false;
-	bool blModified = false;
+	bool bMatch = false;
 
 	m_lpRequest->HrGetUrl(&strUrl);
-	m_lpRequest->HrGetIfMatch(&strIfMatch);
 	
 	strGuid = StripGuid(strUrl);
 
@@ -1224,7 +1209,6 @@ HRESULT CalDAV::HrPut()
 			hr = MAPI_E_NO_ACCESS;
 			goto exit;
 		}
-
 	} else {
 		SPropValue sProp;
 
@@ -1251,6 +1235,10 @@ HRESULT CalDAV::HrPut()
 		}
 	}
 
+	bMatch = ! m_lpRequest->CheckIfMatch(lpMessage);
+	if (bMatch)
+		goto exit;
+
 	//save Ical data to mapi.
 	CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &lpICalToMapi);
 	
@@ -1274,7 +1262,7 @@ HRESULT CalDAV::HrPut()
 	if (lpICalToMapi->GetItemCount() > 1)
 		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "More than one message found in PUT, trying to combine messages");
 	
-	hr = HrGetOneProp (m_lpUsrFld, PR_CONTAINER_CLASS_A, &lpsPropVal);
+	hr = HrGetOneProp(m_lpUsrFld, PR_CONTAINER_CLASS_A, &lpsPropVal);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1291,17 +1279,6 @@ HRESULT CalDAV::HrPut()
 	{
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
-	}
-
-	// check if entry is modified on server
-	if (!strIfMatch.empty() && !blNewEntry)
-	{
-		hr = HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &lpPropOldModtime);
-		if (hr == hrSuccess && strIfMatch != SPropValToString(lpPropOldModtime))
-		{
-			blModified = true;
-			goto exit;
-		}
 	}
 
 	hr = lpICalToMapi->GetItem(0, 0, lpMessage);
@@ -1346,13 +1323,8 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// new modification time
-	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &lpPropNewModtime) == hrSuccess) {
-		strModTime =  SPropValToString(lpPropNewModtime);
-		// Add quotes to the modification time
-		strModTime.insert(0, 1, '"');
-		strModTime.append(1,'"');
-
-		m_lpRequest->HrResponseHeader("Etag", strModTime);
+	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess) {
+		m_lpRequest->HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
 	}
 
 	// Publish freebusy only for default Calendar
@@ -1366,8 +1338,8 @@ HRESULT CalDAV::HrPut()
 exit:
 	if (hr == hrSuccess && blNewEntry)
 		m_lpRequest->HrResponseHeader(201, "Created");
-	else if (hr == hrSuccess && blModified)
-		m_lpRequest->HrResponseHeader(409, "Conflict");
+	else if (hr == hrSuccess && bMatch)
+		m_lpRequest->HrResponseHeader(412, "Precondition failed");
 	else if (hr == hrSuccess)
 		m_lpRequest->HrResponseHeader(204, "No Content");
 	else if (hr == MAPI_E_NOT_FOUND)
@@ -1379,12 +1351,6 @@ exit:
 	
 	if (lpsPropVal)
 		MAPIFreeBuffer(lpsPropVal);
-
-	if(lpPropNewModtime)
-		MAPIFreeBuffer(lpPropNewModtime);
-
-	if(lpPropOldModtime)
-		MAPIFreeBuffer(lpPropOldModtime);
 	
 	if(lpICalToMapi)
 		delete lpICalToMapi;

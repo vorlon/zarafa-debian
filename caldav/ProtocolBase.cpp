@@ -404,7 +404,6 @@ std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
  */
 std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 {
-	FILETIME ft;
 	time_t tmUnixTime;
 	std::string strRetVal;
 	
@@ -414,8 +413,7 @@ std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
 	{
-		ft = lpSprop->Value.ft;
-		FileTimeToUnixTime(ft, &tmUnixTime);
+		FileTimeToUnixTime(lpSprop->Value.ft, &tmUnixTime);
 		strRetVal = stringify_int64(tmUnixTime, false);
 	}
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)

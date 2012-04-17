@@ -49,6 +49,8 @@
 
 #include "platform.h"
 #include "Http.h"
+#include "mapi_ptr.h"
+#include "stringutil.h"
 
 #include "ECConfig.h"
 
@@ -427,45 +429,63 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 	return hr;
 }
 
-/**
- * Returns Match, If-Match value of request
+/** 
+ * Checks the etag of a MAPI object agains If-(None)-Match headers
  * 
- * Used to compare with etag values
- *
- * @param[out]	strIfMatch	Return string for Match, If-match value set in request
- * @return		HRESULT
- * @retval		MAPI_E_NOT_FOUND	No Match, If-match value set in request
+ * @param[in] lpProp Object to check etag (PR_LAST_MODIFICATION_TIME) to
+ * 
+ * @return continue request or return 412
+ * @retval true continue request
+ * @retval false return 412 to client
  */
-HRESULT Http::HrGetIfMatch(std::string *strIfMatch)
+bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 {
-	HRESULT hr = hrSuccess;
-	std::string strData;
-	size_t szLength = 0;
-	ULONG ulStart = 0;
-	ULONG ulEnd = 0;
+	bool ret = false;
+	bool invert = false;
+	string strIf;
+	SPropValuePtr ptrLastModTime;
+	vector<string> vMatches;
+	vector<string>::iterator i;
+	string strValue;
 
-	hr = HrGetHeaderValue("If-Match", &strData);
-	if (hr == hrSuccess) {
-		szLength = strData.size();
-		if ( (strData.at(0) == '\"' && strData.at (szLength - 1) == '\"') ||
-			 (strData.at(0) == '\'' && strData.at (szLength - 1) == '\'')) {
-			strIfMatch->assign(strData.substr( 1, szLength - 2));
+	if (lpProp) {
+		if (HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &ptrLastModTime) == hrSuccess) {
+			time_t stamp;
+			FileTimeToUnixTime(ptrLastModTime->Value.ft, &stamp);
+			strValue = stringify_int64(stamp, false);
 		}
-
-		goto exit;
 	}
 
-	hr = HrGetHeaderValue("If", &strData);
-	if (hr == hrSuccess) {
-		ulStart = strData.find("[") + 1;
-		ulEnd = strData.find("]");
-		strIfMatch->assign(strData.substr(ulStart, ulEnd - ulStart));
-
-		goto exit;
+	if (HrGetHeaderValue("If-Match", &strIf) == hrSuccess) {
+		if (strIf.compare("*") == 0 && !ptrLastModTime) {
+			// we have an object without a last mod time, not allowed
+			return false;
+		}
+	} else if (HrGetHeaderValue("If-None-Match", &strIf) == hrSuccess) {
+		if (strIf.compare("*") == 0 && !!ptrLastModTime) {
+			// we have an object which has a last mod time, not allowed
+			return false;
+		}
+		invert = true;
+	} else {
+		return true;
 	}
 
-exit:
-	return hr;
+	// check all etags for a match
+	vMatches = tokenize(strIf, ',', true);
+	for (i = vMatches.begin(); i != vMatches.end(); i++) {
+		if (i->at(0) == '"' || i->at(0) == '\'')
+			i->assign(i->begin()+1, i->end()-1);
+		if (i->compare(strValue) == 0) {
+			ret = true;
+			break;
+		}
+	}
+
+	if (invert)
+		ret = !ret;
+
+	return ret;
 }
 
 /**

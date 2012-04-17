@@ -98,7 +98,6 @@ public:
 	HRESULT HrGetBody(std::string *strBody);
 	HRESULT HrGetDepth(ULONG *ulDepth);
 	HRESULT HrGetCharSet(std::string *strCharset);
-	HRESULT HrGetIfMatch(std::string *strIfMatch);
 	HRESULT HrGetDestination(std::string *strDestination);
 
 	HRESULT HrResponseHeader(unsigned int ulCode, std::string strResponse);
@@ -108,6 +107,8 @@ public:
 
 	HRESULT HrSetKeepAlive(int ulKeepAlive);
 	HRESULT HrFinalize();
+
+	bool CheckIfMatch(LPMAPIPROP lpProp);
 
 private:
 	ECChannel *m_lpChannel;
