@@ -110,7 +110,6 @@ protected:
     // The destructor is protected since we self-cleanup; you cannot delete this object externally.
     virtual ~ECWorkerThread();
 
-	//private:
     static void *Work(void *param);
 
     pthread_t m_thread;
