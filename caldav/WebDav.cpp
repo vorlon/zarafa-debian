@@ -265,7 +265,10 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	m_mapNs[sDavMStatus->sPropName.strNS.c_str()] = "C";
 
 	//<multistatus>	
-	xmlTextWriterStartElementNS	(xmlWriter ,(const xmlChar *)strNsPrefix.c_str() ,(const xmlChar *)sDavMStatus->sPropName.strPropname.c_str() ,(const xmlChar *)sDavMStatus->sPropName.strNS.c_str() );
+	xmlTextWriterStartElementNS(xmlWriter,
+								(const xmlChar *)strNsPrefix.c_str(),
+								(const xmlChar *)sDavMStatus->sPropName.strPropname.c_str(),
+								(const xmlChar *)sDavMStatus->sPropName.strNS.c_str());
 
 	//write all xmlname spaces in main tag.
 	for(iterMapNS = m_mapNs.begin(); iterMapNS != m_mapNs.end(); iterMapNS++)
@@ -500,7 +503,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 			if (lpXmlNode->ns && lpXmlNode->ns->href)
 				sReptQuery.sPropName.strNS.assign((const char*) lpXmlNode->ns->href);
 			else
-				sReptQuery.sPropName.strNS.assign(CALDAVNSDEF);
+				sReptQuery.sPropName.strNS.assign(WEBDAVNS);
 
 			HrSetDavPropName(&(sReptQuery.sProp.sPropName),lpXmlNode);
 			lpXmlChildNode = lpXmlNode->children;
@@ -819,7 +822,7 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		HrSetDavPropName(&sWebResPonse.sPropName,"response", CALDAVNS);	
 
 		HrSetDavPropName(&sWebProperty.sPropName,"recipient", CALDAVNS);
-		HrSetDavPropName(&sWebVal.sPropName,"href", CALDAVNSDEF);
+		HrSetDavPropName(&sWebVal.sPropName,"href", WEBDAVNS);
 		
 		sWebVal.strValue = "mailto:" + itFbUserInfo->strUser;
 		sWebProperty.lstValues.push_back(sWebVal);
@@ -1365,7 +1368,7 @@ HRESULT WebDav::HrPropPatch()
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
 		HrSetDavPropName(&(sDavProp.sPropName),"prop",(char *)lpXmlNode->ns->href);
 	else
-		HrSetDavPropName(&(sDavProp.sPropName),"prop", CALDAVNSDEF);
+		HrSetDavPropName(&(sDavProp.sPropName),"prop", WEBDAVNS);
 
 	lpXmlNode = lpXmlNode->children;
 	while(lpXmlNode)
@@ -1375,7 +1378,7 @@ HRESULT WebDav::HrPropPatch()
 		if(lpXmlNode->ns && lpXmlNode->ns->href)
 			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name,(char*)lpXmlNode->ns->href);
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, CALDAVNSDEF);
+			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, WEBDAVNS);
 
 		if (lpXmlNode->children && lpXmlNode->children->content) {
 			sProperty.strValue = (char *)lpXmlNode->children->content;
@@ -1386,27 +1389,29 @@ HRESULT WebDav::HrPropPatch()
 		lpXmlNode = lpXmlNode->next;
 	}	
 
-	hr = HrHandlePropPatch(&sDavProp);
+	hr = HrHandlePropPatch(&sDavProp, &sDavMStatus);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Convert WEBMULTISTATUS structure to xml data.
+	hr = RespStructToXml(&sDavMStatus, &strXml);
+	if (hr != hrSuccess)
+	{
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert reponse to xml: 0x%08X", hr);
+		goto exit;
+	}
 
 exit:
-
-	if(hr == MAPI_E_NO_ACCESS)
-	{
-		m_lpRequest->HrResponseHeader(403,"Forbidden");
-		m_lpRequest->HrResponseBody("This Folder Cannot be Modified");
-	}
-	else if (hr == MAPI_E_COLLISION)
-	{
-		m_lpRequest->HrResponseHeader(409,"Conflict");
-		m_lpRequest->HrResponseBody("A folder same name already exist");
-	}
-	else if(hr != hrSuccess)
-	{
-		m_lpRequest->HrResponseHeader(404,"Not Found");
-	}
-	else
-	{
-		m_lpRequest->HrResponseHeader(200,"OK");
+	if (hr != hrSuccess) {
+		// this is important for renaming your calendar folder
+		if (hr == MAPI_E_COLLISION)
+			m_lpRequest->HrResponseHeader(409, "Collision");
+		else
+			m_lpRequest->HrResponseHeader(403, "Forbidden");
+	} else {
+		m_lpRequest->HrResponseHeader(207 , "Multi-Status");
+		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
+		m_lpRequest->HrResponseBody(strXml);
 	}
 
 	return hr;
@@ -1470,7 +1475,7 @@ HRESULT WebDav::HrMkCalendar()
 	if(lpXmlNode->ns && lpXmlNode->ns->href)
 		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
 	else
-		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,CALDAVNSDEF);
+		HrSetDavPropName(&(sDavProp.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
 
 	lpXmlNode = lpXmlNode->children;
 	while(lpXmlNode)
@@ -1480,7 +1485,7 @@ HRESULT WebDav::HrMkCalendar()
 		if (lpXmlNode->ns && lpXmlNode->ns->href)
 			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,(char*)lpXmlNode->ns->href);
 		else
-			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,CALDAVNSDEF);
+			HrSetDavPropName(&(sProperty.sPropName),(char*)lpXmlNode->name,WEBDAVNS);
 
 		if (lpXmlNode->children && lpXmlNode->children->content)
 			sProperty.strValue = (char*)lpXmlNode->children->content;

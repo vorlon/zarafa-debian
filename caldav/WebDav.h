@@ -92,9 +92,9 @@ typedef struct {
 } WEBDAVPROP;
 
 typedef struct {
-	WEBDAVPROPNAME sPropName;
+	WEBDAVPROPNAME sPropName;	/* always propstat */
 	WEBDAVPROP sProp;
-	WEBDAVVALUE sStatus;
+	WEBDAVVALUE sStatus;		/* always status */
 } WEBDAVPROPSTAT;
 
 typedef struct {
@@ -102,7 +102,7 @@ typedef struct {
 	std::list<WEBDAVPROPSTAT> lstsPropStat;
 	std::list<WEBDAVPROPERTY> lstProps;
 	WEBDAVVALUE sHRef;
-	WEBDAVVALUE sStatus;
+	WEBDAVVALUE sStatus;		/* possible on delete (but we don't use that) */
 } WEBDAVRESPONSE;
 
 typedef struct {
@@ -141,8 +141,8 @@ typedef struct {
 	std::list<WEBDAVFBUSERINFO> lstFbUserInfo;
 }WEBDAVFBINFO;
 
+#define WEBDAVNS "DAV:"
 #define CALDAVNS "urn:ietf:params:xml:ns:caldav"
-#define CALDAVNSDEF "DAV:"
 
 class WebDav: public ProtocolBase
 {
@@ -163,7 +163,7 @@ protected:
 	virtual	HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sProp,WEBDAVMULTISTATUS *lpsDavMulStatus) = 0;
 	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus) = 0;
 	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) = 0;
-	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp) = 0;
+	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *sWebMStatus) = 0;
 	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp) = 0;
 	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) = 0;
 	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus) = 0;

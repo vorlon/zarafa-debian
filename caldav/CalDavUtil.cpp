@@ -326,7 +326,7 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	WEBDAVITEM sDavItem;
 
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
-	sDavItem.sDavValue.sPropName.strNS = CALDAVNSDEF;
+	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.push_back(sDavItem);
 
@@ -339,7 +339,7 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	lpsProperty->lstItems.push_back(sDavItem);
 
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
-	sDavItem.sDavValue.sPropName.strNS = CALDAVNSDEF;
+	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.push_back(sDavItem);
 
@@ -352,7 +352,7 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	lpsProperty->lstItems.push_back(sDavItem);
 	
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
-	sDavItem.sDavValue.sPropName.strNS = CALDAVNSDEF;
+	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.push_back(sDavItem);
 
@@ -365,7 +365,7 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	lpsProperty->lstItems.push_back(sDavItem);
 	
 	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
-	sDavItem.sDavValue.sPropName.strNS = CALDAVNSDEF;
+	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.push_back(sDavItem);
 
@@ -394,7 +394,7 @@ HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty)
 	WEBDAVITEM sDavItem;
 
 	sDavItem.sDavValue.sPropName.strPropname = "privilege";
-	sDavItem.sDavValue.sPropName.strNS = CALDAVNSDEF;
+	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.push_back(sDavItem);
 
