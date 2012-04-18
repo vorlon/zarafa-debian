@@ -1474,7 +1474,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 		} else if (i->sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
 			if (i->strValue.compare("VTODO") == 0)
 				strContainerClass = "IPF.Task";
-			else if (i->strValue.compare("VCALENDAR") != 0) {
+			else if (i->strValue.compare("VEVENT") != 0) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", i->strValue.c_str());
 				hr = MAPI_E_INVALID_PARAMETER;
 				goto exit;
