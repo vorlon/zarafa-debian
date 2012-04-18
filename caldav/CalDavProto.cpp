@@ -1827,7 +1827,7 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 			continue;
 		}
 
-		if (PROP_TYPE(sProp.ulPropTag) == PT_STRING8) {
+		if (PROP_TYPE(sProp.ulPropTag) == PT_UNICODE) {
 			wstrConvProp = U2W(iter->strValue);
 			sProp.Value.lpszW = (WCHAR*)wstrConvProp.c_str();
 		} else {
