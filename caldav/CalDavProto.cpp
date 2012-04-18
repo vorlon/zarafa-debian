@@ -1792,7 +1792,7 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 
 	HrSetDavPropName(&sPropStatusCollision.sPropName, "propstat", WEBDAVNS);
 	HrSetDavPropName(&sPropStatusCollision.sStatus.sPropName, "status", WEBDAVNS);
-	sPropStatusCollision.sStatus.strValue = "HTTP/1.1 409 Collision";
+	sPropStatusCollision.sStatus.strValue = "HTTP/1.1 409 Conflict";
 	HrSetDavPropName(&sPropStatusCollision.sProp.sPropName, "prop", WEBDAVNS);
 	
 

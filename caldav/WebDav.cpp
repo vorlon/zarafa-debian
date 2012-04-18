@@ -1405,7 +1405,7 @@ exit:
 	if (hr != hrSuccess) {
 		// this is important for renaming your calendar folder
 		if (hr == MAPI_E_COLLISION)
-			m_lpRequest->HrResponseHeader(409, "Collision");
+			m_lpRequest->HrResponseHeader(409, "Conflict");
 		else
 			m_lpRequest->HrResponseHeader(403, "Forbidden");
 	} else {
