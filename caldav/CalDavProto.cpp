@@ -1467,6 +1467,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	ULONG ulPropTag = 0;
 	std::string strContainerClass = "IPF.Appointment";
 
+	// @todo handle other props as in proppatch command
 	for (list<WEBDAVPROPERTY>::iterator i = lpsDavProp->lstProps.begin(); i != lpsDavProp->lstProps.end(); i++) {
 		if (i->sPropName.strPropname.compare("displayname") == 0) {
 			wstrNewFldName = U2W(i->strValue);
@@ -1818,10 +1819,9 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 				continue;
 			}
-
-			sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter, MAPI_CREATE);
 		}
 
+		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter, MAPI_CREATE);
 		if (sProp.ulPropTag == PR_NULL) {
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
