@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-11 12:24+0200\n"
-"PO-Revision-Date: 2012-03-23 03:57+0200\n"
+"POT-Creation-Date: 2012-04-19 00:04+0200\n"
+"PO-Revision-Date: 2012-04-18 15:19+0200\n"
 "Last-Translator: Sebastian <s.kummer@zarafa.com>\n"
 "Language-Team: pt_BR <pt@li.org>\n"
 "Language: pt_BR\n"
@@ -1356,7 +1356,7 @@ msgstr "Este certificado é confiável mas não pôde ser verificado corretament
 msgid "Do you wish to continue?"
 msgstr "Deseja continuar?"
 
-#: zarafa-libsync/ECSync.cpp:1938
+#: zarafa-libsync/ECSync.cpp:1939
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"
@@ -1551,17 +1551,17 @@ msgstr "Código de erro do MAPI:"
 
 #: installer/linux/zarafa-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr ""
+msgstr "Reuniões recorrentes não são permitidas"
 
 #: installer/linux/zarafa-mr-accept:453
 msgid "The requested time slot is unavailable"
-msgstr ""
+msgstr "O horário solicitado não está disponível"
 
 #: installer/linux/zarafa-mr-accept:455
 msgid "The requested time slots are unavailble on the following dates:"
-msgstr ""
+msgstr "O horário solicitado não está disponível nas seguintes datas:"
 
 #: installer/linux/zarafa-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
