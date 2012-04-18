@@ -65,8 +65,9 @@ class ICalToMapi(_object):
     __del__ = lambda self : None;
     def ParseICal(*args): return _icalmapi.ICalToMapi_ParseICal(*args)
     def GetItemCount(*args): return _icalmapi.ICalToMapi_GetItemCount(*args)
-    def GetItem(*args): return _icalmapi.ICalToMapi_GetItem(*args)
     def GetItemInfo(*args): return _icalmapi.ICalToMapi_GetItemInfo(*args)
+    def GetItem(*args): return _icalmapi.ICalToMapi_GetItem(*args)
+    def GetFreeBusyInfo(*args): return _icalmapi.ICalToMapi_GetFreeBusyInfo(*args)
 ICalToMapi_swigregister = _icalmapi.ICalToMapi_swigregister
 ICalToMapi_swigregister(ICalToMapi)
 

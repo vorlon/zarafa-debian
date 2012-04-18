@@ -3148,7 +3148,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ICalToMapi *arg1 = (ICalToMapi *) 0 ;
   ULONG arg2 ;
@@ -3284,7 +3284,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ICalToMapi_GetFreeBusyInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ICalToMapi *arg1 = (ICalToMapi *) 0 ;
   time_t *arg2 = (time_t *) 0 ;
@@ -3312,20 +3312,20 @@ SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo__SWIG_1(PyObject *SWIGUNUSEDPA
   {
     arg4 = &temp4;
   }
-  if (!PyArg_ParseTuple(args,(char *)"OO:ICalToMapi_GetItemInfo",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:ICalToMapi_GetFreeBusyInfo",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ICalToMapi, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ICalToMapi_GetItemInfo" "', argument " "1"" of type '" "ICalToMapi *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ICalToMapi_GetFreeBusyInfo" "', argument " "1"" of type '" "ICalToMapi *""'"); 
   }
   arg1 = reinterpret_cast< ICalToMapi * >(argp1);
   res5 = SWIG_ConvertPtr(obj1, &argp5,SWIGTYPE_p_p_std__listT_std__string_t, 0 |  0 );
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "ICalToMapi_GetItemInfo" "', argument " "5"" of type '" "std::list< std::string > **""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "ICalToMapi_GetFreeBusyInfo" "', argument " "5"" of type '" "std::list< std::string > **""'"); 
   }
   arg5 = reinterpret_cast< std::list< std::string > ** >(argp5);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    result = (arg1)->GetItemInfo(arg2,arg3,arg4,arg5);
+    result = (arg1)->GetFreeBusyInfo(arg2,arg3,arg4,arg5);
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   {
@@ -3350,59 +3350,6 @@ SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo__SWIG_1(PyObject *SWIGUNUSEDPA
   return resultobj;
 fail:
   SWIG_PYTHON_THREAD_END_BLOCK;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo(PyObject *self, PyObject *args) {
-  int argc;
-  PyObject *argv[3];
-  int ii;
-  
-  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  if (!PyTuple_Check(args)) SWIG_fail;
-  argc = (int)PyObject_Length(args);
-  for (ii = 0; (ii < argc) && (ii < 2); ii++) {
-    argv[ii] = PyTuple_GET_ITEM(args,ii);
-  }
-  if (argc == 2) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ICalToMapi, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_p_std__listT_std__string_t, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        SWIG_PYTHON_THREAD_END_BLOCK;
-        return _wrap_ICalToMapi_GetItemInfo__SWIG_1(self, args);
-      }
-    }
-  }
-  if (argc == 2) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ICalToMapi, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      {
-        int res = SWIG_AsVal_unsigned_SS_int(argv[1], NULL);
-        _v = SWIG_CheckState(res);
-      }
-      if (_v) {
-        SWIG_PYTHON_THREAD_END_BLOCK;
-        return _wrap_ICalToMapi_GetItemInfo__SWIG_0(self, args);
-      }
-    }
-  }
-  
-  SWIG_PYTHON_THREAD_END_BLOCK;
-fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'ICalToMapi_GetItemInfo'.\n"
-    "  Possible C/C++ prototypes are:\n"
-    "    GetItemInfo(ICalToMapi *,ULONG,eIcalType *,time_t *,SBinary *)\n"
-    "    GetItemInfo(ICalToMapi *,time_t *,time_t *,std::string *,std::list< std::string > **)\n");
   return NULL;
 }
 
@@ -3890,8 +3837,9 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_ICalToMapi", _wrap_delete_ICalToMapi, METH_VARARGS, NULL},
 	 { (char *)"ICalToMapi_ParseICal", _wrap_ICalToMapi_ParseICal, METH_VARARGS, NULL},
 	 { (char *)"ICalToMapi_GetItemCount", _wrap_ICalToMapi_GetItemCount, METH_VARARGS, NULL},
-	 { (char *)"ICalToMapi_GetItem", _wrap_ICalToMapi_GetItem, METH_VARARGS, NULL},
 	 { (char *)"ICalToMapi_GetItemInfo", _wrap_ICalToMapi_GetItemInfo, METH_VARARGS, NULL},
+	 { (char *)"ICalToMapi_GetItem", _wrap_ICalToMapi_GetItem, METH_VARARGS, NULL},
+	 { (char *)"ICalToMapi_GetFreeBusyInfo", _wrap_ICalToMapi_GetFreeBusyInfo, METH_VARARGS, NULL},
 	 { (char *)"ICalToMapi_swigregister", ICalToMapi_swigregister, METH_VARARGS, NULL},
 	 { (char *)"CreateICalToMapi", _wrap_CreateICalToMapi, METH_VARARGS, NULL},
 	 { (char *)"delete_MapiToICal", _wrap_delete_MapiToICal, METH_VARARGS, NULL},
