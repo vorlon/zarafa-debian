@@ -90,8 +90,6 @@ protected:
 
 	convert_context m_converter;
 
-	bool CheckFolderAccess(IMsgStore *lpStore, IMAPIFolder *lpRootFolder, IMAPIFolder *lpCurrentFolder) const;
-	
 	std::string W2U(const std::wstring&); //!< convert widestring to utf-8
 	std::string W2U(const WCHAR* lpwWideChar);
 	std::wstring U2W(const std::string&); //!< convert utf-8 to widestring
