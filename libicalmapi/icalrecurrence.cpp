@@ -129,11 +129,19 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	if (!lpicProp) {
 		// check for Task's DUE property.
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DUE_PROPERTY);
-		if (!lpicProp)
-		{
+	}
+	if (!lpicProp)
+	{
+		// check for duration property
+		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
+		if (lpicProp) {
+			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
+		} else {
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
+	} else {
+		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
 	dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);

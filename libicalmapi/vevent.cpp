@@ -385,11 +385,8 @@ HRESULT VEventConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent 
 		}
 
 		icaldurationtype dur = icalproperty_get_duration(lpicDurationProp);
-		int sec = (dur.is_neg?-1:1)*(dur.weeks*7*24*60*60 + dur.days*24*60*60 + dur.hours*60*60 + dur.minutes*60 + dur.seconds);
-		// why is negative compensated?!
-		// switch start <-> end if negative?
-		timeDTEndLocal = timeDTStartLocal + sec;
-		timeDTEndUTC = timeDTStartUTC + sec;
+		timeDTEndLocal = timeDTStartLocal + icaldurationtype_as_int(dur);
+		timeDTEndUTC = timeDTStartUTC + icaldurationtype_as_int(dur);
 	}
 	timeEndOffset = timeDTEndUTC - timeDTEndLocal;
 
