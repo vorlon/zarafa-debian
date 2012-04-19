@@ -1541,22 +1541,7 @@ ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned
 	
 	delete lpLicenseClient;
 
-
-	m_ulLicensedUsers = ulLicensedUsers;
 	*lpulLicensedUsers = ulLicensedUsers;
-
-	return er;
-}
-
-//@fixme If the license is changed, this data is Invalid!
-ECRESULT ECSessionManager::GetLicensedUsersCached(unsigned int* lpulLicensedUsers)
-{
-	ECRESULT er = erSuccess;
-	
-	if (m_ulLicensedUsers == (unsigned int)-1)
-		er = GetLicensedUsers(0/*SERVICE_TYPE_ZCP*/, lpulLicensedUsers);
-	else
-		*lpulLicensedUsers = m_ulLicensedUsers;
 
 	return er;
 }

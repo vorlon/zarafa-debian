@@ -116,7 +116,7 @@ ECRESULT ECSystemStatsTable::Load()
 	GetStatsCollectorData("threads", "Number of threads running to process items", stringify(ulThreads), this);
 	GetStatsCollectorData("threads_idle", "Number of idle threads", stringify(ulIdleThreads), this);
 
-	lpSession->GetSessionManager()->GetLicensedUsersCached(&ulLicensedUsers);
+	lpSession->GetSessionManager()->GetLicensedUsers(0 /*SERVICE_TYPE_ZCP*/, &ulLicensedUsers);
 	lpSession->GetUserManagement()->GetCachedUserCount(&userCount);
 
 	GetStatsCollectorData("usercnt_licensed", "Number of allowed users", stringify(ulLicensedUsers), this);

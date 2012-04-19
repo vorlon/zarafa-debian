@@ -177,7 +177,6 @@ public:
 	bool IsHostedSupported();
 	bool IsDistributedSupported();
 	ECRESULT GetLicensedUsers(unsigned int ulServiceType, unsigned int* lpulLicensedUsers);
-	ECRESULT GetLicensedUsersCached(unsigned int* lpulLicensedUsers);
 	ECRESULT GetServerGUID(GUID* lpServerGuid);
 
 	ECRESULT GetNewSourceKey(SOURCEKEY* lpSourceKey);
@@ -262,9 +261,6 @@ protected:
 	pthread_mutex_t		m_hSeqMutex;
 	unsigned long long 	m_ulSeqIMAP;
 	unsigned int		m_ulSeqIMAPQueue;
-
-private:
-	unsigned int		m_ulLicensedUsers;
 };
 
 #endif // #ifndef ECSESSIONMANAGER
