@@ -141,8 +141,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpLogger, ECLog
 	}
 
     m_lpNotificationManager = new ECNotificationManager(m_lpLogger, m_lpConfig);
-
-    m_ulLicensedUsers = (unsigned int)-1;
 }
 
 ECSessionManager::~ECSessionManager()
