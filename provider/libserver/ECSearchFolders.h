@@ -62,7 +62,7 @@
 
 class ECSessionManager;
 
-typedef struct {
+typedef struct SEARCHFOLDER {
 	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
 		this->lpSearchCriteria = NULL;
 		/* sThreadId */
