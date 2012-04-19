@@ -63,6 +63,16 @@
 class ECSessionManager;
 
 typedef struct {
+	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
+		this->lpSearchCriteria = NULL;
+		/* sThreadId */
+		pthread_mutex_init(&this->mMutexThreadFree, NULL);
+		this->bThreadExit = false;
+		this->bThreadFree = true;
+		this->ulStoreId = ulStoreId;
+		this->ulFolderId = ulFolderId;
+	}
+
     struct searchCriteria 	*lpSearchCriteria;
     pthread_t 				sThreadId;
     pthread_mutex_t			mMutexThreadFree;

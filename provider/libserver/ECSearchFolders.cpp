@@ -316,18 +316,14 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
             goto exit;
     }
 
-    lpSearchFolder = new SEARCHFOLDER;
+    lpSearchFolder = new SEARCHFOLDER(ulStoreId, ulFolderId);
 
     er = CopySearchCriteria(NULL, lpSearchCriteria, &lpSearchFolder->lpSearchCriteria);
     if(er != erSuccess) {
         delete lpSearchFolder;
         goto exit;
     }
-        
-    lpSearchFolder->bThreadExit = false;
-    lpSearchFolder->bThreadFree = true;
-    pthread_mutex_init(&lpSearchFolder->mMutexThreadFree, NULL);
-    
+
     pthread_mutex_lock(&m_mutexMapSearchFolders);
     
     // Get searches for this store, or add it to the list.
@@ -342,8 +338,6 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         THREADINFO *ti = new THREADINFO;
         ti->lpSearchFolders = this;
         ti->lpFolder = lpSearchFolder;
-        ti->lpFolder->ulStoreId = ulStoreId;
-        ti->lpFolder->ulFolderId = ulFolderId;
         
         // Insert the actual folder with the criteria
         // Start the thread (will store the thread id in the original list)
