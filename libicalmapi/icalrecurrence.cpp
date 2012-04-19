@@ -144,8 +144,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
-	dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
-
 	// Set 0x8235, also known as ClipStart in OutlookSpy
 	UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(dtLocalStart), sTimeZone), &sPropVal.Value.ft);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
