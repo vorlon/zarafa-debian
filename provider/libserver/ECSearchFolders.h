@@ -56,6 +56,7 @@
 #include "ECStoreObjectTable.h"
 
 #include "soapH.h"
+#include "SOAPUtils.h"
 
 #include <map>
 #include <set>
@@ -71,6 +72,11 @@ typedef struct SEARCHFOLDER {
 		this->bThreadFree = true;
 		this->ulStoreId = ulStoreId;
 		this->ulFolderId = ulFolderId;
+	}
+	~SEARCHFOLDER() {
+		if (this->lpSearchCriteria)
+			FreeSearchCriteria(this->lpSearchCriteria);
+		pthread_mutex_destroy(&this->mMutexThreadFree);
 	}
 
     struct searchCriteria 	*lpSearchCriteria;

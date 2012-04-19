@@ -104,8 +104,6 @@ ECSearchFolders::~ECSearchFolders() {
 
     for(iterStore = m_mapSearchFolders.begin(); iterStore != m_mapSearchFolders.end(); iterStore++) {
         for(iterFolder = iterStore->second.begin(); iterFolder != iterStore->second.end(); iterFolder++) {
-            FreeSearchCriteria(iterFolder->second->lpSearchCriteria);
-            pthread_mutex_destroy(&iterFolder->second->mMutexThreadFree);
             delete iterFolder->second;
         }
         iterStore->second.clear();
@@ -438,8 +436,6 @@ void ECSearchFolders::DestroySearchFolder(SEARCHFOLDER *lpFolder)
     pthread_mutex_unlock(&lpFolder->mMutexThreadFree);
 
     // Nobody is using lpFolder now
-    FreeSearchCriteria(lpFolder->lpSearchCriteria);
-    pthread_mutex_destroy(&lpFolder->mMutexThreadFree);
     delete lpFolder;
     
     // Set the search as stopped in the database
