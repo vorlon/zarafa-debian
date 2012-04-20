@@ -81,7 +81,11 @@ ZARAFA_API ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
 
 // SOAP connection management
 void zarafa_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap);
+void zarafa_end_soap_connection(struct soap *soap);
+
 void zarafa_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap);
+void zarafa_end_soap_listener(struct soap *soap);
+    
 void zarafa_disconnect_soap_connection(struct soap *soap);
 
 
