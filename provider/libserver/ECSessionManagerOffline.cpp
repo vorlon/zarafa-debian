@@ -74,7 +74,7 @@ ECRESULT ECSessionManagerOffline::CreateAuthSession(struct soap *soap, unsigned 
 
 	newSessionID = rand_mt();
 
-	lpAuthSession = new ECAuthSessionOffline(soap->ip, newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
+	lpAuthSession = new ECAuthSessionOffline(GetSourceAddr(soap), newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
 	if (lpAuthSession) {
 	    if (bLockSession) {
 	        lpAuthSession->Lock();

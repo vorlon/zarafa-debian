@@ -323,6 +323,10 @@ void serverdetails_t::SetSslPort(unsigned port) {
 	m_ulSslPort = port;
 }
 
+void serverdetails_t::SetProxyPath(const std::string &proxy) {
+	m_strProxyPath = proxy;
+}
+
 const std::string& serverdetails_t::GetServerName() const {
 	return m_strServerName;
 }
@@ -361,4 +365,8 @@ std::string serverdetails_t::GetSslPath() const {
 		return oss.str();
 	}
 	return std::string();	
+}
+
+std::string serverdetails_t::GetProxyPath() const {
+	return m_strProxyPath;
 }

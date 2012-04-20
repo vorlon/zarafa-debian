@@ -248,37 +248,72 @@ void zarafa_resetstats() {
 		g_lpStatsCollector->Reset();
 }
 
+
+/**
+ * Called for each HTTP header in a request, handles the proxy header
+ * and marks the connection as using the proxy if it is found. The value
+ * of the header is ignored. The special value '*' for proxy_header is
+ * not searched for here, but it is used in GetBestServerPath()
+ *
+ * We use the soap->user->fparsehdr to daisy chain the request to, which
+ * is the original gSoap header parsing code. This is needed to decode
+ * normal headers like content-type, etc.
+ *
+ * @param[in] soap Soap structure of the incoming call
+ * @param[in] key Key part of the header (left of the :)
+ * @param[in] vak Value part of the header (right of the :)
+ * @return SOAP_OK or soap error
+ */
+int zarafa_fparsehdr(struct soap *soap, const char *key, const char *val)
+{
+	char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
+	if(strlen(szProxy) > 0 && stricmp(key, szProxy) == 0) {
+		((SOAPINFO *)soap->user)->bProxy = true;
+		return SOAP_OK;
+	} else return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
+}
+
 // Called just after a new soap connection is established
-void zarafa_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap, THREADSTATUSCALLBACK lpCallBack, void* ulParam)
+void zarafa_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
+{
+	char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
+	SOAPINFO *lpInfo = new SOAPINFO;
+	lpInfo->ulConnectionType = ulType;
+	lpInfo->bProxy = false;
+	soap->user = (void *)lpInfo;
+	
+	if(strlen(szProxy) > 0) {
+		if(strcmp(szProxy, "*") == 0) {
+			// Assume everything is proxied
+			lpInfo->bProxy = true; 
+		} else {
+			// Parse headers to determine if the connection is proxied
+			lpInfo->fparsehdr = soap->fparsehdr; // daisy-chain the existing code
+			soap->fparsehdr = zarafa_fparsehdr;
+		}
+	}
+}
+
+void zarafa_end_soap_connection(struct soap *soap)
+{
+	delete (SOAPINFO *)soap->user;
+}
+
+void zarafa_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 {
 	SOAPINFO *lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
-	lpInfo->lpCallBack = lpCallBack;
-	lpInfo->ulCallBackParam = ulParam;
+	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
 }
 
-// Called just before ending a soap connection and freeing soap data. Should free any
-// data allocated in zarafa_new_soap_connection()
-void zarafa_end_soap_connection(struct soap *soap)
+void zarafa_end_soap_listener(struct soap *soap)
 {
-	if(soap->user) 
-		delete (SOAPINFO *) soap->user;
-	soap_destroy(soap);
-	soap_end(soap);
-}
-
-bool zarafa_get_soap_connection_type(struct soap *soap, CONNECTION_TYPE *lpulType)
-{
-	if (!soap->user)
-		return false;
-
-	*lpulType = SOAP_CONNECTION_TYPE(soap);
-	return true;
+	delete (SOAPINFO *)soap->user;
 }
 
 // Called just before the socket is reset, with the server-side socket still
-// open (before end_soap_connection)
+// open
 void zarafa_disconnect_soap_connection(struct soap *soap)
 {
 	if(SOAP_CONNECTION_TYPE_NAMED_PIPE(soap)) {

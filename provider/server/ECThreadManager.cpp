@@ -553,7 +553,7 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 
 	item->soap = soap;
 	item->dblReceiveStamp = GetTimeOfDay();
-	zarafa_get_soap_connection_type(soap, &ulType);
+	ulType = SOAP_CONNECTION_TYPE(soap);
 
 	pthread_mutex_lock(&m_mutexItems);
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
@@ -744,7 +744,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
         // Listen on active sockets
         iterSockets = m_setSockets.begin();
         while(iterSockets != m_setSockets.end()) {
-            zarafa_get_soap_connection_type(iterSockets->second.soap, &ulType);
+            ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
             if(ulType != CONNECTION_TYPE_NAMED_PIPE && ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY && (now - (time_t)iterSockets->second.ulLastActivity > m_nRecvTimeout)) {
                 // Socket has been inactive for more than server_recv_timeout seconds, close the socket
 				shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
@@ -815,6 +815,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
                 ACTIVESOCKET sActive;
                 
                 newsoap = soap_copy(iterListenSockets->second);
+                zarafa_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
                 
                 if(newsoap == NULL) {
                     m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
@@ -824,7 +825,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
                 // Record last activity (now)
                 time(&sActive.ulLastActivity);
 
-        		zarafa_get_soap_connection_type(iterListenSockets->second, &ulType);
+        		ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
                 if(ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
                     int socket = accept(newsoap->master, NULL, 0);
                     newsoap->socket = socket;
@@ -891,7 +892,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
     // Close all listener sockets. 
     for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
-		zarafa_end_soap_connection(iterListenSockets->second);
         soap_free(iterListenSockets->second);
     }
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
@@ -973,7 +973,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		if(now > last) {
             iterSockets = m_setSockets.begin();
             while (iterSockets != m_setSockets.end()) {
-                zarafa_get_soap_connection_type(iterSockets->second.soap, &ulType);
+                ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
                 if(ulType != CONNECTION_TYPE_NAMED_PIPE && ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY && (now - (time_t)iterSockets->second.ulLastActivity > m_nRecvTimeout)) {
                     // Socket has been inactive for more than server_recv_timeout seconds, close the socket
                     shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
@@ -995,11 +995,12 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				ACTIVESOCKET sActive;
 
 				newsoap = soap_copy(iterListenSockets->second);
+                zarafa_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
 
 				// Record last activity (now)
 				time(&sActive.ulLastActivity);
 
-				zarafa_get_soap_connection_type(iterListenSockets->second, &ulType);
+				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
 				if(ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 					newsoap->socket = accept(newsoap->master, NULL, 0);
 				} else {
@@ -1085,12 +1086,13 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
     // Close all listener sockets. 
     for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
-		zarafa_end_soap_connection(iterListenSockets->second);
+        zarafa_end_soap_listener(iterListenSockets->second);
         soap_free(iterListenSockets->second);
     }
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	pthread_mutex_lock(&m_mutexSockets);
     for(iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); iterSockets++) {
+        zarafa_end_soap_connection(iterSockets->second.soap);
         soap_free(iterSockets->second.soap);
     }
 	pthread_mutex_unlock(&m_mutexSockets);

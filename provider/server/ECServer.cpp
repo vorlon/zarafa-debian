@@ -924,6 +924,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "mysql_group_concat_max_len", "21844", CONFIGSETTING_RELOADABLE },
 		{ "restrict_admin_permissions", "no", 0 },
 		{ "embedded_attachment_limit", "20", CONFIGSETTING_RELOADABLE },
+		{ "proxy_header", "", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 

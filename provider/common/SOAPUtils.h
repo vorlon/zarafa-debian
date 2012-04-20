@@ -133,6 +133,8 @@ ECRESULT			FreeNamedPropArray(struct namedPropArray *array, bool bFreeBase);
 
 ULONG 				NormalizePropTag(ULONG ulPropTag);
 
+std::string 		GetSourceAddr(struct soap *soap);
+
 unsigned int SearchCriteriaSize(struct searchCriteria *lpSrc);
 unsigned int RestrictTableSize(struct restrictTable *lpSrc);
 unsigned int PropValArraySize(struct propValArray *lpSrc);
@@ -175,6 +177,13 @@ public:
 private:
     std::list<unsigned int> m_lstPropTags;
     struct soap *m_soap;
+};
+
+// The structure of the data stored in soap->user on the server side
+struct SOAPINFO {
+	 CONNECTION_TYPE ulConnectionType;
+	 int (*fparsehdr)(struct soap *soap, const char *key, const char *val);
+	 bool bProxy;
 };
 
 #endif

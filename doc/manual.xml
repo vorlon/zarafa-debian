@@ -4417,6 +4417,42 @@
 		      <para>Default: <replaceable>yes</replaceable></para>
 		    </listitem>
 		  </varlistentry>
+		  
+		  <varlistentry>
+		    <term><option>proxy_header</option></term>
+		    <listitem>
+		      <para>In normal operation, a cluster of zarafa-server nodes is
+		      served by sending redirections back to the clients requesting
+		      information. The redirection URL is built from the server's
+		      information in the LDAP database. However, in some cases it is
+		      useful to place the zarafa-server instances behind a reverse
+		      HTTP proxy. In this case the redirected URL returned to the
+		      client cannot be the 'normal' hostname, but must be a URL that
+		      is handled by the proxy.</para>
+		      <para>
+		      However, internal ('behind' the proxy) redirections must *not*
+		      be redirected to the proxy since this is not necessary. The
+		      strategy is that zarafa-server will redirect to the proxy URL
+		      if the connection that initiated the redirect passed through a
+		      proxy. The way that this is detected is by examining an HTTP
+		      header. If the header specified by this option is found, then
+		      redirections will be to the proxy. If it is not, then
+		      redirections will be to the internal host. If the special
+		      value '*' is specified for this option, then the proxy URL
+		      will always be used. Specifying an empty value disables proxy
+		      detection.</para>
+		      <para>
+		      Another effect of this option is that when a proxy connection
+		      is detected, zarafa-server attempts to use the
+		      'X-Forwarded-For' header to determine the originating IP
+		      address. This is used for logging and session binding (a
+		      session initiated on a certain IP address may not be accessed
+		      from another IP address).
+		      </para>
+		      <para>Default: <replaceable></replaceable></para>
+		    </listitem>
+		  </varlistentry>
+		      
 
 		</variablelist>
 	  </refsection>
@@ -5710,6 +5746,18 @@
 		      server listens for unix socket connections in Linux or
 		      named pipe connections in MS Windows.</para>
 		      <para>Default: <replaceable>zarafaSslPort</replaceable>
+		      </para>
+		    </listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+		    <term><option>ldap_server_proxy_url_attribute</option></term>
+		    <listitem>
+		      <para>If the node is accessed through a reverse HTTP proxy, it
+		      should be accessed using this URL. See the manual page entry
+		      of proxy_header in the zarafa server.cfg(5) manpage for
+		      details on when this value is used.</para>
+		      <para>Default: <replaceable>zarafaProxyURL</replaceable>
 		      </para>
 		    </listitem>
 		  </varlistentry>

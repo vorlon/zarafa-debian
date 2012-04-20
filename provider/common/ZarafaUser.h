@@ -187,6 +187,7 @@ public:
 	void SetFilePath(const std::string &filepath);
 	void SetHttpPort(unsigned port);
 	void SetSslPort(unsigned port);
+	void SetProxyPath(const std::string &proxy);
 
 	const std::string&	GetServerName() const;
 	const std::string&	GetHostAddress() const;
@@ -196,6 +197,7 @@ public:
 	std::string	GetFilePath() const;
 	std::string	GetHttpPath() const;
 	std::string	GetSslPath() const;
+	std::string	GetProxyPath() const;
 
 private:
 	std::string m_strServerName;
@@ -203,6 +205,7 @@ private:
 	std::string m_strFilePath;
 	unsigned	m_ulHttpPort;
 	unsigned	m_ulSslPort;
+	std::string	m_strProxyPath;
 };
 
 #endif

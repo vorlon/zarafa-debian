@@ -143,8 +143,8 @@ void CreateSessionID(unsigned int ulCapabilities, ECSESSIONID *lpSessionId)
 /*
   BaseType session
 */
-BTSession::BTSession(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) :
-	m_ip(ip), m_sessionID(sessionID), m_lpDatabaseFactory(lpDatabaseFactory), m_lpSessionManager(lpSessionManager), m_ulClientCapabilities(ulCapabilities)
+BTSession::BTSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) :
+	m_strSourceAddr(strSourceAddr), m_sessionID(sessionID), m_lpDatabaseFactory(lpDatabaseFactory), m_lpSessionManager(lpSessionManager), m_ulClientCapabilities(ulCapabilities)
 {
 	m_ulRefCount = 0;
 	m_sessionTime = GetProcessTime();
@@ -170,10 +170,15 @@ ECRESULT BTSession::Shutdown(unsigned int ulTimeout) {
 	return erSuccess;
 }
 
-ECRESULT BTSession::ValidateIp(unsigned long ip)
+ECRESULT BTSession::ValidateOriginator(struct soap *soap)
 {
-	if (!m_bCheckIP || m_ip == ip)
+	std::string strSourceAddr = ::GetSourceAddr(soap);
+	
+	if (!m_bCheckIP || m_strSourceAddr == strSourceAddr)
 		return erSuccess;
+		
+	m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Denying access to session from source '%s' due to unmatched establishing source '%s'", strSourceAddr.c_str(), m_strSourceAddr.c_str());
+	
 	return ZARAFA_E_END_OF_SESSION;
 }
 
@@ -254,13 +259,17 @@ time_t BTSession::GetIdleTime()
 	return GetProcessTime() - m_sessionTime;
 }
 
-unsigned long BTSession::GetIpAddress()
+std::string BTSession::GetSourceAddr()
 {
-	return m_ip;
+	return m_strSourceAddr;
 }
 
-void BTSession::IncRequests()
+void BTSession::RecordRequest(struct soap *soap)
 {
+	m_strLastRequestURL = soap->endpoint;
+	m_ulLastRequestPort = soap->port;
+	if (soap->proxy_from && ((SOAPINFO *)soap->user)->bProxy)
+		m_strProxyHost = PrettyIP(soap->ip);
     m_ulRequests++;
 }
 
@@ -273,8 +282,8 @@ unsigned int BTSession::GetRequests()
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ECSession::ECSession(unsigned long ip, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp) :
-	BTSession(ip, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
+ECSession::ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp) :
+	BTSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
 	m_lpTableManager		= new ECTableManager(this);
 	m_lpEcSecurity			= NULL;
@@ -574,6 +583,21 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
     lpstrClientApp->assign(m_strClientApp);
 }
 
+void ECSession::GetRequestURL(std::string *lpstrClientURL)
+{
+	lpstrClientURL->assign(m_strLastRequestURL);
+}
+
+void ECSession::GetProxyHost(std::string *lpstrProxyHost)
+{
+	lpstrProxyHost->assign(m_strProxyHost);
+}
+
+void ECSession::GetClientPort(unsigned int *lpulPort)
+{
+	*lpulPort = m_ulLastRequestPort;
+}
+
 /**
  * Get the short term entryid manager for this session.
  * It actually returns the STE manager for this session group as the STE's are
@@ -664,8 +688,8 @@ exit:
 /*
   ECAuthSession
 */
-ECAuthSession::ECAuthSession(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) :
-		BTSession(ip, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
+ECAuthSession::ECAuthSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) :
+		BTSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
 	m_ulUserID = 0;
 	m_bValidated = false;
@@ -748,7 +772,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// ECAuthSessionOffline creates offline version .. no bOverrideClass construction
-	lpSession = new ECSession(m_ip, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, false, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
+	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, false, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
 	if (!lpSession) {
 		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1368,8 +1392,8 @@ exit:
 }
 #undef NTLMBUFFER
 
-ECAuthSessionOffline::ECAuthSessionOffline(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) : 
-	ECAuthSession(ip, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
+ECAuthSessionOffline::ECAuthSessionOffline(const std::string &strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) : 
+	ECAuthSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
 	// nothing todo
 }
@@ -1387,7 +1411,7 @@ ECRESULT ECAuthSessionOffline::CreateECSession(ECSESSIONGROUPID ecSessionGroupId
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// Offline version
-	lpSession = new ECSession(m_ip, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, true, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
+	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, true, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
 	if (!lpSession) {
 		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
 		goto exit;

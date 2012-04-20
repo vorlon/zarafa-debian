@@ -301,7 +301,7 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	sd.sessionid = lpSession->GetSessionId();
 	sd.sessiongroupid = lpSession->GetSessionGroupId();
 	sd.peerpid = lpSession->GetConnectingPid();
-	sd.ipaddress = lpSession->GetIpAddress();
+	sd.srcaddress = lpSession->GetSourceAddr();
 	sd.idletime = lpSession->GetIdleTime();
 	sd.capability = lpSession->GetCapabilities();
 	sd.locked = lpSession->IsLocked();
@@ -310,6 +310,9 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetBusyStates(&sd.busystates);
 	lpSession->GetClientVersion(&sd.version);
 	lpSession->GetClientApp(&sd.clientapp);
+	lpSession->GetClientPort(&sd.port);
+	lpSession->GetRequestURL(&sd.url);
+	lpSession->GetProxyHost(&sd.proxyhost);
 	sd.requests = lpSession->GetRequests();
 
 	lpThis->m_mapSessionData[lpThis->id] = sd;
@@ -406,11 +409,24 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.clientapp.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_IPADDRESS):
-				strTemp = PrettyIP(iterSD->second.ipaddress);
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strTemp.length()+1);
-				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strTemp.c_str());
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.srcaddress.c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SESSION_PORT):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.port;
+				break;
+			case PROP_ID(PR_EC_STATS_SESSION_URL):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.url.c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SESSION_PROXY):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.proxyhost.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_IDLETIME):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;

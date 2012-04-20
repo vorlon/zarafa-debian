@@ -200,7 +200,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
-	zarafa_new_soap_connection(CONNECTION_TYPE_TCP, lpsSoap, NULL, NULL);
+	zarafa_new_soap_listener(CONNECTION_TYPE_TCP, lpsSoap);
 
 	if (bEnableGET)
 		lpsSoap->fget = http_get;
@@ -244,7 +244,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 	}
 
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
-	zarafa_new_soap_connection(CONNECTION_TYPE_SSL, lpsSoap, NULL, NULL);
+	zarafa_new_soap_listener(CONNECTION_TYPE_SSL, lpsSoap);
 
 	if (bEnableGET)
 		lpsSoap->fget = http_get;
@@ -310,9 +310,9 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	//init soap
 	lpsSoap = soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	if (bPriority)
-		zarafa_new_soap_connection(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap, NULL, NULL);
+		zarafa_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap);
 	else
-		zarafa_new_soap_connection(CONNECTION_TYPE_NAMED_PIPE, lpsSoap, NULL, NULL);
+		zarafa_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
 	
 	// Create a unix or windows pipe
 	m_strPipeName = lpPipeName;

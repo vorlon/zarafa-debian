@@ -83,7 +83,8 @@ private:
 typedef struct _sessiondata {
 	ECSESSIONID sessionid;
 	ECSESSIONGROUPID sessiongroupid;
-	unsigned int ipaddress;
+	std::string srcaddress;
+	unsigned int port;
 	unsigned int idletime;
 	unsigned int capability;
 	bool locked;
@@ -94,6 +95,8 @@ typedef struct _sessiondata {
 	std::string version;
 	std::string clientapp;
 	unsigned int requests;
+	std::string url;
+	std::string proxyhost;
 } sessiondata;
 
 class ECSessionStatsTable : public ECGenericObjectTable {

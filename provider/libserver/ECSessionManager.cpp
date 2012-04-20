@@ -401,8 +401,6 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 		
 		if(fLockSession)
 			lpSession->Lock();
-			
-        lpSession->IncRequests();
 	}else{
 		//EC_SESSION_LOST
 	}
@@ -584,8 +582,10 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap, ECSESSIONID sess
 		er = ZARAFA_E_END_OF_SESSION;
 		goto exit;
 	}
+
+	lpSession->RecordRequest(soap);
 	
-	er = lpSession->ValidateIp(soap->ip);
+	er = lpSession->ValidateOriginator(soap);
 	if (er != erSuccess) {
 		if (fLockSession)
 			lpSession->Unlock();
@@ -620,7 +620,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 
 	CreateSessionID(ulCapabilities, &newSessionID);
 
-	lpAuthSession = new ECAuthSession(soap->ip, newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
+	lpAuthSession = new ECAuthSession(GetSourceAddr(soap), newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
 	if (lpAuthSession) {
 	    if (bLockSession) {
 	        lpAuthSession->Lock();
@@ -649,7 +649,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 	std::string		from;
 	CONNECTION_TYPE ulType;
 
-	zarafa_get_soap_connection_type(soap, &ulType);
+	ulType = SOAP_CONNECTION_TYPE(soap);
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 		from = string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
 	} else if (ulType == CONNECTION_TYPE_NAMED_PIPE) {
@@ -761,7 +761,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(ZARAFA_CAP_LARGE_SESSIONID, &newSID);
 
-	lpSession = new ECSession(0, newSID, 0, m_lpDatabaseFactory, this, 0, false, ECSession::METHOD_NONE, 0, "internal", "zarafa-server");
+	lpSession = new ECSession("<internal>", newSID, 0, m_lpDatabaseFactory, this, 0, false, ECSession::METHOD_NONE, 0, "internal", "zarafa-server");
 	if(lpSession == NULL) {
 		er = ZARAFA_E_LOGON_FAILED;
 		goto exit;

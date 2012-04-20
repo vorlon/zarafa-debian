@@ -2684,3 +2684,22 @@ ECRESULT FreeNamedPropArray(struct namedPropArray *array, bool bFreeBase)
 
 	return erSuccess;
 }
+
+/** 
+ * Get logical source address for a request
+ *
+ * Normally returns the string representation of the IP address of the connected client. However,
+ * when a proxy is detected (bProxy is true) and an X-Forwarded-From header is available, returns
+ * the contents of that header
+ *
+ * @param[in] soap Soap object of the request
+ * @result String representation of the requester's source address
+ */
+std::string GetSourceAddr(struct soap *soap)
+{
+	if( ((SOAPINFO *)soap->user)->bProxy && soap->proxy_from)
+		return soap->proxy_from;
+	else
+		return PrettyIP(soap->ip);
+}
+

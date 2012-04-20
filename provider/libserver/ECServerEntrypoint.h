@@ -59,24 +59,11 @@
 #define ZARAFA_SERVER_INIT_SERVER		0
 #define ZARAFA_SERVER_INIT_OFFLINE		1
 
-typedef void (*THREADSTATUSCALLBACK)(pthread_t id, std::string strStatus, void* ulParam);
-
-struct SOAPINFO {
-	 CONNECTION_TYPE ulConnectionType;
-	 THREADSTATUSCALLBACK lpCallBack;
-	 void* ulCallBackParam;
-};
-
 #define SOAP_CONNECTION_TYPE_NAMED_PIPE(soap)	\
 	((soap) && ((soap)->user) && ((((SOAPINFO*)(soap)->user)->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE) || (((SOAPINFO*)(soap)->user)->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)))
 
 #define SOAP_CONNECTION_TYPE(soap)	\
 	(((SOAPINFO*)(soap)->user)->ulConnectionType)
-
-#define SOAP_CALLBACK(soap, thread, name)										\
-	if ((soap) && ((soap)->user) && (((SOAPINFO*)(soap)->user)->lpCallBack))	\
-		((SOAPINFO*)(soap)->user)->lpCallBack(thread, name, ((SOAPINFO*)(soap)->user)->ulCallBackParam)
-
 
 ECRESULT zarafa_init(ECConfig *lpConfig, ECLogger *lpLogger, ECLogger* lpAudit, bool bHostedZarafa, bool bDistributedZarafa);
 ECRESULT zarafa_exit();
@@ -93,10 +80,9 @@ ECRESULT zarafa_unloadlibrary();					// Unload mysql library
 ZARAFA_API ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
 
 // SOAP connection management
-void zarafa_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap, THREADSTATUSCALLBACK lpCallBack, void* ulParam);
+void zarafa_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap);
+void zarafa_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap);
 void zarafa_disconnect_soap_connection(struct soap *soap);
-void zarafa_end_soap_connection(struct soap *soap);
-bool zarafa_get_soap_connection_type(struct soap *soap, CONNECTION_TYPE *lpulType);
 
 
 #endif //ECECSERVERENTRYPOINT_H

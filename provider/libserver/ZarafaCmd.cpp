@@ -408,30 +408,66 @@ exit:
 	return er;
 }
 
+/**
+ * Get the best server path for a server
+ *
+ * This function will return the 'best' server path to redirect the client to. This is
+ * done by examining the existing incoming connection, and choosing an appropriate access
+ * method to the given server. Rules are as follows:
+ *
+ * - If bProxy is TRUE and the destination server has a proxy address, return the proxy address
+ * - If bProxy is FALSE:
+ *   - If existing connection is HTTP, return first available of: HTTP, HTTPS
+ *   - If existing connection is HTTPS, return HTTPS
+ *   - If existing connection is FILE, return first available of: HTTPS, HTTP
+ *
+ * @param[in] soap SOAP structure for incoming request
+ * @param[in] lpecSession Session for the request
+ * @param[in] strServerName Server name to get path for
+ * @param[in] bProxy TRUE if we are requesting the proxy address for a server
+ * @param[out] lpstrServerPath Output path of server (URL)
+ * @return result
+ */
 ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath)
 {
 	ECRESULT	er = erSuccess;
 	std::string	strServerPath;
 	bool		bConnectPipe = false;
+	SOAPINFO	*lpInfo = NULL;
 
 	serverdetails_t	sServerDetails;
 	std::string		strFilePath;
 	std::string		strHttpPath;
 	std::string		strSslPath;
+	std::string		strProxyPath;
+	char *			szProxyHeader = lpecSession->GetSessionManager()->GetConfig()->GetSetting("proxy_header");
 
 	if (soap == NULL || soap->user == NULL || lpstrServerPath == NULL)
 	{
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
+	
+	lpInfo = (SOAPINFO *)soap->user;
 
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess)
 		goto exit;
 
+    strProxyPath = sServerDetails.GetProxyPath();
 	strFilePath = sServerDetails.GetFilePath();
 	strHttpPath = sServerDetails.GetHttpPath();
 	strSslPath = sServerDetails.GetSslPath();
+
+	// Always redirect if proxy_header is "*"
+    if (!strcmp(szProxyHeader, "*") || lpInfo->bProxy) {
+        if(!strProxyPath.empty()) {
+            *lpstrServerPath = strProxyPath;
+            goto exit;
+        } else {
+            lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Proxy path not set for server '%s'! falling back to direct address.", strServerName.c_str());
+        }
+    }    
 
 	if (!strFilePath.empty())
 	{
@@ -804,7 +840,6 @@ double GetTimeOfDay();
     ECSession		*lpecSession = NULL; \
     unsigned int 	*lpResultVar = &resultvar; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
-	SOAP_CALLBACK(soap, pthread_self(), (std::string) "[" + PrettyIP(soap->ip) + "] " + #fname); \
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
 	const bool UNUSED_VAR bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) != 0 : false); \
 	const ECStringCompat stringCompat(er == erSuccess ? lpecSession->GetCapabilities() : 0); \
@@ -822,7 +857,6 @@ __soapentry_exit: \
 	lpecSession->RemoveBusyState(pthread_self()); \
         lpecSession->Unlock(); \
     } \
-	SOAP_CALLBACK(soap, pthread_self(), (std::string) "[" + PrettyIP(soap->ip) + "] " + "Idle"); \
     return SOAP_OK;
 
 

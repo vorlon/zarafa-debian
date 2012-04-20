@@ -89,12 +89,12 @@ void CreateSessionID(unsigned int ulCapabilities, ECSESSIONID *lpSessionId);
 */
 class BTSession {
 public:
-	BTSession(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
+	BTSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 	virtual ~BTSession();
 
 	virtual ECRESULT Shutdown(unsigned int ulTimeout);
 
-	virtual ECRESULT ValidateIp(unsigned long ip);
+	virtual ECRESULT ValidateOriginator(struct soap *soap);
 	virtual ECSESSIONID GetSessionId();
 
 	virtual time_t GetSessionTime();
@@ -111,20 +111,20 @@ public:
 	virtual void Unlock();
 	virtual bool IsLocked();
 	
-	virtual void IncRequests();
+	virtual void RecordRequest(struct soap *soap);
     virtual unsigned int GetRequests();
 
 	time_t GetIdleTime();
-	unsigned long GetIpAddress();
+	std::string GetSourceAddr();
 
 	typedef enum {
 	    METHOD_NONE, METHOD_USERPASSWORD, METHOD_SOCKET, METHOD_SSO, METHOD_SSL_CERT
     } AUTHMETHOD;
-    
+
 protected:
 	unsigned int		m_ulRefCount;
 
-	unsigned long		m_ip;
+	std::string			m_strSourceAddr;
 	ECSESSIONID			m_sessionID;
 	bool				m_bCheckIP;
 
@@ -141,6 +141,9 @@ protected:
 	pthread_mutex_t		m_hThreadReleasedMutex;	
 	
 	unsigned int		m_ulRequests;
+	std::string			m_strLastRequestURL;
+	std::string			m_strProxyHost;
+	unsigned int		m_ulLastRequestPort;
 };
 
 /*
@@ -149,7 +152,7 @@ protected:
 class ECSession : public BTSession
 {
 public:
-	ECSession(unsigned long ip, ECSESSIONID sessionID, ECSESSIONGROUPID sessionGroupID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp);
+	ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID sessionGroupID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp);
 
 	virtual ECSESSIONGROUPID GetSessionGroupId();
 	virtual int				 GetConnectingPid();
@@ -182,6 +185,9 @@ public:
 	void GetClocks(double *lpdblUser, double *lpdblSystem, double *lpdblReal);
 	void GetClientVersion(std::string *lpstrVersion);
     void GetClientApp(std::string *lpstrClientApp);
+    void GetClientPort(unsigned int *lpulPort);
+    void GetRequestURL(std::string *lpstrURL);
+    void GetProxyHost(std::string *lpstrProxyHost);
 
 	unsigned int ClientVersion() const { return m_ulClientVersion; }
 
@@ -216,7 +222,7 @@ private:
 */
 class ECAuthSession : public BTSession {
 public:
-	ECAuthSession(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
+	ECAuthSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 	virtual ~ECAuthSession();
 
 	ECRESULT ValidateUserLogon(char *lpszName, char *lpszPassword);
@@ -261,7 +267,7 @@ private:
 class ECAuthSessionOffline : public ECAuthSession
 {
 public:
-	ECAuthSessionOffline(unsigned long ip, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
+	ECAuthSessionOffline(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 
 	ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
 

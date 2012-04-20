@@ -505,6 +505,11 @@ ldap_server_file_path_attribute = zarafaFilePath
 # LDAP: zarafaContainsPublic
 ldap_server_contains_public_attribute = zarafaContainsPublic
 
+# The Proxy URL of the node; the node must be available to clients
+# using this Proxy URL if the server detects that original connection
+# was received via a proxy. See server.cfg(5)'s proxy_header setting
+ldap_server_proxy_path_attribute = zarafaProxyURL
+
 # Search for servers using this LDAP filter.  See ldap_search(3) or RFC
 # 2254 for details on the filter syntax.
 # Optional, default = empty (match everything)
