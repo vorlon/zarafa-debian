@@ -407,7 +407,7 @@ olcAttributeTypes: (
 ################################################################################
 #
 olcAttributeTypes: (
-  1.3.6.1.4.1.26278.1.4.4.5
+  1.3.6.1.4.1.26278.1.4.4.6
   NAME 'zarafaProxyURL'
   DESC 'ZARAFA: Full proxy URL for this server'
   EQUALITY caseIgnoreMatch

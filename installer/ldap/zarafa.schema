@@ -282,7 +282,7 @@ attributetype (1.3.6.1.4.1.26278.1.4.4.4
 	EQUALITY integerMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )
 
-attributetype (1.3.6.1.4.1.26278.1.4.4.5
+attributetype (1.3.6.1.4.1.26278.1.4.4.6
 	NAME 'zarafaProxyURL'
 	DESC 'ZARAFA: Full proxy URL for this server'
 	EQUALITY caseIgnoreMatch
