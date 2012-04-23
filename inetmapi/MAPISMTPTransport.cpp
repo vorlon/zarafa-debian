@@ -716,7 +716,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		// qmail: ok 1295860788 qp 29154
 		// exim: OK id=1PhIZ9-0002Ko-Q8
 		if (!m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) // prevent double logging
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "SMTP: %s", resp->getText().c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "SMTP: %s", resp->getText().c_str());
 	}
 }
 
