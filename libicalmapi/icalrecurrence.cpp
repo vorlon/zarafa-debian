@@ -371,10 +371,10 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 		goto exit;
 	}
 	icStart = icalvalue_get_datetime(icalproperty_get_value(lpicProp));
-	ttStartLocalTime = icaltime_as_timet(icStart);
 	ttStartUtcTime = ICalTimeTypeToUTC(lpEventRoot, lpicProp);
+	ttStartLocalTime = icaltime_as_timet(icStart);
 
-	lpEx->tStartDate = ttStartLocalTime;
+	lpEx->tStartDate = ttStartUtcTime;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (lpicProp == NULL) {
