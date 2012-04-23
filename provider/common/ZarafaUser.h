@@ -208,4 +208,6 @@ private:
 	std::string	m_strProxyPath;
 };
 
+typedef std::list<std::string> serverlist_t;
+
 #endif

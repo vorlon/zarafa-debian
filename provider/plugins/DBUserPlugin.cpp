@@ -359,6 +359,11 @@ auto_ptr<serverdetails_t> DBUserPlugin::getServerDetails(const string &server) t
 	throw notsupported("server details");
 }
 
+auto_ptr<serverlist_t> DBUserPlugin::getServers() throw(std::exception)
+{
+	throw notsupported("server list");
+}
+
 void DBUserPlugin::addSubObjectRelation(userobject_relation_t relation, const objectid_t &parentobject, const objectid_t &childobject) throw(std::exception)
 {
 	ECRESULT er = erSuccess;

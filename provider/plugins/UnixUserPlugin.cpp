@@ -895,6 +895,11 @@ auto_ptr<serverdetails_t> UnixUserPlugin::getServerDetails(const string &server)
 	throw notsupported("server details");
 }
 
+auto_ptr<serverlist_t> UnixUserPlugin::getServers() throw(std::exception)
+{
+	throw notsupported("server list");
+}
+
 auto_ptr<map<objectid_t, objectdetails_t> > UnixUserPlugin::getObjectDetails(const list<objectid_t> &objectids) throw (std::exception) {
 	auto_ptr<map<objectid_t, objectdetails_t> > mapdetails = auto_ptr<map<objectid_t, objectdetails_t> >(new map<objectid_t,objectdetails_t>);
 	auto_ptr<objectdetails_t> uDetails;

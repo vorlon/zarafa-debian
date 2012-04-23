@@ -72,7 +72,7 @@ am_libcommon_mapi_la_OBJECTS = CommonUtil.lo rtfutil.lo codepage.lo \
 	ECKeyTable.lo Util.lo ECDebug.lo favoritesutil.lo \
 	ZarafaCode.lo HtmlToTextParser.lo HtmlEntity.lo ECABEntryID.lo \
 	ECDebugPrint.lo ECIterators.lo MAPINotifSink.lo \
-	IStreamAdapter.lo
+	IStreamAdapter.lo MAPIConsoleTable.lo
 libcommon_mapi_la_OBJECTS = $(am_libcommon_mapi_la_OBJECTS)
 libcommon_mapi_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -99,8 +99,9 @@ am__libcommon_util_la_SOURCES_DIST = platform.cpp platform.linux.cpp \
 	charset/localeutil.cpp TimeUtil.cpp RecurrenceState.cpp \
 	ECGetText.cpp threadutil.cpp ECRestriction.cpp userutil.cpp \
 	ECFeatures.cpp ECACL.cpp fileutil.cpp ECThreadPool.cpp \
-	ustringutil/itercomp.cpp ustringutil/utf32iter.cpp \
-	ustringutil/utf8iter.cpp ustringutil/utfutil.cpp
+	ConsoleTable.cpp ustringutil/itercomp.cpp \
+	ustringutil/utf32iter.cpp ustringutil/utf8iter.cpp \
+	ustringutil/utfutil.cpp
 @HAVE_ICU_TRUE@am__objects_1 = itercomp.lo utf32iter.lo utf8iter.lo \
 @HAVE_ICU_TRUE@	utfutil.lo
 am_libcommon_util_la_OBJECTS = platform.lo platform.linux.lo md5.lo \
@@ -111,7 +112,7 @@ am_libcommon_util_la_OBJECTS = platform.lo platform.linux.lo md5.lo \
 	traits.lo localeutil.lo TimeUtil.lo RecurrenceState.lo \
 	ECGetText.lo threadutil.lo ECRestriction.lo userutil.lo \
 	ECFeatures.lo ECACL.lo fileutil.lo ECThreadPool.lo \
-	$(am__objects_1)
+	ConsoleTable.lo $(am__objects_1)
 libcommon_util_la_OBJECTS = $(am_libcommon_util_la_OBJECTS)
 libcommon_util_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -354,6 +355,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
+				  ConsoleTable.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -381,7 +383,8 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			ECDebugPrint.cpp							\
 			ECIterators.cpp								\
 			MAPINotifSink.cpp							\
-			IStreamAdapter.cpp
+			IStreamAdapter.cpp							\
+			MAPIConsoleTable.cpp
 
 libcommon_util_la_LDFLAGS = -static
 libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
@@ -393,7 +396,7 @@ libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
 	charset/localeutil.cpp TimeUtil.cpp RecurrenceState.cpp \
 	ECGetText.cpp threadutil.cpp ECRestriction.cpp userutil.cpp \
 	ECFeatures.cpp ECACL.cpp fileutil.cpp ECThreadPool.cpp \
-	$(am__append_1)
+	ConsoleTable.cpp $(am__append_1)
 libcommon_ssl_la_LDFLAGS = -static
 libcommon_ssl_la_SOURCES = \
 			SSLUtil.cpp								\
@@ -497,6 +500,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CommonUtil.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleTable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECABEntryID.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECACL.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECCache.Plo@am__quote@
@@ -524,6 +528,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlEntity.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlToTextParser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IStreamAdapter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MAPIConsoleTable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MAPINotifSink.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RecurrenceState.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SSLUtil.Plo@am__quote@

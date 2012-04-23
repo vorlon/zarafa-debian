@@ -976,6 +976,7 @@ struct userClientUpdateStatusResponse {
 #define TABLETYPE_STATS_COMPANY		8	// Company stats (hosted only)
 #define TABLETYPE_USERSTORES		9	// UserStore tables
 #define TABLETYPE_MAILBOX			10	// Mailbox Table
+#define TABLETYPE_STATS_SERVERS		11	// Servers table
 
 // Flags for struct tableMultiRequest
 #define TABLE_MULTI_CLEAR_RESTRICTION	0x1	// Clear table restriction

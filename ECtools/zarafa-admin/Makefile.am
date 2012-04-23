@@ -11,7 +11,7 @@ zarafa_admin_LDADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la
 	$(PROG_LIBS)
 
-zarafa_admin_SOURCES = zarafa-admin.cpp ConsoleTable.h ConsoleTable.cpp
+zarafa_admin_SOURCES = zarafa-admin.cpp
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

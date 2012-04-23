@@ -306,6 +306,14 @@ public:
 	virtual auto_ptr<serverdetails_t> getServerDetails(const string &server) throw(std::exception) = 0;
 
 	/**
+	 * Obtain server list
+	 *
+	 * @return list of servers
+	 * @throw runtime_error LDAP query failure
+	 */
+	virtual auto_ptr<serverlist_t> getServers() throw(std::exception) = 0;
+
+	/**
 	 * Update an object with new details
 	 *
 	 * @note It is not mandatory to implement this function

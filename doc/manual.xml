@@ -10086,6 +10086,18 @@
 
 		  <varlistentry>
 			<term>
+			  <option>--servers</option>
+			</term>
+			<listitem>
+			  <para>Dump the servers table. This is only available in
+			  multiserver mode. Each server shows access methods and
+			  configured ports.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
 			  <option>--top</option>
 			</term>
 			<listitem>

@@ -103,17 +103,20 @@ unsigned int sUserStatsProps[] = { PR_EC_COMPANY_NAME, PR_EC_USERNAME, PR_DISPLA
 								   PR_EC_OUTOFOFFICE, PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME };
 unsigned int sCompanyStatsProps[] = { PR_EC_COMPANY_NAME, PR_EC_COMPANY_ADMIN, PR_MESSAGE_SIZE_EXTENDED,
 									  PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD, PR_QUOTA_RECEIVE_THRESHOLD, PR_EC_QUOTA_MAIL_TIME };
+unsigned int sServerStatsProps[] = { PR_EC_STATS_SERVER_NAME, PR_EC_STATS_SERVER_HOST, PR_EC_STATS_SERVER_HTTPPORT, PR_EC_STATS_SERVER_SSLPORT, PR_EC_STATS_SERVER_PROXYURL, PR_EC_STATS_SERVER_HTTPURL,
+									 PR_EC_STATS_SERVER_HTTPSURL, PR_EC_STATS_SERVER_FILEURL };
 
-struct propTagArray sPropTagArrayContents = { (unsigned int *)&sContentsProps, sizeof(sContentsProps)/sizeof(sContentsProps[0])};
-struct propTagArray sPropTagArrayHierarchy = { (unsigned int *)&sHierarchyProps, sizeof(sHierarchyProps)/sizeof(sHierarchyProps[0])};
-struct propTagArray sPropTagArrayABContents = { (unsigned int *)&sABContentsProps, sizeof(sABContentsProps)/sizeof(sABContentsProps[0])};
-struct propTagArray sPropTagArrayABHierarchy = { (unsigned int *)&sABHierarchyProps, sizeof(sABHierarchyProps)/sizeof(sABHierarchyProps[0])};
-struct propTagArray sPropTagArrayUserStores = { (unsigned int *)&sUserStoresProps, sizeof(sUserStoresProps)/sizeof(sUserStoresProps[0])};
+struct propTagArray sPropTagArrayContents = { (unsigned int *)&sContentsProps, arraySize(sContentsProps)};
+struct propTagArray sPropTagArrayHierarchy = { (unsigned int *)&sHierarchyProps, arraySize(sHierarchyProps)};
+struct propTagArray sPropTagArrayABContents = { (unsigned int *)&sABContentsProps, arraySize(sABContentsProps)};
+struct propTagArray sPropTagArrayABHierarchy = { (unsigned int *)&sABHierarchyProps, arraySize(sABHierarchyProps)};
+struct propTagArray sPropTagArrayUserStores = { (unsigned int *)&sUserStoresProps, arraySize(sUserStoresProps)};
 
-struct propTagArray sPropTagArraySystemStats = { (unsigned int *)&sSystemStatsProps, sizeof(sSystemStatsProps)/sizeof(sSystemStatsProps[0])};
-struct propTagArray sPropTagArraySessionStats = { (unsigned int *)&sSessionStatsProps, sizeof(sSessionStatsProps)/sizeof(sSessionStatsProps[0])};
-struct propTagArray sPropTagArrayUserStats = { (unsigned int *)&sUserStatsProps, sizeof(sUserStatsProps)/sizeof(sUserStatsProps[0])};
-struct propTagArray sPropTagArrayCompanyStats = { (unsigned int *)&sCompanyStatsProps, sizeof(sCompanyStatsProps)/sizeof(sCompanyStatsProps[0])};
+struct propTagArray sPropTagArraySystemStats = { (unsigned int *)&sSystemStatsProps, arraySize(sSystemStatsProps)};
+struct propTagArray sPropTagArraySessionStats = { (unsigned int *)&sSessionStatsProps, arraySize(sSessionStatsProps)};
+struct propTagArray sPropTagArrayUserStats = { (unsigned int *)&sUserStatsProps, arraySize(sUserStatsProps)};
+struct propTagArray sPropTagArrayCompanyStats = { (unsigned int *)&sCompanyStatsProps, arraySize(sCompanyStatsProps)};
+struct propTagArray sPropTagArrayServerStats = { (unsigned int *)&sServerStatsProps, arraySize(sServerStatsProps)};
 
 ECTableManager::ECTableManager(ECSession *lpSession)
 {
@@ -489,6 +492,19 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 
 		lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_COMPANYSTATS;
 		er = lpTable->SetColumns(&sPropTagArrayCompanyStats, true);
+		break;
+	case TABLETYPE_STATS_SERVERS:
+		if (adminlevel < ADMIN_LEVEL_SYSADMIN) {
+			AuditStatsAccess(lpSession, "denied", "company");
+			er = ZARAFA_E_NO_ACCESS;
+			goto exit;
+		}
+		er = ECServerStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECServerStatsTable**)&lpTable);
+		if (er != erSuccess)
+			goto exit;
+
+		lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_SERVERSTATS;
+		er = lpTable->SetColumns(&sPropTagArrayServerStats, true);
 		break;
 	default:
 		er = ZARAFA_E_UNKNOWN;

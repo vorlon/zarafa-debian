@@ -2756,6 +2756,11 @@ auto_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails() throw(std::exc
 	throw notimplemented("distributed");
 }
 
+auto_ptr<serverlist_t> LDAPUserPlugin::getServers() throw(std::exception)
+{
+	throw notimplemented("distributed");
+}
+
 auto_ptr<serverdetails_t> LDAPUserPlugin::getServerDetails(const string &server) throw(std::exception)
 {
 	throw notimplemented("distributed");

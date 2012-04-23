@@ -223,6 +223,7 @@ public:
 	virtual ECRESULT	GetPublicStoreDetails(objectdetails_t *lpDetails);
 
 	virtual ECRESULT	GetServerDetails(const std::string &strServer, serverdetails_t *lpDetails);
+	virtual ECRESULT	GetServerList(serverlist_t *lpServerList);
 
 	/* Check if the user license status */
 	ECRESULT	CheckUserLicense(unsigned int *lpulLicenseStatus);

@@ -3905,6 +3905,7 @@ ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId, unsigned int ulTabl
 		case TABLETYPE_STATS_SESSIONS:
 		case TABLETYPE_STATS_USERS:
 		case TABLETYPE_STATS_COMPANY:
+		case TABLETYPE_STATS_SERVERS:
 			er = lpecSession->GetTableManager()->OpenStatsTable(ulTableType, ulFlags, &ulTableId);
 			if (er != erSuccess)
 				goto exit;

@@ -195,6 +195,14 @@ public:
 	 */
 	virtual auto_ptr<serverdetails_t> getServerDetails(const string &server) throw(std::exception);
 
+	/**
+	 * Obtain server list
+	 *
+	 * @return list of servers
+	 * @throw runtime_error LDAP query failure
+	 */
+	virtual auto_ptr<serverlist_t> getServers() throw(std::exception);
+
     /**
 	 * Add relation between child and parent. This can be used
 	 * for example to add a user to a group or add

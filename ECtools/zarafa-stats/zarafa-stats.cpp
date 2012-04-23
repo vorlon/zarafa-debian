@@ -67,16 +67,18 @@
 #include "ECTags.h"
 #include "my_getopt.h"
 #include "charset/convert.h"
+#include "MAPIConsoleTable.h"
 
 using namespace std;
 
-enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER };
+enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SERVER_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER };
 
 struct option long_options[] = {
 		{ "system", 0, NULL, SYSTEM_STATS },
 		{ "sessions", 0, NULL, SESSION_STATS },
 		{ "users", 0, NULL, USER_STATS },
 		{ "company", 0, NULL, COMPANY_STATS },
+		{ "servers", 0, NULL, SERVER_STATS },
 		{ "top", 0, NULL, SESSION_TOP },
 		{ "host", 1, NULL, OPTION_HOST },
 		{ "user", 1, NULL, OPTION_USER },
@@ -114,13 +116,20 @@ const static SizedSSortOrderSet(2, tableSortCompany) =
   }
 };
 
+const static SizedSSortOrderSet(2, tableSortServers) =
+{ 1, 0, 0,
+  {
+	  { PR_EC_STATS_SERVER_NAME, TABLE_SORT_ASCEND }
+  }
+};
+
 LPSSortOrderSet sortorders[] = {
 	(LPSSortOrderSet)&tableSortSystem, (LPSSortOrderSet)&tableSortSession,
-	(LPSSortOrderSet)&tableSortUser, (LPSSortOrderSet)&tableSortCompany
+	(LPSSortOrderSet)&tableSortUser, (LPSSortOrderSet)&tableSortCompany, (LPSSortOrderSet)&tableSortServers
 };
 ULONG ulTableProps[] = {
 	PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
-	PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY
+	PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY, PR_EC_STATSTABLE_SERVERS
 };
 
 typedef struct {
@@ -564,70 +573,7 @@ void dumptable(eTableType eTable, LPMDB lpStore) {
 		goto exit;
 	}
 
-	while (TRUE) {
-
-		hr = lpTable->QueryRows(50, 0, &lpRowSet);
-		if (hr != hrSuccess)
-			goto exit;
-
-		if (lpRowSet->cRows == 0)
-			break;
-
-		for (c = 0; c < lpRowSet->cRows; c++) {
-			for (p = 0; p < lpRowSet->aRow[c].cValues; p++) {
-				cout << stringify(lpRowSet->aRow[c].lpProps[p].ulPropTag, true) << ": ";
-				switch (PROP_TYPE(lpRowSet->aRow[c].lpProps[p].ulPropTag)) {
-				case PT_SHORT:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.i;
-					break;
-				case PT_LONG:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.ul;
-					break;
-				case PT_LONGLONG:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.li.QuadPart;
-					break;
-				case PT_FLOAT:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.flt;
-					break;
-				case PT_DOUBLE:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.dbl;
-					break;
-				case PT_SYSTIME:
-					FileTimeToUnixTime(lpRowSet->aRow[c].lpProps[p].Value.ft, &t);
-					szTimeString = ctime(&t);
-					ulTimeLength = strlen(szTimeString);
-					szTimeString[ulTimeLength-1] = '\0'; // -1 to strip enter from ctime
-					cout << szTimeString;
-					break;
-				case PT_BOOLEAN:
-					cout << (lpRowSet->aRow[c].lpProps[p].Value.b ? "True" : "False");
-					break;
-				case PT_STRING8:
-					cout << lpRowSet->aRow[c].lpProps[p].Value.lpszA;
-					break;
-				case PT_MV_STRING8:
-					for (m = 0; m < lpRowSet->aRow[c].lpProps[p].Value.MVszA.cValues; m++) {
-						cout << lpRowSet->aRow[c].lpProps[p].Value.MVszA.lppszA[m];
-						if (m+1 < lpRowSet->aRow[c].lpProps[p].Value.MVszA.cValues)
-							cout << ", ";
-					}
-					break;
-				case PT_ERROR:
-					cout << "error: " << stringify(lpRowSet->aRow[c].lpProps[p].Value.err, true);
-					break;
-				default:
-					cout << "Unable to display this property";
-					break;
-				}
-				cout << endl;
-			}
-			if (eTable != SYSTEM_STATS)
-				cout << endl;
-		}
-
-		FreeProws(lpRowSet);
-		lpRowSet = NULL;
-	}
+	hr = MAPITablePrint(lpTable);
 
 exit:
 	if (lpRowSet)
@@ -646,6 +592,7 @@ void print_help(char *name)
 	cout << "  --session" << "\tGives information about sessions and server time spent in SOAP calls" << endl;
 	cout << "  --users" << "\tGives information about users, store sizes and quotas" << endl;
 	cout << "  --company" << "\tGives information about companies, company sizes and quotas" << endl;
+	cout << "  --servers" << "\tGives information about cluster nodex" << endl;
 	cout << "  --top" << "\t\tShows top-like information about sessions" << endl;
 	cout << "Options:" << endl;
 	cout << "  --user, -u <user>" << "\tUse specified username to logon" << endl;
@@ -692,6 +639,7 @@ int main(int argc, char *argv[])
 			case SESSION_STATS:
 			case USER_STATS: 
 			case COMPANY_STATS:
+			case SERVER_STATS:
 			case SESSION_TOP:
 				eTable = (eTableType)c;
 				break;

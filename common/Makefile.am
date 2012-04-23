@@ -22,6 +22,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
+				  ConsoleTable.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -52,7 +53,8 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			ECDebugPrint.cpp							\
 			ECIterators.cpp								\
 			MAPINotifSink.cpp							\
-			IStreamAdapter.cpp
+			IStreamAdapter.cpp							\
+			MAPIConsoleTable.cpp
 
 libcommon_util_la_LDFLAGS = -static
 libcommon_util_la_SOURCES = platform.cpp			\
@@ -86,7 +88,8 @@ libcommon_util_la_SOURCES = platform.cpp			\
 			ECFeatures.cpp							\
 			ECACL.cpp								\
 			fileutil.cpp							\
-			ECThreadPool.cpp
+			ECThreadPool.cpp						\
+			ConsoleTable.cpp
 
 if HAVE_ICU
 libcommon_util_la_SOURCES += ustringutil/itercomp.cpp	\

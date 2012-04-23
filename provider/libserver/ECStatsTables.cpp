@@ -966,3 +966,147 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 exit:
 	return er;
 }
+
+ECServerStatsTable::ECServerStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+{
+	m_lpfnQueryRowData = QueryRowData;
+	m_lpObjectData = this;
+}
+
+ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECServerStatsTable **lppTable)
+{
+	*lppTable = new ECServerStatsTable(lpSession, ulFlags, locale);
+
+	(*lppTable)->AddRef();
+
+	return erSuccess;
+}
+
+ECRESULT ECServerStatsTable::Load()
+{
+	ECRESULT er = erSuccess;
+	sObjectTableKey sRowItem;
+	serverlist_t servers;
+	unsigned int i = 1;
+
+	er = lpSession->GetUserManagement()->GetServerList(&servers);
+	if (er != erSuccess)
+		goto exit;
+		
+	// Assign an ID to each server which is usable from QueryRowData
+	for(serverlist_t::iterator iServer = servers.begin(); iServer != servers.end(); iServer++) {
+		m_mapServers.insert(std::make_pair(i, *iServer));
+		// For each server, add a row in the table
+		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
+		
+		i++;
+	}
+
+exit:
+
+	return er;
+}
+
+
+ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
+{
+	ECRESULT er = erSuccess;
+	int i, k;
+	struct rowSet *lpsRowSet = NULL;
+	ECObjectTableList::iterator iterRowList;
+	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
+	serverdetails_t details;
+	
+	ECServerStatsTable *lpStats = (ECServerStatsTable *)lpThis;
+
+	lpsRowSet = s_alloc<rowSet>(soap);
+	lpsRowSet->__size = 0;
+	lpsRowSet->__ptr = NULL;
+
+	if (lpRowList->empty()) {
+		*lppRowSet = lpsRowSet;
+		goto exit;
+	}
+
+	// We return a square array with all the values
+	lpsRowSet->__size = lpRowList->size();
+	lpsRowSet->__ptr = s_alloc<propValArray>(soap, lpsRowSet->__size);
+	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
+
+	// Allocate memory for all rows
+	for (i = 0; i < lpsRowSet->__size; i++) {
+		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
+		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
+		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
+	}
+
+	for(i = 0, iterRowList = lpRowList->begin(); iterRowList != lpRowList->end(); iterRowList++, i++)	{
+		if(lpUserManagement->GetServerDetails(lpStats->m_mapServers[iterRowList->ulObjId], &details) != erSuccess)
+			details = serverdetails_t();
+		
+		for (k = 0; k < lpsPropTagArray->__size; k++) {
+			// default is error prop
+			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			lpsRowSet->__ptr[i].__ptr[k].Value.ul = ZARAFA_E_NOT_FOUND;
+			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+
+			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
+			case PROP_ID(PR_INSTANCE_KEY):
+				// generate key 
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, (void*)&(*iterRowList), sizeof(sObjectTableKey));
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_NAME):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, lpStats->m_mapServers[iterRowList->ulObjId].c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_HTTPPORT):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = details.GetHttpPort();
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_SSLPORT):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = details.GetSslPort();
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_HOST):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetHostAddress().c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_PROXYURL):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetProxyPath().c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_HTTPURL):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetHttpPath().c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_HTTPSURL):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetSslPath().c_str());
+				break;
+			case PROP_ID(PR_EC_STATS_SERVER_FILEURL):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetFilePath().c_str());
+				break;
+			};
+		}
+	}	
+
+	*lppRowSet = lpsRowSet;
+
+exit:
+	return er;
+}
+

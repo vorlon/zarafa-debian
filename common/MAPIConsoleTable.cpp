@@ -47,23 +47,83 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,0,34041
-#define PROJECT_VERSION_SERVER_STR	"7,1,0,34041"
-#define PROJECT_VERSION_CLIENT		7,1,0,34041
-#define PROJECT_VERSION_CLIENT_STR	"7,1,0,34041"
-#define PROJECT_VERSION_EXT_STR		"7,1,0,34041"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,0,34041"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,0,34041"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,0,34041"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,0,34041"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,0,34041"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,0,34041"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,0,34041"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,0,34041"
-#define PROJECT_VERSION_INDEXER_STR	"7,1,0,34041"
-#define PROJECT_VERSION_DOT_STR		"7.1.0"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"34041"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			34041
+#include "platform.h"
+
+#include "MAPIConsoleTable.h"
+#include "ConsoleTable.h"
+#include "mapi_ptr.h"
+#include "mapi_ptr/mapi_rowset_ptr.h"
+#include "stringutil.h"
+
+std::string ToString(SPropValue *lpProp)
+{
+    switch(PROP_TYPE(lpProp->ulPropTag)) {
+        case PT_STRING8:
+            return std::string(lpProp->Value.lpszA);
+        case PT_LONG:
+            return stringify(lpProp->Value.ul);
+        case PT_DOUBLE:
+            return stringify(lpProp->Value.dbl);
+        case PT_FLOAT:
+            return stringify(lpProp->Value.flt);
+        case PT_I8:
+            return stringify_int64(lpProp->Value.li.QuadPart);
+        case PT_SYSTIME:
+        {
+            time_t t;
+            char buf[32]; // must be at least 26 bytes
+            FileTimeToUnixTime(lpProp->Value.ft, &t);
+            ctime_r(&t, buf);
+            buf[strlen(buf)-2] = 0;
+            return std::string(buf);
+        }
+        case PT_MV_STRING8:
+        {
+            std::string s;
+            for(unsigned int i=0; i < lpProp->Value.MVszA.cValues; i++) {
+                if(!s.empty())
+                    s += ",";
+                s += lpProp->Value.MVszA.lppszA[i];
+            }
+            
+            return s;
+        }
+            
+    }
+    
+    return std::string();
+}
+
+HRESULT MAPITablePrint(IMAPITable *lpTable)
+{
+    HRESULT hr = hrSuccess;
+    SPropTagArrayPtr ptrColumns;
+    mapi_rowset_ptr ptrRows;
+    ConsoleTable ct(0, 0);
+    unsigned int i = 0, j = 0;
+    
+    hr = lpTable->QueryColumns(0, &ptrColumns);
+    if(hr != hrSuccess)
+        goto exit;
+        
+    hr = lpTable->QueryRows(-1, 0, &ptrRows);
+    if(hr != hrSuccess)
+        goto exit;
+        
+    ct.Resize(ptrRows.size(), ptrColumns->cValues);
+    
+    for(i=0;i<ptrColumns->cValues;i++) {
+        ct.SetHeader(i, stringify(ptrColumns->aulPropTag[i], true));
+    }
+    
+    for(i=0;i<ptrRows.size();i++) {
+        for(j=0;j<ptrRows[i].cValues;j++) {
+            ct.SetColumn(i, j, ToString(&ptrRows[i].lpProps[j]));
+        }
+    }
+    
+    ct.PrintTable();
+        
+exit:
+    return hr;
+}

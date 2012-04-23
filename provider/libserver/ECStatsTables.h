@@ -148,4 +148,20 @@ public:
 private:
 };
 
+class ECServerStatsTable : public ECGenericObjectTable {
+protected:
+	ECServerStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
+
+public:
+	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECServerStatsTable **lppTable);
+
+	virtual ECRESULT Load();
+
+	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
+
+private:
+	std::map<unsigned int, std::string> m_mapServers;
+};
+
+
 #endif

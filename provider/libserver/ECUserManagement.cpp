@@ -4809,6 +4809,41 @@ exit:
 	return er;
 }
 
+/**
+ * Get list of servers from LDAP
+ *
+ * Note that the list of servers may include servers that are completely idle since
+ * they are not listed as a home server for a user or as a public store server.
+ *
+ * The server names returned are suitable for passing to GetServerDetails()
+ *
+ * @param[out] lpServerList List of servers
+ * @return result
+ */
+ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
+{
+	ECRESULT er = erSuccess;
+	auto_ptr<serverlist_t> list;
+	UserPlugin *lpPlugin = NULL;
+	
+	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin, m_lpLogger);
+	if(er != erSuccess)
+		goto exit;
+
+	try {
+		list = lpPlugin->getServers();
+	} catch (std::exception &e) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to get server list: %s", e.what());
+		er = ZARAFA_E_NOT_FOUND;
+		goto exit;
+	}
+
+	*lpServerList = *list;
+	
+exit:
+	return er;
+}
+
 ECRESULT ECUserManagement::CheckObjectModified(unsigned int ulObjectId, const string &localsignature, const string &remotesignature)
 {
 	ECRESULT er = erSuccess;
