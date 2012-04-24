@@ -269,8 +269,9 @@ int zarafa_fparsehdr(struct soap *soap, const char *key, const char *val)
 	char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
 	if(strlen(szProxy) > 0 && stricmp(key, szProxy) == 0) {
 		((SOAPINFO *)soap->user)->bProxy = true;
-		return SOAP_OK;
-	} else return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
+	}
+	
+	return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
 }
 
 // Called just after a new soap connection is established
