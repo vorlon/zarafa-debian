@@ -5756,7 +5756,7 @@
 		      <para>If the node is accessed through a reverse HTTP proxy, it
 		      should be accessed using this URL. See the manual page entry
 		      of proxy_header in the
-		      <citerefentry><refentrytitle>zarafa-server.cfg</refentrytitle><manvolnum>5</manvolnum></citerefentry>(5) manpage for
+		      <citerefentry><refentrytitle>zarafa-server.cfg</refentrytitle><manvolnum>5</manvolnum></citerefentry> manpage for
 		      details on when this value is used.</para>
 		      <para>Default: <replaceable>zarafaProxyURL</replaceable>
 		      </para>
