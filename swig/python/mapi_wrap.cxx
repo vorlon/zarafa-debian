@@ -15239,32 +15239,30 @@ SWIGINTERN PyObject *_wrap_IMAPITable_GetCollapseState(PyObject *SWIGUNUSEDPARM(
   IMAPITable *arg1 = (IMAPITable *) 0 ;
   ULONG arg2 ;
   ULONG arg3 ;
-  LPBYTE arg4 ;
+  BYTE *arg4 = (BYTE *) 0 ;
   ULONG *arg5 = (ULONG *) 0 ;
   LPBYTE *arg6 = (LPBYTE *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   unsigned int fl2 ;
   int ecode2 ;
-  unsigned int val3 ;
-  int ecode3 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
-  ULONG temp5 ;
-  int res5 = SWIG_TMPOBJ ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  size_t size3 ;
+  int alloc3 = 0 ;
+  ULONG cbEntryID5 = 0 ;
+  LPBYTE lpEntryID5 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
-  arg5 = &temp5;
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:IMAPITable_GetCollapseState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  {
+    arg5 = &cbEntryID5; arg6 = &lpEntryID5;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IMAPITable_GetCollapseState",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IMAPITable, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IMAPITable_GetCollapseState" "', argument " "1"" of type '" "IMAPITable *""'"); 
@@ -15278,29 +15276,19 @@ SWIGINTERN PyObject *_wrap_IMAPITable_GetCollapseState(PyObject *SWIGUNUSEDPARM(
     arg2 = fl2;
     ulFlags = fl2;
   }
-  ecode3 = SWIG_AsVal_unsigned_SS_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IMAPITable_GetCollapseState" "', argument " "3"" of type '" "ULONG""'");
-  } 
-  arg3 = static_cast< ULONG >(val3);
   {
-    res4 = SWIG_ConvertPtr(obj3, &argp4, SWIGTYPE_p_LPBYTE,  0  | 0);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IMAPITable_GetCollapseState" "', argument " "4"" of type '" "LPBYTE""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IMAPITable_GetCollapseState" "', argument " "4"" of type '" "LPBYTE""'");
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, &size3, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IMAPITable_GetCollapseState" "', argument " "3"" of type '" "ULONG""'");
+    }
+    if(buf3 == NULL) {
+      arg3 = 0;
+      arg4 = NULL;
     } else {
-      LPBYTE * temp = reinterpret_cast< LPBYTE * >(argp4);
-      arg4 = *temp;
-      if (SWIG_IsNewObj(res4)) delete temp;
+      arg3 = static_cast< ULONG >(size3 - 1);
+      arg4 = reinterpret_cast< BYTE * >(buf3);
     }
   }
-  res6 = SWIG_ConvertPtr(obj4, &argp6,SWIGTYPE_p_LPBYTE, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "IMAPITable_GetCollapseState" "', argument " "6"" of type '" "LPBYTE *""'"); 
-  }
-  arg6 = reinterpret_cast< LPBYTE * >(argp6);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     {
@@ -15323,15 +15311,28 @@ SWIGINTERN PyObject *_wrap_IMAPITable_GetCollapseState(PyObject *SWIGUNUSEDPARM(
       SWIG_fail;
     }
   }
-  if (SWIG_IsTmpObj(res5)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_int((*arg5)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_ULONG, new_flags));
+  {
+    if (*arg6) {
+      resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize((const char *)*arg6,*arg5));
+    }
+  }
+  {
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  }
+  {
+    if(*arg6)
+    MAPIFreeBuffer(*arg6);
   }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  }
+  {
+    if(*arg6)
+    MAPIFreeBuffer(*arg6);
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
@@ -15342,28 +15343,27 @@ SWIGINTERN PyObject *_wrap_IMAPITable_SetCollapseState(PyObject *SWIGUNUSEDPARM(
   IMAPITable *arg1 = (IMAPITable *) 0 ;
   ULONG arg2 ;
   ULONG arg3 ;
-  LPBYTE arg4 ;
+  BYTE *arg4 = (BYTE *) 0 ;
   BOOKMARK *arg5 = (BOOKMARK *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   unsigned int fl2 ;
   int ecode2 ;
-  unsigned int val3 ;
-  int ecode3 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  size_t size3 ;
+  int alloc3 = 0 ;
   BOOKMARK temp5 ;
   int res5 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   HRESULT result;
   
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
   ULONG ulFlags = 0;
   arg5 = &temp5;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IMAPITable_SetCollapseState",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IMAPITable_SetCollapseState",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IMAPITable, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IMAPITable_SetCollapseState" "', argument " "1"" of type '" "IMAPITable *""'"); 
@@ -15377,22 +15377,17 @@ SWIGINTERN PyObject *_wrap_IMAPITable_SetCollapseState(PyObject *SWIGUNUSEDPARM(
     arg2 = fl2;
     ulFlags = fl2;
   }
-  ecode3 = SWIG_AsVal_unsigned_SS_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IMAPITable_SetCollapseState" "', argument " "3"" of type '" "ULONG""'");
-  } 
-  arg3 = static_cast< ULONG >(val3);
   {
-    res4 = SWIG_ConvertPtr(obj3, &argp4, SWIGTYPE_p_LPBYTE,  0  | 0);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IMAPITable_SetCollapseState" "', argument " "4"" of type '" "LPBYTE""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IMAPITable_SetCollapseState" "', argument " "4"" of type '" "LPBYTE""'");
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, &size3, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IMAPITable_SetCollapseState" "', argument " "3"" of type '" "ULONG""'");
+    }
+    if(buf3 == NULL) {
+      arg3 = 0;
+      arg4 = NULL;
     } else {
-      LPBYTE * temp = reinterpret_cast< LPBYTE * >(argp4);
-      arg4 = *temp;
-      if (SWIG_IsNewObj(res4)) delete temp;
+      arg3 = static_cast< ULONG >(size3 - 1);
+      arg4 = reinterpret_cast< BYTE * >(buf3);
     }
   }
   {
@@ -15423,9 +15418,15 @@ SWIGINTERN PyObject *_wrap_IMAPITable_SetCollapseState(PyObject *SWIGUNUSEDPARM(
     int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_ULONG, new_flags));
   }
+  {
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return resultobj;
 fail:
+  {
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  }
   SWIG_PYTHON_THREAD_END_BLOCK;
   return NULL;
 }
