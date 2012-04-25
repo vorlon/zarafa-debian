@@ -30524,6 +30524,84 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_IECServiceAdmin_ResetFolderCount(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
+  ULONG arg2 ;
+  LPENTRYID arg3 ;
+  ULONG *arg4 = (ULONG *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  size_t size2 ;
+  int alloc2 = 0 ;
+  ULONG temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  HRESULT result;
+  
+  arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IECServiceAdmin_ResetFolderCount",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECServiceAdmin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECServiceAdmin_ResetFolderCount" "', argument " "1"" of type '" "IECServiceAdmin *""'"); 
+  }
+  arg1 = reinterpret_cast< IECServiceAdmin * >(argp1);
+  {
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, &size2, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IECServiceAdmin_ResetFolderCount" "', argument " "2"" of type '" "ULONG""'");
+    }
+    if(buf2 == NULL) {
+      arg2 = 0;
+      arg3 = NULL;
+    } else {
+      arg2 = static_cast< ULONG >(size2 - 1);
+      arg3 = reinterpret_cast< LPENTRYID >(buf2);
+    }
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->ResetFolderCount(arg2,arg3,arg4);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_unsigned_SS_int((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_ULONG, new_flags));
+  }
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  return resultobj;
+fail:
+  {
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_delete_IECServiceAdmin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IECServiceAdmin *arg1 = (IECServiceAdmin *) 0 ;
@@ -34637,6 +34715,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IECServiceAdmin_ResolvePseudoUrl", _wrap_IECServiceAdmin_ResolvePseudoUrl, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_GetPublicStoreEntryID", _wrap_IECServiceAdmin_GetPublicStoreEntryID, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_GetArchiveStoreEntryID", _wrap_IECServiceAdmin_GetArchiveStoreEntryID, METH_VARARGS, NULL},
+	 { (char *)"IECServiceAdmin_ResetFolderCount", _wrap_IECServiceAdmin_ResetFolderCount, METH_VARARGS, NULL},
 	 { (char *)"delete_IECServiceAdmin", _wrap_delete_IECServiceAdmin, METH_VARARGS, NULL},
 	 { (char *)"IECServiceAdmin_swigregister", IECServiceAdmin_swigregister, METH_VARARGS, NULL},
 	 { (char *)"IECSpooler_GetMasterOutgoingTable", _wrap_IECSpooler_GetMasterOutgoingTable, METH_VARARGS, NULL},

@@ -11476,3 +11476,33 @@ SOAP_ENTRY_START(removeAllObjects, *result, entryId sExceptUserId, unsigned int 
     er = ZARAFA_E_NO_SUPPORT;
 }
 SOAP_ENTRY_END()
+
+SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct resetFolderCountResponse *lpsResponse)
+{
+	unsigned int ulObjId = 0;
+	unsigned int ulOwner = 0;
+	unsigned int ulObjType = 0;
+
+	er = g_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&sEntryId, &ulObjId);
+	if (er != erSuccess)
+		goto exit;
+
+	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, &ulOwner, NULL, &ulObjType);
+	if (er != erSuccess)
+		goto exit;
+
+	if (ulObjType != MAPI_FOLDER) {
+		er = ZARAFA_E_INVALID_TYPE;
+		goto exit;
+	}
+
+	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityOwner);
+	if (er != erSuccess)
+		goto exit;
+
+	er = ResetFolderCount(lpecSession, ulObjId, &lpsResponse->ulUpdates);
+
+exit:
+	;
+}
+SOAP_ENTRY_END()

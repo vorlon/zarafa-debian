@@ -4891,3 +4891,33 @@ HRESULT WSTransport::HrEnsureSession()
     return hr;
 }
 
+HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
+{
+	HRESULT hr = hrSuccess;
+    ECRESULT er = erSuccess;
+	entryId eidFolder;
+	resetFolderCountResponse sResponse = {0};
+
+	LockSoap();
+
+	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &eidFolder, true);
+	if (hr != hrSuccess)
+		goto exit;
+
+	START_SOAP_CALL
+	{
+		if (SOAP_OK != m_lpCmd->ns__resetFolderCount(m_ecSessionId, eidFolder, &sResponse))
+			er = ZARAFA_E_NETWORK_ERROR;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
+
+	if (lpulUpdates)
+		*lpulUpdates = sResponse.ulUpdates;
+
+exit:
+    UnLockSoap();
+    
+	return hr;
+}

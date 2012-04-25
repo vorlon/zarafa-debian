@@ -3404,6 +3404,11 @@ exit:
 	return hr;
 }
 
+HRESULT ECMsgStore::ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
+{
+	return lpTransport->HrResetFolderCount(cbEntryId, lpEntryId, lpulUpdates);
+}
+
 // This is almost the same as getting a 'normal' outgoing table, except we pass NULL as PEID for the store
 HRESULT ECMsgStore::GetMasterOutgoingTable(ULONG ulFlags, IMAPITable ** lppOutgoingTable)
 {
@@ -4509,6 +4514,13 @@ HRESULT ECMsgStore::xECServiceAdmin::GetArchiveStoreEntryID(LPCTSTR lpszUserName
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetArchiveStoreEntryID", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
 	return pThis->GetArchiveStoreEntryID(lpszUserName, lpszServerName, ulFlags, lpcbStoreID, lppStoreID);
+}
+
+HRESULT ECMsgStore::xECServiceAdmin::ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResetFolderCount", "");
+	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
+	return pThis->ResetFolderCount(cbEntryId, lpEntryId, lpulUpdates);
 }
 
 ///////////////////////

@@ -136,6 +136,8 @@ public:
 
 	// Archive store function(s)
 	virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID) = 0;
+
+	virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) = 0;
 };
 
 #endif // #ifndef IECSERVICEADMIN

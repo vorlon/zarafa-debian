@@ -328,6 +328,8 @@ public:
 	/* Check session and relogon if needed */
 	virtual HRESULT HrEnsureSession();
 
+	virtual HRESULT HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates);
+
 private:
 	static SOAP_SOCKET RefuseConnect(struct soap*, const char*, const char*, int);
 
