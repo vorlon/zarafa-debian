@@ -111,7 +111,9 @@ protected:
 
 private:
 	HRESULT MapNamedProps();
+	HRESULT CreateInfoMessage(LPSPropTagArray lpptaDeleteProps, const std::string &strBodyHtml);
 	std::string CreateErrorBodyUtf8(HRESULT hResult);
+	std::string CreateOfflineWarnBodyUtf8();
 
 private:
 	bool	m_bLoading;

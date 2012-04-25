@@ -66,6 +66,7 @@
 #include "ECDebug.h"
 #include "charset/convert.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -145,13 +146,15 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	// If we noticed we are stubbed, we need to perform a merge here.
 	if (m_mode == MODE_STUBBED) {
 		const BOOL fModifyCopy = this->fModify;
+		ECMsgStore *lpMsgStore = GetMsgStore();
 		
 		// @todo: Put in MergePropsFromStub
 		SizedSPropTagArray(4, sptaDeleteProps) = {4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
 		SizedSPropTagArray(6, sptaRestoreProps) = {6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX, PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
 
+
 		if (!m_ptrArchiveMsg) {
-			ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore*>(GetMsgStore());
+			ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);
 			if (lpStore == NULL) {
 				// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
 				// ECArchiveAwareMsgStore. We won't just die here though...
@@ -161,36 +164,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &m_ptrArchiveMsg);
 			if (hr != hrSuccess) {
-				HRESULT hResult = hr;
-				StreamPtr ptrHtmlStream;
-
-				this->fModify = TRUE;
-
-				hr = DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
-				if (hr == hrSuccess) {
-					SPropValue sPropVal;
-					sPropVal.ulPropTag = PR_INTERNET_CPID;
-					sPropVal.Value.l = 65001;
-					hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
-				}
-
-				if (hr == hrSuccess) 
-					hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid, 0, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
-
-				if (hr == hrSuccess) {
-					ULARGE_INTEGER liZero = {0, 0};
-					hr = ptrHtmlStream->SetSize(liZero);
-				}
-
-				if (hr == hrSuccess) {
-					const std::string strBodyHtml = CreateErrorBodyUtf8(hResult);	
-					hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
-				}
-
-				if (hr == hrSuccess)
-					hr = ptrHtmlStream->Commit(0);
-
-				this->fModify = FALSE;
+				hr = CreateInfoMessage((LPSPropTagArray)&sptaDeleteProps, CreateErrorBodyUtf8(hr));
 				goto exit;
 			}
 		}
@@ -485,6 +459,45 @@ exit:
 	return hr;
 }
 
+HRESULT ECArchiveAwareMessage::CreateInfoMessage(LPSPropTagArray lpptaDeleteProps, const std::string &strBodyHtml)
+{
+	HRESULT hr = hrSuccess;
+	SPropValue sPropVal;
+	StreamPtr ptrHtmlStream;
+	ULARGE_INTEGER liZero = {0, 0};
+
+	this->fModify = TRUE;
+
+	hr = DeleteProps(lpptaDeleteProps, NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	sPropVal.ulPropTag = PR_INTERNET_CPID;
+	sPropVal.Value.l = 65001;
+	hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid, 0, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHtmlStream->SetSize(liZero);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHtmlStream->Commit(0);
+
+exit:
+	this->fModify = FALSE;
+
+	return hr;
+}
+
 std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 	std::basic_ostringstream<TCHAR> ossHtmlBody;
 
@@ -537,6 +550,28 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 	}
 
 	ossHtmlBody << _T("</BODY></HTML>");
+
+	tstring strHtmlBody = ossHtmlBody.str();
+	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
+}
+
+std::string ECArchiveAwareMessage::CreateOfflineWarnBodyUtf8()
+{
+	std::basic_ostringstream<TCHAR> ossHtmlBody;
+
+	ossHtmlBody << _T("<HTML><HEAD><STYLE type=\"text/css\">")
+				   _T("BODY {font-family: \"sans-serif\";margin-left: 1em;}")
+				   _T("P {margin: .1em 0;}")
+				   _T("P.spacing {margin: .8em 0;}")
+				   _T("H1 {margin: .3em 0;}")
+				   _T("SPAN#errcode {display: inline;font-weight: bold;}")
+				   _T("SPAN#errmsg {display: inline;font-style: italic;}")
+				   _T("DIV.indented {margin-left: 4em;}")
+				   _T("</STYLE></HEAD><BODY><H1>")
+				<< _("Zarafa Archiver")
+				<< _T("</H1><P>")
+				<< _("Archives can not be destubbed when working offline.")
+				<< _T("</P></BODY></HTML>");
 
 	tstring strHtmlBody = ossHtmlBody.str();
 	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
