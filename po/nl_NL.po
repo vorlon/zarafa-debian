@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-11 12:24+0200\n"
+"POT-Creation-Date: 2012-04-26 00:05+0200\n"
 "PO-Revision-Date: 2012-03-30 15:14+0200\n"
 "Last-Translator: Martijn <martijn@zarafa.com>\n"
 "Language-Team: nl_NL <nl@li.org>\n"
@@ -95,7 +95,7 @@ msgid "Unable to open MAPI session."
 msgstr "Kan geen MAPI sessie openen."
 
 #: provider/ECProps/Addin.cpp:1195 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2380
+#: provider/client/ECMsgStore.cpp:2384
 msgid "Shortcut"
 msgstr "Snelkoppeling"
 
@@ -618,32 +618,32 @@ msgid "This delegate has the following permissions"
 msgstr "De gemachtigde heeft de volgende permissies"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2457
+#: provider/client/ECMsgStore.cpp:2461
 msgid "Calendar"
 msgstr "Agenda"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2503
+#: provider/client/ECMsgStore.cpp:2507
 msgid "Tasks"
 msgstr "Taken"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2397
+#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2401
 msgid "Inbox"
 msgstr "Postvak IN"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2445
+#: provider/client/ECMsgStore.cpp:2449
 msgid "Contacts"
 msgstr "Contactpersonen"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2491
+#: provider/client/ECMsgStore.cpp:2495
 msgid "Notes"
 msgstr "Notities"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2479
+#: provider/client/ECMsgStore.cpp:2483
 msgid "Journal"
 msgstr "Logboek"
 
@@ -926,43 +926,43 @@ msgstr "Eerste Synchronisatie Mappen..."
 msgid "Sync folder items"
 msgstr "Sync map items"
 
-#: provider/client/ECMsgStore.cpp:2427
+#: provider/client/ECMsgStore.cpp:2431
 msgid "Outbox"
 msgstr "Postvak UIT"
 
-#: provider/client/ECMsgStore.cpp:2433
+#: provider/client/ECMsgStore.cpp:2437
 msgid "Deleted Items"
 msgstr "Verwijderde items"
 
-#: provider/client/ECMsgStore.cpp:2439
+#: provider/client/ECMsgStore.cpp:2443
 msgid "Sent Items"
 msgstr "Verzonden items"
 
-#: provider/client/ECMsgStore.cpp:2467
+#: provider/client/ECMsgStore.cpp:2471
 msgid "Drafts"
 msgstr "Concepten"
 
-#: provider/client/ECMsgStore.cpp:2515
+#: provider/client/ECMsgStore.cpp:2519
 msgid "Junk E-mail"
 msgstr "Ongewenste E-mail"
 
-#: provider/client/ECMsgStore.cpp:2537
+#: provider/client/ECMsgStore.cpp:2541
 msgid "RSS Feeds"
 msgstr "RSS-kanalen"
 
-#: provider/client/ECMsgStore.cpp:2537
+#: provider/client/ECMsgStore.cpp:2541
 msgid "RSS Feed comment"
 msgstr "Commentaar bij RSS-kanaal"
 
-#: provider/client/ECMsgStore.cpp:2541
+#: provider/client/ECMsgStore.cpp:2545
 msgid "Conversation Action Settings"
 msgstr "Conversatie actie instellingen"
 
-#: provider/client/ECMsgStore.cpp:2545
+#: provider/client/ECMsgStore.cpp:2549
 msgid "Quick Step Settings"
 msgstr "Snelle Handeling Instellingen"
 
-#: provider/client/ECMsgStore.cpp:2549
+#: provider/client/ECMsgStore.cpp:2553
 msgid "Suggested Contacts"
 msgstr "Voorgestelde Contactpersonen"
 
@@ -979,39 +979,44 @@ msgid "User already exists."
 msgstr "Gebruiker is al aanwezig."
 
 # 93%
-#: provider/client/ECArchiveAwareMessage.cpp:451
+#: provider/client/ECArchiveAwareMessage.cpp:477
+#: provider/client/ECArchiveAwareMessage.cpp:535
 msgid "Zarafa Archiver"
 msgstr "Zarafa Archiver"
 
-#: provider/client/ECArchiveAwareMessage.cpp:453
+#: provider/client/ECArchiveAwareMessage.cpp:479
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 "Een fout is naar voren gekomen tijdens het ophalen van het bericht uit de "
 "archive"
 
-#: provider/client/ECArchiveAwareMessage.cpp:455
+#: provider/client/ECArchiveAwareMessage.cpp:481
 msgid "Please contact your system administrator."
 msgstr "Neem alstublieft contact op met uw systeem administrator"
 
-#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:484 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr "Fout code:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:467
+#: provider/client/ECArchiveAwareMessage.cpp:493
 msgid "It seems no valid archiver license is installed."
 msgstr "Er is mogelijk geen geldige licentie voor archiver geïnstalleerd."
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
+#: provider/client/ECArchiveAwareMessage.cpp:497
 msgid "The archive could not be found."
 msgstr "Het archief kon niet gevonden worden."
 
-#: provider/client/ECArchiveAwareMessage.cpp:475
+#: provider/client/ECArchiveAwareMessage.cpp:501
 msgid "You don't have sufficient access to the archive."
 msgstr "U heeft niet de correcte rechten om het archief te openen"
 
-#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:508 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Fout beschrijving:"
+
+#: provider/client/ECArchiveAwareMessage.cpp:537
+msgid "Archives can not be destubbed when working offline."
+msgstr ""
 
 #: provider/client/ECABProviderSwitch.cpp:136
 #: provider/client/ECMSProviderSwitch.cpp:272
@@ -1366,7 +1371,7 @@ msgstr "Het certificaat is vertrouwd maar wordt niet juist geverifieerd."
 msgid "Do you wish to continue?"
 msgstr "Wilt u doorgaan?"
 
-#: zarafa-libsync/ECSync.cpp:1938
+#: zarafa-libsync/ECSync.cpp:1947
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"

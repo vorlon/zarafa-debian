@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-11 12:24+0200\n"
+"POT-Creation-Date: 2012-04-26 00:05+0200\n"
 "PO-Revision-Date: 2010-08-19 15:51+0200\n"
 "Last-Translator: Cies <cies@zarafa.com>\n"
 "Language-Team: sv_SE <sv@li.org>\n"
@@ -96,7 +96,7 @@ msgid "Unable to open MAPI session."
 msgstr "Kan inte öppna MAPI sessionen."
 
 #: provider/ECProps/Addin.cpp:1195 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2380
+#: provider/client/ECMsgStore.cpp:2384
 msgid "Shortcut"
 msgstr "Genväg"
 
@@ -608,32 +608,32 @@ msgid "This delegate has the following permissions"
 msgstr "Detta ombud har följande tillstånd"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2457
+#: provider/client/ECMsgStore.cpp:2461
 msgid "Calendar"
 msgstr "Kalender"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2503
+#: provider/client/ECMsgStore.cpp:2507
 msgid "Tasks"
 msgstr "Uppgifter"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2397
+#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2401
 msgid "Inbox"
 msgstr "Inkorg"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2445
+#: provider/client/ECMsgStore.cpp:2449
 msgid "Contacts"
 msgstr "Kontakter"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2491
+#: provider/client/ECMsgStore.cpp:2495
 msgid "Notes"
 msgstr "Anteckningar"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2479
+#: provider/client/ECMsgStore.cpp:2483
 msgid "Journal"
 msgstr "Dagbok"
 
@@ -920,43 +920,43 @@ msgstr "Första mapp synkningen..."
 msgid "Sync folder items"
 msgstr "Synkronisera mapp innehåll"
 
-#: provider/client/ECMsgStore.cpp:2427
+#: provider/client/ECMsgStore.cpp:2431
 msgid "Outbox"
 msgstr "Utkorg"
 
-#: provider/client/ECMsgStore.cpp:2433
+#: provider/client/ECMsgStore.cpp:2437
 msgid "Deleted Items"
 msgstr "Borttagna poster"
 
-#: provider/client/ECMsgStore.cpp:2439
+#: provider/client/ECMsgStore.cpp:2443
 msgid "Sent Items"
 msgstr "Skickade poster"
 
-#: provider/client/ECMsgStore.cpp:2467
+#: provider/client/ECMsgStore.cpp:2471
 msgid "Drafts"
 msgstr "Utkast"
 
-#: provider/client/ECMsgStore.cpp:2515
+#: provider/client/ECMsgStore.cpp:2519
 msgid "Junk E-mail"
 msgstr "Skräppost"
 
-#: provider/client/ECMsgStore.cpp:2537
+#: provider/client/ECMsgStore.cpp:2541
 msgid "RSS Feeds"
 msgstr "RSS Feeds"
 
-#: provider/client/ECMsgStore.cpp:2537
+#: provider/client/ECMsgStore.cpp:2541
 msgid "RSS Feed comment"
 msgstr "RSS Feed kommentar"
 
-#: provider/client/ECMsgStore.cpp:2541
+#: provider/client/ECMsgStore.cpp:2545
 msgid "Conversation Action Settings"
 msgstr ""
 
-#: provider/client/ECMsgStore.cpp:2545
+#: provider/client/ECMsgStore.cpp:2549
 msgid "Quick Step Settings"
 msgstr ""
 
-#: provider/client/ECMsgStore.cpp:2549
+#: provider/client/ECMsgStore.cpp:2553
 msgid "Suggested Contacts"
 msgstr ""
 
@@ -972,36 +972,41 @@ msgstr "Ta bort"
 msgid "User already exists."
 msgstr "Användaren finns redan"
 
-#: provider/client/ECArchiveAwareMessage.cpp:451
+#: provider/client/ECArchiveAwareMessage.cpp:477
+#: provider/client/ECArchiveAwareMessage.cpp:535
 msgid "Zarafa Archiver"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:453
+#: provider/client/ECArchiveAwareMessage.cpp:479
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:455
+#: provider/client/ECArchiveAwareMessage.cpp:481
 msgid "Please contact your system administrator."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:458 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:484 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:467
+#: provider/client/ECArchiveAwareMessage.cpp:493
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
+#: provider/client/ECArchiveAwareMessage.cpp:497
 msgid "The archive could not be found."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:475
+#: provider/client/ECArchiveAwareMessage.cpp:501
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:482 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:508 spooler/archive.cpp:339
 msgid "Error description:"
+msgstr ""
+
+#: provider/client/ECArchiveAwareMessage.cpp:537
+msgid "Archives can not be destubbed when working offline."
 msgstr ""
 
 #: provider/client/ECABProviderSwitch.cpp:136
@@ -1357,7 +1362,7 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr ""
 
-#: zarafa-libsync/ECSync.cpp:1938
+#: zarafa-libsync/ECSync.cpp:1947
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"
