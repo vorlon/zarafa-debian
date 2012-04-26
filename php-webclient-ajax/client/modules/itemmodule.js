@@ -1520,6 +1520,8 @@ ItemModule.prototype.retrieveInlineImagesFromBody = function (editorDocument)
 
 			var contentId = src.substr(src.indexOf("attachCid=")+10);
 			contentId = contentId.substring(0, contentId.indexOf("&"));
+			// Decode the CID so it will match the data in the inlineattachments array
+			contentId = decodeURIComponent(contentId);
 			
 			for (var attach_Num in this.inlineattachments) {
 				if (contentId == this.inlineattachments[attach_Num]["cid"]){
