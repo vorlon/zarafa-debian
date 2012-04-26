@@ -211,7 +211,7 @@ HRESULT ZarafaFsckContact::ValidateItem(LPMESSAGE lpMessage, string strClass)
 {
 	HRESULT hr = hrSuccess;
 
-	if (strClass != "IPM.Contact") {
+	if (strClass != "IPM.Contact" && strClass != "IPM.DistList") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
 		hr = E_INVALIDARG;
 		goto exit;
