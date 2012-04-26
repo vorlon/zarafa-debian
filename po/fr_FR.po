@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-26 00:05+0200\n"
-"PO-Revision-Date: 2012-02-13 14:55+0200\n"
+"POT-Creation-Date: 2012-04-26 14:30+0200\n"
+"PO-Revision-Date: 2012-04-26 09:48+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -1032,7 +1032,7 @@ msgstr "Description de l'erreur :"
 
 #: provider/client/ECArchiveAwareMessage.cpp:537
 msgid "Archives can not be destubbed when working offline."
-msgstr ""
+msgstr "Il est impossible de rapatrier les archives en mode hors connexion."
 
 #: provider/client/ECABProviderSwitch.cpp:136
 #: provider/client/ECMSProviderSwitch.cpp:272
@@ -1400,6 +1400,10 @@ msgid ""
 "\r\n"
 "Please contact the system administrator if this problem persists."
 msgstr ""
+"La synchronisation du répertoire a échoué. Cliquer sur réessayer pour "
+"continuer ou bien sur ignorer pour supprimer les erreurs.\r\n"
+"\r\n"
+"Veuillez contacte l'administrateur du système si le problème persiste."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
 msgid "Zarafa Archive"
@@ -1594,17 +1598,18 @@ msgstr "Code erreur MAPI :"
 
 #: installer/linux/zarafa-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr ""
+msgstr "Les rendez-vous périodiques ne sont pas autorisés"
 
 #: installer/linux/zarafa-mr-accept:453
 msgid "The requested time slot is unavailable"
-msgstr ""
+msgstr "La tranche horaire demandée n'est pas disponible"
 
 #: installer/linux/zarafa-mr-accept:455
 msgid "The requested time slots are unavailble on the following dates:"
 msgstr ""
+"La tranche horaire demandée n'est pas disponible pour les dates suivantes :"
 
 #: installer/linux/zarafa-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
