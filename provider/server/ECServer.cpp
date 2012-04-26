@@ -1253,7 +1253,8 @@ int running_server(char *szName, const char *szConfig)
 			goto exit;
 		}
 	}else if(er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't update the database: %s", dbError.c_str());
+		if (er != ZARAFA_E_USER_CANCEL)
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't update the database: %s", dbError.c_str());
 		retval = -1;
 		goto exit;
 	}

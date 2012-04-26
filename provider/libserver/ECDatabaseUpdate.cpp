@@ -1893,7 +1893,7 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please consult the Zarafa administrator manual on how to correctly upgrade your database.");
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Alternatively you may try to upgrade using --force-database-upgrade,");
 		lpDatabase->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "but no progress and estimates within the updates will be available.");
-		er = ZARAFA_E_DATABASE_ERROR;
+		er = ZARAFA_E_USER_CANCEL;
 		goto exit;
 	}
 
