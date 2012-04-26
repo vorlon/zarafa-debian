@@ -83,6 +83,8 @@ public:
 	void setThreadCount(unsigned ulThreadCount, bool bWait = false);
 	
 	struct timeval queueAge() const;
+
+	bool waitForAllTasks(time_t timeout) const;
 	
 private:	// methods
 	virtual bool getNextTask(STaskInfo *lpsTaskInfo);
@@ -100,6 +102,7 @@ private:	// members
 	mutable pthread_mutex_t	m_hMutex;
 	pthread_cond_t			m_hCondition;
 	pthread_cond_t			m_hCondTerminated;
+	mutable pthread_cond_t	m_hCondTaskDone;
 
 private:
 	ECThreadPool(const ECThreadPool &);

@@ -87,6 +87,18 @@ Only servers in this list will be processed by the backup tool\&. Servernames ar
 .sp
 Default: value not set\&.
 .RE
+.PP
+\fBthreads\fR
+.RS 4
+Use multiple threads during the backup of multiple stores\&. Depending on the number of CPUs and disks you have, you can increase this number to a sensible value for your setup\&. All users within a company space will be backedup simultaneously\&. On a non\-hosted environment, this means all users in the setup\&.
+.sp
+This setting can be overwritten by the
+\fB\-\-threads\fR
+commandline option\&.
+.sp
+Default:
+\fI1\fR
+.RE
 .SH "AUTHOR"
 .PP
 Written by Zarafa\&.

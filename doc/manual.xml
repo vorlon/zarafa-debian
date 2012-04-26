@@ -8498,6 +8498,23 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>--threads</option></term>
+			<term>
+			  <option>-t</option>
+			  <replaceable>N</replaceable>
+			</term>
+			<listitem>
+			  <para>Use multiple threads during the backup of multiple
+			  stores. Depending on the number of CPUs and disks you
+			  have, you can increase this number to a sensible value
+			  for your setup. All users within a company space will be
+			  backedup simultaneously. On a non-hosted environment,
+			  this means all users in the setup.</para>
+			  <para>Default: <replaceable>1</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>--verbose</option></term>
 			<term>
 			  <option>-v</option>
@@ -9916,6 +9933,21 @@
 			  backup tool. Servernames are SPACE seperated. Default is
 			  empty, processing all servers.</para>
 			  <para>Default: value not set.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>threads</option></term>
+			<listitem>
+			  <para>Use multiple threads during the backup of multiple
+			  stores. Depending on the number of CPUs and disks you
+			  have, you can increase this number to a sensible value
+			  for your setup. All users within a company space will be
+			  backedup simultaneously. On a non-hosted environment,
+			  this means all users in the setup.</para>
+			  <para>This setting can be overwritten by the
+			  <option>--threads</option> commandline option.</para>
+			  <para>Default: <replaceable>1</replaceable></para>
 			</listitem>
 		  </varlistentry>
 

@@ -49,6 +49,7 @@
 
 #include "platform.h"
 #include "ECThreadPool.h"
+#include "threadutil.h"
 
 #include <algorithm>
 
@@ -94,6 +95,7 @@ ECThreadPool::ECThreadPool(unsigned ulThreadCount)
 	pthread_mutex_init(&m_hMutex, NULL);
 	pthread_cond_init(&m_hCondition, NULL);
 	pthread_cond_init(&m_hCondTerminated, NULL);
+	pthread_cond_init(&m_hCondTaskDone, NULL);
 
 	setThreadCount(ulThreadCount);	
 }
@@ -106,6 +108,7 @@ ECThreadPool::~ECThreadPool()
 {
 	setThreadCount(0, true);
 
+	pthread_cond_destroy(&m_hCondTaskDone);
 	pthread_cond_destroy(&m_hCondTerminated);
 	pthread_cond_destroy(&m_hCondition);
 	pthread_mutex_destroy(&m_hMutex);
@@ -215,6 +218,31 @@ struct timeval ECThreadPool::queueAge() const
 	return tvAge;
 }
 
+bool ECThreadPool::waitForAllTasks(time_t timeout) const
+{
+	bool empty = false;
+
+	do {
+		scoped_lock lock(m_hMutex);
+		empty = m_listTasks.empty();
+
+		if (empty)
+			break;
+
+		if (timeout) {
+			struct timespec ts = GetDeadline(timeout * 1000);
+			if (pthread_cond_timedwait(&m_hCondTaskDone, &m_hMutex, &ts) == ETIMEDOUT) {
+				empty = m_listTasks.empty();
+				break;
+			}
+		} else {
+			pthread_cond_wait(&m_hCondTaskDone, &m_hMutex);
+		}
+	} while (true);
+
+	return empty;
+}
+
 /**
  * Get the next task from the queue (or terminate thread).
  * This method normally pops the next task object from the queue. However when
@@ -304,6 +332,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
+		pthread_cond_signal(&lpPool->m_hCondTaskDone);
 	}
 	
 	return NULL;

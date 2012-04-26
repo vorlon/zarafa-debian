@@ -237,6 +237,14 @@ Default:
 \fI/etc/zarafa/backup\&.cfg\fR
 .RE
 .PP
+\fB\-\-threads\fR, \fB\-t\fR \fIN\fR
+.RS 4
+Use multiple threads during the backup of multiple stores\&. Depending on the number of CPUs and disks you have, you can increase this number to a sensible value for your setup\&. All users within a company space will be backedup simultaneously\&. On a non\-hosted environment, this means all users in the setup\&.
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
 \fB\-\-verbose\fR, \fB\-v\fR
 .RS 4
 Print more ouput during the backup\&. Prints every folder with item count\&.
