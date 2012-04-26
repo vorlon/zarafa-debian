@@ -65,11 +65,12 @@ locale_t createUTF8Locale()
 	char *cur_locale = setlocale(LC_CTYPE, NULL);
 	char *dot = strchr(cur_locale, '.');
 	if (dot) {
-		*dot = '\0';
 		if (strcmp(dot+1, "UTF-8") == 0 || strcmp(dot+1, "utf8") == 0) {
 			loc = createlocale(LC_CTYPE, cur_locale);
 			goto exit;
 		}
+		// strip current charset selector, to be replaced
+		*dot = '\0';
 	}
 	new_locale = std::string(cur_locale) + ".UTF-8";
 	loc = createlocale(LC_CTYPE, new_locale.c_str()); 
