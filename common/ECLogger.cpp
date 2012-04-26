@@ -287,9 +287,7 @@ void ECLogger_File::Log(int loglevel, const char *format, ...) {
 
 void ECLogger_File::LogVA(int loglevel, const char *format, va_list& va) {
 	pthread_mutex_lock(&msgbuflock);
-	locale_t prev = uselocale(datalocale);
-	_vsnprintf(msgbuffer, _LOG_BUFSIZE, format, va);
-	uselocale(prev);
+	_vsnprintf_l(msgbuffer, _LOG_BUFSIZE, format, datalocale, va);
 
 	pthread_mutex_lock(&filelock);
 
@@ -341,14 +339,12 @@ void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
 
 void ECLogger_Syslog::LogVA(int loglevel, const char *format, va_list& va) {
 	pthread_mutex_lock(&msgbuflock);
-	locale_t prev = uselocale(datalocale);
 #if HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel], format, va);
 #else
-	_vsnprintf(msgbuffer, _LOG_BUFSIZE, format, va);
+	_vsnprintf_l(msgbuffer, _LOG_BUFSIZE, format, datalocale, va);
 	syslog(levelmap[loglevel], "%s", msgbuffer);
 #endif
-	uselocale(prev);
 	pthread_mutex_unlock(&msgbuflock);
 }
 
@@ -433,9 +429,7 @@ void ECLogger_Tee::LogVA(int loglevel, const char *format, va_list& va) {
 	LoggerList::iterator iLogger;
 
 	pthread_mutex_lock(&msgbuflock);
-	locale_t prev = uselocale(datalocale);
-	_vsnprintf(msgbuffer, _LOG_BUFSIZE, format, va);
-	uselocale(prev);
+	_vsnprintf_l(msgbuffer, _LOG_BUFSIZE, format, datalocale, va);
 
 	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
 		(*iLogger)->Log(loglevel, std::string(msgbuffer));
