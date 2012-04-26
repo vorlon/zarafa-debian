@@ -1310,15 +1310,25 @@ exit:
  * @param[in] fd file descriptor to write to
  * @param[in] buffer buffer to write
  * @param[in] len length of buffer to write
+ * @param[in] wrap optional wrapping, inserts a \r\n at the point of the wrapping point
  * 
  * @return MAPI Error code
  */
-HRESULT WriteOrLogError(int fd, const char* buffer, size_t len)
+HRESULT WriteOrLogError(int fd, const char* buffer, size_t len, size_t wrap = 0)
 {
 	HRESULT hr = hrSuccess;
-	if (write(fd, buffer, len) < 0) {
-		hr = MAPI_E_CALL_FAILED;
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Write error to temp file for out of office mail: %s", strerror(errno));
+
+	if (!wrap)
+		wrap = len;
+
+	while (len) {
+		if (write(fd, buffer, min(len, wrap)) < 0) {
+			hr = MAPI_E_CALL_FAILED;
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Write error to temp file for out of office mail: %s", strerror(errno));
+		}
+		len -= min(len, wrap);
+		if (len)
+			write(fd, "\n", strlen("\n")); // will write more, break when the next block write fails
 	}
 	return hr;
 }
@@ -1456,7 +1466,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	// write body
 	unquoted = convert_to<string>("UTF-8", lpStoreProps[1].Value.lpszW, rawsize(lpStoreProps[1].Value.lpszW), CHARSET_WCHAR);
 	quoted = base64_encode((const unsigned char*)unquoted.c_str(), unquoted.length());
-	if (WriteOrLogError(fd, quoted.c_str(), quoted.length()) != hrSuccess)
+	if (WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76) != hrSuccess)
 		goto exit;
 
 	close(fd);
@@ -3001,9 +3011,6 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	int ulListenLMTP = 0;
 	fd_set readfds;
 	int err = 0;
-	pthread_t thread;
-	pthread_attr_t ThreadAttr;
-	pthread_attr_init(&ThreadAttr);
 	unsigned int nMaxThreads;
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
 
