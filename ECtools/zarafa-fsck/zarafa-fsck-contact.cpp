@@ -217,7 +217,9 @@ HRESULT ZarafaFsckContact::ValidateItem(LPMESSAGE lpMessage, string strClass)
 		goto exit;
 	}
 
-	hr = ValidateContactNames(lpMessage);
+	if (strClass == "IPM.Contact")
+		hr = ValidateContactNames(lpMessage);
+	// else: @todo distlist validation
 	if (hr != hrSuccess)
 		goto exit;
 
