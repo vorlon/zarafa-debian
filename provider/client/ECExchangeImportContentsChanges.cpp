@@ -1166,17 +1166,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		}
 
 		if (CreateConflictMessageOnly(ptrMessage, &ptrConflictItems) == MAPI_E_NOT_FOUND) {
-			hr = CreateConflictFolders();
-			if (hr != hrSuccess) {
-				LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to create conflict folders, hr = 0x%08x", hr);
-				goto exit;
-			}
-
-			hr = CreateConflictMessageOnly(ptrMessage, &ptrConflictItems);
-			if (hr != hrSuccess) {
-				LOG_DEBUG(m_lpLogger, "UpdateFast: Failed to create conflict message, hr = 0x%08x", hr);
-				goto exit;
-			}
+			CreateConflictFolders();
+			CreateConflictMessageOnly(ptrMessage, &ptrConflictItems);
 		}
 	}
 
