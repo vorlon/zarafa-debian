@@ -512,7 +512,7 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid
 			}
 		}
 		command.append("mime '");
-		command.append(forcealnum(tmp, "/"));
+		command.append(forcealnum(tmp, "/.-"));
 		command.append("'");
 	} else if (!strExtension.empty()) {
 		// this string mostly does not exist
