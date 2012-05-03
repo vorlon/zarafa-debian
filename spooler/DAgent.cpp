@@ -282,8 +282,11 @@ HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **l
 	}
 
 	lpPyMapiPlugin = new PyMapiPlugin();
-	if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "DAgentPluginManager") != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize the dagent plugin manager");
+	if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "DAgentPluginManager") != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize the dagent plugin manager, please check your configuration.");
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
 
 	*lppPyMapiPlugin = lpPyMapiPlugin;
 exit:
@@ -2924,7 +2927,13 @@ void *HandlerLMTP(void *lpArg) {
 				if (hr == hrSuccess) {
 
 					PyMapiPluginAPtr ptrPyMapiPlugin;
-					GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin); //fixme ignore error (only memory errors)
+					hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
+					if (hr != hrSuccess) {
+						lmtp.HrResponse("503 5.1.1 Internal error during delivery");
+						fclose(tmp);
+						hr = hrSuccess;
+						break;
+					}					
 
 					// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 					// if required. So make sure to reset it here so we can safely reuse the LMTP connection
@@ -3582,10 +3591,8 @@ int main(int argc, char *argv[]) {
 		PyMapiPluginAPtr ptrPyMapiPlugin;
 		{
 			hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
-			if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create plugin, possible out of memory");
-				goto exit;
-			}
+			if (hr != hrSuccess) 
+				goto exit; // Error is logged in GetPluginObject
 		}
 
 		hr = deliver_recipient(ptrPyMapiPlugin, argv[my_optind], strip_email, fp, &sDeliveryArgs);

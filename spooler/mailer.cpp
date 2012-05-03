@@ -99,8 +99,10 @@ HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **l
     }
 
     lpPyMapiPlugin = new PyMapiPlugin();
-    if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "SpoolerPluginManager") != hrSuccess)
-        lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize the spooler plugin manager");
+    if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "SpoolerPluginManager") != hrSuccess) {
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
 
     *lppPyMapiPlugin = lpPyMapiPlugin;
 exit:
@@ -2103,7 +2105,7 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	// Init plugin system
 	hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system, please check your configuration.");
 		goto exit;
 	}
 
