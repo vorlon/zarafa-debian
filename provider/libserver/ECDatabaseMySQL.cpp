@@ -771,7 +771,7 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
     
 	if( lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: expected more results");
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: expected more results", &m_lpMySQL);
 	}
 
 	if (lppResult)
@@ -811,7 +811,7 @@ ECRESULT ECDatabaseMySQL::FinalizeMulti() {
 	lpResult = mysql_store_result(&m_lpMySQL);
 	
 	if(lpResult != NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: unexpected results received at end of batch");
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: unexpected results received at end of batch", &m_lpMySQL);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
