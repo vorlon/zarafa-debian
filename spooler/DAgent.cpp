@@ -289,7 +289,12 @@ HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **l
 	}
 
 	*lppPyMapiPlugin = lpPyMapiPlugin;
+	lpPyMapiPlugin = NULL;
+
 exit:
+	if (lpPyMapiPlugin)
+		delete lpPyMapiPlugin;
+
 	return hr;
 }
 

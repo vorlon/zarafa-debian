@@ -100,12 +100,18 @@ HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **l
 
     lpPyMapiPlugin = new PyMapiPlugin();
     if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "SpoolerPluginManager") != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system, please check your configuration.");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
     *lppPyMapiPlugin = lpPyMapiPlugin;
+	lpPyMapiPlugin = NULL;
+
 exit:
+	if (lpPyMapiPlugin)
+		delete lpPyMapiPlugin;
+
     return hr;
 }
 
@@ -2104,10 +2110,8 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 
 	// Init plugin system
 	hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
-	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system, please check your configuration.");
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		goto exit; // Error logged in GetPluginObject
 
 	// so we require admin stuff now
 	hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
