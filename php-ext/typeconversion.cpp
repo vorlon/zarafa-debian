@@ -1831,7 +1831,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 			break;
 
 		case PT_ERROR:
-			add_assoc_long(zval_prop_value, pulproptag, (ULONG)pPropValue->Value.err);
+			add_assoc_long(zval_prop_value, pulproptag, (LONG)pPropValue->Value.err);
 			break;
 
 		case PT_APPTIME:

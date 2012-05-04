@@ -149,6 +149,8 @@ HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 					traceback = traceback->tb_next;
 				}
 			}
+
+			PyErr_Clear();
 		} 
 		assertbreak(); 
 		hr = S_FALSE; 
