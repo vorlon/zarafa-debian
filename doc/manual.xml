@@ -10694,65 +10694,6 @@
 	  </refsection>
 
 	  <refsection>
-		<title>Explanation of the MySQL Settings parameters</title>
-
-		<variablelist>
-		  <varlistentry>
-			<term><option>mysql_host</option></term>
-			<listitem>
-			  <para>The hostname of the MySQL server to use.</para>
-			  <para>Default:
-			  <replaceable>localhost</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>mysql_port</option></term>
-			<listitem>
-			  <para>The port of the MySQL server to use.</para>
-			  <para>Default: <replaceable>3306</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>mysql_user</option></term>
-			<listitem>
-			  <para>The user under which we connect with MySQL.</para>
-			  <para>Default: <replaceable>root</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>mysql_password</option></term>
-			<listitem>
-			  <para>The password to use for MySQL. Leave empty for no
-			  password.</para>
-			  <para>Default: <replaceable></replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>mysql_socket</option></term>
-			<listitem>
-				<para>The socket of the MySQL server to use. This option 
-						can be used to override the default mysql socket.
-						To use the socket, the mysql_host value must be 
-						empty or 'localhost'</para>
-			  <para>Default: <replaceable></replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>mysql_database</option></term>
-			<listitem>
-			  <para>The MySQL database to connect to.</para>
-			  <para>Default: <replaceable>zarafa</replaceable></para>
-			</listitem>
-		  </varlistentry>
-		</variablelist>
-	  </refsection>
-		  
-	  <refsection>
 		<title>Explanation of the SSL Settings parameters</title>
 
 		<variablelist>

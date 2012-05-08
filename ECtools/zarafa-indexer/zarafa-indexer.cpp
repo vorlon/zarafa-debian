@@ -432,12 +432,6 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "" },
 		{ "run_as_group", "" },
 		{ "running_path", "/" },
-		{ "mysql_host",					"localhost" },
-		{ "mysql_port",					"3306" },
-		{ "mysql_user",					"root" },
-		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
-		{ "mysql_database",				"zarafa_indexer" },
-		{ "mysql_socket",				"" },
 		/* Logging options */
 		{ "log_method","file" },
 		{ "log_file", INDEXER_DEFAULT_LOGFILE },
