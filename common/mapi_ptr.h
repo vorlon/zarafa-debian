@@ -100,6 +100,7 @@ typedef mapi_memory_ptr<SPropTagArray> SPropTagArrayPtr;
 typedef mapi_memory_ptr<SRestriction> SRestrictionPtr;
 typedef mapi_memory_ptr<SSortOrderSet> SSortOrderSetPtr;
 typedef mapi_memory_ptr<WCHAR> WStringPtr;
+typedef mapi_memory_ptr<FlagList> FlagListPtr;
 
 typedef mapi_array_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef mapi_array_ptr<SPropValue> SPropArrayPtr;

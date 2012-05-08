@@ -892,7 +892,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	WEBDAVFBUSERINFO sWebFbUserInfo;
 	std::list<std::string>::iterator itUsers;
 	LPADRLIST lpAdrList = NULL;
-	FlagList *lpFlagList = NULL;
+	FlagListPtr ptrFlagList;
 	LPSPropValue lpEntryID = NULL;
 
 	EntryIdPtr ptrEntryId;
@@ -917,11 +917,11 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	lpAdrList->cEntries = cUsers;
 
-	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), (void **) &lpFlagList);
+	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), (void **) &ptrFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 
-	lpFlagList->cFlags = cUsers;
+	ptrFlagList->cFlags = cUsers;
 
 	
 	for (itUsers = lplstUsers->begin(), cUsers = 0; itUsers != lplstUsers->end(); itUsers++, cUsers++) {
@@ -934,11 +934,11 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		lpAdrList->aEntries[cUsers].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
 		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = (char*)itUsers->c_str();
 
-		lpFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;
+		ptrFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;
 	}
 
 	// NULL or sptaAddrListProps containing just PR_ENTRYID?
-	hr = ptrABDir->ResolveNames(NULL, EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
+	hr = ptrABDir->ResolveNames(NULL, EMS_AB_ADDRESS_LOOKUP, lpAdrList, ptrFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -950,7 +950,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	// Get the user entryids
 	for (cUsers = 0; cUsers < lpAdrList->cEntries; cUsers++) {
 
-		if (lpFlagList->ulFlag[cUsers] == MAPI_RESOLVED) {
+		if (ptrFlagList->ulFlag[cUsers] == MAPI_RESOLVED) {
 			lpEntryID = PpropFindProp(lpAdrList->aEntries[cUsers].rgPropVals, lpAdrList->aEntries[cUsers].cValues, PR_ENTRYID);
 		} else {
 			lpEntryID = NULL;
