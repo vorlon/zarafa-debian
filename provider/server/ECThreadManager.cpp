@@ -629,6 +629,7 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 {
     // During exit, don't requeue active sockets, but close them
     if(m_bExit) {	
+		zarafa_end_soap_connection(soap);
         soap_free(soap);
     } else {
 		soap->max_keep_alive--;
@@ -650,6 +651,7 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 			NotifyRestart(socket);
         } else {
             // SOAP has closed the socket, no need to requeue
+			zarafa_end_soap_connection(soap);
             soap_free(soap);
         }
     }
@@ -787,6 +789,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
                 // First, check for EOF
                 if(recv(iterSockets->second.soap->socket, &s, 1, MSG_PEEK) == 0) {
                     // EOF occurred, just close the socket and remove it from the socket list
+					zarafa_end_soap_connection(iterSockets->second.soap);
                     soap_free(iterSockets->second.soap);
                     m_setSockets.erase(iterSockets++);
                 } else {
@@ -887,17 +890,19 @@ ECRESULT ECDispatcherSelect::MainLoop()
     
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
-    while(!m_queueItems.empty()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) {soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
+    while(!m_queueItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
     for(iterListenSockets = m_setListenSockets.begin(); iterListenSockets != m_setListenSockets.end(); iterListenSockets++) {
+		zarafa_end_soap_listener(iterListenSockets->second); 
         soap_free(iterListenSockets->second);
     }
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	pthread_mutex_lock(&m_mutexSockets);
     for(iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); iterSockets++) {
+		zarafa_end_soap_connection(iterSockets->second.soap); 
         soap_free(iterSockets->second.soap);
     }
 	pthread_mutex_unlock(&m_mutexSockets);
@@ -1051,6 +1056,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
 				if ((epevents[i].events & EPOLLHUP) == EPOLLHUP) {
+					zarafa_end_soap_connection(iterSockets->second.soap);
 					soap_free(iterSockets->second.soap);
 					m_setSockets.erase(iterSockets);
 				} else {
@@ -1082,8 +1088,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
-    while(!m_queueItems.empty()) {soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) {soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
+    while(!m_queueItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
+    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
