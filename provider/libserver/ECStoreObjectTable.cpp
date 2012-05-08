@@ -76,6 +76,7 @@
 
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <edkmdb.h>
 
 #include "Zarafa.h"
 #include "ECDatabaseUtils.h"
@@ -459,7 +460,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				continue;
 			}
 			
-    	    if(ulPropTag == PR_PARENT_DISPLAY_A || ulPropTag == PR_PARENT_DISPLAY_W || ulPropTag == PR_EC_OUTGOING_FLAGS || ulPropTag == PR_EC_PARENT_HIERARCHYID) {
+    	    if(ulPropTag == PR_PARENT_DISPLAY_A || ulPropTag == PR_PARENT_DISPLAY_W || ulPropTag == PR_EC_OUTGOING_FLAGS || ulPropTag == PR_EC_PARENT_HIERARCHYID || ulPropTag == PR_ASSOCIATED) {
     	    	bRowComplete = false;
     	    	continue; // These are not in cache, even if cache is complete for an item.
 			}

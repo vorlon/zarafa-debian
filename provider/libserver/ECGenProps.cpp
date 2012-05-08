@@ -151,6 +151,10 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
         subquery = "hierarchy.parent";
         break;
         
+    case PR_ASSOCIATED:
+        subquery = "hierarchy.flags & " + stringify(MAPI_ASSOCIATED);
+        break;
+        
 	default:
 		er = ZARAFA_E_NOT_FOUND;
 		break;

@@ -148,6 +148,8 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->HrAddPropHandlers(PR_EC_IMAP_EMAIL_SIZE,		DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
 	this->HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODY, PT_UNICODE),			DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
 	this->HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODYSTRUCTURE, PT_UNICODE),	DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
+
+	this->HrAddPropHandlers(PR_ASSOCIATED,				GetPropHandler,		DefaultSetPropComputed, 	(void *)this, TRUE, TRUE);
 }
 
 ECMessage::~ECMessage()
@@ -1956,6 +1958,17 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	case PROP_ID(PR_HASATTACH):
 		lpsPropValue->ulPropTag = PR_HASATTACH;
 		lpsPropValue->Value.b = lpMessage->HasAttachment();
+		break;
+	case PROP_ID(PR_ASSOCIATED):
+		hr = lpMessage->HrGetRealProp(PR_MESSAGE_FLAGS, ulFlags, lpBase, lpsPropValue);
+		if(hr != hrSuccess) {
+			hr = hrSuccess;
+			lpsPropValue->ulPropTag = PR_ASSOCIATED;
+			lpsPropValue->Value.b = false;
+		} else {
+			lpsPropValue->ulPropTag = PR_ASSOCIATED;
+			lpsPropValue->Value.b = !!(lpsPropValue->Value.ul & MSGFLAG_ASSOCIATED);
+		}
 		break;
 	case PROP_ID(PR_MESSAGE_FLAGS):
 	{

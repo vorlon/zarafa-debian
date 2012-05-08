@@ -72,6 +72,7 @@
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
 #include "EntryPoint.h"
+#include "CommonUtil.h"
 
 // We use ntohl/htonl for network-order conversion
 #include <arpa/inet.h>
@@ -83,6 +84,8 @@
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
+
+#define max(a,b) ((a) > (b) ? (a) : (b))
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)
@@ -108,7 +111,6 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std:
 	m_ulChanges = 0;
 	m_lpChanges = NULL;
 	m_lpRestrict = NULL;
-	m_lpChangePropTagArray = NULL;
 	m_ulMaxChangeId = 0;
 	
 	m_clkStart = 0;
@@ -120,9 +122,6 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std:
 ECExchangeExportChanges::~ECExchangeExportChanges(){
 	if(m_lpChanges)
 		MAPIFreeBuffer(m_lpChanges);
-
-	if(m_lpChangePropTagArray)
-		MAPIFreeBuffer(m_lpChangePropTagArray);
 
 	if(m_lpStore)
 		m_lpStore->Release();
@@ -244,14 +243,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	ULONG		ulSyncId = 0;
 	ULONG		ulChangeId = 0;
 	ULONG		ulStep = 0;
-	ULONG		ulCount = 0;
-	//PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_DISPLAY_NAME, PR_LAST_MODIFICATION_TIME
-	ULONG		ulDefaultContentProps[] = {PR_SOURCE_KEY, PR_LAST_MODIFICATION_TIME, PR_PARENT_SOURCE_KEY, PR_CHANGE_KEY, PR_MESSAGE_FLAGS, PR_PREDECESSOR_CHANGE_LIST, PR_CREATION_TIME};
-	ULONG		ulDefaultHierarchyProps[] = {PR_SOURCE_KEY, PR_LAST_MODIFICATION_TIME, PR_PARENT_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_DISPLAY_NAME, PR_FOLDER_TYPE, PR_ATTR_HIDDEN};
-	ULONG		ulDefaultSize = 0;
-	ULONG 		* ulDefaultProps = ulDefaultContentProps;
 	BOOL		bCanStream = FALSE;
-	bool		bFound = false;
 
 	bool		bForceImplicitStateUpdate = false;
 	ECSyncSettings *lpSyncSettings = ECSyncSettings::GetInstance();
@@ -290,9 +282,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		
 		// We don't need the importer when doing SYNC_CATCHUP
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
-			ulDefaultProps = ulDefaultContentProps;
-			ulDefaultSize = sizeof(ulDefaultContentProps) / sizeof(*ulDefaultContentProps);
-
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
 			if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 				m_lpStore->lpTransport->HrCheckCapabilityFlags(ZARAFA_CAP_ENHANCED_ICS, &bCanStream);
@@ -309,8 +298,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					LOG_DEBUG(m_lpLogger, "%s", "Exporter doesn't support enhanced ICS");
 			}
 		}else if(m_ulSyncType == ICS_SYNC_HIERARCHY){
-			ulDefaultProps = ulDefaultHierarchyProps;
-			ulDefaultSize = sizeof(ulDefaultHierarchyProps) / sizeof(*ulDefaultHierarchyProps);
 			hr = lpCollector->QueryInterface(IID_IExchangeImportHierarchyChanges, (LPVOID*) &m_lpImportHierarchy);
 		}else{
 			hr = MAPI_E_INVALID_PARAMETER;
@@ -341,53 +328,13 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		}
 	}
 
-
-	//include PR_MESSAGE_SIZE or MAPI PR_ENTRYID
-	if(lpIncludeProps){
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpIncludeProps->cValues + ulDefaultSize), (LPVOID *) &m_lpChangePropTagArray);
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Out of memory allocating property tag array");
-			goto exit;
-		}
-		m_lpChangePropTagArray->cValues = 0;
-		for(ulStep = 0; ulStep < lpIncludeProps->cValues; ulStep++){
-			m_lpChangePropTagArray->aulPropTag[m_lpChangePropTagArray->cValues++] = lpIncludeProps->aulPropTag[ulStep];
-		}
-	}else if(!lpExcludeProps && m_ulSyncType == ICS_SYNC_HIERARCHY){
-		m_lpChangePropTagArray = NULL;
-	}else{
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(ulDefaultSize + 1), (LPVOID *) &m_lpChangePropTagArray);
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Out of memory allocating default property tag array");
-			goto exit;
-		}
-		m_lpChangePropTagArray->cValues = 0;
-	}
-
-	if(m_lpChangePropTagArray){
-		for(ulCount = 0; ulCount < ulDefaultSize; ulCount++){
-			bFound = false;
-			if(lpExcludeProps){
-				for(ulStep = 0; !bFound && ulStep < lpExcludeProps->cValues; ulStep++){
-					if(lpExcludeProps->aulPropTag[ulStep] == ulDefaultProps[ulCount]){
-						bFound = true;
-					}
-				}
-			}
-			if(!bFound){
-				m_lpChangePropTagArray->aulPropTag[m_lpChangePropTagArray->cValues++] = ulDefaultProps[ulCount];
-			}
-		}
-	}
-
-
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
 	if(hr != hrSuccess) {
 		LOG_DEBUG(m_lpLogger, "Unable to decode sync state stream, hr=0x%08x", hr);
 		goto exit;
 	}
 
-	LOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, m_setProcessedChanges.size());
+	LOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, (long unsigned int)m_setProcessedChanges.size());
 
 	if(ulSyncId == 0) {
 		LOG_DEBUG(m_lpLogger, "Getting new sync id for %s folder '%ls'...", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
@@ -855,7 +802,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	LPSRowSet		lpRows = NULL;
 
 	LPSPropValue	lpPropArray = NULL;
-	LPSPropValue	lpPropVal = NULL;
 
 	LPSPropTagArray lpPropTagArray = NULL;
 
@@ -874,54 +820,72 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		PR_ATTACH_SIZE, 
 		PR_PARENT_SOURCE_KEY
 	} };
+	
+	SizedSPropTagArray(7, sptImportProps) = { 7, {
+		PR_SOURCE_KEY,
+		PR_LAST_MODIFICATION_TIME,
+		PR_CHANGE_KEY,
+		PR_PARENT_SOURCE_KEY,
+		PR_PREDECESSOR_CHANGE_LIST,
+		PR_ENTRYID,
+		PR_ASSOCIATED
+	} };
 	SizedSPropTagArray(1, sptAttach) = { 1, {PR_ATTACH_NUM} };
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
-		hr = m_lpStore->EntryIDFromSourceKey(
-			m_lstChange.at(m_ulStep).sParentSourceKey.cb, 
-			m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
-			m_lstChange.at(m_ulStep).sSourceKey.cb,
-			m_lstChange.at(m_ulStep).sSourceKey.lpb,
-			&cbEntryID, &lpEntryID);
-		if(hr == MAPI_E_NOT_FOUND){
-			hr = hrSuccess;
-			goto next;
-		}
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
-		
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
-			goto exit;
-		}
-		
-		hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
-		if(hr == MAPI_E_NOT_FOUND){
-			hr = hrSuccess;
-			goto next;
-		}
-		if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, (unsigned char *)lpEntryID).c_str());
-			goto exit;
-		}
-
-		hr = lpSourceMessage->GetProps((LPSPropTagArray) m_lpChangePropTagArray, 0, &ulCount, &lpPropArray);
-		if(hr == MAPI_W_ERRORS_RETURNED){
-			hr = hrSuccess;
-		}else if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Unable to get properties from source message");
-			goto exit;
-		}
-
 		ulFlags = 0;
-		lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_MESSAGE_FLAGS);
-		if(lpPropVal != NULL && (lpPropVal->Value.ul & MSGFLAG_ASSOCIATED)){
-			ulFlags |= SYNC_ASSOCIATED;
-		}
 		if((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW){
 			ulFlags |= SYNC_NEW_MESSAGE;
 		}
 
-		hr = m_lpImportContents->ImportMessageChange(ulCount, lpPropArray, ulFlags, &lpDestMessage);
+		if(!m_sourcekey.empty()) {
+			// Normal exporter, get the import properties we need by opening the source message
+			
+			hr = m_lpStore->EntryIDFromSourceKey(
+				m_lstChange.at(m_ulStep).sParentSourceKey.cb, 
+				m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
+				m_lstChange.at(m_ulStep).sSourceKey.cb,
+				m_lstChange.at(m_ulStep).sSourceKey.lpb,
+				&cbEntryID, &lpEntryID);
+			if(hr == MAPI_E_NOT_FOUND){
+				hr = hrSuccess;
+				goto next;
+			}
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+					
+			if(hr != hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+				goto exit;
+			}
+
+			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
+			if(hr == MAPI_E_NOT_FOUND){
+				hr = hrSuccess;
+				goto next;
+			}
+			if(hr != hrSuccess) {
+				LOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, (unsigned char *)lpEntryID).c_str());
+				goto exit;
+			}
+			hr = lpSourceMessage->GetProps((LPSPropTagArray)&sptImportProps, 0, &ulCount, &lpPropArray);
+			if(FAILED(hr)) {
+				LOG_DEBUG(m_lpLogger, "%s", "Unable to get properties from source message");
+				goto exit;
+			}
+
+			hr = m_lpImportContents->ImportMessageChange(ulCount, lpPropArray, ulFlags, &lpDestMessage);
+		} else {
+			// Server-wide ICS exporter, only export source key and parent source key
+			SPropValue sProps[2];
+			
+			sProps[0].ulPropTag = PR_SOURCE_KEY;
+			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey; // cheap copy is ok since pointer is valid during ImportMessageChange call
+			sProps[1].ulPropTag = PR_PARENT_SOURCE_KEY;
+			sProps[1].Value.bin = m_lstChange.at(m_ulStep).sParentSourceKey;
+
+			hr = m_lpImportContents->ImportMessageChange(2, sProps, ulFlags, &lpDestMessage);
+		}
+
 		if (hr == SYNC_E_IGNORE) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "ignored change");
 			// Mark this change as processed
@@ -951,7 +915,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
 		}
-
+		
 		hr = lpSourceMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptMessageExcludes, 0, NULL, &IID_IMessage, lpDestMessage, 0, NULL);
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Unable to copy to imported message");
@@ -1219,6 +1183,27 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	ULONG ulFlags = 0;
 	StreamPtr ptrDestStream;
 
+	SizedSPropTagArray(8, sptImportProps) = { 8, {
+		PR_SOURCE_KEY,
+		PR_LAST_MODIFICATION_TIME,
+		PR_CHANGE_KEY,
+		PR_PARENT_SOURCE_KEY,
+		PR_PREDECESSOR_CHANGE_LIST,
+		PR_ENTRYID,
+		PR_ASSOCIATED,
+		PR_MESSAGE_FLAGS /* needed for backward compat since PR_ASSOCIATED is not supported on earlier systems */
+	} };
+
+	SizedSPropTagArray(5, sptImportPropsServerWide) = { 5, {
+		PR_SOURCE_KEY,
+		PR_PARENT_SOURCE_KEY,
+		PR_STORE_RECORD_KEY,
+		PR_EC_HIERARCHYID,
+		PR_EC_PARENT_HIERARCHYID
+	} };
+	
+	LPSPropTagArray lpImportProps = m_sourcekey.empty() ? (LPSPropTagArray)&sptImportPropsServerWide : (LPSPropTagArray)&sptImportProps;
+
 	// No more changes (add/modify).
 	LOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %u items)", m_ulStep, m_lstChange.size());
 	if (m_ulStep >= m_lstChange.size())
@@ -1226,7 +1211,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 
 	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsDone()) {
 		LOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
-		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, m_lpChangePropTagArray, &m_ptrStreamExporter);
+		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, lpImportProps, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// There was nothing to export (see ExportMessageChangesAsStream documentation)
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
@@ -1411,7 +1396,6 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	LPMAPIFOLDER	lpFolder = NULL;
 	LPSPropValue	lpPropArray = NULL;
 	LPSPropValue	lpPropVal = NULL;
-	LPSPropValue	lpPropFolderType = NULL;
 
 	ULONG			ulObjType = 0;
 	ULONG			ulCount = 0;
@@ -1419,118 +1403,57 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	
 	ULONG			cbEntryID = 0;
 	LPENTRYID		lpEntryID = NULL;
-	LPSTREAM		lpStream = NULL;
-	STATSTG			sStat;
-	ULONG			ulProp = 0;
-	ULONG			ulRead = 0;
-
-	//PR_LAST_MODIFICATION_TIME missing in documentation
-	//The array must contain at least the PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, and MAPI PR_DISPLAY_NAME properties.
-	//SizedSPropTagArray(6, sptFolder) = { 6, {PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_DISPLAY_NAME, PR_LAST_MODIFICATION_TIME} };
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
+		if(!m_sourcekey.empty()) {
+			// Normal export, need all properties
+			hr = m_lpStore->EntryIDFromSourceKey(
+				m_lstChange.at(m_ulStep).sSourceKey.cb, 
+				m_lstChange.at(m_ulStep).sSourceKey.lpb,
+				0, NULL,
+				&cbEntryID, &lpEntryID);
 
-		hr = m_lpStore->EntryIDFromSourceKey(
-			m_lstChange.at(m_ulStep).sSourceKey.cb, 
-			m_lstChange.at(m_ulStep).sSourceKey.lpb,
-			0, NULL,
-			&cbEntryID, &lpEntryID);
-
-		if(hr != hrSuccess){
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey not found");
-			hr = hrSuccess;
-			goto next;
-		}
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
-		
-		hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpFolder);
-		if(hr != hrSuccess){
-			hr = hrSuccess;
-			goto next;
-		}
-
-		hr = lpFolder->GetProps(m_lpChangePropTagArray /*NULL*/, 0, &ulCount, &lpPropArray);
-		if(hr == MAPI_W_ERRORS_RETURNED){
-			hr = hrSuccess;
-		}else if(hr != hrSuccess) {
-			LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
-			goto exit;
-		}
-
-		// if NULL is given for include props in config function, we don't support large properties for now
-		if(m_lpChangePropTagArray){
-			for(ulProp = 0; ulProp < ulCount; ulProp++){
-				if (PROP_TYPE(lpPropArray[ulProp].ulPropTag) != PT_ERROR || lpPropArray[ulProp].Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
-					goto nextprop;
-
-				hr = lpFolder->OpenProperty(m_lpChangePropTagArray->aulPropTag[ulProp], &IID_IStream, 0, 0, (IUnknown **)&lpStream);
-				if(hr != hrSuccess)
-					goto nextprop;
-
-				hr = lpStream->Stat(&sStat, 0);
-				if(hr != hrSuccess)
-					goto nextprop;
-
-				switch(PROP_TYPE(m_lpChangePropTagArray->aulPropTag[ulProp])){
-					case PT_STRING8:
-						hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpPropArray, (LPVOID*)&lpPropArray[ulProp].Value.lpszA);
-						if(hr != hrSuccess)
-							goto nextprop;
-
-						hr = lpStream->Read(lpPropArray[ulProp].Value.lpszA, sStat.cbSize.QuadPart, &ulRead);
-						if(hr != hrSuccess)
-							goto nextprop;
-						lpPropArray[ulProp].ulPropTag = m_lpChangePropTagArray->aulPropTag[ulProp];
-
-						break;
-					case PT_BINARY:
-						lpPropArray[ulProp].Value.bin.cb = 0;
-						hr = MAPIAllocateMore(sStat.cbSize.QuadPart, lpPropArray, (LPVOID*)&lpPropArray[ulProp].Value.bin.lpb);
-						if(hr != hrSuccess)
-							goto nextprop;
-
-						hr = lpStream->Read(lpPropArray[ulProp].Value.bin.lpb, sStat.cbSize.QuadPart, &ulRead);
-						if(hr != hrSuccess)
-							goto nextprop;
-
-						lpPropArray[ulProp].ulPropTag = m_lpChangePropTagArray->aulPropTag[ulProp];
-						lpPropArray[ulProp].Value.bin.cb = sStat.cbSize.QuadPart;
-
-						break;
-					default:
-						break;
-				}
-nextprop:
-				if(lpStream){
-					lpStream->Release();
-					lpStream = NULL;
-				}
+			if(hr != hrSuccess){
+				m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey not found");
+				hr = hrSuccess;
+				goto next;
 			}
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
+
+			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpFolder);
+			if(hr != hrSuccess){
+				hr = hrSuccess;
+				goto next;
+			}
+			
+			hr = HrGetAllProps(lpFolder, MAPI_UNICODE, &ulCount, &lpPropArray);
+			if(FAILED(hr)) {
+				LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
+				goto exit;
+			}
+
+			//for folders directly under m_lpFolder PR_PARENT_SOURCE_KEY must be NULL
+			//this protects against recursive problems during syncing when the PR_PARENT_SOURCE_KEY
+			//equals the sourcekey of the folder which we are already syncing.
+			//If the exporter sends an empty PR_PARENT_SOURCE_KEY to the importer the importer can
+			//assume the parent is the folder which it is syncing.
+
+			lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_PARENT_SOURCE_KEY);
+			if(lpPropVal && m_sourcekey.size() == lpPropVal->Value.bin.cb && memcmp(lpPropVal->Value.bin.lpb, m_sourcekey.c_str(), m_sourcekey.size())==0){
+				lpPropVal->Value.bin.cb = 0;
+			}
+
+			hr = m_lpImportHierarchy->ImportFolderChange(ulCount, lpPropArray);
+		} else {
+			// Server-wide ICS
+			SPropValue sProps[1];
+			
+			sProps[0].ulPropTag = PR_SOURCE_KEY;
+			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey;
+
+			hr = m_lpImportHierarchy->ImportFolderChange(1, sProps);
 		}
 
-		lpPropFolderType = PpropFindProp(lpPropArray, ulCount, PR_FOLDER_TYPE);
-		if(lpPropFolderType && lpPropFolderType->Value.ul == FOLDER_SEARCH){
-			//skipping search folder
-			goto next;
-		}
-		
-		lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_SOURCE_KEY);
-		if(!lpPropVal){
-			goto next;
-		}
-
-		//for folders directly under m_lpFolder PR_PARENT_SOURCE_KEY must be NULL
-		//this protects against recursive problems during syncing when the PR_PARENT_SOURCE_KEY
-		//equals the sourcekey of the folder which we are already syncing.
-		//If the exporter sends an empty PR_PARENT_SOURCE_KEY to the importer the importer can
-		//assume the parent is the folder which it is syncing.
-
-		lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_PARENT_SOURCE_KEY);
-		if(lpPropVal && m_sourcekey.size() == lpPropVal->Value.bin.cb && memcmp(lpPropVal->Value.bin.lpb, m_sourcekey.c_str(), m_sourcekey.size())==0){
-			lpPropVal->Value.bin.cb = 0;
-		}
-
-		hr = m_lpImportHierarchy->ImportFolderChange(ulCount, lpPropArray);
 		if (hr == SYNC_E_IGNORE){
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change ignored");
 			hr = hrSuccess;
@@ -1576,9 +1499,6 @@ next:
 		hr = SYNC_W_PROGRESS;
 
 exit:
-	if(lpStream)
-		lpStream->Release();
-
 	if(lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
 

@@ -333,7 +333,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 
 	LPSPropValue lpMessageSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	LPSPropValue lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	LPSPropValue lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
+	LPSPropValue lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	
 	LPSPropValue lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	LPSPropValue lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
@@ -1075,7 +1075,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	}
 
 	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
+	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	lpPropEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
@@ -1143,7 +1143,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	}
 
 	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, 0x67AA000B); //PR_ASSOCIATED
+	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		bAssociated = true;
 

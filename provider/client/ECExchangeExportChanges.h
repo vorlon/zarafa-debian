@@ -137,8 +137,6 @@ private:
 
 	IID				m_iidMessage;
 
-	LPSPropTagArray	m_lpChangePropTagArray;
-
 	LPEXCHANGEIMPORTCONTENTSCHANGES		m_lpImportContents;
 	LPECIMPORTCONTENTSCHANGES			m_lpImportStreamedContents;
 	LPEXCHANGEIMPORTHIERARCHYCHANGES	m_lpImportHierarchy;
@@ -167,6 +165,7 @@ private:
 	struct tms			m_tmsStart;
 	
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
+	
 };
 
 #endif // ECEXCHANGEEXPORTCHANGES_H

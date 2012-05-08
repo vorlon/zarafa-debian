@@ -2770,6 +2770,80 @@ exit:
 }
 
 /**
+ * Gets all properties for passed object
+ *
+ * This includes properties that are normally returned from GetProps() as MAPI_E_NOT_ENOUGH_MEMORY. The
+ * rest of the semantics of this call are equal to those of calling IMAPIProp::GetProps() with NULL as the
+ * property tag array.
+ *
+ * @param[in] lpProp IMAPIProp object to get properties from
+ * @param[in] ulFlags MAPI_UNICODE or 0
+ * @param[out] lpcValues Number of properties saved in lppProps
+ * @param[out] lppProps Output properties
+ */
+HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps)
+{
+	HRESULT hr = hrSuccess;
+	SPropTagArrayPtr lpTags;
+	SPropArrayPtr lpProps;
+	ULONG cValues = 0;
+	StreamPtr lpStream;	
+	std::string strData;
+	void *lpData = NULL;
+	
+	hr = lpProp->GetPropList(ulFlags, &lpTags);
+	if(hr != hrSuccess)
+		goto exit;
+		
+	hr = lpProp->GetProps(lpTags, ulFlags, &cValues, &lpProps);
+	if(FAILED(hr))
+		goto exit;
+		
+	for(unsigned int i=0; i < cValues; i++) {
+		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
+			if(PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
+				continue;
+				
+			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, (IUnknown **)&lpStream) != hrSuccess)
+				continue;
+				
+			strData.clear();
+			if(Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
+				continue;
+				
+			MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData);
+			memcpy(lpData, strData.data(), strData.size());
+			
+			lpProps[i].ulPropTag = lpTags->aulPropTag[i];
+				
+			switch PROP_TYPE(lpTags->aulPropTag[i]) {
+				case PT_STRING8:
+					lpProps[i].Value.lpszA = (char *)lpData;
+					lpProps[i].Value.lpszA[strData.size()] = 0;
+					break;
+				case PT_UNICODE:
+					lpProps[i].Value.lpszW = (wchar_t *)lpData;
+					lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+					break;
+				case PT_BINARY:
+					lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
+					lpProps[i].Value.bin.cb = strData.size();
+					break;
+				default:
+					ASSERT(false);
+			}
+		}
+	}
+	
+	*lppProps = lpProps.release();
+	*lpcValues = cValues;
+	
+exit:
+	return hr;
+}
+
+
+/**
  * Converts a wrapped message store's entry identifier to a message store entry identifier.
  *
  * MAPI supplies a wrapped version of a store entryid which indentified a specific service provider. 
