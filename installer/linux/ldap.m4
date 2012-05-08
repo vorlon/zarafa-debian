@@ -23,6 +23,12 @@ ldap_port = 389
 # configured correctly with TLS_CACERT
 ldap_protocol = ldap
 
+# LDAP URI
+# Optional, override ldap_host, ldap_port and ldap_protocol if set
+# e.g. ldaps://servername:port. You may also specify multiple space-separated
+# URI's
+ldap_uri =
+
 # The charset that strings are stored in on the LDAP server. Normally this
 # is utf-8, but this can differ according to your setup. The charset specified
 # here must be supported by your iconv(1) setup. See iconv -l for all charset

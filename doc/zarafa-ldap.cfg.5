@@ -98,6 +98,13 @@ Default:
 \fIldap\fR
 .RE
 .PP
+\fBldap_uri\fR
+.RS 4
+Instead of using ldap_host, ldap_port and ldap_protocol, you may also use ldap_uri which should specify the URI of the LDAP server like \*(Aqldaps://server:389\*(Aq\&. If ldap_uri is set, the values of ldap_host, ldap_port and ldap_protocol are ignored\&. You may also specify multiple space\-separated LDAP server URI\*(Aqs\&.
+.sp
+Default:
+.RE
+.PP
 \fBldap_server_charset\fR
 .RS 4
 The charset that the LDAP server uses to store strings\&. All strings sent to the LDAP server or retrieved from the server will be interpreted in this charset\&. In most setups, utf\-8 is used, but may also be iso\-8859\-15\&. All charsets supported by the system iconv() are supported here\&.

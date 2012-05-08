@@ -4640,6 +4640,20 @@
 			  <para>Default: <replaceable>ldap</replaceable></para>
 			</listitem>
 		  </varlistentry>
+		  
+		  <varlistentry>
+		    <term><option>ldap_uri</option></term>
+		    <listitem>
+		      <para>Instead of using ldap_host, ldap_port and ldap_protocol,
+		      you may also use ldap_uri which should specify the URI of the
+		      LDAP server like 'ldaps://server:389'. If ldap_uri is set,
+		      the values of ldap_host, ldap_port and ldap_protocol are
+		      ignored. You may also specify multiple space-separated LDAP
+		      server URI's.
+		      </para>
+			  <para>Default: <replaceable></replaceable></para>
+		    </listitem>
+		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>ldap_server_charset</option></term>

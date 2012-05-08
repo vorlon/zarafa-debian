@@ -283,6 +283,7 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *
 		{ "ldap_user_sendas_attribute", "ldap_sendas_attribute", CONFIGSETTING_ALIAS },
 		{ "ldap_host","localhost" },
 		{ "ldap_port","389" },
+		{ "ldap_uri","" },
 		{ "ldap_protocol", "ldap" },
 		{ "ldap_server_charset", "UTF-8" },
 		{ "ldap_bind_user","" },
@@ -437,23 +438,31 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
 	// Initialize LDAP struct
 	char *ldap_host = m_config->GetSetting("ldap_host");
 	char *ldap_port = m_config->GetSetting("ldap_port");
+	char *ldap_uri = m_config->GetSetting("ldap_uri");
 
 	int port = strtoul(ldap_port, NULL, 10);
 
-	ld = ldap_init(ldap_host, port);
-	if (ld == NULL) {
-		m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
-		throw ldap_error(string("ldap_init: ") + strerror(errno));
-	}
-
-	// Go to SSL if required
-	int tls = LDAP_OPT_X_TLS_HARD;
-	if(strcmp(m_config->GetSetting("ldap_protocol"), "ldaps") == 0) {
-		if((rc = ldap_set_option(ld, LDAP_OPT_X_TLS, &tls)) != LDAP_SUCCESS) {
-			m_logger->Log(EC_LOGLEVEL_WARNING, "Failed to initiate SSL for ldap: %s", ldap_err2string(rc));
-		}
-	}
-
+	if(strlen(ldap_uri) > 0) {
+	    if(ldap_initialize(&ld, ldap_uri) != LDAP_SUCCESS) {
+	        m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
+	        throw ldap_error(string("ldap_initialize: ") + strerror(errno));
+        }
+    } else {
+        ld = ldap_init(ldap_host, port);
+        if (ld == NULL) {
+            m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
+            throw ldap_error(string("ldap_init: ") + strerror(errno));
+        }
+    
+        // Go to SSL if required
+        int tls = LDAP_OPT_X_TLS_HARD;
+        if(strcmp(m_config->GetSetting("ldap_protocol"), "ldaps") == 0) {
+            if((rc = ldap_set_option(ld, LDAP_OPT_X_TLS, &tls)) != LDAP_SUCCESS) {
+                m_logger->Log(EC_LOGLEVEL_WARNING, "Failed to initiate SSL for ldap: %s", ldap_err2string(rc));
+            }
+        }
+    }
+    
 	int version = LDAP_VERSION3;
 	ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 	// Disable response message size restrictions (but the server's
