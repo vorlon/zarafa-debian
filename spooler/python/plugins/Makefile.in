@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -74,7 +75,8 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(zarafa_dagentdir)" \
-	"$(DESTDIR)$(zarafa_spoolerdir)"
+	"$(DESTDIR)$(zarafa_spoolerdir)" \
+	"$(DESTDIR)$(zarafa_dagent_configdir)"
 SCRIPTS = $(zarafa_dagent_SCRIPTS) $(zarafa_spooler_SCRIPTS)
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
@@ -84,6 +86,7 @@ am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
 am__v_at_0 = @
 SOURCES =
 DIST_SOURCES =
+DATA = $(zarafa_dagent_config_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -282,9 +285,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-EXTRA_DIST = examplerules.py BMP2PNG.py disclaimer.py movetopublic.py
+EXTRA_DIST = examplerules.py BMP2PNG.py disclaimer.py movetopublic.py movetopublic.cfg
 zarafa_dagentdir = ${datadir}/zarafa-dagent/python/plugins
 zarafa_dagent_SCRIPTS = examplerules.py BMP2PNG.py movetopublic.py
+zarafa_dagent_configdir = ${zarafa_dagentdir}
+zarafa_dagent_config_DATA = movetopublic.cfg
 zarafa_spoolerdir = ${datadir}/zarafa-spooler/python/plugins
 zarafa_spooler_SCRIPTS = disclaimer.py
 all: all-am
@@ -394,6 +399,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-zarafa_dagent_configDATA: $(zarafa_dagent_config_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(zarafa_dagent_configdir)" || $(MKDIR_P) "$(DESTDIR)$(zarafa_dagent_configdir)"
+	@list='$(zarafa_dagent_config_DATA)'; test -n "$(zarafa_dagent_configdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(zarafa_dagent_configdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(zarafa_dagent_configdir)" || exit $$?; \
+	done
+
+uninstall-zarafa_dagent_configDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(zarafa_dagent_config_DATA)'; test -n "$(zarafa_dagent_configdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(zarafa_dagent_configdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(zarafa_dagent_configdir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
@@ -433,9 +458,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile $(SCRIPTS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(zarafa_dagentdir)" "$(DESTDIR)$(zarafa_spoolerdir)"; do \
+	for dir in "$(DESTDIR)$(zarafa_dagentdir)" "$(DESTDIR)$(zarafa_spoolerdir)" "$(DESTDIR)$(zarafa_dagent_configdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -484,7 +509,7 @@ info: info-am
 info-am:
 
 install-data-am: install-zarafa_dagentSCRIPTS \
-	install-zarafa_spoolerSCRIPTS
+	install-zarafa_dagent_configDATA install-zarafa_spoolerSCRIPTS
 
 install-dvi: install-dvi-am
 
@@ -529,6 +554,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-zarafa_dagentSCRIPTS \
+	uninstall-zarafa_dagent_configDATA \
 	uninstall-zarafa_spoolerSCRIPTS
 
 .MAKE: install-am install-strip
@@ -540,11 +566,13 @@ uninstall-am: uninstall-zarafa_dagentSCRIPTS \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
 	install-pdf-am install-ps install-ps-am install-strip \
-	install-zarafa_dagentSCRIPTS install-zarafa_spoolerSCRIPTS \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-zarafa_dagentSCRIPTS uninstall-zarafa_spoolerSCRIPTS
+	install-zarafa_dagentSCRIPTS install-zarafa_dagent_configDATA \
+	install-zarafa_spoolerSCRIPTS installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-zarafa_dagentSCRIPTS \
+	uninstall-zarafa_dagent_configDATA \
+	uninstall-zarafa_spoolerSCRIPTS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
