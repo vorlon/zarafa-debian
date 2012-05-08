@@ -842,6 +842,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 						else
 							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
 					}
+					zarafa_end_soap_connection(newsoap);
                     soap_free(newsoap);
                 } else {
 					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
@@ -1016,6 +1017,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 						else
 							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
 					}
+					zarafa_end_soap_connection(newsoap);
 					soap_free(newsoap);
 				} else {
 					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
