@@ -170,6 +170,8 @@ void print_help(char *name) {
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-spooler.cfg)\n\t\tDefault: /etc/zarafa/spooler.cfg" << endl;
 	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options \t Start even if the configuration file includes invalid config options" << endl;
+	cout << endl;
 }
 
 /**
@@ -1076,6 +1078,7 @@ int main(int argc, char *argv[]) {
 	std::string strMsgEntryId;
 	std::wstring strUsername;
 	bool bDoSentMail = false;
+	bool bIgnoreUnknownConfigOptions = false;
 
 	// options
 	enum {
@@ -1083,6 +1086,7 @@ int main(int argc, char *argv[]) {
 		OPT_CONFIG,
 		OPT_HOST,
 		OPT_FOREGROUND,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		// only called by spooler itself
 		OPT_SEND_MESSAGE_ENTRYID,
 		OPT_SEND_USERNAME,
@@ -1101,6 +1105,7 @@ int main(int argc, char *argv[]) {
 		{ "log-fd", 1, NULL, OPT_LOGFD },								// fd where to send log messages to
 		{ "do-sentmail", 0, NULL, OPT_DO_SENTMAIL },
 		{ "port", 1, NULL, OPT_PORT },
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -1187,6 +1192,9 @@ int main(int argc, char *argv[]) {
 		case OPT_PORT:
 			ulPort = atoi(my_optarg);
 			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SPOOLER_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
@@ -1199,9 +1207,12 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	if (bForked)
+		bIgnoreUnknownConfigOptions = true;
+
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	if (szConfig) {
-		if (!g_lpConfig->LoadSettings(szConfig) || g_lpConfig->HasErrors()) {
+		if (!g_lpConfig->LoadSettings(szConfig) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
 			LogConfigErrors(g_lpConfig, g_lpLogger);
 			hr = E_FAIL;
@@ -1228,7 +1239,8 @@ int main(int argc, char *argv[]) {
 	else
 		g_lpLogger = CreateLogger(g_lpConfig, argv[0], "ZarafaSpooler");
 
-	if (g_lpConfig->HasWarnings())
+
+	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 
 	// detect linuxthreads, which is too broken to correctly run the spooler
