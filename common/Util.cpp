@@ -2492,6 +2492,63 @@ exit:
 /** 
  * Return the original body property tag of a message, or PR_NULL when unknown.
  * 
+ * @param[in]	lpBody			Pointer to the SPropValue containing the PR_BODY property.
+ * @param[in]	lpHtml			Pointer to the SPropValue containing the PR_HTML property.
+ * @param[in]	lpRtfCompressed	Pointer to the SPropValue containing the PR_RTF_COMPRESSED property.
+ * @param[in]	lpRtfInSync		Pointer to the SPropValue containing the PR_RTF_IN_SYNC property.
+ * @param[in]	ulFlags			If MAPI_UNICODE is specified, the PR_BODY proptag
+ * 								will be the PT_UNICODE version. Otherwise the
+ * 								PT_STRING8 version is returned.
+ * 
+ * @return 
+ */
+ULONG Util::GetBestBody(LPSPropValue lpBody, LPSPropValue lpHtml, LPSPropValue lpRtfCompressed, LPSPropValue lpRtfInSync, ULONG ulFlags)
+{
+	/**
+	 * In this function we try to determine the best body based on the combination of values and error values
+	 * for PR_BODY, PR_HTML, PR_RTF_COMPRESSED and PR_RTF_IN_SYNC according to the rules as described in ECMessage.cpp.
+	 * Some checks performed here seem redundant, but are actualy required to determine if the source provider
+	 * implements this scheme as we expect it (Scalix doesn't always seem to do so).
+	 */
+	ULONG ulProp = PR_NULL;
+	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
+
+	if (lpRtfInSync->ulPropTag != PR_RTF_IN_SYNC)
+		goto exit;
+
+	if ((lpBody->ulPropTag == ulBodyTag || (PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
+		(PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_FOUND) &&
+		(PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_FOUND))
+	{
+		ulProp = ulBodyTag;
+		goto exit;
+	}
+
+	if ((lpHtml->ulPropTag == PR_HTML || (PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
+		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
+		(PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
+		lpRtfInSync->Value.b == FALSE)
+	{
+		ulProp = PR_HTML;
+		goto exit;
+	}
+
+	if ((lpRtfCompressed->ulPropTag == PR_RTF_COMPRESSED || (PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
+		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
+		(PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_FOUND) &&
+		lpRtfInSync->Value.b == TRUE)
+	{
+		ulProp = PR_RTF_COMPRESSED;
+		goto exit;
+	}
+
+exit:
+	return ulProp;
+}
+
+/** 
+ * Return the original body property tag of a message, or PR_NULL when unknown.
+ * 
  * @param[in]	lpPropObj	The object to get the best body proptag from.
  * @param[in]	ulFlags		If MAPI_UNICODE is specified, the PR_BODY proptag
  * 							will be the PT_UNICODE version. Otherwise the
@@ -2501,12 +2558,6 @@ exit:
  */
 ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
-	/**
-	 * In this function we try to determine the best body based on the combination of values and error values
-	 * for PR_BODY, PR_HTML, PR_RTF_COMPRESSED and PR_RTF_IN_SYNC according to the rules as described in ECMessage.cpp.
-	 * Some checks performed here seem redundant, but are actualy required to determine if the source provider
-	 * implements this scheme as we expect it (Scalix doesn't always seem to do so).
-	 */
 	ULONG ulProp = PR_NULL;
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
@@ -2523,37 +2574,72 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 	if (FAILED(hr))
 		goto exit;
 
-	if (ptrBodies[3].ulPropTag != PR_RTF_IN_SYNC)
-		goto exit;
-
-	if ((ptrBodies[0].ulPropTag == ulBodyTag || (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && ptrBodies[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR && ptrBodies[1].Value.err == MAPI_E_NOT_FOUND) &&
-		(PROP_TYPE(ptrBodies[2].ulPropTag) == PT_ERROR && ptrBodies[2].Value.err == MAPI_E_NOT_FOUND))
-	{
-		ulProp = ulBodyTag;
-		goto exit;
-	}
-
-	if ((ptrBodies[1].ulPropTag == PR_HTML || (PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR && ptrBodies[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && ptrBodies[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		(PROP_TYPE(ptrBodies[2].ulPropTag) == PT_ERROR && ptrBodies[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		ptrBodies[3].Value.b == FALSE)
-	{
-		ulProp = PR_HTML;
-		goto exit;
-	}
-
-	if ((ptrBodies[2].ulPropTag == PR_RTF_COMPRESSED || (PROP_TYPE(ptrBodies[2].ulPropTag) == PT_ERROR && ptrBodies[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && ptrBodies[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		(PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR && ptrBodies[1].Value.err == MAPI_E_NOT_FOUND) &&
-		ptrBodies[3].Value.b == TRUE)
-	{
-		ulProp = PR_RTF_COMPRESSED;
-		goto exit;
-	}
+	ulProp = GetBestBody(&ptrBodies[0], &ptrBodies[1], &ptrBodies[2], &ptrBodies[3], ulFlags);
 
 exit:
 	return ulProp;
+}
+
+/** 
+ * Return the original body property tag of a message, or PR_NULL when unknown.
+ * 
+ * @param[in]	lpPropArray	The array of properties on which to base the result.
+ *                          This array must include PR_BODY, PR_HTML, PR_RTF_COMPRESSED
+ *							and PR_RTF_IN_SYNC.
+ * @param[in]	cValues		The number of properties in lpPropArray.
+ * @param[in]	ulFlags		If MAPI_UNICODE is specified, the PR_BODY proptag
+ * 							will be the PT_UNICODE version. Otherwise the
+ * 							PT_STRING8 version is returned.
+ * 
+ * @return 
+ */
+ULONG Util::GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags)
+{
+	ULONG ulProp = PR_NULL;
+	LPSPropValue lpBody, lpHtml, lpRtfCompressed, lpRtfInSync;
+
+	lpBody = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED));
+	if (!lpBody)
+		goto exit;
+
+	lpHtml = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
+	if (!lpHtml)
+		goto exit;
+
+	lpRtfCompressed = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
+	if (!lpRtfCompressed)
+		goto exit;
+
+	lpRtfInSync = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_IN_SYNC, PT_UNSPECIFIED));
+	if (!lpRtfInSync)
+		goto exit;
+
+	ulProp = GetBestBody(lpBody, lpHtml, lpRtfCompressed, lpRtfInSync, ulFlags);
+
+exit:
+	return ulProp;
+}
+
+/**
+ * Check if a proptag specifies a body property. This is PR_BODY, PR_HTML
+ * or PR_RTF_COMPRESSED. If the type is set to error, it can still classified
+ * as a body proptag.
+ *
+ * @param[in]	ulPropTag	The proptag to check,
+ * @retval true if the proptag specified a body property.
+ * @retval false otherwise.
+ */
+bool Util::IsBodyProp(ULONG ulPropTag)
+{
+	switch (PROP_ID(ulPropTag)) {
+		case PROP_ID(PR_BODY):
+		case PROP_ID(PR_HTML):
+		case PROP_ID(PR_RTF_COMPRESSED):
+			return true;
+
+		default:
+			return false;
+	}
 }
 
 /** 

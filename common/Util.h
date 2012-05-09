@@ -104,7 +104,11 @@ public:
 	static HRESULT	HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage);
 	static HRESULT	HrHtmlToRtf(const WCHAR *lpwHTML, std::string& strRTF);
 
+	static ULONG GetBestBody(LPSPropValue lpBody, LPSPropValue lpHtml, LPSPropValue lpRtfCompressed, LPSPropValue lpRtfInSync, ULONG ulFlags);
 	static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
+	static ULONG GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags);
+
+	static bool IsBodyProp(ULONG ulPropTag);
 
 	static HRESULT HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase = NULL);
 
