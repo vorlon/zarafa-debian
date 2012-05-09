@@ -69,6 +69,7 @@
 #include "ZarafaCmdUtil.h"	// for GetStoreType (seems to be a bit misplaced)
 
 #include <edkmdb.h>
+#include <mapiext.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
