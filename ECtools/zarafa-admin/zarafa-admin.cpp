@@ -2386,6 +2386,8 @@ int main(int argc, char* argv[])
 	LPENTRYID lpStoreId = NULL;
 	ULONG cbRootId = 0;
 	LPENTRYID lpRootId = NULL;
+	ULONG cbUnWrappedEntry = 0;
+	LPENTRYID lpUnWrappedEntry = NULL;
 
 	ECGROUP		sECGroup;
 	LPECGROUP	lpECGroups = NULL;
@@ -3423,14 +3425,31 @@ int main(int argc, char* argv[])
 			if (hr != hrSuccess) {
 				cerr << "Unable to find " << detailstype << ", " << getMapiCodeString(hr, username) << endl;
 				goto exit;
-			}		
+			}
+
+			hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, (LPVOID*)&lpIEMS);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = lpIEMS->CreateStoreEntryID(NULL, (LPTSTR)username, 0, &cbStoreId, &lpStoreId);
+			if (hr != hrSuccess) {
+				cout << "Unable to unhook store. Can not create store entryid, " << getMapiCodeString(hr, "store") << endl;
+				goto exit;
+			}
+
+			hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &lpUnWrappedEntry);
+			if (hr != hrSuccess) {
+				cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
+				goto exit;
+			}
 
 			hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
 			if (hr != hrSuccess) {
 				cerr << "Unable to unhook store, " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
-			cout << "Store unhooked." << endl;
+
+			cout << "Store unhooked store guid is " << bin2hex(sizeof(GUID), (unsigned char*)lpUnWrappedEntry->ab) << endl;
 		}
 		break;
 	case MODE_REMOVE_STORE:
@@ -4237,6 +4256,9 @@ exit:
 
 	if (lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
+
+	if (lpUnWrappedEntry)
+		MAPIFreeBuffer(lpUnWrappedEntry);
 
 	if (lpUserStore)
 		lpUserStore->Release();

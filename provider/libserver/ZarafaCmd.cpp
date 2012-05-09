@@ -9150,6 +9150,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
 	unsigned int	ulAffected = 0;
+	std::string		strGUID = "Unknown";
 
 	USE_DATABASE();
 
@@ -9164,11 +9165,21 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 		goto exit;
 	}
 
-	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhooking store (type %d) from userobject %d", ulStoreType, ulUserId);
-
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
 		goto exit;
+
+	strQuery = "SELECT guid FROM stores WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType);
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
+
+	if (lpDBRow && lpDBRow[0]) {
+		strGUID = bin2hex(lpDBLen[0], (unsigned char*)lpDBRow[0]);
+	} 
 
 	strQuery = "UPDATE stores SET user_id=0 WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
@@ -9188,7 +9199,9 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 
 exit:
 	if (er != erSuccess)
-		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhook of store failed: 0x%x", er);
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhook of store (type %d) with userid %d and guid %s failed with error code 0x%x",  ulStoreType, ulUserId, strGUID.c_str(), er);
+	else
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unhook of store (type %d) with userid %d and guid %s succeed",  ulStoreType, ulUserId, strGUID.c_str());
 		
 	ROLLBACK_ON_ERROR();
 	FREE_DBRESULT();
