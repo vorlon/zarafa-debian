@@ -1325,16 +1325,18 @@ exit:
 HRESULT WriteOrLogError(int fd, const char* buffer, size_t len, size_t wrap = 0)
 {
 	HRESULT hr = hrSuccess;
+	size_t pos = 0;
 
 	if (!wrap)
 		wrap = len;
 
 	while (len) {
-		if (write(fd, buffer, min(len, wrap)) < 0) {
+		if (write(fd, buffer + pos, min(len, wrap)) < 0) {
 			hr = MAPI_E_CALL_FAILED;
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Write error to temp file for out of office mail: %s", strerror(errno));
 		}
 		len -= min(len, wrap);
+		pos += min(len, wrap);
 		if (len)
 			write(fd, "\n", strlen("\n")); // will write more, break when the next block write fails
 	}
