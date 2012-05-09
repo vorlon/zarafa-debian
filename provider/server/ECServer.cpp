@@ -114,6 +114,7 @@ bool				m_bIgnoreDatabaseVersionConflict = false;
 bool				m_bIgnoreAttachmentStorageConflict = false;
 bool				m_bIgnoreDistributedZarafaConflict = false;
 bool				m_bForceDatabaseUpdate = false;
+bool				m_bIgnoreUnknownConfigOptions = false;
 pthread_t			mainthread;
 
 ECConfig*			g_lpConfig = NULL;
@@ -671,7 +672,8 @@ int main(int argc, char* argv[])
 		OPT_IGNORE_DATABASE_VERSION_CONFLICT,
 		OPT_IGNORE_ATTACHMENT_STORAGE_CONFLICT,
 		OPT_OVERRIDE_DISTRIBUTED_LOCK,
-		OPT_FORCE_DATABASE_UPGRADE
+		OPT_FORCE_DATABASE_UPGRADE,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
 	};
 	struct option long_options [] = {
 		{ "help", 0, NULL, OPT_HELP },	// help text
@@ -681,6 +683,7 @@ int main(int argc, char* argv[])
 		{ "ignore-attachment-storage-conflict", 0, NULL, OPT_IGNORE_ATTACHMENT_STORAGE_CONFLICT },
 		{ "override-multiserver-lock", 0, NULL, OPT_OVERRIDE_DISTRIBUTED_LOCK },
 		{ "force-database-upgrade", 0, NULL, OPT_FORCE_DATABASE_UPGRADE },
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -712,6 +715,7 @@ int main(int argc, char* argv[])
 			cout << "     --ignore-attachment-storage-conflict    Start even if the attachment_storage config option changed" << endl;
 			cout << "     --override-multiserver-lock             Start in multiserver mode even if multiserver mode is locked" << endl;
 			cout << "     --force-database-upgrade                Start upgrade from 6.x database and continue running if upgrade is complete" << endl;
+			cout << "     --ignore-unknown-config-options         Start even if the configuration file includes invalid config options" << endl;
 			return 0;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SERVER_STR << endl
@@ -732,6 +736,9 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_FORCE_DATABASE_UPGRADE:
 			m_bForceDatabaseUpdate = true;
+			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			m_bIgnoreUnknownConfigOptions = true;
 			break;
 		};
 	}
@@ -945,7 +952,7 @@ int running_server(char *szName, const char *szConfig)
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
 
-	if (!g_lpConfig->LoadSettings(szConfig) || g_lpConfig->HasErrors()) {
+	if (!g_lpConfig->LoadSettings(szConfig) || (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		retval = -1;
@@ -959,6 +966,9 @@ int running_server(char *szName, const char *szConfig)
 		retval = -1;
 		goto exit;
 	}
+
+	if (m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())
+		LogConfigErrors(g_lpConfig, g_lpLogger);
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "ZarafaServer", true);
 	if (g_lpAudit)
