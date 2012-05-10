@@ -715,7 +715,7 @@ int main(int argc, char* argv[])
 			cout << "     --ignore-attachment-storage-conflict    Start even if the attachment_storage config option changed" << endl;
 			cout << "     --override-multiserver-lock             Start in multiserver mode even if multiserver mode is locked" << endl;
 			cout << "     --force-database-upgrade                Start upgrade from 6.x database and continue running if upgrade is complete" << endl;
-			cout << "     --ignore-unknown-config-options         Start even if the configuration file includes invalid config options" << endl;
+			cout << "     --ignore-unknown-config-options         Start even if the configuration file contains invalid config options" << endl;
 			return 0;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SERVER_STR << endl
