@@ -1183,7 +1183,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	ULONG ulFlags = 0;
 	StreamPtr ptrDestStream;
 
-	SizedSPropTagArray(8, sptImportProps) = { 8, {
+	SizedSPropTagArray(11, sptImportProps) = { 11, {
 		PR_SOURCE_KEY,
 		PR_LAST_MODIFICATION_TIME,
 		PR_CHANGE_KEY,
@@ -1191,7 +1191,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_PREDECESSOR_CHANGE_LIST,
 		PR_ENTRYID,
 		PR_ASSOCIATED,
-		PR_MESSAGE_FLAGS /* needed for backward compat since PR_ASSOCIATED is not supported on earlier systems */
+		PR_MESSAGE_FLAGS, /* needed for backward compat since PR_ASSOCIATED is not supported on earlier systems */
+		PR_STORE_RECORD_KEY,
+		PR_EC_HIERARCHYID,
+		PR_EC_PARENT_HIERARCHYID
 	} };
 
 	SizedSPropTagArray(5, sptImportPropsServerWide) = { 5, {
@@ -1426,7 +1429,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				goto next;
 			}
 			
-			hr = HrGetAllProps(lpFolder, (m_ulFlags & SYNC_UNICODE) ? MAPI_UNICODE : 0, &ulCount, &lpPropArray);
+			hr = HrGetAllProps(lpFolder, MAPI_UNICODE, &ulCount, &lpPropArray);
 			if(FAILED(hr)) {
 				LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
 				goto exit;
