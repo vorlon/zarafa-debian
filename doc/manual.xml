@@ -7546,7 +7546,18 @@
 			  will daemonize and run in the background.</para>
 			</listitem>
 		  </varlistentry>
-		</variablelist>
+
+		  <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the monitor service will report an error and shutdown. Pass this option to
+				ignore unknown options so the monitor service will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
+	    </variablelist>
 	  </refsection>
 
 	  <refsection>
@@ -9527,6 +9538,17 @@
 			  will daemonize and run in the background.</para>
 			</listitem>
 		  </varlistentry>
+
+	      <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the license service will report an error and shutdown. Pass this option to
+				ignore unknown options so the license service will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
 		  </variablelist>
 		</para>
 	  </refsection>
@@ -10510,6 +10532,17 @@
 			  <para>Print the version and exit.</para>
 			</listitem>
 		  </varlistentry>
+
+	      <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the indexer will report an error and shutdown. Pass this option to
+				ignore unknown options so the indexer will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
 		</variablelist>
 
 		<para>

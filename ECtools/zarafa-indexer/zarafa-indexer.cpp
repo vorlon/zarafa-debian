@@ -407,6 +407,8 @@ void print_help(char *name) {
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-indexer.cfg)\n\t\tDefault: /etc/zarafa/indexer.cfg" << endl;
 	cout << "  -V\t\tPrint version information" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
+	cout << endl;
 }
 
 #define INDEXER_DEFAULT_BIND	"file:///var/run/zarafa-indexer"
@@ -420,6 +422,7 @@ int main(int argc, char *argv[]) {
 	const char *szConfig = INDEXER_DEFAULT_CONFIG;
 	const char *szPath = NULL;
 	bool daemonize = true;
+	bool bIgnoreUnknownConfigOptions = false;	
 
 	// Default settings
 	const configsetting_t lpDefaults[] = {
@@ -472,13 +475,15 @@ int main(int argc, char *argv[]) {
 		OPT_HELP,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND
+		OPT_FOREGROUND,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
 	};
 	struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },
 		{ "host", 1, NULL, OPT_HOST },
 		{ "config", 1, NULL, OPT_CONFIG },
 		{ "foreground", 1, NULL, OPT_FOREGROUND },
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -504,6 +509,9 @@ int main(int argc, char *argv[]) {
 		case 'F':
 			daemonize = 0;
 			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_INDEXER_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
@@ -520,7 +528,7 @@ int main(int argc, char *argv[]) {
 	g_lpThreadData = new ECThreadData();
 
 	g_lpThreadData->lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpThreadData->lpConfig->LoadSettings(szConfig) || g_lpThreadData->lpConfig->HasErrors()) {
+	if (!g_lpThreadData->lpConfig->LoadSettings(szConfig) || (!bIgnoreUnknownConfigOptions && g_lpThreadData->lpConfig->HasErrors())) {
 		g_lpThreadData->lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
 		LogConfigErrors(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
 		hr = E_FAIL;
@@ -531,7 +539,7 @@ int main(int argc, char *argv[]) {
 	// setup logging
 	g_lpThreadData->lpLogger = CreateLogger(g_lpThreadData->lpConfig, argv[0], "Zarafa-indexer");
 
-	if (g_lpThreadData->lpConfig->HasWarnings())
+	if ( (bIgnoreUnknownConfigOptions && g_lpThreadData->lpConfig->HasErrors()) || g_lpThreadData->lpConfig->HasWarnings())
 		LogConfigErrors(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
 
 	g_lpThreadData->lpFileIndex = new ECFileIndex(g_lpThreadData);

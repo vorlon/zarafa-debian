@@ -187,6 +187,8 @@ void print_help(char *name) {
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/zarafa" << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-monitor.cfg)\n\t\tDefault: /etc/zarafa/monitor.cfg" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
+	cout << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -196,6 +198,7 @@ int main(int argc, char *argv[]) {
 	char *szPath = NULL;
 	int c;
 	int daemonize = 1;
+	bool bIgnoreUnknownConfigOptions = false;
 
 
 	// Default settings
@@ -227,13 +230,15 @@ int main(int argc, char *argv[]) {
 		OPT_HELP,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND
+		OPT_FOREGROUND,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
 	};
 	struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },
 		{ "host", 1, NULL, OPT_HOST },
 		{ "config", 1, NULL, OPT_CONFIG },
 		{ "foreground", 1, NULL, OPT_FOREGROUND },
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -262,6 +267,9 @@ int main(int argc, char *argv[]) {
 		case 'F':
 			daemonize = 0;
 			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_MONITOR_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
@@ -276,7 +284,7 @@ int main(int argc, char *argv[]) {
 	m_lpThreadMonitor = new ECTHREADMONITOR;
 
 	m_lpThreadMonitor->lpConfig = ECConfig::Create(lpDefaults);
-	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) || m_lpThreadMonitor->lpConfig->HasErrors()) {
+	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) || (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		m_lpThreadMonitor->lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
 		LogConfigErrors(m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger);
 		hr = E_FAIL;
@@ -288,7 +296,7 @@ int main(int argc, char *argv[]) {
 	// setup logging
 	m_lpThreadMonitor->lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig, argv[0], "Zarafa-Monitor");
 
-	if (m_lpThreadMonitor->lpConfig->HasWarnings())
+	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger);
 
 

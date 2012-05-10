@@ -65,6 +65,11 @@ file:///var/run/zarafa\&.
 .RS 4
 Run in the foreground\&. Normally the monitor will daemonize and run in the background\&.
 .RE
+.PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the monitor service will report an error and shutdown\&. Pass this option to ignore unknown options so the monitor service will start\&.
+.RE
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the zarafa\-monitor process:

@@ -60,6 +60,11 @@ Shows the help message of the license server\&.
 .RS 4
 Run in the foreground\&. Normally the license server will daemonize and run in the background\&.
 .RE
+.PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the license service will report an error and shutdown\&. Pass this option to ignore unknown options so the license service will start\&.
+.RE
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the zarafa\-license process:

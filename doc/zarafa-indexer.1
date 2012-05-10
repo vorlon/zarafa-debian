@@ -67,6 +67,11 @@ file:///var/run/zarafa\&.
 Print the version and exit\&.
 .RE
 .PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the indexer will report an error and shutdown\&. Pass this option to ignore unknown options so the indexer will start\&.
+.RE
+.PP
 When invoked with no options, the indexer will search for a configuration file in
 /etc/zarafa/indexer\&.cfg\&. If no configuration file is found, default values are used\&. See
 \fBzarafa-indexer.cfg\fR(5)
