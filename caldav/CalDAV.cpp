@@ -177,6 +177,8 @@ void PrintHelp(char *name) {
 	cout << "  -V\t\tPrint version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa/ical.cfg)\n\t\tDefault: /etc/zarafa/ical.cfg" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
+	cout << endl;
 }
 
 void PrintVersion() {
@@ -188,6 +190,7 @@ int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	int ulListenCalDAV = 0;
 	int ulListenCalDAVs = 0;
+	bool bIgnoreUnknownConfigOptions = false;
 
 	ECChannel *lpChannel = NULL;
     stack_t st = {0};
@@ -222,11 +225,16 @@ int main(int argc, char **argv) {
         { "ssl_verify_path", "" },
 		{ NULL, NULL },
 	};
+	enum {
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
+	};
+
 	struct option long_options[] = {
 		{"help", no_argument, NULL, 'h'},
 		{"config", required_argument, NULL, 'c'},
 		{"version", no_argument, NULL, 'v'},
 		{"foreground", no_argument, NULL, 'F'},
+		{"ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{NULL, 0, NULL, 0}
 	};
 
@@ -239,11 +247,22 @@ int main(int argc, char **argv) {
 			break;
 
 		switch (opt) {
-			case 'c': lpszCfg = my_optarg; break;
-			case 'F': g_bDaemonize = false; break;
-			case 'V': PrintVersion(); goto exit;
+			case 'c': 
+				lpszCfg = my_optarg; 
+				break;
+			case 'F': 
+				g_bDaemonize = false;
+				break;
+			case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+				bIgnoreUnknownConfigOptions = true;
+				break;
+			case 'V': 
+				PrintVersion(); 
+				goto exit;
 			case 'h':
-			default:  PrintHelp(argv[0]); goto exit;
+			default:
+				PrintHelp(argv[0]);
+				goto exit;
 		}
 	}
 	
@@ -251,21 +270,23 @@ int main(int argc, char **argv) {
 	xmlInitParser();
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpConfig->LoadSettings(lpszCfg) || g_lpConfig->HasErrors()) {
+	if (!g_lpConfig->LoadSettings(lpszCfg) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(1, 0, "-");
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		goto exit;
 	}
 
 	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "ZarafaICal");
-
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)
-		g_bThreads = true;
-
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error loading configuration or parsing commandline arguments.\n");
 		goto exit;
 	}
+
+	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
+		LogConfigErrors(g_lpConfig, g_lpLogger);
+
+	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)
+		g_bThreads = true;
 
 	// initialize SSL threading
     ssl_threading_setup();

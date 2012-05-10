@@ -79,6 +79,11 @@ When you upgrade/downgrade from/to multiserver setups, the server will not start
 The upgrade from 6\&.x to 7\&.0 is blocked, since it will take a long time\&. We provide 2 methods to upgrade the database\&. One is using the preferred zarafa7\-upgrade python script\&. This is preferred since it shows the upgrade progress, and you can estimate the time it will take for the upgrade to complete\&. The second option is letting the zarafa\-server do the normal upgrade as usual\&. Pass this option to use this method\&. The server will only daemonize when the upgrade is complete\&. Simple progress can be followed in the log output of the server\&.
 .RE
 .PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the server will report an error and shutdown\&. Pass this option to ignore unknown options so the server will start\&.
+.RE
+.PP
 \fB\-V\fR
 .RS 4
 Print the version and exit\&.

@@ -188,6 +188,8 @@ void print_help(char *name) {
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-gateway.cfg)\n\t\tDefault: /etc/zarafa/gateway.cfg" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
+	cout << endl;
 }
 
 enum serviceType { ST_POP3 = 0, ST_IMAP };
@@ -323,6 +325,7 @@ exit:
 int main(int argc, char *argv[]) {
 	HRESULT hr = hrSuccess;
 	int c = 0;
+	bool bIgnoreUnknownConfigOptions = false;
 
 	ssl_threading_setup();
 
@@ -369,13 +372,15 @@ int main(int argc, char *argv[]) {
 		OPT_HELP,
 		OPT_HOST,
 		OPT_CONFIG,
-		OPT_FOREGROUND
+		OPT_FOREGROUND,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
 	};
 	struct option long_options[] = {
 		{"help", 0, NULL, OPT_HELP},
 		{"host", 1, NULL, OPT_HOST},
 		{"config", 1, NULL, OPT_CONFIG},
 		{"foreground", 1, NULL, OPT_FOREGROUND},
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{NULL, 0, NULL, 0}
 	};
 
@@ -402,6 +407,9 @@ int main(int argc, char *argv[]) {
 		case 'F':
 			daemonize = 0;
 			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_GATEWAY_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
@@ -414,7 +422,7 @@ int main(int argc, char *argv[]) {
 	}
 	// Setup config
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpConfig->LoadSettings(szConfig) || g_lpConfig->HasErrors()) {
+	if (!g_lpConfig->LoadSettings(szConfig) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-");	// create fatal logger without a timestamp to stderr
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		hr = E_FAIL;
@@ -423,7 +431,7 @@ int main(int argc, char *argv[]) {
 	// Setup logging
 	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "ZarafaGateway");
 
-	if (g_lpConfig->HasWarnings())
+	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 
 	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {

@@ -170,7 +170,7 @@ void print_help(char *name) {
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-spooler.cfg)\n\t\tDefault: /etc/zarafa/spooler.cfg" << endl;
 	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
 	cout << endl;
-	cout << "  --ignore-unknown-config-options \t Start even if the configuration file includes invalid config options" << endl;
+	cout << "  --ignore-unknown-config-options \t Start even if the configuration file contains invalid config options" << endl;
 	cout << endl;
 }
 

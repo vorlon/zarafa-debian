@@ -62,6 +62,11 @@ file:///var/run/zarafa\&. Overrides the config file setting\&.
 .RS 4
 Run in the foreground\&. Normally the spooler will daemonize and run in the background\&.
 .RE
+.PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the spooler will report an error and shutdown\&. Pass this option to ignore unknown options so the spooler will start\&.
+.RE
 .SH "USAGE"
 .PP
 To start the spooler delivering e\-mail to recipients:

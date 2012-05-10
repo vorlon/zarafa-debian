@@ -60,6 +60,11 @@ Shows the help message of the iCal/CalDAV gateway\&.
 .RS 4
 Run in the foreground\&. Normally the gateway will daemonize and run in the background\&.
 .RE
+.PP
+\fB\-\-ignore\-unknown\-config\-options\fR
+.RS 4
+When unknown options exists in the configuration file the ical service will report an error and shutdown\&. Pass this option to ignore unknown options so the ical service will start\&.
+.RE
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the zarafa\-ical process:

@@ -1276,6 +1276,16 @@
 		  </varlistentry>
 
 		  <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the server will report an error and shutdown. Pass this option to
+				ignore unknown options so the server will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>-V</option></term>
 			<listitem>
 			  <para>Print the version and exit.</para>
@@ -6187,6 +6197,17 @@
 			  will daemonize and run in the background.</para>
 			</listitem>
 		  </varlistentry>
+
+		  <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the spooler will report an error and shutdown. Pass this option to
+				ignore unknown options so the spooler will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
 		</variablelist>
 	  </refsection>
 
@@ -6848,6 +6869,17 @@
 			  will daemonize and run in the background.</para>
 			</listitem>
 		  </varlistentry>
+
+	      <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the gateway will report an error and shutdown. Pass this option to
+				ignore unknown options so the gateway will start.
+				</para>
+            </listitem>
+		  </varlistentry>
+
 		  </variablelist>
 		</para>
 	  </refsection>
@@ -8964,7 +8996,18 @@
 			  <para>Run in the foreground. Normally the gateway
 			  will daemonize and run in the background.</para>
 			</listitem>
+	  	  </varlistentry>
+
+		  <varlistentry>
+		    <term><option>--ignore-unknown-config-options</option></term>
+			<listitem>
+				<para>When unknown options exists in the configuration file
+				the ical service will report an error and shutdown. Pass this option to
+				ignore unknown options so the ical service will start.
+				</para>
+            </listitem>
 		  </varlistentry>
+
 		  </variablelist>
 		</para>
 	  </refsection>
