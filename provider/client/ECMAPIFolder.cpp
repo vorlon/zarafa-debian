@@ -501,8 +501,8 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 	if(hr != hrSuccess)
 		goto exit;
 
-    if(cbEntryID == 0 || lpEntryID == NULL) {
-		// No entryid passed, create one
+    if(cbEntryID == 0 || lpEntryID == NULL || HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &this->GetMsgStore()->GetStoreGuid()) != hrSuccess) {
+		// No entryid passed or bad entryid passed, create one
     	hr = HrCreateEntryId(GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbNewEntryId, &lpNewEntryId);
     	if(hr != hrSuccess)
 		    goto exit;

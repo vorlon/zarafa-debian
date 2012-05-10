@@ -1426,7 +1426,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				goto next;
 			}
 			
-			hr = HrGetAllProps(lpFolder, MAPI_UNICODE, &ulCount, &lpPropArray);
+			hr = HrGetAllProps(lpFolder, (m_ulFlags & SYNC_UNICODE) ? MAPI_UNICODE : 0, &ulCount, &lpPropArray);
 			if(FAILED(hr)) {
 				LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
 				goto exit;

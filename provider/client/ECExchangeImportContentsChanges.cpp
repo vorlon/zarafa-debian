@@ -1081,7 +1081,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		ulNewFlags = MAPI_ASSOCIATED;
 
-	if (lpPropEntryId != NULL) {
+	if (lpPropEntryId != NULL && HrCompareEntryIdWithStoreGuid(lpPropEntryId->Value.bin.cb, (LPENTRYID)lpPropEntryId->Value.bin.lpb, &m_lpFolder->GetMsgStore()->GetStoreGuid()) == hrSuccess) {
 		cbEntryId = lpPropEntryId->Value.bin.cb;
 		lpEntryId = (LPENTRYID)lpPropEntryId->Value.bin.lpb;
 	} else {
