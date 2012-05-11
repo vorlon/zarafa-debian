@@ -165,14 +165,19 @@ exit:
 ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
-	LARGE_INTEGER ff;
+	char buffer[4096];
+	ULONG read = 0;
+	ULONG total = 0;
 
-	ff.QuadPart = size*nmemb;
+	while(total < (nmemb*size)) {
+		er = m_lpBuffer->Read(buffer, std::min(sizeof(buffer), (size * nmemb) - total), &read);
+		if(er != erSuccess)
+			goto exit;
+		
+		total += read;
+	}
 	
-	er = m_lpBuffer->Seek(ff, SEEK_CUR, NULL);
-
-	m_ulRead += size*nmemb;
-
+exit:
 	return er;
 }
 

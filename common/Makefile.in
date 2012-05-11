@@ -91,11 +91,11 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcommon_mapi_la_LIBADD =
 am_libcommon_mapi_la_OBJECTS = CommonUtil.lo rtfutil.lo codepage.lo \
-	ECGuid.lo ECUnknown.lo ECMemStream.lo ECMemTable.lo \
-	ECKeyTable.lo Util.lo ECDebug.lo favoritesutil.lo \
-	ZarafaCode.lo HtmlToTextParser.lo HtmlEntity.lo ECABEntryID.lo \
-	ECDebugPrint.lo ECIterators.lo MAPINotifSink.lo \
-	IStreamAdapter.lo MAPIConsoleTable.lo
+	ECGuid.lo ECUnknown.lo ECMemStream.lo ECFifoStream.lo \
+	ECMemTable.lo ECKeyTable.lo Util.lo ECDebug.lo \
+	favoritesutil.lo ZarafaCode.lo HtmlToTextParser.lo \
+	HtmlEntity.lo ECABEntryID.lo ECDebugPrint.lo ECIterators.lo \
+	MAPINotifSink.lo IStreamAdapter.lo MAPIConsoleTable.lo
 libcommon_mapi_la_OBJECTS = $(am_libcommon_mapi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -404,7 +404,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
-				  ConsoleTable.h MAPIConsoleTable.h \
+				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -420,6 +420,7 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			ECGuid.cpp									\
 			ECUnknown.cpp								\
 			ECMemStream.cpp								\
+			ECFifoStream.cpp							\
 			ECMemTable.cpp								\
 			ECKeyTable.cpp								\
 			Util.cpp 									\
@@ -566,6 +567,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDebugPrint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFeatures.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFifoBuffer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFifoStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECGetText.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECGuid.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIConv.Plo@am__quote@

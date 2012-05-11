@@ -22,7 +22,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
-				  ConsoleTable.h MAPIConsoleTable.h \
+				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -41,6 +41,7 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			ECGuid.cpp									\
 			ECUnknown.cpp								\
 			ECMemStream.cpp								\
+			ECFifoStream.cpp							\
 			ECMemTable.cpp								\
 			ECKeyTable.cpp								\
 			Util.cpp 									\

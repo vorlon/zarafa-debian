@@ -69,6 +69,7 @@ public:
 	ECRESULT Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten);
 	ECRESULT Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead);
 	ECRESULT Close();
+	ECRESULT Flush();
 
 	bool IsClosed() const;
 	bool IsEmpty() const;
@@ -88,6 +89,7 @@ private:
 	pthread_mutex_t	m_hMutex;
 	pthread_cond_t	m_hCondNotEmpty;
 	pthread_cond_t	m_hCondNotFull;
+	pthread_cond_t	m_hCondFlushed;
 };
 
 

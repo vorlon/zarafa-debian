@@ -72,6 +72,7 @@ DEFINEMAPIPTR(ECServiceAdmin);
 DEFINEMAPIPTR(ECSingleInstance);
 DEFINEMAPIPTR(ExchangeManageStore);
 DEFINEMAPIPTR(ExchangeModifyTable);
+DEFINEMAPIPTR(ExchangeExportChanges);
 DEFINEMAPIPTR(MAPIAdviseSink);
 DEFINEMAPIPTR(MAPIContainer);
 DEFINEMAPIPTR(MAPIFolder);
@@ -104,6 +105,8 @@ typedef mapi_memory_ptr<FlagList> FlagListPtr;
 
 typedef mapi_array_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef mapi_array_ptr<SPropValue> SPropArrayPtr;
+
+typedef mapi_rowset_ptr SRowSetPtr;
 
 
 #endif // ndef mapi_ptr_INCLUDED

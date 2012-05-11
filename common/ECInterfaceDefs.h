@@ -276,3 +276,10 @@ HRESULT __stdcall CLASSMETHOD(_class, _method)(ARGLIST(__VA_ARGS__))	{			\
 	return hr;																									\
 }
 
+#define DEF_HRMETHOD_NOSUPPORT(_trace, _class, _iface, _method, ...)														\
+HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
+	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
+	HRESULT	hr = MAPI_E_NO_SUPPORT;																						\
+	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str());	\
+	return hr;																									\
+}

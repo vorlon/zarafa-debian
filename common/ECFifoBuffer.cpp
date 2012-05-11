@@ -63,6 +63,7 @@ ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	pthread_mutex_init(&m_hMutex, NULL);
 	pthread_cond_init(&m_hCondNotFull, NULL);
 	pthread_cond_init(&m_hCondNotEmpty, NULL);
+	pthread_cond_init(&m_hCondFlushed, NULL);
 }
 
 ECFifoBuffer::~ECFifoBuffer()
@@ -180,7 +181,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {
-			if (IsClosed())
+			if (IsClosed()) 
 				goto exit;
 
 			if (ulTimeoutMs > 0) {
@@ -198,6 +199,10 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		m_storage.erase(m_storage.begin(), iEndNow);
 		pthread_cond_signal(&m_hCondNotFull);
 		cbRead += cbNow;
+	}
+	
+	if(IsEmpty() && IsClosed()) {
+		pthread_cond_signal(&m_hCondFlushed);
 	}
 
 exit:
@@ -222,6 +227,23 @@ ECRESULT ECFifoBuffer::Close()
 	m_bClosed = true;
 	pthread_cond_signal(&m_hCondNotEmpty);
 	pthread_cond_signal(&m_hCondNotFull);
+	if(IsEmpty())
+		pthread_cond_signal(&m_hCondFlushed);
 	pthread_mutex_unlock(&m_hMutex);
+	return erSuccess;
+}
+
+/**
+ * Wait for the stream to be flushed
+ *
+ * This guarantees that the reader has read all the data from the fifo
+ */
+ECRESULT ECFifoBuffer::Flush()
+{
+	pthread_mutex_lock(&m_hMutex);
+	while(!(IsClosed() && IsEmpty()))
+		pthread_cond_wait(&m_hCondFlushed, &m_hMutex);
+	pthread_mutex_unlock(&m_hMutex);
+	
 	return erSuccess;
 }
