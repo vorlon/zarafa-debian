@@ -257,6 +257,7 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
 		case PROP_ID(PR_EC_MAILBOX_OWNER_ACCOUNT):
 		case PROP_ID(PR_EC_HIERARCHYID):
+		case PROP_ID(PR_EC_STORETYPE):
 		case PROP_ID(PR_INSTANCE_KEY):
 		case PROP_ID(PR_OBJECT_TYPE):
 		case PROP_ID(PR_SOURCE_KEY):
@@ -615,6 +616,24 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 			
 			sPropVal.Value.ul = ulObjId;
             break;
+        case PROP_ID(PR_EC_STORETYPE): {
+			unsigned int ulStoreType = 0;
+
+			if(ulObjType != MAPI_STORE) {
+			    er = ZARAFA_E_NOT_FOUND;
+			    goto exit;
+	        }
+
+			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			if (er != erSuccess)
+				goto exit;
+			
+			sPropVal.ulPropTag = ulPropTag;
+			sPropVal.__union = SOAP_UNION_propValData_ul;
+
+			sPropVal.Value.ul = ulStoreType;
+            break;
+        }
 		case PROP_ID(PR_INSTANCE_KEY):
 			sPropVal.ulPropTag = ulPropTag;
 			sPropVal.__union = SOAP_UNION_propValData_bin;
