@@ -57,8 +57,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include <CLucene/CLConfig.h>
-#include <CLucene.h>
 #include <cctype>
 #include <csignal>
 #include <cstdio>
@@ -75,10 +73,8 @@
 #include <ECChannel.h>
 #include <md5.h>
 
-#include "ECFileIndex.h"
 #include "ECIndexFactory.h"
 #include "ECIndexer.h"
-#include "ECLucene.h"
 #include "ECSearcher.h"
 #include "zarafa-indexer.h"
 
@@ -172,9 +168,9 @@ void sigsegv(int signr)
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name, system architecture and Zarafa version.");
@@ -184,7 +180,7 @@ exit:
 }
 
 ECThreadData::ECThreadData()
-	: lpLogger(NULL), lpConfig(NULL), lpFileIndex(NULL), lpLucene(NULL), bShutdown(FALSE),
+	: lpLogger(NULL), lpConfig(NULL), bShutdown(FALSE),
 	  m_strCommand(), m_ulAttachMaxSize(0), m_ulParserMaxMemory(0), m_ulParserMaxCpuTime(0)
 {
 }
@@ -193,10 +189,6 @@ ECThreadData::~ECThreadData()
 {
 	if (lpIndexFactory)
 		delete lpIndexFactory;
-	if (lpLucene)
-		delete lpLucene;
-	if (lpFileIndex)
-		delete lpFileIndex;
 	if (lpLogger)
 		lpLogger->Release();
 	if (lpConfig)
@@ -286,13 +278,7 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 
 	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-indexer version " PROJECT_VERSION_INDEXER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
-	/*
-	 * Set the maxClauses value to something more useful
-	 *
-	 * The reason we need this is that apparently clucene is rather insanely expanding prefix
-	 * queries like 'sender: a*' into a large OR with all the possible values like 'sender: aardvark OR
-	 * sender: apple'. This quickly makes large queries which are normally limited to 1024 clauses.
-	 */
+	MAPIInitialize(NULL);
 
 	hr = ECIndexer::Create(g_lpThreadData, &lpIndexer);
 	if (hr != hrSuccess)
@@ -318,6 +304,8 @@ exit:
 
 	if (lpSearcher)
 		lpSearcher->Release();
+
+	MAPIUninitialize();
 
 	return hr;
 }
@@ -542,8 +530,6 @@ int main(int argc, char *argv[]) {
 	if ( (bIgnoreUnknownConfigOptions && g_lpThreadData->lpConfig->HasErrors()) || g_lpThreadData->lpConfig->HasWarnings())
 		LogConfigErrors(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
 
-	g_lpThreadData->lpFileIndex = new ECFileIndex(g_lpThreadData);
-	g_lpThreadData->lpLucene = new ECLucene(g_lpThreadData);
 	g_lpThreadData->lpIndexFactory = new ECIndexFactory(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
 
 	g_lpThreadData->lpLogger->SetLogprefix(LP_TID);

@@ -276,11 +276,11 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
                 // No more term info in the value
                 sTerm->len = 0;
             } else {
-                sTerm->len = GetSortKey(text + 3, len - 3, buf + sizeof(TERMENTRY), 256);
-                if(sTerm->len > 256) {
-                    ASSERT(false);
-                    sTerm->len = 256;
+                int klen = GetSortKey(text + 3, len - 3, buf + sizeof(TERMENTRY), 256);
+                if(klen > 255) {
+                    klen = 255;
                 }
+                sTerm->len = klen;
             }
                 
             m_lpCache->append(keybuf, sizeof(unsigned int) + keylen, buf, sizeof(TERMENTRY) + sTerm->len);
@@ -371,7 +371,7 @@ exit:
  * @param[in] strSourceKey Source key to remove
  * @return Result
  */
-HRESULT ECIndexDB::RemoveTermsDoc(folderid_t folder, std::string strSourceKey)
+HRESULT ECIndexDB::RemoveTermsDoc(std::string strSourceKey)
 {
     HRESULT hr = hrSuccess;
     unsigned int type = KT_SOURCEKEY;
@@ -582,7 +582,7 @@ HRESULT ECIndexDB::FlushCache()
     if(m_lpCache->count() == 0)
         goto exit; // Nothing to flush
 
-    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Flushing the cache");
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing the cache");
     
     if(!m_lpIndex->begin_transaction()) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
@@ -634,7 +634,7 @@ HRESULT ECIndexDB::FlushCache()
     m_ulCacheSize = 0;
     m_lpCache->clear();
 
-    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Flushing the cache took %.2f seconds", GetTimeOfDay() - dblStart);
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing the cache took %.2f seconds", GetTimeOfDay() - dblStart);
     
 exit:
     return hr;        

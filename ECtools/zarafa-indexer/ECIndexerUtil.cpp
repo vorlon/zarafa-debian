@@ -216,6 +216,7 @@ HRESULT StreamToNextObject(ECSerializer *lpSerializer, ULONG ulObjType, ULONG ul
 		case PT_NULL:
 		case PT_OBJECT:
 		default:
+			ASSERT(false);
 			hr = MAPI_E_NO_SUPPORT;
 			goto exit;
 		}

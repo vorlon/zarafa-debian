@@ -55,6 +55,13 @@
 #include "ECIndexFactory.h"
 #include "ECIndexDB.h"
 
+/**
+ * The indexfactory manages concurrent access to the same index database.
+ *
+ * Since the API only allows us to open one index at once, but does allow
+ * concurrent access to that object, we keep a list of 'open' indexes here. This
+ * allows searching in */
+
 ECIndexFactory::ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger)
 {
     m_lpConfig = lpConfig;

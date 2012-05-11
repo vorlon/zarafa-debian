@@ -20,24 +20,17 @@ zarafa_indexer_LDADD = \
 
 zarafa_indexer_SOURCES = \
 	zarafa-indexer.cpp zarafa-indexer.h \
-	ECEntryData.cpp ECEntryData.h \
-	ECFileIndex.cpp ECFileIndex.h \
-	ECChangeData.cpp ECChangeData.h \
 	ECIndexer.cpp ECIndexer.h \
-	ECIndexerData.cpp ECIndexerData.h \
-	ECSynchronizationThread.cpp ECSynchronizationThread.h \
-	ECSynchronization.cpp ECSynchronization.h \
-	ECSynchronizationImportChanges.cpp ECSynchronizationImportChanges.h \
+	ECServerIndexer.cpp ECServerIndexer.h \
 	ECIndexerUtil.cpp ECIndexerUtil.h \
 	ECSearcher.cpp ECSearcher.h \
 	ECSearcherRequest.cpp ECSearcherRequest.h \
-	ECLucene.cpp ECLucene.h \
-	ECLuceneIndexer.cpp ECLuceneIndexer.h \
-	ECLuceneIndexerAttachment.cpp ECLuceneIndexerAttachment.h \
+	ECIndexImporterAttachments.cpp ECIndexImporterAttachments.h \
 	ECLuceneSearcher.cpp ECLuceneSearcher.h \
 	ECAnalyzers.cpp ECAnalyzers.h \
 	ECIndexDB.cpp ECIndexDB.h \
-	ECIndexFactory.cpp ECIndexFactory.h
+	ECIndexFactory.cpp ECIndexFactory.h \
+	ECIndexImporter.cpp ECIndexImporter.h
 	
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

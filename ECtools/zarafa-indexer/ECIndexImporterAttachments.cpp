@@ -67,9 +67,8 @@
 #include <ZarafaCode.h>
 
 #include "ECIndexerUtil.h"
-#include "ECLucene.h"
-#include "ECLuceneIndexer.h"
-#include "ECLuceneIndexerAttachment.h"
+#include "ECIndexImporter.h"
+#include "ECIndexImporterAttachments.h"
 #include "ECIndexDB.h"
 
 #include "stringutil.h"
@@ -77,9 +76,10 @@
 
 #define STREAM_BUFFER   ( 64*1024 )
 
-ECLuceneIndexerAttachment::ECLuceneIndexerAttachment(ECThreadData *lpThreadData, ECLuceneIndexer *lpIndexer)
+ECIndexImporterAttachment::ECIndexImporterAttachment(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer)
 {
 	m_lpThreadData = lpThreadData;
+	m_lpLogger = m_lpThreadData->lpLogger;
 	m_lpIndexer = lpIndexer;
 	m_lpCache = NULL;
 	m_ulCache = 0;
@@ -87,19 +87,19 @@ ECLuceneIndexerAttachment::ECLuceneIndexerAttachment(ECThreadData *lpThreadData,
 	m_strCommand = m_lpThreadData->m_strCommand;
 }
 
-ECLuceneIndexerAttachment::~ECLuceneIndexerAttachment()
+ECIndexImporterAttachment::~ECIndexImporterAttachment()
 {
 	if (m_lpCache)
 		MAPIFreeBuffer(m_lpCache);
 }
 
-HRESULT ECLuceneIndexerAttachment::Create(ECThreadData *lpThreadData, ECLuceneIndexer *lpIndexer, ECLuceneIndexerAttachment **lppIndexerAttach)
+HRESULT ECIndexImporterAttachment::Create(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer, ECIndexImporterAttachment **lppIndexerAttach)
 {
 	HRESULT hr = hrSuccess;
-	ECLuceneIndexerAttachment *lpIndexerAttach = NULL;
+	ECIndexImporterAttachment *lpIndexerAttach = NULL;
 
 	try {
-		lpIndexerAttach = new ECLuceneIndexerAttachment(lpThreadData, lpIndexer);
+		lpIndexerAttach = new ECIndexImporterAttachment(lpThreadData, lpIndexer);
 	}
 	catch (...) {
 		lpIndexerAttach = NULL;
@@ -127,71 +127,12 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::GetCachedAttachment(IAttach *lpAttach, std::wstring *lpstrAttachData)
-{
-	HRESULT hr = hrSuccess;
-	IECSingleInstance *lpInstance = NULL;
-	ULONG cbInstanceID = 0;
-	LPENTRYID lpInstanceID = NULL;
-	std::string strInstanceID;
-
-	hr = lpAttach->QueryInterface(IID_IECSingleInstance, (LPVOID *)&lpInstance);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpInstance->GetSingleInstanceId(&cbInstanceID, &lpInstanceID);
-	if (hr != hrSuccess)
-		goto exit;
-
-	strInstanceID = bin2hex(cbInstanceID, (LPBYTE)lpInstanceID);
-
-	hr = m_lpThreadData->lpLucene->GetAttachmentCache(strInstanceID, lpstrAttachData);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpInstanceID)
-		MAPIFreeBuffer(lpInstanceID);
-
-	if (lpInstance)
-		lpInstance->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::SetCachedAttachment(IAttach *lpAttach, std::wstring &strAttachData)
-{
-	HRESULT hr = hrSuccess;
-	IECSingleInstance *lpInstance = NULL;
-	ULONG cbInstanceID = 0;
-	LPENTRYID lpInstanceID = NULL;
-	std::string strInstanceID;
-
-	hr = lpAttach->QueryInterface(IID_IECSingleInstance, (LPVOID *)&lpInstance);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpInstance->GetSingleInstanceId(&cbInstanceID, &lpInstanceID);
-	if (hr != hrSuccess)
-		goto exit;
-
-	strInstanceID = bin2hex(cbInstanceID, (LPBYTE)lpInstanceID);
-
-	hr = m_lpThreadData->lpLucene->UpdateAttachmentCache(strInstanceID, strAttachData);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpInstanceID)
-		MAPIFreeBuffer(lpInstanceID);
-
-	if (lpInstance)
-		lpInstance->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::CopyBlockToParser(IStream *lpStream, int ulFpWrite, ULONG *lpulSize)
+/**
+ * Copy some data to the parser command
+ *
+ * This function feeds the parser with some new data to work with
+ */
+HRESULT ECIndexImporterAttachment::CopyBlockToParser(IStream *lpStream, int ulFpWrite, ULONG *lpulSize)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulStreamData = 0;
@@ -245,7 +186,13 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::CopyBlockFromParser(int ulFpRead, std::wstring *strInput)
+/**
+ * Read some data from the parser
+ *
+ * This function reads the plaintext data from the parser and converts it into wchars so
+ * it can be indexed.
+ */
+HRESULT ECIndexImporterAttachment::CopyBlockFromParser(int ulFpRead, std::wstring *strInput)
 {
 	HRESULT hr = hrSuccess;
 	ssize_t ulSize = 0;
@@ -280,7 +227,16 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::CopyStreamToParser(IStream *lpStream, int ulFpWrite, int ulFpRead, std::wstring *strInput)
+/**
+ * Simultaneously write to the parser command and read the output
+ *
+ * The reason we have to interleave reading and writing is that the command may block if we write to it without reading. So
+ * this function uses select() to read as much data from the command as possible after, and only writes when there is room to
+ * write more data. Note that this can in theory still deadlock, since a single write to the parser command may produce so
+ * much output that the parser itself blocks for the data to be read. However, since we are using a fairly small blocksize and
+ * the output is normally smaller than the input, this doesn't happen in practice.
+ */
+HRESULT ECIndexImporterAttachment::CopyStreamToParser(IStream *lpStream, int ulFpWrite, int ulFpRead, std::wstring *strInput)
 {
 	HRESULT hr = hrSuccess;
 	HRESULT hrWrite = hrSuccess, hrRead = hrSuccess;
@@ -392,7 +348,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachmentCommand(tstring &strFilename, std::string &strCommand, IStream *lpStream, std::wstring *lpstrParsed)
+HRESULT ECIndexImporterAttachment::ParseAttachmentCommand(tstring &strFilename, std::string &strCommand, IStream *lpStream, std::wstring *lpstrParsed)
 {
 	HRESULT hr = hrSuccess;
 	pid_t ulCommandPid = 0;
@@ -458,31 +414,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
-{
-	HRESULT hr = hrSuccess;
-	IMessage *lpMessage = NULL;
-
-	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, (LPUNKNOWN *)&lpMessage);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = m_lpIndexer->ParseDocument(folder, doc, version, lpMessage, TRUE);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpMessage)
-		lpMessage->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECIndexImporterAttachment::ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex)
 {
 	HRESULT hr = hrSuccess;
 
-	hr = m_lpIndexer->ParseStream(folder, doc, version, 0, NULL, lpSerializer, TRUE);
+	hr = m_lpIndexer->ParseStream(folder, doc, version, lpSerializer, lpIndex, false);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -490,9 +426,9 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
+HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
 														tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
-														std::wstring *lpstrParsed)
+														std::wstring *lpstrParsed, ECIndexDB *lpIndex)
 {
 	HRESULT hr = hrSuccess;
 	std::string command;
@@ -568,7 +504,7 @@ HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid
 		wparsed.append(convert_to<std::wstring>(strFilename));
 	}
 
-	hr = m_lpIndexer->m_lpIndexDB->AddTerm(folder, doc, version, PR_BODY, wparsed);
+	hr = lpIndex->AddTerm(folder, doc, version, PR_BODY, wparsed);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -579,118 +515,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IAttach *lpAttach, ULONG ulProps, LPSPropValue lpProps)
-{
-	HRESULT hr = hrSuccess;
-	IStream *lpStream = NULL;
-	LPSPropValue lpMime = PpropFindProp(lpProps, ulProps, PR_ATTACH_MIME_TAG);
-	LPSPropValue lpExtension = PpropFindProp(lpProps, ulProps, PR_ATTACH_EXTENSION);
-	LPSPropValue lpFileName = PpropFindProp(lpProps, ulProps, PR_ATTACH_LONG_FILENAME);
-	tstring strMimeTag;
-	tstring strExtension;
-	tstring strFilename;
-	std::wstring wparsed;
-
-	if (lpMime)
-		strMimeTag = lpMime->Value.LPSZ;
-
-	if (lpExtension)
-		strExtension = lpExtension->Value.LPSZ;
-
-	if (lpFileName)
-		strFilename = lpFileName->Value.LPSZ;
-
-	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_TRANSACTED, 0, (LPUNKNOWN *)&lpStream);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ParseValueAttachment(folder, doc, version, lpStream, strMimeTag, strExtension, strFilename, &wparsed);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = SetCachedAttachment(lpAttach, wparsed);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpStream)
-		lpStream->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage, ULONG ulProps, LPSPropValue lpProps)
-{
-	HRESULT hr = hrSuccess;
-	IAttach *lpAttach = NULL;
-	std::wstring strAttachData;
-	LPSPropValue lpAttachNum = PpropFindProp(lpProps, ulProps, PR_ATTACH_NUM);
-	LPSPropValue lpMethod = PpropFindProp(lpProps, ulProps, PR_ATTACH_METHOD);
-	LPSPropValue lpSize = PpropFindProp(lpProps, ulProps, PR_ATTACH_SIZE);
-	ULONG ulMethod = 0;
-
-	if (!lpAttachNum) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if (lpMethod)
-		ulMethod = lpMethod->Value.l;
-	else
-		ulMethod = ATTACH_BY_VALUE;
-
-	/* Not all attachment types are supported */
-	if (ulMethod == NO_ATTACHMENT ||
-		ulMethod == ATTACH_BY_REFERENCE ||
-		ulMethod == ATTACH_BY_REF_RESOLVE ||
-		ulMethod == ATTACH_BY_REF_ONLY ||
-		ulMethod == ATTACH_OLE) {
-			hr = MAPI_E_INVALID_OBJECT;
-			goto exit;
-	}
-
-	/*
-	 * Check for maximum allowed size, if PR_ATTACH_SIZE is not found, we will check later
-	 * again based on stream size. But having the correct value here, prevents the overhead
-	 * of opening the attachment and loading the attachment stream.
-	 */
-	if (lpSize && (lpSize->Value.ul > m_lpThreadData->m_ulAttachMaxSize)) {
-		hr = MAPI_E_TOO_BIG;
-		goto exit;
-	}
-
-	hr = lpMessage->OpenAttach(lpAttachNum->Value.ul, &IID_IAttachment, 0, &lpAttach);
-	if (hr != hrSuccess) {
-		goto exit;
-	}
-
-	/* First try to see if the attachment has been cached, before actually reading the attachment data */
-	if (GetCachedAttachment(lpAttach, &strAttachData) == hrSuccess) {
-		hr = m_lpIndexer->m_lpIndexDB->AddTerm(folder, doc, PR_BODY, version, strAttachData);
-	} else {
-		switch (ulMethod) {
-			case ATTACH_EMBEDDED_MSG:
-				hr = ParseEmbeddedAttachment(folder, doc, version, lpAttach, ulProps, lpProps);
-				if (hr != hrSuccess)
-					goto exit;
-				break;
-			case ATTACH_BY_VALUE:
-			default:
-				hr = ParseValueAttachment(folder, doc, version, lpAttach, ulProps, lpProps);
-				if (hr != hrSuccess)
-					goto exit;
-				break;
-		}
-	}
-
-exit:
-	if (lpAttach)
-		lpAttach->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECIndexImporterAttachment::ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -807,18 +632,22 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachment(folderid_t folder, docid_t do
 
 		switch (ulMethod) {
 		case ATTACH_EMBEDDED_MSG:
-			hr = ParseEmbeddedAttachment(folder, doc, version, lpSerializer);
+			hr = ParseEmbeddedAttachment(folder, doc, version, lpSerializer, lpIndex);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
 		case ATTACH_BY_VALUE:
 		default:
-			hr = ParseValueAttachment(folder, doc, version, lpStream, strMimeTag, strExtension, strFilename);
+			hr = ParseValueAttachment(folder, doc, version, lpStream, strMimeTag, strExtension, strFilename, NULL, lpIndex);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
 		}
 	}
+
+	hr = ParseAttachments(folder, doc, version, lpSerializer, lpIndex);
+	if (hr != hrSuccess)
+		goto exit;
 
 exit:
 	/*
@@ -840,60 +669,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, IMessage *lpMessage)
-{
-	HRESULT hr = hrSuccess;
-	IMAPITable *lpTable = NULL;
-	LPSRowSet lpRows = NULL;
-
-	SizedSPropTagArray(6, sptaCols) = {
-		6, {
-			PR_ATTACH_NUM,
-			PR_ATTACH_MIME_TAG,
-			PR_ATTACH_EXTENSION,
-			PR_ATTACH_LONG_FILENAME,
-			PR_ATTACH_METHOD,
-			PR_ATTACH_SIZE,
-		}
-	};
-
-	hr = lpMessage->GetAttachmentTable(TBL_BATCH, &lpTable);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaCols, TBL_BATCH);
-	if (hr != hrSuccess)
-		goto exit;
-
-	while (TRUE) {
-		hr = lpTable->QueryRows(25, 0, &lpRows);
-		if (hr != hrSuccess)
-			goto exit;
-
-		if (lpRows->cRows == 0)
-			break;
-
-		for (ULONG i = 0; i < lpRows->cRows; i++) {
-			if (ParseAttachment(folder, doc, version, lpMessage, lpRows->aRow[i].cValues, lpRows->aRow[i].lpProps) != hrSuccess)
-				continue;
-		}
-
-		if (lpRows)
-			FreeProws(lpRows);
-		lpRows = NULL;
-	}
-
-exit:
-	if (lpRows)
-		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
-	return hr;
-}
-
-HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer)
+HRESULT ECIndexImporterAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -912,10 +688,10 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t d
 
 		switch (ulTmp[0]) {
 		case MAPI_ATTACH:
-			ParseAttachment(folder, doc, version, lpSerializer);
+			ParseAttachment(folder, doc, version, lpSerializer, lpIndex);
 			break;
 		case MAPI_MESSAGE:
-			ParseEmbeddedAttachment(folder, doc, version, lpSerializer);
+			ParseEmbeddedAttachment(folder, doc, version, lpSerializer, lpIndex);
 			break;
 		default:
 			/* Subobject is not an attachment, skip to next object */
@@ -923,13 +699,6 @@ HRESULT ECLuceneIndexerAttachment::ParseAttachments(folderid_t folder, docid_t d
 			if (hr != hrSuccess)
 				goto exit;
 			break;
-		}
-
-		if (ulTmp[0] == MAPI_MESSAGE || ulTmp[0] == MAPI_ATTACH) {
-			// handle subobjects in message or attachment
-			hr = ParseAttachments(folder, doc, version, lpSerializer);
-			if (hr != hrSuccess)
-				goto exit;
 		}
 	}
 

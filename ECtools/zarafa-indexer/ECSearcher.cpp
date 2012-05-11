@@ -62,8 +62,6 @@
 #include <stringutil.h>
 #include <Util.h>
 
-#include "ECFileIndex.h"
-#include "ECLucene.h"
 #include "ECLuceneSearcher.h"
 #include "ECSearcher.h"
 #include "ECSearcherRequest.h"

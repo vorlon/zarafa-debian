@@ -56,16 +56,13 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_zarafa_indexer_OBJECTS = zarafa-indexer.$(OBJEXT) \
-	ECEntryData.$(OBJEXT) ECFileIndex.$(OBJEXT) \
-	ECChangeData.$(OBJEXT) ECIndexer.$(OBJEXT) \
-	ECIndexerData.$(OBJEXT) ECSynchronizationThread.$(OBJEXT) \
-	ECSynchronization.$(OBJEXT) \
-	ECSynchronizationImportChanges.$(OBJEXT) \
+	ECIndexer.$(OBJEXT) ECServerIndexer.$(OBJEXT) \
 	ECIndexerUtil.$(OBJEXT) ECSearcher.$(OBJEXT) \
-	ECSearcherRequest.$(OBJEXT) ECLucene.$(OBJEXT) \
-	ECLuceneIndexer.$(OBJEXT) ECLuceneIndexerAttachment.$(OBJEXT) \
+	ECSearcherRequest.$(OBJEXT) \
+	ECIndexImporterAttachments.$(OBJEXT) \
 	ECLuceneSearcher.$(OBJEXT) ECAnalyzers.$(OBJEXT) \
-	ECIndexDB.$(OBJEXT) ECIndexFactory.$(OBJEXT)
+	ECIndexDB.$(OBJEXT) ECIndexFactory.$(OBJEXT) \
+	ECIndexImporter.$(OBJEXT)
 zarafa_indexer_OBJECTS = $(am_zarafa_indexer_OBJECTS)
 am__DEPENDENCIES_1 =
 zarafa_indexer_DEPENDENCIES =  \
@@ -342,24 +339,17 @@ zarafa_indexer_LDADD = \
 
 zarafa_indexer_SOURCES = \
 	zarafa-indexer.cpp zarafa-indexer.h \
-	ECEntryData.cpp ECEntryData.h \
-	ECFileIndex.cpp ECFileIndex.h \
-	ECChangeData.cpp ECChangeData.h \
 	ECIndexer.cpp ECIndexer.h \
-	ECIndexerData.cpp ECIndexerData.h \
-	ECSynchronizationThread.cpp ECSynchronizationThread.h \
-	ECSynchronization.cpp ECSynchronization.h \
-	ECSynchronizationImportChanges.cpp ECSynchronizationImportChanges.h \
+	ECServerIndexer.cpp ECServerIndexer.h \
 	ECIndexerUtil.cpp ECIndexerUtil.h \
 	ECSearcher.cpp ECSearcher.h \
 	ECSearcherRequest.cpp ECSearcherRequest.h \
-	ECLucene.cpp ECLucene.h \
-	ECLuceneIndexer.cpp ECLuceneIndexer.h \
-	ECLuceneIndexerAttachment.cpp ECLuceneIndexerAttachment.h \
+	ECIndexImporterAttachments.cpp ECIndexImporterAttachments.h \
 	ECLuceneSearcher.cpp ECLuceneSearcher.h \
 	ECAnalyzers.cpp ECAnalyzers.h \
 	ECIndexDB.cpp ECIndexDB.h \
-	ECIndexFactory.cpp ECIndexFactory.h
+	ECIndexFactory.cpp ECIndexFactory.h \
+	ECIndexImporter.cpp ECIndexImporter.h
 
 all: all-am
 
@@ -449,23 +439,16 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECAnalyzers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChangeData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECEntryData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECFileIndex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexDB.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexImporter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexImporterAttachments.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerUtil.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLucene.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneIndexer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneIndexerAttachment.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneSearcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcherRequest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSynchronization.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSynchronizationImportChanges.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSynchronizationThread.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECServerIndexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zarafa-indexer.Po@am__quote@
 
 .cpp.o:

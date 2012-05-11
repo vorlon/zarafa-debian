@@ -58,7 +58,6 @@
 #include "stringutil.h"
 
 class ECFileIndex;
-class ECLucene;
 class ECIndexFactory;
 
 /**
@@ -119,16 +118,6 @@ public:
 	 * ECConfig for reading configuration from file
 	 */
 	ECConfig *lpConfig;
-
-	/**
-	 * ECFileIndex wrapper for physical harddisk access
-	 */
-	ECFileIndex *lpFileIndex;
-
-	/**
-	 * ECLucene wrapper for CLucene classess access
-	 */
-	ECLucene *lpLucene;
 
 	/**
 	 * Index database factory

@@ -47,96 +47,53 @@
  * 
  */
 
-#ifndef ECLUCENE_H
-#define ECLUCENE_H
+#ifndef ECINDEXIMPORTERATTACHMENT_H
+#define ECINDEXIMPORTERATTACHMENT_H
 
-#include <map>
 #include <string>
-#include <vector>
+#include <CLucene.h>
+#include <ECUnknown.h>
 
-#include <pthread.h>
-
+#include "ECIndexDB.h"
 #include "zarafa-indexer.h"
+#include "tstring.h"
+
+class ECIndexImporter;
+class ECIndexDB;
+class ECLogger;
 
 /**
- * Cache entry for Single Instance Attachment data
- *
- * When Single Instance attachment data is encountered it will only be parsed to
- * plain-text once and stored in a cache in case the same attachment is found later
- * again.
+ * Message Attachment indexer
  */
-struct InstanceCacheEntry_t {
-	/**
-	 * Constructor
-	 *
-	 * @param[in] strAttachData
-	 */
-	InstanceCacheEntry_t(std::wstring &strAttachData)
-		: strAttachData(strAttachData), ulTimestamp(time(NULL)) {}
-
-	/**
-	 * Parsed attachment data (plain-text)
-	 */
-	const std::wstring strAttachData;
-
-	/**
-	 * Last access time for cache entry
-	 */
-	time_t ulTimestamp;
-};
-
-typedef std::map<std::string, InstanceCacheEntry_t> instance_map_t;
-
-/**
- * Wrapper to the Lucene classes access
- * 
- * This class contains a cache for ECLuceneAccess objects for all previously
- * opened stores. This also contains a cache for all parsed Single Instance attachments,
- * the Single Instance cache is shared between all indexed stores.
- */
-class ECLucene {
+class ECIndexImporterAttachment : public ECUnknown {
 public:
-	/**
-	 * Constructor
-	 *
-	 * @param[in]	lpThreadData
-	 */
-	ECLucene(ECThreadData *lpThreadData);
+	static HRESULT Create(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer, ECIndexImporterAttachment **lppIndexerAttach);
 
-	/**
-	 * Destructor
-	 */
-	~ECLucene();
+	HRESULT ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
-	/**
-	 * Search Single Instance Attachment cache for parsed attachment data
-	 *
-	 * @param[in]	strInstanceId
-	 *					Single Instance ID which is requested.
-	 * @param[out]	lpstrAttachData
-	 *					The parsed to plain-text Single Instance attachment data.
-	 * @return HRESULT
-	 */
-	HRESULT GetAttachmentCache(std::string &strInstanceId, std::wstring *lpstrAttachData);
+private:
+	ECIndexImporterAttachment(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer);
+	~ECIndexImporterAttachment();
 
-	/**
-	 * Store parsed atachment data for a particular Single Instance Attachment
-	 *
-	 * @param[in]	strInstanceId
-	 *					Single Instance ID which is requested.
-	 * @param[out]	strAttachData
-	 *					The parsed to plain-text Single Instance attachment data.
-	 * @return HRESULT
-	 */
-	HRESULT UpdateAttachmentCache(std::string &strInstanceId, std::wstring &strAttachData);
+	HRESULT CopyBlockToParser(IStream *lpStream, int ulFpWrite, ULONG *lpulSize);
+	HRESULT CopyBlockFromParser(int ulFpRead, std::wstring *strInput);
+	HRESULT CopyStreamToParser(IStream *lpStream, int ulFpWrite, int ulFpRead, std::wstring *strInput);
+	HRESULT ParseAttachmentCommand(tstring &strFilename, std::string &strCommand, IStream *lpStream, std::wstring *lpstrParsed);
+	HRESULT ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
+	HRESULT ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
+								 tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
+								 std::wstring *lpstrParsed, ECIndexDB *lpIndex);
+	HRESULT ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
 private:
 	ECThreadData *m_lpThreadData;
+	ECIndexImporter *m_lpIndexer;
+	ECLogger *m_lpLogger;
 
-	pthread_mutex_t m_hInstanceLock;
-	instance_map_t m_mInstanceCache;
+	LPBYTE m_lpCache;
+	ULONG m_ulCache;
 
-	ULONG m_ulCacheTimeout;
+	std::string m_strCommand;
 };
 
-#endif /* ECLUCENE_H */
+#endif

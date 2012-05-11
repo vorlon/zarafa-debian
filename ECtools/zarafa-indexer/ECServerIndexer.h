@@ -47,88 +47,82 @@
  * 
  */
 
-#include <platform.h>
+#ifndef ECSERVERINDEXER_H
+#define ECSERVERINDEXER_H
 
-#include <algorithm>
-
-#include <mapi.h>
-#include <mapix.h>
-#include <mapiutil.h>
 #include <mapidefs.h>
-#include <mapiguid.h>
 
-#include <edkguid.h>
+#include <set>
 
-#include <ECGuid.h>
-#include <ECTags.h>
-#include <IECMultiStoreTable.h>
-#include <stringutil.h>
-#include <Util.h>
+class ECThreadData;
+class ECLogger;
+class ECConfig;
+class IMAPISession;
+class IMsgStore;
+class ECIndexDB;
+class ECIndexImporter;
 
-#include "ECFileIndex.h"
-#include "ECLucene.h"
-#include "ECLuceneIndexer.h"
-#include "ECLuceneSearcher.h"
-#include "zarafa-indexer.h"
+#include "ECUnknown.h"
 
-#include "charset/convert.h"
+/**
+ * The ECServerIndexer's job is to create and update all the indexes for a server. It does this
+ * using a single thread that is created and destroyed at the same time as the ECServerIndexer object.
+ *
+ * It does this by first initiating a full index of all the data on a server. After that, it enters
+ * the incremental state, when only changes are processed.
+ */
 
-ECLucene::ECLucene(ECThreadData *lpThreadData)
-{
-	const char *lpszCacheTimeout = NULL;
+class ECServerIndexer : public ECUnknown {
+public:
+    static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData, ECServerIndexer **lppIndexer);
 
-	m_lpThreadData = lpThreadData;
+    // This is only to FORCE a new synchronization NOW. This is normally not needed in
+    // production.
+    HRESULT RunSynchronization();
+    
+private:
+    ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData);
+    ~ECServerIndexer();
+    
+    HRESULT Start();
+    HRESULT Thread();
+    static void *ThreadEntry(void *lpParam);
+    
+    HRESULT BuildIndexes(IMAPISession *lpSession);
+    HRESULT IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId);
+    HRESULT IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndexDB);
+    HRESULT GetServerState(IMAPISession *lpSession, std::string &strState);
+    HRESULT ProcessChanges(IMAPISession *lpSession);
+    HRESULT GetServerGUID(IMAPISession *lpSession, GUID *lpGuid);
 
-	pthread_mutex_init(&m_hInstanceLock, NULL);
+    ECLogger *m_lpLogger;
+    ECConfig *m_lpConfig;
+    ECThreadData *m_lpThreadData;
+    
+    // Thread synchronization
+    pthread_t m_thread; 
+    pthread_mutex_t m_mutexExit;
+    pthread_cond_t m_condExit;
+    bool m_bExit;
 
-	lpszCacheTimeout = m_lpThreadData->lpConfig->GetSetting("index_cache_timeout");
-	m_ulCacheTimeout = (lpszCacheTimeout ? atoui(lpszCacheTimeout) : 0);
-}
+    pthread_mutex_t m_mutexTrack;
+    pthread_cond_t m_condTrack;
+    unsigned int m_ulTrack;
 
-ECLucene::~ECLucene()
-{
-	pthread_mutex_destroy(&m_hInstanceLock);
-}
+    bool m_bFast;
+    bool m_bThreadStarted;
+    
+    GUID m_guidServer;
 
-HRESULT ECLucene::GetAttachmentCache(std::string &strInstanceId, std::wstring *lpstrAttachData)
-{
-	HRESULT hr = hrSuccess;
-	instance_map_t::iterator iter;
+    // State information, save to disk and loaded from disk by LoadState()/SaveState()
+    unsigned int m_ulIndexerState;				// 0 = initial load, 1 = incremental    
+    std::string m_strICSState;					// During state 1, contains server ICS state 
 
-	/* Caching is disabled */
-	if (!m_ulCacheTimeout)
-		return MAPI_E_NOT_FOUND;
+    HRESULT LoadState();
+    HRESULT SaveState();
 
-	pthread_mutex_lock(&m_hInstanceLock);
+    enum { stateUnknown = 0, stateBuilding, stateRunning };
+ 
+};
 
-	iter = m_mInstanceCache.find(strInstanceId);
-	if (iter == m_mInstanceCache.end()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	iter->second.ulTimestamp = time(NULL);
-	if (lpstrAttachData)
-		lpstrAttachData->assign(iter->second.strAttachData);
-
-exit:
-	pthread_mutex_unlock(&m_hInstanceLock);
-
-	return hr;
-}
-
-HRESULT ECLucene::UpdateAttachmentCache(std::string &strInstanceId, std::wstring &strAttachData)
-{
-	HRESULT hr = hrSuccess;
-
-	/* Caching is disabled */
-	if (!m_ulCacheTimeout)
-		goto exit;
-
-	pthread_mutex_lock(&m_hInstanceLock);
-	m_mInstanceCache.insert(instance_map_t::value_type(strInstanceId, InstanceCacheEntry_t(strAttachData)));
-	pthread_mutex_unlock(&m_hInstanceLock);
-
-exit:
-	return hr;
-}
+#endif
