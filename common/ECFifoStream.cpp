@@ -142,7 +142,15 @@ HRESULT ECFifoStreamReader::QueryInterface(REFIID refiid, LPVOID *lppInterface)
 
 HRESULT ECFifoStreamReader::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {
-    return m_lpFifoBuffer->m_lpFifoBuffer->Read(pv, cb, 0, pcbRead);
+    HRESULT hr = hrSuccess;
+    size_t read;
+    hr = m_lpFifoBuffer->m_lpFifoBuffer->Read(pv, cb, 0, &read);
+    if(hr != hrSuccess)
+        goto exit;
+        
+    *pcbRead = read;
+exit:
+    return hr;
 }
     
 ECFifoStreamReader::ECFifoStreamReader(ECFifoStream *lpBuffer)
@@ -202,7 +210,14 @@ HRESULT ECFifoStreamWriter::QueryInterface(REFIID refiid, LPVOID *lppInterface)
 
 HRESULT ECFifoStreamWriter::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 {
-    return m_lpFifoBuffer->m_lpFifoBuffer->Write(pv, cb, 0, pcbWritten);
+    HRESULT hr = hrSuccess;
+    size_t written;
+    hr = m_lpFifoBuffer->m_lpFifoBuffer->Write(pv, cb, 0, &written);
+    if(hr != hrSuccess)
+        goto exit;
+    *pcbWritten = written;
+exit:
+    return hr;
 }
 
 /**
