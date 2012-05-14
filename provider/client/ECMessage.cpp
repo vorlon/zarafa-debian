@@ -62,6 +62,7 @@
 #include "rtfutil.h"
 #include "Util.h"
 #include "Mem.h"
+#include "mapi_ptr.h"
 
 #include "ECGuid.h"
 #include "edkguid.h"
@@ -105,9 +106,8 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->fNew = fNew;
 	this->m_bEmbedded = bEmbedded;
 	this->m_bExplicitSubjectPrefix = FALSE;
-	this->m_ulLastChange = syncChangeNone;
-	this->m_bBusySyncRTF = FALSE;
 	this->m_ulBodyType = bodyTypeUnknown;
+	this->m_bInhibitSync = FALSE;
 	this->m_bRecipsDirty = FALSE;
 
 	this->HrAddPropHandlers(PR_RTF_IN_SYNC,				GetPropHandler       ,DefaultSetPropIgnore,		(void*) this, TRUE,  FALSE);
@@ -123,8 +123,13 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->HrAddPropHandlers(PR_MESSAGE_ATTACHMENTS,		GetPropHandler       ,DefaultSetPropIgnore,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_MESSAGE_RECIPIENTS,		GetPropHandler       ,DefaultSetPropIgnore,	(void*) this, FALSE, FALSE);
 
-	// Workaround for support html in outlook 2000/xp
-	this->HrAddPropHandlers(PR_BODY_HTML,				GetPropHandler       ,SetPropHandler,	(void*) this, FALSE, TRUE);
+	// Handlers for the various body types
+	this->HrAddPropHandlers(PR_BODY,					GetPropHandler		 ,DefaultSetPropSetReal,	(void*) this, FALSE, FALSE);
+	this->HrAddPropHandlers(PR_RTF_COMPRESSED,			GetPropHandler		 ,DefaultSetPropSetReal,	(void*) this, FALSE, FALSE);
+
+	// Workaround for support html in outlook 2000/xp need SetPropHandler
+	this->HrAddPropHandlers(PR_HTML,					GetPropHandler		 ,SetPropHandler,			(void*) this, FALSE, FALSE);
+
 
 	// The property 0x10970003 is set by outlook when browsing in the 'unread mail' searchfolder. It is used to make sure
 	// that a message that you just read is not removed directly from view. It is set for each message which should be in the view
@@ -139,7 +144,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 
 	// Make sure the MSGFLAG_HASATTACH flag gets added when needed.
 	this->HrAddPropHandlers(PR_MESSAGE_FLAGS,      		GetPropHandler		,SetPropHandler,		 	(void*) this, TRUE, FALSE);
-	
+
 	// Make sure PR_SOURCE_KEY is available
 	this->HrAddPropHandlers(PR_SOURCE_KEY,				GetPropHandler		,SetPropHandler,			(void*) this, TRUE, FALSE);
 
@@ -197,141 +202,662 @@ HRESULT ECMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cValues = 0;
-	LPSPropValue	lpPropArray = NULL;
-	eBodyType		ulBodyType = bodyTypeUnknown;
-	ULONG i;
+	SPropArrayPtr	ptrPropArray;
+	LONG			lBodyIdx = 0;
+	LONG			lRtfIdx = 0;
+	LONG			lHtmlIdx = 0;
 
-	ULONG			ulBestMatchTable[4][3] = {
-		/* unknown */ { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
-		/* plain */   { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
-		/* rtf */     { PR_RTF_COMPRESSED, PR_HTML, PR_BODY_W },
-		/* html */    { PR_HTML, PR_RTF_COMPRESSED, PR_BODY_W }};
+	if (lpPropTagArray) {
+		lBodyIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_BODY_W, PT_UNSPECIFIED));
+		lRtfIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
+		lHtmlIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
+	}
+	if (lstProps == NULL && (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >=0 || lHtmlIdx >= 0)) {
+		// Get the properties from the server so we can determine the body type.
+		m_ulBodyType = bodyTypeUnknown;		// Make sure no bodies are generated.
+		hr = HrLoadProps();					// HrLoadProps will (re)determine the best body type.
+		if (hr != hrSuccess)
+			goto exit;
+	}
 
-	ULONG	ulBestMatch = 0;
-	bool	bBody, bRtf, bHtml;
+	if (m_ulBodyType != bodyTypeUnknown) {
+		const ULONG ulBestMatchTable[4][3] = {
+			/* unknown */ { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
+			/* plain */   { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
+			/* rtf */     { PR_RTF_COMPRESSED, PR_HTML, PR_BODY_W },
+			/* html */    { PR_HTML, PR_RTF_COMPRESSED, PR_BODY_W }};
 
-	hr = GetPropsInternal(lpPropTagArray, ulFlags, &cValues, &lpPropArray);
-	if (HR_FAILED(hr))
-		goto exit;
+		SPropTagArrayPtr	ptrPropTagArray;
+		ULONG				ulBestMatch = 0;
 
-	bBody = lpPropTagArray == NULL || Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_BODY_W, PT_UNSPECIFIED)) >= 0;
-	bRtf = lpPropTagArray == NULL || Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED)) >= 0;
-	bHtml = lpPropTagArray == NULL || Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED)) >= 0;
+		if (lpPropTagArray) {
+			// Use a temporary SPropTagArray so we can safely modify it.
+			hr = Util::HrCopyPropTagArray(lpPropTagArray, &ptrPropTagArray);
+			if (hr != hrSuccess)
+				goto exit;
+		} else {
+			// Get the proplist, so we can filter it.
+			hr = GetPropList(ulFlags, &ptrPropTagArray);
+			if (hr != hrSuccess)
+				goto exit;
 
-	if((bBody || bRtf || bHtml) && GetBodyType(&ulBodyType) == hrSuccess) {
-		/*
-		 * Exchange has a particular way of handling requests for different types of body content. There are three:
-		 *
-		 * - RTF (PR_RTF_COMPRESSED)
-		 * - HTML (PR_HTML or PR_BODY_HTML, these are interchangeable in all cases)
-		 * - Plaintext (PR_BODY)
-		 *
-		 * All of these properties are available (or none at all if there is no body) via OpenProperty() AT ALL TIMES, even if the
-		 * item itself was not saved as that specific type of message. However, the exchange follows the following rules
-		 * when multiple body types are requested in a single GetProps() call:
-		 *
-		 * - Only the 'best fit' property is returned as an actual value, the other properties are returned with PT_ERROR
-		 * - Best fit for plaintext is (in order): PR_BODY, PR_RTF, PR_HTML
-		 * - For RTF messages: PR_RTF, PR_HTML, PR_BODY
-		 * - For HTML messages: PR_HTML, PR_RTF, PR_BODY
-		 * - When GetProps() is called with NULL as the property list, the error value is MAPI_E_NOT_ENOUGH_MEMORY
-		 * - When GetProps() is called with a list of properties, the error value is MAPI_E_NOT_ENOUGH_MEMORY or MAPI_E_NOT_FOUND depending on the following:
-		 *   - When the requested property ID is higher than the best-match property, the value is MAPI_E_NOT_FOUND
-		 *   - When the requested property ID is lower than the best-match property, the value is MAPI_E_NOT_ENOUGH_MEMORY
-		 *
-		 * Additionally, the normal rules for returning MAPI_E_NOT_ENOUGH_MEMORY apply (ie for large properties).
-		 *
-		 * Example: RTF message, PR_BODY, PR_HTML and PR_RTF_COMPRESSED requested in single GetProps() call:
-		 * returns: PR_BODY -> MAPI_E_NOT_ENOUGH_MEMORY, PR_HTML -> MAPI_E_NOT_FOUND, PR_RTF_COMPRESSED -> actual RTF content
-		 *
-		 * PR_RTF_IN_SYNC is normally always TRUE, EXCEPT if the following is true:
-		 * - Both PR_RTF_COMPRESSED and PR_HTML are requested
-		 * - Actual body type is HTML
-		 *
-		 * This is used to disambiguate the situation in which you request PR_RTF_COMPRESSED and PR_HTML and receive MAPI_E_NOT_ENOUGH_MEMORY for
-		 * both properties (or both are OK but we never do that).
-		 *
-		 * Since the values of the properties depend on the requested property tag set, a property handler cannot be used in this
-		 * case, and therefore the above logic is implemented here.
-		 */
-
-		// Find best match property in requested property set
-		if(lpPropTagArray == NULL)
-			// No properties specified, best match is always number one choice body property
-			ulBestMatch = ulBestMatchTable[ulBodyType][0];
-		else {
-			// Find best match in requested set
-			for (i = 0; i < 3; i++) {
-				if (Util::FindPropInArray(lpPropTagArray, PROP_TAG(PT_UNSPECIFIED, PROP_ID(ulBestMatchTable[ulBodyType][i]))) >= 0) {
-					ulBestMatch = ulBestMatchTable[ulBodyType][i];
-					break;
-				}
-			}
+			lBodyIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_BODY_W, PT_UNSPECIFIED));
+			lRtfIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
+			lHtmlIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
 		}
 
-		for (i = 0; i < cValues; i++)
-		{
-			if( PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED) ||
-				PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(PR_BODY_W) ||
-				PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(PR_HTML)) 
-			{
-				// Override body property if it is NOT the best-match property
-				if(PROP_ID(lpPropArray[i].ulPropTag) != PROP_ID(ulBestMatch)) {
-					lpPropArray[i].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropArray[i].ulPropTag));
+		if (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >= 0 || lHtmlIdx >= 0) {
+			/*
+			 * Exchange has a particular way of handling requests for different types of body content. There are three:
+			 *
+			 * - RTF (PR_RTF_COMPRESSED)
+			 * - HTML (PR_HTML or PR_BODY_HTML, these are interchangeable in all cases)
+			 * - Plaintext (PR_BODY)
+			 *
+			 * All of these properties are available (or none at all if there is no body) via OpenProperty() AT ALL TIMES, even if the
+			 * item itself was not saved as that specific type of message. However, the exchange follows the following rules
+			 * when multiple body types are requested in a single GetProps() call:
+			 *
+			 * - Only the 'best fit' property is returned as an actual value, the other properties are returned with PT_ERROR
+			 * - Best fit for plaintext is (in order): PR_BODY, PR_RTF, PR_HTML
+			 * - For RTF messages: PR_RTF, PR_HTML, PR_BODY
+			 * - For HTML messages: PR_HTML, PR_RTF, PR_BODY
+			 * - When GetProps() is called with NULL as the property list, the error value is MAPI_E_NOT_ENOUGH_MEMORY
+			 * - When GetProps() is called with a list of properties, the error value is MAPI_E_NOT_ENOUGH_MEMORY or MAPI_E_NOT_FOUND depending on the following:
+			 *   - When the requested property ID is higher than the best-match property, the value is MAPI_E_NOT_FOUND
+			 *   - When the requested property ID is lower than the best-match property, the value is MAPI_E_NOT_ENOUGH_MEMORY
+			 *
+			 * Additionally, the normal rules for returning MAPI_E_NOT_ENOUGH_MEMORY apply (ie for large properties).
+			 *
+			 * Example: RTF message, PR_BODY, PR_HTML and PR_RTF_COMPRESSED requested in single GetProps() call:
+			 * returns: PR_BODY -> MAPI_E_NOT_ENOUGH_MEMORY, PR_HTML -> MAPI_E_NOT_FOUND, PR_RTF_COMPRESSED -> actual RTF content
+			 *
+			 * PR_RTF_IN_SYNC is normally always TRUE, EXCEPT if the following is true:
+			 * - Both PR_RTF_COMPRESSED and PR_HTML are requested
+			 * - Actual body type is HTML
+			 *
+			 * This is used to disambiguate the situation in which you request PR_RTF_COMPRESSED and PR_HTML and receive MAPI_E_NOT_ENOUGH_MEMORY for
+			 * both properties (or both are OK but we never do that).
+			 *
+			 * Since the values of the properties depend on the requested property tag set, a property handler cannot be used in this
+			 * case, and therefore the above logic is implemented here.
+			 */
 
-					// Set the correct error according to above rules
-					if(lpPropTagArray == NULL)
-						lpPropArray[i].Value.ul = MAPI_E_NOT_ENOUGH_MEMORY;
-					else
-						lpPropArray[i].Value.ul = PROP_ID(lpPropArray[i].ulPropTag) < PROP_ID(ulBestMatch) ? MAPI_E_NOT_ENOUGH_MEMORY : MAPI_E_NOT_FOUND;
-
-					hr = MAPI_W_ERRORS_RETURNED;
+			// Find best match property in requested property set
+			if (lpPropTagArray == NULL)
+				// No properties specified, best match is always number one choice body property
+				ulBestMatch = ulBestMatchTable[m_ulBodyType][0];
+			else {
+				// Find best match in requested set
+				for (int i = 0; i < 3; i++) {
+					if (Util::FindPropInArray(ptrPropTagArray, PROP_TAG(PT_UNSPECIFIED, PROP_ID(ulBestMatchTable[m_ulBodyType][i]))) >= 0) {
+						ulBestMatch = ulBestMatchTable[m_ulBodyType][i];
+						break;
+					}
 				}
+			}
 
+			// Remove the non-best bodies from the requested set.
+			if (lBodyIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_BODY))
+				ptrPropTagArray->aulPropTag[lBodyIdx] = PR_NULL;
+			if (lRtfIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_RTF_COMPRESSED))
+				ptrPropTagArray->aulPropTag[lRtfIdx] = PR_NULL;
+			if (lHtmlIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_HTML))
+				ptrPropTagArray->aulPropTag[lHtmlIdx] = PR_NULL;
+
+			hr = ECMAPIProp::GetProps(ptrPropTagArray, ulFlags, &cValues, &ptrPropArray);
+			if (HR_FAILED(hr))
+				goto exit;
+
+			// Set the correct errors on the filtered properties.
+			if (lBodyIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_BODY)) {
+				ptrPropArray[lBodyIdx].ulPropTag = CHANGE_PROP_TYPE(PR_BODY, PT_ERROR);
+				ptrPropArray[lBodyIdx].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
+				hr = MAPI_W_ERRORS_RETURNED;
+			}
+			if (lRtfIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_RTF_COMPRESSED)) {
+				ptrPropArray[lRtfIdx].ulPropTag = CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_ERROR);
+				if (!lpPropTagArray)
+					ptrPropArray[lRtfIdx].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
+				else
+					ptrPropArray[lRtfIdx].Value.err = PROP_ID(PR_RTF_COMPRESSED) < PROP_ID(ulBestMatch) ? MAPI_E_NOT_ENOUGH_MEMORY : MAPI_E_NOT_FOUND;
+				hr = MAPI_W_ERRORS_RETURNED;
+			}
+			if (lHtmlIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_HTML)) {
+				ptrPropArray[lHtmlIdx].ulPropTag = CHANGE_PROP_TYPE(PR_HTML, PT_ERROR);
+				ptrPropArray[lHtmlIdx].Value.err = lpPropTagArray ? MAPI_E_NOT_FOUND : MAPI_E_NOT_ENOUGH_MEMORY;
+				hr = MAPI_W_ERRORS_RETURNED;
 			}
 
 			// RTF_IN_SYNC should be false only if the message is actually HTML and both RTF and HTML are requested
 			// (we are indicating that RTF should not be used in this case). Note that PR_RTF_IN_SYNC is normally
 			// forced to TRUE in our property handler, so we only need to change it to FALSE if needed.
-			if( PROP_ID(lpPropArray[i].ulPropTag) == PROP_ID(PR_RTF_IN_SYNC)) {
-				if(bHtml && bRtf && ulBodyType == bodyTypeHTML) {
-					lpPropArray[i].ulPropTag = PR_RTF_IN_SYNC;
-					lpPropArray[i].Value.b = false;
+			if (lHtmlIdx >= 0 && lRtfIdx >= 0 && m_ulBodyType == bodyTypeHTML) {
+				LONG lSyncIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_RTF_IN_SYNC, PT_UNSPECIFIED));
+				if (lSyncIdx >= 0) {
+					ptrPropArray[lSyncIdx].ulPropTag = PR_RTF_IN_SYNC;
+					ptrPropArray[lSyncIdx].Value.b = false;
 				}
 			}
+		} else {
+			hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
+			if (HR_FAILED(hr))
+				goto exit;
 		}
+	} else {
+		hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
+		if (HR_FAILED(hr))
+			goto exit;
 	}
 
 	*lpcValues = cValues;
-	*lppPropArray = lpPropArray;
-	lpPropArray = NULL;
+	*lppPropArray = ptrPropArray.release();
 
 exit:
-	if (lpPropArray)
-		MAPIFreeBuffer(lpPropArray);
+	return hr;
+}
+
+/**
+ * Retrieve a body property (PR_BODY, PR_HTML or PR_RTF_COMPRESSED) and make sure it's synchronized
+ * with the best body returned from the server. This implies that the body might be generated on the
+ * fly.
+ *
+ * @param[in]		ulPropTag		The proptag of the body to retrieve.
+ * @param[in]		ulFlags			Flags
+ * @param[in]		lpBase			Base pointer for allocating more memory.
+ * @param[in,out]	lpsPropValue	Pointer to an SPropValue that will be updated to contain the
+ *									the body property.
+ */
+HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue)
+{
+	HRESULT hr = hrSuccess;
+
+	if (ulPropTag == PR_BODY_HTML)
+		ulPropTag = PR_BODY;
+
+	hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+	if (HR_FAILED(hr))
+		goto exit;
+
+	if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR &&
+		lpsPropValue->Value.err == MAPI_E_NOT_FOUND &&
+		m_ulBodyType != bodyTypeUnknown)
+	{
+		// If a non-best body was requested, we might need to generate it.
+		if ((m_ulBodyType == bodyTypePlain && PROP_ID(ulPropTag) == PROP_ID(PR_BODY)) ||
+			(m_ulBodyType == bodyTypeRTF && PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ||
+			(m_ulBodyType == bodyTypeHTML && PROP_ID(ulPropTag) == PROP_ID(PR_HTML)))
+		{
+			// Nothing more to do, the best body should be available or generated in HrLoadProps.
+			goto exit;
+		}
+
+		hr = SyncBody(ulPropTag);
+		if (hr != hrSuccess)
+			goto exit;
+
+		// Retry now the body is generated.
+		hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+	}
+
+exit:
+	return hr;
+}
+
+/**
+ * Synchronize the best body obtained from the server to the requested body.
+ *
+ * @param[in]	ulPropTag		The proptag of the body to synchronize.
+ */
+HRESULT ECMessage::SyncBody(ULONG ulPropTag)
+{
+	HRESULT hr = hrSuccess;
+	const BOOL fModifyOld = fModify;
+
+	if (m_ulBodyType == bodyTypeUnknown) {
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	if (!Util::IsBodyProp(ulPropTag)) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	// Temporary enable write access
+	fModify = TRUE;
+
+	if (m_ulBodyType == bodyTypePlain) {
+		if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
+			hr = SyncPlainToRtf();
+		else if (PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
+			hr = SyncPlainToHtml();
+	} else if (m_ulBodyType == bodyTypeRTF) {
+		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY) || PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
+			hr = SyncRtf();
+	} else if (m_ulBodyType == bodyTypeHTML) {
+		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY))
+			hr = SyncHtmlToPlain();
+		else if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
+			hr = SyncHtmlToRtf();
+	}
+
+exit:
+	fModify = fModifyOld;
 
 	return hr;
 }
 
-HRESULT ECMessage::GetPropsInternal(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray)
+/**
+ * Synchronize a plaintext body to an RTF body.
+ */
+HRESULT ECMessage::SyncPlainToRtf()
 {
-	if(m_ulLastChange != syncChangeNone && m_bBusySyncRTF != TRUE) {
-		// minimize SyncRTF call only when body props are requested
-		LONG ulPos = Util::FindPropInArray(lpPropTagArray, PR_RTF_COMPRESSED);
-		if (ulPos < 0) ulPos = Util::FindPropInArray(lpPropTagArray, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
-		if (ulPos < 0) ulPos = Util::FindPropInArray(lpPropTagArray, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
-		if (ulPos >= 0)
-			SyncRTF();
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrBodyStream;
+	StreamPtr ptrCompressedRtfStream;
+	StreamPtr ptrUncompressedRtfStream;
+
+	ULARGE_INTEGER emptySize = {{0,0}};
+
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
+
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrCompressedRtfStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	//Truncate to zero
+	hr = ptrCompressedRtfStream->SetSize(emptySize);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &ptrUncompressedRtfStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Convert it now
+	hr = Util::HrTextToRtf(ptrBodyStream, ptrUncompressedRtfStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Commit uncompress data
+	hr = ptrUncompressedRtfStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Commit compresed data
+	hr = ptrCompressedRtfStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// We generated this property but don't really want to save it to the server
+	HrSetCleanProperty(PR_RTF_COMPRESSED);
+
+	// and mark it as deleted, since we want the server to remove the old version if this was in the database
+	m_setDeletedProps.insert(PR_RTF_COMPRESSED);
+
+exit:
+	m_bInhibitSync = FALSE;
+	return hr;
+}
+
+/**
+ * Synchronize a plaintext body to an HTML body.
+ */
+HRESULT ECMessage::SyncPlainToHtml()
+{
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrBodyStream;
+	unsigned int ulCodePage = 0;
+	StreamPtr ptrHtmlStream;
+
+	ULARGE_INTEGER emptySize = {{0,0}};
+
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
+
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = GetCodePage(&ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHtmlStream->SetSize(emptySize);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = Util::HrTextToHtml(ptrBodyStream, ptrHtmlStream, ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHtmlStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// We generated this property but don't really want to save it to the server
+	HrSetCleanProperty(PR_HTML);
+
+	// and mark it as deleted, since we want the server to remove the old version if this was in the database
+	m_setDeletedProps.insert(PR_HTML);
+
+exit:
+	m_bInhibitSync = FALSE;
+	return hr;
+}
+
+/**
+ * Synchronize an RTF body to a plaintext and an HTML body.
+ */
+HRESULT ECMessage::SyncRtf()
+{
+	enum eRTFType { RTFTypeOther, RTFTypeFromText, RTFTypeFromHTML};
+
+	HRESULT hr = hrSuccess;
+	string strRTF;
+	bool bDone = false;
+	unsigned int ulCodePage = 0;
+	StreamPtr ptrHTMLStream;
+	ULONG ulWritten = 0;
+	eRTFType rtfType = RTFTypeOther;
+
+	ULARGE_INTEGER emptySize = {{0,0}};
+	LARGE_INTEGER moveBegin = {{0,0}};
+
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
+
+	hr = GetRtfData(&strRTF);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = GetCodePage(&ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &ptrHTMLStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrHTMLStream->SetSize(emptySize);
+	if (hr != hrSuccess)
+		goto exit;
+
+
+	// Determine strategy based on RTF type.
+	if (isrtfhtml(strRTF.c_str(), strRTF.size()))
+		rtfType = RTFTypeFromHTML;
+	else if (isrtftext(strRTF.c_str(), strRTF.size()))
+		rtfType = RTFTypeFromText;
+	else
+		rtfType = RTFTypeOther;
+
+
+	if (rtfType == RTFTypeOther) {
+		BOOL bUpdated;
+		hr = RTFSync(&this->m_xMessage, RTF_SYNC_RTF_CHANGED, &bUpdated);
+		if (hr == hrSuccess) {
+			StreamPtr ptrBodyStream;
+
+			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = ptrHTMLStream->SetSize(emptySize);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = Util::HrTextToHtml(ptrBodyStream, ptrHTMLStream, ulCodePage);
+			if (hr != hrSuccess)
+				goto exit;
+
+			hr = ptrHTMLStream->Commit(0);
+			if (hr != hrSuccess)
+				goto exit;
+
+			bDone = true;
+		}
 	}
 
-	return ECMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
+	if (!bDone) {
+		string strHTML;
+		StreamPtr ptrBodyStream;
+
+		switch (rtfType) {
+		case RTFTypeOther:
+			hr = HrExtractHTMLFromRealRTF(strRTF, strHTML, ulCodePage);
+			break;
+		case RTFTypeFromText:
+			hr = HrExtractHTMLFromTextRTF(strRTF, strHTML, ulCodePage);
+			break;
+		case RTFTypeFromHTML:
+			hr = HrExtractHTMLFromRTF(strRTF, strHTML, ulCodePage);
+			break;
+		}
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrHTMLStream->Write(strHTML.c_str(), strHTML.size(), &ulWritten);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrHTMLStream->Commit(0);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &ptrBodyStream);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrBodyStream->SetSize(emptySize);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = Util::HrHtmlToText(ptrHTMLStream, ptrBodyStream, ulCodePage);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrBodyStream->Commit(0);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	if (rtfType == RTFTypeOther) {
+		// No need to store the HTML.
+		HrSetCleanProperty(PR_HTML);
+		// And delete from server in case it changed.
+		m_setDeletedProps.insert(PR_HTML);
+	} else if (rtfType == RTFTypeFromText) {
+		// No need to store anything but the plain text.
+		HrSetCleanProperty(PR_RTF_COMPRESSED);
+		HrSetCleanProperty(PR_HTML);
+		// And delete them both.
+		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
+		m_setDeletedProps.insert(PR_HTML);
+	} else if (rtfType == RTFTypeFromHTML) {
+		// No need to keep the RTF version
+		HrSetCleanProperty(PR_RTF_COMPRESSED);
+		// And delete from server.
+		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
+	}
+
+exit:
+	m_bInhibitSync = FALSE;
+	return hr;
+}
+
+/**
+ * Synchronize an HTML body to a plaintext body.
+ */
+HRESULT ECMessage::SyncHtmlToPlain()
+{
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrHtmlStream;
+	StreamPtr ptrBodyStream;
+	unsigned int ulCodePage;
+
+	ULARGE_INTEGER emptySize = {{0,0}};
+
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
+
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrBodyStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrBodyStream->SetSize(emptySize);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = GetCodePage(&ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = Util::HrHtmlToText(ptrHtmlStream, ptrBodyStream, ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrBodyStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	m_bInhibitSync = FALSE;
+	return hr;
+}
+
+/**
+ * Synchronize an HTML body to an RTF body.
+ */
+HRESULT ECMessage::SyncHtmlToRtf()
+{
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrHtmlStream;
+	StreamPtr ptrRtfCompressedStream;
+	StreamPtr ptrRtfUncompressedStream;
+	unsigned int ulCodePage;
+
+	ULARGE_INTEGER emptySize = {{0,0}};
+
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
+
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrRtfCompressedStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrRtfCompressedStream->SetSize(emptySize);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &ptrRtfUncompressedStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = GetCodePage(&ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Convert it now
+	hr = Util::HrHtmlToRtf(ptrHtmlStream, ptrRtfUncompressedStream, ulCodePage);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Commit uncompress data
+	hr = ptrRtfUncompressedStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Commit compresed data
+	hr = ptrRtfCompressedStream->Commit(0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// We generated this property but don't really want to save it to the server
+	HrSetCleanProperty(PR_RTF_COMPRESSED);
+
+	// and mark it as deleted, since we want the server to remove the old version if this was in the database
+	m_setDeletedProps.insert(PR_RTF_COMPRESSED);
+
+exit:
+	m_bInhibitSync = FALSE;
+	return hr;
 }
 
 HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray)
 {
-	SyncRTF();
-	
-	return ECMAPIProp::GetPropList(ulFlags, lppPropTagArray);
+	HRESULT hr = hrSuccess;
+	const eBodyType ulBodyTypeSaved = m_ulBodyType;
+	SPropTagArrayPtr ptrPropTagArray;
+	SPropTagArrayPtr ptrPropTagArrayMod;
+	bool bHaveBody;
+	bool bHaveRtf;
+	bool bHaveHtml;
+
+	m_ulBodyType = bodyTypeUnknown;	// Make sure no bodies are generated when attempts are made to open them to check the error code if any.
+
+	hr = ECMAPIProp::GetPropList(ulFlags, &ptrPropTagArray);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Because the body type was set to unknown, ECMAPIProp::GetPropList does not return the proptags of the bodies that can be
+	// generated unless they were already generated.
+	// So we need to check which body properties are included and if at least one is, we need to make sure all of them are.
+	bHaveBody = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED)) >= 0;
+	bHaveRtf = Util::FindPropInArray(ptrPropTagArray, PR_RTF_COMPRESSED) >= 0;
+	bHaveHtml = Util::FindPropInArray(ptrPropTagArray, PR_HTML) >= 0;
+
+	if ((bHaveBody && bHaveRtf && bHaveHtml) ||
+		(!bHaveBody && !bHaveRtf && !bHaveHtml))
+	{
+		// Nothing more to do
+		*lppPropTagArray = ptrPropTagArray.release();
+		goto exit;
+	}
+
+	// We have at least one body prop. Determine which tags to add.
+	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &ptrPropTagArrayMod);
+	if (hr != hrSuccess)
+		goto exit;
+
+	ptrPropTagArrayMod->cValues = ptrPropTagArray->cValues;
+	memcpy(ptrPropTagArrayMod->aulPropTag, ptrPropTagArray->aulPropTag, sizeof *ptrPropTagArrayMod->aulPropTag * ptrPropTagArrayMod->cValues);
+
+	// All thee booleans can't be NULL at the same time, so two additions max.
+	if (!bHaveBody)
+		ptrPropTagArrayMod->aulPropTag[ptrPropTagArrayMod->cValues++] = (ulFlags & MAPI_UNICODE ? PR_BODY_W : PR_BODY_A);
+	if (!bHaveRtf)
+		ptrPropTagArrayMod->aulPropTag[ptrPropTagArrayMod->cValues++] = PR_RTF_COMPRESSED;
+	if (!bHaveHtml)
+		ptrPropTagArrayMod->aulPropTag[ptrPropTagArrayMod->cValues++] = PR_HTML;
+
+	*lppPropTagArray = ptrPropTagArrayMod.release();
+
+exit:
+	m_ulBodyType = ulBodyTypeSaved;
+	return hr;
 }
 
 HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
@@ -351,14 +877,19 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 		if (*lpiid == IID_IMAPITable)
 			hr = GetRecipientTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
 	} else {
-		// Sync RTF if needed
-		SyncRTF();
-
 		// Workaround for support html in outlook 2000/xp
 		if(ulPropTag == PR_BODY_HTML)
 			ulPropTag = PR_HTML;
 
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+		if (hr == MAPI_E_NOT_FOUND && m_ulBodyType != bodyTypeUnknown && Util::IsBodyProp(ulPropTag)) {
+			hr = SyncBody(ulPropTag);
+			if (hr != hrSuccess)
+				goto exit;
+
+			// Retry now the body is generated.
+			hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+		}
 	}
 
 exit:
@@ -383,7 +914,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
-	}			
+	}
 
 	if (this->lpAttachments == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropAttachColumns, &lpPropTagArray);
@@ -448,7 +979,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					}
 					lpPropID->ulPropTag = PR_ATTACH_NUM;
 					lpPropID->Value.ul = (*iterObjects)->ulUniqueId;				// use uniqueid from "recount" code in WSMAPIPropStorage::desoapertize()
-					
+
 					if (lpPropType == NULL) {
 						ulProps++;
 						lpPropType = &lpProps[i++];
@@ -686,7 +1217,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
-	}			
+	}
 
 	if (this->lpRecips == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropRecipColumns, &lpPropTagArray);
@@ -696,7 +1227,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &lpRecips);
 		if(hr != hrSuccess)
 			goto exit;
-		
+
 		// What we do here is that we reconstruct a recipient table from the m_sMapiObject data, and then process it in two ways:
 		// 1. Remove PR_ROWID values and replace them with client-side values
 		// 2. Replace PR_EC_CONTACT_ENTRYID with PR_ENTRYID in the table
@@ -734,7 +1265,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 					lpPropID = NULL;
 					for (i = 0, iterPropVals = (*iterObjects)->lstProperties->begin(); iterPropVals != (*iterObjects)->lstProperties->end(); iterPropVals++, i++) {
-						
+
 						(*iterPropVals).CopyToByRef(&lpProps[i]);
 
 						if (lpProps[i].ulPropTag == PR_ROWID) {
@@ -805,7 +1336,7 @@ exit:
  * If the user specified a PR_ROWID, we always use their ROW ID
  * If the user specifies no PR_ROWID, we generate one, starting at 1 and going upward
  * MODIFY and ADD are the same
- * 
+ *
  * This makes the following scenario possible:
  *
  * - Add row without id (row id 1 is generated)
@@ -858,7 +1389,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 
 		if(hr != hrSuccess)
 			goto exit;
-			
+
 		ulNextRecipUniqueId = 0;
 	}
 
@@ -867,7 +1398,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			// Add a new PR_ROWID
 			sPropAdd[0].ulPropTag = PR_ROWID;
 			sPropAdd[0].Value.ul = this->ulNextRecipUniqueId++;
-			
+
 			// Add a PR_INSTANCE_KEY which is equal to the row id
 			sPropAdd[1].ulPropTag = PR_INSTANCE_KEY;
 			sPropAdd[1].Value.bin.cb = sizeof(ULONG);
@@ -886,7 +1417,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
 			if (lpRecipProps) {
 				ECFreeBuffer(lpRecipProps);
 				lpRecipProps = NULL;
-			} 
+			}
 		} else if(ulFlags & MODRECIP_MODIFY) {
 			// Simply update the existing row, leave the PR_EC_HIERARCHY key prop intact.
 			hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
@@ -926,11 +1457,11 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	FILETIME ft;
 	ULONG ulPreFlags = 0;
 
-	// Get message flag to check for resubmit. PR_MESSAGE_FLAGS 
+	// Get message flag to check for resubmit. PR_MESSAGE_FLAGS
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] = PR_MESSAGE_FLAGS;
 
-	hr = GetPropsInternal(&sPropTagArray, 0, &cValue, &lpsPropArray);
+	hr = ECMAPIProp::GetProps(&sPropTagArray, 0, &cValue, &lpsPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 
@@ -944,12 +1475,12 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		if(hr != hrSuccess)
 			goto exit;
 	}
-	
+
 	if(lpsPropArray->ulPropTag == PR_MESSAGE_FLAGS) {
 		// Re-set 'unsent' as it is obviously not sent if we're submitting it ... This allows you to send a message
 		// multiple times, but only if the client calls SubmitMessage multiple times.
 		lpsPropArray->Value.ul |= MSGFLAG_UNSENT;
-		
+
 		hr = this->SetProps(1, lpsPropArray, NULL);
 		if(hr != hrSuccess)
 			goto exit;
@@ -964,7 +1495,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = lpRecipientTable->GetRowCount(0, &ulRepCount);
 	if(hr != hrSuccess)
 		goto exit;
-	
+
 	if(ulRepCount == 0) {
 		hr = MAPI_E_NO_RECIPIENTS;
 		goto exit;
@@ -979,7 +1510,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 		if (lpsRow->cRows == 0)
 			break;
-		
+
 		sPropResponsibility.ulPropTag = PR_RESPONSIBILITY;
 		sPropResponsibility.Value.b = FALSE;
 
@@ -1005,13 +1536,13 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		FreeProws(lpsRow);
 		lpsRow = NULL;
 	}
-	
+
 	lpRecipientTable->Release();
 	lpRecipientTable = NULL;
 
-	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME 
+	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
     GetSystemTimeAsFileTime(&ft);
-    
+
     if(lpsPropArray) {
         ECFreeBuffer(lpsPropArray);
         lpsPropArray = NULL;
@@ -1023,7 +1554,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	lpsPropArray[0].ulPropTag = PR_CLIENT_SUBMIT_TIME;
 	lpsPropArray[0].Value.ft = ft;
-	
+
 	lpsPropArray[1].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpsPropArray[1].Value.ft = ft;
 
@@ -1046,7 +1577,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	// Setup PR_SUBMIT_FLAGS
 	if(ulPreprocessFlags & NEEDS_PREPROCESSING ) {
 		ulSubmitFlag = SUBMITFLAG_PREPROCESS;
-	}	
+	}
 	if(ulPreprocessFlags & NEEDS_SPOOLER ){
 		ulSubmitFlag = 0L;
 	}
@@ -1058,7 +1589,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	lpsPropArray[0].ulPropTag = PR_SUBMIT_FLAGS;
 	lpsPropArray[0].Value.l = ulSubmitFlag;
-	
+
 	hr = SetProps(1, lpsPropArray, NULL);
 	if (hr != hrSuccess)
 		goto exit;
@@ -1069,7 +1600,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	// All done, save changes
 	hr = SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
-		goto exit;	
+		goto exit;
 
 	// We look al ulPreprocessFlags to see whether to submit the message via the
 	// spooler or not
@@ -1097,10 +1628,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 exit:
     if(lpRecip)
         ECFreeBuffer(lpRecip);
-        
+
 	if(lpsRow)
 		FreeProws(lpsRow);
-	
+
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
 
@@ -1158,14 +1689,14 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	lpsPropTagArray->aulPropTag[0] = PR_MESSAGE_FLAGS;
 	lpsPropTagArray->aulPropTag[1] = PR_READ_RECEIPT_REQUESTED;
 
-	hr = GetPropsInternal(lpsPropTagArray, 0, &cValues, &lpReadReceiptRequest);
-	
-	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) && 
+	hr = ECMAPIProp::GetProps(lpsPropTagArray, 0, &cValues, &lpReadReceiptRequest);
+
+	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
 		lpReadReceiptRequest[1].Value.b == TRUE && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
-	{		
+	{
 		hr = QueryInterface(IID_IMessage, (void**)&lpThisMessage);
 		if (hr != hrSuccess)
-			goto exit;	
+			goto exit;
 
 		if((ulFlags & (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT)) == (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT) )
 		{
@@ -1220,19 +1751,19 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	hr = this->GetMsgStore()->lpTransport->HrSetReadFlag(this->m_cbEntryId, this->m_lpEntryId, ulFlags, 0);
 	if(hr != hrSuccess)
 	    goto exit;
-	    
+
     // Server update OK, change local flags also
     MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpPropFlags);
     hr = HrGetRealProp(PR_MESSAGE_FLAGS, ulFlags, lpPropFlags, lpPropFlags);
     if(hr != hrSuccess)
         goto exit;
-    
+
     if(ulFlags & CLEAR_READ_FLAG) {
         lpPropFlags->Value.ul &= ~MSGFLAG_READ;
     } else {
         lpPropFlags->Value.ul |= MSGFLAG_READ;
     }
-    
+
     hr = HrSetRealProp(lpPropFlags);
     if(hr != hrSuccess)
         goto exit;
@@ -1240,7 +1771,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 exit:
     if(lpPropFlags)
         ECFreeBuffer(lpPropFlags);
-        
+
 	if(lpsPropTagArray)
 		ECFreeBuffer(lpsPropTagArray);
 
@@ -1320,7 +1851,7 @@ HRESULT ECMessage::SyncRecips()
 					wstrBcc += lpRows->aRow[0].lpProps[1].Value.lpszW;
 				}
 			}
-			
+
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
@@ -1428,7 +1959,7 @@ HRESULT ECMessage::SaveRecips()
 			FreeMapiObject(*iterSObj);
 			m_sMapiObject->lstChildren->erase(iterSObj);
 		}
-		
+
 		m_sMapiObject->lstChildren->insert(mo);
 	}
 
@@ -1481,7 +2012,7 @@ BOOL ECMessage::HasAttachment()
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
-	}			
+	}
 
 	for (iterObjects = m_sMapiObject->lstChildren->begin(); iterObjects != m_sMapiObject->lstChildren->end(); iterObjects++) {
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
@@ -1647,7 +2178,7 @@ exit:
 
 	if (lpNewProps)
 		MAPIFreeBuffer(lpNewProps);
-		
+
 	if (lpProps)
 		MAPIFreeBuffer(lpProps);
 
@@ -1675,9 +2206,9 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		goto exit;
 	}
 
-	// nothing changed -> no need to save 
- 	if (this->lstProps == NULL) 
- 		goto exit; 
+	// nothing changed -> no need to save
+ 	if (this->lstProps == NULL)
+ 		goto exit;
 
 	ASSERT(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
 
@@ -1689,9 +2220,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
 		SyncRecips();
 	}
-
-	// Synchronize any changes between RTF, HTML and plaintext before proceeding
-	SyncRTF();
 
 	if (this->lpAttachments) {
 		// set deleted attachments in saved child list
@@ -1708,26 +2236,26 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		lpPropTagArray->cValues = 1;
 		lpPropTagArray->aulPropTag[0] = PR_MESSAGE_FLAGS;
 
-		hr = GetPropsInternal(lpPropTagArray, 0, &cValues, &lpsPropMessageFlags);
+		hr = ECMAPIProp::GetProps(lpPropTagArray, 0, &cValues, &lpsPropMessageFlags);
 		if(hr != hrSuccess)
 			goto exit;
-		
+
 		lpsPropMessageFlags->ulPropTag = PR_MESSAGE_FLAGS;
 		lpsPropMessageFlags->Value.l &= ~(MSGFLAG_READ|MSGFLAG_UNSENT);
 		lpsPropMessageFlags->Value.l |= MSGFLAG_UNMODIFIED;
-		
+
 		hr = SetProps(1, lpsPropMessageFlags, NULL);
 		if(hr != hrSuccess)
 			goto exit;
 	}
 
 	// don't re-sync bodies that are returned from server
-	m_bBusySyncRTF = TRUE;
+	ASSERT(m_bInhibitSync == FALSE);
+	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::SaveChanges(ulFlags);
 
-	m_ulLastChange = syncChangeNone;
-	m_bBusySyncRTF = FALSE;
+	m_bInhibitSync = FALSE;
 	m_bExplicitSubjectPrefix = FALSE;
 
 	if(hr != hrSuccess)
@@ -1784,10 +2312,10 @@ HRESULT ECMessage::SyncSubject()
 	int				sizePrefix1 = 0;
 
 	SizedSPropTagArray(2, sPropSubjects) = {2, { PR_SUBJECT_W, PR_SUBJECT_PREFIX_W} };
-	
+
 	hr1 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED), &bDirtySubject);
 	hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
-	
+
 	// if both not present or not dirty
 	if( (hr1 != hrSuccess && hr2 != hrSuccess) || (hr1 == hr2 && bDirtySubject == FALSE && bDirtySubjectPrefix == FALSE) )
 		goto exit;
@@ -1802,7 +2330,7 @@ HRESULT ECMessage::SyncSubject()
 	//////////////////////////////////////////
 	// Check if subject and prefix in sync
 
-	hr = GetPropsInternal((LPSPropTagArray)&sPropSubjects, 0, &cValues, &lpPropArray);
+	hr = ECMAPIProp::GetProps((LPSPropTagArray)&sPropSubjects, 0, &cValues, &lpPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 
@@ -1813,7 +2341,7 @@ HRESULT ECMessage::SyncSubject()
 		//Set emtpy PR_SUBJECT_PREFIX
 		lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;
 		lpPropArray[1].Value.lpszW = L"";
-		
+
 		hr = HrSetRealProp(&lpPropArray[1]);
 		if(hr != hrSuccess)
 			goto exit;
@@ -1823,7 +2351,7 @@ HRESULT ECMessage::SyncSubject()
 
 		// synchronized PR_SUBJECT_PREFIX
 		lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;	// If PROP_TYPE(lpPropArray[1].ulPropTag) == PT_ERROR, we lose that info here.
-			
+
 		if (sizePrefix1 > 1 && sizePrefix1 <= 4)
 		{
 			if (lpPropArray[0].Value.lpszW[sizePrefix1] == L' ')
@@ -1846,7 +2374,7 @@ HRESULT ECMessage::SyncSubject()
 
 		// PR_SUBJECT_PREFIX and PR_SUBJECT are synchronized
 	}
-	
+
 exit:
 	if(lpPropArray)
 		ECFreeBuffer(lpPropArray);
@@ -1864,10 +2392,15 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 	LPSPropValue pvalHtml;
 	LPSPropValue pvalBody;
 
+	const BOOL bInhibitSyncOld = m_bInhibitSync;
+	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
+
 	// Send to IMAPIProp first
 	hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		goto exit;
+
+	m_bInhibitSync = bInhibitSyncOld;
 
 	/* We only sync the subject (like a PST does) in the following conditions:
 	 * 1) PR_SUBJECT is modified, and PR_SUBJECT_PREFIX was not set
@@ -1888,16 +2421,21 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
-		m_ulLastChange = syncChangeRTF;
+		GetBodyType(&m_ulBodyType);
+		SyncRtf();
 	} else if (pvalHtml) {
-		m_ulLastChange = syncChangeHTML;
+		m_ulBodyType = bodyTypeHTML;
+		SyncHtmlToPlain();
+		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
 	} else if(pvalBody) {
-		m_ulLastChange = syncChangeBody;
+		m_ulBodyType = bodyTypePlain;
+		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
+		HrDeleteRealProp(PR_HTML, FALSE);
 	}
-	m_ulBodyType = bodyTypeUnknown;
-	
+
 exit:
-	return hr;		
+	m_bInhibitSync = bInhibitSyncOld;
+	return hr;
 }
 
 HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
@@ -1949,7 +2487,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	LPBYTE	lpData = NULL;
 	ECMessage *lpMessage = (ECMessage *)lpParam;
 	ECMsgStore *lpMsgStore = (ECMsgStore *)lpProvider;
-	
+
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RTF_IN_SYNC):
 		lpsPropValue->ulPropTag = PR_RTF_IN_SYNC;
@@ -1982,7 +2520,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->Value.ul = (lpsPropValue->Value.ul & ~MSGFLAG_HASATTACH) | (lpMessage->HasAttachment() ? MSGFLAG_HASATTACH : 0);
 		break;
 	}
-	case PROP_ID(PR_NORMALIZED_SUBJECT): 
+	case PROP_ID(PR_NORMALIZED_SUBJECT):
 		hr = lpMessage->HrGetRealProp(CHANGE_PROP_TYPE(PR_SUBJECT, PROP_TYPE(ulPropTag)), ulFlags, lpBase, lpsPropValue);
 		if (hr != hrSuccess) {
 			// change PR_SUBJECT in PR_NORMALIZED_SUBJECT
@@ -2021,7 +2559,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		}
 		break;
 	case PROP_ID(PR_PARENT_ENTRYID):
-		
+
 		if(!lpMessage->m_lpParentID)
 			hr = lpMessage->HrGetRealProp(PR_PARENT_ENTRYID, ulFlags, lpBase, lpsPropValue);
 		else{
@@ -2066,34 +2604,35 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->ulPropTag = PR_MESSAGE_RECIPIENTS;
 		lpsPropValue->Value.x = 1;
 		break;
-	case PROP_ID(PR_BODY_HTML):
-		if(ulPropTag != PR_BODY_HTML) {
-			hr = MAPI_E_NOT_FOUND;
+	case PROP_ID(PR_BODY):
+	case PROP_ID(PR_RTF_COMPRESSED):
+	case PROP_ID(PR_HTML):
+		hr = lpMessage->GetSyncedBodyProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+		if (hr != hrSuccess)
 			break;
+
+		if (ulPropTag == PR_BODY_HTML) {
+			// Workaround for support html in outlook 2000/xp
+			if (lpsPropValue->ulPropTag != PR_HTML){
+				hr = MAPI_E_NOT_FOUND;
+				break;
+			}
+
+			lpsPropValue->ulPropTag = PR_BODY_HTML;
+			ulSize = lpsPropValue->Value.bin.cb;
+			lpData = lpsPropValue->Value.bin.lpb;
+
+			hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+			if(hr != hrSuccess)
+				break;
+
+			if(ulSize>0 && lpData){
+				memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
+			}else
+				ulSize = 0;
+
+			lpsPropValue->Value.lpszA[ulSize] = 0;
 		}
-		
-		// Workaround for support html in outlook 2000/xp
-		hr = lpMessage->HrGetRealProp(PR_HTML, ulFlags, lpBase, lpsPropValue);
-		if(hr != hrSuccess || lpsPropValue->ulPropTag != PR_HTML){
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
-
-		lpsPropValue->ulPropTag = PR_BODY_HTML;
-		ulSize = lpsPropValue->Value.bin.cb;
-		lpData = lpsPropValue->Value.bin.lpb;
-
-		hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
-		if(hr != hrSuccess)
-			break;
-		
-		if(ulSize>0 && lpData){
-			memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
-		}else
-			ulSize = 0;
-		
-		lpsPropValue->Value.lpszA[ulSize] = 0;			
-
 		break;
 	case PROP_ID(PR_SOURCE_KEY): {
 		std::string strServerGUID;
@@ -2147,6 +2686,9 @@ HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValu
 	char* lpData = NULL;
 
 	switch(ulPropTag) {
+	case PR_HTML:
+		hr = lpMessage->HrSetRealProp(lpsPropValue);
+		break;
 	case PR_BODY_HTML:
 		// Set PR_BODY_HTML to PR_HTML
 		lpsPropValue->ulPropTag = PR_HTML;
@@ -2222,8 +2764,8 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 			if (hr != hrSuccess)
 				goto exit;
 
-			if(lpDestTop->m_lpEntryId && lpSourceTop->m_lpEntryId && 
-			   lpDestTop->m_cbEntryId == lpSourceTop->m_cbEntryId && 
+			if(lpDestTop->m_lpEntryId && lpSourceTop->m_lpEntryId &&
+			   lpDestTop->m_cbEntryId == lpSourceTop->m_cbEntryId &&
 			   memcmp(lpDestTop->m_lpEntryId, lpSourceTop->m_lpEntryId, lpDestTop->m_cbEntryId) == 0 &&
 			   sDestServerGuid == sSourceServerGuid) {
 				// Source and destination are the same on-disk objects (entryids are equal)
@@ -2236,10 +2778,10 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 		lpECMAPIProp->Release();
 		lpECMAPIProp = NULL;
 	}
-	
+
 	hr = Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	
-	
+
+
 exit:
 	if(lpECMAPIProp)
 		lpECMAPIProp->Release();
@@ -2263,57 +2805,65 @@ HRESULT ECMessage::HrLoadProps()
 	BOOL fRTFOK = FALSE;
 	BOOL fHTMLOK = FALSE;
 
+	m_bInhibitSync = TRUE; // We don't want the logic in ECMessage::HrSetRealProp to kick in yet.
+
 	hr = ECMAPIProp::HrLoadProps();
-	if(hr != hrSuccess)
+
+	m_bInhibitSync = FALSE;
+
+	if (hr != hrSuccess)
 		goto exit;
 
-	// We just loaded, so no sync required except detection below
-	this->m_ulLastChange = syncChangeNone;
-	this->m_ulBodyType = bodyTypeUnknown;
+	/*
+	 * Now we're going to determine what the best body is.
+	 * This works as follows, the db will always contain the best body, but possibly
+	 * more. The plaintext body should also always be available.
+	 *
+	 * So if we only get a plaintext body, plaintext was the best body.
+	 * If we get HTML but not RTF, HTML is the best body.
+	 * If we get RTF, we'll check the RTF content to determine what the best body was.
+	 *
+	 * We won't generate any body except the best body if it wasn't returned by the
+	 * server, which is actually wrong.
+	 */
 
-	// Check for RTF and BODY properties
-	hr = GetPropsInternal((LPSPropTagArray)&sPropBodyTags, 0, &cValues, &lpsBodyProps);
-
-	if(HR_FAILED(hr)) {
+	hr = ECMAPIProp::GetProps((LPSPropTagArray)&sPropBodyTags, 0, &cValues, &lpsBodyProps);
+	if (HR_FAILED(hr))
 		goto exit;
-	}
 
 	hr = hrSuccess;
 
-	if(lpsBodyProps[0].ulPropTag == PR_BODY_W || (lpsBodyProps[0].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_BODY)) && lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[0].ulPropTag == PR_BODY_W || (lpsBodyProps[0].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_BODY)) && lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fBodyOK = TRUE;
 
-	if(lpsBodyProps[1].ulPropTag == PR_RTF_COMPRESSED || (lpsBodyProps[1].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_RTF_COMPRESSED)) && lpsBodyProps[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[1].ulPropTag == PR_RTF_COMPRESSED || (lpsBodyProps[1].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_RTF_COMPRESSED)) && lpsBodyProps[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fRTFOK = TRUE;
 
-	if(lpsBodyProps[2].ulPropTag == PR_HTML || (lpsBodyProps[2].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_HTML)) && lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[2].ulPropTag == PR_HTML || (lpsBodyProps[2].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_HTML)) && lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fHTMLOK = TRUE;
 
-	// Neither RTF nor BODY nor HTML, do nothing
-	if(!fBodyOK && !fRTFOK && !fHTMLOK) {
-		goto exit;
-	}
-	// Both RTF and BODY AND HTML, do nothing
-	else if(fBodyOK && fRTFOK && fHTMLOK) {
-		goto exit;
-	}
-	// Only RTF
-	else if(fRTFOK) {
-		m_ulLastChange = syncChangeRTF;
-	}
-	// HTML
-	else if(fHTMLOK) {
-		m_ulLastChange = syncChangeHTML;
-	}
-	// Only BODY
-	else if(fBodyOK) {
-		m_ulLastChange = syncChangeBody;
+
+	if (fRTFOK) {
+		hr = GetBodyType(&m_ulBodyType);
+		if (hr != hrSuccess)
+			goto exit;
+
+		if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
+			(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
+		{
+			hr = SyncRtf();
+			if (hr != hrSuccess)
+				goto exit;
+		}
 	}
 
-	SyncRTF();
+	else if (fHTMLOK)
+		m_ulBodyType = bodyTypeHTML;
+
+	else if (fBodyOK)
+		m_ulBodyType = bodyTypePlain;
 
 exit:
-
 	if(lpsBodyProps)
 		ECFreeBuffer(lpsBodyProps);
 
@@ -2328,12 +2878,22 @@ HRESULT ECMessage::HrSetRealProp(SPropValue *lpsPropValue)
 	if(hr != hrSuccess)
 		goto exit;
 
-	if (lpsPropValue->ulPropTag == PR_RTF_COMPRESSED)
-		m_ulLastChange = syncChangeRTF;
-	else if (lpsPropValue->ulPropTag == PR_HTML)
-		m_ulLastChange = syncChangeHTML;
-	else if (lpsPropValue->ulPropTag == PR_BODY_W || lpsPropValue->ulPropTag == PR_BODY_A)
-		m_ulLastChange = syncChangeBody;
+	// If we're in the middle of syncing bodies, we don't want any more logic to kick in.
+	if (m_bInhibitSync)
+		goto exit;
+
+	if (lpsPropValue->ulPropTag == PR_RTF_COMPRESSED) {
+		GetBodyType(&m_ulBodyType);
+		SyncRtf();
+	} else if (lpsPropValue->ulPropTag == PR_HTML) {
+		m_ulBodyType = bodyTypeHTML;
+		SyncHtmlToPlain();
+		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
+	} else if (lpsPropValue->ulPropTag == PR_BODY_W || lpsPropValue->ulPropTag == PR_BODY_A) {
+		m_ulBodyType = bodyTypePlain;
+		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
+		HrDeleteRealProp(PR_HTML, FALSE);
+	}
 
 exit:
 	return hr;
@@ -2342,15 +2902,15 @@ exit:
 struct findobject_if {
     unsigned int m_ulUniqueId;
     unsigned int m_ulObjType;
-    
+
     findobject_if(unsigned int ulObjType, unsigned int ulUniqueId) : m_ulUniqueId(ulUniqueId), m_ulObjType(ulObjType) {}
-                
+
     bool operator()(MAPIOBJECT *entry)
     {
         return entry->ulUniqueId == m_ulUniqueId && entry->ulObjType == m_ulObjType;
     }
 };
-                                    
+
 // Copies the server object IDs from lpSrc into lpDest by matching the correct object type
 // and unique ID for each object.
 HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, MAPIOBJECT *lpSrc)
@@ -2358,7 +2918,7 @@ HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, MAPIOBJECT *lpSrc)
     HRESULT hr = hrSuccess;
     ECMapiObjects::iterator iterSrc;
     ECMapiObjects::iterator iterDest;
-    
+
     lpDest->ulObjId = lpSrc->ulObjId;
 
     for(iterSrc = lpSrc->lstChildren->begin(); iterSrc != lpSrc->lstChildren->end(); iterSrc++) {
@@ -2369,7 +2929,7 @@ HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, MAPIOBJECT *lpSrc)
                 goto exit;
         }
     }
-    
+
 exit:
     return hr;
 }
@@ -2425,7 +2985,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
 		if(hr != hrSuccess)
 			goto exit;
-			
+
 		// Remove item
 		FreeMapiObject(*iterSObj);
 		m_sMapiObject->lstChildren->erase(iterSObj);
@@ -2435,7 +2995,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	// Update the attachment table. The attachment table contains all properties of the attachments
 	ulProps = lpsMapiObject->lstProperties->size();
-	
+
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
 	ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 
@@ -2487,379 +3047,6 @@ exit:
 	return hr;
 }
 
-/**
- * Synchronises all 3 body types from the one that was modified the last time.
- *
- * @note Don't use RTFSync as the RTFSync function can only sync when there is an existing
- * PR_RTF_COMPRESSED. Which is quite often not the case. 
- */
-HRESULT ECMessage::SyncRTF()
-{
-	IStream *lpBodyStream = NULL;
-	IStream *lpRTFCompressedStream = NULL;
-	IStream *lpRTFUncompressedStream = NULL;
-	IStream *lpHTMLStream = NULL;
-	ECMemStream *lpEmptyMemStream = NULL;
-	LPSPropValue lpsPropValue = NULL;
-	HRESULT hr = hrSuccess;
-	ULONG ulRead = 0;
-	ULONG ulWritten = 0;
-	unsigned int ulCodepage = 0;
-	wstring strOut;
-	string strHTMLOut;
-	string strBody;
-
-	BOOL fModifySaved = FALSE;
-	BOOL bUpdated = FALSE;
-	eSyncChange ulLastChange;
-
-	std::string strRTF;
-	char lpBuf[4096];
-	LARGE_INTEGER moveBegin = {{0,0}};
-	ULARGE_INTEGER emptySize = {{0,0}};
-
-	enum eRTFType { RTFTypeOther, RTFTypeFromText, RTFTypeFromHTML};
-	eRTFType	rtfType = RTFTypeOther;
-
-	// HACK ALERT: we force fModify to TRUE, because even on read-only messages,
-	// we want to be able to create RTF_COMPRESSED or BODY from the other, which
-	// is basically a WRITE to the object
-	
-	fModifySaved = this->fModify;
-	this->fModify = TRUE;
-
-	if(m_ulLastChange == syncChangeNone || m_bBusySyncRTF == TRUE)
-		goto exit; // Nothing to do
-
-	// Mark as busy now, so we don't recurse on ourselves
-	m_bBusySyncRTF = TRUE;
-	ulLastChange = m_ulLastChange;
-	m_ulLastChange = syncChangeNone;
-
-	ECAllocateBuffer(sizeof(SPropValue), (void**)&lpsPropValue);
-	if(HrGetRealProp(PR_INTERNET_CPID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
-		lpsPropValue->ulPropTag == PR_INTERNET_CPID )
-	{
-		ulCodepage = lpsPropValue->Value.ul;
-	}
-	if(lpsPropValue){ECFreeBuffer(lpsPropValue); lpsPropValue = NULL;}
-
-	if(ulLastChange == syncChangeBody) {
-		//  PR_BODY has changed, update PR_RTF_COMPRESSED
-		if (OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpBodyStream) == hrSuccess) {
-
-			hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpRTFCompressedStream);
-			if(hr != hrSuccess)
-				goto exit;
-
-			//Truncate to zero
-			hr = lpRTFCompressedStream->SetSize(emptySize);
-			if(hr != hrSuccess)
-				goto exit;
-			
-			hr = WrapCompressedRTFStream(lpRTFCompressedStream, MAPI_MODIFY, &lpRTFUncompressedStream);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Convert it now
-			hr = Util::HrTextToRtf(lpBodyStream, lpRTFUncompressedStream);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Commit uncompress data
-			hr = lpRTFUncompressedStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Commit compresed data
-			hr = lpRTFCompressedStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-
-			////////////////////////////////////////////////////
-			// Update HTML, always use the binary propval
-			//
-			hr = OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpHTMLStream);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpBodyStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpHTMLStream->SetSize(emptySize);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = Util::HrTextToHtml(lpBodyStream, lpHTMLStream, ulCodepage);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpHTMLStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-		
-		// We generated these properties but don't really want to save it to the server
-		HrSetCleanProperty(PR_HTML);
-		HrSetCleanProperty(PR_RTF_COMPRESSED);
-		// and mark them as deleted, since we want the server to remove the old version if this was in the database
-		m_setDeletedProps.insert(PR_HTML);
-		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
-	} else if (ulLastChange == syncChangeRTF) {
-		// PR_RTF_COMPRESSED changed, update PR_BODY_W
-
-		if(OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpRTFCompressedStream) == hrSuccess) {
-			// Read the RTF stream
-			
-			hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &lpRTFUncompressedStream);
-			if(hr != hrSuccess)
-			{
-				// Broken RTF, fallback on empty stream
-				hr = ECMemStream::Create(NULL, 0, 0, NULL, NULL, NULL, &lpEmptyMemStream);
-				if(hr != hrSuccess)
-					goto exit;
-
-				hr = lpEmptyMemStream->QueryInterface(IID_IStream, (void**)&lpRTFUncompressedStream);
-				if(hr != hrSuccess)
-					goto exit;
-
-			}
-					
-			// Read the entire uncompressed RTF stream into strRTF
-			while(1) {
-				hr = lpRTFUncompressedStream->Read(lpBuf, 4096, &ulRead);
-
-				if(hr != hrSuccess)
-					goto exit;
-
-				if(ulRead == 0) {
-					break;
-				}
-				strRTF.append(lpBuf, ulRead);
-			}
-
-			if(isrtfhtml(strRTF.c_str(), strRTF.size())){
-				rtfType = RTFTypeFromHTML;
-			}else if (isrtftext(strRTF.c_str(), strRTF.size()) ){
-				rtfType = RTFTypeFromText;
-			}else { 
-                rtfType = RTFTypeOther;
-			}
-
-			if(rtfType == RTFTypeOther)
-			{
-				// PR_RTF_COMPRESSED changed, update PR_BODY 
-				if(RTFSync(&this->m_xMessage, RTF_SYNC_RTF_CHANGED, &bUpdated) == hrSuccess) 
-				{
-					bUpdated = TRUE;
-
-					hr = OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpBodyStream);
-					if(hr != hrSuccess)
-						goto exit;
-
-					////////////////////////////////////////////////////
-					// Update HTML, always use the binary propval
-					//
-					hr = OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpHTMLStream);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = lpBodyStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = lpHTMLStream->SetSize(emptySize);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = Util::HrTextToHtml(lpBodyStream, lpHTMLStream, ulCodepage);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = lpHTMLStream->Commit(0);
-					if(hr != hrSuccess)
-						goto exit;
-				}
-			}
-
-			if(bUpdated == FALSE) // NOTE: RTFSync does't work under linux so bUpdated = false
-			{
-
-				// Decode the RTF into HTML with decodertfhtml (conversion is done in-place)
-				switch(rtfType)
-				{
-					case RTFTypeFromHTML:
-						// Decode RTF into a WCHAR HTML source stream
-						hr = HrExtractHTMLFromRTF(strRTF, strHTMLOut, ulCodepage);
-						break;
-					case RTFTypeFromText:
-						// Decode RTFtext into a WCHAR HTML source stream
-						hr = HrExtractHTMLFromTextRTF(strRTF, strHTMLOut, ulCodepage);
-						break;
-					default:
-						hr = HrExtractHTMLFromRealRTF(strRTF, strHTMLOut, ulCodepage);
-						break;
-				}
-
-				////////////////////////////////////////////////////
-				// Update HTML, always use the binary propval
-				//
-				hr = OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpHTMLStream);
-				if(hr != hrSuccess)
-					goto exit;
-
-				hr = lpHTMLStream->SetSize(emptySize);
-				if(hr != hrSuccess)
-					goto exit;
-
-				//FIXME: write in blocks of 4096
-				hr = lpHTMLStream->Write(strHTMLOut.c_str(), strHTMLOut.size(), &ulWritten);
-				if(hr != hrSuccess)
-					goto exit;
-
-				hr = lpHTMLStream->Commit(0);
-				if(hr != hrSuccess)
-					goto exit;
-
-				// Write the data as PR_BODY
-				hr = OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpBodyStream);
-				if(hr != hrSuccess)
-					goto exit;
-
-				hr = lpBodyStream->SetSize(emptySize);
-					if(hr != hrSuccess)
-						goto exit;
-
-				if(rtfType == RTFTypeFromText)
-				{
-					// @todo, make sure it writes PT_UNICODE
-					hr = HrExtractBODYFromTextRTF(strRTF, strOut);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = lpBodyStream->Write(strOut.c_str(), strOut.size() * sizeof(WCHAR), &ulWritten);
-					if(hr != hrSuccess)
-						goto exit;
-				} else {
-					//Seek to begin
-					hr = lpHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
-					if(hr != hrSuccess)
-						goto exit;
-
-					hr = Util::HrHtmlToText(lpHTMLStream, lpBodyStream, ulCodepage);
-					if(hr != hrSuccess)
-						goto exit;
-				}
-				
-				hr = lpBodyStream->Commit(0);
-				if(hr != hrSuccess)
-					goto exit;
-			}
-		}
-		
-		// Dont want to save generated PR_HTML
-		HrSetCleanProperty(PR_HTML);
-		// and mark it as deleted, since we want the server to remove the old version if this was in the database
-		m_setDeletedProps.insert(PR_HTML);
-	} else if (ulLastChange == syncChangeHTML) {
-		if(OpenProperty(PR_HTML, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpHTMLStream) == hrSuccess) {
-			//Update RTF
-			hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpRTFCompressedStream);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpRTFCompressedStream->SetSize(emptySize);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = WrapCompressedRTFStream(lpRTFCompressedStream, MAPI_MODIFY, &lpRTFUncompressedStream);
-
-			if(hr != hrSuccess)
-				goto exit;
-
-			
-			// Convert it now
-			hr = Util::HrHtmlToRtf(lpHTMLStream, lpRTFUncompressedStream, ulCodepage);
-
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Commit uncompress data
-			hr = lpRTFUncompressedStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Commit compresed data
-			hr = lpRTFCompressedStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-
-			//////////////////////////////////
-			// Write the data as PR_BODY
-
-			//Seek to begin
-			hr = lpHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpBodyStream);
-
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpBodyStream->SetSize(emptySize);
-			if(hr != hrSuccess)
-				goto exit;
-			
-			hr = Util::HrHtmlToText(lpHTMLStream, lpBodyStream, ulCodepage);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpBodyStream->Commit(0);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-		
-		// Dont want to save generated RTF
-		HrSetCleanProperty(PR_RTF_COMPRESSED);
-		// and mark it as deleted, since we want the server to remove the old version if this was in the database
-		m_setDeletedProps.insert(PR_RTF_COMPRESSED);
-	}
-
-	m_bBusySyncRTF = FALSE;
-	m_ulLastChange = syncChangeNone;
-
-exit:
-	if (hr != hrSuccess) {
-		m_bBusySyncRTF = FALSE;
-		m_ulLastChange = ulLastChange; // Set last change type back.
-	}
-
-	this->fModify = fModifySaved;
-
-	if(lpRTFUncompressedStream)
-		lpRTFUncompressedStream->Release();
-
-	if(lpRTFCompressedStream)
-		lpRTFCompressedStream->Release();
-
-	if(lpBodyStream)
-		lpBodyStream->Release();
-
-	if(lpHTMLStream)
-		lpHTMLStream->Release();
-
-	if (lpEmptyMemStream)
-		lpEmptyMemStream->Release();
-
-	if(lpsPropValue)
-		ECFreeBuffer(lpsPropValue);
-
-	return hr;
-
-}
-
 HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 {
 	HRESULT		hr = hrSuccess;
@@ -2898,6 +3085,75 @@ exit:
 	if (lpRTFCompressedStream)
 		lpRTFCompressedStream->Release();
 
+	return hr;
+}
+
+HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
+{
+	HRESULT hr = hrSuccess;
+	StreamPtr ptrRtfCompressedStream;
+	StreamPtr ptrRtfUncompressedStream;
+	char lpBuf[4096];
+	std::string strRtfData;
+
+	hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &ptrRtfCompressedStream);
+	if (hr != hrSuccess)
+		goto exit;
+
+	// Read the RTF stream
+	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, 0, &ptrRtfUncompressedStream);
+	if(hr != hrSuccess)
+	{
+		mapi_object_ptr<ECMemStream> ptrEmptyMemStream;
+
+		// Broken RTF, fallback on empty stream
+		hr = ECMemStream::Create(NULL, 0, 0, NULL, NULL, NULL, &ptrEmptyMemStream);
+		if (hr != hrSuccess)
+			goto exit;
+
+		hr = ptrEmptyMemStream->QueryInterface(IID_IStream, (void**)&ptrRtfUncompressedStream);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+	// Read the entire uncompressed RTF stream into strRTF
+	while (1) {
+		ULONG ulRead;
+
+		hr = ptrRtfUncompressedStream->Read(lpBuf, 4096, &ulRead);
+		if (hr != hrSuccess)
+			goto exit;
+
+		if (ulRead == 0)
+			break;
+
+		strRtfData.append(lpBuf, ulRead);
+	}
+
+	lpstrRtfData->swap(strRtfData);
+
+exit:
+	return hr;
+}
+
+HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
+{
+	HRESULT hr = hrSuccess;
+	SPropValuePtr ptrPropValue;
+
+	hr = ECAllocateBuffer(sizeof(SPropValue), &ptrPropValue);
+	if (hr != hrSuccess)
+		goto exit;
+
+	if (HrGetRealProp(PR_INTERNET_CPID, 0, ptrPropValue, ptrPropValue) == hrSuccess &&
+		ptrPropValue->ulPropTag == PR_INTERNET_CPID )
+	{
+		*lpulCodePage = ptrPropValue->Value.ul;
+	}
+	else
+		*lpulCodePage = 0;
+
+exit:
 	return hr;
 }
 

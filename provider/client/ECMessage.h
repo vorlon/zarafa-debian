@@ -194,10 +194,12 @@ public:
 	} m_xMessage;
 
 protected:
-	HRESULT SyncRTF();
 	void RecursiveMarkDelete(MAPIOBJECT *lpObj);
 
 	HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttachFactory &refFactory, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
+
+	HRESULT GetRtfData(std::string *lpstrRtfData);
+	HRESULT GetCodePage(unsigned int *lpulCodePage);
 
 private:
 	enum eSyncChange {syncChangeNone, syncChangeBody, syncChangeRTF, syncChangeHTML};
@@ -216,18 +218,21 @@ private:
 	virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray);
 	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray);
 
-	// Like GetProps, but without filtering of body props
-	HRESULT GetPropsInternal(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray);
-
+	HRESULT GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue);
+	HRESULT SyncBody(ULONG ulPropTag);
+	HRESULT SyncPlainToRtf();
+	HRESULT SyncPlainToHtml();
+	HRESULT SyncRtf();
+	HRESULT SyncHtmlToPlain();
+	HRESULT SyncHtmlToRtf();
 	
 	BOOL			fNew;
 	BOOL			m_bEmbedded;
 	BOOL			m_bExplicitSubjectPrefix;
 	BOOL			m_bRecipsDirty;
 
-	eSyncChange		m_ulLastChange;
-	BOOL            m_bBusySyncRTF; 
 	eBodyType		m_ulBodyType;
+	BOOL			m_bInhibitSync;
 
 public:
 	ULONG			m_cbParentID;

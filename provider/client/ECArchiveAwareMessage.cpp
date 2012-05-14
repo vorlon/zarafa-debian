@@ -147,7 +147,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	if (m_mode == MODE_STUBBED) {
 		const BOOL fModifyCopy = this->fModify;
 		ECMsgStore *lpMsgStore = GetMsgStore();
-		
+
 		// @todo: Put in MergePropsFromStub
 		SizedSPropTagArray(4, sptaDeleteProps) = {4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
 		SizedSPropTagArray(6, sptaRestoreProps) = {6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX, PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
@@ -178,7 +178,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		// We need to temporary enable write access on the underlying objects in order for the following
 		// 5 calls to succeed.
 		this->fModify = TRUE;
-		
+
 		hr = DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
 		if (hr != hrSuccess) {
 			this->fModify = fModifyCopy;
@@ -186,12 +186,6 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		}
 
 		hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp, (LPSPropTagArray)&sptaRestoreProps, 0, NULL, &IID_IMAPIProp, &this->m_xMAPIProp, 0, NULL);
-		if (hr != hrSuccess) {
-			this->fModify = fModifyCopy;
-			goto exit;
-		}
-
-		hr = SyncRTF();
 		if (hr != hrSuccess) {
 			this->fModify = fModifyCopy;
 			goto exit;
@@ -222,13 +216,13 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 	HRESULT hr = hrSuccess;
 
 	if (m_bLoading) {
-		/* 
+		/*
 		 * This is where we end up if we're called through HrLoadProps. So this
 		 * is where we check if the loaded message is unarchived, archived or stubbed.
 		 */
-		if (lpsPropValue && 
+		if (lpsPropValue &&
 			PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR &&
-			PROP_ID(lpsPropValue->ulPropTag) >= 0x8500) 
+			PROP_ID(lpsPropValue->ulPropTag) >= 0x8500)
 		{
 			// We have a named property that's in the not-hardcoded range (where
 			// the archive named properties are). We now need to check if that's
@@ -251,8 +245,8 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 					hr = Util::HrCopyProperty(m_ptrStoreEntryIDs, lpsPropValue, m_ptrStoreEntryIDs);
 				if (hr != hrSuccess)
 					goto exit;
-			} 
-			
+			}
+
 			else if (lpsPropValue->ulPropTag == PROP_ARCHIVE_ITEM_ENTRYIDS) {
 				if (m_mode == MODE_UNARCHIVED)
 					m_mode = MODE_ARCHIVED;
@@ -310,7 +304,7 @@ HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG
 	HRESULT hr = hrSuccess;
 
 	hr = ECMessage::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	if (!m_bLoading && hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || (fModify && (ulFlags & MAPI_BEST_ACCESS)))) 
+	if (!m_bLoading && hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || (fModify && (ulFlags & MAPI_BEST_ACCESS))))
 	{
 		// We have no way of knowing if the property will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
@@ -330,7 +324,7 @@ HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterf
 	// in order to get write access. However, practice has thought that that's not always the case. So
 	// if the parent object was openend with write access, we'll assume the object is changed the moment
 	// the attachment is openend.
-	if (hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || fModify)) 
+	if (hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || fModify))
 	{
 		// We have no way of knowing if the attachment will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
@@ -349,7 +343,7 @@ HRESULT ECArchiveAwareMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, U
 	// allows it's size to be set during load time.
 	if (m_bLoading)
 		hr = ECMessage::CreateAttach(lpInterface, ulFlags, ECArchiveAwareAttachFactory(), lpulAttachmentNum, lppAttach);
-	
+
 	else {
 		hr = ECMessage::CreateAttach(lpInterface, ulFlags, ECAttachFactory(), lpulAttachmentNum, lppAttach);
 		if (hr == hrSuccess)
