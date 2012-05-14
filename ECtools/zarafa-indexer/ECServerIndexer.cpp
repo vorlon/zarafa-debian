@@ -552,7 +552,7 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
     }
     
     hr = lpStore->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
-    if(hr != hrSuccess)
+    if(FAILED(hr))
         goto exit;
         
     lpIndex->GetSyncState(strFolderId, strFolderState); // ignore error and use empty state if this fails

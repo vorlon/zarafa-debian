@@ -602,7 +602,7 @@ HRESULT ECIndexDB::FlushCache()
     
     ulBlock++;
     
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing %d values to block %d", m_lpCache->count(), ulBlock);
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing %u values to block %d", (unsigned)m_lpCache->count(), ulBlock);
     
     if(!m_lpIndex->set((char *)&key, sizeof(key), (char *)&ulBlock, sizeof(ulBlock))) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write block id: %s", m_lpIndex->error().message());
