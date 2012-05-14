@@ -167,7 +167,7 @@ ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 	ECRESULT er = erSuccess;
 	char buffer[4096];
 	ULONG read = 0;
-	ULONG total = 0;
+	size_t total = 0;
 
 	while(total < (nmemb*size)) {
 		er = m_lpBuffer->Read(buffer, std::min(sizeof(buffer), (size * nmemb) - total), &read);
