@@ -466,7 +466,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 
 		i = lstMatches.begin();
 		while(i != lstMatches.end()) {
-		    ULONG ulFlags;
+		    unsigned int ulFlags;
 		    
 		    if(lpCacheManager->GetObject(*i, NULL, NULL, &ulFlags, NULL) != erSuccess || ulFlags & MSGFLAG_DELETED)
 		        lstMatches.erase(i++);
