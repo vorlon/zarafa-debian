@@ -2312,6 +2312,7 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 				// was replaced with a new value, that it returned 1 the first time and 2 the second time.
 				// We'll allow both though.
 				if(ulAffected != 1 && ulAffected != 2) {
+					g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Unable to update MVProperties during save: %d, object id: %d", ulAffected, ulObjId);
 					er = ZARAFA_E_DATABASE_ERROR;
 					goto exit;
 				}
