@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 00:01+0200\n"
-"PO-Revision-Date: 2012-04-26 09:48+0200\n"
+"POT-Creation-Date: 2012-05-17 00:03+0200\n"
+"PO-Revision-Date: 2012-05-16 19:34+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -638,7 +638,7 @@ msgid "Tasks"
 msgstr "Tâches"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2401
+#: provider/libserver/ECGenProps.cpp:948 provider/client/ECMsgStore.cpp:2401
 msgid "Inbox"
 msgstr "Boîte de réception"
 
@@ -804,13 +804,13 @@ msgstr "Votre cache est mis à jour..."
 msgid "Upgrade: "
 msgstr "Mise à jour : "
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:906
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Dossiers publics"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:950
 msgid "Archive"
 msgstr "Archive"
 
@@ -993,46 +993,46 @@ msgid "User already exists."
 msgstr "L'utilisateur existe déjà."
 
 # 93%
-#: provider/client/ECArchiveAwareMessage.cpp:477
-#: provider/client/ECArchiveAwareMessage.cpp:535
+#: provider/client/ECArchiveAwareMessage.cpp:471
+#: provider/client/ECArchiveAwareMessage.cpp:529
 msgid "Zarafa Archiver"
 msgstr "Gestionnaire d'archive Zarafa"
 
-#: provider/client/ECArchiveAwareMessage.cpp:479
+#: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 "Une erreur s'est produite au cours de la récupération du message des "
 "archives."
 
-#: provider/client/ECArchiveAwareMessage.cpp:481
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
 msgstr "Veuillez contacter votre administrateur système."
 
-#: provider/client/ECArchiveAwareMessage.cpp:484 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr "Code erreur :"
 
-#: provider/client/ECArchiveAwareMessage.cpp:493
+#: provider/client/ECArchiveAwareMessage.cpp:487
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 "Aucune licence valide ne semble avoir été installée pour le gestionnaire "
 "d'archive."
 
-#: provider/client/ECArchiveAwareMessage.cpp:497
+#: provider/client/ECArchiveAwareMessage.cpp:491
 msgid "The archive could not be found."
 msgstr "Impossible de localiser l'archive."
 
-#: provider/client/ECArchiveAwareMessage.cpp:501
+#: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 "Vous ne possédez pas les autorisations vous permettant d'accéder à cet "
 "archive."
 
-#: provider/client/ECArchiveAwareMessage.cpp:508 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr "Description de l'erreur :"
 
-#: provider/client/ECArchiveAwareMessage.cpp:537
+#: provider/client/ECArchiveAwareMessage.cpp:531
 msgid "Archives can not be destubbed when working offline."
 msgstr "Il est impossible de rapatrier les archives en mode hors connexion."
 
@@ -1443,7 +1443,7 @@ msgstr "Supprimé"
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Ce répertoire contient des messages archivés qui ont été supprimés."
 
-#: spooler/Spooler.cpp:482
+#: spooler/Spooler.cpp:484
 msgid ""
 "A fatal error occurred while processing your message, and Zarafa is unable "
 "to send your email."
@@ -1475,19 +1475,19 @@ msgstr "Impossible de copier les données du message."
 msgid "Unable to save archived message."
 msgstr "Impossible d'enregistrer le message archivé."
 
-#: spooler/mailer.cpp:1710
+#: spooler/mailer.cpp:1718
 msgid "You are not allowed to send as user or group "
 msgstr ""
 "Vous n'avez pas les permissions requises pour envoyer en tant qu'utilisateur "
 "ou groupe "
 
-#: spooler/mailer.cpp:1712
+#: spooler/mailer.cpp:1720
 msgid "The user or group you try to send as could not be found."
 msgstr ""
 "Impossible de trouver l'utilisateur ou le groupe pour lequel vous essayez "
 "d'envoyer \"en tant que\"."
 
-#: spooler/mailer.cpp:2537
+#: spooler/mailer.cpp:2543
 msgid "Error found while trying to send your message. Error code: "
 msgstr ""
 "Erreur rencontrée à la tentative d'envoi de votre message. Code erreur : "
@@ -1618,231 +1618,235 @@ msgstr "%x %X"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1638
 msgid "Accepted"
-msgstr ""
+msgstr "Accepté"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1642
 msgid "Declined"
-msgstr ""
+msgstr "Décliné"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1646
 msgid "Tentatively accepted"
-msgstr ""
+msgstr "Provisoirement accepté"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1652
 msgid "New Time Proposed"
-msgstr ""
+msgstr "Nouvel horaire proposé"
 
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2667
-#, fuzzy
 msgid "Canceled"
-msgstr "Annuler"
+msgstr "Annulé"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
-msgstr ""
+msgstr "Date de départ"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "%A, %B %d, %Y"
-msgstr ""
+msgstr "%A, %B %d, %Y"
 
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "Due Date"
-msgstr ""
+msgstr "Date déchéance"
 
 #: php-ext/include/mapi/class.taskrequest.php:886
 msgid "Status"
-msgstr ""
+msgstr "État"
 
 #: php-ext/include/mapi/class.taskrequest.php:887
 msgid "Not Started"
-msgstr ""
+msgstr "Non commencé"
 
 #: php-ext/include/mapi/class.taskrequest.php:888
 msgid "In Progress"
-msgstr ""
+msgstr "En cours"
 
 #: php-ext/include/mapi/class.taskrequest.php:889
 msgid "Complete"
-msgstr ""
+msgstr "Achevé"
 
 #: php-ext/include/mapi/class.taskrequest.php:890
 msgid "Wait for other person"
-msgstr ""
+msgstr "Attendre autre participant"
 
 #: php-ext/include/mapi/class.taskrequest.php:891
 msgid "Deferred"
-msgstr ""
+msgstr "Différé"
 
 #: php-ext/include/mapi/class.taskrequest.php:895
 msgid "Percent Complete"
-msgstr ""
+msgstr "Pourcentage achevé"
 
 #: php-ext/include/mapi/class.taskrequest.php:898
 msgid "Date Completed"
-msgstr ""
+msgstr "Date de réalisation"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 msgid "Total Work"
-msgstr ""
+msgstr "Travail total"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "hours"
-msgstr ""
+msgstr "heures"
 
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "Actual Work"
-msgstr ""
+msgstr "Travail réalisé"
 
 #: php-ext/include/mapi/class.taskrequest.php:911
 msgid "Billing Information"
-msgstr ""
+msgstr "Éléments de facturation"
 
 #: php-ext/include/mapi/class.taskrequest.php:912
 msgid "Mileage"
-msgstr ""
+msgstr "Kilométrage"
 
 #: php-ext/include/mapi/class.recurrence.php:528
 msgid "workday"
-msgstr ""
+msgstr "journée de travail"
 
 #: php-ext/include/mapi/class.recurrence.php:531
 msgid "day"
-msgstr ""
+msgstr "jour"
 
 #: php-ext/include/mapi/class.recurrence.php:535
 msgid "days"
-msgstr ""
+msgstr "jours"
 
 #: php-ext/include/mapi/class.recurrence.php:542
 msgid "week"
-msgstr ""
+msgstr "semaine"
 
 #: php-ext/include/mapi/class.recurrence.php:545
 msgid "weeks"
-msgstr ""
+msgstr "semaines"
 
 #: php-ext/include/mapi/class.recurrence.php:552
 msgid "month"
-msgstr ""
+msgstr "mois"
 
 #: php-ext/include/mapi/class.recurrence.php:555
 msgid "months"
-msgstr ""
+msgstr "mois"
 
 #: php-ext/include/mapi/class.recurrence.php:563
 msgid "year"
-msgstr ""
+msgstr "année"
 
 #: php-ext/include/mapi/class.recurrence.php:567
 msgid "years"
-msgstr ""
+msgstr "années"
 
 #: php-ext/include/mapi/class.recurrence.php:577
 #: php-ext/include/mapi/class.recurrence.php:578
 msgid "d-m-Y"
-msgstr ""
+msgstr "d-m-Y"
 
 #: php-ext/include/mapi/class.recurrence.php:579
 #: php-ext/include/mapi/class.recurrence.php:580
 msgid "G:i"
-msgstr ""
+msgstr "G:i"
 
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Se répète tous les %s effectif le %s de %s à %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
 #, php-format
 msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr ""
+msgstr "Se répète tous les %s %s effectif le %s de %s à %s."
 
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Se répète tous les %s effectif le %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
 msgid "Occurs every %s %s effective %s."
-msgstr ""
+msgstr "Se répète tous les %s %s effectif le %s."
 
 #: php-ext/include/mapi/class.recurrence.php:608
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Se répète tous les %s effectif le %s pour %s occurrence de %s à %s"
+msgstr[1] "Se répète tous les %s effectif le %s pour %s occurrences de %s à %s"
 
 #: php-ext/include/mapi/class.recurrence.php:611
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
 msgstr[0] ""
+"Se répète tous les %s %s effectif le %s pour %s occurrence de %s à %s"
 msgstr[1] ""
+"Se répète tous les %s %s effectif le %s pour %s occurrences de %s à %s"
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence."
 msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Se répète tous les %s effectif le %s pour %s occurrence."
+msgstr[1] "Se répète tous les %s effectif le %s pour %s occurrences."
 
 #: php-ext/include/mapi/class.recurrence.php:619
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence."
 msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Se répète tous les %s %s effectif le %s pour %s occurrence."
+msgstr[1] "Se répète tous les %s %s effectif le %s pour %s occurrences."
 
 #: php-ext/include/mapi/class.recurrence.php:627
 #, php-format
 msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Se répète tous les %s effectif le %s jusqu'au %s de %s à %s."
 
 #: php-ext/include/mapi/class.recurrence.php:629
 #, php-format
 msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Se répète tous les %s %s effectif le %s jusqu'au %s de %s à %s."
 
 #: php-ext/include/mapi/class.recurrence.php:633
 #, php-format
 msgid "Occurs every %s effective %s until %s."
-msgstr ""
+msgstr "Se répète tous les %s effectif le %s jusqu'au %s."
 
 #: php-ext/include/mapi/class.recurrence.php:635
 #, php-format
 msgid "Occurs every %s %s effective %s until %s."
-msgstr ""
+msgstr "Se répète tous les %s %s effectif le %s jusqu'au %s."
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
 msgstr ""
+"Vous ne disposez pas des autorisations vous permettant d'ouvrir cet objet."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
 msgstr ""
+"La connexion a échouée. Veuillez vérifier votre nom d'utilisateur et mot de "
+"passe."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Zarafa server."
-msgstr ""
+msgstr "Impossible de se connecter au serveur Zarafa."
 
 #: php-ext/include/mapi/class.mapiexception.php:31
 msgid "Can not open object with provided id."
-msgstr ""
+msgstr "Impossible d'ouvrir l'objet à l'aide de l'ID fournie."
 
 #: php-ext/include/mapi/class.mapiexception.php:33
 msgid "There are no recipients in the message."
-msgstr ""
+msgstr "Ce message ne comporte aucun destinataire."
 
 #: php-ext/include/mapi/class.mapiexception.php:35
 msgid "Can not find object."
-msgstr ""
+msgstr "La recherche de cet objet a échouée."
 
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
 msgid "Unknown MAPI Error: %s"
-msgstr ""
+msgstr "Erreur MAPI inconnue: %s"
