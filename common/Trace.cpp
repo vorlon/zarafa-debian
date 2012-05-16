@@ -59,7 +59,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#ifdef DEBUG
+#ifdef WITH_TRACING
 // Turn these on/off
 #  define DO_TRACE_MAPI		1
 #  define DO_TRACE_NOTIF	1

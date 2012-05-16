@@ -67,7 +67,11 @@ void TraceRelease(char *format, ...);
 
 #define TRACE_RELEASE	TraceRelease
 
-#ifdef DEBUG
+#if !defined(WITH_TRACING) && defined(DEBUG)
+# define WITH_TRACING
+#endif
+
+#ifdef WITH_TRACING
 #define TRACE_MAPI		TraceMapi
 #define TRACE_MAPILIB	TraceMapiLib
 #define TRACE_ECMAPI	TraceECMapi
