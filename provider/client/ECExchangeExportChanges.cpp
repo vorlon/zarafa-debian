@@ -112,7 +112,7 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std:
 	m_lpChanges = NULL;
 	m_lpRestrict = NULL;
 	m_ulMaxChangeId = 0;
-	
+
 	m_clkStart = 0;
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 
@@ -128,7 +128,7 @@ ECExchangeExportChanges::~ECExchangeExportChanges(){
 
 	if(m_lpStream)
 		m_lpStream->Release();
-	
+
 	if(m_lpImportContents)
 		m_lpImportContents->Release();
 
@@ -137,10 +137,10 @@ ECExchangeExportChanges::~ECExchangeExportChanges(){
 
 	if(m_lpImportHierarchy)
 		m_lpImportHierarchy->Release();
-		
+
 	if(m_lpRestrict)
 		MAPIFreeBuffer(m_lpRestrict);
-		
+
 	if(m_lpLogger)
 		m_lpLogger->Release();
 }
@@ -149,17 +149,17 @@ HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 {
 	if(m_lpLogger)
 		m_lpLogger->Release();
-		
+
 	m_lpLogger = lpLogger;
 	m_lpLogger->AddRef();
-	
+
 	return hrSuccess;
 }
 
 HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
 	HRESULT hr = hrSuccess;
 	ECExchangeExportChanges *lpEEC = NULL;
-	
+
 	if(!lpStore || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY)){
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -190,7 +190,7 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 	HRESULT		hr = hrSuccess;
 	LPMAPIERROR	lpMapiError = NULL;
 	LPTSTR		lpszErrorMsg = NULL;
-	
+
 	//FIXME: give synchronization errors messages
 	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &lpszErrorMsg);
 	if (hr != hrSuccess)
@@ -208,7 +208,7 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 
 		MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent);
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
 
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg);
@@ -254,13 +254,13 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	ChangeMapIter	iterLastChange;
 	ChangeList		lstChange;
 	std::string	sourcekey;
-	
+
 	if(m_bConfiged){
 		hr = MAPI_E_UNCONFIGURED;
 		LOG_DEBUG(m_lpLogger, "%s", "Config() called twice");
 		goto exit;
 	}
-	
+
 	if(lpRestriction) {
 		hr = Util::HrCopySRestriction(&m_lpRestrict, lpRestriction);
 		if(hr != hrSuccess) {
@@ -270,16 +270,16 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	} else {
 		m_lpRestrict = NULL;
 	}
-	
+
 	m_ulFlags = ulFlags;
-	
+
 	if(! (ulFlags & SYNC_CATCHUP)) {
 		if(lpCollector == NULL) {
 			LOG_DEBUG(m_lpLogger, "%s", "No importer to export to");
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-		
+
 		// We don't need the importer when doing SYNC_CATCHUP
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
@@ -305,7 +305,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		if(hr != hrSuccess)
 			goto exit;
 	}
-	
+
 	if (lpStream == NULL){
 		LARGE_INTEGER lint = {{ 0, 0 }};
 		ULONG tmp[2] = { 0, 0 };
@@ -346,11 +346,11 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			sourcekey = m_sourcekey;
 			sourcekey[m_sourcekey.size()-1] &= ~0x80;
 			sourcekey.append('\x00');
-			sourcekey.append('\x00');			
+			sourcekey.append('\x00');
 		} else {
 			sourcekey = m_sourcekey;
 		}
-		
+
 		// Register our sync with the server, get a sync ID
 		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, 0, 0, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
@@ -455,7 +455,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 						m_lstFlag.erase(iterLastChange->second);
 						iterLastChange->second = lstChange.insert(lstChange.end(), m_lpChanges[ulStep]);
 						LOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s", bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
-					} else 
+					} else
 						LOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s", iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey.cb, m_lpChanges[ulStep].sSourceKey.lpb).c_str());
 					break;
 
@@ -481,7 +481,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE)
 						m_lstHardDelete.erase(iterLastChange->second);
 
-					if (m_lpChanges[ulStep].ulChangeType == ICS_SOFT_DELETE)
+					if (ICS_ACTION(m_lpChanges[ulStep].ulChangeType) == ICS_SOFT_DELETE)
 						iterLastChange->second = m_lstSoftDelete.insert(m_lstSoftDelete.end(), m_lpChanges[ulStep]);
 					else
 						iterLastChange->second = m_lstHardDelete.insert(m_lstHardDelete.end(), m_lpChanges[ulStep]);
@@ -506,7 +506,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	if (bForceImplicitStateUpdate) {
 		LOG_DEBUG(m_lpLogger, "Forcing state update for %s folder '%ls'", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
-		/** 
+		/**
 		 * bForceImplicitStateUpdate is only set to true when the StateStream contained a ulSyncId of 0. In that
 		 * case the ulChangeId can't be enything other then 0. As ulChangeId is assigned to m_ulChangeId and neither
 		 * of them changes in this function, m_ulChangeId can't be anything other than 0 when we reach this point.
@@ -516,7 +516,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 exit:
-		
+
 	return hr;
 }
 
@@ -546,7 +546,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 		hr = ExportMessageChanges();
 		if(hr == SYNC_W_PROGRESS)
 			goto progress;
-			
+
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -577,7 +577,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 	hr = UpdateStream(m_lpStream);
 	if(hr != hrSuccess)
 		goto exit;
-		
+
 	if(! (m_ulFlags & SYNC_CATCHUP)) {
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
 			hr = m_lpImportContents->UpdateState(NULL);
@@ -617,7 +617,7 @@ progress:
 						_snprintf(szDuration, sizeof(szDuration), "%u.%03u s.", (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
 
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
-				} else 
+				} else
 					m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder changes synchronized");
 			}
 		}
@@ -629,19 +629,19 @@ progress:
 exit:
 	if(lpPropSourceKey)
 		MAPIFreeBuffer(lpPropSourceKey);
-		
+
 	return hr;
 }
 
 HRESULT ECExchangeExportChanges::UpdateState(LPSTREAM lpStream){
 	HRESULT hr = hrSuccess;
-	
+
 	if(!m_bConfiged){
 		LOG_DEBUG(m_lpLogger, "%s", "Config() not called before UpdateState()");
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
-	
+
 	if(lpStream == NULL) {
 		lpStream = m_lpStream;
 	}
@@ -658,7 +658,7 @@ exit:
 HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 	HRESULT hr = hrSuccess;
 	ULONG cChanges = 0;
-	
+
 	if(!m_bConfiged){
 		LOG_DEBUG(m_lpLogger, "%s", "Config() not called before GetChangeCount()");
 		hr = MAPI_E_UNCONFIGURED;
@@ -669,7 +669,7 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 	if(!m_lstHardDelete.empty() || !m_lstSoftDelete.empty() || !m_lstFlag.empty())
 	    cChanges++;
 	cChanges += m_lstChange.size();
-	
+
 	*lpcChanges = cChanges;
 exit:
 	return hr;
@@ -791,7 +791,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 
 HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	HRESULT			hr = hrSuccess;
-	
+
 	LPMESSAGE		lpSourceMessage = NULL;
 	LPATTACH		lpSourceAttach = NULL;
 
@@ -809,18 +809,18 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	ULONG			ulCount;
 	ULONG			ulFlags;
 	ULONG			ulSteps = 0;
-	
+
 	ULONG			cbEntryID = 0;
 	LPENTRYID		lpEntryID = NULL;
 
 	SizedSPropTagArray(5, sptMessageExcludes) = { 5, {
-		PR_MESSAGE_SIZE, 
-		PR_MESSAGE_RECIPIENTS, 
-		PR_MESSAGE_ATTACHMENTS, 
-		PR_ATTACH_SIZE, 
+		PR_MESSAGE_SIZE,
+		PR_MESSAGE_RECIPIENTS,
+		PR_MESSAGE_ATTACHMENTS,
+		PR_ATTACH_SIZE,
 		PR_PARENT_SOURCE_KEY
 	} };
-	
+
 	SizedSPropTagArray(7, sptImportProps) = { 7, {
 		PR_SOURCE_KEY,
 		PR_LAST_MODIFICATION_TIME,
@@ -840,9 +840,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 		if(!m_sourcekey.empty()) {
 			// Normal exporter, get the import properties we need by opening the source message
-			
+
 			hr = m_lpStore->EntryIDFromSourceKey(
-				m_lstChange.at(m_ulStep).sParentSourceKey.cb, 
+				m_lstChange.at(m_ulStep).sParentSourceKey.cb,
 				m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
 				m_lstChange.at(m_ulStep).sSourceKey.cb,
 				m_lstChange.at(m_ulStep).sSourceKey.lpb,
@@ -852,7 +852,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto next;
 			}
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
-					
+
 			if(hr != hrSuccess) {
 				LOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 				goto exit;
@@ -877,7 +877,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		} else {
 			// Server-wide ICS exporter, only export source key and parent source key
 			SPropValue sProps[2];
-			
+
 			sProps[0].ulPropTag = PR_SOURCE_KEY;
 			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey; // cheap copy is ok since pointer is valid during ImportMessageChange call
 			sProps[1].ulPropTag = PR_PARENT_SOURCE_KEY;
@@ -889,7 +889,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		if (hr == SYNC_E_IGNORE) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "ignored change");
 			// Mark this change as processed
-			
+
 			hr = hrSuccess;
 			goto next;
 		}else if(hr == SYNC_E_OBJECT_DELETED){
@@ -908,14 +908,14 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
 			LOG_DEBUG(m_lpLogger, "%s", "Error during message import");
 			goto exit;
-		} 
+		}
 
 		if(lpDestMessage == NULL) {
 			// Import succeeded, but we have no message to export to. Treat this the same as
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
 		}
-		
+
 		hr = lpSourceMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptMessageExcludes, 0, NULL, &IID_IMessage, lpDestMessage, 0, NULL);
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Unable to copy to imported message");
@@ -945,7 +945,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			LOG_DEBUG(m_lpLogger, "%s", "Unable to read recipients from source message");
 			goto exit;
 		}
-		
+
 		//FIXME: named property in the recipienttable ?
 
 		hr = lpDestMessage->ModifyRecipients(0, (LPADRLIST)lpRows);
@@ -957,7 +957,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-		
+
 		if(lpTable){
 			lpTable->Release();
 			lpTable = NULL;
@@ -994,7 +994,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-		
+
 		if(lpTable){
 			lpTable->Release();
 			lpTable = NULL;
@@ -1031,7 +1031,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				LOG_DEBUG(m_lpLogger, "%s", "Unable to copy attachment");
 				goto exit;
 			}
-			
+
 			hr = lpDestAttach->SaveChanges(0);
 			if(hr !=  hrSuccess) {
 				LOG_DEBUG(m_lpLogger, "%s", "SaveChanges() failed for destination attachment");
@@ -1048,12 +1048,12 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				lpDestAttach = NULL;
 			}
 		}
-		
+
 		if(lpRows){
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-		
+
 		if(lpTable){
 			lpTable->Release();
 			lpTable = NULL;
@@ -1085,19 +1085,19 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server
-	    
+
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
-	    
+
 		if(lpEntryID) {
 			MAPIFreeBuffer(lpEntryID);
 			lpEntryID = NULL;
 		}
-		
+
 		if(lpRows){
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-		
+
 		if(lpTable){
 			lpTable->Release();
 			lpTable = NULL;
@@ -1117,12 +1117,12 @@ next:
 			lpDestAttach->Release();
 			lpDestAttach = NULL;
 		}
-		
+
 		if(lpSourceMessage){
 			lpSourceMessage->Release();
 			lpSourceMessage = NULL;
 		}
-		
+
 		if(lpDestMessage){
 			lpDestMessage->Release();
 			lpDestMessage = NULL;
@@ -1145,10 +1145,10 @@ exit:
 
 	if(lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
-		
+
 	if(lpRows)
 		FreeProws(lpRows);
-	
+
 	if(lpTable)
 		lpTable->Release();
 
@@ -1204,7 +1204,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_EC_HIERARCHYID,
 		PR_EC_PARENT_HIERARCHYID
 	} };
-	
+
 	LPSPropTagArray lpImportProps = m_sourcekey.empty() ? (LPSPropTagArray)&sptImportPropsServerWide : (LPSPropTagArray)&sptImportProps;
 
 	// No more changes (add/modify).
@@ -1290,7 +1290,7 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 	LPREADSTATE		lpReadState = NULL;
 	ULONG			ulCount;
 	std::list<ICSCHANGE>::iterator lpChange;
-	
+
 	if(m_lstFlag.empty())
 		goto exit;
 
@@ -1335,7 +1335,7 @@ exit:
 
 HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 	HRESULT			hr = hrSuccess;
-	
+
 	LPENTRYLIST		lpEntryList = NULL;
 
 	if(!m_lstSoftDelete.empty()){
@@ -1345,7 +1345,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 
 		hr = m_lpImportContents->ImportMessageDeletion(SYNC_SOFT_DELETE, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
-			hr = hrSuccess;	
+			hr = hrSuccess;
 		}
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Message deletion import failed");
@@ -1358,7 +1358,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 			goto exit;
 		}
 	}
-	
+
 	if(lpEntryList){
 		MAPIFreeBuffer(lpEntryList);
 		lpEntryList = NULL;
@@ -1373,7 +1373,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 
 		hr = m_lpImportContents->ImportMessageDeletion(0, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
-			hr = hrSuccess;	
+			hr = hrSuccess;
 		}
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Message hard deletion failed");
@@ -1386,7 +1386,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 			goto exit;
 		}
 	}
-	
+
 exit:
 	if(lpEntryList)
 		MAPIFreeBuffer(lpEntryList);
@@ -1403,7 +1403,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	ULONG			ulObjType = 0;
 	ULONG			ulCount = 0;
 	ULONG			ulSteps = 0;
-	
+
 	ULONG			cbEntryID = 0;
 	LPENTRYID		lpEntryID = NULL;
 
@@ -1411,7 +1411,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 		if(!m_sourcekey.empty()) {
 			// Normal export, need all properties
 			hr = m_lpStore->EntryIDFromSourceKey(
-				m_lstChange.at(m_ulStep).sSourceKey.cb, 
+				m_lstChange.at(m_ulStep).sSourceKey.cb,
 				m_lstChange.at(m_ulStep).sSourceKey.lpb,
 				0, NULL,
 				&cbEntryID, &lpEntryID);
@@ -1428,7 +1428,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				hr = hrSuccess;
 				goto next;
 			}
-			
+
 			hr = HrGetAllProps(lpFolder, MAPI_UNICODE, &ulCount, &lpPropArray);
 			if(FAILED(hr)) {
 				LOG_DEBUG(m_lpLogger, "%s", "Unable to get source folder properties");
@@ -1450,7 +1450,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 		} else {
 			// Server-wide ICS
 			SPropValue sProps[1];
-			
+
 			sProps[0].ulPropTag = PR_SOURCE_KEY;
 			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey;
 
@@ -1493,11 +1493,11 @@ next:
 			MAPIFreeBuffer(lpEntryID);
 			lpEntryID = NULL;
 		}
-		
+
 		ulSteps++;
 		m_ulStep++;
 	}
-	
+
 	if(m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
 
@@ -1516,7 +1516,7 @@ exit:
 
 HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 	HRESULT			hr = hrSuccess;
-	
+
 	LPENTRYLIST		lpEntryList = NULL;
 
 	if(!m_lstSoftDelete.empty()){
@@ -1528,7 +1528,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(SYNC_SOFT_DELETE, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
-			hr = hrSuccess;	
+			hr = hrSuccess;
 		}
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Unable to import folder deletions");
@@ -1541,7 +1541,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 			goto exit;
 		}
 	}
-	
+
 	if(lpEntryList){
 		MAPIFreeBuffer(lpEntryList);
 		lpEntryList = NULL;
@@ -1556,7 +1556,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(0, lpEntryList);
 		if (hr == SYNC_E_IGNORE){
-			hr = hrSuccess;	
+			hr = hrSuccess;
 		}
 		if(hr != hrSuccess) {
 			LOG_DEBUG(m_lpLogger, "%s", "Hard delete folder import failed");
@@ -1569,7 +1569,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 			goto exit;
 		}
 	}
-	
+
 exit:
 	if(lpEntryList)
 		MAPIFreeBuffer(lpEntryList);
@@ -1610,23 +1610,23 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 
 	if(!m_setProcessedChanges.empty()) {
 		ulChangeCount = m_setProcessedChanges.size();
-		
+
 		hr = lpStream->Write(&ulChangeCount, 4, &ulSize);
 		if(hr != hrSuccess)
 			goto exit;
-		
+
 		for(iterProcessedChange = m_setProcessedChanges.begin(); iterProcessedChange != m_setProcessedChanges.end(); iterProcessedChange++) {
 			ulChangeId = iterProcessedChange->first;
 			hr = lpStream->Write(&ulChangeId, 4, &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
-			
+
 			ulSourceKeySize = iterProcessedChange->second.size();
-			
+
 			hr = lpStream->Write(&ulSourceKeySize, 4, &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
-				
+
 			hr = lpStream->Write(iterProcessedChange->second.c_str(), iterProcessedChange->second.size(), &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
@@ -1639,7 +1639,7 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 exit:
 	if(hr != hrSuccess)
 		LOG_DEBUG(m_lpLogger, "%s", "Stream operation failed");
-		
+
 	return hr;
 }
 
@@ -1649,7 +1649,7 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	LPENTRYLIST		lpEntryList = NULL;
 	ULONG			ulCount = 0;
 	std::list<ICSCHANGE>::iterator lpChange;
-	
+
 	MAPIAllocateBuffer(sizeof(ENTRYLIST), (LPVOID *)&lpEntryList);
 	lpEntryList->cValues = lpLstChanges->size();
 	if(lpEntryList->cValues > 0){
@@ -1665,7 +1665,7 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 		memcpy(lpEntryList->lpbin[ulCount].lpb, lpChange->sSourceKey.lpb, lpChange->sSourceKey.cb);
 		ulCount++;
 	}
-	
+
 	lpEntryList->cValues = ulCount;
 
 	*lppEntryList = lpEntryList;
@@ -1686,7 +1686,7 @@ HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 {
 	ChangeListIter iterChange;
 
-	for(iterChange = lstChanges.begin(); iterChange != lstChanges.end(); iterChange++) 
+	for(iterChange = lstChanges.begin(); iterChange != lstChanges.end(); iterChange++)
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(iterChange->ulChangeId, std::string((char *)iterChange->sSourceKey.lpb, iterChange->sSourceKey.cb)));
 
 	return hrSuccess;
