@@ -312,7 +312,6 @@ bool ECTableRow::operator <(const ECTableRow &other) const
 {
     return ECTableRow::rowcompare(ulSortCols, lpSortLen, lppSortKeys, lpFlags,
                                   other.ulSortCols, other.lpSortLen, other.lppSortKeys, other.lpFlags, true);
-                                          
 }
 
 /**
@@ -993,7 +992,6 @@ ECRESULT ECKeyTable::GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulC
     *lpulRowCount = lpRoot->ulBranchCount;
 
 exit:	
-
 	pthread_mutex_unlock(&mLock);
 
 	return er;
@@ -1046,10 +1044,11 @@ exit:
 ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden)
 {
 	ECRESULT er = erSuccess;
-	ECTableRow *lpOrig = lpCurrent;
+	ECTableRow *lpOrig = NULL;
 
 	pthread_mutex_lock(&mLock);
 
+	lpOrig = lpCurrent;
 	
 	if(bDirBackward == true && lpCurrent == NULL) {
 		SeekRow(EC_SEEK_CUR, -1, NULL);
@@ -1133,6 +1132,8 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
 {
     ECRESULT er = erSuccess;
     ECTableRow *lpPos = lpCurrent;
+
+	pthread_mutex_lock(&mLock);
     
     er = SeekId((sObjectTableKey *)lpsRowItem);
     if(er != erSuccess)
@@ -1154,6 +1155,7 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
     lpCurrent = lpPos;
     
 exit:
+	pthread_mutex_unlock(&mLock);
     return er;
 }
 
@@ -1341,7 +1343,6 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 exit:
 	pthread_mutex_unlock(&mLock);
 
-
     return er;
 }
 
@@ -1349,13 +1350,15 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 {
     ECRESULT er = erSuccess;
     BOOL fCursorHidden = false;
-    ECTableRow *lpCursor = lpCurrent;
+    ECTableRow *lpCursor = NULL;
     unsigned int ulSortColPrefixLen = 0;
     unsigned char **lppSortData = 0;
     int *lpSortLen = NULL;
     unsigned char *lpFlags = NULL;
     
 	pthread_mutex_lock(&mLock);
+
+	lpCursor = lpCurrent;
 
 	er = SeekId(lpsRowItem);
 	if(er != erSuccess)
@@ -1396,10 +1399,10 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 exit:
 	pthread_mutex_unlock(&mLock);
 
-
     return er;
 }
 
+// @todo lpCurrent should stay pointing at the same row we started at?
 ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList)
 {
     ECRESULT er = erSuccess;
@@ -1498,9 +1501,11 @@ ECRESULT ECKeyTable::LowerBound(unsigned int ulSortCols, int *lpSortLen, unsigne
 ECRESULT ECKeyTable::Find(unsigned int ulSortCols, int *lpSortLen, unsigned char **lppSortData, unsigned char *lpFlags, sObjectTableKey *lpsKey)
 {
     ECRESULT er = erSuccess;
-	ECTableRow *lpCurPos = lpCurrent;
+	ECTableRow *lpCurPos = NULL;
     
 	pthread_mutex_lock(&mLock);
+
+	lpCurPos = lpCurrent;
 
     er = LowerBound(ulSortCols, lpSortLen, lppSortData, lpFlags);
     if(er != erSuccess)
@@ -1572,12 +1577,14 @@ unsigned int ECKeyTable::GetObjectSize()
 ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned int ulColumn, unsigned char *lpSortData, unsigned int ulSortLen, unsigned char ulFlags, sObjectTableKey *lpsPrevRow, bool *lpfHidden, ECKeyTable::UpdateType *lpulAction)
 {
     ECRESULT er = erSuccess;
-    ECTableRow *lpCursor = lpCurrent;
+    ECTableRow *lpCursor = NULL;
     unsigned char **lppSortKeys = NULL;
     unsigned int *lpSortLen = NULL;
     unsigned char *lpFlags = NULL;
     
 	pthread_mutex_lock(&mLock);
+
+	lpCursor = lpCurrent;
 
     er = SeekId(lpsRowItem);
     if(er != erSuccess)
@@ -1611,7 +1618,6 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
     er = UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCurrent->ulSortCols, lpSortLen, lpFlags, lppSortKeys, lpsPrevRow, lpCurrent->fHidden, lpulAction);
     if(er != erSuccess)
         goto exit;
-        
     
 exit:
     lpCurrent = lpCursor;
@@ -1626,7 +1632,6 @@ exit:
         
     if (lpFlags)
         delete [] lpFlags;
-        
     
     return er;
 }
@@ -1645,6 +1650,10 @@ ECRESULT ECKeyTable::GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow)
 {
     ECTableRow *lpCursor = lpCurrent;
     ECRESULT er = erSuccess;
+
+	pthread_mutex_lock(&mLock);
+
+	lpCursor = lpCurrent;
     
     er = SeekId(lpsRowItem);
     if(er != erSuccess)
@@ -1654,6 +1663,8 @@ ECRESULT ECKeyTable::GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow)
     
 exit:
     lpCurrent = lpCursor;
+
+	pthread_mutex_unlock(&mLock);
     
     return er;
 }
