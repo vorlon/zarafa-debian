@@ -1131,9 +1131,11 @@ void ECKeyTable::Prev()
 ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrev)
 {
     ECRESULT er = erSuccess;
-    ECTableRow *lpPos = lpCurrent;
+    ECTableRow *lpPos = NULL;
 
 	pthread_mutex_lock(&mLock);
+
+	lpPos = lpCurrent;
     
     er = SeekId((sObjectTableKey *)lpsRowItem);
     if(er != erSuccess)
@@ -1146,9 +1148,7 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
     if(lpCurrent) {
         *lpsPrev = lpCurrent->sKey;
     } else {
-        lpCurrent = lpPos;
         er = ZARAFA_E_NOT_FOUND;
-        goto exit;
     }
     
     // Go back to the previous cursor position
@@ -1156,6 +1156,7 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
     
 exit:
 	pthread_mutex_unlock(&mLock);
+
     return er;
 }
 
@@ -1648,7 +1649,7 @@ exit:
  */
 ECRESULT ECKeyTable::GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow)
 {
-    ECTableRow *lpCursor = lpCurrent;
+    ECTableRow *lpCursor = NULL;
     ECRESULT er = erSuccess;
 
 	pthread_mutex_lock(&mLock);
