@@ -239,8 +239,10 @@ HRESULT ECServerIndexer::Thread()
 
 next:
         pthread_mutex_lock(&m_mutexExit);
-        if(!m_bExit && !m_bFast)
-            pthread_cond_timedwait(&m_condExit, &m_mutexExit, 5000);
+        if(!m_bExit && !m_bFast) {
+		  timespec deadline = GetDeadline(5000);
+		  pthread_cond_timedwait(&m_condExit, &m_mutexExit, &deadline);
+		}
         pthread_mutex_unlock(&m_mutexExit);
     }
         
