@@ -339,12 +339,14 @@ HRESULT ECMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG
 					ptrPropArray[lSyncIdx].Value.b = false;
 				}
 			}
-		} else {
+		} else {  // !lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >= 0 || lHtmlIdx >= 0
+		    // lpPropTagArray was specified but no body properties were requested.
 			hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
 			if (HR_FAILED(hr))
 				goto exit;
 		}
-	} else {
+	} else {  // m_ulBodyType != bodyTypeUnknown
+	    // We don't know what out body type is (yet).
 		hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
 		if (HR_FAILED(hr))
 			goto exit;
@@ -415,6 +417,7 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 	const BOOL fModifyOld = fModify;
 
 	if (m_ulBodyType == bodyTypeUnknown) {
+	    // There's nothing to synchronize if we don't know what our best body type is.
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
@@ -843,9 +846,9 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagAr
 		goto exit;
 
 	ptrPropTagArrayMod->cValues = ptrPropTagArray->cValues;
-	memcpy(ptrPropTagArrayMod->aulPropTag, ptrPropTagArray->aulPropTag, sizeof *ptrPropTagArrayMod->aulPropTag * ptrPropTagArrayMod->cValues);
+	memcpy(ptrPropTagArrayMod->aulPropTag, ptrPropTagArray->aulPropTag, sizeof(*ptrPropTagArrayMod->aulPropTag) * ptrPropTagArrayMod->cValues);
 
-	// All thee booleans can't be NULL at the same time, so two additions max.
+	// All three booleans can't be NULL at the same time, so two additions max.
 	if (!bHaveBody)
 		ptrPropTagArrayMod->aulPropTag[ptrPropTagArrayMod->cValues++] = (ulFlags & MAPI_UNICODE ? PR_BODY_W : PR_BODY_A);
 	if (!bHaveRtf)
