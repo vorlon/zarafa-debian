@@ -375,7 +375,7 @@ HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	HRESULT hr = hrSuccess;
 
 	if (ulPropTag == PR_BODY_HTML)
-		ulPropTag = PR_BODY;
+	    ulPropTag = PR_HTML;
 
 	hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	if (HR_FAILED(hr))
