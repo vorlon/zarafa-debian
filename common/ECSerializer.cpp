@@ -213,16 +213,19 @@ ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
 	return erSuccess;
 }
 
-ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer)
+ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode)
 {
 	SetBuffer(lpBuffer);
+	m_mode = mode;
 	m_ulRead = m_ulWritten = 0;
 }
 
 ECFifoSerializer::~ECFifoSerializer()
 {
-	if (m_lpBuffer)
-		m_lpBuffer->Close();
+	if (m_lpBuffer) {
+		ECFifoBuffer::close_flags flags = (m_mode == serialize ? ECFifoBuffer::cfWrite : ECFifoBuffer::cfRead);
+		m_lpBuffer->Close(flags);
+	}
 }
 
 ECRESULT ECFifoSerializer::SetBuffer(void *lpBuffer)
@@ -235,6 +238,9 @@ ECRESULT ECFifoSerializer::Write(const void *ptr, size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
 	char tmp[8];
+
+	if (m_mode != serialize)
+		return ZARAFA_E_NO_SUPPORT;
 
 	if (ptr == NULL)
 		return ZARAFA_E_INVALID_PARAMETER;
@@ -275,6 +281,11 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
 	ECFifoBuffer::size_type cbRead = 0;
+
+	if (m_mode != deserialize) {
+		er = ZARAFA_E_NO_SUPPORT;
+		goto exit;
+	}
 
 	if (ptr == NULL) {
 		er = ZARAFA_E_INVALID_PARAMETER;

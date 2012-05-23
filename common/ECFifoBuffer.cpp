@@ -58,8 +58,9 @@ static char THIS_FILE[] = __FILE__;
 
 ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	: m_ulMaxSize(ulMaxSize)
-	, m_bClosed(false)
-{ 
+	, m_bReaderClosed(false)
+	, m_bWriterClosed(false)
+{
 	pthread_mutex_init(&m_hMutex, NULL);
 	pthread_cond_init(&m_hCondNotFull, NULL);
 	pthread_cond_init(&m_hCondNotEmpty, NULL);
@@ -98,6 +99,9 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 	if (lpBuf == NULL)
 		return ZARAFA_E_INVALID_PARAMETER;
 
+	if (IsClosed(cfWrite))
+	    return ZARAFA_E_CALL_FAILED;
+
 	if (cbBuf == 0) {
 		if (lpcbWritten)
 			*lpcbWritten = 0;
@@ -111,7 +115,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 
 	while (cbWritten < cbBuf) {
 		while (IsFull()) {
-			if (m_bClosed) {
+		    if (IsClosed(cfRead)) {
 				er = ZARAFA_E_CALL_FAILED;
 				goto exit;
 			}
@@ -168,6 +172,9 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	if (lpBuf == NULL)
 		return ZARAFA_E_INVALID_PARAMETER;
 
+	if (IsClosed(cfRead))
+		return ZARAFA_E_CALL_FAILED;
+
 	if (cbBuf == 0) {
 		if (lpcbRead)
 			*lpcbRead = 0;
@@ -181,7 +188,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {
-			if (IsClosed()) 
+			if (IsClosed(cfWrite)) 
 				goto exit;
 
 			if (ulTimeoutMs > 0) {
@@ -201,7 +208,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		cbRead += cbNow;
 	}
 	
-	if(IsEmpty() && IsClosed()) {
+	if(IsEmpty() && IsClosed(cfWrite)) {
 		pthread_cond_signal(&m_hCondFlushed);
 	}
 
@@ -221,14 +228,21 @@ exit:
  *
  * @retval	erSucces (never fails)
  */
-ECRESULT ECFifoBuffer::Close()
+ECRESULT ECFifoBuffer::Close(close_flags flags)
 {
 	pthread_mutex_lock(&m_hMutex);
-	m_bClosed = true;
-	pthread_cond_signal(&m_hCondNotEmpty);
-	pthread_cond_signal(&m_hCondNotFull);
-	if(IsEmpty())
-		pthread_cond_signal(&m_hCondFlushed);
+	if (flags & cfRead) {
+		m_bReaderClosed = true;
+		pthread_cond_signal(&m_hCondNotFull);
+
+		if(IsEmpty())
+			pthread_cond_signal(&m_hCondFlushed);
+	}
+	if (flags & cfWrite) {
+		m_bWriterClosed = true;
+		pthread_cond_signal(&m_hCondNotEmpty);
+	}
+
 	pthread_mutex_unlock(&m_hMutex);
 	return erSuccess;
 }
@@ -236,12 +250,18 @@ ECRESULT ECFifoBuffer::Close()
 /**
  * Wait for the stream to be flushed
  *
- * This guarantees that the reader has read all the data from the fifo
+ * This guarantees that the reader has read all the data from the fifo or
+ * the reader endpoint is closed.
+ *
+ * The writer endpoint must be closed before calling this method.
  */
 ECRESULT ECFifoBuffer::Flush()
 {
+	if (!IsClosed(cfWrite))
+		return ZARAFA_E_CALL_FAILED;
+
 	pthread_mutex_lock(&m_hMutex);
-	while(!(IsClosed() && IsEmpty()))
+	while (!(IsClosed(cfWrite) || IsEmpty()))
 		pthread_cond_wait(&m_hCondFlushed, &m_hMutex);
 	pthread_mutex_unlock(&m_hMutex);
 	

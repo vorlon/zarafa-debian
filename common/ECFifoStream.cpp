@@ -161,7 +161,7 @@ ECFifoStreamReader::ECFifoStreamReader(ECFifoStream *lpBuffer)
 
 ECFifoStreamReader::~ECFifoStreamReader()
 {
-    m_lpFifoBuffer->m_lpFifoBuffer->Close(); // Tell the fifo that it will not be used anymore
+    m_lpFifoBuffer->m_lpFifoBuffer->Close(ECFifoBuffer::cfRead); // Tell the fifo that it will not be used anymore
     m_lpFifoBuffer->Release();
 }
     
@@ -227,7 +227,7 @@ HRESULT ECFifoStreamWriter::Commit(DWORD ulFlags)
 {
     HRESULT hr = hrSuccess;
     
-    hr = m_lpFifoBuffer->m_lpFifoBuffer->Close();
+    hr = m_lpFifoBuffer->m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
     if(hr != hrSuccess)
         goto exit;
         
@@ -247,7 +247,7 @@ ECFifoStreamWriter::ECFifoStreamWriter(ECFifoStream *lpBuffer)
 
 ECFifoStreamWriter::~ECFifoStreamWriter()
 {
-    m_lpFifoBuffer->m_lpFifoBuffer->Close();	// Tell the fifo it will not receive any more data
+    m_lpFifoBuffer->m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);	// Tell the fifo it will not receive any more data
     m_lpFifoBuffer->Release();
 }
 

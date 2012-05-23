@@ -116,7 +116,7 @@ WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTim
  */
 WSMessageStreamSink::~WSMessageStreamSink()
 {
-	m_lpFifoBuffer->Close();
+	m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
 }
 
 
@@ -193,7 +193,7 @@ HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 
 	hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, &ptrSink);
 	if (hr != hrSuccess) {
-		m_fifoBuffer.Close();
+		m_fifoBuffer.Close(ECFifoBuffer::cfWrite);
 		goto exit;
 	}
 
@@ -318,5 +318,5 @@ size_t WSMessageStreamImporter::MTOMRead(struct soap* soap, void* /*handle*/, ch
 
 void WSMessageStreamImporter::MTOMReadClose(struct soap* /*soap*/, void* /*handle*/)
 {
-	m_fifoBuffer.Close();
+	m_fifoBuffer.Close(ECFifoBuffer::cfRead);
 }

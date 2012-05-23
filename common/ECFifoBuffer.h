@@ -61,6 +61,7 @@ class ECFifoBuffer
 public:
 	typedef std::deque<unsigned char>	storage_type;
 	typedef storage_type::size_type		size_type;
+	enum close_flags { cfRead = 1, cfWrite = 2 };
 
 public:
 	ECFifoBuffer(size_type ulMaxSize = 131072);
@@ -68,10 +69,10 @@ public:
 	
 	ECRESULT Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten);
 	ECRESULT Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead);
-	ECRESULT Close();
+	ECRESULT Close(close_flags flags);
 	ECRESULT Flush();
 
-	bool IsClosed() const;
+	bool IsClosed(ULONG flags) const;
 	bool IsEmpty() const;
 	bool IsFull() const;
 	unsigned long Size();
@@ -84,7 +85,8 @@ private:
 private:
 	storage_type	m_storage;
 	size_type		m_ulMaxSize;
-	bool			m_bClosed;
+	bool			m_bReaderClosed;
+	bool            m_bWriterClosed;
 
 	pthread_mutex_t	m_hMutex;
 	pthread_cond_t	m_hCondNotEmpty;
@@ -94,8 +96,18 @@ private:
 
 
 // inlines
-inline bool ECFifoBuffer::IsClosed() const {
-	return m_bClosed;
+inline bool ECFifoBuffer::IsClosed(ULONG flags) const {
+	switch (flags) {
+	case cfRead:
+		return m_bReaderClosed;
+	case cfWrite:
+		return m_bWriterClosed;
+	case cfRead|cfWrite:
+		return m_bReaderClosed && m_bWriterClosed;
+	default:
+		ASSERT(FALSE);
+		return false;
+	}
 }
 
 inline bool ECFifoBuffer::IsEmpty() const {

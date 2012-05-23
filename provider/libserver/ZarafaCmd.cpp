@@ -10671,7 +10671,7 @@ void *SerializeObject(void *arg)
 
 	lpStreamInfo->lpSharedDatabase->ThreadInit();
 
-	lpSink = new ECFifoSerializer(&lpStreamInfo->data);
+	lpSink = new ECFifoSerializer(&lpStreamInfo->data, ECFifoSerializer::serialize);
 	SerializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpSharedDatabase.get(), lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 
 	delete lpSink;
@@ -10750,7 +10750,7 @@ void MTOMReadClose(struct soap* /*soap*/, void *handle)
 	// to close the FIFO to make sure the writing thread won't lock up.
 	// Since gSOAP won't be reading from the FIFO in any case once we
 	// read this point it's safe to just close the FIFO.
-	lpStreamInfo->data.Close();
+	lpStreamInfo->data.Close(ECFifoBuffer::cfRead);
 	pthread_join(lpStreamInfo->hThread, NULL);
 
 	CleanMTOMStreamInfo(lpStreamInfo);
@@ -10973,7 +10973,7 @@ void *DeserializeObject(void *arg)
 	lpStreamInfo = (LPMTOMStreamInfo)arg;
 	ASSERT(lpStreamInfo != NULL);
 
-	lpSource = new ECFifoSerializer(&lpStreamInfo->data);
+	lpSource = new ECFifoSerializer(&lpStreamInfo->data, ECFifoSerializer::deserialize);
 	er = DeserializeObject(lpStreamInfo->lpecSession, lpStreamInfo->lpDatabase, lpStreamInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->bNewItem, lpStreamInfo->ullIMAP, lpSource, &lpStreamInfo->lpPropValArray);
 	delete lpSource;
 
@@ -11155,7 +11155,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		}
 		
 		content = soap_get_mime_attachment(soap, (void*)lpsStreamInfo);
-		lpsStreamInfo->data.Close();
+		lpsStreamInfo->data.Close(ECFifoBuffer::cfWrite);
 		
 		pthread_join(lpsStreamInfo->hThread, (void**)&er);
 		lpsStreamInfo->hThread = pthread_self();

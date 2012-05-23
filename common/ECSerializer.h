@@ -102,7 +102,9 @@ private:
 class ECFifoSerializer : public ECSerializer
 {
 public:
-	ECFifoSerializer(ECFifoBuffer *lpBuffer);
+	enum eMode { serialize, deserialize };
+
+	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
 	~ECFifoSerializer();
 
 	ECRESULT SetBuffer(void *lpBuffer);
@@ -117,6 +119,7 @@ public:
 
 private:
 	ECFifoBuffer *m_lpBuffer;
+	eMode m_mode;
 	ULONG m_ulRead;
 	ULONG m_ulWritten;
 };
