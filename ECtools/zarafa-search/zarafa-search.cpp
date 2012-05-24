@@ -47,7 +47,7 @@
  * 
  */
 
-// zarafa-indexer.cpp : Defines the entry point for the console application.
+// zarafa-search.cpp : Defines the entry point for the console application.
 //
 
 #include "platform.h"
@@ -76,7 +76,7 @@
 #include "ECIndexFactory.h"
 #include "ECIndexer.h"
 #include "ECSearcher.h"
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 #include "SSLUtil.h"
 
@@ -276,7 +276,7 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 	pthread_cond_init(&g_hExitSignal, NULL);
 	g_hMainThread = pthread_self();
 
-	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-indexer version " PROJECT_VERSION_INDEXER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-search version " PROJECT_VERSION_SEARCH_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	MAPIInitialize(NULL);
 
@@ -294,7 +294,7 @@ HRESULT running_service(const char *szPath, int ulSearchSocket, bool bUseSsl)
 	pthread_mutex_unlock(&g_hExitMutex);
 
 exit:
-	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Stopping Zarafa indexer...");
+	g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Stopping Zarafa search...");
 
 	pthread_cond_destroy(&g_hExitSignal);
 	pthread_mutex_destroy(&g_hExitMutex);
@@ -392,17 +392,17 @@ void print_help(char *name) {
 	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
 	cout << "  -F\t\tDo not run in the background" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/zarafa" << endl;
-	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-indexer.cfg)\n\t\tDefault: /etc/zarafa/indexer.cfg" << endl;
+	cout << "  -c filename\tUse alternate config file (e.g. /etc/zarafa-search.cfg)\n\t\tDefault: /etc/zarafa/search.cfg" << endl;
 	cout << "  -V\t\tPrint version information" << endl;
 	cout << endl;
 	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
 	cout << endl;
 }
 
-#define INDEXER_DEFAULT_BIND	"file:///var/run/zarafa-indexer"
-#define INDEXER_DEFAULT_CONFIG	"/etc/zarafa/indexer.cfg"
-#define INDEXER_DEFAULT_LOGFILE	"/var/log/zarafa/indexer.log"
-#define INDEXER_ATTACH_PARSER	"/etc/zarafa/indexerscripts/attachments_parser"
+#define INDEXER_DEFAULT_BIND	"file:///var/run/zarafa-search"
+#define INDEXER_DEFAULT_CONFIG	"/etc/zarafa/search.cfg"
+#define INDEXER_DEFAULT_LOGFILE	"/var/log/zarafa/search.log"
+#define INDEXER_ATTACH_PARSER	"/etc/zarafa/searchscripts/attachments_parser"
 
 int main(int argc, char *argv[]) {
 
@@ -419,7 +419,7 @@ int main(int argc, char *argv[]) {
 		/* Connection settings server -> indexer */
 		{ "server_bind_name", INDEXER_DEFAULT_BIND },
 		/* Linux process settings */
-		{ "pid_file", "/var/run/zarafa-indexer.pid" },
+		{ "pid_file", "/var/run/zarafa-search.pid" },
 		{ "run_as_user", "" },
 		{ "run_as_group", "" },
 		{ "running_path", "/" },
@@ -442,8 +442,6 @@ int main(int argc, char *argv[]) {
 		{ "limit_results", "0", CONFIGSETTING_RELOADABLE },
 		/* Indexer settings */
 		{ "index_path", "/var/lib/zarafa/index/" },
-		{ "index_interval", "5" },
-		{ "index_threads", "1", CONFIGSETTING_RELOADABLE },
 		{ "index_attachments", "no", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_max_size", "5120", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser", INDEXER_ATTACH_PARSER, CONFIGSETTING_RELOADABLE },
@@ -501,7 +499,7 @@ int main(int argc, char *argv[]) {
 			bIgnoreUnknownConfigOptions = true;
 			break;
 		case 'V':
-			cout << "Product version:\t" <<  PROJECT_VERSION_INDEXER_STR << endl
+			cout << "Product version:\t" <<  PROJECT_VERSION_SEARCH_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
 			return 1;
 		case OPT_HELP:
@@ -525,7 +523,7 @@ int main(int argc, char *argv[]) {
 	g_lpThreadData->ReloadConfigOptions();
 
 	// setup logging
-	g_lpThreadData->lpLogger = CreateLogger(g_lpThreadData->lpConfig, argv[0], "Zarafa-indexer");
+	g_lpThreadData->lpLogger = CreateLogger(g_lpThreadData->lpConfig, argv[0], "zarafa-search");
 
 	if ( (bIgnoreUnknownConfigOptions && g_lpThreadData->lpConfig->HasErrors()) || g_lpThreadData->lpConfig->HasWarnings())
 		LogConfigErrors(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);

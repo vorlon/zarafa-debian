@@ -47,91 +47,98 @@
  * 
  */
 
-#ifndef ECSEARCHER_H
-#define ECSEARCHER_H
+#ifndef ZARAFA_SEARCH_H
+#define ZARAFA_SEARCH_H
 
+#include <set>
 #include <string>
 
-#include <ECUnknown.h>
+#include "ECLogger.h"
+#include "ECConfig.h"
+#include "stringutil.h"
 
-#include "zarafa-indexer.h"
-
-class ECIndexer;
+class ECFileIndex;
+class ECIndexFactory;
 
 /**
- * Main searcher handler
+ * @page zarafa_search1 zarafa-search
  *
- * This class manages all aspects of the searching through the index.
- * It runs in its own private thread and will listen for incoming connections
- * from remote clients for search queries.
+ * @par Searching
+ *	Currently three different commands are supported by the zarafa-search:
+ *	- PROPS \n
+ *		This will return a list of all property id's which are being indexed
+ *		for each message. This command does not accept any additional arguments.
+ *		The format of this returned list is: \n
+ *			- OK: <name> <propid>; <name> <propid>;...
+ *			.
+ *	- SCOPE \n
+ *		This is used to limit the scope where to search for the messages. It
+ *		is mandatory to call SCOPE before QUERY with at least a restriction
+ *		on the store. Optionally the scope can be restricted to folders as well.
+ *		The format for providing the scope is: \n
+ *			- SCOPE: <storeentryid>; <folderentryid>; <folderentryid>;...
+ *			.
+ *		The reply will always indicate success or failure in which case the
+ *		error message will be provided as part of the returned string.
+ *	- QUERY \n
+ *		This is used to send the CLucene query to be executed. This command
+ *		only takes a single argument which is the CLucene query string.
+ *		The format for the command is: \n
+ *			- QUERY: <CLucene query>
+ *			.
+ *		If the query was executed correctly the result will be: \n
+ *			- OK: <messageentryid> <score>; <messageentryid> <score>;...
+ *			.
+ *		if the query provided no results, the return code will be 'OK:',
+ *		only when the query itself failed will an error code be returned.
  */
-class ECSearcher : public ECUnknown {
-private:
-	/**
-	 * Constructor
-	 *
-	 * @note Objects of ECSearcher must only be created using the Create() function.
-	 *
-	 * @param[in]	lpThreadData
-	 * @param[in]	ulSocket
-	 * @param[in]	bUseSsl
-	 */
-	ECSearcher(ECThreadData *lpThreadData, ECIndexer *lpIndexer, int ulSocket, bool bUseSsl);
 
+/**
+ * Data shared between all active threads
+ */
+class ECThreadData
+{
 public:
 	/**
-	 * Create new ECSearcher object.
-	 *
-	 * @note Creating a new ECSearcher object must always occur through this function.
-	 *
-	 * @param[in]	lpThreadData
-	 *					 Reference to the ECThreadData object.
-	 * @param[in]	ulSocket
-	 *					 Listening socket for new connections.
-	 * @param[in]	bUseSsl
-	 *					 If the given ulSocket expects SSL data or not.
-	 * @param[out]	lppSearcher
-	 *					The created ECSearcher object.
-	 * @return HRESULT
+	 * Constructor
 	 */
-	static HRESULT Create(ECThreadData *lpThreadData, ECIndexer *lpIndexer, int ulSocket, bool bUseSsl, ECSearcher **lppSearcher);
+	ECThreadData();
 
 	/**
 	 * Destructor
 	 */
-	~ECSearcher();
-
-private:
-	/**
-	 * Main thread handler
-	 *
-	 * This function will be run constantly listening for incoming search requests.
-	 *
-	 * @param[in]   lpVoid
-	 *					 Reference to ECIndexer object
-	 * @return LPVOID
-	 */
-	static LPVOID RunThread(LPVOID lpVoid);
+	~ECThreadData();
 
 	/**
-	 * Main function which will listen for incoming connections
-	 *
-	 * When an incoming connection has been accepted a new thread
-	 * will be started with ECSearcherRequestwhich to handle
-	 * the incoming request.
-	 *
-	 * @return HRESULT
+	 * ECLogger for logging message to file
 	 */
-	HRESULT Listen();
+	ECLogger *lpLogger;
 
-private:
-	ECThreadData *m_lpThreadData;
-	ECIndexer *m_lpIndexer;
-	int m_ulSocket;
-	bool m_bUseSsl;
+	/**
+	 * ECConfig for reading configuration from file
+	 */
+	ECConfig *lpConfig;
 
-	/* Thread attribute */
-	pthread_attr_t m_hThreadAttr;
+	/**
+	 * Index database factory
+	 */
+	ECIndexFactory *lpIndexFactory;
+
+	/**
+	 * Global parameter which indicates if server is shutting down
+	 */
+	BOOL bShutdown;
+
+	/* re-caches parsed config settings */
+	void ReloadConfigOptions();
+
+	/* parsed config settings */
+	std::string m_strCommand;
+	ULONG m_ulAttachMaxSize;
+	LONGLONG m_ulParserMaxMemory;
+	LONGLONG m_ulParserMaxCpuTime;
+	std::set<std::string, stricmp_comparison> m_setMimeFilter;
+	std::set<std::string, stricmp_comparison> m_setExtFilter;	
 };
 
-#endif /* ECSEARCHER_H */
+#endif

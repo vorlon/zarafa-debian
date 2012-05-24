@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: zarafa-indexer.cfg
+.\"     Title: zarafa-search.cfg
 .\"    Author: [see the "Author" section]
 .\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
 .\"      Date: August 2011
@@ -7,7 +7,7 @@
 .\"    Source: Zarafa 7.0
 .\"  Language: English
 .\"
-.TH "ZARAFA\-INDEXER\&.CF" "5" "August 2011" "Zarafa 7.0" "Zarafa user reference"
+.TH "ZARAFA\-SEARCH\&.CFG" "5" "August 2011" "Zarafa 7.0" "Zarafa user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,16 +28,16 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-zarafa-indexer.cfg \- The Zarafa Indexer configuration file
+zarafa-search.cfg \- The Zarafa Search configuration file
 .SH "SYNOPSIS"
 .PP
-\fBindexer\&.cfg\fR
+\fBsearch\&.cfg\fR
 .SH "DESCRIPTION"
 .PP
 The
-indexer\&.cfg
-is a configuration file for the Zarafa Indexer Service\&.
-indexer\&.cfg
+search\&.cfg
+is a configuration file for the Zarafa Search Service\&.
+search\&.cfg
 contains instructions for the software to set up the connection, indexing and logging systems\&.
 .SH "FILE FORMAT"
 .PP
@@ -94,7 +94,7 @@ Default value is empty, not changing the group after starting\&.
 Write the process ID number to this file\&. This is used by the init\&.d script to correctly stop/restart the service\&.
 .sp
 Default:
-\fI/var/run/zarafa\-indexer\&.pid\fR
+\fI/var/run/zarafa\-search\&.pid\fR
 .RE
 .PP
 \fBrunning_path\fR
@@ -103,14 +103,6 @@ Change directory to this path when running in daemonize mode\&. When using the \
 .sp
 Default:
 \fI/\fR
-.RE
-.PP
-\fBcleanup_lockfiles\fR
-.RS 4
-If for some unfortunate reason the zarafa\-indexer is not cleanly stopped, it may leave lockfiles behind on stores it was processing\&. To continue the indexing on this possibly corrupt index, you need to remove the lockfile\&. To restart the index of the store, you need to remove the complete index directory\&. This directory will be mentioned in the log\&. You may choose to automatically remove the lockfiles by setting this option to yes\&. The index will be left on disk\&.
-.sp
-Default:
-\fIno\fR
 .RE
 .PP
 \fBlimit_results\fR
@@ -128,7 +120,7 @@ The file containing the private key and certificate\&. Please read the SSL secti
 manual on how to create this file\&.
 .sp
 Default:
-\fI/etc/zarafa/ssl/indexer\&.pem\fR
+\fI/etc/zarafa/ssl/search\&.pem\fR
 .RE
 .PP
 \fBssl_key_pass\fR
@@ -140,20 +132,20 @@ No default set\&.
 .PP
 \fBssl_private_key_file\fR
 .RS 4
-The indexer will use this file as private key for SSL TLS\&. This file can be created with:
-\fBopenssl genrsa \-out /etc/zarafa/indexer/privkey\&.pem 2048\fR\&.
+zarafa\-search will use this file as private key for SSL TLS\&. This file can be created with:
+\fBopenssl genrsa \-out /etc/zarafa/search/privkey\&.pem 2048\fR\&.
 .sp
 Default:
-\fI/etc/zarafa/indexer/privkey\&.pem\fR
+\fI/etc/zarafa/search/privkey\&.pem\fR
 .RE
 .PP
 \fBssl_certificate_file\fR
 .RS 4
-The indexer will use this file as certificate for SSL TLS\&. A self\-signed certificate can be created with:
-\fBopenssl req \-new \-x509 \-key /etc/zarafa/indexer/privkey\&.pem \-out /etc/zarafa/indexer/cert\&.pem \-days 1095\fR\&.
+zarafa\-search will use this file as certificate for SSL TLS\&. A self\-signed certificate can be created with:
+\fBopenssl req \-new \-x509 \-key /etc/zarafa/search/privkey\&.pem \-out /etc/zarafa/search/cert\&.pem \-days 1095\fR\&.
 .sp
 Default:
-\fI/etc/zarafa/indexer/cert\&.pem\fR
+\fI/etc/zarafa/search/cert\&.pem\fR
 .RE
 .SH "EXPLANATION OF THE LOGGING SETTINGS PARAMETERS"
 .PP
@@ -184,7 +176,7 @@ When logging to a file, specify the filename in this parameter\&. Use
 (minus sign) for stderr output\&.
 .sp
 Default:
-\fI/var/log/zarafa/indexer\&.log\fR
+\fI/var/log/zarafa/search\&.log\fR
 .RE
 .PP
 \fBlog_level\fR
@@ -202,11 +194,11 @@ Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq loggi
 Default:
 \fI1\fR
 .RE
-.SH "EXPLANATION OF THE INDEXER SETTINGS PARAMETERS"
+.SH "EXPLANATION OF THE SEARCH SETTINGS PARAMETERS"
 .PP
 \fBserver_bind_name\fR
 .RS 4
-Connection path to which other processes can connect with the zarafa\-indexer for performing search queries\&.
+Connection path to which other processes can connect with the zarafa\-search for performing search queries\&.
 .sp
 Use
 \fIhttp://0\&.0\&.0\&.0:port\fR
@@ -215,34 +207,17 @@ to listen as an HTTP service on all network interfaces on the given
 number\&.
 .sp
 Default:
-\fIfile:///var/run/zarafa\-indexer\fR
+\fIfile:///var/run/zarafa\-search\fR
 .RE
 .PP
 \fBindex_path\fR
 .RS 4
-Base directory under which all index files will be placed, the hierarchy below this folder will be: ${index_path}/${server}/${user}/index
+Directory under which all index files will be placed\&.
 .sp
 Default:
 \fI/var/lib/zarafa/index/\fR
 .RE
-.PP
-\fBindex_interval\fR
-.RS 4
-Interval (in minutes) for indexing\&. During every interval the zarafa\-indexer will synchronize with the zarafa\-server to collect all changes for each store and update the index files for the stores accordingly\&.
-.sp
-Default:
-\fI5\fR
-minutes
-.RE
-.PP
-\fBindex_threads\fR
-.RS 4
-Maximum number if indexing threads\&. In a multi\-server environment it is possible to distribute the work for different zarafa\-servers over different indexing threads\&. Note that the work for a single server will be exclusively assigned to a single thread, thus the number of started indexing threads will never exceed the number of zarafa\-servers\&.
-.sp
-Default:
-\fI1\fR
-.RE
-.SH "EXPLANATION OF THE ATTACHMENT INDEXER SETTINGS PARAMETERS"
+.SH "EXPLANATION OF THE ATTACHMENT SEARCH SETTINGS PARAMETERS"
 .PP
 \fBindex_attachments\fR
 .RS 4
@@ -273,7 +248,7 @@ It is highly advisable to check the
 file to add or remove parser command for specific mime\-types and/or file\-extensions\&.
 .sp
 Default:
-\fI/etc/zarafa/indexerscripts/attachments_parser\fR
+\fI/etc/zarafa/searchscripts/attachments_parser\fR
 .RE
 .PP
 \fBindex_attachment_parser_max_memory\fR
@@ -359,4 +334,4 @@ Written by Zarafa\&.
 .SH "SEE ALSO"
 .PP
 
-\fBzarafa-indexer\fR(1)
+\fBzarafa-search\fR(1)

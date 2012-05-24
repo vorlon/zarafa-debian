@@ -2,18 +2,18 @@ datadir = ${docdir}
 
 config_files = \
 	server.cfg unix.cfg ldap.propmap.cfg \
-	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg indexer.cfg \
+	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg
 
 rhel_initscript_files = \
-	zarafa-server.init.rhel zarafa-spooler.init.rhel zarafa-gateway.init.rhel zarafa-monitor.init.rhel zarafa-ical.init.rhel zarafa-dagent.init.rhel zarafa-indexer.init.rhel
+	zarafa-server.init.rhel zarafa-spooler.init.rhel zarafa-gateway.init.rhel zarafa-monitor.init.rhel zarafa-ical.init.rhel zarafa-dagent.init.rhel zarafa-search.init.rhel
 suse_initscript_files = \
-	zarafa-server.init.suse zarafa-spooler.init.suse zarafa-gateway.init.suse zarafa-monitor.init.suse zarafa-ical.init.suse zarafa-dagent.init.suse zarafa-indexer.init.suse
+	zarafa-server.init.suse zarafa-spooler.init.suse zarafa-gateway.init.suse zarafa-monitor.init.suse zarafa-ical.init.suse zarafa-dagent.init.suse zarafa-search.init.suse
 sles_initscript_files = $(suse_initscript_files)
 cbs4_initscript_files = \
-	zarafa-server.init.cbs4 zarafa-spooler.init.cbs4 zarafa-gateway.init.cbs4 zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4
+	zarafa-server.init.cbs4 zarafa-spooler.init.cbs4 zarafa-gateway.init.cbs4 zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 zarafa-dagent.init.cbs4 zarafa-search.init.cbs4
 alt_initscript_files = \
-	zarafa-server.init.alt zarafa-spooler.init.alt zarafa-gateway.init.alt zarafa-monitor.init.alt zarafa-ical.init.alt zarafa-dagent.init.alt zarafa-indexer.init.alt
+	zarafa-server.init.alt zarafa-spooler.init.alt zarafa-gateway.init.alt zarafa-monitor.init.alt zarafa-ical.init.alt zarafa-dagent.init.alt zarafa-search.init.alt
 
 rhel_sysconfig_files = sysconfig.rhel
 suse_sysconfig_files = sysconfig.suse

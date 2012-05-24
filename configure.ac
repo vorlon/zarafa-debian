@@ -201,11 +201,11 @@ AC_ARG_WITH(quotatemplate-prefix,
   [QUOTATEMPLATEDIR=${withval}],[QUOTATEMPLATEDIR=/etc/zarafa/quotamail])
 AC_SUBST(QUOTATEMPLATEDIR)
 
-# indexer scripts location
-AC_ARG_WITH(indexerscripts-prefix,
-  AC_HELP_STRING([--with-indexerscripts-prefix=PATH],[path to install the indexer scripts in (default /etc/zarafa/indexerscripts)]),
-  [INDEXERSCRIPTSDIR=${withval}],[INDEXERSCRIPTSDIR=/etc/zarafa/indexerscripts])
-AC_SUBST(INDEXERSCRIPTSDIR)
+# search scripts location
+AC_ARG_WITH(searchscripts-prefix,
+  AC_HELP_STRING([--with-searchscripts-prefix=PATH],[path to install the search scripts in (default /etc/zarafa/searchscripts)]),
+  [SEARCHSCRIPTSDIR=${withval}],[SEARCHSCRIPTSDIR=/etc/zarafa/searchscripts])
+AC_SUBST(SEARCHSCRIPTSDIR)
 
 #
 # find required headers and functions
@@ -764,7 +764,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/zarafa-cfgchecker/Makefile
 		ECtools/zarafa-stats/Makefile
 		ECtools/zarafa-archiver/Makefile
-		ECtools/zarafa-indexer/Makefile
+		ECtools/zarafa-search/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
@@ -781,7 +781,7 @@ AC_CONFIG_FILES([Makefile
 		installer/userscripts/deleteuser
 		installer/userscripts/deleteuser.d/Makefile
 		installer/quotamail/Makefile
-		installer/indexerscripts/Makefile
+		installer/searchscripts/Makefile
 		po/Makefile
 		doc/Makefile
 		gateway/Makefile
@@ -816,7 +816,7 @@ Install prefix	:	$prefix
 Mapiconfig dir	:	$MAPICONFIGDIR
 Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
-Indexer scripts dir	:	$INDEXERSCRIPTSDIR
+Search scripts dir	:	$SEARCHSCRIPTSDIR
 
 Build host	:	$host
 Compile flags	:	$CXXFLAGS

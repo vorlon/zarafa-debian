@@ -34,8 +34,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@WITH_CLUCENE_TRUE@bin_PROGRAMS = zarafa-indexer$(EXEEXT)
-subdir = ECtools/zarafa-indexer
+@WITH_CLUCENE_TRUE@bin_PROGRAMS = zarafa-search$(EXEEXT)
+subdir = ECtools/zarafa-search
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
@@ -55,17 +55,16 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_zarafa_indexer_OBJECTS = zarafa-indexer.$(OBJEXT) \
-	ECIndexer.$(OBJEXT) ECServerIndexer.$(OBJEXT) \
-	ECIndexerUtil.$(OBJEXT) ECSearcher.$(OBJEXT) \
-	ECSearcherRequest.$(OBJEXT) \
+am_zarafa_search_OBJECTS = zarafa-search.$(OBJEXT) ECIndexer.$(OBJEXT) \
+	ECServerIndexer.$(OBJEXT) ECIndexerUtil.$(OBJEXT) \
+	ECSearcher.$(OBJEXT) ECSearcherRequest.$(OBJEXT) \
 	ECIndexImporterAttachments.$(OBJEXT) \
 	ECLuceneSearcher.$(OBJEXT) ECAnalyzers.$(OBJEXT) \
 	ECIndexDB.$(OBJEXT) ECIndexFactory.$(OBJEXT) \
 	ECIndexImporter.$(OBJEXT)
-zarafa_indexer_OBJECTS = $(am_zarafa_indexer_OBJECTS)
+zarafa_search_OBJECTS = $(am_zarafa_search_OBJECTS)
 am__DEPENDENCIES_1 =
-zarafa_indexer_DEPENDENCIES =  \
+zarafa_search_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
@@ -119,8 +118,8 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(zarafa_indexer_SOURCES)
-DIST_SOURCES = $(zarafa_indexer_SOURCES)
+SOURCES = $(zarafa_search_SOURCES)
+DIST_SOURCES = $(zarafa_search_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -182,7 +181,6 @@ ICU_CFLAGS = @ICU_CFLAGS@
 ICU_CONFIG = @ICU_CONFIG@
 ICU_CXXFLAGS = @ICU_CXXFLAGS@
 ICU_LIBS = @ICU_LIBS@
-INDEXERSCRIPTSDIR = @INDEXERSCRIPTSDIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -248,6 +246,7 @@ PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
 QUOTATEMPLATEDIR = @QUOTATEMPLATEDIR@
 RANLIB = @RANLIB@
+SEARCHSCRIPTSDIR = @SEARCHSCRIPTSDIR@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -328,7 +327,7 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
 	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX
 
-zarafa_indexer_LDADD = \
+zarafa_search_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
@@ -337,8 +336,8 @@ zarafa_indexer_LDADD = \
     ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS)
 
-zarafa_indexer_SOURCES = \
-	zarafa-indexer.cpp zarafa-indexer.h \
+zarafa_search_SOURCES = \
+	zarafa-search.cpp zarafa-search.h \
 	ECIndexer.cpp ECIndexer.h \
 	ECServerIndexer.cpp ECServerIndexer.h \
 	ECIndexerUtil.cpp ECIndexerUtil.h \
@@ -364,9 +363,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign ECtools/zarafa-indexer/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign ECtools/zarafa-search/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign ECtools/zarafa-indexer/Makefile
+	  $(AUTOMAKE) --foreign ECtools/zarafa-search/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -428,9 +427,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-zarafa-indexer$(EXEEXT): $(zarafa_indexer_OBJECTS) $(zarafa_indexer_DEPENDENCIES) 
-	@rm -f zarafa-indexer$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(zarafa_indexer_OBJECTS) $(zarafa_indexer_LDADD) $(LIBS)
+zarafa-search$(EXEEXT): $(zarafa_search_OBJECTS) $(zarafa_search_DEPENDENCIES) 
+	@rm -f zarafa-search$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(zarafa_search_OBJECTS) $(zarafa_search_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -449,7 +448,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcherRequest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECServerIndexer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zarafa-indexer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zarafa-search.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

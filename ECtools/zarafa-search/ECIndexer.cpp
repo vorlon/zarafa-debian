@@ -47,53 +47,60 @@
  * 
  */
 
-#ifndef ECINDEXIMPORTERATTACHMENT_H
-#define ECINDEXIMPORTERATTACHMENT_H
+#include "platform.h"
 
-#include <string>
-#include <CLucene.h>
-#include <ECUnknown.h>
+#include "ECIndexer.h"
+#include "ECServerIndexer.h"
+#include "zarafa-search.h"
 
-#include "ECIndexDB.h"
-#include "zarafa-indexer.h"
-#include "tstring.h"
-
-class ECIndexImporter;
-class ECIndexDB;
-class ECLogger;
+#include <mapidefs.h>
 
 /**
- * Message Attachment indexer
+ * The ECIndexer class represents the full indexing engine
+ *
+ * All it does is start ECServerIndexer instances for all the relevant servers we need
+ * to connect to. A forced index can be started by using RunSynchronization() which will trigger
+ * a forced index of all the servers we're connected to.
  */
-class ECIndexImporterAttachment : public ECUnknown {
-public:
-	static HRESULT Create(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer, ECIndexImporterAttachment **lppIndexerAttach);
 
-	HRESULT ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
+ECIndexer::ECIndexer(ECThreadData *lpThreadData)
+{
+	m_lpThreadData = lpThreadData;
+	m_lpServerIndexer = NULL;
+}
 
-private:
-	ECIndexImporterAttachment(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer);
-	~ECIndexImporterAttachment();
+ECIndexer::~ECIndexer()
+{
+    if(m_lpServerIndexer)
+        m_lpServerIndexer->Release();
+}
 
-	HRESULT CopyBlockToParser(IStream *lpStream, int ulFpWrite, ULONG *lpulSize);
-	HRESULT CopyBlockFromParser(int ulFpRead, std::wstring *strInput);
-	HRESULT CopyStreamToParser(IStream *lpStream, int ulFpWrite, int ulFpRead, std::wstring *strInput);
-	HRESULT ParseAttachmentCommand(tstring &strFilename, std::string &strCommand, IStream *lpStream, std::wstring *lpstrParsed);
-	HRESULT ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
-	HRESULT ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
-								 tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
-								 std::wstring *lpstrParsed, ECIndexDB *lpIndex);
-	HRESULT ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
+HRESULT ECIndexer::Create(ECThreadData *lpThreadData, ECIndexer **lppIndexer)
+{
+	HRESULT hr = hrSuccess;
 
-private:
-	ECThreadData *m_lpThreadData;
-	ECIndexImporter *m_lpIndexer;
-	ECLogger *m_lpLogger;
+	ECIndexer *lpIndexer = new ECIndexer(lpThreadData);
+	
+	hr = ECServerIndexer::Create(lpThreadData->lpConfig, lpThreadData->lpLogger, lpThreadData, &lpIndexer->m_lpServerIndexer);
+	if(hr != hrSuccess)
+	    goto exit;
+	
+	lpIndexer->AddRef();
 
-	LPBYTE m_lpCache;
-	ULONG m_ulCache;
+	*lppIndexer = lpIndexer;
+	
+exit:
+    if(hr != hrSuccess)
+        delete lpIndexer;
+      
+	return hr;
+}
 
-	std::string m_strCommand;
-};
+HRESULT ECIndexer::RunSynchronization()
+{
+	HRESULT hr = hrSuccess;
 
-#endif
+	hr = m_lpServerIndexer->RunSynchronization();
+
+	return hr;
+}

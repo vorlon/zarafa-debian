@@ -47,60 +47,91 @@
  * 
  */
 
-#include "platform.h"
+#ifndef ECSEARCHER_H
+#define ECSEARCHER_H
 
-#include "ECIndexer.h"
-#include "ECServerIndexer.h"
-#include "zarafa-indexer.h"
+#include <string>
 
-#include <mapidefs.h>
+#include <ECUnknown.h>
+
+#include "zarafa-search.h"
+
+class ECIndexer;
 
 /**
- * The ECIndexer class represents the full indexing engine
+ * Main searcher handler
  *
- * All it does is start ECServerIndexer instances for all the relevant servers we need
- * to connect to. A forced index can be started by using RunSynchronization() which will trigger
- * a forced index of all the servers we're connected to.
+ * This class manages all aspects of the searching through the index.
+ * It runs in its own private thread and will listen for incoming connections
+ * from remote clients for search queries.
  */
+class ECSearcher : public ECUnknown {
+private:
+	/**
+	 * Constructor
+	 *
+	 * @note Objects of ECSearcher must only be created using the Create() function.
+	 *
+	 * @param[in]	lpThreadData
+	 * @param[in]	ulSocket
+	 * @param[in]	bUseSsl
+	 */
+	ECSearcher(ECThreadData *lpThreadData, ECIndexer *lpIndexer, int ulSocket, bool bUseSsl);
 
-ECIndexer::ECIndexer(ECThreadData *lpThreadData)
-{
-	m_lpThreadData = lpThreadData;
-	m_lpServerIndexer = NULL;
-}
+public:
+	/**
+	 * Create new ECSearcher object.
+	 *
+	 * @note Creating a new ECSearcher object must always occur through this function.
+	 *
+	 * @param[in]	lpThreadData
+	 *					 Reference to the ECThreadData object.
+	 * @param[in]	ulSocket
+	 *					 Listening socket for new connections.
+	 * @param[in]	bUseSsl
+	 *					 If the given ulSocket expects SSL data or not.
+	 * @param[out]	lppSearcher
+	 *					The created ECSearcher object.
+	 * @return HRESULT
+	 */
+	static HRESULT Create(ECThreadData *lpThreadData, ECIndexer *lpIndexer, int ulSocket, bool bUseSsl, ECSearcher **lppSearcher);
 
-ECIndexer::~ECIndexer()
-{
-    if(m_lpServerIndexer)
-        m_lpServerIndexer->Release();
-}
+	/**
+	 * Destructor
+	 */
+	~ECSearcher();
 
-HRESULT ECIndexer::Create(ECThreadData *lpThreadData, ECIndexer **lppIndexer)
-{
-	HRESULT hr = hrSuccess;
+private:
+	/**
+	 * Main thread handler
+	 *
+	 * This function will be run constantly listening for incoming search requests.
+	 *
+	 * @param[in]   lpVoid
+	 *					 Reference to ECIndexer object
+	 * @return LPVOID
+	 */
+	static LPVOID RunThread(LPVOID lpVoid);
 
-	ECIndexer *lpIndexer = new ECIndexer(lpThreadData);
-	
-	hr = ECServerIndexer::Create(lpThreadData->lpConfig, lpThreadData->lpLogger, lpThreadData, &lpIndexer->m_lpServerIndexer);
-	if(hr != hrSuccess)
-	    goto exit;
-	
-	lpIndexer->AddRef();
+	/**
+	 * Main function which will listen for incoming connections
+	 *
+	 * When an incoming connection has been accepted a new thread
+	 * will be started with ECSearcherRequestwhich to handle
+	 * the incoming request.
+	 *
+	 * @return HRESULT
+	 */
+	HRESULT Listen();
 
-	*lppIndexer = lpIndexer;
-	
-exit:
-    if(hr != hrSuccess)
-        delete lpIndexer;
-      
-	return hr;
-}
+private:
+	ECThreadData *m_lpThreadData;
+	ECIndexer *m_lpIndexer;
+	int m_ulSocket;
+	bool m_bUseSsl;
 
-HRESULT ECIndexer::RunSynchronization()
-{
-	HRESULT hr = hrSuccess;
+	/* Thread attribute */
+	pthread_attr_t m_hThreadAttr;
+};
 
-	hr = m_lpServerIndexer->RunSynchronization();
-
-	return hr;
-}
+#endif /* ECSEARCHER_H */

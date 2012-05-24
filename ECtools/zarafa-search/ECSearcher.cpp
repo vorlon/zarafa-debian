@@ -65,7 +65,7 @@
 #include "ECLuceneSearcher.h"
 #include "ECSearcher.h"
 #include "ECSearcherRequest.h"
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 ECSearcher::ECSearcher(ECThreadData *lpThreadData, ECIndexer *lpIndexer, int ulSocket, bool bUseSsl)
 : m_lpThreadData(lpThreadData)

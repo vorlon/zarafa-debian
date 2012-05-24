@@ -1,5 +1,5 @@
 if WITH_CLUCENE
-bin_PROGRAMS = zarafa-indexer
+bin_PROGRAMS = zarafa-search
 endif
 
 AM_CPPFLAGS = \
@@ -8,8 +8,8 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
 	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX
-	
-zarafa_indexer_LDADD = \
+
+zarafa_search_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
@@ -18,8 +18,8 @@ zarafa_indexer_LDADD = \
     ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS)
 
-zarafa_indexer_SOURCES = \
-	zarafa-indexer.cpp zarafa-indexer.h \
+zarafa_search_SOURCES = \
+	zarafa-search.cpp zarafa-search.h \
 	ECIndexer.cpp ECIndexer.h \
 	ECServerIndexer.cpp ECServerIndexer.h \
 	ECIndexerUtil.cpp ECIndexerUtil.h \
@@ -31,7 +31,7 @@ zarafa_indexer_SOURCES = \
 	ECIndexDB.cpp ECIndexDB.h \
 	ECIndexFactory.cpp ECIndexFactory.h \
 	ECIndexImporter.cpp ECIndexImporter.h
-	
+
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2

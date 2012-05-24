@@ -55,7 +55,7 @@
 
 #include <ECUnknown.h>
 
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 class ECLuceneSearcher;
 class ECIndexer;

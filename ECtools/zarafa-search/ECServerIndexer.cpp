@@ -57,7 +57,7 @@
 #include "IStreamAdapter.h"
 #include "ECIndexImporter.h"
 
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 #include "pthreadutil.h"
 #include "mapi_ptr.h"

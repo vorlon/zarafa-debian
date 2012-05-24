@@ -103,14 +103,14 @@ SOURCES =
 DIST_SOURCES =
 am__dist_data_config_DATA_DIST = server.cfg unix.cfg ldap.propmap.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg \
-	indexer.cfg autorespond archiver.cfg licensed.cfg \
+	search.cfg autorespond archiver.cfg licensed.cfg \
 	example-msr.cfg backup.cfg ldap.openldap.cfg \
 	ldap.active-directory.cfg ldapms.openldap.cfg \
 	ldapms.active-directory.cfg
 am__dist_sysconf_cert_DATA_DIST = addtrust.crt
 am__dist_sysconf_config_DATA_DIST = server.cfg unix.cfg \
 	ldap.propmap.cfg spooler.cfg gateway.cfg monitor.cfg \
-	dagent.cfg ical.cfg indexer.cfg autorespond archiver.cfg \
+	dagent.cfg ical.cfg search.cfg autorespond archiver.cfg \
 	licensed.cfg example-msr.cfg backup.cfg ldap.openldap.cfg \
 	ldap.active-directory.cfg ldapms.openldap.cfg \
 	ldapms.active-directory.cfg
@@ -176,7 +176,6 @@ ICU_CFLAGS = @ICU_CFLAGS@
 ICU_CONFIG = @ICU_CONFIG@
 ICU_CXXFLAGS = @ICU_CXXFLAGS@
 ICU_LIBS = @ICU_LIBS@
-INDEXERSCRIPTSDIR = @INDEXERSCRIPTSDIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -242,6 +241,7 @@ PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
 QUOTATEMPLATEDIR = @QUOTATEMPLATEDIR@
 RANLIB = @RANLIB@
+SEARCHSCRIPTSDIR = @SEARCHSCRIPTSDIR@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -316,28 +316,28 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 config_files = server.cfg unix.cfg ldap.propmap.cfg spooler.cfg \
-	gateway.cfg monitor.cfg dagent.cfg ical.cfg indexer.cfg \
+	gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg $(am__append_2) $(BUILT_SOURCES)
 rhel_initscript_files = zarafa-server.init.rhel \
 	zarafa-spooler.init.rhel zarafa-gateway.init.rhel \
 	zarafa-monitor.init.rhel zarafa-ical.init.rhel \
-	zarafa-dagent.init.rhel zarafa-indexer.init.rhel \
+	zarafa-dagent.init.rhel zarafa-search.init.rhel \
 	$(am__append_3)
 suse_initscript_files = zarafa-server.init.suse \
 	zarafa-spooler.init.suse zarafa-gateway.init.suse \
 	zarafa-monitor.init.suse zarafa-ical.init.suse \
-	zarafa-dagent.init.suse zarafa-indexer.init.suse \
+	zarafa-dagent.init.suse zarafa-search.init.suse \
 	$(am__append_4)
 sles_initscript_files = $(suse_initscript_files)
 cbs4_initscript_files = zarafa-server.init.cbs4 \
 	zarafa-spooler.init.cbs4 zarafa-gateway.init.cbs4 \
 	zarafa-monitor.init.cbs4 zarafa-ical.init.cbs4 \
-	zarafa-dagent.init.cbs4 zarafa-indexer.init.cbs4 \
+	zarafa-dagent.init.cbs4 zarafa-search.init.cbs4 \
 	$(am__append_5)
 alt_initscript_files = zarafa-server.init.alt zarafa-spooler.init.alt \
 	zarafa-gateway.init.alt zarafa-monitor.init.alt \
 	zarafa-ical.init.alt zarafa-dagent.init.alt \
-	zarafa-indexer.init.alt $(am__append_6)
+	zarafa-search.init.alt $(am__append_6)
 rhel_sysconfig_files = sysconfig.rhel
 suse_sysconfig_files = sysconfig.suse
 sles_sysconfig_files = ${suse_sysconfig_files}

@@ -1,4 +1,4 @@
 dist_bin_SCRIPTS = attachments_parser zmktemp
-bindir = $(INDEXERSCRIPTSDIR)
+bindir = $(SEARCHSCRIPTSDIR)
 dist_data_DATA = attachments_parser.db xmltotext.xslt
-datadir = $(INDEXERSCRIPTSDIR)
+datadir = $(SEARCHSCRIPTSDIR)

@@ -63,7 +63,7 @@
 #include <Util.h>
 
 #include "ECIndexerUtil.h"
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 #include "charset/convert.h"
 #include "charset/utf8string.h"

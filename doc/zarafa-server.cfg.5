@@ -1071,7 +1071,7 @@ Default:
 \fBindex_services_enabled\fR
 .RS 4
 Use Indexing service for faster searching\&. Enabling this option requires the
-\fBzarafa-indexer\fR(1)
+\fBzarafa-search\fR(1)
 service to be running\&.
 .sp
 Default:
@@ -1081,17 +1081,17 @@ Default:
 \fBindex_services_path\fR
 .RS 4
 Path to the
-\fBzarafa-indexer\fR(1)
+\fBzarafa-search\fR(1)
 service, this option is only required if the server is going to make use of the indexing service\&.
 .sp
 Default:
-\fI/var/run/zarafa\-indexer\fR
+\fI/var/run/zarafa\-search\fR
 .RE
 .PP
 \fBindex_services_search_timeout\fR
 .RS 4
 Time (in seconds) to wait for a connection to the
-\fBzarafa-indexer\fR(1)
+\fBzarafa-search\fR(1)
 before terminating the indexed search request\&.
 .sp
 Default:
@@ -1100,10 +1100,7 @@ Default:
 .PP
 \fBenable_enhanced_ics\fR
 .RS 4
-Allow enhanced ICS operations to speedup synchronization with cached profiles\&. This options should also be enabled when the
-\fIindex_sync_stream\fR
-option is set in
-\fBzarafa-indexer.cfg\fR(5)\&.
+Allow enhanced ICS operations to speedup synchronization with cached profiles\&. Only disable this option for debugging purposes\&.
 .sp
 Default:
 \fIyes\fR

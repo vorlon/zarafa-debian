@@ -65,7 +65,7 @@
 #include "ECSearcherRequest.h"
 #include "ECIndexer.h"
 #include "ECIndexerUtil.h"
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 
 ECSearcherRequest::ECSearcherRequest(ECThreadData *lpThreadData, ECIndexer *lpIndexer, ECChannel *lpChannel, BOOL bUseSSL)
 : m_lpThreadData(lpThreadData)

@@ -47,105 +47,53 @@
  * 
  */
 
-#ifndef ECLUCENESEARCHER_H
-#define ECLUCENESEARCHER_H
+#ifndef ECINDEXIMPORTERATTACHMENT_H
+#define ECINDEXIMPORTERATTACHMENT_H
 
 #include <string>
-#include <vector>
-
-#include <pthread.h>
-
 #include <CLucene.h>
-#include <CLucene/search/QueryFilter.h>
-
 #include <ECUnknown.h>
 
-#include "zarafa-indexer.h"
+#include "ECIndexDB.h"
+#include "zarafa-search.h"
+#include "tstring.h"
 
+class ECIndexImporter;
 class ECIndexDB;
-
-typedef struct {
-	std::set<unsigned int> setFields;
-	std::string strTerm;
-} SIndexedTerm;
-
-class ECLuceneAccess;
+class ECLogger;
 
 /**
- * Main class to perform searching by CLucene
+ * Message Attachment indexer
  */
-class ECLuceneSearcher : public ECUnknown {
-private:
-	/**
-	 * Constructor
-	 *
-	 * @note Objects of ECLuceneSearcher must only be created using the Create() function.
-	 *
-	 * @param[in]	lpThreadData
-	 * @param[in]	lpLuceneAccess
-	 * @param[in]	listFolder
-	 */
-	ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults);
-
+class ECIndexImporterAttachment : public ECUnknown {
 public:
-	/**
-	 * Create new ECLuceneSearcher object.
-	 *
-	 * @note Creating a new ECLuceneSearcher object must always occur through this function.
-	 *
-	 * @param[in]	lpThreadData
-	 *					Reference to the ECThreadData object.
-	 * @param[in]	lpServerGuid
-	 *					Guid of the server to search in
-	 * @param[in]	lpStoreGuid
-	 *					Guid of the store to search in
-	 * @param[in]	lstFolders
-	 *					List of folders to search in
-	 * @param[in]	ulMaxResults
-	 *					Maximum  number of results to produce
-	 * @param[out]	lppSearcher
-	 *					The created ECLuceneSearcher object.
-	 * @return HRESULT
-	 */
-	static HRESULT Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher);
+	static HRESULT Create(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer, ECIndexImporterAttachment **lppIndexerAttach);
 
-	/**
-	 * Add a search term to be searched for
-	 *
-	 * Note that items returned by SearchEntries() must match all terms passed to AddTerm()
-	 *
-	 * @param[in]	setFields
-	 *					Fields to search in
-	 * @param[in]	strTerm
-	 *					Term to search (utf-8 encoded)
-	 * @return HRESULT
-	 */
-	HRESULT AddTerm(std::set<unsigned int> &setFields, std::string &strTerm);
+	HRESULT ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
-	/**
-	 * Destructor
-	 */
-	~ECLuceneSearcher();
+private:
+	ECIndexImporterAttachment(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer);
+	~ECIndexImporterAttachment();
 
-	/**
-	 * Execute query to search for messages
-	 *
-	 * @param[out]	lplistResults
-	 *					List of search results
-	 * @return HRESULT
-	 */
-	HRESULT SearchEntries(std::list<unsigned int> *lplistResults);
+	HRESULT CopyBlockToParser(IStream *lpStream, int ulFpWrite, ULONG *lpulSize);
+	HRESULT CopyBlockFromParser(int ulFpRead, std::wstring *strInput);
+	HRESULT CopyStreamToParser(IStream *lpStream, int ulFpWrite, int ulFpRead, std::wstring *strInput);
+	HRESULT ParseAttachmentCommand(tstring &strFilename, std::string &strCommand, IStream *lpStream, std::wstring *lpstrParsed);
+	HRESULT ParseEmbeddedAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
+	HRESULT ParseValueAttachment(folderid_t folder, docid_t doc, unsigned int version, IStream *lpStream,
+								 tstring &strMimeTag, tstring &strExtension, tstring &strFilename,
+								 std::wstring *lpstrParsed, ECIndexDB *lpIndex);
+	HRESULT ParseAttachment(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
 private:
 	ECThreadData *m_lpThreadData;
-	ECLuceneAccess *m_lpLuceneAccess;
+	ECIndexImporter *m_lpIndexer;
+	ECLogger *m_lpLogger;
 
-	std::list<unsigned int> m_lstFolders;
-	std::string m_strStoreGuid;
-	std::string m_strServerGuid;
-	unsigned int m_ulMaxResults;
-	std::list<SIndexedTerm> m_lstSearches;
-	ECIndexDB *m_lpIndex;
+	LPBYTE m_lpCache;
+	ULONG m_ulCache;
+
+	std::string m_strCommand;
 };
 
-#endif /* ECLUCENESEARCHER_H */
+#endif

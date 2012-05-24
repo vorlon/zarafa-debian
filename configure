@@ -830,7 +830,7 @@ POW_LIB
 LIBOBJS
 NCURSES_LIBS
 NCURSES_FLAGS
-INDEXERSCRIPTSDIR
+SEARCHSCRIPTSDIR
 QUOTATEMPLATEDIR
 USERSCRIPTDIR
 MAPICONFIGDIR
@@ -988,7 +988,7 @@ enable_offline
 with_mapi_configdir
 with_userscript_prefix
 with_quotatemplate_prefix
-with_indexerscripts_prefix
+with_searchscripts_prefix
 with_ncurses_config
 enable_swig
 enable_python
@@ -1694,9 +1694,9 @@ Optional Packages:
   --with-quotatemplate-prefix=PATH
                           path to install the quota warning templates in
                           (default /etc/zarafa/quotamail)
-  --with-indexerscripts-prefix=PATH
-                          path to install the indexer scripts in (default
-                          /etc/zarafa/indexerscripts)
+  --with-searchscripts-prefix=PATH
+                          path to install the search scripts in (default
+                          /etc/zarafa/searchscripts)
   --with-ncurses-config=PATH
                           path to the ncurses(w)5-config script, wide version
                           is preferred
@@ -16240,13 +16240,13 @@ fi
 
 
 
-# indexer scripts location
+# search scripts location
 
-# Check whether --with-indexerscripts-prefix was given.
-if test "${with_indexerscripts_prefix+set}" = set; then :
-  withval=$with_indexerscripts_prefix; INDEXERSCRIPTSDIR=${withval}
+# Check whether --with-searchscripts-prefix was given.
+if test "${with_searchscripts_prefix+set}" = set; then :
+  withval=$with_searchscripts_prefix; SEARCHSCRIPTSDIR=${withval}
 else
-  INDEXERSCRIPTSDIR=/etc/zarafa/indexerscripts
+  SEARCHSCRIPTSDIR=/etc/zarafa/searchscripts
 fi
 
 
@@ -20668,7 +20668,7 @@ LDFLAGS="$LDFLAGS $ZLDFLAGS"
 #
 # Output files
 #
-ac_config_files="$ac_config_files Makefile mapi4linux/Makefile mapi4linux/include/Makefile mapi4linux/src/Makefile php-ext/Makefile provider/Makefile provider/client/Makefile provider/contacts/Makefile provider/common/Makefile provider/include/Makefile provider/libserver/Makefile provider/plugins/Makefile provider/server/Makefile provider/soap/Makefile provider/tools/Makefile provider/tools/soapcpp2/Makefile inetmapi/Makefile spooler/Makefile spooler/python/Makefile spooler/python/plugins/Makefile common/Makefile ECtools/Makefile ECtools/zarafa-admin/Makefile ECtools/zarafa-passwd/Makefile ECtools/zarafa-monitor/Makefile ECtools/zarafa-fsck/Makefile ECtools/zarafa-cfgchecker/Makefile ECtools/zarafa-stats/Makefile ECtools/zarafa-archiver/Makefile ECtools/zarafa-indexer/Makefile installer/Makefile installer/linux/Makefile installer/userscripts/Makefile installer/userscripts/createcompany installer/userscripts/createcompany.d/Makefile installer/userscripts/creategroup installer/userscripts/creategroup.d/Makefile installer/userscripts/createuser installer/userscripts/createuser.d/Makefile installer/userscripts/deletecompany installer/userscripts/deletecompany.d/Makefile installer/userscripts/deletegroup installer/userscripts/deletegroup.d/Makefile installer/userscripts/deleteuser installer/userscripts/deleteuser.d/Makefile installer/quotamail/Makefile installer/indexerscripts/Makefile po/Makefile doc/Makefile gateway/Makefile libfreebusy/Makefile libicalmapi/Makefile caldav/Makefile swig/Makefile swig/python/Makefile zarafa-libsync/Makefile common/zarafa.pc version specialbuild"
+ac_config_files="$ac_config_files Makefile mapi4linux/Makefile mapi4linux/include/Makefile mapi4linux/src/Makefile php-ext/Makefile provider/Makefile provider/client/Makefile provider/contacts/Makefile provider/common/Makefile provider/include/Makefile provider/libserver/Makefile provider/plugins/Makefile provider/server/Makefile provider/soap/Makefile provider/tools/Makefile provider/tools/soapcpp2/Makefile inetmapi/Makefile spooler/Makefile spooler/python/Makefile spooler/python/plugins/Makefile common/Makefile ECtools/Makefile ECtools/zarafa-admin/Makefile ECtools/zarafa-passwd/Makefile ECtools/zarafa-monitor/Makefile ECtools/zarafa-fsck/Makefile ECtools/zarafa-cfgchecker/Makefile ECtools/zarafa-stats/Makefile ECtools/zarafa-archiver/Makefile ECtools/zarafa-search/Makefile installer/Makefile installer/linux/Makefile installer/userscripts/Makefile installer/userscripts/createcompany installer/userscripts/createcompany.d/Makefile installer/userscripts/creategroup installer/userscripts/creategroup.d/Makefile installer/userscripts/createuser installer/userscripts/createuser.d/Makefile installer/userscripts/deletecompany installer/userscripts/deletecompany.d/Makefile installer/userscripts/deletegroup installer/userscripts/deletegroup.d/Makefile installer/userscripts/deleteuser installer/userscripts/deleteuser.d/Makefile installer/quotamail/Makefile installer/searchscripts/Makefile po/Makefile doc/Makefile gateway/Makefile libfreebusy/Makefile libicalmapi/Makefile caldav/Makefile swig/Makefile swig/python/Makefile zarafa-libsync/Makefile common/zarafa.pc version specialbuild"
 
 if test -d `dirname $0`/licensed; then
 ac_config_files="$ac_config_files liblicense/Makefile licensed/Makefile ECtools/zarafa-backup/Makefile ECtools/zarafa-backup/helpers/Makefile ECtools/zarafa-report/Makefile ECtools/zarafa-msr/Makefile ECtools/za-extra/Makefile"
@@ -21831,7 +21831,7 @@ do
     "ECtools/zarafa-cfgchecker/Makefile") CONFIG_FILES="$CONFIG_FILES ECtools/zarafa-cfgchecker/Makefile" ;;
     "ECtools/zarafa-stats/Makefile") CONFIG_FILES="$CONFIG_FILES ECtools/zarafa-stats/Makefile" ;;
     "ECtools/zarafa-archiver/Makefile") CONFIG_FILES="$CONFIG_FILES ECtools/zarafa-archiver/Makefile" ;;
-    "ECtools/zarafa-indexer/Makefile") CONFIG_FILES="$CONFIG_FILES ECtools/zarafa-indexer/Makefile" ;;
+    "ECtools/zarafa-search/Makefile") CONFIG_FILES="$CONFIG_FILES ECtools/zarafa-search/Makefile" ;;
     "installer/Makefile") CONFIG_FILES="$CONFIG_FILES installer/Makefile" ;;
     "installer/linux/Makefile") CONFIG_FILES="$CONFIG_FILES installer/linux/Makefile" ;;
     "installer/userscripts/Makefile") CONFIG_FILES="$CONFIG_FILES installer/userscripts/Makefile" ;;
@@ -21848,7 +21848,7 @@ do
     "installer/userscripts/deleteuser") CONFIG_FILES="$CONFIG_FILES installer/userscripts/deleteuser" ;;
     "installer/userscripts/deleteuser.d/Makefile") CONFIG_FILES="$CONFIG_FILES installer/userscripts/deleteuser.d/Makefile" ;;
     "installer/quotamail/Makefile") CONFIG_FILES="$CONFIG_FILES installer/quotamail/Makefile" ;;
-    "installer/indexerscripts/Makefile") CONFIG_FILES="$CONFIG_FILES installer/indexerscripts/Makefile" ;;
+    "installer/searchscripts/Makefile") CONFIG_FILES="$CONFIG_FILES installer/searchscripts/Makefile" ;;
     "po/Makefile") CONFIG_FILES="$CONFIG_FILES po/Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "gateway/Makefile") CONFIG_FILES="$CONFIG_FILES gateway/Makefile" ;;
@@ -23401,7 +23401,7 @@ Install prefix	:	$prefix
 Mapiconfig dir	:	$MAPICONFIGDIR
 Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
-Indexer scripts dir	:	$INDEXERSCRIPTSDIR
+Search scripts dir	:	$SEARCHSCRIPTSDIR
 
 Build host	:	$host
 Compile flags	:	$CXXFLAGS
@@ -23450,7 +23450,7 @@ Install prefix	:	$prefix
 Mapiconfig dir	:	$MAPICONFIGDIR
 Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
-Indexer scripts dir	:	$INDEXERSCRIPTSDIR
+Search scripts dir	:	$SEARCHSCRIPTSDIR
 
 Build host	:	$host
 Compile flags	:	$CXXFLAGS

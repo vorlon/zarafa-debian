@@ -51,7 +51,7 @@
 
 #include "ECIndexImporter.h"
 
-#include "zarafa-indexer.h"
+#include "zarafa-search.h"
 #include "ECLogger.h"
 #include "ECConfig.h"
 #include "ECIndexDB.h"

@@ -75,7 +75,7 @@ ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = zarafa-backup zarafa-report zarafa-msr za-extra \
 	zarafa-archiver zarafa-admin zarafa-monitor zarafa-passwd \
-	zarafa-fsck zarafa-cfgchecker zarafa-stats zarafa-indexer
+	zarafa-fsck zarafa-cfgchecker zarafa-stats zarafa-search
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -160,7 +160,6 @@ ICU_CFLAGS = @ICU_CFLAGS@
 ICU_CONFIG = @ICU_CONFIG@
 ICU_CXXFLAGS = @ICU_CXXFLAGS@
 ICU_LIBS = @ICU_LIBS@
-INDEXERSCRIPTSDIR = @INDEXERSCRIPTSDIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -226,6 +225,7 @@ PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
 QUOTATEMPLATEDIR = @QUOTATEMPLATEDIR@
 RANLIB = @RANLIB@
+SEARCHSCRIPTSDIR = @SEARCHSCRIPTSDIR@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -300,7 +300,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 @OSS_ONLY_FALSE@PROSUBS = zarafa-backup zarafa-report zarafa-msr za-extra
-SUBDIRS = $(PROSUBS) zarafa-archiver zarafa-admin zarafa-monitor zarafa-passwd zarafa-fsck zarafa-cfgchecker zarafa-stats zarafa-indexer
+SUBDIRS = $(PROSUBS) zarafa-archiver zarafa-admin zarafa-monitor zarafa-passwd zarafa-fsck zarafa-cfgchecker zarafa-stats zarafa-search
 all: all-recursive
 
 .SUFFIXES:

@@ -1,33 +1,33 @@
 #!/bin/bash
 #
-# zarafa-indexer The Search Indexer of the Zarafa Collaboration Platform
+# zarafa-search The Search Indexer of the Zarafa Collaboration Platform
 #
 # chkconfig: 345 86 24
-# description: The Zarafa indexer is the indexer daemon for full-text search \
-#              through all objects (including attachemnts)
-# processname: /usr/bin/zarafa-indexer
-# config: /etc/zarafa/indexer.cfg
-# pidfile: /var/run/zarafa-indexer.pid
+# description: The Zarafa search is an indexer daemon for full-text search \
+#              through all objects (including attachments)
+# processname: /usr/bin/zarafa-search
+# config: /etc/zarafa/search.cfg
+# pidfile: /var/run/zarafa-search.pid
 
 ### BEGIN INIT INFO
-# Provides: zarafa-indexer
+# Provides: zarafa-search
 # Required-Start: $local_fs $network $remote_fs $syslog
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: zarafa-server
 # Should-Stop: zarafa-server
 # Short-Description: The Search Indexer of the Zarafa Collaboration Platform
-# Description: The Zarafa indexer is the indexer daemon for full-text search 
-#              through all objects (including attachemnts)
+# Description: The Zarafa search is an indexer daemon for full-text search 
+#              through all objects (including attachments)
 ### END INIT INFO
 
-INDEXERCONFIG=/etc/zarafa/indexer.cfg
-INDEXERPROGRAM=/usr/bin/zarafa-indexer
+SEARCHCONFIG=/etc/zarafa/search.cfg
+SEARCHPROGRAM=/usr/bin/zarafa-search
 
 # Sanity checks.
-[ -x $INDEXERPROGRAM ] || exit 0
+[ -x $SEARCHPROGRAM ] || exit 0
 
-INDEXERCONFIG_OPT=""
-[ ! -z $INDEXERCONFIG -a -f $INDEXERCONFIG ] && INDEXERCONFIG_OPT="-c $INDEXERCONFIG"
+SEARCHCONFIG_OPT=""
+[ ! -z $SEARCHCONFIG -a -f $SEARCHCONFIG ] && SEARCHCONFIG_OPT="-c $SEARCHCONFIG"
 
 [ -f /etc/sysconfig/zarafa ] && . /etc/sysconfig/zarafa
 if [ -z "$ZARAFA_LOCALE" ]; then
@@ -38,16 +38,16 @@ fi
 . /etc/rc.d/init.d/functions
 
 RETVAL=0
-indexer=`basename $INDEXERPROGRAM`
-lockfile=/var/lock/subsys/$indexer
-pidfile=/var/run/$indexer.pid
+search=`basename $SEARCHPROGRAM`
+lockfile=/var/lock/subsys/$search
+pidfile=/var/run/$search.pid
 
 start() {
 	# Start in background, always succeeds
-	echo -n $"Starting $indexer: "
+	echo -n $"Starting $search: "
 	export LC_ALL=$ZARAFA_LOCALE
 	export LANG=$ZARAFA_LOCALE
-	daemon $INDEXERPROGRAM $INDEXERCONFIG_OPT
+	daemon $SEARCHPROGRAM $SEARCHCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo
@@ -57,8 +57,8 @@ start() {
 }
 
 stop() {
-	echo -n $"Stopping $indexer: "
-	killproc $INDEXERPROGRAM
+	echo -n $"Stopping $search: "
+	killproc $SEARCHPROGRAM
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
@@ -72,8 +72,8 @@ restart() {
 }
 
 reload() {
-	echo -n $"Restarting $indexer: "
-	killproc $INDEXERPROGRAM -SIGHUP
+	echo -n $"Restarting $search: "
+	killproc $SEARCHPROGRAM -SIGHUP
 	RETVAL=$?
 	echo
 
@@ -89,7 +89,7 @@ case "$1" in
 		stop
 		;;
     status)
-		status $indexer
+		status $search
 		RETVAL=$?
 		;;
     restart|force-reload)
@@ -105,7 +105,7 @@ case "$1" in
 		reload
 		;;
     *)
-		echo $"Usage: $indexer {start|stop|status|reload|restart|condrestart|force-reload|try-restart}"
+		echo $"Usage: $search {start|stop|status|reload|restart|condrestart|force-reload|try-restart}"
 		RETVAL=1
 		;;
 esac

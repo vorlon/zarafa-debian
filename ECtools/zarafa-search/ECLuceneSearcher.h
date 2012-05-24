@@ -47,98 +47,105 @@
  * 
  */
 
-#ifndef ZARAFA_INDEXER_H
-#define ZARAFA_INDEXER_H
+#ifndef ECLUCENESEARCHER_H
+#define ECLUCENESEARCHER_H
 
-#include <set>
 #include <string>
+#include <vector>
 
-#include "ECLogger.h"
-#include "ECConfig.h"
-#include "stringutil.h"
+#include <pthread.h>
 
-class ECFileIndex;
-class ECIndexFactory;
+#include <CLucene.h>
+#include <CLucene/search/QueryFilter.h>
 
-/**
- * @page zarafa_indexer1 zarafa-indexer
- *
- * @par Searching
- *	Currently three different commands are supported by the zarafa-indexer:
- *	- PROPS \n
- *		This will return a list of all property id's which are being indexed
- *		for each message. This command does not accept any additional arguments.
- *		The format of this returned list is: \n
- *			- OK: <name> <propid>; <name> <propid>;...
- *			.
- *	- SCOPE \n
- *		This is used to limit the scope where to search for the messages. It
- *		is mandatory to call SCOPE before QUERY with at least a restriction
- *		on the store. Optionally the scope can be restricted to folders as well.
- *		The format for providing the scope is: \n
- *			- SCOPE: <storeentryid>; <folderentryid>; <folderentryid>;...
- *			.
- *		The reply will always indicate success or failure in which case the
- *		error message will be provided as part of the returned string.
- *	- QUERY \n
- *		This is used to send the CLucene query to be executed. This command
- *		only takes a single argument which is the CLucene query string.
- *		The format for the command is: \n
- *			- QUERY: <CLucene query>
- *			.
- *		If the query was executed correctly the result will be: \n
- *			- OK: <messageentryid> <score>; <messageentryid> <score>;...
- *			.
- *		if the query provided no results, the return code will be 'OK:',
- *		only when the query itself failed will an error code be returned.
- */
+#include <ECUnknown.h>
+
+#include "zarafa-search.h"
+
+class ECIndexDB;
+
+typedef struct {
+	std::set<unsigned int> setFields;
+	std::string strTerm;
+} SIndexedTerm;
+
+class ECLuceneAccess;
 
 /**
- * Data shared between all active threads
+ * Main class to perform searching by CLucene
  */
-class ECThreadData
-{
-public:
+class ECLuceneSearcher : public ECUnknown {
+private:
 	/**
 	 * Constructor
+	 *
+	 * @note Objects of ECLuceneSearcher must only be created using the Create() function.
+	 *
+	 * @param[in]	lpThreadData
+	 * @param[in]	lpLuceneAccess
+	 * @param[in]	listFolder
 	 */
-	ECThreadData();
+	ECLuceneSearcher(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults);
+
+public:
+	/**
+	 * Create new ECLuceneSearcher object.
+	 *
+	 * @note Creating a new ECLuceneSearcher object must always occur through this function.
+	 *
+	 * @param[in]	lpThreadData
+	 *					Reference to the ECThreadData object.
+	 * @param[in]	lpServerGuid
+	 *					Guid of the server to search in
+	 * @param[in]	lpStoreGuid
+	 *					Guid of the store to search in
+	 * @param[in]	lstFolders
+	 *					List of folders to search in
+	 * @param[in]	ulMaxResults
+	 *					Maximum  number of results to produce
+	 * @param[out]	lppSearcher
+	 *					The created ECLuceneSearcher object.
+	 * @return HRESULT
+	 */
+	static HRESULT Create(ECThreadData *lpThreadData, GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int> &lstFolders, unsigned int ulMaxResults, ECLuceneSearcher **lppSearcher);
+
+	/**
+	 * Add a search term to be searched for
+	 *
+	 * Note that items returned by SearchEntries() must match all terms passed to AddTerm()
+	 *
+	 * @param[in]	setFields
+	 *					Fields to search in
+	 * @param[in]	strTerm
+	 *					Term to search (utf-8 encoded)
+	 * @return HRESULT
+	 */
+	HRESULT AddTerm(std::set<unsigned int> &setFields, std::string &strTerm);
 
 	/**
 	 * Destructor
 	 */
-	~ECThreadData();
+	~ECLuceneSearcher();
 
 	/**
-	 * ECLogger for logging message to file
+	 * Execute query to search for messages
+	 *
+	 * @param[out]	lplistResults
+	 *					List of search results
+	 * @return HRESULT
 	 */
-	ECLogger *lpLogger;
+	HRESULT SearchEntries(std::list<unsigned int> *lplistResults);
 
-	/**
-	 * ECConfig for reading configuration from file
-	 */
-	ECConfig *lpConfig;
+private:
+	ECThreadData *m_lpThreadData;
+	ECLuceneAccess *m_lpLuceneAccess;
 
-	/**
-	 * Index database factory
-	 */
-	ECIndexFactory *lpIndexFactory;
-
-	/**
-	 * Global parameter which indicates if server is shutting down
-	 */
-	BOOL bShutdown;
-
-	/* re-caches parsed config settings */
-	void ReloadConfigOptions();
-
-	/* parsed config settings */
-	std::string m_strCommand;
-	ULONG m_ulAttachMaxSize;
-	LONGLONG m_ulParserMaxMemory;
-	LONGLONG m_ulParserMaxCpuTime;
-	std::set<std::string, stricmp_comparison> m_setMimeFilter;
-	std::set<std::string, stricmp_comparison> m_setExtFilter;	
+	std::list<unsigned int> m_lstFolders;
+	std::string m_strStoreGuid;
+	std::string m_strServerGuid;
+	unsigned int m_ulMaxResults;
+	std::list<SIndexedTerm> m_lstSearches;
+	ECIndexDB *m_lpIndex;
 };
 
-#endif /* ZARAFA_INDEXER_H */
+#endif /* ECLUCENESEARCHER_H */

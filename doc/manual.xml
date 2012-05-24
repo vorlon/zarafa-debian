@@ -178,9 +178,9 @@
 			</listitem>
 		  </varlistentry>
 		  <varlistentry>
-			<term>zarafa-indexer</term>
+			<term>zarafa-search</term>
 			<listitem>
-			  <para>The zarafa-indexer daemon is used to index all messages
+			  <para>The zarafa-search daemon is used to index all messages
 			  for all users in the zarafa-server. Indexing messages greatly
 			  enhances the search performance of the zarafa-server.
 			  </para>
@@ -258,7 +258,7 @@
 		  <manvolnum>1</manvolnum>
 		</citerefentry>
 		<citerefentry>
-		  <refentrytitle>zarafa-indexer</refentrytitle>
+		  <refentrytitle>zarafa-search</refentrytitle>
 		  <manvolnum>1</manvolnum>
 		</citerefentry>
 		</para>
@@ -4331,7 +4331,7 @@
 			  <para>Use Indexing service for faster searching. Enabling this option
 			  requires the
 				<citerefentry>
-				  <refentrytitle>zarafa-indexer</refentrytitle>
+				  <refentrytitle>zarafa-search</refentrytitle>
 				  <manvolnum>1</manvolnum>
 				</citerefentry>
 			  service to be running.</para>
@@ -4344,12 +4344,12 @@
 			<listitem>
 			  <para>Path to the 
 			    <citerefentry>
-				  <refentrytitle>zarafa-indexer</refentrytitle>
+				  <refentrytitle>zarafa-search</refentrytitle>
 				  <manvolnum>1</manvolnum>
 				</citerefentry>
 				service, this option is only required if the server is going
 				to make use of the indexing service.</para>
-			  <para>Default: <replaceable>/var/run/zarafa-indexer</replaceable></para>
+			  <para>Default: <replaceable>/var/run/zarafa-search</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -4358,7 +4358,7 @@
 			<listitem>
 			  <para>Time (in seconds) to wait for a connection to the
 				<citerefentry>
-				  <refentrytitle>zarafa-indexer</refentrytitle>
+				  <refentrytitle>zarafa-search</refentrytitle>
 				  <manvolnum>1</manvolnum>
 				</citerefentry>
 				before terminating the indexed search request.</para>
@@ -4370,12 +4370,7 @@
 			<term><option>enable_enhanced_ics</option></term>
 			<listitem>
 			  <para>Allow enhanced ICS operations to speedup synchronization
-			  with cached profiles. This options should also be enabled when
-			  the <replaceable>index_sync_stream</replaceable> option is set
-			  in <citerefentry>
-				  <refentrytitle>zarafa-indexer.cfg</refentrytitle>
-				  <manvolnum>5</manvolnum>
-				</citerefentry>.</para>
+			  with cached profiles. Only disable this option for debugging purposes.</para>
 			  <para>Default: <replaceable>yes</replaceable></para>
 			</listitem>
 		  </varlistentry>
@@ -10448,43 +10443,45 @@
 
 <!--
   -+-+-
-	Zarafa Indexer manual page
+	Zarafa search manual page
   -+-+-
 -->
 	<refentry>
 	  <refmeta>
-		<refentrytitle>zarafa-indexer</refentrytitle>
+		<refentrytitle>zarafa-search</refentrytitle>
 		<manvolnum>1</manvolnum>
 	  </refmeta>
 
 	  <refnamediv>
-		<refname>zarafa-indexer</refname>
-		<refpurpose>Zarafa Indexer Service.</refpurpose>
+		<refname>zarafa-search</refname>
+		<refpurpose>Zarafa Indexed Search Service.</refpurpose>
 	  </refnamediv>
 
 	  <refsynopsisdiv>
 		<cmdsynopsis>
-		  <command>zarafa-indexer</command>
+		  <command>zarafa-search</command>
 		</cmdsynopsis>
 	  </refsynopsisdiv>
 
 	  <refsection>
 		<title>Description</title>
 
-		<para>The zarafa-indexer daemon is used to index all messages
+		<para>The zarafa-search daemon is used to index all messages
 		for all users in the zarafa-server. Indexing messages greatly
 		enhances the search performance of the zarafa-server.
 		</para>
 
-		<para>After starting, the indexer will periodically update the
+		<para>After starting, the search daemon will continuesly update the
 		store index files and will keep listening for connections on
 		the configured TCP port and/or Unix socket for search requests
-		from the zarafa-server.</para>
+		from the <citerefentry>
+	    <refentrytitle>zarafa-server</refentrytitle><manvolnum>1</manvolnum>
+		</citerefentry>.</para>
 	  </refsection>
 
 	  <refsection>
 		<title>Options</title>
-		<para>The Zarafa server program takes the following configuration
+		<para>The Zarafa search program takes the following configuration
 		options:</para>
 
 		<variablelist>
@@ -10497,7 +10494,7 @@
 			<listitem>
 			  <para>Specify the location of the configuration
 			  file.</para>
-			  <para>Default: <replaceable>/etc/zarafa/indexer.cfg</replaceable></para>
+			  <para>Default: <replaceable>/etc/zarafa/search.cfg</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -10507,7 +10504,7 @@
 			  <option>-F</option>
 			</term>
 			<listitem>
-			  <para>Run in the foreground. Normally the indexer
+			  <para>Run in the foreground. Normally the zarafa-search process
 			  will daemonize and run in the background.</para>
 			</listitem>
 		  </varlistentry>
@@ -10537,8 +10534,8 @@
 		    <term><option>--ignore-unknown-config-options</option></term>
 			<listitem>
 				<para>When unknown options exists in the configuration file
-				the indexer will report an error and shutdown. Pass this option to
-				ignore unknown options so the indexer will start.
+				the search daemon will report an error and shutdown. Pass this option to
+				ignore unknown options so zarafa-search will start.
 				</para>
             </listitem>
 		  </varlistentry>
@@ -10546,51 +10543,26 @@
 		</variablelist>
 
 		<para>
-		  When invoked with no options, the indexer will search for a
+		  When invoked with no options, the zarafa-search daemon will search for a
 		  configuration file in
-		  <filename>/etc/zarafa/indexer.cfg</filename>. If no
+		  <filename>/etc/zarafa/search.cfg</filename>. If no
 		  configuration file is found, default values are used. See
-		  <citerefentry><refentrytitle>zarafa-indexer.cfg</refentrytitle>
+		  <citerefentry><refentrytitle>zarafa-search.cfg</refentrytitle>
 		<manvolnum>5</manvolnum></citerefentry> for all
 		configuration options and their default values.</para>
-
-		<para>Options for Windows NT/XP/2003 only:</para>
-		<variablelist>
-		  <varlistentry>
-			<term><option>-v</option></term>
-			<listitem>
-			  <para>Check the version of the installed Windows
-			  service.</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>-i</option></term>
-			<listitem>
-			  <para>Register the Windows service.</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>-u</option></term>
-			<listitem>
-			  <para>Deregister the Windows service.</para>
-			</listitem>
-		  </varlistentry>
-		</variablelist>
 	  </refsection>
 
 	  <refsection>
 		<title>Usage</title>
-		<para>Starting the indexer with an alternative configuration:</para>
+		<para>Starting the zarafa-search daemon with an alternative configuration:</para>
 		<para>
-		  <command>zarafa-indexer</command>
+		  <command>zarafa-search</command>
 		  <option>-c</option>
-		  <replaceable>/path/to/indexer.cfg</replaceable>
+		  <replaceable>/path/to/search.cfg</replaceable>
 		</para>
 
 		<para>You may also use the init.d scripts:</para>
-		<para><command>/etc/init.d/zarafa-indexer</command>
+		<para><command>/etc/init.d/zarafa-search</command>
 		[<replaceable>start</replaceable>|
 		<replaceable>stop</replaceable>|
 		<replaceable>restart</replaceable>|
@@ -10610,7 +10582,7 @@
 			<manvolnum>1</manvolnum>
 		  </citerefentry>
 		  <citerefentry>
-			<refentrytitle>zarafa-indexer.cfg</refentrytitle>
+			<refentrytitle>zarafa-search.cfg</refentrytitle>
 			<manvolnum>5</manvolnum>
 		  </citerefentry>
 		</para>
@@ -10619,29 +10591,29 @@
 
 <!--
   -+-+-
-	Zarafa Indexer Configuration file manual page (5.0 ready)
+	Zarafa search Configuration file manual page
   -+-+-
 -->
 	<refentry>
 	  <refmeta>
-		<refentrytitle>zarafa-indexer.cfg</refentrytitle>
+		<refentrytitle>zarafa-search.cfg</refentrytitle>
 		<manvolnum>5</manvolnum>
 	  </refmeta>
 
 	  <refnamediv>
-		<refname>zarafa-indexer.cfg</refname>
-		<refpurpose>The Zarafa Indexer configuration file</refpurpose>
+		<refname>zarafa-search.cfg</refname>
+		<refpurpose>The Zarafa Search configuration file</refpurpose>
 	  </refnamediv>
 
 	  <refsynopsisdiv>
-		<para><command>indexer.cfg</command></para>
+		<para><command>search.cfg</command></para>
 	  </refsynopsisdiv>
 
 	  <refsection>
 		<title>Description</title>
 
-		<para>The <filename>indexer.cfg</filename> is a configuration file for
-		the Zarafa Indexer Service. <filename>indexer.cfg</filename>
+		<para>The <filename>search.cfg</filename> is a configuration file for
+		the Zarafa Search Service. <filename>search.cfg</filename>
 		contains instructions for the software to set up the connection,
 		indexing and logging systems.</para>
 	  </refsection>
@@ -10730,7 +10702,7 @@
 			  service.
 			  </para>
 			  <para>Default:
-			  <replaceable>/var/run/zarafa-indexer.pid</replaceable>
+			  <replaceable>/var/run/zarafa-search.pid</replaceable>
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -10744,25 +10716,6 @@
 			  </para>
 			  <para>Default:
 			  <replaceable>/</replaceable>
-			  </para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>cleanup_lockfiles</option></term>
-			<listitem>
-			  <para>If for some unfortunate reason the zarafa-indexer
-			  is not cleanly stopped, it may leave lockfiles behind on
-			  stores it was processing. To continue the indexing on
-			  this possibly corrupt index, you need to remove the
-			  lockfile. To restart the index of the store, you need to
-			  remove the complete index directory. This directory will
-			  be mentioned in the log. You may choose to automatically
-			  remove the lockfiles by setting this option to yes. The
-			  index will be left on disk.
-			  </para>
-			  <para>Default:
-			  <replaceable>no</replaceable>
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -10797,7 +10750,7 @@
 			  create this file.
 			  </para>
 			  <para>Default:
-			  <replaceable>/etc/zarafa/ssl/indexer.pem</replaceable>
+			  <replaceable>/etc/zarafa/ssl/search.pem</replaceable>
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -10816,24 +10769,24 @@
 		  <varlistentry>
 			<term><option>ssl_private_key_file</option></term>
 			<listitem>
-			  <para>The indexer will use this file as private
+			  <para>zarafa-search will use this file as private
 			  key for SSL TLS. This file can be created with:
-			  <command>openssl genrsa -out /etc/zarafa/indexer/privkey.pem 2048</command>.</para>
+			  <command>openssl genrsa -out /etc/zarafa/search/privkey.pem 2048</command>.</para>
 			  <para>Default:
-			  <replaceable>/etc/zarafa/indexer/privkey.pem</replaceable></para>
+			  <replaceable>/etc/zarafa/search/privkey.pem</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>ssl_certificate_file</option></term>
 			<listitem>
-			  <para>The indexer will use this file as
+			  <para>zarafa-search will use this file as
 			  certificate for SSL TLS. A self-signed certificate 
 			  can be created with: <command>openssl req -new -x509
-			  -key /etc/zarafa/indexer/privkey.pem -out /etc/zarafa/indexer/cert.pem 
+			  -key /etc/zarafa/search/privkey.pem -out /etc/zarafa/search/cert.pem 
 			  -days 1095</command>.</para>
 			  <para>Default:
-			  <replaceable>/etc/zarafa/indexer/cert.pem</replaceable></para>
+			  <replaceable>/etc/zarafa/search/cert.pem</replaceable></para>
 			</listitem>
 		  </varlistentry>
 <!--
@@ -10907,7 +10860,7 @@
 			  <para>When logging to a file, specify the filename in
 			  this parameter. Use <replaceable>-</replaceable> (minus
 			  sign) for stderr output.</para>
-			  <para>Default: <replaceable>/var/log/zarafa/indexer.log</replaceable></para>
+			  <para>Default: <replaceable>/var/log/zarafa/search.log</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -10933,50 +10886,27 @@
 	  </refsection>
 
 	  <refsection>
-		<title>Explanation of the Indexer Settings parameters</title>
+		<title>Explanation of the Search Settings parameters</title>
 
 		<variablelist>
 		  <varlistentry>
 			<term><option>server_bind_name</option></term>
 			<listitem>
 			  <para>Connection path to which other processes can
-			  connect with the zarafa-indexer for performing search
+			  connect with the zarafa-search for performing search
 			  queries.</para><para>Use
 			  <replaceable>http://0.0.0.0:port</replaceable> to listen
 			  as an HTTP service on all network interfaces on the
 			  given <replaceable>port</replaceable> number.</para>
-			  <para>Default: <replaceable>file:///var/run/zarafa-indexer</replaceable></para>
+			  <para>Default: <replaceable>file:///var/run/zarafa-search</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>index_path</option></term>
 			<listitem>
-			  <para>Base directory under which all index files will be placed,
-			  the hierarchy below this folder will be: ${index_path}/${server}/${user}/index</para>
+			  <para>Directory under which all index files will be placed.</para>
 			  <para>Default: <replaceable>/var/lib/zarafa/index/</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_interval</option></term>
-			<listitem>
-			  <para>Interval (in minutes) for indexing. During every interval the zarafa-indexer
-			  will synchronize with the zarafa-server to collect all changes for each store
-			  and update the index files for the stores accordingly.</para>
-			  <para>Default: <replaceable>5</replaceable> minutes</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_threads</option></term>
-			<listitem>
-			  <para>Maximum number if indexing threads. In a multi-server environment
-			  it is possible to distribute the work for different zarafa-servers over
-			  different indexing threads. Note that the work for a single server will
-			  be exclusively assigned to a single thread, thus the number of started
-			  indexing threads will never exceed the number of zarafa-servers.</para>
-			  <para>Default: <replaceable>1</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -10984,7 +10914,7 @@
 	  </refsection>
 
 	  <refsection>
-		<title>Explanation of the Attachment Indexer Settings parameters</title>
+		<title>Explanation of the Attachment Search Settings parameters</title>
 
 		<variablelist>
 		  <varlistentry>
@@ -11016,7 +10946,7 @@
 			  installed which can be configured to parse specific mime-types.</para>
 			  <para>It is highly advisable to check the <replaceable>attachments_parser.db</replaceable>
 			  file to add or remove parser command for specific mime-types and/or file-extensions.</para>
-			  <para>Default: <replaceable>/etc/zarafa/indexerscripts/attachments_parser</replaceable></para>
+			  <para>Default: <replaceable>/etc/zarafa/searchscripts/attachments_parser</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -11152,7 +11082,7 @@
 		<title>See also</title>
 		<para>
 		  <citerefentry>
-			<refentrytitle>zarafa-indexer</refentrytitle>
+			<refentrytitle>zarafa-search</refentrytitle>
 			<manvolnum>1</manvolnum>
 		  </citerefentry>
 		</para>

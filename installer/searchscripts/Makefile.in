@@ -35,7 +35,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = installer/indexerscripts
+subdir = installer/searchscripts
 DIST_COMMON = $(dist_bin_SCRIPTS) $(dist_data_DATA) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -145,7 +145,6 @@ ICU_CFLAGS = @ICU_CFLAGS@
 ICU_CONFIG = @ICU_CONFIG@
 ICU_CXXFLAGS = @ICU_CXXFLAGS@
 ICU_LIBS = @ICU_LIBS@
-INDEXERSCRIPTSDIR = @INDEXERSCRIPTSDIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -211,6 +210,7 @@ PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
 QUOTATEMPLATEDIR = @QUOTATEMPLATEDIR@
 RANLIB = @RANLIB@
+SEARCHSCRIPTSDIR = @SEARCHSCRIPTSDIR@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -242,14 +242,14 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
-bindir = $(INDEXERSCRIPTSDIR)
+bindir = $(SEARCHSCRIPTSDIR)
 build = @build@
 build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-datadir = $(INDEXERSCRIPTSDIR)
+datadir = $(SEARCHSCRIPTSDIR)
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
@@ -298,9 +298,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign installer/indexerscripts/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign installer/searchscripts/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign installer/indexerscripts/Makefile
+	  $(AUTOMAKE) --foreign installer/searchscripts/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

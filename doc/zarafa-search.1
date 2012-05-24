@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: zarafa-indexer
+.\"     Title: zarafa-search
 .\"    Author: [see the "Author" section]
 .\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
 .\"      Date: August 2011
@@ -7,7 +7,7 @@
 .\"    Source: Zarafa 7.0
 .\"  Language: English
 .\"
-.TH "ZARAFA\-INDEXER" "1" "August 2011" "Zarafa 7.0" "Zarafa user reference"
+.TH "ZARAFA\-SEARCH" "1" "August 2011" "Zarafa 7.0" "Zarafa user reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,30 +28,31 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-zarafa-indexer \- Zarafa Indexer Service\&.
+zarafa-search \- Zarafa Indexed Search Service\&.
 .SH "SYNOPSIS"
-.HP \w'\fBzarafa\-indexer\fR\ 'u
-\fBzarafa\-indexer\fR
+.HP \w'\fBzarafa\-search\fR\ 'u
+\fBzarafa\-search\fR
 .SH "DESCRIPTION"
 .PP
-The zarafa\-indexer daemon is used to index all messages for all users in the zarafa\-server\&. Indexing messages greatly enhances the search performance of the zarafa\-server\&.
+The zarafa\-search daemon is used to index all messages for all users in the zarafa\-server\&. Indexing messages greatly enhances the search performance of the zarafa\-server\&.
 .PP
-After starting, the indexer will periodically update the store index files and will keep listening for connections on the configured TCP port and/or Unix socket for search requests from the zarafa\-server\&.
+After starting, the search daemon will continuesly update the store index files and will keep listening for connections on the configured TCP port and/or Unix socket for search requests from the
+\fBzarafa-server\fR(1)\&.
 .SH "OPTIONS"
 .PP
-The Zarafa server program takes the following configuration options:
+The Zarafa search program takes the following configuration options:
 .PP
 \fB\-\-config\fR, \fB\-c\fR \fIfile\fR
 .RS 4
 Specify the location of the configuration file\&.
 .sp
 Default:
-\fI/etc/zarafa/indexer\&.cfg\fR
+\fI/etc/zarafa/search\&.cfg\fR
 .RE
 .PP
 \fB\-\-foreground\fR, \fB\-F\fR
 .RS 4
-Run in the foreground\&. Normally the indexer will daemonize and run in the background\&.
+Run in the foreground\&. Normally the zarafa\-search process will daemonize and run in the background\&.
 .RE
 .PP
 \fB\-\-host\fR, \fB\-h\fR \fIpath\fR
@@ -69,42 +70,25 @@ Print the version and exit\&.
 .PP
 \fB\-\-ignore\-unknown\-config\-options\fR
 .RS 4
-When unknown options exists in the configuration file the indexer will report an error and shutdown\&. Pass this option to ignore unknown options so the indexer will start\&.
+When unknown options exists in the configuration file the search daemon will report an error and shutdown\&. Pass this option to ignore unknown options so zarafa\-search will start\&.
 .RE
 .PP
-When invoked with no options, the indexer will search for a configuration file in
-/etc/zarafa/indexer\&.cfg\&. If no configuration file is found, default values are used\&. See
-\fBzarafa-indexer.cfg\fR(5)
+When invoked with no options, the zarafa\-search daemon will search for a configuration file in
+/etc/zarafa/search\&.cfg\&. If no configuration file is found, default values are used\&. See
+\fBzarafa-search.cfg\fR(5)
 for all configuration options and their default values\&.
-.PP
-Options for Windows NT/XP/2003 only:
-.PP
-\fB\-v\fR
-.RS 4
-Check the version of the installed Windows service\&.
-.RE
-.PP
-\fB\-i\fR
-.RS 4
-Register the Windows service\&.
-.RE
-.PP
-\fB\-u\fR
-.RS 4
-Deregister the Windows service\&.
-.RE
 .SH "USAGE"
 .PP
-Starting the indexer with an alternative configuration:
+Starting the zarafa\-search daemon with an alternative configuration:
 .PP
 
-\fBzarafa\-indexer\fR
+\fBzarafa\-search\fR
 \fB\-c\fR
-\fI/path/to/indexer\&.cfg\fR
+\fI/path/to/search\&.cfg\fR
 .PP
 You may also use the init\&.d scripts:
 .PP
-\fB/etc/init\&.d/zarafa\-indexer\fR
+\fB/etc/init\&.d/zarafa\-search\fR
 [\fIstart\fR|
 \fIstop\fR|
 \fIrestart\fR|
@@ -116,4 +100,4 @@ Written by Zarafa\&.
 .PP
 
 \fBzarafa-server\fR(1)
-\fBzarafa-indexer.cfg\fR(5)
+\fBzarafa-search.cfg\fR(5)
