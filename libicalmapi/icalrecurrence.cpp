@@ -191,6 +191,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 		lpRec->setFrequency(recurrence::YEARLY);
 		lpRec->setDayOfMonth(tm.tm_mday);
+		if (icRRule.by_month[0] != ICAL_RECURRENCE_ARRAY_MAX) 
+			lpRec->setMonth(icRRule.by_month[0]);
 		break;
 	default:
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -234,6 +236,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		// When RRULE:FREQ=MONTHLY;INTERVAL=1 is set then day of the month is set from the start date.		
 		lpRec->setDayOfMonth(tm.tm_mday);
 	}
+
+	lpRec->setStartDateTime(lpRec->calcStartDate());
 
 	if (icRRule.count != 0) {
 		// count limit
@@ -300,7 +304,22 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 		MAPIFreeBuffer(lpOccrInfo);
 	}
-	
+
+	// @fixme write the other start / end date properies too.
+	SPropValue sPropVal;
+	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
+
+	// Set 0x820D / ApptStartWhole
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
+
+	// Set 0x820E / ApptEndWhole
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+
 	lpIcalItem->lpRecurrence = lpRec;
 	lpRec = NULL;
 
