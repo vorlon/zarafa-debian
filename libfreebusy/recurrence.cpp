@@ -504,6 +504,7 @@ HRESULT recurrence::setMonth(UCHAR m)
 	return hrSuccess;
 }
 
+
 // only valid in monthly type 0x3 and 0xb
 UCHAR recurrence::getWeekNumber()
 {
@@ -1193,6 +1194,7 @@ time_t recurrence::calcStartDate()
 			// See to the end of the month when every last n Day of the month
 			if (m_sRecState.ulWeekNumber == 5) 
 				tStart += MonthInSeconds(tm.tm_year + 1900, tm.tm_mon);
+		
 
 			// Find the first valid day (from the original start date)
 			int day = -1;
@@ -1200,8 +1202,8 @@ time_t recurrence::calcStartDate()
 			for (int i = 0; i < 7; i++) {
 
 				if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
-					day = tm.tm_mday - i;
-					if (day < tm.tm_mday)// need to be test
+					day = DaysInMonth(tm.tm_year+1900, tm.tm_mon) - i;
+					if (day < tm.tm_mday)
 						 bMoveMonth = true;
 					break;
 				} else if (m_sRecState.ulWeekNumber != 5 && (1<< (tm.tm_wday + i)%7) & m_sRecState.ulWeekDays) {
@@ -1217,7 +1219,7 @@ time_t recurrence::calcStartDate()
 			if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
 				unsigned int count = 0;
 
-				if (getMonth()-1 < tm.tm_mon || (getMonth()-1 == tm.tm_mon && day > tm.tm_mday) ) {
+				if (getMonth()-1 < tm.tm_mon || (getMonth()-1 == tm.tm_mon && bMoveMonth) ) {
 					count = 12 - tm.tm_mon + (getMonth()-1);
 				} else {
 					count = (getMonth()-1) - tm.tm_mon;
@@ -1278,6 +1280,7 @@ time_t recurrence::calcEndDate()
 
 	if (m_sRecState.ulEndType != ET_NUMBER)
 		return getEndDateTime();
+
 
 	tStart = getStartDateTime();
 	tEnd = tStart;
