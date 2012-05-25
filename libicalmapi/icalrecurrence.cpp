@@ -306,7 +306,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	}
 
 	// @fixme write the other start / end date properies too.
-	SPropValue sPropVal;
 	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
 
 	// Set 0x820D / ApptStartWhole
