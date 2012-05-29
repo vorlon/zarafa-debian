@@ -935,7 +935,15 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bo
 
 			icRec.by_month[0] = lpRecurrence->getMonth();
 			icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
+		} else {
+			// mapi patterntype == 2
+			icRec.by_month_day[0] = lpRecurrence->getDayOfMonth();
+			icRec.by_month_day[1] = ICAL_RECURRENCE_ARRAY_MAX;
+
+			icRec.by_month[0] = lpRecurrence->getMonth();
+			icRec.by_month[1] = ICAL_RECURRENCE_ARRAY_MAX;
 		}
+
 		break;
 	default:
 		hr = MAPI_E_INVALID_PARAMETER;
