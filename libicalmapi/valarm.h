@@ -55,7 +55,7 @@
 
 /* valarm.cpp/h contains functions to convert reminder <-> valarm */
 
-HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, icalcomponent **lppAlarm);
+HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, icalcomponent **lppAlarm);
 HRESULT HrParseVAlarm(icalcomponent *lpComp, LONG *lpulRemindBefore, time_t *lpttReminderTime, bool *lpbReminderSet);
 
 #endif

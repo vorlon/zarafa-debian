@@ -2468,6 +2468,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	char *lpszTemp = NULL;
 	LONG lRemindBefore = 0;
 	time_t ttReminderTime = 0;
+	bool bTask = false;
 	
 	// find bool, skip if error or false
 	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
@@ -2482,7 +2483,11 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	if (lpPropVal)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttReminderTime);
 
-	hr = HrParseReminder(lRemindBefore, ttReminderTime, &lpAlarm);
+	lpPropVal = PpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
+	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, _T("IPM.Task")) == 0)
+		bTask = true;
+
+	hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2977,7 +2982,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			lpicComp = NULL;
 
 			if (cRecurrence.getModifiedReminder(i) != 0) {
-				hr = HrParseReminder(lRemindBefore, ttReminderTime, &lpicComp);
+				hr = HrParseReminder(lRemindBefore, ttReminderTime, false, &lpicComp);
 				if (hr == hrSuccess)
 					icalcomponent_add_component(lpicException, lpicComp);
 			}
