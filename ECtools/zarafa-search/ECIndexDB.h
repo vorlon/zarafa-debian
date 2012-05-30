@@ -73,11 +73,7 @@ public:
     HRESULT AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsigned int ulVersion, std::wstring wstrTerm);
     HRESULT RemoveTermsFolder(folderid_t folder);
     HRESULT RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion);
-    HRESULT RemoveTermsDoc(std::string strSourceKey);
     
-    // We need to track the sourcekey of documents to be able to handle deletions
-    HRESULT AddSourcekey(folderid_t folder, std::string strSourceKey, docid_t doc);
-
     HRESULT StartTransaction();
     HRESULT EndTransaction();
     

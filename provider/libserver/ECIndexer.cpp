@@ -404,7 +404,6 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 	LONGLONG	llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
 	std::list<SIndexedTerm> lstMultiSearches;
-	std::list<unsigned int>::iterator i;
 
 	if (!lpDatabase) {
 		er = ZARAFA_E_DATABASE_ERROR;
@@ -463,16 +462,6 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 		llelapsedtime = difftimeval(&tstart,&tend);
 		g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
 		g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
-
-		i = lstMatches.begin();
-		while(i != lstMatches.end()) {
-		    unsigned int ulFlags;
-		    
-		    if(lpCacheManager->GetObject(*i, NULL, NULL, &ulFlags, NULL) != erSuccess || ulFlags & MSGFLAG_DELETED)
-		        lstMatches.erase(i++);
-            else
-                i++;
-		}
 
         if (er != erSuccess) {
 			g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);

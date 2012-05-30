@@ -126,16 +126,6 @@ typedef struct {
     unsigned short version;
 } VERSIONVALUE;
 
-// Key/Value types for KT_SOURCEKEY
-typedef struct {
-    unsigned int type;
-    char sourcekey[1];
-} SOURCEKEYKEY;
-
-typedef struct {
-    unsigned int doc;
-} SOURCEKEYVALUE;
-    
 enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE };
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
@@ -361,47 +351,6 @@ exit:
     return hr;
 }
 
-/**
- * Remove terms for a document
- *
- * Uses the same logic as RemoveTermsDoc() but takes a sourcekey as a parameter.
- *
- * @param[in] store Store ID to remove document from
- * @param[in[ folder Folder ID to remove document from
- * @param[in] strSourceKey Source key to remove
- * @return Result
- */
-HRESULT ECIndexDB::RemoveTermsDoc(std::string strSourceKey)
-{
-    HRESULT hr = hrSuccess;
-    unsigned int type = KT_SOURCEKEY;
-    std::string strKey;
-    SOURCEKEYVALUE *sValue = NULL;
-    size_t cb = 0;
-    
-    strKey.assign((char *)&type, sizeof(type));
-    strKey += strSourceKey;
-    
-    sValue = (SOURCEKEYVALUE *)m_lpIndex->get(strKey.c_str(), strKey.size(), &cb);
-    
-    if(!sValue || cb != sizeof(SOURCEKEYVALUE)) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
-    
-    m_lpIndex->remove(strKey);
-    
-    hr = RemoveTermsDoc(sValue->doc, NULL);
-    if (hr != hrSuccess)
-        goto exit;
-    
-exit:
-    if (sValue)
-        delete [] sValue;
-    
-    return hr;
-}
-
 // FIXME lstFolders should be setFolders in the first place
 HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &lstMatches)
 {
@@ -511,31 +460,6 @@ exit:
         delete [] thiskey;
     if (value)
         delete [] value;
-        
-    return hr;
-}
-
-/**
- * Add document sourcekey
- *
- * @param[in] store Store ID of document
- * @param[in] folder Folder ID of document (hierarchyid)
- * @param[in] strSourceKey Source key of document
- * @param[in] doc Document ID of document (hierarchyid)
- * @return result
- */
-HRESULT ECIndexDB::AddSourcekey(folderid_t folder, std::string strSourceKey, docid_t doc)
-{
-    HRESULT hr = hrSuccess;
-    std::string strKey, strValue;
-    unsigned int type = KT_SOURCEKEY;
-    
-    strKey.assign((char *)&type, sizeof(type));
-    strKey.append(strSourceKey);
-    
-    strValue.assign((char *)&doc, sizeof(doc));
-        
-    m_lpIndex->set(strKey, strValue);
         
     return hr;
 }

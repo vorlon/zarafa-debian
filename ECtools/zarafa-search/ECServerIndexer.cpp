@@ -261,8 +261,10 @@ HRESULT ECServerIndexer::ProcessChanges(IMAPISession *lpSession)
     ExchangeExportChangesPtr lpExporter;
     
     time_t ulStartTime = time(NULL);
+    time_t ulLastTime = time(NULL);
     ULONG ulSteps = 0, ulStep = 0;
     ULONG ulTotalChange = 0, ulTotalBytes = 0;
+    ULONG ulLastChange = 0, ulLastBytes = 0;
     ULONG ulCreate = 0, ulChange = 0, ulDelete = 0, ulBytes = 0;
     
     hr = HrOpenDefaultStore(lpSession, &lpStore);
@@ -298,7 +300,9 @@ HRESULT ECServerIndexer::ProcessChanges(IMAPISession *lpSession)
     while(1) {
         hr = lpExporter->Synchronize(&ulSteps, &ulStep);
         
-        m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Step %d of %d", ulStep, ulSteps);
+        if(time(NULL) > ulLastTime + 10) {
+            m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Step %d of %d", ulStep, ulSteps);
+        }
         
         if(FAILED(hr)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Synchronize failed: %08X", hr);

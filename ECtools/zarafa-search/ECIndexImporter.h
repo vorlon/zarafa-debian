@@ -59,6 +59,7 @@
 
 #include "ECIndexDB.h"
 #include <mapidefs.h>
+#include <kchashdb.h>
 
 #include <string>
 
@@ -88,6 +89,9 @@ public:
     HRESULT SetMessageInterface(REFIID refiid);
 
     HRESULT GetStats(ULONG *lpulCreated, ULONG *lpulChanges, ULONG *lpulDeleted, ULONG *lpulBytes);
+
+    HRESULT SaveSourceKey(const std::string &strSourceKey, unsigned int doc, GUID guidStore);
+    HRESULT GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpdoc, GUID *lpGuidStore);
     
 private:
     // This is the stream that is currently being processed by the processing thread. If it is NULL,
@@ -99,7 +103,6 @@ private:
     unsigned int m_ulDocId;
     unsigned int m_ulFlags; 		
     GUID m_guidStore;					
-    std::string m_strSourceKey;
     
     pthread_mutex_t m_mutexStream; 	// Protects m_lpStream
     pthread_cond_t m_condStream;	// Signals that m_lpStream is readable again
@@ -120,8 +123,10 @@ private:
     unsigned int m_ulChanged;
     unsigned int m_ulDeleted;
     unsigned int m_ulBytes;
-    
+
     ECIndexImporterAttachment *m_lpIndexerAttach;
+
+    kyotocabinet::TreeDB *m_lpDB;
 
     class xECImportContentsChanges : public IECImportContentsChanges {
         virtual ULONG	__stdcall AddRef();
@@ -146,6 +151,7 @@ private:
     ~ECIndexImporter();
 
     HRESULT StartThread();
+    HRESULT OpenDB();
     HRESULT ProcessThread();
     static void *Thread(void *lpArg);
 
@@ -153,7 +159,6 @@ private:
     HRESULT ParseStreamAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
     friend class ECIndexImporterAttachment;
-    
 };
 
 #endif

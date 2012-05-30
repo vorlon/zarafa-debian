@@ -66,6 +66,8 @@
 
 #include <mapidefs.h>
 
+using namespace kyotocabinet;
+
 /**
  * The index importer receives imports from the streaming exporter for the data received from the
  * server. To parallelize incoming streaming data and the processing of that data, a single processing
@@ -74,6 +76,9 @@
  * the importer will block until processing of the previous stream has completed. This means that there
  * is only ever one stream in transit, which limits memory usage to the buffersize of the stream (in
  * the order of 128K).
+ *
+ * Lifetime of the index importer is quite variable; during initial indexing it lives as long as the indexing
+ * of an entire store. During incremental indexing, lifetime is equal to a single run (every few seconds).
  */
 HRESULT ECIndexImporter::Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData, ECIndexDB *lpIndex, GUID guidServer, ECIndexImporter **lppImporter)
 {
@@ -81,8 +86,16 @@ HRESULT ECIndexImporter::Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThread
     ECIndexImporter *lpImporter = new ECIndexImporter(lpConfig, lpLogger, lpThreadData, lpIndex, guidServer);
     lpImporter->AddRef();
     
+    hr = lpImporter->OpenDB();
+    if(hr != hrSuccess)
+        goto exit;
+    
     *lppImporter = lpImporter;
-
+    
+exit:
+    if(hr != hrSuccess && lpImporter)
+        delete lpImporter;
+        
     return hr;
 }
 
@@ -103,6 +116,8 @@ ECIndexImporter::ECIndexImporter(ECConfig *lpConfig, ECLogger *lpLogger, ECThrea
     
     m_ulCreated = m_ulChanged = m_ulDeleted = m_ulBytes = 0;
     
+    m_lpDB = NULL;
+    
     pthread_cond_init(&m_condStream, NULL);
     pthread_mutex_init(&m_mutexStream, NULL);
 }
@@ -120,6 +135,39 @@ ECIndexImporter::~ECIndexImporter()
     
     if(m_lpIndexerAttach)
         m_lpIndexerAttach->Release();
+        
+    if(m_lpDB) {
+        if(!m_lpDB->end_transaction()) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to end transaction: %s", m_lpDB->error().message());
+        }
+        
+        m_lpDB->close();
+        
+        delete m_lpDB;
+    }
+}
+
+HRESULT ECIndexImporter::OpenDB()
+{
+    HRESULT hr = hrSuccess;
+    std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + bin2hex(sizeof(GUID), (unsigned char*)&m_guidServer) + ".kct";
+    
+    m_lpDB = new TreeDB();
+    
+    if(!m_lpDB->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | TreeDB::OCREATE)) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpDB->error().message());
+        hr = MAPI_E_NOT_FOUND;
+        goto exit;
+    }
+
+    if(!m_lpDB->begin_transaction()) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpDB->error().message());
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+
+exit:
+    return hr;
 }
 
 HRESULT ECIndexImporter::StartThread()
@@ -183,29 +231,47 @@ HRESULT ECIndexImporter::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSour
     HRESULT hr = hrSuccess;
     ECIndexDB *lpIndex = NULL;
     ECIndexDB *lpThisIndex = NULL;
+    docid_t doc;
+    GUID guidStore;
 
 	for (unsigned int i=0; i < lpSourceEntryList->cValues; i++) {
+	    hr = GetDocIdFromSourceKey(std::string((char *)lpSourceEntryList->lpbin[i].lpb, lpSourceEntryList->lpbin[i].cb), &doc, &guidStore);
+	    if(hr != hrSuccess) {
+	        m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got deletion for unknown document: %08X", hr);
+	        hr = hrSuccess;
+	        continue; // There is nothing to delete
+	    }
+	    
+	    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Remove doc %d", doc);
+	    
         if(m_lpIndex == NULL) {
-            // FIXME, get store guid somehow
-            goto exit;
+            // Work in multi-store mode: each change we receive may be for a different store. This means
+            // we have to get the correct store for each change.
+            hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, &guidStore, true, &lpIndex);
+            if(hr != hrSuccess) {
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index database: %08X", hr);
+                goto exit;
+            }
+            lpThisIndex = lpIndex;
         } else {
             // Work in single-store mode: use the passed index
             lpThisIndex = m_lpIndex;
         }
 
-		hr = m_lpIndex->RemoveTermsDoc(std::string((char *)lpSourceEntryList->lpbin[i].lpb, lpSourceEntryList->lpbin[i].cb));
+		hr = lpThisIndex->RemoveTermsDoc(doc, NULL);
 		if(hr != hrSuccess) {
 		    m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to remove terms for document deletion: %08X", hr);
 		    goto exit;
 		}
 		
 		m_ulDeleted++;
+
+        if(lpIndex) {
+            m_lpThreadData->lpIndexFactory->ReleaseIndexDB(lpIndex);
+            lpIndex = NULL;
+        }
 	}
 
-    if(lpIndex) {
-        m_lpThreadData->lpIndexFactory->ReleaseIndexDB(lpIndex);
-        lpIndex = NULL;
-    }
     
 exit:
     return hr;
@@ -248,6 +314,7 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     hr = StartThread();
     if(hr != hrSuccess)
         goto exit;
+        
 
     // We're only ever processing one stream at a time, so we have to wait for the processing thread to finish processing the previous one
     pthread_mutex_lock(&m_mutexStream);
@@ -260,8 +327,15 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     m_ulFolderId = lpPropFolderId->Value.ul;
     m_ulDocId = lpPropDocId->Value.ul;
     m_ulFlags = ulFlags;
-    m_strSourceKey.assign((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb);
     m_guidStore = *(GUID*)lpPropStoreGuid->Value.bin.lpb;
+
+    // Record the sourcekey for future deletes since we will only receive the sourcekey in that case, and we need the docid and store guid
+    hr = SaveSourceKey(std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb), m_ulDocId, m_guidStore);
+    if(hr != hrSuccess) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to record sourcekey information for change: %08X", hr);
+        pthread_mutex_unlock(&m_mutexStream);
+        goto exit;
+    }
 
     // Create a new stream for the processing thread to process. We pass the write end of the FIFO back to the exporter.
     hr = CreateFifoStreamPair(&m_lpStream, lppstream);
@@ -329,7 +403,7 @@ HRESULT ECIndexImporter::ProcessThread()
                 lpThisIndex = m_lpIndex;
             }
 
-            if(1 || !(m_ulFlags & SYNC_NEW_MESSAGE)) {
+            if(!(m_ulFlags & SYNC_NEW_MESSAGE)) {
                 // Purge data from previous version of this document
                 hr = lpThisIndex->RemoveTermsDoc(m_ulDocId, &ulVersion);
                 if(hr != hrSuccess) {
@@ -339,13 +413,6 @@ HRESULT ECIndexImporter::ProcessThread()
                 
                 m_ulChanged++;
             } else {
-                // Record the sourcekey for future deletes
-                hr = lpThisIndex->AddSourcekey(m_ulFolderId, m_strSourceKey, m_ulDocId);  
-                if(hr != hrSuccess) {
-                    m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error recording sourcekey information: %08X, ignoring", hr);
-                    hr = hrSuccess;
-                }
-                
                 m_ulCreated++;
             }
             
@@ -490,6 +557,61 @@ HRESULT ECIndexImporter::GetStats(ULONG *lpulCreated, ULONG *lpulChanged, ULONG 
     
     m_ulCreated = m_ulChanged = m_ulDeleted = m_ulBytes = 0;
     
+    return hr;
+}
+
+/**
+ * Save a sourcekey with document id and store GUID
+ *
+ * This can be retrieved later with GetDocIdFromSourceKey()
+ */
+HRESULT ECIndexImporter::SaveSourceKey(const std::string &strSourceKey, unsigned int doc, GUID guidStore)
+{
+    HRESULT hr = hrSuccess;
+    std::string strKey;
+    std::string strValue;
+    
+    strKey = "SK";
+    strKey.append(strSourceKey);
+    
+    strValue.assign((char *)&doc, sizeof(doc));
+    strValue.append((char *)&guidStore, sizeof(guidStore));
+    
+    if(!m_lpDB->set(strKey, strValue)) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set sourcekey value: %s", m_lpDB->error().message());
+        hr = MAPI_E_DISK_ERROR;
+        goto exit;
+    }
+    
+exit:
+    return hr;
+    
+}
+
+/**
+ * Get document id and store GUID from sourcekey
+ *
+ * Since the sourcekey is globally unique, each sourcekey maps to a specific document ID and store GUID on this
+ * server. We can only resolve sourcekeys that were previously passed to SaveSourceKey().
+ */
+HRESULT ECIndexImporter::GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpdoc, GUID *lpGuidStore)
+{
+    HRESULT hr = hrSuccess;
+    std::string strKey;
+    std::string strValue;
+    
+    strKey = "SK";
+    strKey.append(strSourceKey);
+    
+    if(!m_lpDB->get(strKey, &strValue)) {
+        hr = MAPI_E_NOT_FOUND;
+        goto exit;
+    }
+    
+    *lpdoc = *(unsigned int *)strValue.data();
+    *lpGuidStore = *(GUID *)(strValue.data()+sizeof(unsigned int));
+    
+exit:    
     return hr;
 }
 
