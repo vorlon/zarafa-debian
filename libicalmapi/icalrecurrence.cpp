@@ -144,16 +144,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
-	// Set 0x8235, also known as ClipStart in OutlookSpy
-	UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(dtLocalStart), sTimeZone), &sPropVal.Value.ft);
-	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-	// set named prop 0x8510 to 353, needed for Outlook to ask for single or total recurrence when deleting
-	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_SIDEEFFECT], PT_LONG);
-	sPropVal.Value.ul = 353;
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
 	lpRec = new recurrence;
 
 	// recurrence class contains LOCAL times only, so convert UTC -> LOCAL
@@ -305,11 +295,24 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		MAPIFreeBuffer(lpOccrInfo);
 	}
 
-	// @fixme write the other start / end date properies too.
+	// set named prop 0x8510 to 353, needed for Outlook to ask for single or total recurrence when deleting
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_SIDEEFFECT], PT_LONG);
+	sPropVal.Value.ul = 353;
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// Set 0x8235, also known as ClipStart in OutlookSpy
+	UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(lpRec->getStartDateTime()), sTimeZone), &sPropVal.Value.ft);
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
 	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
 
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// Set 0x8516 / CommonStart
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
 	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
