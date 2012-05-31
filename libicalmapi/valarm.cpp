@@ -74,6 +74,8 @@ static char THIS_FILE[] = __FILE__;
  * Mapi -> Ical conversion
  *
  * @param[in]	lRemindBefore				reminder before minutes.
+ * @param[in]	ttReminderTime				Reminder time in UTC format. 
+ * @param[in]	bTask						If true, the output value is for a task item
  * @param[out]	lppAlarm					ical VALARM component.
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER	invalid parameters
