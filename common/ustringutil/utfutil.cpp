@@ -54,6 +54,7 @@
 #include "utf32iter.h"
 
 #include <unicode/ustring.h>
+#include <charset/convert.h>
 
 #if (U_ICU_VERSION_MAJOR_NUM < 4) || ((U_ICU_VERSION_MAJOR_NUM == 4) && (U_ICU_VERSION_MINOR_NUM < 2))
 #if (U_ICU_VERSION_MAJOR_NUM > 3) || ((U_ICU_VERSION_MAJOR_NUM == 3) && (U_ICU_VERSION_MINOR_NUM >= 6))
@@ -146,3 +147,20 @@ UnicodeString UTF32ToUnicode(const UChar32 *utf32)
 
 #endif	// ICU >= 3.6
 #endif	// ICU >= 4.2
+
+UnicodeString WCHARToUnicode(const wchar_t *sz)
+{
+	return UTF32ToUnicode((const UChar32 *)sz);
+}
+
+UnicodeString StringToUnicode(const char *sz)
+{
+	std::string strUTF16;
+	
+	convert_context converter;
+	
+	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode	
+	strUTF16 = converter.convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
+	
+	return UnicodeString((UChar *)strUTF16.data());
+}
