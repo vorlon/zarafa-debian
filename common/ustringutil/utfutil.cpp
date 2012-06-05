@@ -119,7 +119,7 @@ UnicodeString UTF8ToUnicode(const char *utf8)
 	const int32_t length = strlen(utf8);
 	int32_t capacity = length > 512 ? length : 512;
 	int32_t index = 0;
-	
+
 	while (index < length) {
 		UChar32 cp;
 		U8_NEXT(utf8, index, length, cp);
@@ -156,11 +156,11 @@ UnicodeString WCHARToUnicode(const wchar_t *sz)
 UnicodeString StringToUnicode(const char *sz)
 {
 	std::string strUTF16;
-	
+
 	convert_context converter;
-	
-	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode	
+
+	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode
 	strUTF16 = converter.convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
-	
-	return UnicodeString((UChar *)strUTF16.data());
+
+	return UnicodeString((UChar *)strUTF16.data(), strUTF16.length() / 2);
 }
