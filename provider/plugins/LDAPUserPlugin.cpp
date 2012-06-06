@@ -147,7 +147,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 		\
 		/* get paged result */ \
 		rc = ldap_parse_result(m_ldap, res, NULL, NULL, NULL, NULL, &returnedControls, 0); \
-		if (rc != LDAP_SUCCESS && rc != LDAP_PARTIAL_RESULTS) { \
+		if (rc != LDAP_SUCCESS) { \
 			/* @todo, whoops do we really need to unbind? */ \
 			/* ldap_unbind(m_ldap); */ \
 			/* m_ldap = NULL; */ \
@@ -169,7 +169,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 		} else { \
 			morePages = false; \
 		}
-		
+
 #define END_FOREACH_LDAP_PAGING	\
 	} \
 	while (morePages == true); \
@@ -244,7 +244,7 @@ public:
 	void add(const char **lppAttr)
 	{
 		unsigned int i = 0;
-	
+
 		while (lppAttr[i])
 			add(lppAttr[i++]);
 	}
@@ -420,7 +420,7 @@ void LDAPUserPlugin::InitPlugin() throw(exception)
 
 LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) throw(exception) {
 	int rc;
-	
+
 	LDAP *ld = NULL;
 	struct timeval tstart, tend;
 	LONGLONG llelapsedtime;
@@ -453,7 +453,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
             m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
             throw ldap_error(string("ldap_init: ") + strerror(errno));
         }
-    
+
         // Go to SSL if required
         int tls = LDAP_OPT_X_TLS_HARD;
         if(strcmp(m_config->GetSetting("ldap_protocol"), "ldaps") == 0) {
@@ -462,7 +462,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
             }
         }
     }
-    
+
 	int version = LDAP_VERSION3;
 	ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 	// Disable response message size restrictions (but the server's
@@ -475,7 +475,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
 
 	timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
 	timeout.tv_usec = 0;
-	
+
 	// Set network timeout (for connect)
 	ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &timeout);
 
@@ -512,7 +512,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECTS);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
-	
+
 	return ld;
 }
 
@@ -580,7 +580,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		m_logger->Log(EC_LOGLEVEL_ERROR, "The ldap service is unavailable, or the ldap service is shutting down");
 
 		goto exit;
-	} else if(result != LDAP_SUCCESS && result != LDAP_PARTIAL_RESULTS) {
+	} else if(result != LDAP_SUCCESS) {
 		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
 		goto exit;
 	}
@@ -599,7 +599,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	m_lpStatsCollector->Max(SCN_LDAP_SEARCH_TIME_MAX, llelapsedtime);
 
 exit:
-	if (result != LDAP_SUCCESS && result != LDAP_PARTIAL_RESULTS) {
+	if (result != LDAP_SUCCESS) {
 		m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_FAILED);
 
 		// throw ldap error
@@ -622,25 +622,25 @@ std::list<std::string> LDAPUserPlugin::GetClasses(char *lpszClasses)
 {
 	std::vector<std::string> vecClasses = tokenize(lpszClasses, ',');
 	std::list<std::string> lstClasses;
-	
+
 	for(unsigned int i=0; i < vecClasses.size(); i++) {
 		lstClasses.push_back(trim(vecClasses[i]));
 	}
-	
+
 	return lstClasses;
 }
 
 bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<std::string> lstClasses)
 {
 	std::list<std::string>::iterator i;
-	
+
 	for(i=lstClasses.begin(); i!=lstClasses.end(); i++) {
 		std::string upcase = strToUpper(*i);
 		if(setClasses.find(upcase) == setClasses.end()) {
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -657,14 +657,14 @@ std::string LDAPUserPlugin::GetObjectClassFilter(char *lpszObjectClassAttr, char
 	else {
 		std::list<std::string>::iterator i;
 		filter = "(&";
-		
+
 		for(i=lstObjectClasses.begin(); i!=lstObjectClasses.end(); i++) {
 			filter += (std::string)"(" + lpszObjectClassAttr + "=" + *i + ")";
 		}
-		
+
 		filter += ")";
 	}
-	
+
 	return filter;
 }
 
@@ -738,7 +738,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 	// All object classes for a certain object
 	std::set<std::string> setObjectClasses;
-	
+
 	// List of matching Zarafa object classes
 	std::list<std::pair<unsigned int, objectclass_t> > lstMatches;
 	std::list<std::string> lstLDAPObjectClasses;
@@ -755,31 +755,31 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	for (list<string>::const_iterator i = objclasses.begin(); i != objclasses.end(); i++) {
 		setObjectClasses.insert(strToUpper(*i));
 	}
-	
+
 	lstLDAPObjectClasses = GetClasses(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), OBJECTCLASS_USER)); // Could still be active or nonactive, will resolve later
-		
+
 	lstLDAPObjectClasses = GetClasses(class_contact_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), NONACTIVE_CONTACT));
-		
+
 	lstLDAPObjectClasses = GetClasses(class_group_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), OBJECTCLASS_DISTLIST)); // Could be permission or distribution group, will resolve later
-		
+
 	lstLDAPObjectClasses = GetClasses(class_dynamic_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), DISTLIST_DYNAMIC));
-		
+
 	lstLDAPObjectClasses = GetClasses(class_company_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), CONTAINER_COMPANY));
-		
+
 	lstLDAPObjectClasses = GetClasses(class_address_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
 		lstMatches.push_back(std::pair<unsigned int, objectclass_t>(lstLDAPObjectClasses.size(), CONTAINER_ADDRESSLIST));
-		
+
 	// lstMatches now contains all the zarafa object classes that the object COULD be, now sort by number of object classes
 
 	if(lstMatches.empty())
@@ -813,7 +813,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	if (objclass == NONACTIVE_CONTACT) {
 		object_uid = user_unique;
 	}
-	
+
 	if (objclass == OBJECTCLASS_DISTLIST) {
 		if (!stricmp(security_attr_type, "ads")) {
 			if(atoi(security_type.c_str()) & 0x80000000)
@@ -828,7 +828,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 		}
 		object_uid = group_unique;
 	}
-	
+
 	if (objclass == DISTLIST_DYNAMIC) {
 		object_uid = dynamicgroup_unique;
 	}
@@ -836,7 +836,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	if (objclass == CONTAINER_COMPANY) {
 		object_uid = company_unique;
 	}
-	
+
 	if (objclass == CONTAINER_ADDRESSLIST) {
 		object_uid = addresslist_unique;
 	}
@@ -1032,21 +1032,21 @@ string LDAPUserPlugin::getSearchFilter(objectclass_t objclass) throw(std::except
 	case DISTLIST_DYNAMIC:
 		if ((grouptype || (groupfilter && groupfilter[0] != '\0')) && (dynamicgrouptype || (dynamicgroupfilter && dynamicgroupfilter[0] != '\0')))
 			subfilter = "(|";
-		
+
 		if (grouptype && groupfilter && groupfilter[0] != '\0')
 			subfilter += string("(&") + GetObjectClassFilter(objecttype, grouptype) + groupfilter + ")";
 		else if (grouptype)
 			subfilter += GetObjectClassFilter(objecttype, grouptype);
 		else if (groupfilter && groupfilter[0] != '\0')
 			subfilter += groupfilter;
-		
+
 		if (dynamicgrouptype && dynamicgroupfilter && dynamicgroupfilter[0] != '\0')
 			subfilter += string("(&") + GetObjectClassFilter(objecttype, dynamicgrouptype) + dynamicgroupfilter + ")";
 		else if (dynamicgrouptype)
 			subfilter += GetObjectClassFilter(objecttype, dynamicgrouptype);
 		else if (dynamicgroupfilter && dynamicgroupfilter[0] != '\0')
 			subfilter += dynamicgroupfilter;
-		
+
 		if ((grouptype || (groupfilter && groupfilter[0] != '\0')) && (dynamicgrouptype || (dynamicgroupfilter && dynamicgroupfilter[0] != '\0')))
 			subfilter += ")";
 		break;
@@ -1189,7 +1189,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	my_ldap_search_s(
 			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 			(char *)ldap_filter.c_str(),
-			request_attrs, FETCH_ATTR_VALS, &res); 
+			request_attrs, FETCH_ATTR_VALS, &res);
 
 	switch(ldap_count_entries(m_ldap, res)) {
 	case 0:
@@ -1272,7 +1272,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid) thro
 	string			dn;
 	LDAPMessage*	entry = NULL;
 
-	/* 
+	/*
 	 * The cache should actually contain this entry, search for the uniqueid in there first.
 	 * In the rare case that the cache didn't contain the entry, check LDAP.
 	 */
@@ -1287,7 +1287,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid) thro
 	string			ldap_basedn = getSearchBase();
 	string			ldap_filter = getObjectSearchFilter(uniqueid);
 	auto_ptr<attrArray> request_attrs = auto_ptr<attrArray>(new attrArray(1));
-	
+
 	request_attrs->add("dn");
 
 	my_ldap_search_s(
@@ -1561,7 +1561,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	char *authmethod = m_config->GetSetting("ldap_authentication_method");
 	objectsignature_t id;
 	LONGLONG	llelapsedtime;
-	
+
 	gettimeofday(&tstart, NULL);
 
 	try {
@@ -1673,7 +1673,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	END_FOREACH_ATTR
 
 	strCryptedpw = d.GetPropString(OB_PROP_S_PASSWORD);
-	
+
 	strPasswordConverted = m_iconvrev->convert(password).c_str();
 
 	if (strCryptedpw.empty())
@@ -1748,7 +1748,7 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 {
 	std::string dn;
 	auto_free_ldap_attribute ptrDN;
-	
+
 	ptrDN = ldap_get_dn(m_ldap, entry);
 
 	if (*ptrDN) {
@@ -1816,7 +1816,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 	CONFIG_TO_ATTR(request_attrs, group_security_attr, "ldap_group_security_attribute");
 	CONFIG_TO_ATTR(request_attrs, company_unique_attr, "ldap_company_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, company_unique_attr_type, "ldap_company_unique_attribute_type");
-	CONFIG_TO_ATTR(request_attrs, company_fullname_attr, "ldap_companyname_attribute"); 
+	CONFIG_TO_ATTR(request_attrs, company_fullname_attr, "ldap_companyname_attribute");
 	CONFIG_TO_ATTR(request_attrs, sysadmin_attr, "ldap_company_system_admin_attribute");
 	CONFIG_TO_ATTR(request_attrs, sysadmin_attr_type, "ldap_company_system_admin_attribute_type");
 	CONFIG_TO_ATTR(request_attrs, sysadmin_attr_rel, "ldap_company_system_admin_relation_attribute");
@@ -1831,7 +1831,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 	for (list<configsetting_t>::iterator iter = lExtraAttrs.begin(); iter != lExtraAttrs.end(); iter++)
 		request_attrs->add(iter->szValue);
 	unsigned int ulCutoff = atoui(m_config->GetSetting("ldap_filter_cutoff_elements"));
-	
+
 	/*
 	 * When working in multi-company mode we need to determine to which company
 	 * this object belongs. To do this efficiently we are using the cache for
@@ -1864,7 +1864,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 		// find all the different object classes in the objectids list, and make an or filter based on that
 		objectclass_t objclass = (objectclass_t)-1; // set to something invalid
 		ldap_filter = "(|";
-		for(set<objectid_t>::const_iterator iter = setObjectIds.begin(); iter != setObjectIds.end(); iter++) {		
+		for(set<objectid_t>::const_iterator iter = setObjectIds.begin(); iter != setObjectIds.end(); iter++) {
 			if (objclass != iter->objclass) {
 				ldap_filter += getSearchFilter(iter->objclass);
 				objclass = iter->objclass;
@@ -2120,16 +2120,16 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 					postaction p;
 
 					p.objectid = objectid;
-					
+
 					p.objclass = OBJECTCLASS_UNKNOWN;
 					p.ldap_attrs = getLDAPAttributeValues(att, entry);
-	
+
 					p.relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
 					p.relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
 
 					if (p.relAttr == NULL || p.relAttr[0] == '\0')
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
-					
+
 					p.propname = OB_PROP_LO_SENDAS;
 					lPostActions.push_back(p);
 				}
@@ -2157,16 +2157,16 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 					postaction p;
 
 					p.objectid = objectid;
-					
+
 					p.objclass = OBJECTCLASS_UNKNOWN;
 					p.ldap_attrs = getLDAPAttributeValues(att, entry);
-	
+
 					p.relAttr = m_config->GetSetting("ldap_sendas_relation_attribute");
 					p.relAttrType = m_config->GetSetting("ldap_sendas_attribute_type");
 
 					if (p.relAttr == NULL || p.relAttr[0] == '\0')
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
-					
+
 					p.propname = OB_PROP_LO_SENDAS;
 					lPostActions.push_back(p);
 				}
@@ -2292,9 +2292,9 @@ auto_ptr<objectdetails_t> LDAPUserPlugin::getObjectDetails(const objectid_t &id)
     auto_ptr<map<objectid_t, objectdetails_t> > mapDetails;
 	map<objectid_t, objectdetails_t>::iterator iterDetails;
     list<objectid_t> objectids;
-    
+
     objectids.push_back(id);
-    
+
     mapDetails = getObjectDetails(objectids);
 	iterDetails = mapDetails->find(id);
 
@@ -2394,7 +2394,7 @@ void LDAPUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &n
  * @todo speedup: read group info on the user (with ADS you know the groups if you have the user dn)
  * @note Missing one group: with linux you have one group id on the user and other objectid on every possible group.
  *  this function checks all groups from searchfilter for an existing objectid.
- */  
+ */
 auto_ptr<signatures_t> LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject) throw(std::exception)
 {
 	string				ldap_filter;
