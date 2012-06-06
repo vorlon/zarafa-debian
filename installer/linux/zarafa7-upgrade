@@ -23,7 +23,7 @@ try:
     from progressbar import ProgressBar, Percentage, Bar, ETA
     def create_pbar(name, total):
         return ProgressBar(widgets=[name, ' ', Bar(left='[',right=']'), ' ', Percentage(), ' ', ETA()], maxval=total)
-        
+
 except ImportError:
     class simple_progress:
         def __init__(self, name, total):
@@ -38,10 +38,10 @@ except ImportError:
         def _doPrint(self):
             sys.stdout.write('\r%s: %u / %u (%d%%)' % (self.name, self.progress, self.total, self.progress * 100 / self.total))
             sys.stdout.flush()
-            
+
     def create_pbar(name, total):
         return simple_progress(name, total)
-            
+
 
 class UpdateException(Exception):
     def __init__(self):
@@ -81,20 +81,20 @@ def UpdateDatabaseConvertToUnicode(db, cursor, progress_callback):
 
     cursor.execute("UPDATE objectproperty SET value = hex(value) WHERE propname = 'companyid'")
     progress_callback.setProgress(1)
-    
+
     cursor.execute("ALTER TABLE mvproperties MODIFY val_string longtext CHARSET utf8 COLLATE utf8_general_ci")
     progress_callback.setProgress(2)
-    
+
     cursor.execute("ALTER TABLE objectproperty MODIFY propname VARCHAR(255) CHARSET utf8 COLLATE utf8_general_ci, MODIFY value TEXT CHARSET utf8 COLLATE utf8_general_ci")
     progress_callback.setProgress(3)
-    
+
     cursor.execute("ALTER TABLE objectmvproperty MODIFY propname VARCHAR(255) CHARSET utf8 COLLATE utf8_general_ci, MODIFY value TEXT CHARSET utf8 COLLATE utf8_general_ci")
     progress_callback.setProgress(4)
 
     cursor.execute("UPDATE objectproperty SET value = concat(substr(value,1,instr(value,';')-1),';',hex(substr(value,instr(value,';')+1))) WHERE propname = 'companyadmin'")
     progress_callback.setProgress(5)
     progress_callback.finish()
-    
+
 
 @update_descriptor(47, 'Update stores table usernames')
 def UpdateDatabaseConvertStoreUsername(db, cursor, progress_callback):
@@ -115,7 +115,7 @@ def UpdateDatabaseConvertRules(db, cursor, progress_callback):
     if len(results) == 0:
         return
     progress_callback.setTotal(len(results));
-    
+
     processed = 0
     for result in results:
         new_rule_data = decode_wtf1252(dbresult2string(result[2])).encode('utf-8')
@@ -134,8 +134,8 @@ def UpdateDatabaseConvertSearchFolders(db, cursor, progress_callback):
     if len(results) == 0:
         return
     progress_callback.setTotal(len(results));
-    
-    processed = 0    
+
+    processed = 0
     for result in results:
         new_rule_data = decode_wtf1252(dbresult2string(result[2])).encode('utf-8')
         cursor.execute("UPDATE properties SET val_string=0x%s WHERE hierarchyid=%u AND storeid=%u AND tag=0x6706 AND type=0x1e" % (binascii.hexlify(new_rule_data), result[0], result[1]))
@@ -349,7 +349,7 @@ def UpdateDatabaseConvertHierarchy(db, cursor, progress_callback):
                    ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"""
 
     cursor.execute(table_def)
-    
+
     # Get the max hierarchyid so we can have a progress estimate
     cursor.execute("SELECT MAX(id) FROM hierarchy")
     total = cursor.fetchone()[0]
@@ -367,7 +367,7 @@ def UpdateDatabaseConvertHierarchy(db, cursor, progress_callback):
         progress = cursor.fetchone()[0]
         if progress is None:
             break
-            
+
         progress_callback.setProgress(progress)
 
     progress_callback.setProgress(total)
@@ -407,7 +407,7 @@ def UpdateDatabaseConvertChanges(db, cursor, progress_callback):
                    ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"""
 
     cursor.execute(table_def)
-    
+
     # Get the max changeid so we can have a progress estimate
     cursor.execute("SELECT MAX(id) FROM changes")
     total = cursor.fetchone()[0]
@@ -426,7 +426,7 @@ def UpdateDatabaseConvertChanges(db, cursor, progress_callback):
         progress = cursor.fetchone()[0]
         if progress is None:
             break
-            
+
         progress_callback.setProgress(progress)
 
     progress_callback.setProgress(total)
@@ -435,7 +435,7 @@ def UpdateDatabaseConvertChanges(db, cursor, progress_callback):
     cursor.execute("DROP TABLE changes_old")
     progress_callback.finish()
 
-    
+
 @update_descriptor(58, 'Converting names table to Unicode')
 def UpdateDatabaseConvertNames(db, cursor, progress_callback):
     table_def = """CREATE TABLE IF NOT EXISTS `names_temp` (
@@ -454,10 +454,10 @@ def UpdateDatabaseConvertNames(db, cursor, progress_callback):
 
     cursor.execute("SELECT max(id) FROM names")
     results = cursor.fetchall()
-    if len(results) == 0:
+    if len(results) == 0:   # SELECT MAX(something) should never return 0 values.
         return
     maxid = results[0][0]
-    if maxid == 0:
+    if maxid is None:       # When there's no max (no values in table), MAX returns None.
         return
 
     progress_callback.setTotal(maxid)
@@ -472,7 +472,7 @@ def UpdateDatabaseConvertNames(db, cursor, progress_callback):
         progress_callback.setProgress(i)
 
     warnings.resetwarnings()
-    
+
     cursor.execute("RENAME TABLE names TO names_old, names_temp TO names")
     cursor.execute("DROP TABLE names_old")
     progress_callback.finish()
@@ -488,7 +488,7 @@ def ReadConfig(filename):
         if m:
             l.append(m.groups())
     return dict(l)
-    
+
 
 def ConnectDB(config):
     host = 'localhost'
