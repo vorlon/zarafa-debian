@@ -1347,7 +1347,7 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 	if(lDelta == 0)
 		goto exit; // No change
 
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, NULL, NULL, NULL, &ulType);
+	er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulParentId, NULL, NULL, &ulType);
 	if(er != erSuccess)
 		goto exit;
 	if (ulType != MAPI_FOLDER) {
@@ -1358,10 +1358,6 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 	
 	strQuery = "UPDATE properties SET val_ulong = val_ulong + " + stringify(lDelta,false,true) + " WHERE hierarchyid = " + stringify(ulFolderId) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " AND type = " + stringify(PROP_TYPE(ulPropTag));
 	er = lpDatabase->DoUpdate(strQuery);
-	if(er != erSuccess)
-		goto exit;
-
-	er = g_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParentId);
 	if(er != erSuccess)
 		goto exit;
 
