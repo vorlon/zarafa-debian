@@ -1021,7 +1021,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 
 			er = DeleteObjects(lpecSession, lpDatabase, *iterObjectId, ulDeleteFlags|EC_DELETE_STORE, 0, false, false);
 			if(er != erSuccess) {
-				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete store objects, error code: %u.", er);
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete store objects, error code: 0x%x.", er);
 				goto exit;
 			}
 		}
@@ -1067,7 +1067,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
-			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete folder objects, error code: %u.", er);
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete folder objects, error code: 0x%x.", er);
 			goto exit;
 		}
 
@@ -1112,7 +1112,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 
 		er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, 0, false, false);
 		if(er != erSuccess) {
-			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete message objects, error code: %u.", er);
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Error while removing softdelete message objects, error code: 0x%x.", er);
 			goto exit;
 		}
 
