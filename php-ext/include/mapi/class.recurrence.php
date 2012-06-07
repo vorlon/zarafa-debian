@@ -1160,7 +1160,7 @@
 				foreach($recipientRows as $key => $recipient) {
 					$found = false;
 					foreach($exception_recips as $excep_recip) {
-						if ($recipient[PR_ENTRYID] == $excep_recip[PR_ENTRYID])
+						if ($recipient[PR_SEARCH_KEY] == $excep_recip[PR_SEARCH_KEY])
 							$found = true;
 					}
 
@@ -1169,7 +1169,7 @@
 						// Look if the $recipient is in the list of deleted recipients
 						if (!empty($deletedRecipients)) {
 								foreach($deletedRecipients as $recip) {
-									if ($recip[PR_ENTRYID] == $recipient[PR_ENTRYID]){
+									if ($recip[PR_SEARCH_KEY] == $recipient[PR_SEARCH_KEY]){
 										$foundInDeletedRecipients = true;
 										break;
 									}
