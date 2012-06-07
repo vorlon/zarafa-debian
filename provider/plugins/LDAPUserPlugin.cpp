@@ -445,6 +445,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
 	if(strlen(ldap_uri) > 0) {
 	    if(ldap_initialize(&ld, ldap_uri) != LDAP_SUCCESS) {
 	        m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
+			m_logger->Log(EC_LOGLEVEL_FATAL, "Failed to initialize ldap for uri: %s", ldap_uri);
 	        throw ldap_error(string("ldap_initialize: ") + strerror(errno));
         }
     } else {
