@@ -838,7 +838,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "mysql_config_file",			"/etc/zarafa/my.cnf" },
 #endif
 		{ "attachment_storage",			"database" },
-		{ "attachment_path",			"/var/lib/zarafa" },
+		{ "attachment_path",			"/var/lib/zarafa/attachments" },
 		{ "attachment_compression",		"6" },
 
 		// Log options

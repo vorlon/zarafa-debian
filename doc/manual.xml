@@ -3466,7 +3466,7 @@
 			  disk. Note that the server runs as the 'run_as_user'
 			  user and 'run_as_group' group, which will require write
 			  access to this directory.</para>
-			  <para>Default: <replaceable>/var/lib/zarafa</replaceable></para>
+			  <para>Default: <replaceable>/var/lib/zarafa/attachments</replaceable></para>
 			</listitem>
 		  </varlistentry>
 

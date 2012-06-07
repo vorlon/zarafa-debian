@@ -529,7 +529,6 @@ HRESULT ECIndexImporter::ParseStreamAttachments(folderid_t folder, docid_t doc, 
 	if (!parseBool(m_lpConfig->GetSetting("index_attachments"))) {
 	    // The rest of the stream is attachments only, so just flush all that data
 		lpSerializer->Flush();
-		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
 

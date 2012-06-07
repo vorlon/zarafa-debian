@@ -1165,7 +1165,19 @@
 					}
 
 					if (!$found) {
-						if (empty($deletedRecipients)) {
+						$foundInDeletedRecipients = false;
+						// Look if the $recipient is in the list of deleted recipients
+						if (!empty($deletedRecipients)) {
+								foreach($deletedRecipients as $recip) {
+									if ($recip[PR_ENTRYID] == $recipient[PR_ENTRYID]){
+										$foundInDeletedRecipients = true;
+										break;
+									}
+								}
+						}
+
+						// If recipient is not in list of deleted recipient, add him
+						if (!$foundInDeletedRecipients) {
 							if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
 								$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
 							} else {
@@ -1173,18 +1185,6 @@
 							}
 							$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;	// No Response required
 							$deletedRecipients[] = $recipient;
-						}
-
-						foreach($deletedRecipients as $recip) {
-							if ($recip[PR_ENTRYID] != $recipient[PR_ENTRYID]){
-								if (!isset($recipient[PR_RECIPIENT_FLAGS]) || $recipient[PR_RECIPIENT_FLAGS] != (recipReserved | recipExceptionalDeleted | recipSendable)) {
-									$recipient[PR_RECIPIENT_FLAGS] = recipSendable | recipExceptionalDeleted;
-								} else {
-									$recipient[PR_RECIPIENT_FLAGS] = recipReserved | recipExceptionalDeleted | recipSendable;
-								}
-								$recipient[PR_RECIPIENT_TRACKSTATUS] = olRecipientTrackStatusNone;	// No Response required
-								$deletedRecipients[] = $recipient;
-							}
 						}
 					}
 
