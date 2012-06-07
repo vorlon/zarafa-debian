@@ -519,6 +519,10 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
 			goto exit;
+	} else {
+		// do not create calendar items without start/end date, which is invalid.
+		hr = MAPI_E_CORRUPT_DATA;
+		goto exit;
 	}
 
 	// Set end time / DTEND
@@ -529,6 +533,10 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
 			goto exit;
+	} else {
+		// do not create calendar items without start/end date, which is invalid.
+		hr = MAPI_E_CORRUPT_DATA;
+		goto exit;
 	}
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
 
