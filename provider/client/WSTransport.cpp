@@ -113,7 +113,11 @@ static char THIS_FILE[] = __FILE__;
  *
  */
 
-#define START_SOAP_CALL retry:
+#define START_SOAP_CALL retry: \
+    if(m_lpCmd == NULL) { \
+        hr = MAPI_E_NETWORK_ERROR; \
+        goto exit; \
+    }
 #define END_SOAP_CALL 	\
 	if(er == ZARAFA_E_END_OF_SESSION) { if(HrReLogon() == hrSuccess) goto retry; } \
 	hr = ZarafaErrorToMAPIError(er, MAPI_E_NOT_FOUND); \
@@ -700,9 +704,6 @@ HRESULT WSTransport::HrLogOff()
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 
-	if (m_lpCmd == NULL)
-		return hrSuccess;
-
 	LockSoap();
 
 	START_SOAP_CALL
@@ -711,13 +712,12 @@ HRESULT WSTransport::HrLogOff()
 			er = ZARAFA_E_NETWORK_ERROR;
 
         er = erSuccess; // don't care
+
+        DestroySoapTransport(m_lpCmd);
+        m_lpCmd = NULL;
 	}
 	END_SOAP_CALL
 
-	if (m_lpCmd != NULL) {
-		DestroySoapTransport(m_lpCmd);
-		m_lpCmd = NULL;
-	}
 
 exit:
 	UnLockSoap();
@@ -4681,6 +4681,9 @@ HRESULT WSTransport::HrTestGet(char *szName, char **lpszValue)
     
     START_SOAP_CALL
     {
+        // Special case: this function is called by HrEnsureSession(). However, we may be called concurrently with
+        // HrLogOff. In 
+    
         if(SOAP_OK != m_lpCmd->ns__testGet(m_ecSessionId, szName, &sResponse))
             er = ZARAFA_E_NETWORK_ERROR;
         else
@@ -4881,6 +4884,7 @@ HRESULT WSTransport::HrEnsureSession()
 {
     HRESULT hr = hrSuccess;
     char *szValue = NULL;
+    
     hr = HrTestGet("ensure_transaction", &szValue);
     if(hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_END_OF_SESSION)
         hr = hrSuccess;
