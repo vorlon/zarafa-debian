@@ -6,7 +6,7 @@ def bin2hex(x):
 
 def PROP_TAG(type, id):
     return id << 16 | type
-    
+
 def PROP_TYPE(x):
     return x & 0xffff
 
@@ -18,14 +18,21 @@ def CHANGE_PROP_TYPE(tag, type):
 
 def DEFINE_GUID(l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8):
     return struct.pack("I2H8B", l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8)
-    
+
 def DEFINE_OLEGUID(l,w1,w2):
     return DEFINE_GUID(l, w1, w2, 0xC0, 0, 0, 0, 0, 0, 0, 0x46)
 
 def PpropFindProp(props, proptag):
-    for prop in props:
-        if prop.ulPropTag == proptag:
-            return prop
+    PT_UNSPECIFIED = 0x0000
+    if PROP_TYPE(proptag) == PT_UNSPECIFIED:
+        propid = PROP_ID(proptag)
+        for prop in props:
+            if PROP_ID(prop.ulPropTag) == propid:
+                return prop
+    else:
+        for prop in props:
+            if prop.ulPropTag == proptag:
+                return prop
     return None
 
 def HrGetOneProp(pmp, proptag):
