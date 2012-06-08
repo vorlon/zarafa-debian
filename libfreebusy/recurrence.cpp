@@ -1155,6 +1155,7 @@ time_t recurrence::calcStartDate()
 			// Go the the correct month day
 			tStart += (m_sRecState.ulDayOfMonth-1) * 24*60*60;
 
+
 			// If the previous calculation gave us a start date *before* the original start date, then we need to skip to the next occurrence
 			if ( m_sRecState.ulRecurFrequency == RF_MONTHLY && m_sRecState.ulDayOfMonth < tm.tm_mday) {
 				// Monthly, go to next occurrence in 'everyn' months
@@ -1188,21 +1189,21 @@ time_t recurrence::calcStartDate()
 				}
 			}
 		} else if (m_sRecState.ulPatternType == PT_MONTH_NTH) {
+
 			// seek to the begin of the month
 			tStart -= (tm.tm_mday-1) * 24*60*60;
-
+			
 			// See to the end of the month when every last n Day of the month
 			if (m_sRecState.ulWeekNumber == 5) 
-				tStart += MonthInSeconds(tm.tm_year + 1900, tm.tm_mon);
+				tStart += MonthInSeconds(tm.tm_year + 1900, tm.tm_mon+1) - (24*60*60);
 		
-
 			// Find the first valid day (from the original start date)
 			int day = -1;
 			bool bMoveMonth = false;
 			for (int i = 0; i < 7; i++) {
 
 				if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
-					day = DaysInMonth(tm.tm_year+1900, tm.tm_mon) - i;
+					day = DaysInMonth(tm.tm_year+1900, tm.tm_mon+1) - i;
 					if (day < tm.tm_mday)
 						 bMoveMonth = true;
 					break;
@@ -1251,6 +1252,7 @@ time_t recurrence::calcStartDate()
 				}
 
 			}
+
 			// Seek to the right day (tStart should be the first day or the last day of the month.
 			gmtime_safe(&tStart, &tm);
 			for (int i = 0; i < 7; i++) {
