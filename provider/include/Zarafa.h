@@ -116,7 +116,6 @@ typedef struct EID {
 
 } EID;
 
-#pragma pack(pop)
 
 // The entryid from the begin of zarafa till 5.20
 // Entryid version is zero
@@ -149,6 +148,8 @@ typedef struct EID_V0 {
 	}
 
 } EID_V0;
+
+#pragma pack(pop)
 
 typedef struct ABEID {
 	BYTE	abFlags[4];
