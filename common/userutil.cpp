@@ -402,7 +402,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 
 	if( ulCompanyCount > 0) {
 
-		hr = ptrHierarchyTable->SetColumns((LPSPropTagArray)&sCols, MAPI_DEFERRED_ERRORS);
+		hr = ptrHierarchyTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
 		if(hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set set columns on user table: 0x%08X", hr);
 			goto exit;
@@ -586,7 +586,7 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, cha
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrStoreTable->SetColumns(ptrPropTagArray, MAPI_DEFERRED_ERRORS);
+	hr = ptrStoreTable->SetColumns(ptrPropTagArray, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -594,7 +594,7 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, cha
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ptrStoreTable->Restrict(ptrRestriction, MAPI_DEFERRED_ERRORS);
+	hr = ptrStoreTable->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
