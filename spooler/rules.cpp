@@ -62,11 +62,14 @@
 #include "CommonUtil.h"
 #include "ECLogger.h"
 #include "mapi_ptr.h"
+#include "mapiguidext.h"
 
 #include "IECExchangeModifyTable.h"
 #include "PyMapiPlugin.h"
 
 using namespace std;
+
+extern ECConfig *g_lpConfig;
 
 HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo, std::wstring &wstrCc, std::wstring &wstrBcc)
 {
@@ -407,6 +410,22 @@ HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore, IMAPIProp *l
 	if (FAILED(hr))
 		goto exit;
 
+	if (parseBool(g_lpConfig->GetSetting("set_rule_headers", NULL, "yes"))) {
+		SPropValue sPropVal;
+
+		PROPMAP_START
+		PROPMAP_NAMED_ID(ZarafaRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-zarafa-rule-action")
+		PROPMAP_INIT(lpReplyMessage);
+
+		sPropVal.ulPropTag = PROP_ZarafaRuleAction;
+		sPropVal.Value.lpszW = L"reply";
+
+		hr = HrSetOneProp(lpReplyMessage, &sPropVal);
+		if (hr != hrSuccess)
+			goto exit;
+	}
+
+
 	// append To with original sender
 	// @todo get Reply-To ?
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sReplyRecipient, 0, &cValues, &lpReplyRecipient);
@@ -571,7 +590,7 @@ HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigS
 	} };
 
 	LPSPropValue lpOrigSubject = NULL;
-	SPropValue sForwardProps[4];
+	SPropValue sForwardProps[5];
 	ULONG cfp = 0;
 	wstring strSubject;
 
@@ -669,6 +688,15 @@ HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigS
 	if (bForwardAsAttachment) {
 		sForwardProps[cfp].ulPropTag = PR_MESSAGE_CLASS;
 		sForwardProps[cfp++].Value.lpszW = L"IPM.Note";
+	}
+
+	if (parseBool(g_lpConfig->GetSetting("set_rule_headers", NULL, "yes"))) {
+		PROPMAP_START
+		PROPMAP_NAMED_ID(ZarafaRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-zarafa-rule-action")
+		PROPMAP_INIT(lpFwdMsg);
+
+		sForwardProps[cfp].ulPropTag = PROP_ZarafaRuleAction;
+		sForwardProps[cfp++].Value.lpszW = LPWSTR(bDoPreserveSender ? L"redirect" : L"forward");
 	}
 
 	hr = lpFwdMsg->SetProps(cfp, (LPSPropValue)&sForwardProps, NULL);
@@ -985,7 +1013,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist,
 									   lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER,
 									   lpActions->lpAction[n].ulActionFlavor & FWD_DO_NOT_MUNGE_MSG, 
-									    lpActions->lpAction[n].ulActionFlavor & FWD_AS_ATTACHMENT,
+									   lpActions->lpAction[n].ulActionFlavor & FWD_AS_ATTACHMENT,
 									   &lpFwdMsg);
 				if (hr != hrSuccess) {
 					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": FORWARD Unable to create forward message");

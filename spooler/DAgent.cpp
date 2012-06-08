@@ -3423,6 +3423,7 @@ int main(int argc, char *argv[]) {
 		{ "plugin_enabled", "yes" },
 		{ "plugin_path", "/var/lib/zarafa/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/zarafa-dagent/python" },
+		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 
