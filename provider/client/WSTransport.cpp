@@ -711,8 +711,6 @@ HRESULT WSTransport::HrLogOff()
 		if(SOAP_OK != m_lpCmd->ns__logoff(m_ecSessionId, &er) )
 			er = ZARAFA_E_NETWORK_ERROR;
 
-        er = erSuccess; // don't care
-
         DestroySoapTransport(m_lpCmd);
         m_lpCmd = NULL;
 	}
@@ -722,7 +720,7 @@ HRESULT WSTransport::HrLogOff()
 exit:
 	UnLockSoap();
 
-	return hr;
+	return hrSuccess; // NOTE hrSuccess, never fails since we don't really mind that it failed.
 }
 
 HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags)
@@ -4681,9 +4679,6 @@ HRESULT WSTransport::HrTestGet(char *szName, char **lpszValue)
     
     START_SOAP_CALL
     {
-        // Special case: this function is called by HrEnsureSession(). However, we may be called concurrently with
-        // HrLogOff. In 
-    
         if(SOAP_OK != m_lpCmd->ns__testGet(m_ecSessionId, szName, &sResponse))
             er = ZARAFA_E_NETWORK_ERROR;
         else
