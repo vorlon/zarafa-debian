@@ -1387,7 +1387,6 @@ exit:
 	delete lpDatabase;
 	delete lpDatabaseFactory;
 
-	delete g_lpConfig;
 
 	zarafa_exit();
 
@@ -1398,6 +1397,8 @@ exit:
 	zarafa_unloadlibrary();
 
 	rand_free();
+
+	delete g_lpConfig;
 
 	if (g_lpLogger) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Server shutdown complete.");
