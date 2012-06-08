@@ -66,7 +66,6 @@
 class ECSession;
 class ECSessionGroup;
 class ECSessionManager;
-class ECShortTermEntryIDManager;
 
 struct sessionInfo {
 	sessionInfo(ECSession *lpSession) : lpSession(lpSession) {}
@@ -146,8 +145,6 @@ public:
 
 	unsigned int GetObjectSize();
 
-	ECShortTermEntryIDManager* GetShortTermEntryIDManager();
-
 private:
 	ECRESULT releaseListeners();
 
@@ -188,8 +185,6 @@ private:
 	std::multimap<unsigned int, unsigned int>	m_mapSubscribedStores;
 	pthread_mutex_t		m_mutexSubscribedStores;
 	
-	ECShortTermEntryIDManager *	m_lpShortTermEntryIDManager;
-
 private:
 	// Make ECSessionGroup non-copyable
 	ECSessionGroup(const ECSessionGroup &);

@@ -767,7 +767,7 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	soap = soap_new();
 	
 	// PR_SOURCE_KEY
-	if (bTop && ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
+	if (bTop && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
 		sPropValList.push_back(sPropVal);
 
 	er = lpDatabase->GetNextResult(&lpDBResult);

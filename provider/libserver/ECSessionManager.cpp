@@ -1116,7 +1116,7 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	notify.obj->pEntryId		= lpEntryId;
 
 	if(ulFolderId > 0) {
-		er = GetCacheManager()->GetEntryIdFromObject(ulFolderId, NULL, &notify.obj->pParentId);
+		er = GetCacheManager()->GetEntryIdFromObject(ulFolderId, NULL, 0, &notify.obj->pParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
@@ -1147,12 +1147,12 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 	notify.ulEventType			= fnevObjectModified;
 	notify.obj->ulObjType		= ulObjType;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, &notify.obj->pEntryId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
 
 	if(ulParentId > 0) {
-		er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, &notify.obj->pParentId);
+		er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
@@ -1181,11 +1181,11 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 	notify.ulEventType			= fnevObjectCreated;
 	notify.obj->ulObjType		= ulObjType;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, &notify.obj->pEntryId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, &notify.obj->pParentId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
 	
@@ -1214,15 +1214,15 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 	notify.ulEventType				= fnevObjectMoved;	
 	notify.obj->ulObjType			= ulObjType;
 	
-	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, &notify.obj->pEntryId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, &notify.obj->pParentId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, &notify.obj->pOldParentId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, 0, &notify.obj->pOldParentId);
 	if(er != erSuccess)
 		goto exit;
 
@@ -1255,22 +1255,22 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 	
 	notify.obj->ulObjType			= ulObjType;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, &notify.obj->pEntryId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, &notify.obj->pParentId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
 
 	if(ulOldObjId > 0) {
-		er = GetCacheManager()->GetEntryIdFromObject(ulOldObjId, NULL, &notify.obj->pOldId);
+		er = GetCacheManager()->GetEntryIdFromObject(ulOldObjId, NULL, 0, &notify.obj->pOldId);
 		if(er != erSuccess)
 			goto exit;
 	}
 
 	if(ulOldParentId > 0) {
-		er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, &notify.obj->pOldParentId);
+		er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, 0, &notify.obj->pOldParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
@@ -1303,7 +1303,7 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 	notify.ulEventType				= fnevSearchComplete;
 	notify.obj->ulObjType			= MAPI_FOLDER;
 
-	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, &notify.obj->pEntryId);
+	er = GetCacheManager()->GetEntryIdFromObject(ulObjId, NULL, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
 

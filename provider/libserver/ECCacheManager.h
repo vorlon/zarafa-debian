@@ -59,6 +59,7 @@
 #include "ECConfig.h"
 #include "ECLogger.h"
 #include "SOAPUtils.h"
+#include "ZarafaCmdUtil.h"
 #include <mapidefs.h>
 #include <ECCache.h>
 
@@ -653,8 +654,8 @@ public:
 	ECRESULT Update(unsigned int ulType, unsigned int ulObjId);
 	ECRESULT UpdateUser(unsigned int ulUserId);
 
-	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, entryId* lpEntrId);
-	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, entryId** lppEntryId);
+	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntrId);
+	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId);
 	ECRESULT GetObjectFromEntryId(entryId* lpEntrId, unsigned int* lpulObjId);
 	ECRESULT SetObjectEntryId(entryId *lpEntryId, unsigned int ulObjId);
 	ECRESULT GetEntryListToObjectList(struct entryList *lpEntryList, ECListInt* lplObjectList);

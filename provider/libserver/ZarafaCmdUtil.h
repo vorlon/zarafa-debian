@@ -92,7 +92,18 @@ public:
         
         return d->ulType;
     }
+
+    unsigned int flags() const {
+        EID_V0 *d = (EID_V0 *)m_data.data();
+        
+        return d->ulFlags;
+    }
     
+    void setFlags(unsigned int ulFlags) {
+        EID_V0 *d = (EID_V0 *)m_data.data();
+        d->ulFlags = ulFlags;
+    }
+
     bool operator == (const EntryId &s) const {
         return m_data == s.m_data;
     }

@@ -67,7 +67,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, LPGUID lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, locale) {
+ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, LPGUID lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale) {
     m_ulFolderId = ulFolderId;
 }
 

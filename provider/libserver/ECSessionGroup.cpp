@@ -58,7 +58,6 @@
 #include "ECSessionGroup.h"
 #include "ECSessionManager.h"
 #include "SOAPUtils.h"
-#include "ECShortTermEntryIDManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -92,8 +91,6 @@ ECSessionGroup::ECSessionGroup(ECSESSIONGROUPID sessionGroupId, ECSessionManager
 	m_bExit = false;
 	m_lpSessionManager = lpSessionManager;
 
-	m_lpShortTermEntryIDManager = new ECShortTermEntryIDManager;
-
 	m_ulRefCount = 0;
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -119,8 +116,6 @@ ECSessionGroup::~ECSessionGroup()
 	for(i=m_mapSubscribedStores.begin(); i != m_mapSubscribedStores.end(); i++) {
 		m_lpSessionManager->UnsubscribeObjectEvents(i->second, m_sessionGroupId);
 	}
-
-	delete m_lpShortTermEntryIDManager;
 
 	/* Release any GetNotifyItems() threads */
 	pthread_mutex_destroy(&m_hNotificationLock);
@@ -614,12 +609,4 @@ unsigned int ECSessionGroup::GetObjectSize()
 	pthread_mutex_unlock(&m_mutexSubscribedStores);
 
 	return ulSize;
-}
-
-/**
- * Get the STE manager for the current session group.
- */
-ECShortTermEntryIDManager* ECSessionGroup::GetShortTermEntryIDManager()
-{
-	return m_lpShortTermEntryIDManager;
 }

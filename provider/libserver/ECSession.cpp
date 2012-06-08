@@ -67,7 +67,6 @@
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
 #include "ECUserManagementOffline.h"
-#include "ECShortTermEntryIDManager.h"
 #include "ECSecurity.h"
 #include "ECSecurityOffline.h"
 #include "ECPluginFactory.h"
@@ -595,16 +594,6 @@ void ECSession::GetClientPort(unsigned int *lpulPort)
 }
 
 /**
- * Get the short term entryid manager for this session.
- * It actually returns the STE manager for this session group as the STE's are
- * shared between sessions that belong to the same session group.
- */
-ECShortTermEntryIDManager* ECSession::GetShortTermEntryIDManager()
-{
-	return m_lpSessionGroup->GetShortTermEntryIDManager();
-}
-
-/**
  * Get the object id of the object specified by the provided entryid.
  * This entryid can either be a short term or 'normal' entryid. If the entryid is a
  * short term entryid, the STE manager for this session will be queried for the object id.
@@ -619,31 +608,24 @@ ECShortTermEntryIDManager* ECSession::GetShortTermEntryIDManager()
  * @retval	ZARAFA_E_INVALID_ENTRYID	The provided entryid is invalid.
  * @retval	ZARAFA_E_NOT_FOUND			No object was found for the provided entryid.
  */
-ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, bool *lpbIsShortTerm)
+ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags)
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulObjId = 0;
-	bool bIsShortTerm = false;
 	
 	if (lpEntryId == NULL || lpulObjId == NULL) {
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
 	
-	er = ECShortTermEntryIDManager::IsShortTermEntryId(lpEntryId, &bIsShortTerm);
-	if (er != erSuccess)
-		goto exit;
-	
-	if (bIsShortTerm)
-		er = GetShortTermEntryIDManager()->GetObjectIdFromEntryId(lpEntryId, &ulObjId);
-	else
-		er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId((entryId*)lpEntryId, &ulObjId);
+	er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId((entryId*)lpEntryId, &ulObjId);
 	if (er != erSuccess)
 		goto exit;
 	
 	*lpulObjId = ulObjId;
-	if (lpbIsShortTerm)
-		*lpbIsShortTerm = bIsShortTerm;
+	
+	if(lpulEidFlags)
+		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->ulFlags;
 		
 exit:
 	return er;

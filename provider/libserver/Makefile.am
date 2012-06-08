@@ -52,7 +52,6 @@ libserver_la_SOURCES = \
 	ECStatsCollector.cpp ECStatsCollector.h \
 	ECStatsTables.cpp ECStatsTables.h \
 	ECNotificationManager.cpp ECNotificationManager.h \
-	ECShortTermEntryIDManager.cpp ECShortTermEntryIDManager.h \
 	ECIndexer.cpp ECIndexer.h \
 	StreamUtil.cpp StreamUtil.h \
 	StorageUtil.cpp StorageUtil.h \

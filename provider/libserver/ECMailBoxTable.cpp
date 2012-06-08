@@ -68,7 +68,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 ECMailBoxTable::ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : 
-	ECStoreObjectTable(lpSession, 0, NULL, 0, MAPI_STORE, ulFlags, locale)
+	ECStoreObjectTable(lpSession, 0, NULL, 0, MAPI_STORE, ulFlags, TABLE_FLAG_OVERRIDE_HOME_MDB, locale)
 {
 	m_ulStoreTypes = 3; // 1. Show all users store 2. Public stores
 }

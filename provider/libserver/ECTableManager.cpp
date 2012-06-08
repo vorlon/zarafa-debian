@@ -212,12 +212,12 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		if(er != erSuccess)
 			goto exit;
 
-		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, 0, MAPI_MESSAGE, 0, locale, &lpTable);
+		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, 0, MAPI_MESSAGE, 0, 0, locale, &lpTable);
 
 	} else {
 		// FIXME check permissions for master outgoing table
 		// Master outgoing table has different STORE_ENTRYID and GUID per row
-		er = ECStoreObjectTable::Create(lpSession, 0, NULL, 0, MAPI_MESSAGE, 0, locale, &lpTable);
+		er = ECStoreObjectTable::Create(lpSession, 0, NULL, 0, MAPI_MESSAGE, 0, 0, locale, &lpTable);
 	}
 	if(er != erSuccess)
 		goto exit;
@@ -378,7 +378,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	} else if(ulObjType == MAPI_FOLDER && (ulFlags & CONVENIENT_DEPTH))
 		er = ECConvenientDepthObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, (ECConvenientDepthObjectTable**)&lpTable);
     else
-    	er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, &lpTable);
+    	er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, 0, locale, &lpTable);
 
 	if (er != erSuccess)
 		goto exit;

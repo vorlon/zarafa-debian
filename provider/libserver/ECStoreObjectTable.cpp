@@ -140,7 +140,7 @@ bool IsTruncated(struct propVal *lpsPropVal)
 	return false;		
 }
 
-ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
+ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
 {
 	ECODStore* lpODStore = new ECODStore;
 
@@ -148,6 +148,7 @@ ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession, unsigned int ulStor
 	lpODStore->ulFolderId = ulFolderId;
 	lpODStore->ulObjType = ulObjType;
 	lpODStore->ulFlags = ulFlags;
+	lpODStore->ulTableFlags = ulTableFlags;
 
 	if(lpGuid) {
 		lpODStore->lpGuid = new GUID;
@@ -177,11 +178,11 @@ ECStoreObjectTable::~ECStoreObjectTable()
 	}
 }
 
-ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)
+ECRESULT ECStoreObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable)
 {
 	ECRESULT er = erSuccess;
 
-	*lppTable = new ECStoreObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, locale);
+	*lppTable = new ECStoreObjectTable(lpSession, ulStoreId, lpGuid, ulFolderId, ulObjType, ulFlags, ulTableFlags, locale);
 
 	(*lppTable)->AddRef();
 
@@ -444,7 +445,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
             }
 
 			if (ECGenProps::IsPropComputedUncached(ulPropTag, lpODStore->ulObjType) == erSuccess) {
-				if (ECGenProps::GetPropComputedUncached(soap, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
+				if (ECGenProps::GetPropComputedUncached(soap, lpODStore, lpSession, ulPropTag, iterRowList->ulObjId, iterRowList->ulOrderId, ulRowStoreId, lpODStore->ulFolderId, lpODStore->ulObjType, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess)
 					CopyEmptyCellToSOAPPropVal(soap, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k]);
 				setCellDone.insert(std::make_pair(i,k));
 				continue;

@@ -1768,14 +1768,17 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, 
     return er;
 }
 
-ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, entryId** lppEntryId)
+ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId)
 {
 	ECRESULT	er = erSuccess;
 	entryId*	lpEntryId = s_alloc<entryId>(soap);
 
-	er = GetEntryIdFromObject(ulObjId, soap, lpEntryId);
+	er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
 	if (er != erSuccess)
 		goto exit;
+		
+    // Set flags in entryid
+    ((EID *)lpEntryId->__ptr)->ulFlags = ulFlags;
 
 	*lppEntryId = lpEntryId;
 exit:
@@ -1785,20 +1788,30 @@ exit:
 	return er;
 }
 
-ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, entryId* lpEntryId)
+ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntryId)
 {
 	ECRESULT	er = erSuccess;
 
 	er = GetPropFromObject( PROP_ID(PR_ENTRYID), ulObjId, soap, (unsigned int*)&lpEntryId->__size, &lpEntryId->__ptr);
+	if (er != erSuccess)
+	    goto exit;
 
+    // Set flags in entryid
+    ((EID *)lpEntryId->__ptr)->ulFlags = ulFlags;
+    
+exit:
 	return er;
 }
 
 ECRESULT ECCacheManager::GetObjectFromEntryId(entryId* lpEntryId, unsigned int* lpulObjId)
 {
 	ECRESULT	er = erSuccess;
+	
+	// Make sure flags is 0 when getting from db/cache
+	EntryId eid(lpEntryId);
+	eid.setFlags(0);
 
-	er = GetObjectFromProp( PROP_ID(PR_ENTRYID), lpEntryId->__size, lpEntryId->__ptr, lpulObjId);
+	er = GetObjectFromProp( PROP_ID(PR_ENTRYID), eid.size(), eid, lpulObjId);
 
 	return er;
 }
@@ -1806,8 +1819,12 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(entryId* lpEntryId, unsigned int* 
 ECRESULT ECCacheManager::SetObjectEntryId(entryId* lpEntryId, unsigned int ulObjId)
 {
     ECRESULT 	er = erSuccess;
+    
+    // MAke sure flags is 0 when saving in DB
+    EntryId eid(lpEntryId);
+    eid.setFlags(0);
 
-    er = SetObjectProp( PROP_ID(PR_ENTRYID), lpEntryId->__size, lpEntryId->__ptr, ulObjId);
+    er = SetObjectProp( PROP_ID(PR_ENTRYID), eid.size(), eid, ulObjId);
 
     return er;
 }
@@ -1863,7 +1880,7 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 
 	for(iterList = lplObjectList->begin(); iterList != lplObjectList->end(); iterList++)
 	{
-		if(GetEntryIdFromObject(*iterList, soap, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
+		if(GetEntryIdFromObject(*iterList, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
 			bPartialCompletion = true;
 			continue; // Unknown entryid, next item
 		}

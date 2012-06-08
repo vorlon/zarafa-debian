@@ -330,7 +330,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
 				}
 
-				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
+				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, 0, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
 
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
 				GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);
@@ -394,7 +394,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
 				}
 
-				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
+				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, 0, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
 
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
 				GetSourceKey(sItem.ulParent, &sItem.sParentSourceKey);

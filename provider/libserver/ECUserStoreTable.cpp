@@ -191,7 +191,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 				break;
 			case PROP_ID(PR_STORE_ENTRYID):
 				// ignore errors
-				ECGenProps::GetPropComputedUncached(soap, lpSession, PR_STORE_ENTRYID, pThis->m_mapUserStoreData[iterRowList->ulObjId].ulObjId, 0,
+				ECGenProps::GetPropComputedUncached(soap, NULL ,lpSession, PR_STORE_ENTRYID, pThis->m_mapUserStoreData[iterRowList->ulObjId].ulObjId, 0,
 							   				pThis->m_mapUserStoreData[iterRowList->ulObjId].ulObjId, 0, MAPI_STORE, &lpsRowSet->__ptr[i].__ptr[k]);
 				break;
 			case PROP_ID(PR_LAST_MODIFICATION_TIME):

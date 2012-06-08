@@ -78,7 +78,6 @@
 
 class ECSecurity;
 class ECUserManagement;
-class ECShortTermEntryIDManager;
 class SOURCEKEY;
 
 
@@ -170,9 +169,8 @@ public:
 
 	ECTableManager* GetTableManager();
 	ECSecurity* GetSecurity();
-	ECShortTermEntryIDManager* GetShortTermEntryIDManager();
 	
-	ECRESULT GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, bool *lpbIsShortTerm = NULL);
+	ECRESULT GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags = NULL);
 	ECRESULT LockObject(unsigned int ulObjId);
 	ECRESULT UnlockObject(unsigned int ulObjId);
 	

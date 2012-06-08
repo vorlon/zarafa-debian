@@ -56,7 +56,6 @@
 #include "ECDatabaseUpdate.h"
 #include "ECLicenseClient.h"
 #include "ECGuid.h"
-#include "ECShortTermEntryIDManager.h"
 #include "ECLockManager.h"
 
 #include "soapH.h"
@@ -1152,7 +1151,6 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	std::string			strCompanyName;
 	const std::string	strThisServer = g_lpSessionManager->GetConfig()->GetSetting("server_name", "", "Unknown");
 	objectdetails_t		details;
-	bool				bCreateShortTerm = false;
     USE_DATABASE();
 
 	if (lpecSession->GetSessionManager()->IsHostedSupported()) {
@@ -1214,8 +1212,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 				g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
 				er = ZARAFA_E_UNABLE_TO_COMPLETE;
 				goto exit;
-			} else
-				bCreateShortTerm = true;
+            }
 		}
 	}
 
@@ -1247,16 +1244,13 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		goto exit;
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, &lpsResponse->sRootId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
 	    goto exit;
 
-	if (bCreateShortTerm)
-		er = lpecSession->GetShortTermEntryIDManager()->GetEntryIdForObjectId(atoui(lpDBRow[2]), g_lpSessionManager->GetCacheManager(), &lpsResponse->sStoreId);
-	else {
-	    lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strStoreServer).c_str());
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, &lpsResponse->sStoreId);
-	}
+    lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strStoreServer).c_str());
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, ulFlags, &lpsResponse->sStoreId);
+
 	if(er != erSuccess)
 	    goto exit;
 
@@ -1353,11 +1347,11 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		goto exit;
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, &lpsResponse->sRootId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsResponse->sRootId);
 	if(er != erSuccess)
 	    goto exit;
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, &lpsResponse->sStoreId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[2]), soap, 0, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 	    goto exit;
 
@@ -1592,7 +1586,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
         
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
 	{
-		if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_USER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_USER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 			if (er != erSuccess)
 				goto exit;
@@ -1601,7 +1595,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
         }
 
-		if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_USER_ENTRYID, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_USER_ENTRYID, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 		    sChildProps.lpPropTags->AddPropTag(PR_USER_ENTRYID);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
         }
@@ -1647,7 +1641,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 			// 5.0 client knows how to handle the PR_MAILBOX_OWNER_* properties
 			if(ulStoreOwner != ZARAFA_UID_EVERYONE && ulStoreOwner != ulCompanyId )	{
 
-				if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_MAILBOX_OWNER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
+				if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAILBOX_OWNER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 					er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 					if (er != erSuccess)
 						goto exit;
@@ -1657,7 +1651,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 				}
 
 				// Add PR_MAILBOX_OWNER_ENTRYID
-				if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_MAILBOX_OWNER_ENTRYID, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
+				if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAILBOX_OWNER_ENTRYID, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 					sChildProps.lpPropTags->AddPropTag(PR_MAILBOX_OWNER_ENTRYID);
                     sChildProps.lpPropVals->AddPropVal(sPropVal);
 				}
@@ -1665,7 +1659,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 		}
 
 		// Add PR_DISPLAY_NAME
-		if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_DISPLAY_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_DISPLAY_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 			if (er != erSuccess)
 				goto exit;
@@ -1674,7 +1668,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
 
-		if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_MAPPING_SIGNATURE, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+		if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAPPING_SIGNATURE, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
 		    sChildProps.lpPropTags->AddPropTag(PR_MAPPING_SIGNATURE);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
@@ -1692,13 +1686,13 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 	//PR_PARENT_SOURCE_KEY for folders and messages
 	if(ulObjType == MAPI_FOLDER || (ulObjType == MAPI_MESSAGE && ulObjTypeParent == MAPI_FOLDER))
 	{
-		if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
+		if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
 		{
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
 
-		if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
+		if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
 		{
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
@@ -1716,7 +1710,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 	}
 
 	if (ulObjType == MAPI_MAILUSER || ulObjType == MAPI_DISTLIST) {
-		if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_INSTANCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+		if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_INSTANCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
 		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 		    sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
@@ -1724,7 +1718,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 
 	// Set the PR_RECORD_KEY
 	if (ulObjType != MAPI_ATTACH || !sChildProps.lpPropTags->HasPropTag(PR_RECORD_KEY)) {
-		if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
 			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
 			sChildProps.lpPropVals->AddPropVal(sPropVal);
 		}
@@ -1743,7 +1737,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 
             if(lpDBRow && lpDBRow[0]) {
 
-                if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
+                if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess)
                 {
                     sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
                     sChildProps.lpPropVals->AddPropVal(sPropVal);
@@ -1752,7 +1746,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 
             if(lpDBRow && lpDBRow[1] && lpDBRow[2] && atoi(lpDBRow[2]) == 3) {
                 // PR_RIGHTS
-                if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
                     sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
                     sChildProps.lpPropVals->AddPropVal(sPropVal);
                 }
@@ -1761,7 +1755,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
             // Set the flags PR_ACCESS and PR_ACCESS_LEVEL
             if(lpDBRow && lpDBRow[0] && lpDBRow[2] && (atoi(lpDBRow[2]) == 3 || atoi(lpDBRow[2]) == 5) && lpDBRow[1])
             {
-                if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
                     sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
                     sChildProps.lpPropVals->AddPropVal(sPropVal);
                 }
@@ -1769,7 +1763,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 
             if(lpDBRow && lpDBRow[2] && lpDBRow[1])
             {
-                if (ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+                if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
                     sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
                     sChildProps.lpPropVals->AddPropVal(sPropVal);
                 }
@@ -2900,7 +2894,7 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 				for (int i = 0; !bSkip && i < lpsSaveObj->modProps.__size; ++i)
 					bSkip = lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_RECORD_KEY;
 			}
-			if (!bSkip && ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess) {
+			if (!bSkip && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess) {
 				lpsReturnObj->delProps.__ptr[n] = PR_RECORD_KEY;
 				n++;
 			}
@@ -2915,13 +2909,13 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 		//PR_PARENT_SOURCE_KEY for folders and messages
 		if (lpsSaveObj->ulObjType == MAPI_FOLDER || (lpsSaveObj->ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER))
 		{
-			if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
+			if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
 			{
 				lpsReturnObj->delProps.__ptr[n] = PR_PARENT_SOURCE_KEY;
 				n++;
 			}
 
-			if(ECGenProps::GetPropComputedUncached(soap, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
+			if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
 			{
 				lpsReturnObj->delProps.__ptr[n] = PR_SOURCE_KEY;
 				n++;
@@ -3387,10 +3381,9 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	unsigned int	ulParentId = 0;
 	unsigned int	ulParentObjType = 0;
 	unsigned int	ulOwnerId = 0;
+	unsigned int	ulEidFlags = 0;
 	USE_DATABASE();
 
-	bool			bIsShortTerm = false;
-	
 	struct saveObject sSavedObject;
 
 	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED);
@@ -3402,8 +3395,8 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	 *  1. We can't find the object based on the entryid.
 	 *  2. The owner of the store is not supposed to have a store on this server.
 	 */
-	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &bIsShortTerm);
-	if (!bIsShortTerm) {
+	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &ulEidFlags);
+	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 		if (er == ZARAFA_E_NOT_FOUND &&	sEntryId.__size >= (int)min(sizeof(EID), sizeof(EID_V0)) && ((EID*)sEntryId.__ptr)->ulType == MAPI_STORE)
 			er = ZARAFA_E_UNABLE_TO_COMPLETE;	// Reason 1
 	}
@@ -3415,7 +3408,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
         goto exit;
     
 	if(ulObjType == MAPI_STORE) {
-		if (!bIsShortTerm) {
+		if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			if (lpecSession->GetSessionManager()->IsDistributedSupported() && !lpecSession->GetUserManagement()->IsInternalObject(ulOwnerId)) {
 				objectdetails_t sUserDetails;
 
@@ -3796,7 +3789,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId, entryId* lpsN
 	if (er != erSuccess)
 		goto exit;
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulFolderId, soap, &lpsResponse->sEntryId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulFolderId, soap, 0, &lpsResponse->sEntryId);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5049,7 +5042,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 			goto exit;
 		}
 
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, &lpsReceiveFolder->sReceiveFolder.sEntryId);
+		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolder->sReceiveFolder.sEntryId);
 		if(er != erSuccess)
 			goto exit;
 
@@ -7579,7 +7572,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 			goto exit;
 	}
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[1]), soap, &lpsResponse->sStoreId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[1]), soap, OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
 	if(er != erSuccess)
 		goto exit;
 
@@ -7596,7 +7589,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 {
 	unsigned int		ulObjectId = 0;
 	objectdetails_t		sUserDetails;
-	bool				bCreateShortTerm = false;
+	string				strServerName;
 
 	USE_DATABASE();
 
@@ -7658,8 +7651,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 					g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
 					er = ZARAFA_E_UNABLE_TO_COMPLETE;
 					goto exit;
-				} else
-					bCreateShortTerm = true;
+                }
 			}
 		}
 
@@ -7700,16 +7692,13 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
  		   goto exit;
     }
 
-	if (bCreateShortTerm) {
-		er = lpecSession->GetShortTermEntryIDManager()->GetEntryIdForObjectId(atoui(lpDBRow[0]), g_lpSessionManager->GetCacheManager(), &lpsResponse->sStoreId);
-	} else {
-		/* We found the store, so we don't need to check if this is the correct server. */
-		const string strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name", "", "Unknown");
-		// Always return the pseudo URL.
-		lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
+    /* We found the store, so we don't need to check if this is the correct server. */
+    strServerName = g_lpSessionManager->GetConfig()->GetSetting("server_name", "", "Unknown");
+    // Always return the pseudo URL.
+    lpsResponse->lpszServerPath = STROUT_FIX_CPY(string("pseudo://" + strServerName).c_str());
 
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, &lpsResponse->sStoreId);
-	}
+    er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, ulFlags & OPENSTORE_OVERRIDE_HOME_MDB, &lpsResponse->sStoreId);
+
 	if(er != erSuccess)
 		goto exit;
 
@@ -7900,7 +7889,7 @@ ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lp
 			continue;
 
 
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(iterCopyItems->ulId, NULL, &lpsOldEntryId);
+		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(iterCopyItems->ulId, NULL, 0, &lpsOldEntryId);
 		if(er != erSuccess) {
 			bPartialCompletion = true;
 			er = erSuccess;
@@ -9108,7 +9097,7 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 			goto exit;
 		}
 
-		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, &lpsReceiveFolderTable->sFolderArray.__ptr[i].sEntryId);
+		er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(atoui(lpDBRow[0]), soap, 0, &lpsReceiveFolderTable->sFolderArray.__ptr[i].sEntryId);
 		if(er != erSuccess){
 			er = erSuccess;
 			continue;
@@ -10442,7 +10431,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
 	if(er != erSuccess)
 		goto exit;
 
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, &lpsResponse->sEntryId);
+	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, 0, &lpsResponse->sEntryId);
 	if(er != erSuccess)
 		goto exit;
 

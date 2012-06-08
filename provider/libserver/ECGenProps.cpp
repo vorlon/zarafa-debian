@@ -59,6 +59,7 @@
 #include "stringutil.h"
 #include "SOAPUtils.h"
 #include "soapH.h"
+#include "ECStoreObjectTable.h"
 #include "ECGenProps.h"
 #include "Zarafa.h"
 #include "ECDefs.h"
@@ -431,7 +432,7 @@ exit:
 }
 
 // All in memory properties
-ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSession, unsigned int ulPropTag, unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
+ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODStore, ECSession* lpSession, unsigned int ulPropTag, unsigned int ulObjId, unsigned int ulOrderId, unsigned int ulStoreId, unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulRights = 0;
@@ -452,6 +453,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 		case PROP_ID(PR_STORE_ENTRYID):
 		{
 			entryId sEntryId;
+			unsigned int ulFlags = 0;
 
 			if (ulPropTag == PR_PARENT_ENTRYID) {
 				if(ulParentId == 0) {
@@ -470,9 +472,11 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECSession* lpSes
 					
 			}else if (ulPropTag == PR_STORE_ENTRYID) {
 				ulObjId = ulStoreId;
+				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
+    				ulFlags = OPENSTORE_OVERRIDE_HOME_MDB;
 			}
 
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, &sEntryId);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulFlags, &sEntryId);
 			if(er != erSuccess) {
 				// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
 				//ASSERT(FALSE);

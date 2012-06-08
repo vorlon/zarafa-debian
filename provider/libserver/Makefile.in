@@ -69,9 +69,9 @@ am_libserver_la_OBJECTS = ZarafaCmd.lo ECABObjectTable.lo \
 	ECConvenientDepthABObjectTable.lo ECMultiStoreTable.lo \
 	ECUserStoreTable.lo ECConversion.lo ECAttachmentStorage.lo \
 	ECStatsCollector.lo ECStatsTables.lo ECNotificationManager.lo \
-	ECShortTermEntryIDManager.lo ECIndexer.lo StreamUtil.lo \
-	StorageUtil.lo ECTPropsPurge.lo ECMailBoxTable.lo \
-	ECTestProtocol.lo ZarafaCmdUtil.lo ECLockManager.lo
+	ECIndexer.lo StreamUtil.lo StorageUtil.lo ECTPropsPurge.lo \
+	ECMailBoxTable.lo ECTestProtocol.lo ZarafaCmdUtil.lo \
+	ECLockManager.lo
 libserver_la_OBJECTS = $(am_libserver_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -373,7 +373,6 @@ libserver_la_SOURCES = \
 	ECStatsCollector.cpp ECStatsCollector.h \
 	ECStatsTables.cpp ECStatsTables.h \
 	ECNotificationManager.cpp ECNotificationManager.h \
-	ECShortTermEntryIDManager.cpp ECShortTermEntryIDManager.h \
 	ECIndexer.cpp ECIndexer.h \
 	StreamUtil.cpp StreamUtil.h \
 	StorageUtil.cpp StorageUtil.h \
@@ -468,7 +467,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSessionGroup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSessionManager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSessionManagerOffline.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECShortTermEntryIDManager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECStatsCollector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECStatsTables.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECStoreObjectTable.Plo@am__quote@

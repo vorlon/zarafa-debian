@@ -64,21 +64,25 @@
 class ECSession;
 
 // Objectdata for a store
-typedef struct{
+typedef struct _ECODStore {
 	unsigned int	ulStoreId;		// The Store ID this table is watching (0 == multi-store)
 	unsigned int	ulFolderId;		// The Folder ID this table is watching (0 == multi-folder)
 	unsigned int	ulObjType;
 	unsigned int	ulFlags;
+	unsigned int 	ulTableFlags;
 	GUID*			lpGuid;			// The GUID of the store
 }ECODStore;
+
+// For ulTableFlags
+#define TABLE_FLAG_OVERRIDE_HOME_MDB 0x00000001
 
 class ECStoreObjectTable : public ECGenericObjectTable
 {
 protected:
-	ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
+	ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale);
 	virtual ~ECStoreObjectTable();
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECStoreObjectTable **lppTable);
+	static ECRESULT Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable);
 	virtual ECRESULT Load();
 
 	//Overrides

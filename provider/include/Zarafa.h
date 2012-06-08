@@ -79,21 +79,24 @@
 // points to the top-level object for the store. The other fields are the same.
 
 
+#pragma pack(push,1)
 // Entryid from version 6
 // Entryid version 1
 typedef struct EID {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
-	ULONG	ulType;
+	USHORT	ulType;
+	USHORT  ulFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
 	GUID	uniqueId;		// Unique id
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
 
-	EID(ULONG ulType, GUID guid, GUID uniqueId) {
+	EID(ULONG ulType, GUID guid, GUID uniqueId, ULONG ulFlags = 0) {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = 1; //Always last version
 		this->ulType = ulType;
+		this->ulFlags = ulFlags;
 		this->guid = guid;
 		this->uniqueId = uniqueId;
 	}
@@ -113,13 +116,16 @@ typedef struct EID {
 
 } EID;
 
+#pragma pack(pop)
+
 // The entryid from the begin of zarafa till 5.20
 // Entryid version is zero
 typedef struct EID_V0 {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
-	ULONG	ulType;
+	USHORT	ulType;
+	USHORT  ulFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
 	ULONG	ulId;
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
