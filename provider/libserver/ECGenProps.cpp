@@ -453,7 +453,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 		case PROP_ID(PR_STORE_ENTRYID):
 		{
 			entryId sEntryId;
-			unsigned int ulFlags = 0;
+			unsigned int ulEidFlags = 0;
 
 			if (ulPropTag == PR_PARENT_ENTRYID) {
 				if(ulParentId == 0) {
@@ -473,10 +473,10 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			}else if (ulPropTag == PR_STORE_ENTRYID) {
 				ulObjId = ulStoreId;
 				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
-    				ulFlags = OPENSTORE_OVERRIDE_HOME_MDB;
+    				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
 			}
 
-			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulFlags, &sEntryId);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
 			if(er != erSuccess) {
 				// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
 				//ASSERT(FALSE);
