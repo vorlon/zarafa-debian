@@ -170,13 +170,13 @@ HRESULT ECServerIndexer::Thread()
         if(!lpSession) {
             hr = HrOpenECSession(&lpSession, L"SYSTEM", L"", m_lpConfig->GetSetting("server_socket"));
             if(hr != hrSuccess) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to contact zarafa server: %08X. Will retry.", hr);
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to contact zarafa server %s: %08X. Will retry.", m_lpConfig->GetSetting("server_socket"), hr);
                 goto next;
             }
             
             hr = GetServerGUID(lpSession, &m_guidServer);
             if(hr != hrSuccess) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get server GUID: %08X", hr);
+				lpSession = NULL;
                 goto next;
             }
 
@@ -188,8 +188,10 @@ HRESULT ECServerIndexer::Thread()
             else if(hr == hrSuccess) {
                 m_ulIndexerState = stateRunning;
                 m_lpLogger->Log(EC_LOGLEVEL_INFO, "Waiting for changes");
-            } else
+            } else {
+                m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed loading import state: %08X", hr);
                 goto exit;
+			}
         }
             
         if(m_ulIndexerState == stateUnknown) {
@@ -264,7 +266,6 @@ HRESULT ECServerIndexer::ProcessChanges(IMAPISession *lpSession)
     time_t ulLastTime = time(NULL);
     ULONG ulSteps = 0, ulStep = 0;
     ULONG ulTotalChange = 0, ulTotalBytes = 0;
-    ULONG ulLastChange = 0, ulLastBytes = 0;
     ULONG ulCreate = 0, ulChange = 0, ulDelete = 0, ulBytes = 0;
     
     hr = HrOpenDefaultStore(lpSession, &lpStore);
