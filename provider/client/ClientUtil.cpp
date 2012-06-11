@@ -1054,7 +1054,7 @@ HRESULT HrCreateEntryId(GUID guidStore, unsigned int ulObjType, ULONG* lpcbEntry
 		goto exit;
 
 	eid.guid = guidStore;
-	eid.ulType = ulObjType;
+	eid.usType = ulObjType;
 
 	memcpy(lpEntryId, &eid, cbEntryId);
 

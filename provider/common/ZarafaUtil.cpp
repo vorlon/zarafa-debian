@@ -96,7 +96,7 @@ bool ValidateZarafaEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int ulCheckType)
 
 	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
 		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
-		 peid->ulType == ulCheckType)
+		 peid->usType == ulCheckType)
 	{
 		bOk = true;
 	}
@@ -131,7 +131,7 @@ bool ValidateZarafaEntryList(LPENTRYLIST lpMsgList, unsigned int ulCheckType)
 
 		if( !(((lpMsgList->lpbin[i].cb == sizeof(EID) && peid->ulVersion == 1) ||
 			 (lpMsgList->lpbin[i].cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
-			 peid->ulType == ulCheckType))
+			 peid->usType == ulCheckType))
 		{
 			bOk = false;
 			goto exit;
@@ -187,7 +187,7 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulObj
 	}
 
 
-	*lpulObjType = peid->ulType;
+	*lpulObjType = peid->usType;
 
 exit:
 	return er;

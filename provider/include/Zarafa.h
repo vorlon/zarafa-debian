@@ -86,17 +86,17 @@ typedef struct EID {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
-	USHORT	ulType;
-	USHORT  ulFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
+	USHORT	usType;
+	USHORT  usFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
 	GUID	uniqueId;		// Unique id
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
 
-	EID(ULONG ulType, GUID guid, GUID uniqueId, ULONG ulFlags = 0) {
+	EID(USHORT usType, GUID guid, GUID uniqueId, ULONG usFlags = 0) {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = 1; //Always last version
-		this->ulType = ulType;
-		this->ulFlags = ulFlags;
+		this->usType = usType;
+		this->usFlags = usFlags;
 		this->guid = guid;
 		this->uniqueId = uniqueId;
 	}
@@ -104,7 +104,7 @@ typedef struct EID {
 	EID(EID *oldEID) {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = oldEID->ulVersion;
-		this->ulType = oldEID->ulType;
+		this->usType = oldEID->usType;
 		this->guid = oldEID->guid;
 		this->uniqueId = oldEID->uniqueId;
 	}
@@ -123,22 +123,22 @@ typedef struct EID_V0 {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
-	USHORT	ulType;
-	USHORT  ulFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
+	USHORT	usType;
+	USHORT  usFlags;		// Before Zarafa 7.1, ulFlags did not exist, and ulType was ULONG
 	ULONG	ulId;
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
 
-	EID_V0(ULONG ulType, GUID guid, ULONG ulId) {
+	EID_V0(USHORT usType, GUID guid, ULONG ulId) {
 		memset(this, 0, sizeof(EID_V0));
-		this->ulType = ulType;
+		this->usType = usType;
 		this->guid = guid;
 		this->ulId = ulId;
 	}
 
 	EID_V0(EID_V0 *oldEID) {
 		memset(this, 0, sizeof(EID_V0));
-		this->ulType = oldEID->ulType;
+		this->usType = oldEID->usType;
 		this->guid = oldEID->guid;
 		this->ulId = oldEID->ulId;
 	}

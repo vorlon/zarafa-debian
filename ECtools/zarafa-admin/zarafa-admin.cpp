@@ -461,7 +461,7 @@ void print_quota(LPECQUOTA lpQuota, LPECQUOTASTATUS lpQuotaStatus, bool isPublic
 		else
 			cout << "Public store size:\t";
 
-		cout << stringify_double((double)lpQuotaStatus->llStoreSize /1024.0 /1024.0, 2, true) << " MiB" << endl;
+		cout << str_storage(lpQuotaStatus->llStoreSize, false) << endl;
 	}
 }
 

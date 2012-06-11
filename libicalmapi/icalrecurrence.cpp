@@ -226,6 +226,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCETYPE], PT_LONG);
 				sPropVal.Value.ul = 2;
 				lpIcalItem->lstMsgProps.push_back(sPropVal);
+			} else if (lpRec->getFrequency() == recurrence::YEARLY) {
+				hr = MAPI_E_NO_SUPPORT;
+				goto exit;
 			}
 		} else {
 			// monthly, first sunday: 9, monday: 10

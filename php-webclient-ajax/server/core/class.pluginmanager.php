@@ -120,27 +120,13 @@ class PluginManager
 		$this->plugindata = $pluginState->read("plugindata");
 		$disabledPlugins = Array();
 		if(defined('DISABLED_PLUGINS_LIST')) $disabledPlugins = explode(';', DISABLED_PLUGINS_LIST);
-		if(defined('PLUGINS_INCLUDE_ORDER')) $orderedPlugins = explode(';', PLUGINS_INCLUDE_ORDER);
 
 		// If no plugindata has been stored yet, get it from the plugins dir.
 		if(!$this->plugindata || DEBUG_PLUGINS){
 			$this->plugindata = Array();
 			$pluginsdir = opendir(PATH_PLUGIN_DIR);
-
-			// First run over orderedPlugins and include them, in the correct order
-			if($orderedPlugins){
-				foreach($orderedPlugins as $plugin){
-					if(is_dir(PATH_PLUGIN_DIR.'/'.$plugin)){
-						if(is_file(PATH_PLUGIN_DIR.'/'.$plugin.'/manifest.xml')){
-							$this->processPlugin($plugin);
-						}
-					}
-				}
-			}
-
-			// Then run over the plugins dir to include the rest
 			while(($plugin = readdir($pluginsdir)) !== false){
-				if ($plugin != '.' && $plugin != '..' && !in_array($plugin, $disabledPlugins) && !in_array($plugin, $orderedPlugins)){
+				if ($plugin != '.' && $plugin != '..' && !in_array($plugin, $disabledPlugins)){
 					if(is_dir(PATH_PLUGIN_DIR.'/'.$plugin)){
 						if(is_file(PATH_PLUGIN_DIR.'/'.$plugin.'/manifest.xml')){
 							$this->processPlugin($plugin);

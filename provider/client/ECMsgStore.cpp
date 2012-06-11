@@ -703,7 +703,7 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 	if(peid1->ulVersion != peid2->ulVersion)
 		goto exit;
 
-	if(peid1->ulType != peid2->ulType)
+	if(peid1->usType != peid2->usType)
 		goto exit;
 
 	if(peid1->ulVersion == 0) {

@@ -90,18 +90,18 @@ public:
     unsigned int type() const {
         EID_V0 *d = (EID_V0 *)m_data.data();
         
-        return d->ulType;
+        return d->usType;
     }
 
     unsigned int flags() const {
         EID_V0 *d = (EID_V0 *)m_data.data();
         
-        return d->ulFlags;
+        return d->usFlags;
     }
     
     void setFlags(unsigned int ulFlags) {
         EID_V0 *d = (EID_V0 *)m_data.data();
-        d->ulFlags = ulFlags;
+        d->usFlags = ulFlags;
     }
 
     bool operator == (const EntryId &s) const {

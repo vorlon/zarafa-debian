@@ -625,7 +625,7 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 	*lpulObjId = ulObjId;
 	
 	if(lpulEidFlags)
-		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->ulFlags;
+		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->usFlags;
 		
 exit:
 	return er;

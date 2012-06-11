@@ -243,26 +243,12 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 }
 
 std::string str_storage(unsigned long long ulBytes, bool bUnlimited) {
-	static unsigned int KB = 1024;
-	static unsigned int MB = 1024 * KB;
-	static unsigned int KiB = 1000;
-	static unsigned int MiB = 1000 * KiB;
-	static unsigned int GiB = 1000 * MiB;
+	static double MB = 1024.0 * 1024.0;
 
 	if (ulBytes == 0 && bUnlimited)
 		return "unlimited";
 
-	/*
-	 * Don't show more then 6 digits in string
-	 * (so switch at 1000 * 1000 instead of 1024 * 1024)
-	 */
-	if (ulBytes >= GiB)
-		return stringify_int64(ulBytes / MB) + " MB";
-
-	if (ulBytes >= MiB)
-		return stringify_int64(ulBytes / KB) + " KB";
-
-	return stringify_int64(ulBytes) + " B";
+	return stringify_double((double)ulBytes / MB, 2) + " MB";
 }
 
 std::string PrettyIP(long unsigned int ip) {

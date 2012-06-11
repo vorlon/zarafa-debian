@@ -1778,7 +1778,7 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 		goto exit;
 		
     // Set flags in entryid
-    ((EID *)lpEntryId->__ptr)->ulFlags = ulFlags;
+    ((EID *)lpEntryId->__ptr)->usFlags = ulFlags;
 
 	*lppEntryId = lpEntryId;
 exit:
@@ -1797,7 +1797,7 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 	    goto exit;
 
     // Set flags in entryid
-    ((EID *)lpEntryId->__ptr)->ulFlags = ulFlags;
+    ((EID *)lpEntryId->__ptr)->usFlags = ulFlags;
     
 exit:
 	return er;

@@ -2191,7 +2191,7 @@ exit:
  * 
  * @param[in] lpSession MAPI session (user session when not in LMTP mode, else admin session)
  * @param[in] lpStore default store for lpSession (user store when not in LMTP mode, else admin store)
- * @param[in[ bIsAdmin indicates that lpSession and lpStore are an admin session and store (true in LMTP mode)
+ * @param[in] bIsAdmin indicates that lpSession and lpStore are an admin session and store (true in LMTP mode)
  * @param[in] lpAdrBook Global Addressbook
  * @param[in] lpOrigMessage a previously delivered message, if any
  * @param[in] bFallbackDelivery previously delivered message was a fallback message

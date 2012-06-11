@@ -147,7 +147,7 @@ ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType, entryId** lppEntr
 	}
 
 	eid.guid = guidStore;
-	eid.ulType = ulObjType;
+	eid.usType = ulObjType;
 	lpEntryId = new entryId;
 
 	lpEntryId->__size = sizeof(EID);
@@ -3397,7 +3397,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 	 */
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId, &ulEidFlags);
 	if ((ulEidFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
-		if (er == ZARAFA_E_NOT_FOUND &&	sEntryId.__size >= (int)min(sizeof(EID), sizeof(EID_V0)) && ((EID*)sEntryId.__ptr)->ulType == MAPI_STORE)
+		if (er == ZARAFA_E_NOT_FOUND &&	sEntryId.__size >= (int)min(sizeof(EID), sizeof(EID_V0)) && ((EID*)sEntryId.__ptr)->usType == MAPI_STORE)
 			er = ZARAFA_E_UNABLE_TO_COMPLETE;	// Reason 1
 	}
 	if (er != erSuccess)
