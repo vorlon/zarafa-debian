@@ -1214,7 +1214,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 	LPENTRYID lpStoreEntryID = NULL;
 	SVCService *service = NULL;
 
-	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_ENTRYID, PR_PROVIDER_UID} };
+	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_RECORD_KEY, PR_PROVIDER_UID} };
 
 	if (lpEntryID == NULL || lppMDB == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1248,9 +1248,9 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 		if(lpsRows->cRows != 1)
 			break;
 			
-		if(lpsRows->aRow[0].lpProps[0].ulPropTag == PR_ENTRYID && 
-			lpsRows->aRow[0].lpProps[0].Value.bin.cb == cbEntryID &&
-			memcmp(lpsRows->aRow[0].lpProps[0].Value.bin.lpb, lpEntryID, cbEntryID) == 0) {
+		if(lpsRows->aRow[0].lpProps[0].ulPropTag == PR_RECORD_KEY && 
+			lpsRows->aRow[0].lpProps[0].Value.bin.cb == sizeof(GUID) &&
+			memcmp(lpsRows->aRow[0].lpProps[0].Value.bin.lpb, ((char *)lpStoreEntryID)+4, sizeof(GUID)) == 0) {
 				// Found it
 				memcpy(&sProviderUID, lpsRows->aRow[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
 				break;
