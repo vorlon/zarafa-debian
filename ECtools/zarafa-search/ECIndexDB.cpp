@@ -439,7 +439,7 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
                 if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
                     setMatches.insert(p->doc);
                     
-                delete sVersion;
+                delete [] sVersion;
             }
 nextterm:
             offset += sizeof(TERMENTRY) + p->len;            

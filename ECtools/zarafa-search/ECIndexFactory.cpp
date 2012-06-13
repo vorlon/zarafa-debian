@@ -72,6 +72,11 @@ ECIndexFactory::ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger)
 
 ECIndexFactory::~ECIndexFactory()
 {
+    std::map<std::string, std::pair<unsigned int, ECIndexDB *> >::iterator i;
+
+    for(i = m_mapIndexes.begin(); i != m_mapIndexes.end(); i++) {
+        delete i->second.second;
+    }
 }
 
 HRESULT ECIndexFactory::GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, ECIndexDB **lppIndexDB)

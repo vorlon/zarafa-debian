@@ -67,37 +67,21 @@ ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECAttachmentStorage **l
 }
 
 
-ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
+ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
 {
 	ECRESULT		er;
 	unsigned int	ulNewObjId = 0;
 	unsigned int	ulAffected = 0;
-	unsigned int	ulParentType = 0;
 	unsigned int	ulOwner = 0;
-	unsigned int	ulStoreId = 0;
 	std::string		strQuery;
 
-
+	ASSERT(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
 	//
     // We skip quota checking because we do this during writeProps.
 
-	// Get object type
-	er =  g_lpSessionManager->GetCacheManager()->GetObject(ulParentObjId, NULL, NULL, NULL, &ulParentType);
-	if(er != erSuccess)
-		goto exit;
-
-	// Get store
-	er = g_lpSessionManager->GetCacheManager()->GetStore(ulParentObjId, &ulStoreId, NULL);
-	if (er != erSuccess)
-		goto exit;
-
-	// Check permission, Skip if objecttype is an attachment with the parent MAPI_STORE
-	if(ulParentType == MAPI_STORE && (ulObjType == MAPI_ATTACH || ulObjType == MAPI_MESSAGE) )
-	{
-		// All access rights
-// FIXME: check store owner, or admin
-	}else
-	{
+	if(ulParentType == MAPI_FOLDER) {
+		// Only check creating items in folders. Creating items in messages and attachments is not security-checked since
+		// you should check access rights on the top-level message, not on the underlying objects.
 		er = lpecSession->GetSecurity()->CheckPermission(ulParentObjId, ecSecurityCreate);
 		if(er != erSuccess)
 			goto exit;
@@ -111,20 +95,12 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 	if(er != erSuccess)
 		goto exit;
 
-	if(ulAffected != 1) {
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	}
-
-
 	if (ulObjType == MAPI_MESSAGE) {
 		strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_ulong) VALUES ("+ stringify(ulNewObjId) + "," + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "," + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + "," + stringify(ulFlags) + ")";
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			goto exit;
 	}
-
-	// No notification is sent now, as the notification is sent directly after writeProps
 
 	// Save this item in the cache, as there is a very high probability that this data will be required very soon (almost 100% sure)
 	g_lpSessionManager->GetCacheManager()->SetObject(ulNewObjId, ulParentObjId, ulOwner, ulFlags, ulObjType);

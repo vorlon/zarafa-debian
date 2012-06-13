@@ -484,7 +484,7 @@ function autoRespond($session, $store, $entryid, $capacity, $policy)
 			$recip[PR_RECIPIENT_FLAGS] = 256 | 1;
 			$recip[PR_RECIPIENT_TRACKSTATUS] = 0;
 			$recip[PR_RECIPIENT_TYPE] = MAPI_BCC;
-			// not setting PR_DISPLAY_BCC and PidLidAllAttendees, not important
+			// not setting PidLidAllAttendees, not important
 			mapi_message_modifyrecipients($calitem, MODRECIP_ADD, array($recip));
 			mapi_message_savechanges($calitem);
 			debuglog("Accept updated.\n");

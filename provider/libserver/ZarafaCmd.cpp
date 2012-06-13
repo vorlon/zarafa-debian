@@ -2682,7 +2682,7 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 			goto exit;
 		}
 
-		er = CreateObject(lpecSession, lpDatabase, ulParentObjId, lpsSaveObj->ulObjType, ulFlags, &lpsReturnObj->ulServerId);
+		er = CreateObject(lpecSession, lpDatabase, ulParentObjId, ulParentType, lpsSaveObj->ulObjType, ulFlags, &lpsReturnObj->ulServerId);
 		if (er != erSuccess)
 			goto exit;
 
@@ -11086,7 +11086,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 
 	// Create the message
 	if (bIsNew) {
-		er = CreateObject(lpecSession, lpDatabase, ulParentId, MAPI_MESSAGE, ulFlags, &ulObjectId);
+		er = CreateObject(lpecSession, lpDatabase, ulParentId, MAPI_FOLDER, MAPI_MESSAGE, ulFlags, &ulObjectId);
 		if (er != erSuccess)
 			goto exit;
 	} else {

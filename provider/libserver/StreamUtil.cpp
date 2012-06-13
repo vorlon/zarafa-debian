@@ -1529,7 +1529,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			 * For new items we're not interested in the ulSubObjId from the stream, we do need
 			 * to create the object with the current object as its parent
 			 **/
-			er = CreateObject(lpecSession, lpDatabase, ulObjId, ulSubObjType, 0, &ulSubObjId);
+			er = CreateObject(lpecSession, lpDatabase, ulObjId, ulObjType, ulSubObjType, 0, &ulSubObjId);
 			if (er != erSuccess)
 				goto exit;
 

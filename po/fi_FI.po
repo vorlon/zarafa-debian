@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 00:01+0200\n"
+"POT-Creation-Date: 2012-06-12 00:02+0200\n"
 "PO-Revision-Date: 2011-02-02 11:17+0200\n"
 "Last-Translator: Verkkotaito <zarafa@verkkotaito.fi>\n"
 "Language-Team: fi_FI <fi@li.org>\n"
@@ -14,96 +14,96 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:501 provider/ECProps/SyncBar.cpp:326
+#: provider/ECProps/Addin.cpp:506 provider/ECProps/SyncBar.cpp:326
 msgid "Configure"
 msgstr "Asetukset"
 
-#: provider/ECProps/Addin.cpp:503 provider/ECProps/SyncBar.cpp:318
+#: provider/ECProps/Addin.cpp:508 provider/ECProps/SyncBar.cpp:318
 msgid "Synchronize"
 msgstr "Synkronoi"
 
-#: provider/ECProps/Addin.cpp:505
+#: provider/ECProps/Addin.cpp:510
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Avaa Jaettuja Kansioita..."
 
-#: provider/ECProps/Addin.cpp:507 provider/ECProps/Addin.cpp:548
+#: provider/ECProps/Addin.cpp:512 provider/ECProps/Addin.cpp:553
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Palauta Poistetut Kohteet..."
 
-#: provider/ECProps/Addin.cpp:509 provider/ECProps/Addin.cpp:550
+#: provider/ECProps/Addin.cpp:514 provider/ECProps/Addin.cpp:555
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Poissaolovastaus"
 
-#: provider/ECProps/Addin.cpp:513
+#: provider/ECProps/Addin.cpp:518
 msgid "Offline"
 msgstr "Offline-tila"
 
-#: provider/ECProps/Addin.cpp:542 provider/ECProps/SyncBar.cpp:328
+#: provider/ECProps/Addin.cpp:547 provider/ECProps/SyncBar.cpp:328
 msgid "Configure offline synchronization"
 msgstr "Aseta offline-tilan synkronointi"
 
-#: provider/ECProps/Addin.cpp:544 provider/ECProps/SyncBar.cpp:320
+#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:320
 msgid "Start offline synchronization"
 msgstr "Aloita offline-tilan synkronointi"
 
-#: provider/ECProps/Addin.cpp:546
+#: provider/ECProps/Addin.cpp:551
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Avaa toisen käyttäjän Outlookin Jaettuja Kansioita (Kalenteri, Sähköposti, "
 "yms)"
 
-#: provider/ECProps/Addin.cpp:658
+#: provider/ECProps/Addin.cpp:663
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "Poissaolovastaus on käytössä. Haluatko ottaa sen pois käytöstä?"
 
-#: provider/ECProps/Addin.cpp:658
+#: provider/ECProps/Addin.cpp:663
 msgid "Out Of Office Turned On"
 msgstr "Poissaolovastaus on otettu käyttöön"
 
-#: provider/ECProps/Addin.cpp:664
+#: provider/ECProps/Addin.cpp:669
 msgid "Unable to save Out of Office status"
 msgstr "Poissaolovastausta ei voitu ottaa käyttöön"
 
-#: provider/ECProps/Addin.cpp:766
+#: provider/ECProps/Addin.cpp:771
 msgid "Delegates"
 msgstr "Edustajat"
 
-#: provider/ECProps/Addin.cpp:890 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:895 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Suosikit"
 
-#: provider/ECProps/Addin.cpp:902 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:907 provider/ECProps/PropPage.cpp:433
 msgid "Permissions"
 msgstr "Käyttöoikeudet"
 
-#: provider/ECProps/Addin.cpp:1106 provider/ECProps/Addin.cpp:1107
+#: provider/ECProps/Addin.cpp:1111 provider/ECProps/Addin.cpp:1112
 msgid "Add to Public Favorites Folder"
 msgstr "Lisää Suosikkikansioon"
 
-#: provider/ECProps/Addin.cpp:1191
+#: provider/ECProps/Addin.cpp:1196
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "MAPI-istuntoa ei voitu avata."
 
-#: provider/ECProps/Addin.cpp:1195 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1200 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2384
 msgid "Shortcut"
 msgstr "Pikakuvake"
 
-#: provider/ECProps/Addin.cpp:1195 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1200 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Pikakuvakekansio"
 
-#: provider/ECProps/Addin.cpp:1197
+#: provider/ECProps/Addin.cpp:1202
 msgid "Unable to get shortcut folder."
 msgstr "Pikakuvakekansiota ei voitu noutaa."
 
@@ -623,7 +623,7 @@ msgid "Tasks"
 msgstr "Tehtävät"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:924 provider/client/ECMsgStore.cpp:2401
+#: provider/libserver/ECGenProps.cpp:952 provider/client/ECMsgStore.cpp:2401
 msgid "Inbox"
 msgstr "Saapuneet"
 
@@ -780,25 +780,25 @@ msgid "The folder and/or messages can not be deleted."
 msgstr "Tätä kansiota ja/tai viestejä ei voi poistaa."
 
 #: provider/libserver/ECDBUpdateProgress.cpp:58
-msgid "Your cache is being upgraded..."
+msgid "Your offline cache database is being upgraded..."
 msgstr ""
 
 #: provider/libserver/ECDBUpdateProgress.cpp:93
 msgid "Upgrade: "
 msgstr ""
 
-#: provider/libserver/ECGenProps.cpp:882
+#: provider/libserver/ECGenProps.cpp:910
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Julkiset Kansiot"
 
-#: provider/libserver/ECGenProps.cpp:926
+#: provider/libserver/ECGenProps.cpp:954
 msgid "Archive"
 msgstr ""
 
 #: provider/client/ECMSProvider.cpp:247
-#: provider/client/ECABProviderSwitch.cpp:277
+#: provider/client/ECABProviderSwitch.cpp:279
 #: provider/client/EntryPoint.cpp:1102
 msgid ""
 "Cannot use the profile because you are over the license limit. To continue, "
@@ -808,7 +808,7 @@ msgstr ""
 "Sinun täytyy hankkia lisää lisenssejä palveluntuottajalta."
 
 #: provider/client/ECMSProvider.cpp:251
-#: provider/client/ECABProviderSwitch.cpp:282
+#: provider/client/ECABProviderSwitch.cpp:284
 #: provider/client/EntryPoint.cpp:1108
 msgid ""
 "Cannot use the profile because the server was unable to contact the license "
@@ -975,50 +975,52 @@ msgstr "Poista"
 msgid "User already exists."
 msgstr "Käyttäjä on jo olemassa."
 
-#: provider/client/ECArchiveAwareMessage.cpp:477
-#: provider/client/ECArchiveAwareMessage.cpp:535
+#: provider/client/ECArchiveAwareMessage.cpp:471
+#: provider/client/ECArchiveAwareMessage.cpp:529
 msgid "Zarafa Archiver"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:479
+#: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:481
+#: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:484 spooler/archive.cpp:335
+#: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:493
+#: provider/client/ECArchiveAwareMessage.cpp:487
 msgid "It seems no valid archiver license is installed."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:497
+#: provider/client/ECArchiveAwareMessage.cpp:491
 msgid "The archive could not be found."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:501
+#: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:508 spooler/archive.cpp:339
+#: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
 msgstr ""
 
-#: provider/client/ECArchiveAwareMessage.cpp:537
+#: provider/client/ECArchiveAwareMessage.cpp:531
 msgid "Archives can not be destubbed when working offline."
 msgstr ""
 
 #: provider/client/ECABProviderSwitch.cpp:136
 #: provider/client/ECMSProviderSwitch.cpp:272
-msgid "Your cache is being upgraded. Do you want to work online this session?"
+msgid ""
+"Your offline cache database is being upgraded. Outlook will start in online "
+"mode for this session."
 msgstr ""
 
-#: provider/client/ECABProviderSwitch.cpp:207
-#: provider/client/ECMSProviderSwitch.cpp:377
+#: provider/client/ECABProviderSwitch.cpp:209
+#: provider/client/ECMSProviderSwitch.cpp:379
 msgid "Unable to work online! Do you want to switch to offline mode?"
 msgstr ""
 "Online-tilassa työskenteleminen ei onnistu! Haluatko vaihtaa yhteydettömään "
@@ -1406,7 +1408,7 @@ msgstr "Poista"
 msgid "This folder contains archives of messages that have been deleted."
 msgstr ""
 
-#: spooler/Spooler.cpp:482
+#: spooler/Spooler.cpp:484
 msgid ""
 "A fatal error occurred while processing your message, and Zarafa is unable "
 "to send your email."
@@ -1438,15 +1440,15 @@ msgstr ""
 msgid "Unable to save archived message."
 msgstr ""
 
-#: spooler/mailer.cpp:1710
+#: spooler/mailer.cpp:1718
 msgid "You are not allowed to send as user or group "
 msgstr "Sinulla ei ole oikeuksia lähettää käyttäjänä tai ryhmänä"
 
-#: spooler/mailer.cpp:1712
+#: spooler/mailer.cpp:1720
 msgid "The user or group you try to send as could not be found."
 msgstr "Käyttäjää ja tai ryhmää, jonka nimissä yrität lähettää, ei löydy."
 
-#: spooler/mailer.cpp:2537
+#: spooler/mailer.cpp:2543
 msgid "Error found while trying to send your message. Error code: "
 msgstr "Viestiä lähetettäessä tapahtui virhe. Virhekoodi:"
 

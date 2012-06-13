@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 00:01+0200\n"
-"PO-Revision-Date: 2011-06-14 10:05+0200\n"
+"POT-Creation-Date: 2012-06-13 00:02+0200\n"
+"PO-Revision-Date: 2012-06-12 15:26+0200\n"
 "Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
 "Language-Team: it_IT <it@li.org>\n"
 "Language: it\n"
@@ -2166,7 +2166,7 @@ msgstr "Elimina questo messaggio"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:144
 msgid "Redirect to"
-msgstr ""
+msgstr "Reindirizza a"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:156
 msgid "Forward to"
@@ -2174,7 +2174,7 @@ msgstr "Inoltra a"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
 msgid "Forward as Attachment to"
-msgstr ""
+msgstr "Inoltra come allegato a"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
@@ -2315,7 +2315,7 @@ msgstr "Tipo cartella"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/sharedfolder.php:34
 msgid "Show subfolders"
-msgstr ""
+msgstr "Mostra sottocartelle"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/addtofavorite.php:4
 msgid "Add to favorite folder"
@@ -3494,10 +3494,9 @@ msgstr ""
 # 92%
 #: php-webclient-ajax/server/modules/class.listmodule.php:165
 #: php-webclient-ajax/server/modules/class.itemmodule.php:162
-#, fuzzy
 msgid "You have insufficient privileges to delete items in this folder"
 msgstr ""
-"Non si dispone dei privilegi necessari per salvare elementi in questa "
+"Non si dispone dei privilegi necessari per eliminare elementi in questa "
 "cartella"
 
 #: php-webclient-ajax/server/modules/class.listmodule.php:219
@@ -3885,8 +3884,9 @@ msgid "Required Attendee"
 msgstr "Partecipante Richiesto"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
+#, fuzzy
 msgid "Sort on Required Attendee"
-msgstr ""
+msgstr "Ordina per partecipante richiesto"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 #: php-webclient-ajax/client/modules/freebusymodule.js:1134
@@ -3894,12 +3894,13 @@ msgid "Optional Attendee"
 msgstr "Partecipante Opzionale"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
+#, fuzzy
 msgid "Sort on Optional Attendee"
-msgstr ""
+msgstr "Ordina per Partecipante Opzionale"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
 msgid "Sort on Resource"
-msgstr ""
+msgstr "Ordina per Risorsa"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -5832,7 +5833,7 @@ msgstr "Informazioni di fatturazione"
 
 #: php-webclient-ajax/client/core/layoutmanager.js:283
 msgid "you are logged on as"
-msgstr "Hai avuto accesso come"
+msgstr "Sei entrato come"
 
 #: php-webclient-ajax/client/core/layoutmanager.js:293
 msgid "settings"
