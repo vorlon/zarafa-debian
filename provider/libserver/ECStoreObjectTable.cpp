@@ -1251,24 +1251,23 @@ exit:
 
 }
 
-ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad)
+ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
 {
     ECRESULT er = erSuccess;
     GUID guidServer;
     ECODStore* lpODStore = (ECODStore*)m_lpObjectData;
+    std::list<unsigned int> lstIndexerResults;
+    std::list<unsigned int>::iterator iterResults;
     std::list<unsigned int> lstFolders;
-    ECSearchResultArray *lpIndexerResults = NULL;
     std::set<unsigned int> setMatches;
-    ECObjectTableList sQueryRows;
+    ECObjectTableList sMatchedRows;
     ECObjectTableList::iterator iterQueryRows;
     ECObjectTableList::iterator iterRows;
-    struct rowSet *lpRowSet = NULL;
-    unsigned int ulMatches = 0;
-    bool fHidden = false;
-    struct propTagArray sPropTagArray = {0,0};
-    int n = 0;
-    ECCategory *lpCategory = NULL;
-    unsigned int ulFirstCol = 0;
+    ECDatabase *lpDatabase = NULL;
+    struct restrictTable *lpNewRestrict = NULL;
+ 
+    ASSERT(!bOverride); // Default implementation never has override enabled, so we should never see this
+    ASSERT(lpOverride == NULL);
     
 	pthread_mutex_lock(&m_hLock);
 	
@@ -1276,101 +1275,59 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     //  - not an initial load (but a table update)
     //  - no restriction
     //  - not a restriction on a folder (eg searchfolder)
-    if(1 || !bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
-        er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad);
+    if(!bLoad || !lpsRestrict || !lpODStore->ulFolderId || !lpODStore->ulStoreId || (lpODStore->ulFlags & MAPI_ASSOCIATED)) {
+        er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, NULL);
    } else {
-/*        // Attempt to use the indexer
+        // Attempt to use the indexer
         er = lpSession->GetSessionManager()->GetServerGUID(&guidServer);
         if(er != erSuccess)
             goto exit;
         
         lstFolders.push_back(lpODStore->ulFolderId);
         
-    	if(GetIndexerResults(lpSession->GetDatabase(), lpSession->GetSessionManager()->GetConfig(), lpSession->GetSessionManager()->GetLogger(), lpSession->GetSessionManager()->GetCacheManager(), &guidServer, lpODStore->ulStoreId, lstFolders, lpsRestrict, &lpIndexerResults) != erSuccess) {
+        er = lpSession->GetDatabase(&lpDatabase);
+        if(er != erSuccess)
+        	goto exit;
+
+    	if(GetIndexerResults(lpDatabase, lpSession->GetSessionManager()->GetConfig(), lpSession->GetSessionManager()->GetLogger(), lpSession->GetSessionManager()->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults) != erSuccess) {
     	    // Cannot handle this restriction with the indexer, use 'normal' restriction code
     	    // Reasons can be:
     	    //  - restriction too complex
     	    //  - folder not indexed
     	    //  - indexer not running / not configured
-    	    er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad);
+    	    er = ECGenericObjectTable::AddRowKey(lpRows, lpulLoaded, ulFlags, bLoad, false, NULL);
     	    goto exit;
         }
     
         // Put the results in setMatches	
-    	for(unsigned int i=0; i < lpIndexerResults->__size ; i++) {
-    	    unsigned int ulObjectId = 0;
-    	    
-    	    if(lpSession->GetSessionManager()->GetCacheManager()->GetObjectFromEntryId(&lpIndexerResults->__ptr[i].sEntryId, &ulObjectId) == erSuccess) {
-    	        setMatches.insert(ulObjectId);
-    	    }	
+    	for(iterResults = lstIndexerResults.begin(); iterResults != lstIndexerResults.end(); iterResults++) {
+   	        setMatches.insert(*iterResults);
     	}
     	
-    	// Set up sPropTagArray
-    	sPropTagArray.__size = lpsSortOrderArray->__size + 1;
-    	sPropTagArray.__ptr = new unsigned int[sPropTagArray.__size];
-    	if(m_ulCategories > 0) {
-        	sPropTagArray.__ptr[n++] = PR_MESSAGE_FLAGS;
-        	ulFirstCol = 1;
-        }
-    	for(int i=0; i < lpsSortOrderArray->__size; i++) {
-    	    sPropTagArray.__ptr[n++] = lpsSortOrderArray->__ptr[i].ulPropTag;
+    	/* Filter the incoming row set with the matches.
+    	 *
+    	 * Actually, we should not have to do this. We could just take the result set from the indexer and
+    	 * feed that directly to AddRowKey. However, the indexer may be slightly 'behind' in time, and the
+    	 * list of objects in lpRows is more up-to-date. To make sure that we will not generate 'phantom' rows
+    	 * of deleted items we take the cross section of lpRows and lstIndexerResults. In most cases the result
+    	 * will be equal to lstIndexerResults though.
+    	 */
+    	for(iterRows = lpRows->begin(); iterRows != lpRows->end(); iterRows++) {
+    		if(setMatches.find(iterRows->ulObjId) != setMatches.end())
+    			sMatchedRows.push_back(*iterRows);
     	}
-    	sPropTagArray.__size = n;
-
-    	// Loop through requested rows, match them to setMatches, get the sort data for the rows and add them to the table
-    	iterRows = lpRows->begin();
     	
-    	while(iterRows != lpRows->end()) {
-    	    sQueryRows.clear();
-    	    
-    	    // Get at most 20 matching rows
-    	    ulMatches = 0;
-    	    while(iterRows != lpRows->end() && ulMatches < 20) {
-    	        if(setMatches.find(iterRows->ulObjId) != setMatches.end()) {
-        	        sQueryRows.push_back(*iterRows); 
-        	        ulMatches++;
-                }
-                iterRows++;
-    	    }
-    	    
-    	    if(ulMatches == 0)
-    	        break; // This will only happen if iterRows == lpRows->end()
-    	    
-            // Get the row data for sorting for all 20 rows
-    		er = m_lpfnQueryRowData(this, NULL, lpSession, &sQueryRows, &sPropTagArray, m_lpObjectData, &lpRowSet, true, false);
-            if(er != erSuccess)
-                goto exit;
-            
-            // Add each row to the table
-            iterQueryRows = sQueryRows.begin();
-            for(int i=0; i< lpRowSet->__size; i++, iterQueryRows++) {
-                if(m_ulCategories > 0) {
-                    bool bUnread = false;
-                    
-                    if((lpRowSet->__ptr[i].__ptr[0].Value.ul & MSGFLAG_READ) == 0) // FIXME
-                        bUnread = true;
-
-                    // Update category for this row if required, and send notification if required
-                    AddCategoryBeforeAddRow(*iterQueryRows, lpRowSet->__ptr[i].__ptr+ulFirstCol, lpsSortOrderArray->__size, ulFlags, bUnread, &fHidden, &lpCategory);
-                }
-
-                // Put the row into the key table and send notification if required
-                AddRow(*iterQueryRows, lpRowSet->__ptr[i].__ptr+ulFirstCol, lpsSortOrderArray->__size, ulFlags, fHidden, lpCategory);
-            }
-            
-            FreeRowSet(lpRowSet, true);
-            lpRowSet = NULL;
-    	}*/
-    }
-    
+    	// Pass filtered results to AddRowKey, which will perform any further filtering required
+    	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
+    	if(er != erSuccess)
+    		goto exit;
+	}
+	
 exit:
 	pthread_mutex_unlock(&m_hLock);
-
-	if(lpRowSet)
-		FreeRowSet(lpRowSet, true);
-
-	if(sPropTagArray.__ptr)
-		delete [] sPropTagArray.__ptr;
+	
+	if(lpNewRestrict)
+		FreeRestrictTable(lpNewRestrict);
 
 	return er;
     

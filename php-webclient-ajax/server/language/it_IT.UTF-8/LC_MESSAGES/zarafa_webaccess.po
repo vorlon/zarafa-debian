@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-13 00:02+0200\n"
-"PO-Revision-Date: 2012-06-12 15:26+0200\n"
+"POT-Creation-Date: 2012-06-14 00:02+0200\n"
+"PO-Revision-Date: 2012-06-13 17:26+0200\n"
 "Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
 "Language-Team: it_IT <it@li.org>\n"
 "Language: it\n"
@@ -3884,9 +3884,8 @@ msgid "Required Attendee"
 msgstr "Partecipante Richiesto"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
-#, fuzzy
 msgid "Sort on Required Attendee"
-msgstr "Ordina per partecipante richiesto"
+msgstr "Ordina per Partecipante Richiesto"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 #: php-webclient-ajax/client/modules/freebusymodule.js:1134
@@ -3894,7 +3893,6 @@ msgid "Optional Attendee"
 msgstr "Partecipante Opzionale"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
-#, fuzzy
 msgid "Sort on Optional Attendee"
 msgstr "Ordina per Partecipante Opzionale"
 
@@ -5651,7 +5649,7 @@ msgstr "Inserire un indirizzo e-mail valido!"
 #: php-webclient-ajax/client/core/utils.js:1582
 #, fuzzy, c-format
 msgid "Due every weekday effective %s"
-msgstr "Scade ogni giorno feriale da %s"
+msgstr "Scade ogni giorno feriale dal %s"
 
 #: php-webclient-ajax/client/core/utils.js:1584
 #, fuzzy, c-format
@@ -6065,9 +6063,8 @@ msgid "Next week"
 msgstr "Settimana successiva"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:233
-#, fuzzy
 msgid "%a %e %h"
-msgstr "%a %d %h"
+msgstr "%a %e %h"
 
 #: php-webclient-ajax/client/views/calendar.day.view.js:1941
 msgid ""
@@ -6221,7 +6218,7 @@ msgstr "I valori inseriti per la Dimensione non sono validi"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1554
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1895
 msgid "Search for the words(s)"
-msgstr ""
+msgstr "Testo da cercare"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1324
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1445
@@ -6304,9 +6301,8 @@ msgid "ends"
 msgstr "Finisce"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1566
-#, fuzzy
 msgid "file as field only"
-msgstr "Archivia solo campo"
+msgstr "Solo campo Archivia come"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1567
 msgid "name fields only"
@@ -6331,7 +6327,7 @@ msgstr "Solo campo Numero di Telefono"
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1667
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1757
 msgid "Search for the word(s)"
-msgstr ""
+msgstr "Ricerca testo"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1679
 msgid "contents only"
@@ -6364,9 +6360,8 @@ msgstr "differito"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1837
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1974
-#, fuzzy
 msgid "due"
-msgstr "Data Utile"
+msgstr "data utile"
 
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1838
 #: php-webclient-ajax/client/widgets/searchcriteria.js:1975
@@ -6765,7 +6760,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/js/dialog.js:324
 msgid "You must enter at least one recipient in To field."
-msgstr ""
+msgstr "Devi inserire almeno un destinatario nel campo A."
 
 #: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"

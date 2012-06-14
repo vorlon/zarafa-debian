@@ -584,7 +584,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	}
 
 	// Load the keys with sort data from the table
-	er = AddRowKey(&listRows, NULL, 0, true);
+	er = AddRowKey(&listRows, NULL, 0, true, false, NULL);
 
 skip:
 	m_bMVCols = bMVColsNew;
@@ -746,7 +746,7 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 	m_mapSortedCategories.clear();
 
 	// Load the keys with sort data from the table
-	er = AddRowKey(&listRows, NULL, 0, true);
+	er = AddRowKey(&listRows, NULL, 0, true, false, NULL);
 
 	if(er != erSuccess)
 		goto exit;
@@ -1003,8 +1003,11 @@ exit:
  * @param[out] lpulLoaded Number of rows added to the table
  * @param[in] ulFlags Type of rows being added (May be 0, MSGFLAG_ASSOCIATED, MSGFLAG_DELETED or combination)
  * @param[in] bLoad TRUE if the rows being added are being added for an initial load or reload of the table, false for an update
+ * @param[in] bOverride TRUE if the restriction set by Restrict() must be ignored, and the rows in lpRows must be filtered with lpOverrideRestrict. lpOverrideRestrict
+ *                      MAY be NULL indicating that all rows in lpRows are to be added without filtering.
+ * @param[in] lpOverrideRestrict Overrides the set restriction, using this one instead; the rows passed in lpRows are filtered with this restriction
  */
-ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad)
+ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverrideRestrict)
 {
 	TRACE_INTERNAL(TRACE_ENTRY, "Table call:", "ECGenericObjectTable::AddRowKey", "");
 
@@ -1023,6 +1026,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	struct propTagArray	sPropTagArray = {0, 0};
 	struct rowSet		*lpRowSet = NULL;
 	struct propTagArray	*lpsRestrictPropTagArray = NULL;
+	struct restrictTable *lpsRestrict = NULL;
 
 	ECObjectTableList::iterator		iterRows;
 	sObjectTableKey					sRowItem;
@@ -1039,7 +1043,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		goto exit;
 	}
 
-
+	lpsRestrict = bOverride ? lpOverrideRestrict : this->lpsRestrict;
 
 	// We want all columns of the sort data, plus all the columns needed for restriction, plus the ID of the row
 	if(this->lpsSortOrderArray)
@@ -1047,8 +1051,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	else
 		sPropTagArray.__size = 0;
 
-	if(this->lpsRestrict) {
-		er = GetRestrictPropTags(this->lpsRestrict, NULL, &lpsRestrictPropTagArray);
+	if(lpsRestrict) {
+		er = GetRestrictPropTags(lpsRestrict, NULL, &lpsRestrictPropTagArray);
 
 		if(er != erSuccess)
 			goto exit;
@@ -1103,7 +1107,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		if(er != erSuccess)
 			goto exit;
 			
-		if(this->lpsRestrict) {
+		if(lpsRestrict) {
 			er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &sQueryRows, m_locale, &lpSubResults);
 			if(er != erSuccess)
 				goto exit;
@@ -1121,8 +1125,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			memcpy(&sRowItem.ulOrderId, lpRowSet->__ptr[i].__ptr[0].Value.bin->__ptr+sizeof(ULONG), sizeof(ULONG));
 
 			// Match the row with the restriction, if any
-			if(this->lpsRestrict) {
-				MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], this->lpsRestrict, lpSubResults, m_locale, &fMatch);
+			if(lpsRestrict) {
+				MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
 
 				if(fMatch == false) {
 					// this row isn't in the table, as it does not match the restrict criteria. Remove it as if it had
@@ -1876,7 +1880,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
             this->mapObjects[*iterRows] = 1;
             
 		// Add/modify the key in the keytable
-		er = AddRowKey(&ecRowsItem, &ulRead, ulFlags, bLoad);
+		er = AddRowKey(&ecRowsItem, &ulRead, ulFlags, bLoad, false, NULL);
 		if(er != erSuccess)
 			goto exit;
 

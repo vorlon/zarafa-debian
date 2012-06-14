@@ -496,7 +496,7 @@ HRESULT ECIndexImporter::ParseStream(folderid_t folder, docid_t doc, unsigned in
         }
 
         /* Put the data into the index */
-        if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE) {
+        if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE || PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE) {
         	std::wstring strContents = PropToString(lpProp);
         	
         	if(!strContents.empty())

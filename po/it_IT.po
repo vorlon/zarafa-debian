@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-13 00:02+0200\n"
-"PO-Revision-Date: 2012-06-12 17:08+0200\n"
+"POT-Creation-Date: 2012-06-14 00:02+0200\n"
+"PO-Revision-Date: 2012-06-13 17:14+0200\n"
 "Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
 "Language-Team: it_IT <it@li.org>\n"
 "Language: it\n"
@@ -497,7 +497,7 @@ msgstr "Uno o più utenti sono già specificati."
 
 #: provider/ECProps/MapOtherUserDlg.cpp:34
 msgid "Entire Inbox (Permanent)"
-msgstr "Posta in arrivo (Permanente)"
+msgstr "Cassetta postale (Permanente)"
 
 #: provider/ECProps/MapOtherUserDlg.cpp:35
 msgid "Calendar (Temporary)"
@@ -1729,70 +1729,70 @@ msgstr "G:i"
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Ogni %s dal giorno %s dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
 #, php-format
 msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr ""
+msgstr "Ogni %s %s dal giorno %s dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Ogni %s dal giorno %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
 msgid "Occurs every %s %s effective %s."
-msgstr ""
+msgstr "Ogni %s %s dal giorno %s."
 
 #: php-ext/include/mapi/class.recurrence.php:608
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ogni %s dal giorno %s per %s occorrenza dalle ore %s alle %s."
+msgstr[1] "Ogni %s dal giorno %s per %s occorrenze dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:611
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ogni %s %s dal giorno %s per %s occorrenza dalle ore %s alle %s."
+msgstr[1] "Ogni %s %s dal giorno %s per %s occorrenze dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence."
 msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ogni %s dal giorno %s per %s occorrenza."
+msgstr[1] "Ogni %s dal giorno %s per %s occorrenze."
 
 #: php-ext/include/mapi/class.recurrence.php:619
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence."
 msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ogni %s %s dal giorno %s per %s occorrenza."
+msgstr[1] "Ogni %s %s dal giorno %s per %s occorrenze."
 
 #: php-ext/include/mapi/class.recurrence.php:627
 #, php-format
 msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Ogni %s dal giorno %s fino al %s dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:629
 #, php-format
 msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Ogni %s %s dal giorno %s fino al %s dalle ore %s alle %s."
 
 #: php-ext/include/mapi/class.recurrence.php:633
 #, php-format
 msgid "Occurs every %s effective %s until %s."
-msgstr ""
+msgstr "Ogni %s dal giorno %s fino al %s."
 
 #: php-ext/include/mapi/class.recurrence.php:635
 #, php-format
 msgid "Occurs every %s %s effective %s until %s."
-msgstr ""
+msgstr "Ogni %s %s dal giorno %s fino al %s."
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
