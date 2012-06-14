@@ -114,9 +114,9 @@ char* ECLogger::MakeTimestamp() {
 
 bool ECLogger::Log(int loglevel) {
 	if (loglevel <= EC_LOGLEVEL_DEBUG)
-		return loglevel <= (max_loglevel&0xF);
+		return loglevel <= (max_loglevel&EC_LOGLEVEL_MASK);
 	else
-		return ((max_loglevel&0xFFFF0000) & (loglevel&0xFFFF0000)) && ((loglevel&0xF) <= (max_loglevel&0xF));
+		return ((max_loglevel&EC_LOGLEVEL_EXTENDED_MASK) & (loglevel&EC_LOGLEVEL_EXTENDED_MASK)) && ((loglevel&EC_LOGLEVEL_MASK) <= (max_loglevel&EC_LOGLEVEL_MASK));
 }
 
 void ECLogger::SetLogprefix(logprefix lp)
@@ -327,10 +327,7 @@ void ECLogger_Syslog::Log(int loglevel, const string &message) {
 	if (!ECLogger::Log(loglevel))
 		return;
 
-	if (loglevel > EC_LOGLEVEL_DEBUG)
-		loglevel = EC_LOGLEVEL_DEBUG;
-
-	syslog(levelmap[loglevel], "%s", message.c_str());
+	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", message.c_str());
 }
 
 void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
@@ -345,15 +342,12 @@ void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
 }
 
 void ECLogger_Syslog::LogVA(int loglevel, const char *format, va_list& va) {
-	if (loglevel > EC_LOGLEVEL_DEBUG)
-		loglevel = EC_LOGLEVEL_DEBUG;
-
 	pthread_mutex_lock(&msgbuflock);
 #if HAVE_VSYSLOG
-	vsyslog(levelmap[loglevel], format, va);
+	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
 	_vsnprintf_l(msgbuffer, _LOG_BUFSIZE, format, datalocale, va);
-	syslog(levelmap[loglevel], "%s", msgbuffer);
+	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
 #endif
 	pthread_mutex_unlock(&msgbuflock);
 }
