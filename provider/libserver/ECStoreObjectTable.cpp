@@ -1300,17 +1300,15 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
         }
     
         // Put the results in setMatches	
-    	for(iterResults = lstIndexerResults.begin(); iterResults != lstIndexerResults.end(); iterResults++) {
-   	        setMatches.insert(*iterResults);
-    	}
+        std::copy(lstIndexerResults.begin(), lstIndexerResults.end(), std::inserter(setMatches, setMatches.begin()));
     	
     	/* Filter the incoming row set with the matches.
     	 *
     	 * Actually, we should not have to do this. We could just take the result set from the indexer and
     	 * feed that directly to AddRowKey. However, the indexer may be slightly 'behind' in time, and the
     	 * list of objects in lpRows is more up-to-date. To make sure that we will not generate 'phantom' rows
-    	 * of deleted items we take the cross section of lpRows and lstIndexerResults. In most cases the result
-    	 * will be equal to lstIndexerResults though.
+    	 * of deleted items we take the cross section of lpRows and setMatches. In most cases the result
+    	 * will be equal to setMatches though.
     	 */
     	for(iterRows = lpRows->begin(); iterRows != lpRows->end(); iterRows++) {
     		if(setMatches.find(iterRows->ulObjId) != setMatches.end())
