@@ -301,25 +301,11 @@ clauses
 .RE
 .SH "EXPLANATION OF THE INDEX FILTERS SETTINGS PARAMETERS"
 .PP
-\fBindex_block_users\fR
+\fBindex_exclude_properties\fR
 .RS 4
-A list of usernames which should not be indexed by the indexing service\&. Fields in the list are seperated by a SPACE\&.
+Some properties are ignored because they contain unrelated information for users to find their messages on\&. A default set of ignored property ids is set here, but can be expanded\&. Only the id part of a property is needed, and must be string typed properties\&. The field is space separated\&.
 .sp
-Default: empty
-.RE
-.PP
-\fBindex_block_companies\fR
-.RS 4
-A list of tenants which should not be indexed by the indexing service\&. All users and the public store belonging to these tenants will not be indexed\&. Fields in the list are seperated by a SPACE\&.
-.sp
-Default: empty
-.RE
-.PP
-\fBindex_allow_servers\fR
-.RS 4
-A list of server names which should be indexed by the indexing service\&. All stores located on these servers will be indexed, all other servers will be ignored\&. If kept empty, no filtering is applied and all detected servers are indexed\&. Fields in the list are seperated by a SPACE\&.
-.sp
-Default: empty
+Default: 007D 0064 0C1E 0075 678E 678F
 .RE
 .PP
 \fBterm_cache_size\fR

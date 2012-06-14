@@ -11044,39 +11044,17 @@
 
 		<variablelist>
 		  <varlistentry>
-			<term><option>index_block_users</option></term>
-			<listitem>
-			  <para>A list of usernames which should not
-			  be indexed by the indexing service. Fields in the list
-			  are seperated by a SPACE.
-			  </para>
-			  <para>Default: empty</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_block_companies</option></term>
-			<listitem>
-			  <para>A list of tenants which should not
-			  be indexed by the indexing service. All users and the public
-			  store belonging to these tenants will not be indexed. Fields in the list
-			  are seperated by a SPACE.
-			  </para>
-			  <para>Default: empty</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-			<term><option>index_allow_servers</option></term>
-			<listitem>
-			  <para>A list of server names which should
-			  be indexed by the indexing service. All stores located on these
-			  servers will be indexed, all other servers will be ignored. If kept
-			  empty, no filtering is applied and all detected servers are indexed.
-			  Fields in the list are seperated by a SPACE.
-			  </para>
-			  <para>Default: empty</para>
-			</listitem>
+		    <term><option>index_exclude_properties</option></term>
+		    <listitem>
+		      <para>Some properties are ignored because they contain
+		      unrelated information for users to find their messages
+		      on. A default set of ignored property ids is set here,
+		      but can be expanded. Only the id part of a property is
+		      needed, and must be string typed properties. The field
+		      is space separated.
+		      </para>
+		      <para>Default: 007D 0064 0C1E 0075 678E 678F</para>
+		    </listitem>
 		  </varlistentry>
 
 		  <varlistentry>

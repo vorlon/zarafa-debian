@@ -449,9 +449,6 @@ int main(int argc, char *argv[]) {
 		{ "index_attachment_parser_max_cputime", "0", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_mime_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_extension_filter", "", CONFIGSETTING_RELOADABLE },
-		{ "index_block_users", "" },
-		{ "index_block_companies", "" },
-		{ "index_allow_servers", "" },
 		{ "index_exclude_properties", "007D 0064 0C1E 0075 678E 678F" }, /* PR_TRANSPORT_MESSAGE_HEADERS, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENDER_ADDRTYPE, PR_RECEIVED_BY_ADDRTYPE, PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE */
 		{ "term_cache_size", "67108864" },
 		{ NULL, NULL },
