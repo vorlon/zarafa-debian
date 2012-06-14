@@ -86,6 +86,8 @@ static char THIS_FILE[] = __FILE__;
 #define DEBUG_TRANSACTION 0
 #endif
 
+#define LOG_SQL_DEBUG(_plog, _msg, ...) if ((_plog)->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SQL)) (_plog)->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
+
 // The maximum packet size. This is automatically also the maximum
 // size of a single entry in the database. This means that PR_BODY, PR_COMPRESSED_RTF
 // etc. cannot grow larger than 16M. This shouldn't be such a problem in practice.
@@ -615,17 +617,13 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	ECRESULT er = erSuccess;
 	int err;
 	
-#ifdef DEBUG_SQL
-#if DEBUG_SQL
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%08X: DO_SQL: \"%s;\"", &m_lpMySQL, strQuery.c_str()); 
-#endif
-#endif
+	LOG_SQL_DEBUG(m_lpLogger, "SQL [%08lu]: \"%s;\"", m_lpMySQL.thread_id, strQuery.c_str()); 
 
 	// use mysql_real_query to be binary safe ( http://dev.mysql.com/doc/mysql/en/mysql-real-query.html )
 	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
 
 	if(err && (mysql_errno(&m_lpMySQL) == CR_SERVER_LOST || mysql_errno(&m_lpMySQL) == CR_SERVER_GONE_ERROR)) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL reconnect", &m_lpMySQL);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] info: Try to reconnect", m_lpMySQL.thread_id);
 			
 		er = Close();
 		if(er != erSuccess)
@@ -640,7 +638,7 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	}
 
 	if(err) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL Failed: %s, Query Size: %u, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %u, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
 		ASSERT(false);
 	}
@@ -688,7 +686,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
     
 	if( lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: %s, Query: \"%s\"", &m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str()); 
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: %s, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.c_str()); 
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
@@ -771,7 +769,7 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
     
 	if( lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: expected more results", &m_lpMySQL);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: expected more results", m_lpMySQL.thread_id);
 	}
 
 	if (lppResult)
@@ -811,7 +809,7 @@ ECRESULT ECDatabaseMySQL::FinalizeMulti() {
 	lpResult = mysql_store_result(&m_lpMySQL);
 	
 	if(lpResult != NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p: SQL result failed: unexpected results received at end of batch", &m_lpMySQL);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: unexpected results received at end of batch", m_lpMySQL.thread_id);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}

@@ -267,10 +267,11 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 	objectsignature_t user;
 	objectsignature_t group;
 
-	if (company.id.empty())
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	else
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	if (company.id.empty()) {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
+	} else {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	}
 
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
@@ -483,10 +484,11 @@ auto_ptr<signatures_t> UnixUserPlugin::getAllObjects(const objectid_t &companyid
 	string strSubQuery;
 	unsigned int ulRows = 0;
 
-	if (companyid.id.empty())
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x", __FUNCTION__, objclass);
-	else
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Company %s, Class %x", __FUNCTION__, companyid.id.c_str(), objclass);
+	if (companyid.id.empty()) {
+		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
+	} else {
+		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, companyid.id.c_str(), objclass);
+	}
 
 	// use mutex to protect thread-unsafe setpwent()/setgrent() calls
 	pthread_mutex_lock(m_plugin_lock);
@@ -621,7 +623,7 @@ auto_ptr<objectdetails_t> UnixUserPlugin::getObjectDetails(const objectid_t &ext
 	DB_ROW lpRow = NULL;
 	string strQuery;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s for externid %s, class %d", __FUNCTION__, bin2hex(externid.id).c_str(), externid.objclass);
 
 	switch (externid.objclass) {
 	case ACTIVE_USER:
@@ -713,7 +715,7 @@ auto_ptr<signatures_t> UnixUserPlugin::getParentObjectsForObject(userobject_rela
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
 		return DBPlugin::getParentObjectsForObject(relation, childid);
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Group member", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
 
 	findUserID(childid.id, &pws, buffer);
 	username = pws.pw_name; // make sure we have a _copy_ of the string, not just another pointer
@@ -778,7 +780,7 @@ auto_ptr<signatures_t> UnixUserPlugin::getSubObjectsForObject(userobject_relatio
 	if (relation != OBJECTRELATION_GROUP_MEMBER)
 		return DBPlugin::getSubObjectsForObject(relation, parentid);
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Group member", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
 
 	findGroupID(parentid.id, &grp, buffer);
 	for (unsigned int i = 0; grp.gr_mem[i] != NULL; i++) {
@@ -847,7 +849,7 @@ auto_ptr<signatures_t> UnixUserPlugin::searchObject(const string &match, unsigne
 	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());
 	auto_ptr<signatures_t> objects;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
+	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	pthread_mutex_lock(m_plugin_lock);
 	objects = getAllUserObjects(match, ulFlags);

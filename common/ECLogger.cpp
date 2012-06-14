@@ -113,7 +113,10 @@ char* ECLogger::MakeTimestamp() {
 }
 
 bool ECLogger::Log(int loglevel) {
-	return loglevel <= max_loglevel;
+	if (loglevel <= EC_LOGLEVEL_DEBUG)
+		return loglevel <= (max_loglevel&0xF);
+	else
+		return ((max_loglevel&0xFFFF0000) & (loglevel&0xFFFF0000)) && ((loglevel&0xF) <= (max_loglevel&0xF));
 }
 
 void ECLogger::SetLogprefix(logprefix lp)
@@ -323,6 +326,10 @@ void ECLogger_Syslog::Reset() {
 void ECLogger_Syslog::Log(int loglevel, const string &message) {
 	if (!ECLogger::Log(loglevel))
 		return;
+
+	if (loglevel > EC_LOGLEVEL_DEBUG)
+		loglevel = EC_LOGLEVEL_DEBUG;
+
 	syslog(levelmap[loglevel], "%s", message.c_str());
 }
 
@@ -338,6 +345,9 @@ void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
 }
 
 void ECLogger_Syslog::LogVA(int loglevel, const char *format, va_list& va) {
+	if (loglevel > EC_LOGLEVEL_DEBUG)
+		loglevel = EC_LOGLEVEL_DEBUG;
+
 	pthread_mutex_lock(&msgbuflock);
 #if HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel], format, va);
@@ -741,6 +751,8 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceName, bool bAudit) {
 	ECLogger *lpLogger = NULL;
 	string prepend;
+	int loglevel = 0;
+
 	int syslog_facility = LOG_MAIL;
 
 	if (bAudit) {
@@ -750,8 +762,10 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 		syslog_facility = LOG_AUTHPRIV;
 	}
 
+	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
+
 	if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "syslog") == 0) {
-		lpLogger = new ECLogger_Syslog(atoi(lpConfig->GetSetting((prepend+"log_level").c_str())), basename(argv0), syslog_facility);
+		lpLogger = new ECLogger_Syslog(loglevel, basename(argv0), syslog_facility);
 	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "eventlog") == 0) {
 		fprintf(stderr, "eventlog logging is only available on windows.\n");
 	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "file") == 0) {
@@ -796,7 +810,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 			}
 		}
 		if (ret == 0) {
-			lpLogger = new ECLogger_File(atoi(lpConfig->GetSetting((prepend+"log_level").c_str())),
+			lpLogger = new ECLogger_File(loglevel,
 										 atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())),
 										 lpConfig->GetSetting((prepend+"log_file").c_str()), false);
 			// chown file
@@ -811,12 +825,12 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 			}
 		} else {
 			fprintf(stderr, "Not enough permissions to append logfile '%s'. Reverting to stderr.\n", lpConfig->GetSetting((prepend+"log_file").c_str()));
-			lpLogger = new ECLogger_File(atoi(lpConfig->GetSetting("log_level")), atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
+			lpLogger = new ECLogger_File(loglevel, atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
 		}
 	}
 	if (!lpLogger) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
-		lpLogger = new ECLogger_File(atoi(lpConfig->GetSetting((prepend+"log_level").c_str())), atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
+		lpLogger = new ECLogger_File(loglevel, atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
 	}
 
 	return lpLogger;

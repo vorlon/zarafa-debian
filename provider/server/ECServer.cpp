@@ -196,14 +196,14 @@ void process_signal(int sig)
 			g_lpSessionManager->GetPluginFactory()->SignalPlugins(sig);
 
 			char *ll = g_lpConfig->GetSetting("log_level");
-			int new_ll = ll ? atoi(ll) : 2;
+			int new_ll = ll ? strtol(ll, NULL, 0) : 2;
 			g_lpLogger->SetLoglevel(new_ll);
 			g_lpLogger->Reset();
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
 
 			if (g_lpAudit) {
 				ll = g_lpConfig->GetSetting("audit_log_level");
-				new_ll = ll ? atoi(ll) : 1;
+				new_ll = ll ? strtol(ll, NULL, 0) : 1;
 				g_lpAudit->SetLoglevel(new_ll);
 				g_lpAudit->Reset();
 			}

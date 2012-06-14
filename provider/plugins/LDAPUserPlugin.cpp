@@ -588,10 +588,10 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 
 	gettimeofday(&tend, NULL);
 	llelapsedtime = difftimeval(&tstart,&tend);
-	if (m_logger->Log(EC_LOGLEVEL_DEBUG))
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
-	else
-		m_logger->Log(EC_LOGLEVEL_INFO, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s)", llelapsedtime/1000000.0, base, filter, req.c_str());
+	if (m_logger->Log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN))
+		m_logger->Log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
+	else if (m_logger->Log(EC_LOGLEVEL_INFO | EC_LOGLEVEL_PLUGIN))
+		m_logger->Log(EC_LOGLEVEL_INFO | EC_LOGLEVEL_PLUGIN, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s)", llelapsedtime/1000000.0, base, filter, req.c_str());
 
 	*lppres = res.release(); // deref the pointer from object
 
@@ -1474,10 +1474,11 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	char *companyname_attr = m_config->GetSetting("ldap_companyname_attribute", "", NULL);
 	char *addresslistname_attr = m_config->GetSetting("ldap_addresslist_name_attribute", "", NULL);
 
-	if (company.id.empty())
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	else
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	if (company.id.empty()) {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
+	} else {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	}
 
 	switch (objclass) {
 	case OBJECTCLASS_UNKNOWN:
@@ -1712,10 +1713,10 @@ auto_ptr<signatures_t> LDAPUserPlugin::getAllObjects(const objectid_t &company, 
 {
 	string companyDN;
 	if (!company.id.empty()) {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Company %s, Class %x", __FUNCTION__, company.id.c_str(), objclass);
+		LOG_PLUGIN_DEBUG("%s Company %s, Class %x", __FUNCTION__, company.id.c_str(), objclass);
 		companyDN = getSearchBase(company);
 	} else {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x", __FUNCTION__, objclass);
+		LOG_PLUGIN_DEBUG("%s Class %x", __FUNCTION__, objclass);
 	}
 	return getAllObjectsByFilter(getSearchBase(company), LDAP_SCOPE_SUBTREE, getSearchFilter(objclass), companyDN, true);
 }
@@ -1775,12 +1776,12 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 	auto_ptr<map<objectid_t, objectdetails_t> > mapdetails = auto_ptr<map<objectid_t, objectdetails_t> >(new map<objectid_t, objectdetails_t>);
 	auto_free_ldap_message res;
 
+	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size() );
+
 	/* That was easy ... */
 	if (objectids.empty())
 		return mapdetails;
 
-	if(m_logger->Log(EC_LOGLEVEL_DEBUG))
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s N=%d", __FUNCTION__, (int)objectids.size());
 
 	bool			bCutOff = false;
 
@@ -2440,14 +2441,14 @@ auto_ptr<signatures_t> LDAPUserPlugin::getParentObjectsForObject(userobject_rela
 
 	switch (relation) {
 	case OBJECTRELATION_GROUP_MEMBER:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Group member", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
 		parentobjclass = OBJECTCLASS_DISTLIST;
 		member_attr = m_config->GetSetting("ldap_groupmembers_attribute");
 		member_attr_type = m_config->GetSetting("ldap_groupmembers_attribute_type");
 		member_attr_rel = m_config->GetSetting("ldap_groupmembers_relation_attribute");
 		break;
 	case OBJECTRELATION_COMPANY_VIEW:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Company view", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Company view", __FUNCTION__);
 		parentobjclass = CONTAINER_COMPANY;
 		member_attr = m_config->GetSetting("ldap_company_view_attribute");
 		member_attr_type = m_config->GetSetting("ldap_company_view_attribute_type");
@@ -2457,28 +2458,28 @@ auto_ptr<signatures_t> LDAPUserPlugin::getParentObjectsForObject(userobject_rela
 			member_attr_rel = m_config->GetSetting("ldap_company_unique_attribute");
 		break;
 	case OBJECTRELATION_COMPANY_ADMIN:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Company admin", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Company admin", __FUNCTION__);
 		parentobjclass = CONTAINER_COMPANY;
 		member_attr = m_config->GetSetting("ldap_company_admin_attribute");
 		member_attr_type = m_config->GetSetting("ldap_company_admin_attribute_type");
 		member_attr_rel = m_config->GetSetting("ldap_company_admin_relation_attribute");
 		break;
 	case OBJECTRELATION_QUOTA_USERRECIPIENT:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Quota user recipient", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Quota user recipient", __FUNCTION__);
 		parentobjclass = CONTAINER_COMPANY;
 		member_attr = m_config->GetSetting("ldap_quota_userwarning_recipients_attribute");
 		member_attr_type = m_config->GetSetting("ldap_quota_userwarning_recipients_attribute_type");
 		member_attr_rel = m_config->GetSetting("ldap_quota_userwarning_recipients_relation_attribute");
 		break;
 	case OBJECTRELATION_QUOTA_COMPANYRECIPIENT:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Quota company recipient", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Quota company recipient", __FUNCTION__);
 		parentobjclass = CONTAINER_COMPANY;
 		member_attr = m_config->GetSetting("ldap_quota_companywarning_recipients_attribute");
 		member_attr_type = m_config->GetSetting("ldap_quota_companywarning_recipients_attribute_type");
 		member_attr_rel = m_config->GetSetting("ldap_quota_companywarning_recipients_relation_attribute");
 		break;
 	default:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Unhandled %x", __FUNCTION__, relation);
+		LOG_PLUGIN_DEBUG("%s Relation: Unhandled %x", __FUNCTION__, relation);
 		throw runtime_error("Cannot obtain parents for relation " + stringify(relation));
 		break;
 	}
@@ -2542,7 +2543,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 
 	switch (relation) {
 	case OBJECTRELATION_GROUP_MEMBER: {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Group member", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
 		childobjclass = OBJECTCLASS_UNKNOWN; /* Support users & groups */
 		if (sExternId.objclass != DISTLIST_DYNAMIC) {
 			unique_attr = group_unique_attr;
@@ -2567,7 +2568,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		break;
 	}
 	case OBJECTRELATION_COMPANY_VIEW: {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Company view", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Company view", __FUNCTION__);
 		childobjclass = CONTAINER_COMPANY;
 		unique_attr = company_unique_attr;
 		unique_attr_type = m_config->GetSetting("ldap_company_unique_attribute_type");
@@ -2580,7 +2581,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		break;
 	}
 	case OBJECTRELATION_COMPANY_ADMIN: {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Company admin", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Company admin", __FUNCTION__);
 		childobjclass = ACTIVE_USER; /* Only active users can perform administrative tasks */
 		unique_attr = company_unique_attr;
 		unique_attr_type = m_config->GetSetting("ldap_company_unique_attribute_type");
@@ -2593,7 +2594,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		break;
 	}
 	case OBJECTRELATION_QUOTA_USERRECIPIENT: {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Quota user recipient", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Quota user recipient", __FUNCTION__);
 		childobjclass = OBJECTCLASS_USER;
 		unique_attr = company_unique_attr;
 		unique_attr_type = m_config->GetSetting("ldap_company_unique_attribute_type");
@@ -2607,7 +2608,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		break;
 	}
 	case OBJECTRELATION_QUOTA_COMPANYRECIPIENT: {
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Quota company recipient", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Quota company recipient", __FUNCTION__);
 		childobjclass = OBJECTCLASS_USER;
 		unique_attr = company_unique_attr;
 		unique_attr_type = m_config->GetSetting("ldap_company_unique_attribute_type");
@@ -2621,7 +2622,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		break;
 	}
 	case OBJECTRELATION_ADDRESSLIST_MEMBER:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Addresslist member", __FUNCTION__);
+		LOG_PLUGIN_DEBUG("%s Relation: Addresslist member", __FUNCTION__);
 		childobjclass = OBJECTCLASS_UNKNOWN;
 		unique_attr = addresslist_unique_attr;
 		unique_attr_type = m_config->GetSetting("ldap_addresslist_unique_attribute_type");
@@ -2632,7 +2633,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::getSubObjectsForObject(userobject_relatio
 		ulType = FILTER;
 		break;
 	default:
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation: Unhandled %x", __FUNCTION__, relation);
+		LOG_PLUGIN_DEBUG("%s Relation: Unhandled %x", __FUNCTION__, relation);
 		throw runtime_error("Cannot obtain children for relation " + stringify(relation));
 		break;
 	}
@@ -2721,7 +2722,7 @@ auto_ptr<signatures_t> LDAPUserPlugin::searchObject(const string &match, unsigne
 	string search_filter;
 	size_t pos;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
+	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ldap_basedn = getSearchBase();
 	ldap_filter = getSearchFilter();
@@ -2865,7 +2866,7 @@ auto_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id, bool bGe
 	if (ldap_filter.empty())
 		throw objectnotfound("no ldap filter for "+id.id);
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	// Do a search request to get all attributes for this user. The
 	// attributes requested should be passed as the fifth argument, if
@@ -2911,7 +2912,7 @@ auto_ptr<abprops_t> LDAPUserPlugin::getExtraAddressbookProperties() throw(std::e
 	list<configsetting_t> lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
 	list<configsetting_t>::iterator i;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	for (i = lExtraAttrs.begin(); i != lExtraAttrs.end(); i++)
 		lProps->push_back(xtoi(i->szName));

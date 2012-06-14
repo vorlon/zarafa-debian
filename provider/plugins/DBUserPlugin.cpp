@@ -115,10 +115,11 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	string signature;
 	char *lpszSearchProperty;
 
-	if (company.id.empty())
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
-	else
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	if (company.id.empty()) {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s", __FUNCTION__, objclass, name.c_str());
+	} else {
+		LOG_PLUGIN_DEBUG("%s Class %x, Name %s, Company %s", __FUNCTION__, objclass, name.c_str(), company.id.c_str());
+	}
 
 	switch (objclass) {
 	case OBJECTCLASS_USER:
@@ -311,7 +312,7 @@ auto_ptr<signatures_t> DBUserPlugin::searchObject(const string &match, unsigned 
 		NULL,
 	};
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
+	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	return searchObjects(match.c_str(), search_props, NULL, ulFlags);
 }

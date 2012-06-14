@@ -118,6 +118,8 @@
 #define STROUT_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
 #define STROUT_FIX_CPY(s) (bSupportUnicode ? s_strcpy(soap, (s)) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
 
+#define LOG_SOAP_DEBUG(logger, _msg, ...) if (logger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SOAP)) { logger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SOAP, "soap: "_msg, ##__VA_ARGS__); }
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -129,6 +131,12 @@ extern ECStatsCollector*	g_lpStatsCollector;
 
 // Hold the status of the softdelete purge system
 bool g_bPurgeSoftDeleteStatus = FALSE;
+
+double timespec2dbl(timespec t) {
+    return (double)t.tv_sec + t.tv_nsec/1000000000.0;
+}
+
+double GetTimeOfDay();
 
 ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType, entryId** lppEntryId)
 {
@@ -534,11 +542,17 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *clientVersion, un
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpecSession = NULL;
-	ECSESSIONID	sessionID;
+	ECSESSIONID	sessionID = 0;
 	GUID		sServerGuid = {0};
     ECLicenseClient *lpLicenseClient = NULL;
     unsigned int ulLicenseResponse;
     unsigned char *lpLicenseResponse = NULL;
+	struct timespec startTimes = {0}, endTimes = {0};
+	double          dblStart = GetTimeOfDay();
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
+
+    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S logon", sessionID);
 
     if ((clientCaps & ZARAFA_CAP_UNICODE) == 0) {
 		user = ECStringCompat::WTF1252_to_UTF8(soap, user);
@@ -633,6 +647,10 @@ exit:
 
 	lpsResponse->er = er;
 
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E logon %f %f", sessionID, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+
 	return SOAP_OK;
 }
 
@@ -649,6 +667,12 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, struc
 	xsd__base64Binary *lpOutput = NULL;
 	char*			lpszEnabled = NULL;
 	ECLicenseClient*lpLicenseClient = NULL;
+	struct timespec startTimes = {0}, endTimes = {0};
+	double          dblStart = GetTimeOfDay();
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
+
+    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S ssoLogon", ulSessionId);
 
 	if (!lpInput || lpInput->__size == 0 || lpInput->__ptr == NULL || !szUsername || !szClientVersion)
 		goto exit;
@@ -794,6 +818,10 @@ exit:
 nosso:
 	lpsResponse->er = er;
 
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E ssoLogon %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+
 	return SOAP_OK;
 }
 
@@ -804,6 +832,12 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 {
 	ECRESULT	er = erSuccess;
 	ECSession 	*lpecSession = NULL;
+	struct timespec startTimes = {0}, endTimes = {0};
+	double          dblStart = GetTimeOfDay();
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
+
+    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S logoff", ulSessionId);
 
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
 	if(er != erSuccess)
@@ -823,14 +857,11 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 exit:
     *result = er;
 
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E logoff %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+
     return SOAP_OK;
 }
-
-double timespec2dbl(timespec t) {
-    return (double)t.tv_sec + t.tv_nsec/1000000000.0;
-}
-
-double GetTimeOfDay();
 
 #define SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
     ECRESULT		er = erSuccess; \
@@ -838,13 +869,16 @@ double GetTimeOfDay();
     double			dblStart = GetTimeOfDay(); \
     ECSession		*lpecSession = NULL; \
     unsigned int 	*lpResultVar = &resultvar; \
+	char            *szFname = #fname; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S %s", ulSessionId, szFname); \
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
 	const bool UNUSED_VAR bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) != 0 : false); \
 	const ECStringCompat stringCompat(er == erSuccess ? lpecSession->GetCapabilities() : 0); \
 	if(er != erSuccess) \
 		goto __soapentry_exit; \
 	lpecSession->AddBusyState(pthread_self(), #fname);
+
 #define SOAP_ENTRY_FUNCTION_FOOTER \
 __soapentry_exit: \
     *lpResultVar = er; \
@@ -853,7 +887,8 @@ __soapentry_exit: \
     	lpecSession->AddClocks( timespec2dbl(endTimes) - timespec2dbl(startTimes), \
     	                        0, \
 							    GetTimeOfDay() - dblStart); \
-	lpecSession->RemoveBusyState(pthread_self()); \
+		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E %s %f %f", ulSessionId, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
+		lpecSession->RemoveBusyState(pthread_self()); \
         lpecSession->Unlock(); \
     } \
     return SOAP_OK;

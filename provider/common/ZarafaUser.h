@@ -156,6 +156,8 @@ public:
 
 	virtual unsigned int GetObjectSize();
 
+	std::string		ToStr();
+
 private:
 	objectclass_t m_objclass;
 	property_map m_mapProps;

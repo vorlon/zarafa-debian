@@ -73,6 +73,10 @@ static char THIS_FILE[] = __FILE__;
 
 #include <algorithm>
 
+#define LOG_CACHE_DEBUG(_msg, ...) if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_CACHE)) { m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_CACHE, "cache: "_msg, ##__VA_ARGS__); }
+#define LOG_USERCACHE_DEBUG(_msg, ...) if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_USERCACHE)) { m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_USERCACHE, "usercache: "_msg, ##__VA_ARGS__); }
+#define LOG_CELLCACHE_DEBUG(_msg, ...) if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_CACHE)) { m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_CACHE, "cellcache: "_msg, ##__VA_ARGS__); }
+
 // Specialization for ECsACL
 template<>
 unsigned int GetCacheAdditionalSize(const ECsACLs &val) {
@@ -117,6 +121,12 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase
 
 	pthread_mutexattr_destroy(&mattr);
 
+ 	/* Initialization of constants */
+ 	m_lpDatabaseFactory = lpDatabaseFactory;
+ 	m_lpLogger = lpLogger;
+ 	
+ 	m_bCellCacheDisabled = false;
+
 	/* Initial cleaning/initialization of cache */
 	PurgeCache(PURGE_CACHE_ALL);
 
@@ -131,11 +141,6 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase
 	m_mapCells.set_deleted_key(-1);
 #endif
 
- 	/* Initialization of constants */
- 	m_lpDatabaseFactory = lpDatabaseFactory;
- 	m_lpLogger = lpLogger;
- 	
- 	m_bCellCacheDisabled = false;
 }
 
 ECCacheManager::~ECCacheManager()
@@ -149,6 +154,8 @@ ECCacheManager::~ECCacheManager()
 ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 {
 	ECRESULT er = erSuccess;
+
+	LOG_CACHE_DEBUG("Purge cache, flags 0x%08X", ulFlags);
 
 	// cache mutex items
 	pthread_mutex_lock(&m_hCacheMutex);
@@ -212,23 +219,27 @@ ECRESULT ECCacheManager::Update(unsigned int ulType, unsigned int ulObjId)
 	switch(ulType)
 	{
 		case fnevObjectModified:
+			LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects for object %d", ulObjId);
 			_DelACLs(ulObjId);
 			_DelCell(ulObjId);
 			_DelObject(ulObjId);
 			break;
 		case fnevObjectDeleted:
+			LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects and store for object %d", ulObjId);
 			_DelObject(ulObjId);
 			_DelStore(ulObjId);
 			_DelACLs(ulObjId);
 			_DelCell(ulObjId);
 			break;
 		case fnevObjectMoved:
+			LOG_CACHE_DEBUG("Remove cache cell, objects and store for object %d", ulObjId);
 			_DelStore(ulObjId);
 			_DelObject(ulObjId);
 			_DelCell(ulObjId);
 			break;
 		default:
 			//Do nothing
+			LOG_CACHE_DEBUG("Update cache, action type %d, objectid %d", ulType, ulObjId);
 			break;
 	}
 
@@ -239,6 +250,8 @@ ECRESULT ECCacheManager::UpdateUser(unsigned int ulUserId)
 {
 	std::string strExternId;
 	objectclass_t ulClass;
+
+	LOG_USERCACHE_DEBUG("Remove user id %d from the cache", ulUserId);
 
 	if (_GetUserObject(ulUserId, &ulClass, NULL, &strExternId, NULL) == erSuccess)
 		_DelUEIdObject(strExternId, ulClass);
@@ -297,6 +310,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	scoped_lock lock(m_hCacheMutex);
 	er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
 
+	LOG_CACHE_DEBUG("Set cache object id %d, parent %d, owner %d, flags %d, type %d", ulObjId, ulParent, ulOwner, ulFlags, ulType);
 	return er;
 }
 
@@ -346,6 +360,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore, GU
 
 	er = m_StoresCache.AddCacheItem(ulObjId, sStores);
 
+	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, ((lpGuid)?bin2hex(sizeof(GUID), (const unsigned char*)lpGuid).c_str(): "NULL"));
 	return er;
 }
 
@@ -362,13 +377,21 @@ ECRESULT ECCacheManager::_DelStore(unsigned int ulObjId)
 ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 {
 	ECRESULT	er = erSuccess;
+	bool bCacheResult = false;
 
-	if(_GetObject(ulObjId, NULL, ulOwner, NULL, NULL) == erSuccess)
+	if(_GetObject(ulObjId, NULL, ulOwner, NULL, NULL) == erSuccess) {
+		bCacheResult = true;
 		goto exit;
+	}
 
 	er = GetObject(ulObjId, NULL, ulOwner, NULL);
 
 exit:
+	if (er) {
+		LOG_CACHE_DEBUG("Get Owner for id %d error 0x%08X", ulObjId, er);
+	} else {
+		LOG_CACHE_DEBUG("Get Owner for id %d result [%s]: owner %d", ulObjId, ((bCacheResult)?"C":"D"), *ulOwner);
+	}
 	return er;
 }
 
@@ -410,6 +433,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
 	unsigned int	ulParent = 0, ulOwner = 0, ulFlags = 0, ulType = 0;
+	bool bCacheResult = false;
 
 	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 
@@ -426,6 +450,8 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 			*lpulFlags = ulFlags;
 		if(lpulType)
 			*lpulType = ulType;
+
+		bCacheResult = true;
 		goto exit;
 	}
 
@@ -466,6 +492,12 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
+
+	if (er != erSuccess) {
+		LOG_CACHE_DEBUG("Get object id %d error 0x%08x", ulObjId, er);
+	} else {
+		LOG_CACHE_DEBUG("Get object id %d result [%s]: parent %d owner %d flags %d type %d", ulObjId, ((bCacheResult)?"C":"D"), ulParent, ulOwner, ulFlags, ulType);
+	}
 
 	return er;
 
@@ -541,13 +573,19 @@ ECRESULT ECCacheManager::GetObjects(std::list<sObjectTableKey> &lstObjects, std:
 exit:
     if (lpDBResult)
         lpDatabase->FreeResult(lpDBResult);
-        
+    
+	if (er)	 {
+		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
+	} else {
+		LOG_CACHE_DEBUG("Get object ids total ids %lu from disk %lu", lstObjects.size(), setUncached.size());
+	}
     return er;
 }
 
 // Get the store that the specified object belongs to
 ECRESULT ECCacheManager::GetStore(unsigned int ulObjId, unsigned int *lpulStore, GUID *lpGuid, unsigned int maxdepth)
 {
+	LOG_CACHE_DEBUG("Get store id %d >", ulObjId);
     return GetStoreAndType(ulObjId, lpulStore, lpGuid, NULL, maxdepth);
 }
 
@@ -563,6 +601,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
 	unsigned int ulStore = 0;
 	unsigned int ulType = 0;
 	GUID guid;
+	bool bCacheResult = false;
 	
 	if(maxdepth <= 0)
 	    return ZARAFA_E_NOT_FOUND;
@@ -573,8 +612,10 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
 		goto exit;
 
 	// first check the cache if we already know the store for this object
-	if(_GetStore(ulObjId, &ulStore, &guid, &ulType) == erSuccess)
+	if(_GetStore(ulObjId, &ulStore, &guid, &ulType) == erSuccess) {
+		bCacheResult = true;
 		goto found;
+	}
 
     // Get our parent folder
 	if(GetParent(ulObjId, &ulSubObjId) != erSuccess) {
@@ -622,6 +663,12 @@ exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
+	if (er) {
+		LOG_CACHE_DEBUG("Get store and type %d error 0x%08x", ulObjId, er);
+	} else {
+		LOG_CACHE_DEBUG("Get store and type %d result [%s]: store %d, type %d, guid %s", ulObjId, ((bCacheResult)?"C":"D"), ulStore, ulType, bin2hex(sizeof(GUID), (const unsigned char*)&guid).c_str());
+	}
+
 	return er;
 }
 
@@ -637,6 +684,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 	unsigned int ulCompanyId;
 	std::string externid;
 	std::string signature;
+	bool bCacheResult = false;
 
 	// first check the cache if we already know the external id for this user
 	if (_GetUserObject(ulUserId, &ulClass, lpulCompanyId, &externid, lpstrSignature) == erSuccess) {
@@ -644,6 +692,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 			lpExternId->id = externid;
 			lpExternId->objclass = ulClass;
 		}
+		bCacheResult = true;
 		goto exit;
 	}
 
@@ -690,6 +739,12 @@ exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
+	if (er) {
+		LOG_USERCACHE_DEBUG("Get user object for user %d error 0x%08x", ulUserId, er);
+	} else {
+		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid '%s', class %d, companyid %d, signature '%s'", ulUserId, ((bCacheResult)?"C":"D"), bin2hex(externid).c_str(), ulClass, ((lpulCompanyId)?*lpulCompanyId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
+	}
+
 	return er;
 }
 
@@ -700,6 +755,12 @@ ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *
 	er = _GetUserObjectDetails(ulUserId, details);
 
 	// on error, ECUserManagement will update the cache
+	
+	if (er != erSuccess) {
+		LOG_USERCACHE_DEBUG("Get user details for userid %d not found, error 0x%08x", ulUserId, er);
+	} else {
+		LOG_USERCACHE_DEBUG("Get user details for userid %d result: %s", ulUserId, details->ToStr().c_str() );
+	}
 
 	return er;
 }
@@ -725,14 +786,17 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 	unsigned int ulUserId;
 	std::string signature;
 	objectclass_t objclass = sExternId.objclass;
+	bool bCacheResult = false;
 
 	if (sExternId.id.empty()) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		//ASSERT(FALSE);
 		goto exit;
 	}
 
 	// first check the cache if we already know the external id for this user
 	if (_GetUEIdObject(sExternId.id, sExternId.objclass, lpulCompanyId, lpulUserId, lpstrSignature) == erSuccess) {
+		bCacheResult = true;
 		goto exit;
 	}
 
@@ -784,6 +848,12 @@ exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
+	if (er) {
+		LOG_USERCACHE_DEBUG("Get user object done. error 0x%08X", er);
+	} else {
+		LOG_USERCACHE_DEBUG("Get user object from externid '%s', class %d result [%s]: company %d, userid %d, signature '%s'" , bin2hex(sExternId.id).c_str(), sExternId.objclass, ((bCacheResult)?"C":"D"), ((lpulCompanyId)?*lpulCompanyId:-1), ((lpulUserId)?*lpulUserId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
+	}
+
 	return er;
 }
 
@@ -804,8 +874,10 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 
 	// Collect as many objects from cache as possible,
 	// everything we couldn't find must be collected from the database
+	LOG_USERCACHE_DEBUG("Get User Objects. requested objects %lu", lstExternObjIds.size() );
 
 	for (iter = lstExternObjIds.begin(); iter != lstExternObjIds.end(); iter++) {
+		LOG_USERCACHE_DEBUG(" Get user objects from externid '%s', class %d" , bin2hex(iter->id).c_str(), iter->objclass);
 		if (_GetUEIdObject(iter->id, iter->objclass, NULL, &ulLocalId, NULL) == erSuccess)
 			lpmapLocalObjIds->insert(make_pair(*iter, ulLocalId)); // object was found in cache
 		else
@@ -851,11 +923,21 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 		lpmapLocalObjIds->insert(make_pair(sExternId, ulLocalId));
 
 		_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
+
+		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
 	}
+
+	// From this point you can have less items in lpmapLocalObjIds than requested in lstExternObjIds
 
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
+
+	if (er) {
+		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
+	} else {
+		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %lu", lpmapLocalObjIds->size());
+	}
 
 	return er;
 }
@@ -868,8 +950,12 @@ ECRESULT ECCacheManager::_AddUserObject(unsigned int ulUserId, objectclass_t ulC
 
 	scoped_lock lock(m_hCacheMutex);
 
-	if (OBJECTCLASS_ISTYPE(ulClass))
+	if (OBJECTCLASS_ISTYPE(ulClass)) {
+		LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid '%s', signature '%s'. error incomplete object", ulUserId, ulClass, ulCompanyId, bin2hex(strExternId).c_str(), bin2hex(strSignature).c_str());
 		goto exit;				// do not add incomplete data into the cache
+	}
+
+	LOG_USERCACHE_DEBUG("_Add user object. userid %d, class %d, companyid %d, externid '%s', signature '%s'", ulUserId, ulClass, ulCompanyId, bin2hex(strExternId).c_str(), bin2hex(strSignature).c_str());
 
 	sData.ulClass = ulClass;
 	sData.ulCompanyId = ulCompanyId;
@@ -906,7 +992,6 @@ ECRESULT ECCacheManager::_GetUserObject(unsigned int ulUserId, objectclass_t* lp
 
 	if(lpstrSignature)
 		*lpstrSignature = sData->strSignature;
-
 exit:
 	return er;
 }
@@ -933,6 +1018,8 @@ ECRESULT ECCacheManager::_AddUserObjectDetails(unsigned int ulUserId, objectdeta
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
+
+	LOG_USERCACHE_DEBUG("_Add user details. userid %d, %s", ulUserId, details->ToStr().c_str() );
 
 	sObjectDetails.sDetails = *details;
 
@@ -1038,6 +1125,8 @@ ECRESULT ECCacheManager::_DelUEIdObject(std::string strExternId, objectclass_t u
 	ECRESULT	er = erSuccess;
 	ECsUEIdKey	sKey;
 
+	LOG_USERCACHE_DEBUG("Remove user externid '%s' class %d", bin2hex(strExternId).c_str(), ulClass);
+
 	// Remove the user
 	sKey.strExternId = strExternId;
 	sKey.ulClass = ulClass;
@@ -1057,6 +1146,8 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
     std::string strQuery;
     struct rightsArray *lpRights = NULL;
     unsigned int ulRows = 0;
+
+	LOG_USERCACHE_DEBUG("Get ACLs for objectid %d", ulObjId);
 
     // Try cache first
     if(_GetACLs(ulObjId, lppRights) == erSuccess)
@@ -1094,6 +1185,8 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			lpRights->__ptr[i].ulUserid = atoi(lpRow[0]);
 			lpRights->__ptr[i].ulType = atoi(lpRow[1]);
 			lpRights->__ptr[i].ulRights = atoi(lpRow[2]);
+
+			LOG_USERCACHE_DEBUG(" Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
 		}
 	}
 	else
@@ -1133,6 +1226,8 @@ ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lpp
             lpRights->__ptr[i].ulType = sACL->aACL[i].ulType;
             lpRights->__ptr[i].ulRights = sACL->aACL[i].ulMask;
             lpRights->__ptr[i].ulUserid = sACL->aACL[i].ulUserId;
+
+			LOG_USERCACHE_DEBUG("_Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
         }
     }
     else
@@ -1150,6 +1245,8 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId, struct rightsArray *lpRig
     unsigned int i;
     ECRESULT er = erSuccess;
 
+	LOG_USERCACHE_DEBUG("Set ACLs for objectid %d", ulObjId);
+
     sACLs.ulACLs = lpRights->__size;
     sACLs.aACL = new ECsACLs::ACL [lpRights->__size];
 
@@ -1157,6 +1254,8 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId, struct rightsArray *lpRig
         sACLs.aACL[i].ulType = lpRights->__ptr[i].ulType;
         sACLs.aACL[i].ulMask = lpRights->__ptr[i].ulRights;
         sACLs.aACL[i].ulUserId = lpRights->__ptr[i].ulUserid;
+
+		LOG_USERCACHE_DEBUG("Set ACLs for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
     }
 
 	scoped_lock lock(m_hCacheMutex);
@@ -1169,6 +1268,8 @@ ECRESULT ECCacheManager::_DelACLs(unsigned int ulObjId)
 {
     ECRESULT er = erSuccess;
 	scoped_lock lock(m_hCacheMutex);
+	
+	LOG_USERCACHE_DEBUG("Remove ACLs for objectid %d", ulObjId);
 
 	er = m_AclCache.RemoveCacheItem(ulObjId);
 
@@ -1358,6 +1459,11 @@ ECRESULT ECCacheManager::GetCell(sObjectTableKey* lpsRowItem, unsigned int ulPro
     }
 
 exit:
+	if (er) {
+		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X item not found", lpsRowItem->ulObjId, ulPropTag);
+	} else {
+		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X result found", lpsRowItem->ulObjId, ulPropTag);
+	}
     return er;
 }
 
@@ -1390,6 +1496,11 @@ ECRESULT ECCacheManager::SetCell(sObjectTableKey* lpsRowItem, unsigned int ulPro
     }
 
 exit:
+	if (er) {
+		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
+	} else {
+		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X", lpsRowItem->ulObjId, ulPropTag);
+	}
     return er;
 }
 
@@ -1408,6 +1519,12 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
     }
 
 exit:
+	if (er) {
+		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
+	} else {
+		LOG_CELLCACHE_DEBUG("Set cell complete for object %d", ulObjId);
+	}
+
     return er;
 }
 
@@ -1426,6 +1543,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
+	if (er) {
+		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
+	} else {
+		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d", ulObjId, ulPropTag, lDelta);
+	}
     return er;
 }
 
@@ -1444,6 +1566,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
+	if (er) {
+		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
+	} else {
+		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d", ulObjId, ulPropTag, ulMask, ulValue);
+	}
     return er;
 }
 
@@ -1534,6 +1661,8 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cb
 		goto exit;
 	}
 
+	LOG_CACHE_DEBUG("Remove indexdata proptag 0x%08X, data %s", ulPropTag, bin2hex(cbData, lpData).c_str());
+
 	sObject.ulTag = PROP_ID(ulPropTag);
 	sObject.cbData = cbData;
 	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
@@ -1562,6 +1691,8 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int ul
 
 	sObject.ulTag = PROP_ID(ulPropTag);
 	sObject.ulObjId = ulObjId;
+
+	LOG_CACHE_DEBUG("Remove index data proptag 0x%08X, objectid %d", ulPropTag, ulObjId);
 
 	{
         scoped_lock lock(m_hCacheIndPropMutex);
@@ -1610,6 +1741,8 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 
 	sObjectKey.ulObjId = ulObjId;
 	sObjectKey.ulTag = ulTag;
+
+	LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d", ulTag, ulObjId);
 
 	{
 		scoped_lock lock(m_hCacheIndPropMutex);
@@ -1661,6 +1794,12 @@ exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
+	if (er != erSuccess) {
+		LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, error 0x%08x", ulTag, ulObjId, er);
+	} else {
+	    LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, data %s", ulTag, ulObjId, bin2hex(sObject->cbData, sObject->lpData).c_str());
+	}
+
 	return er;
 }
 
@@ -1673,14 +1812,17 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	ECDatabase*		lpDatabase = NULL;
     ECsIndexObject sNewIndexObject;
 	ECsIndexProp	sObject;
+	bool bCacheResult = false;
 
 	if(lpData == NULL || lpulObjId == NULL || cbData == 0) {
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	if(QueryObjectFromProp(ulTag, cbData, lpData, lpulObjId) == erSuccess)
+	if(QueryObjectFromProp(ulTag, cbData, lpData, lpulObjId) == erSuccess) {
+		bCacheResult = true;
 	    goto exit;
+	}
 
 	// Item not found, search in database
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
@@ -1718,6 +1860,12 @@ exit:
 		lpDatabase->FreeResult(lpDBResult);
 
 	sObject.lpData = NULL; // Remove reference
+
+	if (er) {
+		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s error 0x%08x", ulTag, bin2hex(cbData, lpData).c_str(), er);
+	} else {
+		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s result [%s]: objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ((bCacheResult)?"C":"D"), *lpulObjId);
+	}
 
 	return er;
 }
@@ -1765,6 +1913,7 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, 
 
     er = _AddIndexData(&sObject, &sProp);
 
+	LOG_CACHE_DEBUG("Set object prop tag 0x%04X, data %s, objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ulObjId);
     return er;
 }
 
@@ -1936,10 +2085,13 @@ ECRESULT ECCacheManager::SetExcludedIndexProperties(std::set<unsigned int>& set)
         
 void ECCacheManager::DisableCellCache()
 {
+	LOG_CELLCACHE_DEBUG("Disable cell cache");
+
     m_bCellCacheDisabled = true;
 }
 
 void ECCacheManager::EnableCellCache()
 {
+	LOG_CELLCACHE_DEBUG("Enable cell cache");
     m_bCellCacheDisabled = false;
 }

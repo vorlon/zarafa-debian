@@ -129,8 +129,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > DBPlugin::getObjectDetails(const lis
 	if(objectids.empty())
 		return auto_ptr<map<objectid_t, objectdetails_t> >(mapdetails);
 
-	if (m_logger->Log(EC_LOGLEVEL_DEBUG))
-		m_logger->Log(EC_LOGLEVEL_DEBUG, "%s N=%d", __FUNCTION__, (int)objectids.size());
+	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size());
 
 	for (list<objectid_t>::const_iterator i = objectids.begin(); i != objectids.end(); i++) {
 		if (!objectstrings[i->objclass].empty())
@@ -276,7 +275,7 @@ auto_ptr<signatures_t> DBPlugin::getSubObjectsForObject(userobject_relation_t re
 			"AND ort.relationtype = " + stringify(relation) + " ";
 			"AND " + OBJECTCLASS_COMPARE_SQL("p.objectclass", parentobject.objclass);
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation %x", __FUNCTION__, relation);
+	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	return CreateSignatureList(strQuery);
 }
@@ -297,7 +296,7 @@ auto_ptr<signatures_t> DBPlugin::getParentObjectsForObject(userobject_relation_t
 			"AND ort.relationtype = " + stringify(relation) + " "
 			"AND " + OBJECTCLASS_COMPARE_SQL("c.objectclass", childobject.objclass);
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation %x", __FUNCTION__, relation);
+	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	return CreateSignatureList(strQuery);
 }
@@ -347,7 +346,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	};
 	struct props *sValidProps;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	strSubQuery = 
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
@@ -518,7 +517,7 @@ objectsignature_t DBPlugin::createObject(const objectdetails_t &details) throw(s
 {
 	objectid_t objectid;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	objectid = details.GetPropObject(OB_PROP_O_EXTERNID);
 	if (!objectid.id.empty()) {
@@ -546,7 +545,7 @@ void DBPlugin::deleteObject(const objectid_t &objectid) throw(std::exception)
 	DB_ROW lpDBRow = NULL;
 	unsigned int ulAffRows = 0;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	strSubQuery = 
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
@@ -644,7 +643,7 @@ void DBPlugin::addSubObjectRelation(userobject_relation_t relation, const object
 	if (relation == OBJECTRELATION_USER_SENDAS && childobject.objclass != ACTIVE_USER && OBJECTCLASS_TYPE(childobject.objclass) != OBJECTTYPE_DISTLIST)
 		throw notsupported("only active users can send mail");
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation %x", __FUNCTION__, relation);
+	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	strParentSubQuery = 
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
@@ -687,7 +686,7 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 	string strParentSubQuery;
 	string strChildSubQuery;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s Relation %x", __FUNCTION__, relation);
+	LOG_PLUGIN_DEBUG("%s Relation %x", __FUNCTION__, relation);
 
 	strParentSubQuery = 
 		"SELECT id FROM " + (string)DB_OBJECT_TABLE + " "
@@ -779,7 +778,7 @@ auto_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid, bool bGe
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
 	DB_ROW lpDBRow = NULL;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	strQuery =
 		"SELECT op.propname, op.value "
@@ -834,7 +833,7 @@ void DBPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotad
 	string op_soft;
 	string op_warn;
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	if (quotadetails.bIsUserDefaultQuota) {
 		op_default = OP_UD_USEDEFAULTQUOTA;
@@ -961,7 +960,7 @@ auto_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties() throw(std::excepti
 	std::string strQuery;
 	std::string strTable[2];
 
-	m_logger->Log(EC_LOGLEVEL_DEBUG, "%s", __FUNCTION__);
+	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	strTable[0] = (string)DB_OBJECTPROPERTY_TABLE;
 	strTable[1] = (string)DB_OBJECTMVPROPERTY_TABLE;

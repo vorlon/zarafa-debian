@@ -75,6 +75,8 @@
 
 using namespace std;
 
+#define LOG_PLUGIN_DEBUG(_msg, ...) if (m_logger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_PLUGIN)) { m_logger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_PLUGIN, "plugin: "_msg, ##__VA_ARGS__); }
+
 /**
  * The objectsignature combines the object id with the
  * signature of that object. With the signature ECUserManagement

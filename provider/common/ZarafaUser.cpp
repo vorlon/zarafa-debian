@@ -301,6 +301,35 @@ unsigned int objectdetails_t::GetObjectSize()
 	return ulSize;
 }
 
+std::string objectdetails_t::ToStr()
+{
+	std::string str;
+    property_map::const_iterator i;
+    property_mv_map::iterator mvi;
+    std::list<std::string>::iterator istr;
+
+
+	str = "propmap: ";
+	for (i = m_mapProps.begin(); i != m_mapProps.end(); i++) {
+		if(i != m_mapProps.begin())  str+= ", ";
+		str+= stringify(i->first) + "='";
+		str+= i->second + "'";
+	}
+
+	str += " mvpropmap: ";
+	for (mvi = m_mapMVProps.begin(); mvi != m_mapMVProps.end(); mvi++) {
+		if(mvi != m_mapMVProps.begin()) str += ", ";
+		str += stringify(mvi->first) + "=(";
+		for (istr = mvi->second.begin(); istr != mvi->second.end(); istr++) {
+			if(istr != mvi->second.begin()) str +=", ";
+			str += *istr;
+		}
+		str +=")";
+	}
+
+	return str;
+}
+
 serverdetails_t::serverdetails_t(const std::string &servername)
 : m_strServerName(servername)
 , m_ulHttpPort(0)
