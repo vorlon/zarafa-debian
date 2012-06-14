@@ -424,18 +424,15 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			// Non supported function for publicfolder
 			hr = GetReceiveFolderTable(0, (LPMAPITABLE*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		if(*lpiid == IID_IExchangeExportChanges)
-			hr = ECExchangeExportChanges::Create(this, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
 	        ECExportAddressbookChanges *lpEEAC = new ECExportAddressbookChanges(this);
 	        
 	        hr = lpEEAC->QueryInterface(*lpiid, (void **)lppUnk);
 	    }
-		else if(*lpiid == IID_IExchangeExportChanges)
-			hr = ECExchangeExportChanges::Create(this, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
-        else
-            hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		else
+			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if (ulPropTag == PR_EC_CHANGE_ADVISOR) {
 		ECChangeAdvisor *lpChangeAdvisor = NULL;
 		hr = ECChangeAdvisor::Create(this, &lpChangeAdvisor);
@@ -3697,6 +3694,7 @@ exit:
  * Export a set of messages as stream.
  *
  * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
+ * @param[in]	ulPropTag	PR_ENTRYID or PR_SOURCE_KEY. Specifies the identifier used in sChanges->sSourceKey
  * @param[in]	sChanges	The complete set of changes available.
  * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
  * @param[in]	ulCount		The number of messages to export, starting at ulStart. This number will be decreased if less messages are available.
@@ -3706,7 +3704,7 @@ exit:
  * @retval	MAPI_E_INVALID_PARAMETER	ulStart is larger than the number of changes available.
  * @retval	MAPI_E_UNABLE_TO_COMPLETE	ulCount is 0 after trunctation.
  */
-HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
 	HRESULT hr = hrSuccess;
 	WSMessageStreamExporterPtr ptrStreamExporter;
@@ -3733,7 +3731,7 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, std::vector<ICSC
 	if (hr != hrSuccess)
 		goto exit;
 	
-	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
+	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, ulPropTag, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
 	if (hr != hrSuccess)
 		goto exit;
 

@@ -112,6 +112,7 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std:
 	m_lpChanges = NULL;
 	m_lpRestrict = NULL;
 	m_ulMaxChangeId = 0;
+	m_ulEntryPropTag = PR_SOURCE_KEY; 		// This is normally the tag that is sent to exportMessageChangeAsStream()
 
 	m_clkStart = 0;
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
@@ -156,7 +157,7 @@ HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 	return hrSuccess;
 }
 
-HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
+HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
 	HRESULT hr = hrSuccess;
 	ECExchangeExportChanges *lpEEC = NULL;
 
@@ -167,7 +168,7 @@ HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, const std::string& 
 
 	lpEEC = new ECExchangeExportChanges(lpStore, sourcekey, szDisplay, ulSyncType);
 
-	hr = lpEEC->QueryInterface(IID_IExchangeExportChanges, (void **)lppExchangeExportChanges);
+	hr = lpEEC->QueryInterface(iid, (void **)lppExchangeExportChanges);
 
 exit:
 	return hr;
@@ -178,8 +179,8 @@ HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterfa
 	REGISTER_INTERFACE(IID_ECExchangeExportChanges, this);
 	REGISTER_INTERFACE(IID_ECUnknown, this);
 
-	REGISTER_INTERFACE(IID_IExchangeExportChanges, &this->m_xExchangeExportChanges);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xExchangeExportChanges);
+	REGISTER_INTERFACE(IID_IExchangeExportChanges, &this->m_xECExportChanges);
+	REGISTER_INTERFACE(IID_IUnknown, &this->m_xECExportChanges);
 
 	REGISTER_INTERFACE(IID_IECExportChanges, &this->m_xECExportChanges);
 
@@ -675,87 +676,196 @@ exit:
 	return hr;
 }
 
+/**
+ * This allows you to configure the exporter for a selective export of messages. Since the caller
+ * specifies which items to export, it is not an incremental export and it has no state. It will call
+ * the importer with data for all the specified messages, unless they are unavailable. This means that
+ * the importer will only receive ImportMessageChange() or ImportMessageChangeAsStream() calls.
+ *
+ * @param[in] ulPropTag 		Property tag of identifiers in lpEntries, either PR_SOURCE_KEY or PR_ENTRYID
+ * @param[in] lpEntries 		List of entries to export
+ * @param[in] lpParents			List of parents for entries in lpEntries. Must be the same size as lpEntries. Must be NULL if ulPropTag == PR_ENTRYID.
+ * @param[in] ulFlags   		Unused for now
+ * @param[in] lpCollector		Importer to send the data to. Must implement either IExchangeImportContentsChanges or IECImportContentsChanges
+ * @param[in] lpIncludeProps	Unused for now
+ * @param[in] lpExcludeProps	Unused for now
+ * @param[in] ulBufferSize		Number of messages so synchronize during a single Synchronize() call. A value of 0 means 'default', which is 1
+ * @return result
+ */
+HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
+{
+	HRESULT hr = hrSuccess;
+	ECSyncSettings *lpSyncSettings = ECSyncSettings::GetInstance();
+	BOOL bCanStream = false;
+	BOOL bSupportsPropTag = false;
+	
+	if(ulPropTag != PR_ENTRYID && ulPropTag != PR_SOURCE_KEY) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+	
+	if(ulPropTag == PR_ENTRYID) {
+		m_lpStore->lpTransport->HrCheckCapabilityFlags(ZARAFA_CAP_EXPORT_PROPTAG, &bSupportsPropTag);
+		if(!bSupportsPropTag) {
+		 	hr = MAPI_E_NO_SUPPORT;
+		 	goto exit;
+		}
+	}
+	
+	if(ulPropTag == PR_ENTRYID && lpParents != NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+	
+	if(ulPropTag == PR_SOURCE_KEY && lpParents == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+	
+	if(lpParents && lpParents->cValues != lpEntries->cValues) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+	
+	if(m_bConfiged){
+		hr = MAPI_E_UNCONFIGURED;
+		LOG_DEBUG(m_lpLogger, "%s", "Config() called twice");
+		goto exit;
+	}
+	
+	// Only available for message syncing	
+	if(m_ulSyncType != ICS_SYNC_CONTENTS) {
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
+
+	// Select an importer interface
+	hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
+	if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
+		m_lpStore->lpTransport->HrCheckCapabilityFlags(ZARAFA_CAP_ENHANCED_ICS, &bCanStream);
+		if (bCanStream == TRUE) {
+			LOG_DEBUG(m_lpLogger, "%s", "Exporter supports enhanced ICS, checking importer...");
+			hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
+			if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
+				ASSERT(m_lpImportStreamedContents == NULL);
+				hr = hrSuccess;
+				LOG_DEBUG(m_lpLogger, "%s", "Importer doesn't support enhanced ICS");
+			} else
+				LOG_DEBUG(m_lpLogger, "%s", "Importer supports enhanced ICS");
+		} else
+			LOG_DEBUG(m_lpLogger, "%s", "Exporter doesn't support enhanced ICS");
+	}
+	
+	m_ulEntryPropTag = ulPropTag;
+
+	// Fill m_lpChanges with items from lpEntries
+	hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * lpEntries->cValues, (void **)&m_lpChanges);
+	if(hr != hrSuccess)
+		goto exit;
+
+	for(unsigned int i=0; i<lpEntries->cValues; i++) {
+		memset(&m_lpChanges[i], 0, sizeof(ICSCHANGE));
+		hr = MAPIAllocateMore(lpEntries->lpbin[i].cb, m_lpChanges, (void **)&m_lpChanges[i].sSourceKey.lpb);
+		if(hr != hrSuccess)
+			goto exit;
+			
+		memcpy(m_lpChanges[i].sSourceKey.lpb, lpEntries->lpbin[i].lpb, lpEntries->lpbin[i].cb);
+		m_lpChanges[i].sSourceKey.cb = lpEntries->lpbin[i].cb;
+		
+		if(lpParents) {
+			hr = MAPIAllocateMore(lpParents->lpbin[i].cb, m_lpChanges, (void **)&m_lpChanges[i].sParentSourceKey.lpb);
+			if(hr != hrSuccess)
+				goto exit;
+				
+			memcpy(m_lpChanges[i].sParentSourceKey.lpb, lpParents->lpbin[i].lpb, lpParents->lpbin[i].cb);
+			m_lpChanges[i].sParentSourceKey.cb = lpParents->lpbin[i].cb;
+		}
+		
+		m_lpChanges[i].ulChangeType = ICS_MESSAGE_NEW;
+
+		// Since all changes are 'change' modifications, duplicate all data in m_lpChanges in m_lstChange
+		m_lstChange.push_back(m_lpChanges[i]);
+	}
+	
+	m_bConfiged = true;
+	
+exit:	
+	return hr;
+}
+
 HRESULT ECExchangeExportChanges::SetMessageInterface(REFIID refiid) {
 	m_iidMessage = refiid;
 	return hrSuccess;
 }
 
-ULONG ECExchangeExportChanges::xExchangeExportChanges::AddRef(){
+ULONG ECExchangeExportChanges::xECExportChanges::AddRef(){
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	return pThis->AddRef();
 }
 
-ULONG ECExchangeExportChanges::xExchangeExportChanges::Release()
+ULONG ECExchangeExportChanges::xECExportChanges::Release()
 {
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Release", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	return pThis->Release();
 }
 
-HRESULT ECExchangeExportChanges::xExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterface)
+HRESULT ECExchangeExportChanges::xECExportChanges::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	HRESULT hr;
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr = pThis->QueryInterface(refiid, lppInterface);
 	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::xExchangeExportChanges::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
+HRESULT ECExchangeExportChanges::xECExportChanges::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
 {
 	HRESULT hr;
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::GetLastError", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr = pThis->GetLastError(hError, ulFlags, lppMapiError);
 	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::xExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
+HRESULT ECExchangeExportChanges::xECExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
 	HRESULT hr;
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Config", "lpStream=%08x, ulFlags=%d, lpCollector=0x%08x, lpRestriction = %08x, lpIncludeProps = %08x, lpExcludeProps = %08x, ulBufferSize = %d", lpStream, ulFlags, lpCollector, lpRestriction, lpIncludeProps, lpExcludeProps, ulBufferSize);
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr =  pThis->Config(lpStream, ulFlags, lpCollector, lpRestriction, lpIncludeProps, lpExcludeProps, ulBufferSize);
 	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::Config", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::xExchangeExportChanges::Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress){
+HRESULT ECExchangeExportChanges::xECExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
+{
+	HRESULT hr;
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::ConfigSelective", "");
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
+	hr =  pThis->ConfigSelective(ulPropTag, lpEntries, lpParents, ulFlags, lpCollector, lpIncludeProps, lpExcludeProps, ulBufferSize);
+	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::ConfigSelective", "%s", GetMAPIErrorDescription(hr).c_str());
+	return hr;
+}
+
+HRESULT ECExchangeExportChanges::xECExportChanges::Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress){
 	HRESULT hr;
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Synchronize", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr = pThis->Synchronize(pulSteps, pulProgress);
 	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::Synchronize", "%s", (hr != SYNC_W_PROGRESS) ? GetMAPIErrorDescription(hr).c_str() : "SYNC_W_PROGRESS");
 	return hr;
 }
 
-HRESULT ECExchangeExportChanges::xExchangeExportChanges::UpdateState(LPSTREAM lpStream){
+HRESULT ECExchangeExportChanges::xECExportChanges::UpdateState(LPSTREAM lpStream){
 	HRESULT hr;
 	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::UpdateState", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ExchangeExportChanges);
+	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr = pThis->UpdateState(lpStream);
 	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::UpdateState", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
-}
-
-ULONG ECExchangeExportChanges::xECExportChanges::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->AddRef();
-}
-
-ULONG ECExchangeExportChanges::xECExportChanges::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::Release", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->Release();
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::QueryInterface", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->QueryInterface(refiid, lppInterface);
 }
 
 HRESULT ECExchangeExportChanges::xECExportChanges::GetChangeCount(ULONG *lpcChanges) {
@@ -767,7 +877,7 @@ HRESULT ECExchangeExportChanges::xECExportChanges::GetChangeCount(ULONG *lpcChan
 HRESULT ECExchangeExportChanges::xECExportChanges::SetMessageInterface(REFIID refiid)
 {
 	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::SetMessageInterface", "%s", DBGGUIDToString(refiid).c_str());
+	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::SetMessageInterface", "%s", DBGGUIDToString(refiid).c_str());
 	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	hr = pThis->SetMessageInterface(refiid);
 	return hr;
@@ -775,7 +885,7 @@ HRESULT ECExchangeExportChanges::xECExportChanges::SetMessageInterface(REFIID re
 
 HRESULT ECExchangeExportChanges::xECExportChanges::SetLogger(ECLogger *lpLogger)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::SetLogger", "");
+	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::SetLogger", "");
 	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
 	return pThis->SetLogger(lpLogger);
 }
@@ -1214,7 +1324,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 
 	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsDone()) {
 		LOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
-		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_lstChange, m_ulStep, m_ulBatchSize, lpImportProps, &m_ptrStreamExporter);
+		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_ulEntryPropTag, m_lstChange, m_ulStep, m_ulBatchSize, lpImportProps, &m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// There was nothing to export (see ExportMessageChangesAsStream documentation)
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
@@ -1579,7 +1689,7 @@ exit:
 
 //write in the stream 4 bytes syncid, 4 bytes changeid, 4 bytes changecount, {4 bytes changeid, 4 bytes sourcekeysize, sourcekey}
 HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
-	HRESULT hr;
+	HRESULT hr = hrSuccess;
 	LARGE_INTEGER liPos = {{0, 0}};
 	ULARGE_INTEGER liZero = {{0, 0}};
 	ULONG ulSize;
@@ -1587,6 +1697,9 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	ULONG ulChangeId = 0;
 	ULONG ulSourceKeySize = 0;
 	PROCESSEDCHANGESSET::iterator iterProcessedChange;
+	
+	if(lpStream == NULL)
+		goto exit;
 
 	hr = lpStream->SetSize(liZero);
 	if(hr != hrSuccess)

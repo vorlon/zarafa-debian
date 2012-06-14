@@ -566,7 +566,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *clientVersion, un
 
 	lpsResponse->ulSessionId = sessionID;
 	lpsResponse->lpszVersion = "0,"PROJECT_VERSION_SERVER_STR;
-	lpsResponse->ulCapabilities = ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER | ZARAFA_CAP_LOADPROP_ENTRYID;
+	lpsResponse->ulCapabilities = ZARAFA_LATEST_CAPABILITIES;
 
 	if (clientCaps & ZARAFA_CAP_COMPRESSION) {
 		// client knows compression, then turn it on
@@ -740,7 +740,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, struc
 
 	lpsResponse->ulSessionId = newSessionID;
 	lpsResponse->lpszVersion = "0,"PROJECT_VERSION_SERVER_STR;
-	lpsResponse->ulCapabilities = ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER  | ZARAFA_CAP_LOADPROP_ENTRYID;
+	lpsResponse->ulCapabilities = ZARAFA_LATEST_CAPABILITIES;
 
 	if (clientCaps & ZARAFA_CAP_COMPRESSION) {
 		// client knows compression, then turn it on
@@ -10746,7 +10746,7 @@ void MTOMReadClose(struct soap* /*soap*/, void *handle)
 	CleanMTOMStreamInfo(lpStreamInfo);
 }
 
-SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray sSourceKeyPairs, exportMessageChangesAsStreamResponse *lpsResponse)
+SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray sSourceKeyPairs, unsigned int ulPropTag, exportMessageChangesAsStreamResponse *lpsResponse)
 {
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	ECAttachmentStorage *lpAttachmentStorage = NULL;
@@ -10765,6 +10765,11 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	unsigned int		ulDepth = 20;
 	unsigned int		ulMode = 0;
 	std::set<SOURCEKEY> setParentSourcekeys;
+	std::set<EntryId>	setEntryIDs;
+
+	// Backward compat, old clients do not send ulPropTag
+	if(!ulPropTag)
+	    ulPropTag = PR_SOURCE_KEY;
 	
 	if(ulFlags & SYNC_BEST_BODY)
 	  ulMode = 1;
@@ -10773,13 +10778,24 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	
 	USE_DATABASE();
 
-	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
-	    setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
-	}
+	if(ulPropTag == PR_ENTRYID) {
+    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
+	        setEntryIDs.insert(EntryId(sSourceKeyPairs.__ptr[i].sObjectKey));
+    	}
 
-	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
+    	er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED);
+    	if(er != erSuccess)
+	        goto exit;
+	
+	} else {
+    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
+	        setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
+    	}
+
+    	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
+    	if(er != erSuccess)
+	        goto exit;
+    }
 
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
 	
@@ -10805,7 +10821,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpsResponse->sMsgStreams.__ptr[ulObjCnt].ulStep = i;			
 
 		// Find the correct object
-		er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), 
+		er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(ulPropTag), 
 																	sSourceKeyPairs.__ptr[i].sObjectKey.__size, 
 																	sSourceKeyPairs.__ptr[i].sObjectKey.__ptr, &ulObjectId);
 		if(er != erSuccess) {
@@ -10813,25 +10829,27 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 			goto next_object;
         }
         
-		er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), 
-																	sSourceKeyPairs.__ptr[i].sParentKey.__size, 
-																	sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
-		if(er != erSuccess) {
-		    er = erSuccess;
-			goto next_object;
-        }
+        if(sSourceKeyPairs.__ptr[i].sParentKey.__size) {
+            er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(ulPropTag), 
+                                                                        sSourceKeyPairs.__ptr[i].sParentKey.__size, 
+                                                                        sSourceKeyPairs.__ptr[i].sParentKey.__ptr, &ulParentId);
+            if(er != erSuccess) {
+                er = erSuccess;
+                goto next_object;
+            }
 
-		er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjectId, &ulParentCheck, NULL, &ulObjFlags, NULL);
-		if (er != erSuccess) {
-		    er = erSuccess;
-			goto next_object;
+            er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjectId, &ulParentCheck, NULL, &ulObjFlags, NULL);
+            if (er != erSuccess) {
+                er = erSuccess;
+                goto next_object;
+            }
+            
+            if (ulParentId != ulParentCheck) {
+                ASSERT(false);
+                goto next_object;
+            }
         }
-		
-		if (ulParentId != ulParentCheck) {
-		    ASSERT(false);
-			goto next_object;
-		}
-		
+        		
 		if ((ulObjFlags & MSGFLAG_DELETED) != (ulFlags & MSGFLAG_DELETED)) {
 			goto next_object;
 		}

@@ -1185,6 +1185,7 @@ exit:
  * This method MUST be called on a WSTransport that's dedicated for exporting because no locking is performed.
  *
  * @param[in]	ulFlags		Flags used to determine which messages and what data is to be exported.
+ * @param[in]	ulPropTag	Either PR_ENTRYID or PR_SOURCE_KEY. Indicates which identifier is used in lpChanges[x].sSourceKey
  * @param[in]	lpChanges	The complete set of changes available.
  * @param[in]	ulStart		The index in sChanges that specifies the first message to export.
  * @param[in]	ulChanges	The number of messages to export, starting at ulStart. ulStart and ulCount must not me larger than the amount of available changes.
@@ -1194,7 +1195,7 @@ exit:
  * @retval	MAPI_E_INVALID_PARAMETER	lpChanges or lpsProps == NULL
  * @retval	MAPI_E_NETWORK_ERROR		The actual call to the server failed or no streams are returned
  */
-HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
 	typedef mapi_memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
 
@@ -1224,7 +1225,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ICSCHANGE *lp
 	// Make sure to get the mime attachments ourselves
 	soap_post_check_mime_attachments(m_lpCmd->soap);
 
-	if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, &sResponse) != SOAP_OK) {
+	if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, ulPropTag, &sResponse) != SOAP_OK) {
 		UnLockSoap();
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;

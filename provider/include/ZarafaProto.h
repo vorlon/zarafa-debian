@@ -1165,7 +1165,7 @@ int ns__getServerBehavior(ULONG64 ulSessionId, struct getServerBehaviorResponse*
 int ns__setServerBehavior(ULONG64 ulSessionId, unsigned int ulBehavior, unsigned int *result);
 
 // Streaming
-int ns__exportMessageChangesAsStream(ULONG64 ulSessionId, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray, struct exportMessageChangesAsStreamResponse *lpsResponse);
+int ns__exportMessageChangesAsStream(ULONG64 ulSessionId, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray, unsigned int ulPropTag, struct exportMessageChangesAsStreamResponse *lpsResponse);
 int ns__importMessageFromStream(ULONG64 ulSessionId, unsigned int ulFlags, unsigned int ulSyncId, entryId sParentEntryId, entryId sEntryId, bool bIsNew, struct propVal *lpsConflictItems, struct xsd__Binary sStreamData, unsigned int *result);
 int ns__getChangeInfo(ULONG64 ulSessionId, entryId sEntryId, struct getChangeInfoResponse *lpsResponse);
 

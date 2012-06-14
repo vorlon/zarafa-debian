@@ -71,12 +71,13 @@ protected:
 	virtual ~ECExchangeExportChanges();
 
 public:
-	static	HRESULT Create(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
+	static	HRESULT Create(ECMsgStore *lpStore, REFIID iid, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
+	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 	virtual HRESULT Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
 	
@@ -88,7 +89,7 @@ private:
 	static HRESULT CloseAndGetAsyncResult(IStream *lpStream, HRESULT *lphrResult);
 
 private:
-	class xExchangeExportChanges : public IExchangeExportChanges {
+	class xECExportChanges : public IECExportChanges {
 		// IUnknown
 		virtual ULONG __stdcall AddRef();
 		virtual ULONG __stdcall Release();
@@ -99,14 +100,8 @@ private:
 		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 		virtual HRESULT __stdcall Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress);
 		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream);
-	} m_xExchangeExportChanges;
-	
-	class xECExportChanges : public IECExportChanges {
-		// IUnknown
-		virtual ULONG __stdcall AddRef();
-		virtual ULONG __stdcall Release();
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface);
 
+		virtual HRESULT __stdcall ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 		virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges);
 		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid);
 		virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger);
@@ -134,6 +129,7 @@ private:
 	ULONG			m_ulStep;
 	ULONG			m_ulBatchSize;
 	ULONG			m_ulBufferSize;
+	ULONG			m_ulEntryPropTag;
 
 	IID				m_iidMessage;
 

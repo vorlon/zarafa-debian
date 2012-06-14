@@ -359,7 +359,11 @@ typedef EID * PEID;
 #define ZARAFA_CAP_UNICODE				0x0200
 // Server side message locking
 #define ZARAFA_CAP_MSGLOCK				0x0400
+// ExportMessageChangeAsStream supports ulPropTag parameter
+#define ZARAFA_CAP_EXPORT_PROPTAG		0x0800
 
+// Do *not* use this from a client. This is just what the latest server supports.
+#define ZARAFA_LATEST_CAPABILITIES		ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER | ZARAFA_CAP_LOADPROP_ENTRYID | ZARAFA_CAP_EXPORT_PROPTAG
 
 //
 // Logon flags, sent with ns__logon()
