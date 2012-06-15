@@ -158,9 +158,8 @@ HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 				
 				intersect(*lplistResults, lstMatches);
 			}
+			bFirst = false;
 		}
-				
-		bFirst = false;
 	}
 
 exit:	
