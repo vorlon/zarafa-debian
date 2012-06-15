@@ -51,8 +51,8 @@
 #define ECSERVERINDEXER_H
 
 #include <mapidefs.h>
-
 #include <set>
+#include <list>
 
 class ECThreadData;
 class ECLogger;
@@ -60,9 +60,9 @@ class ECConfig;
 class IMAPISession;
 class IMsgStore;
 class ECIndexDB;
-class ECIndexImporter;
 
 #include "ECUnknown.h"
+#include "ECIndexImporter.h"
 
 /**
  * The ECServerIndexer's job is to create and update all the indexes for a server. It does this
@@ -91,6 +91,8 @@ private:
     HRESULT BuildIndexes(IMAPISession *lpSession);
     HRESULT IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId);
     HRESULT IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndexDB);
+    HRESULT IndexStubTargets(IMAPISession *lpSession, const std::list<ECIndexImporter::ArchiveItem> *lpStubTargets, ECIndexImporter *lpImporter);
+    HRESULT IndexStubTargetsServer(IMAPISession *lpSession, const std::string& strServerName, const std::list<std::string> &lstStubTargets, ECIndexImporter *lpImporter);
     HRESULT GetServerState(IMAPISession *lpSession, std::string &strState);
     HRESULT ProcessChanges(IMAPISession *lpSession);
     HRESULT GetServerGUID(IMAPISession *lpSession, GUID *lpGuid);

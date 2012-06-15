@@ -72,6 +72,37 @@ class ECSerializer;
 
 class ECIndexImporter : public ECUnknown {
 public:
+    class ArchiveItem {
+    public:
+        ArchiveItem(SBinary sStoreId, SBinary sEntryId) {
+            strStoreId.assign((char *)sStoreId.lpb, sStoreId.cb);
+            strEntryId.assign((char *)sEntryId.lpb, sEntryId.cb);
+        };
+        ArchiveItem(const ArchiveItem &other) {
+            strStoreId = other.strStoreId;
+            strEntryId = other.strEntryId;
+        };
+        ArchiveItem& operator= (const ArchiveItem &other) {
+            strStoreId = other.strStoreId;
+            strEntryId = other.strEntryId;
+            return *this;
+        };
+        ~ArchiveItem() { };
+        
+        std::string strStoreId;
+        std::string strEntryId;        
+    };
+    
+    class ArchiveItemId {
+    public:
+        ArchiveItemId(unsigned int ulFolderId, unsigned int ulDocId, GUID guidStore) : ulFolderId(ulFolderId), ulDocId(ulDocId), guidStore(guidStore) { };
+        ~ArchiveItemId() {};
+        
+        unsigned int ulFolderId;
+        unsigned int ulDocId;
+        GUID guidStore;
+    };
+    
     static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData, ECIndexDB *lpIndex, GUID guidServer, ECIndexImporter **lppImporter);
     
     HRESULT QueryInterface(REFIID iid, void **lpUnk);
@@ -92,6 +123,8 @@ public:
 
     HRESULT SaveSourceKey(const std::string &strSourceKey, unsigned int doc, GUID guidStore);
     HRESULT GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpdoc, GUID *lpGuidStore);
+    
+    HRESULT GetStubTargets(std::list<ArchiveItem> **lpArchived);
     
 private:
     // This is the stream that is currently being processed by the processing thread. If it is NULL,
@@ -124,6 +157,12 @@ private:
     unsigned int m_ulDeleted;
     unsigned int m_ulBytes;
 
+    // Map of archiveMessageEntryid -> originalMessageIDs
+    std::map<std::string, ArchiveItemId > m_mapArchived;
+    
+    // List of ArchiveItems
+    std::list<ArchiveItem> m_lstArchived;
+
     ECIndexImporterAttachment *m_lpIndexerAttach;
 
     kyotocabinet::TreeDB *m_lpDB;
@@ -155,7 +194,7 @@ private:
     HRESULT ProcessThread();
     static void *Thread(void *lpArg);
 
-    HRESULT ParseStream(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex, BOOL bTop);
+    HRESULT ParseStream(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex, BOOL bTop, ArchiveItem **lppStubTarget);
     HRESULT ParseStreamAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex);
 
     friend class ECIndexImporterAttachment;
