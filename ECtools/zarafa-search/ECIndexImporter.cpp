@@ -295,8 +295,7 @@ HRESULT ECIndexImporter::ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFl
 HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, LPSTREAM *lppstream)
 {
     HRESULT hr = hrSuccess;
-    LPSPropValue lpPropSK = NULL, lpPropDocId = NULL, lpPropFolderId = NULL, lpPropStoreGuid = NULL, lpPropEntryID = NULL;
-    std::map<std::string, ArchiveItemId >::iterator iterArchived;
+    LPSPropValue lpPropSK = NULL, lpPropDocId = NULL, lpPropFolderId = NULL, lpPropStoreGuid = NULL;
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Receiving incoming stream");    
     // get sourcekey
@@ -305,9 +304,8 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     lpPropDocId = PpropFindProp(ppvalChanges, cpvalChanges, PR_EC_HIERARCHYID);
     lpPropFolderId = PpropFindProp(ppvalChanges, cpvalChanges, PR_EC_PARENT_HIERARCHYID);
     lpPropStoreGuid = PpropFindProp(ppvalChanges, cpvalChanges, PR_STORE_RECORD_KEY);
-    lpPropEntryID = PpropFindProp(ppvalChanges, cpvalChanges, PR_ENTRYID);
     
-    if(!lpPropSK || !lpPropDocId || !lpPropFolderId || !lpPropEntryID || (!m_lpIndex && !lpPropStoreGuid)) {
+    if(!lpPropSK || !lpPropDocId || !lpPropFolderId || (!m_lpIndex && !lpPropStoreGuid)) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Imported document is missing identifier");
         hr = MAPI_E_NOT_FOUND;
         goto exit;
@@ -316,9 +314,6 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     hr = StartThread();
     if(hr != hrSuccess)
         goto exit;
-        
-    // Check if the document we are receiving was an archive stub target. In that case we should not index the data under the document
-    // id of this document, but under the original document id.
         
 
     // We're only ever processing one stream at a time, so we have to wait for the processing thread to finish processing the previous one
@@ -329,23 +324,10 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     }
 
     // Record the identifiers of this message for the processing thread
+    m_ulFolderId = lpPropFolderId->Value.ul;
+    m_ulDocId = lpPropDocId->Value.ul;
     m_ulFlags = ulFlags;
-
-    // Check if the document we are receiving was an archive stub target. In that case we should not index the data under the document
-    // id of this document, but under the original document id.
-    iterArchived = m_mapArchived.find(std::string((char *)lpPropEntryID->Value.bin.lpb, lpPropEntryID->Value.bin.cb));
-    
-    if(iterArchived != m_mapArchived.end()) {
-        // The item was an archived message, use the original document identifiers
-        m_ulFolderId = iterArchived->second.ulFolderId;
-        m_ulDocId = iterArchived->second.ulDocId;
-        m_guidStore = iterArchived->second.guidStore;
-    } else {
-        // Use the document identifiers that we received
-        m_ulFolderId = lpPropFolderId->Value.ul;
-        m_ulDocId = lpPropDocId->Value.ul;
-        m_guidStore = *(GUID*)lpPropStoreGuid->Value.bin.lpb;
-    }
+    m_guidStore = *(GUID*)lpPropStoreGuid->Value.bin.lpb;
 
     // Record the sourcekey for future deletes since we will only receive the sourcekey in that case, and we need the docid and store guid
     hr = SaveSourceKey(std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb), m_ulDocId, m_guidStore);
@@ -386,8 +368,6 @@ HRESULT ECIndexImporter::ProcessThread()
     HRESULT hr = hrSuccess;
     ECIndexDB *lpIndex = NULL;
     ECIndexDB *lpThisIndex = NULL;
-    ArchiveItem *lpArchiveItem = NULL;
-    auto_ptr<ArchiveItem> lpStubTarget;
     
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Importer thread started");
     
@@ -436,8 +416,7 @@ HRESULT ECIndexImporter::ProcessThread()
                 m_ulCreated++;
             }
             
-            hr = ParseStream(m_ulFolderId, m_ulDocId, ulVersion, &serializer, lpThisIndex, true, &lpArchiveItem);
-            lpStubTarget.reset(lpArchiveItem); // use auto_ptr for lpArchiveItem, no need for delete now
+            hr = ParseStream(m_ulFolderId, m_ulDocId, ulVersion, &serializer, lpThisIndex, true);
             
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to parse stream: %08X", hr);
@@ -480,7 +459,7 @@ exit:
  *
  * This function may also be called recursively for embedded messages.
  */
-HRESULT ECIndexImporter::ParseStream(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex, BOOL bTop, ArchiveItem **lppStubTarget)
+HRESULT ECIndexImporter::ParseStream(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex, BOOL bTop)
 {
 	HRESULT hr = hrSuccess;
 	SPropValuePtr lpProp;
@@ -633,29 +612,6 @@ HRESULT ECIndexImporter::GetDocIdFromSourceKey(const std::string &strSourceKey, 
     
 exit:    
     return hr;
-}
-
-/**
- * Get a list of stub targets that were encountered in imports
- * 
- * The call is responsible for requesting the streams of these items and streaming them back
- * to *this instance* of the importer. The importer remembers the mapping of the archived items
- * back to the document id of the stub, so it is important not to free the importer and pass the
- * archived items back to a new instance, because the items would then be indexed under their own
- * document id and store, instead of the original stub's document id and store.
- *
- * @param[out] lppArchived The list of archive stub targets that should be retrieved
- * @return success (cannot fail)
- */
-HRESULT ECIndexImporter::GetStubTargets(std::list<ArchiveItem> **lppArchived)
-{
-    std::list<ArchiveItem> *lpArchived = new std::list<ArchiveItem>(m_lstArchived);
-    
-    *lppArchived = lpArchived;
-    
-    m_lstArchived.clear();
-    
-    return hrSuccess;
 }
 
 // Interface forwarders

@@ -418,7 +418,7 @@ HRESULT ECIndexImporterAttachment::ParseEmbeddedAttachment(folderid_t folder, do
 {
 	HRESULT hr = hrSuccess;
 
-	hr = m_lpIndexer->ParseStream(folder, doc, version, lpSerializer, lpIndex, false, NULL);
+	hr = m_lpIndexer->ParseStream(folder, doc, version, lpSerializer, lpIndex, false);
 	if (hr != hrSuccess)
 		goto exit;
 

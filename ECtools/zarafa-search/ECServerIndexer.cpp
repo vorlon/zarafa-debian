@@ -58,6 +58,7 @@
 #include "ECIndexImporter.h"
 
 #include "zarafa-search.h"
+
 #include "pthreadutil.h"
 #include "mapi_ptr.h"
 #include "CommonUtil.h"
@@ -69,72 +70,10 @@
 
 #include <stdio.h>
 
-#include <memory>
-#include "mapi_ptr.h"
-#include "IECExportChanges.h"
-
-/* HACK!
- *
- * We are using an include from the client since we need to know the structure of 
- * the store entryid for HrExtractServerName. Since this is pretty non-standard we're
- * not including this in common.
- *
- * The 'real' way to do this would be to have this function somewhere in provider/client
- * and then use some kind of interface to call it, but that seems rather over-the-top for
- * something we're using once.
- */
-#include "../../provider/include/Zarafa.h"
-
-DEFINEMAPIPTR(ECExportChanges);
-
-using namespace std;
-
 #define WSTR(x) (PROP_TYPE((x).ulPropTag) == PT_UNICODE ? (x).Value.lpszW : L"<Unknown>")
 
 // Define ECImportContentsChangePtr
 DEFINEMAPIPTR(ECImportContentsChanges);
-
-/**
- * Extract server name from wrapped store entryid
- *
- * Will only return the servername if it is a pseudo URL, otherwise this function fails with
- * MAPI_E_INVALID_PARAMETER. Also only supports v1 zarafa EIDs.
- *
- * @param[in] lpStoreEntryId 	EntryID to extract server name from
- * @param[in] cbEntryId 		Bytes in lpStoreEntryId
- * @param[out] strServerName	Extracted server name
- * @return result
- */
-HRESULT HrExtractServerName(LPENTRYID lpStoreEntryId, ULONG cbEntryId, std::string &strServerName)
-{
-	HRESULT hr = hrSuccess;
-	EntryIdPtr lpEntryId;
-	
-	// UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG *lpcbUnWrappedEntry, LPENTRYID *lppUnWrappedEntry);
-	
-	hr = UnWrapStoreEntryID(cbEntryId, lpStoreEntryId, &cbEntryId, &lpEntryId);
-	if(hr != hrSuccess)
-		goto exit;
-		
-	if(((PEID)lpEntryId.get())->ulVersion != 1) {
-		ASSERT(false);
-		goto exit;
-	}
-	
-	strServerName = (char *)((PEID)lpEntryId.get())->szServer;	
-	
-	// Servername is now eg. pseudo://servername
-	
-	if(strServerName.compare(0, 9, "pseudo://") == 0) {
-		strServerName.erase(0, 9);
-	} else {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-		
-exit:
-	return hr;
-}
 
 ECServerIndexer::ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData)
 {
@@ -610,9 +549,6 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
 	ULONG ulTotalChange = 0;
 	ULONG ulChange = 0, ulCreate = 0, ulDelete = 0;
 	unsigned long long ulTotalBytes = 0;
-	
-	std::list<ECIndexImporter::ArchiveItem> *lpArchived;
-	auto_ptr<std::list<ECIndexImporter::ArchiveItem> > lpStubTargets;
     
     SizedSPropTagArray(3, sptaProps) = {3, { PR_DISPLAY_NAME_W, PR_MAPPING_SIGNATURE, PR_STORE_RECORD_KEY } };
 
@@ -679,16 +615,6 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
 		}
         
     }
-    
-    // Do a second-stage index of items in archived servers
-    hr = lpImporter->GetStubTargets(&lpArchived);
-    if(hr != hrSuccess)
-        goto exit;
-    lpStubTargets.reset(lpArchived);
-    
-    hr = IndexStubTargets(lpSession, lpStubTargets.get(), lpImporter);
-    if(hr != hrSuccess)
-        goto exit;
 
     if(lpExporter->UpdateState(&state) == hrSuccess) {
         if(lpIndex->SetSyncState(strFolderId, strFolderState) != hrSuccess) {
@@ -705,167 +631,6 @@ exit:
         
     return hr;
 }
-
-/**
- * Index stub targets
- *
- * This function retrieves data from archiveservers and indexes the data there as if the content
- * were in the original stub documents.
- *
- * @param[in] lpStubTargets A List of all stub targets to process
- */
-HRESULT ECServerIndexer::IndexStubTargets(IMAPISession *lpSession, const std::list<ECIndexImporter::ArchiveItem> *lpStubTargets, ECIndexImporter *lpImporter)
-{
-    HRESULT hr = hrSuccess;
-    std::map<std::string, std::list<std::string> > mapArchiveServers;
-    std::map<std::string, std::list<std::string> >::iterator server;
-    std::list<ECIndexImporter::ArchiveItem>::const_iterator i;
-    std::string strServerName;
-    
-    // Sort the items into groups per archive server
-    for(i = lpStubTargets->begin(); i != lpStubTargets->end(); i++) {
-        hr = HrExtractServerName((LPENTRYID)i->strStoreId.data(), i->strStoreId.size(), strServerName);
-        if(hr != hrSuccess) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to extract server name from store entryid: %08X", hr);
-            goto exit;
-        }
-        
-        mapArchiveServers[strServerName].push_back(i->strEntryId);
-    }
-    
-    for(server = mapArchiveServers.begin() ; server != mapArchiveServers.end(); server++) {
-        hr = IndexStubTargetsServer(lpSession, server->first, server->second, lpImporter);
-        if(hr != hrSuccess) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to index stubs on server '%s': %08X", server->first.c_str(), hr);
-            goto exit;
-        }
-    }
-    
-exit:
-    return hr; 
-}
-
-/**
- * Index stub targets on a specific server
- *
- * This means we have to connect to the server, and the request all the data on that server
- * for the messages in question. We do this in blocks of N messages so that the requests do not become
- * too large.
- *
- * @param[in] strServerName Pseudo-name of server to connect with
- * @param[in] mapArchiveItems Map containing document id -> entryid
- */
- 
-HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const std::string &strServer, const std::list<std::string> &mapItems, ECIndexImporter *lpImporter)
-{
-    HRESULT hr = hrSuccess;
-    MsgStorePtr lpStore;
-    MsgStorePtr lpRemoteStore;
-    ECExportChangesPtr lpExporter;
-	time_t ulLastStatsTime = time(NULL);
-	ULONG ulStartTime = ulLastStatsTime;
-    ULONG ulSteps = 0, ulStep = 0;
-    ULONG ulTotalBytes = 0;
-	ULONG ulBlockChange = 0;
-	ULONG ulBlockBytes = 0;
-	ULONG ulBytes = 0;
-	ULONG ulTotalChange = 0;
-	ULONG ulChange = 0, ulCreate = 0, ulDelete = 0;
-	EntryListPtr lpEntryList;
-	unsigned int n = 0;
-    UnknownPtr lpImportInterface;
-
-    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing %d stubs on server '%s'", mapItems.size(), strServer.c_str());
-
-    hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface); 
-    if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "QueryInterface failed for importer: %08X", hr);
-        goto exit;
-    }
-    
-    hr = HrOpenDefaultStore(lpSession, &lpStore);
-    if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open local admin session: %08X", hr);
-        goto exit;
-    }
-    
-    hr = HrGetRemoteAdminStore(lpSession, lpStore, (TCHAR *)strServer.c_str(), 0, &lpRemoteStore);
-    if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open remote admin store on server '%s': %08X. Make sure your SSL authentication is properly configured for access from this host to the remote host.", strServer.c_str(), hr);
-        goto exit;
-    }
-
-    hr = lpRemoteStore->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IECExportChanges, 0, 0, &lpExporter);
-    if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open exporter on remote server '%s': %08X", strServer.c_str(), hr);
-        goto exit;
-    }
-    
-    hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void **)&lpEntryList);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    hr = MAPIAllocateMore(sizeof(void *) * mapItems.size(), lpEntryList, (void **)&lpEntryList->lpbin);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    // Cheap copy data from mapItems into lpEntryList
-    for(std::list<std::string>::const_iterator i = mapItems.begin(); i != mapItems.end(); i++) {
-        lpEntryList->lpbin[n].lpb = (BYTE *)i->data();
-        lpEntryList->lpbin[n].cb = i->size();
-        n++;
-    }
-    lpEntryList->cValues = n;
-
-    hr = lpExporter->ConfigSelective(PR_ENTRYID, lpEntryList, NULL, 0, lpImportInterface, NULL, NULL, 0);
-    if(hr != hrSuccess) {
-        if(hr == MAPI_E_NO_SUPPORT)
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Remote server '%s' does not support streaming destub. Please upgrade the remote server to Zarafa version 7.1 or later", strServer.c_str());
-        else
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to configure stub exporter on server '%s': %08X", strServer.c_str(), hr);
-        goto exit;
-    }
-    
-    while(1) {
-        hr = lpExporter->Synchronize(&ulSteps, &ulStep);
-        if(FAILED(hr)) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Synchronize failed during destub: %08X", hr);
-            // Do not goto exit, we wish to save the sync state
-            break;
-        }
-        
-        lpImporter->GetStats(&ulCreate, &ulChange, &ulDelete, &ulBytes);
-        
-		ulTotalBytes += ulBytes;
-		ulTotalChange += ulCreate + ulChange;
-		
-		ulBlockBytes += ulBytes;
-		ulBlockChange += ulCreate + ulChange;
-			
-        if(hr == hrSuccess)
-            break;
-            
-        if(m_bExit) {
-            hr = MAPI_E_USER_CANCEL;
-            break;
-        }
-        
-		if (ulLastStatsTime < time(NULL) - 10) {
-			unsigned int secs = time(NULL) - ulLastStatsTime;
-			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of archived stubs processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps, str_storage(ulBlockBytes, false).c_str(), ulBlockChange, str_storage(ulBlockBytes/secs, false).c_str(), (float)ulBlockChange/secs);
-			ulLastStatsTime = time(NULL);
-			ulBlockBytes = ulBlockChange = 0;
-		}
-        
-    }
-    
-    if(ulTotalChange || m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-    	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed archive data with %d changes (%s) in %d seconds", ulTotalChange, str_storage(ulTotalBytes, false).c_str(), (int)(time(NULL) - ulStartTime));
-    
-exit:
-    return hr;
-}
-    
 
 /**
  * Gets the current server-wide ICS state from the server
