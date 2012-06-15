@@ -351,6 +351,33 @@ exit:
     return hr;
 }
 
+/**
+ * Normalize a string into lower-case form
+ *
+ * This normalizes a string into possibly multiple query strings, in such a way that they
+ * can be passed to QueryTerm()
+ * @param[in] strInput String to normalize
+ * @param[out] lstOutput List of normalized strings
+ */
+HRESULT ECIndexDB::Normalize(const std::wstring &strInput, std::list<std::wstring> &lstOutput)
+{
+    HRESULT hr = hrSuccess;
+    lucene::analysis::TokenStream* stream = NULL;
+    lucene::analysis::Token* token = NULL;
+    
+    lucene::util::StringReader reader(strInput.c_str());
+    
+    stream = m_lpAnalyzer->tokenStream(L"", &reader);
+    
+    lstOutput.clear();
+    while((token = stream->next())) {
+        lstOutput.push_back(token->termText());
+        delete token;
+    }
+    
+    return hr;
+}
+
 // FIXME lstFolders should be setFolders in the first place
 HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &lstMatches)
 {
@@ -483,6 +510,8 @@ size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput
     u_strFromWCS(in, arraySize(in), &inlen, wszInput, len, &error);
     
     keylen = m_lpCollator->getSortKey(in, inlen, (uint8_t *)szOutput, (int32_t)outLen);
+    
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%ls sortkey '%s'", wszInput, bin2hex(keylen-1, (unsigned char *)szOutput).c_str());
     
     return keylen - 1;
 }

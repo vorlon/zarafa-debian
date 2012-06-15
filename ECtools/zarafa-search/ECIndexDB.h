@@ -76,7 +76,8 @@ public:
     
     HRESULT StartTransaction();
     HRESULT EndTransaction();
-    
+
+    HRESULT Normalize(const std::wstring &strInput, std::list<std::wstring> &lstOutput);
     HRESULT QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
 
     HRESULT	SetSyncState(const std::string& strFolder, const std::string& strState);

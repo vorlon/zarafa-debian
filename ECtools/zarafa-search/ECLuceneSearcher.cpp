@@ -136,6 +136,7 @@ HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 {
 	HRESULT hr = hrSuccess;
 	std::list<unsigned int> lstMatches;
+	std::list<std::wstring> lstTerms;
 	bool bFirst = true;
 	
 	lplistResults->clear();
@@ -145,17 +146,24 @@ HRESULT ECLuceneSearcher::SearchEntries(std::list<unsigned int> *lplistResults)
 	
 	for(std::list<SIndexedTerm>::iterator i = m_lstSearches.begin(); i != m_lstSearches.end(); i++) {
 		std::wstring wstrTerm = convert_to<std::wstring>(i->strTerm, rawsize(i->strTerm), "utf-8");
-		if(bFirst)
-			hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, wstrTerm, *lplistResults);
-		else {
-			hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, wstrTerm, lstMatches);
+		hr = m_lpIndex->Normalize(wstrTerm, lstTerms);
+		if(hr != hrSuccess)
+			goto exit;
 			
-			intersect(*lplistResults, lstMatches);
+		for(std::list<std::wstring>::iterator j = lstTerms.begin();j != lstTerms.end(); j++) {
+			if(bFirst)
+				hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, *j, *lplistResults);
+			else {
+				hr = m_lpIndex->QueryTerm(m_lstFolders, i->setFields, *j, lstMatches);
+				
+				intersect(*lplistResults, lstMatches);
+			}
 		}
-		
+				
 		bFirst = false;
 	}
-	
+
+exit:	
 	m_lstSearches.clear();
 
 	return hr;
