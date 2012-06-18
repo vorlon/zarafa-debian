@@ -404,6 +404,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 	LONGLONG	llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
 	std::list<SIndexedTerm> lstMultiSearches;
+	const char* szSocket = lpConfig->GetSetting("search_socket");
 
 	if (!lpDatabase) {
 		er = ZARAFA_E_DATABASE_ERROR;
@@ -412,10 +413,10 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 	
 	lstMatches.clear();
 
-	if(parseBool(lpConfig->GetSetting("index_services_enabled")) == true &&
-		strlen(lpConfig->GetSetting("index_services_path")) > 0)
+	if(parseBool(lpConfig->GetSetting("search_enabled")) == true &&
+		strlen(szSocket) > 0)
 	{
-		lpSearchClient = new ECSearchClient(lpConfig->GetSetting("index_services_path"), atoui(lpConfig->GetSetting("index_services_search_timeout")) );
+		lpSearchClient = new ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout")) );
 		if (!lpSearchClient) {
 			er = ZARAFA_E_NOT_ENOUGH_MEMORY;
 			goto exit;
@@ -424,9 +425,9 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 		if(lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
             er = lpSearchClient->GetProperties(setExcludePropTags);
             if (er == ZARAFA_E_NETWORK_ERROR)
-                lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while connecting to indexer on %s", lpConfig->GetSetting("index_services_path"));
+                lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while connecting to indexer on %s", szSocket);
             else if (er != erSuccess)
-                lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while querying indexer on %s, 0x%08x", lpConfig->GetSetting("index_services_path"), er);
+                lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while querying indexer on %s, 0x%08x", szSocket, er);
 
             if (er != erSuccess)
                 goto exit;
@@ -452,7 +453,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
             goto exit;
         }
 
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Using index, %d index queries", lstMultiSearches.size());
+		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Using index, %d index queries", (unsigned int)lstMultiSearches.size());
         
 		gettimeofday(&tstart, NULL);
 
@@ -465,11 +466,11 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
 
         if (er != erSuccess) {
 			g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
-            lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while querying indexer on %s, 0x%08x", lpConfig->GetSetting("index_services_path"), er);
+            lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while querying indexer on %s, 0x%08x", szSocket, er);
 		} else
 			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexed query results found in %.4f ms", llelapsedtime/1000.0);
 			if(lpLogger->Log(EC_LOGLEVEL_DEBUG))
-    			lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d indexed matches found", lstMatches.size());
+    			lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d indexed matches found", (unsigned int)lstMatches.size());
 	} else {
 	    er = ZARAFA_E_NOT_FOUND;
 	    goto exit;

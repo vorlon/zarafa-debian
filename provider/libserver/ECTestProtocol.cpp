@@ -84,9 +84,9 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
         }
             
     } else if (stricmp(szCommand, "indexer_syncrun") == 0) {
-		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("index_services_enabled"))) {
+		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled"))) {
 			er = ECSearchClient(
-				g_lpSessionManager->GetConfig()->GetSetting("index_services_path"),
+				g_lpSessionManager->GetConfig()->GetSetting("search_socket"),
 				60 * 10 /* 10 minutes should be enough for everyone */
 			).SyncRun();
 		}
@@ -113,13 +113,13 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession, char *szVarName, char 
         else
             g_lpSessionManager->GetCacheManager()->EnableCellCache();
             
-    } else if (stricmp(szVarName, "index_services_enabled") == 0) {
+    } else if (stricmp(szVarName, "search_enabled") == 0) {
 		// Since there's no object that represents the indexer, it's probably cleanest to
 		// update the configuration.
 		if (atoi(szValue) > 0)
-			g_lpSessionManager->GetConfig()->AddSetting("index_services_enabled", "yes", 0);
+			g_lpSessionManager->GetConfig()->AddSetting("search_enabled", "yes", 0);
 		else
-			g_lpSessionManager->GetConfig()->AddSetting("index_services_enabled", "no", 0);
+			g_lpSessionManager->GetConfig()->AddSetting("search_enabled", "no", 0);
 	}
     
     return er;
