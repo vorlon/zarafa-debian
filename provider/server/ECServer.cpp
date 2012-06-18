@@ -912,9 +912,9 @@ int running_server(char *szName, const char *szConfig)
 		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE },
 		{ "client_update_path",		"/var/lib/zarafa/client", CONFIGSETTING_RELOADABLE },
 		{ "client_update_log_path",	"/var/log/zarafa/autoupdate", CONFIGSETTING_RELOADABLE },
-        { "index_services_enabled", "no", CONFIGSETTING_RELOADABLE }, 
-        { "index_services_path",    "file:///var/run/zarafa-indexer", CONFIGSETTING_RELOADABLE },        
-		{ "index_services_search_timeout", "10", CONFIGSETTING_RELOADABLE },
+		{ "search_enabled",			"no", CONFIGSETTING_RELOADABLE }, 
+		{ "search_socket",			"file:///var/run/zarafa-search", CONFIGSETTING_RELOADABLE },        
+		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
 		{ "threads",				"8", CONFIGSETTING_RELOADABLE },
         { "watchdog_max_age",		"500", CONFIGSETTING_RELOADABLE },

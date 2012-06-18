@@ -1068,9 +1068,9 @@ Default:
 \fI/var/log/zarafa/autoupdate\fR
 .RE
 .PP
-\fBindex_services_enabled\fR
+\fBsearch_enabled\fR
 .RS 4
-Use Indexing service for faster searching\&. Enabling this option requires the
+Use indexing service for faster searching\&. Enabling this option requires the
 \fBzarafa-search\fR(1)
 service to be running\&.
 .sp
@@ -1078,17 +1078,17 @@ Default:
 \fIno\fR
 .RE
 .PP
-\fBindex_services_path\fR
+\fBsearch_socket\fR
 .RS 4
 Path to the
 \fBzarafa-search\fR(1)
 service, this option is only required if the server is going to make use of the indexing service\&.
 .sp
 Default:
-\fI/var/run/zarafa\-search\fR
+\fIfile:///var/run/zarafa\-search\fR
 .RE
 .PP
-\fBindex_services_search_timeout\fR
+\fBsearch_timeout\fR
 .RS 4
 Time (in seconds) to wait for a connection to the
 \fBzarafa-search\fR(1)

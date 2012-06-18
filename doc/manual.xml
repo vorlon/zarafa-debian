@@ -4347,9 +4347,9 @@
 		  </varlistentry>
 
 		  <varlistentry>
-			<term><option>index_services_enabled</option></term>
+			<term><option>search_enabled</option></term>
 			<listitem>
-			  <para>Use Indexing service for faster searching. Enabling this option
+			  <para>Use indexing service for faster searching. Enabling this option
 			  requires the
 				<citerefentry>
 				  <refentrytitle>zarafa-search</refentrytitle>
@@ -4361,7 +4361,7 @@
 		  </varlistentry>
 
 		  <varlistentry>
-			<term><option>index_services_path</option></term>
+			<term><option>search_socket</option></term>
 			<listitem>
 			  <para>Path to the
 			    <citerefentry>
@@ -4370,12 +4370,12 @@
 				</citerefentry>
 				service, this option is only required if the server is going
 				to make use of the indexing service.</para>
-			  <para>Default: <replaceable>/var/run/zarafa-search</replaceable></para>
+			  <para>Default: <replaceable>file:///var/run/zarafa-search</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
-			<term><option>index_services_search_timeout</option></term>
+			<term><option>search_timeout</option></term>
 			<listitem>
 			  <para>Time (in seconds) to wait for a connection to the
 				<citerefentry>
