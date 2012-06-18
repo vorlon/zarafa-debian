@@ -2085,13 +2085,13 @@ ECRESULT ECCacheManager::SetExcludedIndexProperties(std::set<unsigned int>& set)
         
 void ECCacheManager::DisableCellCache()
 {
-	LOG_CELLCACHE_DEBUG("Disable cell cache");
+	LOG_CELLCACHE_DEBUG("%s", "Disable cell cache");
 
     m_bCellCacheDisabled = true;
 }
 
 void ECCacheManager::EnableCellCache()
 {
-	LOG_CELLCACHE_DEBUG("Enable cell cache");
+	LOG_CELLCACHE_DEBUG("%s", "Enable cell cache");
     m_bCellCacheDisabled = false;
 }

@@ -136,8 +136,6 @@ double timespec2dbl(timespec t) {
     return (double)t.tv_sec + t.tv_nsec/1000000000.0;
 }
 
-double GetTimeOfDay();
-
 ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType, entryId** lppEntryId)
 {
 	ECRESULT	er = erSuccess;
@@ -672,7 +670,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, struc
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 
-    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S ssoLogon", ulSessionId);
+    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": S ssoLogon", ulSessionId);
 
 	if (!lpInput || lpInput->__size == 0 || lpInput->__ptr == NULL || !szUsername || !szClientVersion)
 		goto exit;
@@ -820,7 +818,7 @@ nosso:
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
 
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E ssoLogon %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E ssoLogon %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
 	return SOAP_OK;
 }
@@ -837,7 +835,7 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 
-    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S logoff", ulSessionId);
+    LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": S logoff", ulSessionId);
 
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
 	if(er != erSuccess)
@@ -858,7 +856,7 @@ exit:
     *result = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E logoff %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E logoff %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
     return SOAP_OK;
 }
@@ -871,7 +869,7 @@ exit:
     unsigned int 	*lpResultVar = &resultvar; \
 	char            *szFname = #fname; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: S %s", ulSessionId, szFname); \
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": S %s", ulSessionId, szFname); \
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
 	const bool UNUSED_VAR bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) != 0 : false); \
 	const ECStringCompat stringCompat(er == erSuccess ? lpecSession->GetCapabilities() : 0); \
@@ -887,7 +885,7 @@ __soapentry_exit: \
     	lpecSession->AddClocks( timespec2dbl(endTimes) - timespec2dbl(startTimes), \
     	                        0, \
 							    GetTimeOfDay() - dblStart); \
-		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E %s %f %f", ulSessionId, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
+		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s %f %f", ulSessionId, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
 		lpecSession->RemoveBusyState(pthread_self()); \
         lpecSession->Unlock(); \
     } \

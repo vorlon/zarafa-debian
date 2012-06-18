@@ -588,10 +588,8 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 
 	gettimeofday(&tend, NULL);
 	llelapsedtime = difftimeval(&tstart,&tend);
-	if (m_logger->Log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN))
-		m_logger->Log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
-	else if (m_logger->Log(EC_LOGLEVEL_INFO | EC_LOGLEVEL_PLUGIN))
-		m_logger->Log(EC_LOGLEVEL_INFO | EC_LOGLEVEL_PLUGIN, "ldaptiming[%08.2f] (\"%s\" \"%s\" %s)", llelapsedtime/1000000.0, base, filter, req.c_str());
+
+	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 
 	*lppres = res.release(); // deref the pointer from object
 
