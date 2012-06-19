@@ -1097,8 +1097,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	{
 		sQueryRows.clear();
 
-		// @todo find a more optimal number for 20 .. probably *much* higher
-		for(i=0; i < 512 && iterRows != lpRows->end(); i++) {
+		for(i=0; i < 20 && iterRows != lpRows->end(); i++) {
 			sQueryRows.push_back(*iterRows);
 			iterRows++;
 		}
@@ -2207,9 +2206,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				case FL_FULLSTRING:
 					if(ulSearchDataSize == ulSearchStringSize)
 					{
-						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_iequals(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_equals(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
+						if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_iequals(lpSearchData, lpSearchString, locale)) ||
+							(ulPropType == PT_TSTRING && u8_equals(lpSearchData, lpSearchString, locale)) ||
+							(memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
 						{
 							fMatch = true;							
 						}
@@ -2219,9 +2218,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				case FL_PREFIX: 
 					if(ulSearchDataSize >= ulSearchStringSize)
 					{
-						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_istartswith(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_startswith(lpSearchData, lpSearchString, locale)) ||
-							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchStringSize) == 0))
+						if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_istartswith(lpSearchData, lpSearchString, locale)) ||
+							(ulPropType == PT_TSTRING && u8_startswith(lpSearchData, lpSearchString, locale)) ||
+							(memcmp(lpSearchData, lpSearchString, ulSearchStringSize) == 0))
 						{
 							fMatch = true;
 						}
@@ -2229,9 +2228,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 					break;
 
 				case FL_SUBSTRING: 
-					if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_icontains(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_contains(lpSearchData, lpSearchString, locale)) ||
-						(ulPropType != PT_TSTRING && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
+					if ((ulPropType == PT_TSTRING && (ulFuzzyLevel & FL_IGNORECASE) && u8_icontains(lpSearchData, lpSearchString, locale)) ||
+						(ulPropType == PT_TSTRING && u8_contains(lpSearchData, lpSearchString, locale)) ||
+						(memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
 					{
 						fMatch = true;
 					}

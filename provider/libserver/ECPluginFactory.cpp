@@ -184,7 +184,6 @@ ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory, UserPlugin **lpp
 			goto exit;
 		}
 
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Plugin %p for thread %lx", (void*)lpPlugin, pthread_self());
 		pthread_setspecific(plugin_key, (void *)lpPlugin);
 	}
 

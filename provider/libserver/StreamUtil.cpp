@@ -1454,7 +1454,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		goto exit;
 
 	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
-		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_ERROR, "DeserializeObject: Invalid object type %d", ulObjType);
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
 	}

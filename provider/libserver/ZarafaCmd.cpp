@@ -856,7 +856,7 @@ exit:
     *result = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E logoff 0x%08x %f %f", ulSessionId, 0, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E logoff 0x%08x %f %f", ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
     return SOAP_OK;
 }
@@ -885,7 +885,7 @@ __soapentry_exit: \
     	lpecSession->AddClocks( timespec2dbl(endTimes) - timespec2dbl(startTimes), \
     	                        0, \
 							    GetTimeOfDay() - dblStart); \
-		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
+		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s 0x%08x %f %f", ulSessionId, er, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
 		lpecSession->RemoveBusyState(pthread_self()); \
         lpecSession->Unlock(); \
     } \
@@ -1411,7 +1411,7 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStor
 	if(er != erSuccess)
 	    goto exit;
 
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+	er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1435,7 +1435,7 @@ SOAP_ENTRY_START(getStoreType, lpsResponse->er, entryId sEntryId, struct getStor
 	if (er != erSuccess)
 	    goto exit;
 
-	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &lpsResponse->ulStoreType);
+	er = GetStoreType(lpecSession, ulObjId, &lpsResponse->ulStoreType);
 
 exit:
 	;
@@ -3448,7 +3448,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 
 				if (lpecSession->GetUserManagement()->GetObjectDetails(ulOwnerId, &sUserDetails) == erSuccess) {
 					unsigned int ulStoreType;
-					er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
+					er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
 					if (er != erSuccess)
 						goto exit;
 
