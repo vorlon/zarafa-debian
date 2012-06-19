@@ -67,7 +67,6 @@
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECLockManager.h"
-#include "ZarafaCmdUtil.h"	// for GetStoreType (seems to be a bit misplaced)
 
 #include <edkmdb.h>
 #include <mapiext.h>
@@ -470,7 +469,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
                     ulObjId = ulParentId;
                 } // else PR_PARENT_ENTRYID == PR_ENTRYID
 					
-			}else if (ulPropTag == PR_STORE_ENTRYID) {
+			}else if (ulPropTag == PR_STORE_ENTRYID || ulObjId == ulStoreId) {
 				ulObjId = ulStoreId;
 				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
     				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
@@ -550,7 +549,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			    goto exit;
 	        }
 
-			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 			if (er != erSuccess)
 				goto exit;
         
@@ -628,7 +627,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			    goto exit;
 	        }
 
-			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 			if (er != erSuccess)
 				goto exit;
 			

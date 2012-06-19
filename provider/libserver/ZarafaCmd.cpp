@@ -1411,7 +1411,7 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStor
 	if(er != erSuccess)
 	    goto exit;
 
-	er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
+	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1435,7 +1435,7 @@ SOAP_ENTRY_START(getStoreType, lpsResponse->er, entryId sEntryId, struct getStor
 	if (er != erSuccess)
 	    goto exit;
 
-	er = GetStoreType(lpecSession, ulObjId, &lpsResponse->ulStoreType);
+	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &lpsResponse->ulStoreType);
 
 exit:
 	;
@@ -3448,7 +3448,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 
 				if (lpecSession->GetUserManagement()->GetObjectDetails(ulOwnerId, &sUserDetails) == erSuccess) {
 					unsigned int ulStoreType;
-					er = GetStoreType(lpecSession, ulObjId, &ulStoreType);
+					er = lpecSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 					if (er != erSuccess)
 						goto exit;
 
