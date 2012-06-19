@@ -67,7 +67,6 @@
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECLockManager.h"
-#include "ZarafaCmdUtil.h"	// for GetStoreType (seems to be a bit misplaced)
 
 #include <edkmdb.h>
 #include <mapiext.h>
@@ -197,6 +196,12 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 				goto exit;
 			}
 			break;
+		case PROP_ID(PR_ENTRYID):
+			if (ulObjType == MAPI_MAILUSER || ulObjType == MAPI_DISTLIST)
+				ulPropTagRequired = PR_EC_CONTACT_ENTRYID;
+			else
+				ulPropTagRequired = PR_ENTRYID;
+			break;
 		default:
 			er = ZARAFA_E_NOT_FOUND;
 			goto exit;
@@ -248,7 +253,6 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
     
     switch(PROP_ID(ulPropTag)) {
         case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
-		case PROP_ID(PR_ENTRYID):
 		case PROP_ID(PR_PARENT_ENTRYID): 
 		case PROP_ID(PR_STORE_ENTRYID):
 		case PROP_ID(PR_STORE_RECORD_KEY):
@@ -270,6 +274,12 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_MAPPING_SIGNATURE):
 		    er = erSuccess;
 		    break;
+		case PROP_ID(PR_ENTRYID):
+			if (ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST)
+				er = erSuccess;
+			else
+				er = ZARAFA_E_NOT_FOUND;
+			break;
 		case PROP_ID(PR_RECORD_KEY):
 			if (ulObjType == MAPI_ATTACH)
 				er = ZARAFA_E_NOT_FOUND;
@@ -470,7 +480,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
                     ulObjId = ulParentId;
                 } // else PR_PARENT_ENTRYID == PR_ENTRYID
 					
-			}else if (ulPropTag == PR_STORE_ENTRYID) {
+			}else if (ulPropTag == PR_STORE_ENTRYID || ulObjId == ulStoreId) {
 				ulObjId = ulStoreId;
 				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
     				ulEidFlags = OPENSTORE_OVERRIDE_HOME_MDB;
@@ -550,7 +560,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			    goto exit;
 	        }
 
-			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 			if (er != erSuccess)
 				goto exit;
         
@@ -628,7 +638,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			    goto exit;
 	        }
 
-			er = GetStoreType(lpSession, ulObjId, &ulStoreType);
+			er = lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, NULL, NULL, &ulStoreType);
 			if (er != erSuccess)
 				goto exit;
 			

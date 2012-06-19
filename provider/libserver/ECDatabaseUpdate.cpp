@@ -245,7 +245,21 @@ ECRESULT UpdateDatabaseCreateChangesTable(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 
-	er = lpDatabase->DoInsert(Z_TABLEDEF_CHANGES);
+	// requires an old version of the changes table layout to pass through newer updates
+#define Z_TABLEDEF_CHANGES_R600		"CREATE TABLE `changes` ( \
+										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
+										`sourcekey` VARBINARY(64) NOT NULL, \
+										`parentsourcekey` VARBINARY(64) NOT NULL, \
+										`change_type` INT(11) UNSIGNED NULL, \
+										`moved_from` VARBINARY(64) DEFAULT NULL, \
+										`flags` INT(11) UNSIGNED DEFAULT NULL, \
+										`sourcesync` INT(11) UNSIGNED DEFAULT NULL, \
+										PRIMARY KEY (`parentsourcekey`,`change_type`,`sourcekey`), \
+										UNIQUE KEY `changeid` (`id`), \
+										KEY `moved` (`moved_from`) \
+									) ENGINE=InnoDB;"
+	
+	er = lpDatabase->DoInsert(Z_TABLEDEF_CHANGES_R600);
 
 	return er;
 }
@@ -255,7 +269,19 @@ ECRESULT UpdateDatabaseCreateSyncsTable(ECDatabase *lpDatabase)
 {
 	ECRESULT		er = erSuccess;
 
-	er = lpDatabase->DoInsert(Z_TABLEDEF_SYNCS);
+	// requires an old version of the syncs table layout to pass through newer updates
+#define Z_TABLEDEF_SYNCS_R600		"CREATE TABLE `syncs` ( \
+										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
+										`sourcekey` VARBINARY(64) NOT NULL, \
+										`change_id` INT(11) UNSIGNED NOT NULL, \
+										`sync_type` INT(11) UNSIGNED NULL, \
+										`sync_time` DATETIME NOT NULL, \
+										PRIMARY KEY(`id`), \
+										KEY `foldersync` (`sourcekey`,`sync_type`), \
+										KEY `changes` (`change_id`) \
+									) ENGINE=InnoDB;"
+
+	er = lpDatabase->DoInsert(Z_TABLEDEF_SYNCS_R600);
 
 	return er;
 }

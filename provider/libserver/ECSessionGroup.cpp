@@ -296,7 +296,8 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 				// Remove from our list
 				m_mapSubscribedStores.erase(iterSubscribed);
 			} else
-				ASSERT(false); // Unsubscribe for something that was not subscribed
+				m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "double unsubscribe for %d %llu", ulConnection, ulSessionId);
+				//ASSERT(false); // Unsubscribe for something that was not subscribed
 			pthread_mutex_unlock(&m_mutexSubscribedStores);
 		}
 		m_mapSubscribe.erase(iterSubscription);
