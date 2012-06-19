@@ -511,8 +511,6 @@ size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput
     
     keylen = m_lpCollator->getSortKey(in, inlen, (uint8_t *)szOutput, (int32_t)outLen);
     
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%ls sortkey '%s'", wszInput, bin2hex(keylen-1, (unsigned char *)szOutput).c_str());
-    
     return keylen - 1;
 }
 
