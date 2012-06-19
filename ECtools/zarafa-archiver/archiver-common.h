@@ -264,6 +264,14 @@ public:
 	}
 	
 	/**
+	 * Get entryid as a std::string
+	 * @return The binary data as std::string
+	 */
+	std::string data() const {
+		return std::string((char *)&m_vEntryId.front(), m_vEntryId.size());
+	}
+	
+	/**
 	 * Wrap the entryid with a server path.
 	 * 
 	 * The path should start with "file://", "http://" or "https://" for this

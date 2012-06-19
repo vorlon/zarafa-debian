@@ -1307,12 +1307,13 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_EC_PARENT_HIERARCHYID
 	} };
 
-	SizedSPropTagArray(5, sptImportPropsServerWide) = { 5, {
+	SizedSPropTagArray(6, sptImportPropsServerWide) = { 6, {
 		PR_SOURCE_KEY,
 		PR_PARENT_SOURCE_KEY,
 		PR_STORE_RECORD_KEY,
 		PR_EC_HIERARCHYID,
-		PR_EC_PARENT_HIERARCHYID
+		PR_EC_PARENT_HIERARCHYID,
+		PR_ENTRYID
 	} };
 
 	LPSPropTagArray lpImportProps = m_sourcekey.empty() ? (LPSPropTagArray)&sptImportPropsServerWide : (LPSPropTagArray)&sptImportProps;

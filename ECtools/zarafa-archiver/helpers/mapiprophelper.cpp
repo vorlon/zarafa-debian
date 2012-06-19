@@ -732,9 +732,12 @@ HRESULT MAPIPropHelper::GetArchiverProps(MAPIPropPtr ptrMapiProp, LPSPropTagArra
 	
 	PROPMAP_START
 		PROPMAP_NAMED_ID(STUBBED, PT_BOOLEAN, PSETID_Archive, dispidStubbed)
+		PROPMAP_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
+		PROPMAP_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
+		PROPMAP_NAMED_ID(ORIGINAL_SOURCEKEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)
 	PROPMAP_INIT(ptrMapiProp)
 
-	 hr = MAPIAllocateBuffer(CbNewSPropTagArray(sptaFixedProps.cValues + 1 + (lpExtra ? lpExtra->cValues : 0)), (LPVOID*)lppProps);
+	 hr = MAPIAllocateBuffer(CbNewSPropTagArray(sptaFixedProps.cValues + 4 + (lpExtra ? lpExtra->cValues : 0)), (LPVOID*)lppProps);
 	 if (hr != hrSuccess)
 		goto exit;
 
@@ -743,6 +746,9 @@ HRESULT MAPIPropHelper::GetArchiverProps(MAPIPropPtr ptrMapiProp, LPSPropTagArra
 
 	(*lppProps)->cValues = sptaFixedProps.cValues;
 	(*lppProps)->aulPropTag[(*lppProps)->cValues++] = PROP_STUBBED;
+	(*lppProps)->aulPropTag[(*lppProps)->cValues++] = PROP_ARCHIVE_STORE_ENTRYIDS;
+	(*lppProps)->aulPropTag[(*lppProps)->cValues++] = PROP_ARCHIVE_ITEM_ENTRYIDS;
+	(*lppProps)->aulPropTag[(*lppProps)->cValues++] = PROP_ORIGINAL_SOURCEKEY;
 
 	for (ULONG i = 0; lpExtra && i < lpExtra->cValues; ++i)
 		(*lppProps)->aulPropTag[(*lppProps)->cValues++] = lpExtra->aulPropTag[i];

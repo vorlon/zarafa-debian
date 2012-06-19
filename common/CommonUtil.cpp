@@ -3401,7 +3401,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
 	HRESULT hr = hrSuccess;
@@ -3438,3 +3437,4 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 exit:
 	return hr;
 }
+
