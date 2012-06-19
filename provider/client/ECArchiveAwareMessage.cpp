@@ -458,7 +458,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(LPSPropTagArray lpptaDeleteProp
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	StreamPtr ptrHtmlStream;
-	ULARGE_INTEGER liZero = {0, 0};
+	ULARGE_INTEGER liZero = {{0, 0}};
 
 	this->fModify = TRUE;
 
