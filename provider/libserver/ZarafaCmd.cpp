@@ -647,7 +647,7 @@ exit:
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
 
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E logon %f %f", sessionID, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020llu: E logon 0x%08x %f %f", sessionID, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
 	return SOAP_OK;
 }
@@ -818,7 +818,7 @@ nosso:
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
 
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E ssoLogon %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E ssoLogon 0x%08x %f %f", ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
 	return SOAP_OK;
 }
@@ -856,7 +856,7 @@ exit:
     *result = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
-	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E logoff %f %f", ulSessionId, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E logoff 0x%08x %f %f", ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
 
     return SOAP_OK;
 }
@@ -885,7 +885,7 @@ __soapentry_exit: \
     	lpecSession->AddClocks( timespec2dbl(endTimes) - timespec2dbl(startTimes), \
     	                        0, \
 							    GetTimeOfDay() - dblStart); \
-		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s %f %f", ulSessionId, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
+		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s 0x%08x %f %f", ulSessionId, er, szFname, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
 		lpecSession->RemoveBusyState(pthread_self()); \
         lpecSession->Unlock(); \
     } \
