@@ -10815,7 +10815,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
     	if(er != erSuccess)
 	        goto exit;
 	
-	} else {
+	} else if (ulPropTag == PR_SOURCE_KEY) {
     	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
 	        setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
     	}
@@ -10823,6 +10823,9 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
     	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
     	if(er != erSuccess)
 	        goto exit;
+    } else {
+        er = ZARAFA_E_INVALID_PARAMETER;
+        goto exit;
     }
 
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
