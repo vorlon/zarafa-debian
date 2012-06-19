@@ -229,7 +229,7 @@ HRESULT ECServerIndexer::Thread()
     while(!m_bExit) {
         // Open an admin session
         if(!lpSession) {
-            hr = HrOpenECSession(&lpSession, L"SYSTEM", L"", m_lpConfig->GetSetting("server_socket"));
+            hr = HrOpenECSession(&lpSession, L"SYSTEM", L"", m_lpConfig->GetSetting("server_socket"), 0, m_lpConfig->GetSetting("sslkey_file"),  m_lpConfig->GetSetting("sslkey_pass"));
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to contact zarafa server %s: %08X. Will retry.", m_lpConfig->GetSetting("server_socket"), hr);
                 goto next;
