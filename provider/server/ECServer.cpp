@@ -912,6 +912,10 @@ int running_server(char *szName, const char *szConfig)
 		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE },
 		{ "client_update_path",		"/var/lib/zarafa/client", CONFIGSETTING_RELOADABLE },
 		{ "client_update_log_path",	"/var/log/zarafa/autoupdate", CONFIGSETTING_RELOADABLE },
+		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
+		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
+		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
+
 		{ "search_enabled",			"no", CONFIGSETTING_RELOADABLE }, 
 		{ "search_socket",			"file:///var/run/zarafa-search", CONFIGSETTING_RELOADABLE },        
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
