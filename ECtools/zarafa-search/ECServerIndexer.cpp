@@ -735,7 +735,7 @@ HRESULT ECServerIndexer::IndexStubTargets(IMAPISession *lpSession, const std::li
     std::list<ECIndexImporter::ArchiveItem>::const_iterator i;
     std::string strServerName;
     
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing %d stub targets", lpStubTargets->size());
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing %lu stub targets", lpStubTargets->size());
     
     // Sort the items into groups per archive server
     for(i = lpStubTargets->begin(); i != lpStubTargets->end(); i++) {
@@ -790,7 +790,7 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const s
 	unsigned int n = 0;
     UnknownPtr lpImportInterface;
 
-    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing %d stubs on server '%s'", mapItems.size(), strServer.c_str());
+    m_lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing %lu stubs on server '%s'", mapItems.size(), strServer.c_str());
 
     hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface); 
     if(hr != hrSuccess) {
@@ -820,7 +820,7 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const s
     if(hr != hrSuccess)
         goto exit;
         
-    hr = MAPIAllocateMore(sizeof(void *) * mapItems.size(), lpEntryList, (void **)&lpEntryList->lpbin);
+    hr = MAPIAllocateMore(sizeof(SBinary) * mapItems.size(), lpEntryList, (void **)&lpEntryList->lpbin);
     if(hr != hrSuccess)
         goto exit;
         
