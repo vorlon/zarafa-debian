@@ -374,6 +374,8 @@ HRESULT ECIndexDB::Normalize(const std::wstring &strInput, std::list<std::wstrin
         lstOutput.push_back(token->termText());
         delete token;
     }
+
+	delete stream;
     
     return hr;
 }
