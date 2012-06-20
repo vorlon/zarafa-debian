@@ -121,7 +121,7 @@ ECRESULT NormalizeRestrictionRemoveFalseInOr(struct restrictTable *lpRestrict)
         
     for(unsigned int i = 0; i < lpRestrict->lpOr->__size;) {
         if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i])) {
-            delete lpRestrict->lpOr->__ptr[i];
+            FreeRestrictTable(lpRestrict->lpOr->__ptr[i]);
             memmove(&lpRestrict->lpOr->__ptr[i], lpRestrict->lpOr->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpOr->__size - i - 1));
             lpRestrict->lpOr->__size--;
         } else {
@@ -317,7 +317,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
                 lpMultiSearches->push_back(sMultiSearch);
 
                 // Remove it from the restriction since it is now handled as a multisearch
-                delete lpRestrict->lpAnd->__ptr[i];
+                FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
                 memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
                 lpRestrict->lpAnd->__size--;
             } else {
@@ -332,6 +332,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
             // We now have to remove the entire restriction since the top-level restriction here is
             // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
             
+            delete lpRestrict->lpContent->lpProp;
             delete lpRestrict->lpContent;
             
             lpRestrict->ulType = RES_AND;
