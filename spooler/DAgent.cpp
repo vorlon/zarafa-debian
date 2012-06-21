@@ -1371,7 +1371,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	wchar_t szwHeader[PATH_MAX] = {0};
 	char szTemp[PATH_MAX] = {0};
 	int fd = -1;
-	wstring	strFromName, strFromType, strFromEmail;
+	wstring	strFromName, strFromType, strFromEmail, strBody;
 	string  unquoted, quoted;
 	string  command = strBaseCommand;	
 	// Environment
@@ -1392,6 +1392,17 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 
 	// Check for presence of PR_EC_OUTOFOFFICE_MSG_W
 	if (lpStoreProps[1].ulPropTag != PR_EC_OUTOFOFFICE_MSG_W) {
+		StreamPtr ptrStream;
+		if (lpMDB->OpenProperty(PR_EC_OUTOFOFFICE_MSG_W, &IID_IStream, 0, 0, &ptrStream) != hrSuccess ||
+			Util::HrStreamToString(ptrStream, strBody) != hrSuccess)
+		{
+			hr = MAPI_E_NOT_FOUND;
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to download out of office message.");
+			goto exit;
+		} else {
+			strBody = lpStoreProps[1].Value.lpszW;
+		}
+
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Out of office mail was enabled, but no message was set. Not sending empty message.");
 		goto exit;
 	}
@@ -1474,7 +1485,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 		goto exit;
 
 	// write body
-	unquoted = convert_to<string>("UTF-8", lpStoreProps[1].Value.lpszW, rawsize(lpStoreProps[1].Value.lpszW), CHARSET_WCHAR);
+	unquoted = convert_to<string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
 	quoted = base64_encode((const unsigned char*)unquoted.c_str(), unquoted.length());
 	if (WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76) != hrSuccess)
 		goto exit;
