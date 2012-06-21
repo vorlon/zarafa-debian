@@ -332,7 +332,7 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
             // We now have to remove the entire restriction since the top-level restriction here is
             // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
             
-            delete lpRestrict->lpContent->lpProp;
+            FreePropVal(lpRestrict->lpContent->lpProp, true);
             delete lpRestrict->lpContent;
             
             lpRestrict->ulType = RES_AND;
