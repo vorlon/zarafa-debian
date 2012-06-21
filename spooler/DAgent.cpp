@@ -1399,10 +1399,11 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 			hr = MAPI_E_NOT_FOUND;
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to download out of office message.");
 			goto exit;
-		} else {
-			strBody = lpStoreProps[1].Value.lpszW;
 		}
-
+	} else {
+		strBody = lpStoreProps[1].Value.lpszW;
+	}
+	if (strBody.empty()) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Out of office mail was enabled, but no message was set. Not sending empty message.");
 		goto exit;
 	}
