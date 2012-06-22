@@ -611,7 +611,7 @@ HRESULT ECIndexImporterAttachment::ParseAttachment(folderid_t folder, docid_t do
 
 			while (TRUE) {
 				hr = lpStream->Write(m_lpCache, ulCopy, &ulWritten);
-				if (er != hrSuccess)
+				if (hr != hrSuccess)
 					goto exit;
 
 				assert(ulWritten <= ulCopy);
@@ -654,8 +654,15 @@ exit:
 	 * Whatever the status of the function, we have to guarentee that the
 	 * stream position is pointing to the end of the stream or the next object.
 	 */
-	if (i != ulProps)
-		StreamToNextObject(lpSerializer, MAPI_ATTACH, ulProps - i - 1 /* minus one since we never break out of the loop without reading the next property */);
+	if (i != ulProps) {
+		hr = StreamToNextObject(lpSerializer, MAPI_ATTACH, ulProps - i - 1 /* minus one since we never break out of the loop without reading the next property */);
+	} else if (hr != hrSuccess) {
+		// error checking in this function is too agressive, we actually don't know the state of the stream
+		// but since most functions never return an error, we can assume when this happens, the attachment has been read
+		// but not the subobject (msg-in-msg or 0 for normal attachments)
+		// since only the ATTACH_BY_VALUE can return an error in a normal environment, this will always just read a 0 for the number of subobjects.
+		hr = StreamToNextObject(lpSerializer, 0); // invalid type, so it doesn't stream subobjects
+	}
 
 	if (lpStream)
 		lpStream->Release();
@@ -669,6 +676,17 @@ exit:
 	return hr;
 }
 
+/** 
+ * Parse or skip all subobjects. Messages have attachments and recipients, attachments may have a message as subobject.
+ * 
+ * @param[in] folder folder id
+ * @param[in] doc document id
+ * @param[in] version document version
+ * @param[in] lpSerializer data stream
+ * @param[in] lpIndex index class
+ * 
+ * @return MAPI Error code
+ */
 HRESULT ECIndexImporterAttachment::ParseAttachments(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex)
 {
 	HRESULT hr = hrSuccess;
@@ -694,7 +712,7 @@ HRESULT ECIndexImporterAttachment::ParseAttachments(folderid_t folder, docid_t d
 			ParseEmbeddedAttachment(folder, doc, version, lpSerializer, lpIndex);
 			break;
 		default:
-			/* Subobject is not an attachment, skip to next object */
+			/* Subobject is a recipient, skip to next object */
 			hr = StreamToNextObject(lpSerializer, ulTmp[0]);
 			if (hr != hrSuccess)
 				goto exit;

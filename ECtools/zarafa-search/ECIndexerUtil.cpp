@@ -259,6 +259,17 @@ HRESULT StreamToNextObject(ECSerializer *lpSerializer, ULONG ulObjType, ULONG ul
 
 	}
 
+	// skip attachment data
+	if (ulObjType == MAPI_ATTACH) {
+		er = lpSerializer->Read(&ulSize, sizeof(ulSize), 1);
+		if (er != erSuccess)
+			goto exit;
+
+		er = lpSerializer->Skip(ulSize, 1);
+		if (er != erSuccess)
+			goto exit;
+	}
+
 	/* Skip subjobjects */
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		er = lpSerializer->Read(&ulCount, sizeof(ulCount), 1);
