@@ -4349,7 +4349,7 @@
 		  <varlistentry>
 			<term><option>search_enabled</option></term>
 			<listitem>
-			  <para>Use indexing service for faster searching. Enabling this option
+			  <para>Use the zarafa-search indexing service for faster searching. Enabling this option
 			  requires the
 				<citerefentry>
 				  <refentrytitle>zarafa-search</refentrytitle>
@@ -10954,9 +10954,11 @@
 		  <varlistentry>
 			<term><option>index_attachment_max_size</option></term>
 			<listitem>
-			  <para>Maxiumum file size for attachments to be indexed. Any attachment larger
-			  then this amount (in kilobytes) will not be indexed.</para>
-			  <para>Default: <replaceable>5120</replaceable></para>
+			  <para>Maxiumum file size for attachments to be
+			  indexed. Any attachment larger then this amount will not
+			  be indexed. This value may contain a k, m or g
+			  multiplier.</para>
+			  <para>Default: <replaceable>5M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -11065,9 +11067,10 @@
 		      terms to the index. A larger term cache will increase indexing
 		      speed when indexing large number of documents in a single
 		      store. This will barely affect incremental updates after the
-		      initial indexing has finished.
+		      initial indexing has finished. This value may contain a
+			  k, m or g multiplier.
 		      </para>
-		      <para>Default: 67108864</para>
+		      <para>Default: 64M</para>
 		    </listitem>
 		  </varlistentry>
 		</variablelist>

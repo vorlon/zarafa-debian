@@ -204,7 +204,7 @@ void ECThreadData::ReloadConfigOptions()
 
 	lpszConfig = lpConfig->GetSetting("index_attachment_max_size");
 	if (lpszConfig)
-		m_ulAttachMaxSize = atoi(lpszConfig) * 1024;
+		m_ulAttachMaxSize = atoi(lpszConfig);
 	if (!m_ulAttachMaxSize)
 		m_ulAttachMaxSize = 5 * 1024 * 1024;
 
@@ -443,14 +443,14 @@ int main(int argc, char *argv[]) {
 		/* Indexer settings */
 		{ "index_path", "/var/lib/zarafa/index/" },
 		{ "index_attachments", "no", CONFIGSETTING_RELOADABLE },
-		{ "index_attachment_max_size", "5120", CONFIGSETTING_RELOADABLE },
+		{ "index_attachment_max_size", "5M", CONFIGSETTING_SIZE | CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser", INDEXER_ATTACH_PARSER, CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser_max_memory", "0", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_parser_max_cputime", "0", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_mime_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "index_attachment_extension_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "index_exclude_properties", "007D 0064 0C1E 0075 678E 678F" }, /* PR_TRANSPORT_MESSAGE_HEADERS, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENDER_ADDRTYPE, PR_RECEIVED_BY_ADDRTYPE, PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE */
-		{ "term_cache_size", "67108864" },
+		{ "term_cache_size", "64M", CONFIGSETTING_SIZE },
 		{ NULL, NULL },
 	};
 
