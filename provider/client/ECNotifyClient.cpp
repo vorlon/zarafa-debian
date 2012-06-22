@@ -595,7 +595,9 @@ HRESULT ECNotifyClient::NotifyReload()
 
 	// The transport used for this notifyclient *may* have a broken session. Inform the
 	// transport that the session may be broken and it should verify that all is well.
-	m_lpTransport->HrEnsureSession();
+
+	// Disabled because deadlock, research needed
+	//m_lpTransport->HrEnsureSession();
 
 	// Don't send the notification while we are locked
 	pthread_mutex_lock(&m_hMutex);
