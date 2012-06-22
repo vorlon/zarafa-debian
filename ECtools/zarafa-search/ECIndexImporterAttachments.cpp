@@ -504,7 +504,7 @@ HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid
 		wparsed.append(convert_to<std::wstring>(strFilename));
 	}
 
-	hr = lpIndex->AddTerm(folder, doc, version, PR_BODY, wparsed);
+	hr = lpIndex->AddTerm(folder, doc, PROP_ID(PR_BODY), version, wparsed);
 	if (hr != hrSuccess)
 		goto exit;
 
