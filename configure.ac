@@ -448,12 +448,13 @@ fi
 # force add pthread in lucene test
 CXXFLAGS="$CXXFLAGS -pthread"
 if test -e "${CLUCENE_LIB_PREFIX}/libclucene.a"; then
-AC_CHECK_LIB(clucene, [open],
+# lucene::index::IndexReader::open(const char *) in c++ style
+AC_CHECK_LIB(clucene, [_ZN6lucene5index11IndexReader4openEPKc],
   [ CLUCENE_LIBS="${CLUCENE_LIB_PREFIX}/libclucene.a"
     have_clucene=static
   ])
 else
-AC_CHECK_LIB(clucene, [open],
+AC_CHECK_LIB(clucene, [_ZN6lucene5index11IndexReader4openEPKc],
   [ CLUCENE_LIBS="-lclucene"
     have_clucene=dynamic
   ])
