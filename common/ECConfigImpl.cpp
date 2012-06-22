@@ -50,6 +50,7 @@
 #include "platform.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <algorithm>
 #include <assert.h>
 #include <limits.h>
@@ -169,6 +170,31 @@ ECConfigImpl::~ECConfigImpl()
 }
 
 /** 
+ * Returns the size in bytes for a size marked config value
+ * 
+ * @param szValue input value from config file
+ * 
+ * @return size in bytes
+ */
+size_t ECConfigImpl::GetSize(const char *szValue)
+{
+	size_t rv = 0;
+	if (szValue) {
+		char *end = NULL;
+		rv = strtoul(szValue, &end, 10);
+		if (rv && end > szValue && *end != '\0') {
+			while (*end != '\0' && (*end == ' ' || *end == '\t')) end++;
+			switch (tolower(*end)) {
+				case 'k': rv *= 1024; break;
+				case 'm': rv *= 1024*1024; break;
+				case 'g': rv *= 1024*1024*1024; break;
+			}
+		}
+	}
+	return rv;
+}
+
+/** 
  * Adds a new setting to the map, or replaces the current data.
  * Only the first 1024 bytes of the value are saved, longer values are truncated.
  * The map must be locked by the m_settingsRWLock.
@@ -177,7 +203,7 @@ ECConfigImpl::~ECConfigImpl()
  * @param s key to access map point
  * @param szValue new value to set in map
  */
-void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue)
+void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue, bool bIsSize)
 {
 	pair<settingmap_t::iterator, bool> res;
 	char* data = NULL;
@@ -188,7 +214,10 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 		data = res.first->second = new char[1024];
 	else
 		data = res.first->second;
-	strncpy(data, szValue, len);
+	if (bIsSize)
+		len = snprintf(data, 1024, "%lu", GetSize(szValue));
+	else
+		strncpy(data, szValue, len);
 	data[len] = '\0';
 }
 
@@ -483,6 +512,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 {
 	settingmap_t::iterator iterSettings;
 	settingkey_t s;
+	char *valid = NULL;
 	char *szAlias = NULL;
 	bool bReturnValue = true;
 
@@ -529,19 +559,39 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 		if (!(ulFlags & LOADSETTING_INITIALIZING) &&
 			(iterSettings->first.ulFlags & CONFIGSETTING_UNUSED))
 				warnings.push_back("Option '" + string(lpsConfig->szName) + "' is not used anymore.");
+
+		s.ulFlags = iterSettings->first.ulFlags;
 	}
 
-
-	if (lpsConfig->szValue[0] == '$' && (lpsConfig->ulFlags & CONFIGSETTING_EXACT) == 0) {
+	if (lpsConfig->szValue[0] == '$' && (s.ulFlags & CONFIGSETTING_EXACT) == 0) {
 		const char *szValue = getenv(lpsConfig->szValue + 1);
 		if (szValue == NULL) {
 			warnings.push_back("'" + string(lpsConfig->szValue + 1) + "' not found in environment, using '" + lpsConfig->szValue + "' for options '" + lpsConfig->szName + "'.");
 			szValue = lpsConfig->szValue;
 		}
 
-		InsertOrReplace(&m_mapSettings, s, szValue);
-	} else
-		InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue);
+		if (s.ulFlags & CONFIGSETTING_SIZE) {
+			strtoul(szValue, &valid, 10);
+			if (valid == szValue) {
+				errors.push_back("Option '" + string(lpsConfig->szName) + "' must be a size value (number + optional k/m/g multiplier).");
+				bReturnValue = false;
+				goto exit;
+			}
+		}
+
+		InsertOrReplace(&m_mapSettings, s, szValue, lpsConfig->ulFlags & CONFIGSETTING_SIZE);
+	} else {
+		if (s.ulFlags & CONFIGSETTING_SIZE) {
+			strtoul(lpsConfig->szValue, &valid, 10);
+			if (valid == lpsConfig->szValue) {
+				errors.push_back("Option '" + string(lpsConfig->szName) + "' must be a size value (number + optional k/m/g multiplier).");
+				bReturnValue = false;
+				goto exit;
+			}
+		}
+
+		InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue, s.ulFlags & CONFIGSETTING_SIZE);
+	}
 
 exit:
 	pthread_rwlock_unlock(&m_settingsRWLock);
@@ -556,7 +606,7 @@ void ECConfigImpl::AddAlias(const configsetting_t *lpsAlias)
 		return;
 
 	pthread_rwlock_wrlock(&m_settingsRWLock);
-	InsertOrReplace(&m_mapAliases, s, lpsAlias->szValue);
+	InsertOrReplace(&m_mapAliases, s, lpsAlias->szValue, false);
 	pthread_rwlock_unlock(&m_settingsRWLock);
 }
 
@@ -577,7 +627,7 @@ bool ECConfigImpl::HasErrors() {
 	for (iterSettings = m_mapSettings.begin(); iterSettings != m_mapSettings.end(); iterSettings++) {
 		if (iterSettings->first.ulFlags & CONFIGSETTING_NONEMPTY) {
 			if (!iterSettings->second || strlen(iterSettings->second) == 0)
-				errors.push_back("option '" + string(iterSettings->first.s) + "' cannot be empty!");
+				errors.push_back("Option '" + string(iterSettings->first.s) + "' cannot be empty!");
 		}
 	}
 	

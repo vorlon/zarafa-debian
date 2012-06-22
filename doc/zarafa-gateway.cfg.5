@@ -240,10 +240,10 @@ Default:
 .PP
 \fBimap_max_messagesize\fR
 .RS 4
-Limit the maximum message size (in bytes) which can be created by an IMAP client\&. The maximum of this value is 4GB although this is not recommended\&. If the value is too high it will cause a segmentation fault\&.
+Limit the maximum message size (in bytes) which can be created by an IMAP client\&. The maximum of this value is 4GB although this is not recommended\&. If the value is too high it will cause a segmentation fault\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI134217728\fR
+\fI128M\fR
 .RE
 .PP
 \fBimap_expunge_on_delete\fR

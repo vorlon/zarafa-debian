@@ -3865,9 +3865,9 @@
 			  task, etc) in the entire server. If you can afford
 			  it, set this value as high as possible, up to 50%
 			  of your total RAM capacity. Make sure this doesn't
-			  lead to swapping though.</para>
-			  <para>Default: <replaceable>268435456</replaceable> (256
-			  Mb)</para>
+			  lead to swapping though. This value may contain a
+			  k, m or g multiplier.</para>
+			  <para>Default: <replaceable>256M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3878,8 +3878,8 @@
 			  of folders. You can calculate the size with a simple
 			  equation:</para>
 			  <para>concurrent users * max items in a folder * 24</para>
-			  <para>Default: <replaceable>5242880</replaceable> (5
-			  Mb)</para>
+			  <para>This value may contain a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>5M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3888,18 +3888,18 @@
 			<listitem>
 			  <para>This cache contains unique id's of objects. This
 			  cache is used twice, also by the index2 cache, which is
-			  the inverse of the index1 cache.</para>
-			  <para>Default: <replaceable>16777216</replaceable> (16
-			  Mb)</para>
+			  the inverse of the index1 cache. This value may contain
+			  a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>16M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>cache_quota_size</option></term>
 			<listitem>
-			  <para>This cache contains quota values of users.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  <para>This cache contains quota values of users. This
+			  value may contain a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>1M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3920,18 +3920,18 @@
 			<listitem>
 			  <para>This cache contains Access Control List
 			  values. Folders who are opened in other stores than your
-			  own are listed in the ACL table, and will be cached.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  own are listed in the ACL table, and will be cached.
+			  This value may contain a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>1M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>cache_store_size</option></term>
 			<listitem>
-			  <para>This cache contains store id values.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  <para>This cache contains store id values. This value
+			  may contain a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>1M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3940,18 +3940,18 @@
 			<listitem>
 			  <para>This cache contains user id values. This cache is
 			  used twice, also by the externid cache, which is the
-			  inverse of this cache.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  inverse of this cache. This value may contain a k, m or
+			  g multiplier.</para>
+			  <para>Default: <replaceable>1M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
 		  <varlistentry>
 			<term><option>cache_userdetails_size</option></term>
 			<listitem>
-			  <para>This cache contains the details of users.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  <para>This cache contains the details of users. This
+			  value may contain a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>3M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -3971,9 +3971,9 @@
 			<term><option>cache_server_size</option></term>
 			<listitem>
 			  <para>This cache contains server locations. This cache
-			  is only used in multiserver mode.</para>
-			  <para>Default: <replaceable>1048576</replaceable> (1
-			  Mb)</para>
+			  is only used in multiserver mode. This value may contain
+			  a k, m or g multiplier.</para>
+			  <para>Default: <replaceable>1M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -7275,8 +7275,9 @@
 				<para>Limit the maximum message size (in bytes) which can
 				be created by an IMAP client. The maximum of this value is 4GB
 				although this is not recommended. If the value is too high
-				it will cause a segmentation fault.</para>
-				<para>Default: <replaceable>134217728</replaceable></para>
+				it will cause a segmentation fault. This value may contain a
+				k, m or g multiplier.</para>
+				<para>Default: <replaceable>128M</replaceable></para>
 			</listitem>
 		  </varlistentry>
 

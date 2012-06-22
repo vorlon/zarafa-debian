@@ -701,11 +701,10 @@ Default:
 .PP
 \fBcache_cell_size\fR
 .RS 4
-Size in bytes of the cell cache\&. This is the main cache used in Zarafa\&. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder)\&. In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1\&.5K per message item (e\-mail, appointment task, etc) in the entire server\&. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity\&. Make sure this doesn\*(Aqt lead to swapping though\&.
+Size in bytes of the cell cache\&. This is the main cache used in Zarafa\&. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder)\&. In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1\&.5K per message item (e\-mail, appointment task, etc) in the entire server\&. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity\&. Make sure this doesn\*(Aqt lead to swapping though\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI268435456\fR
-(256 Mb)
+\fI256M\fR
 .RE
 .PP
 \fBcache_object_size\fR
@@ -714,27 +713,26 @@ This caches objects and their respective hierarchy of folders\&. You can calcula
 .sp
 concurrent users * max items in a folder * 24
 .sp
+This value may contain a k, m or g multiplier\&.
+.sp
 Default:
-\fI5242880\fR
-(5 Mb)
+\fI5M\fR
 .RE
 .PP
 \fBcache_indexedobject_size\fR
 .RS 4
-This cache contains unique id\*(Aqs of objects\&. This cache is used twice, also by the index2 cache, which is the inverse of the index1 cache\&.
+This cache contains unique id\*(Aqs of objects\&. This cache is used twice, also by the index2 cache, which is the inverse of the index1 cache\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI16777216\fR
-(16 Mb)
+\fI16M\fR
 .RE
 .PP
 \fBcache_quota_size\fR
 .RS 4
-This cache contains quota values of users\&.
+This cache contains quota values of users\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI1M\fR
 .RE
 .PP
 \fBcache_quota_lifetime\fR
@@ -748,38 +746,34 @@ Default:
 .PP
 \fBcache_acl_size\fR
 .RS 4
-This cache contains Access Control List values\&. Folders who are opened in other stores than your own are listed in the ACL table, and will be cached\&.
+This cache contains Access Control List values\&. Folders who are opened in other stores than your own are listed in the ACL table, and will be cached\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI1M\fR
 .RE
 .PP
 \fBcache_store_size\fR
 .RS 4
-This cache contains store id values\&.
+This cache contains store id values\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI1M\fR
 .RE
 .PP
 \fBcache_user_size\fR
 .RS 4
-This cache contains user id values\&. This cache is used twice, also by the externid cache, which is the inverse of this cache\&.
+This cache contains user id values\&. This cache is used twice, also by the externid cache, which is the inverse of this cache\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI1M\fR
 .RE
 .PP
 \fBcache_userdetails_size\fR
 .RS 4
-This cache contains the details of users\&.
+This cache contains the details of users\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI3M\fR
 .RE
 .PP
 \fBcache_userdetails_lifetime\fR
@@ -793,11 +787,10 @@ Default:
 .PP
 \fBcache_server_size\fR
 .RS 4
-This cache contains server locations\&. This cache is only used in multiserver mode\&.
+This cache contains server locations\&. This cache is only used in multiserver mode\&. This value may contain a k, m or g multiplier\&.
 .sp
 Default:
-\fI1048576\fR
-(1 Mb)
+\fI1M\fR
 .RE
 .PP
 \fBcache_server_lifetime\fR

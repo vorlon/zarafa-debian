@@ -870,19 +870,19 @@ int running_server(char *szName, const char *szConfig)
 		{ "loginname_format",			"%u" },
 
 		// internal server contols
-		{ "softdelete_lifetime",		"0" },			// time expressed in days, 0 == never delete anything
-		{ "cache_cell_size",			"16777216" },	// default also 16 Mb
-		{ "cache_object_size",			"5242880" },	// 5Mb
-		{ "cache_indexedobject_size",	"16777216" },	// 16Mb
-		{ "cache_quota_size",			"1048576" },	// 1Mb
-		{ "cache_quota_lifetime",		"1" },			// 1 minute
-		{ "cache_user_size",			"1048576" },	// 48 bytes per struct, can hold 21k+ users, allocated 2x (user and ueid cache)
-		{ "cache_userdetails_size",		"2621440" },	// 120 bytes per struct, can hold 21k+ users
-		{ "cache_userdetails_lifetime", "5" },			// 5 minutes
-		{ "cache_acl_size",				"1048576" },	// 1Mb, acl table cache
-		{ "cache_store_size",			"1048576" },	// 1Mb, store table cache (storeid, storeguid), 40 bytes
-		{ "cache_server_size",			"1048576" },	// 1Mb
-		{ "cache_server_lifetime",		"30" },			// 30 minutes
+		{ "softdelete_lifetime",		"0" },							// time expressed in days, 0 == never delete anything
+		{ "cache_cell_size",			"16M", CONFIGSETTING_SIZE },	// default 16 Mb, default in config 256M
+		{ "cache_object_size",			"5M", CONFIGSETTING_SIZE },		// 5Mb
+		{ "cache_indexedobject_size",	"16M", CONFIGSETTING_SIZE },	// 16Mb
+		{ "cache_quota_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
+		{ "cache_quota_lifetime",		"1" },							// 1 minute
+		{ "cache_user_size",			"1M", CONFIGSETTING_SIZE },		// 48 bytes per struct, can hold 21k+ users, allocated 2x (user and ueid cache)
+		{ "cache_userdetails_size",		"3M", CONFIGSETTING_SIZE },		// 120 bytes per struct, can hold 21k+ users (was 2.5Mb, no float in size)
+		{ "cache_userdetails_lifetime", "5" },							// 5 minutes
+		{ "cache_acl_size",				"1M", CONFIGSETTING_SIZE },		// 1Mb, acl table cache
+		{ "cache_store_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb, store table cache (storeid, storeguid), 40 bytes
+		{ "cache_server_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
+		{ "cache_server_lifetime",		"30" },							// 30 minutes
 		// default no quota's
 		{ "quota_warn",				"0", CONFIGSETTING_RELOADABLE },
 		{ "quota_soft",				"0", CONFIGSETTING_RELOADABLE },

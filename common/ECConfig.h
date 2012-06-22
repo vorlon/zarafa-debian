@@ -62,6 +62,7 @@ struct configsetting_t {
 #define CONFIGSETTING_UNUSED		0x0004
 #define CONFIGSETTING_NONEMPTY		0x0008
 #define CONFIGSETTING_EXACT			0x0010
+#define CONFIGSETTING_SIZE			0x0020
 	unsigned short ulGroup;
 #define CONFIGGROUP_PROPMAP			0x0001
 };

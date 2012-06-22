@@ -140,7 +140,8 @@ private:
 	bool	HandleInclude(const char *lpszArgs, unsigned int ulFlags);
 	bool	HandlePropMap(const char *lpszArgs, unsigned int ulFlags);
 
-	void	InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue);
+	size_t  GetSize(const char *szValue);
+	void	InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue, bool bIsSize);
 
 	char*	GetMapEntry(settingmap_t *lpMap, const char *szName);
 	char*	GetAlias(const char *szAlias);
