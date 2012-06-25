@@ -2160,9 +2160,10 @@
 			  <replaceable>usernames</replaceable>
 			</term>
 			<listitem>
-			  <para>You can force a resync of cached profiles when
-			  the data is out of sync. One or more usernames can be
-			  specified.</para>
+			  <para>You can force a resync of cached profiles when the
+			  data is out of sync. One or more usernames can be
+			  specified. If no usernames are given, all offline
+			  profiles can be resynced.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -2172,7 +2173,7 @@
 			  <replaceable>username</replaceable>
 			</term>
 			<listitem>
-			  <para>Reset the counters on all folder in
+			  <para>Reset the counters on all folders in
 			  <replaceable>username</replaceable>'s store.</para>
 			</listitem>
 		  </varlistentry>
