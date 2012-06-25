@@ -1275,6 +1275,7 @@ PR_EMS_AB_ROOM_DESCRIPTION = PROP_TAG(PT_STRING8, 0x0809)
 PR_EMS_AB_HOME_MDB = PROP_TAG(PT_STRING8, 0x8006)
 PR_EMS_AB_HOME_MTA = PROP_TAG(PT_STRING8, 0x8007)
 PR_EMSMDB_SECTION_UID = PROP_TAG(PT_BINARY, 0x3D15)
+PR_EMS_AB_CONTAINERID = PROP_TAG(PT_LONG, 0xFFFD)
 
 # Freebusy properties
 PR_FREEBUSY_START_RANGE = PROP_TAG(PT_LONG, 0x6847)
@@ -1608,3 +1609,18 @@ ST_EXIT_LEVEL                   = 0x0010
 ST_SKIP_IF_SCL_IS_SAFE          = 0x0020
 ST_RULE_PARSE_ERROR             = 0x0040
 ST_CLEAR_OOF_HIST               = 0x80000000
+
+# Permissions
+ecRightsNone            = 0x00000000
+ecRightsReadAny         = 0x00000001
+ecRightsCreate          = 0x00000002
+ecRightsEditOwned       = 0x00000008
+ecRightsDeleteOwned     = 0x00000010
+ecRightsEditAny         = 0x00000020
+ecRightsDeleteAny       = 0x00000040
+ecRightsCreateSubfolder = 0x00000080
+ecRightsFolderAccess    = 0x00000100
+ecRightsFolderVisible   = 0x00000400
+ecRightsFullControl     = 0x000004FBL
+
+EMS_AB_ADDRESS_LOOKUP = 0x1
