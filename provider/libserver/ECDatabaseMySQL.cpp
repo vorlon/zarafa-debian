@@ -386,8 +386,17 @@ ECRESULT ECDatabaseMySQL::InitializeDBState()
 			goto exit;
 			
 		er = DoUpdate(stored_procedures[i].szSQL);
-		if(er != erSuccess)
+		if(er != erSuccess) {
+			int err = mysql_errno(&m_lpMySQL);
+			if (err == ER_DBACCESS_DENIED_ERROR) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-server is not allowed to create stored procedures");
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please grant CREATE ROUTINE permissions to the mysql user '%s' on the '%s' database",
+								m_lpConfig->GetSetting("mysql_user"), m_lpConfig->GetSetting("mysql_database"));
+			} else {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-server is unable to create stored procedures, error %d", err);
+			}
 			goto exit;
+		}
 	}
 
 exit:	
