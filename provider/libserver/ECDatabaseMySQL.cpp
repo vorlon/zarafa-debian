@@ -723,7 +723,6 @@ exit:
 ECRESULT ECDatabaseMySQL::DoSelectMulti(const string &strQuery) {
 
 	ECRESULT er = erSuccess;
-	DB_RESULT lpResult = NULL;
 
 	_ASSERT(strQuery.length()!= 0);
 
@@ -788,7 +787,6 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 			FreeResult(lpResult);
 	}
 
-exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
