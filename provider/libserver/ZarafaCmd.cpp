@@ -2674,8 +2674,9 @@ exit:
 	return er;
 }
 
-unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, unsigned int ulStoreId, unsigned int ulParentObjId, 
-				unsigned int ulParentType, unsigned int ulFlags, unsigned int ulSyncId, struct saveObject *lpsSaveObj, struct saveObject *lpsReturnObj, unsigned int ulLevel, bool *lpfHaveChangeKey = NULL)
+unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage,
+						unsigned int ulStoreId, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulFlags,
+						unsigned int ulSyncId, struct saveObject *lpsSaveObj, struct saveObject *lpsReturnObj, unsigned int ulLevel, bool *lpfHaveChangeKey = NULL)
 {
 	ECRESULT er = erSuccess;
 	ALLOC_DBRESULT();
@@ -2927,6 +2928,7 @@ unsigned int SaveObject(struct soap *soap, ECSession *lpecSession, ECDatabase *l
 			if (lpsSaveObj->ulObjType == MAPI_ATTACH) {
 				for (int i = 0; !bSkip && i < lpsSaveObj->modProps.__size; ++i)
 					bSkip = lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_RECORD_KEY;
+				// @todo if we don't have a pr_record_key for an attachment, generate a guid for it like the client does
 			}
 			if (!bSkip && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess) {
 				lpsReturnObj->delProps.__ptr[n] = PR_RECORD_KEY;
@@ -3155,16 +3157,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		}
 	}
 
-	if (lpsSaveObj->ulServerId == 0) {
-		er = MapEntryIdToObjectId(lpecSession, lpDatabase, sReturnObject.ulServerId, sEntryId);
-		if (er != erSuccess)
-			goto exit;
-
-		ulObjId = sReturnObject.ulServerId;
-	} else {
-		ulObjId = lpsSaveObj->ulServerId;
-	}
-
 	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId, lpsSaveObj, &sReturnObject, atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")), &fHaveChangeKey);
 	if (er != erSuccess)
 		goto exit;
@@ -3174,6 +3166,32 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		er = WriteLocalCommitTimeMax(soap, lpDatabase, ulParentObjId, &pvCommitTime);
 		if(er != erSuccess)
 			goto exit;
+	}
+
+	if (lpsSaveObj->ulServerId == 0) {
+		er = MapEntryIdToObjectId(lpecSession, lpDatabase, sReturnObject.ulServerId, sEntryId);
+		if (er != erSuccess)
+			goto exit;
+
+		ulObjId = sReturnObject.ulServerId;
+
+		// now that we have an entry id, find the generated PR_RECORD_KEY from SaveObject and override it with the PR_ENTRYID value (fixme, ZCP-6706)
+		{
+			int rki;
+			for (rki = 0; rki < sReturnObject.modProps.__size; rki++)
+				if (sReturnObject.modProps.__ptr[rki].ulPropTag == PR_RECORD_KEY)
+					break;
+			// @note static alloc of 8 props in SaveObject. we did not find the record key: make it now
+			if (rki == sReturnObject.modProps.__size && rki < 8) {
+				ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, sReturnObject.ulServerId, 0, 0, ulParentObjId,
+													lpsSaveObj->ulObjType, &sReturnObject.modProps.__ptr[rki]);
+				sReturnObject.modProps.__size++;
+				sReturnObject.delProps.__ptr[rki] = PR_RECORD_KEY;
+				sReturnObject.delProps.__size++;
+			}
+		}
+	} else {
+		ulObjId = lpsSaveObj->ulServerId;
 	}
 
 	// 3. pr_source_key magic
