@@ -3155,6 +3155,16 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		}
 	}
 
+	if (lpsSaveObj->ulServerId == 0) {
+		er = MapEntryIdToObjectId(lpecSession, lpDatabase, sReturnObject.ulServerId, sEntryId);
+		if (er != erSuccess)
+			goto exit;
+
+		ulObjId = sReturnObject.ulServerId;
+	} else {
+		ulObjId = lpsSaveObj->ulServerId;
+	}
+
 	er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, ulParentObjId, ulParentObjType, ulFlags, ulSyncId, lpsSaveObj, &sReturnObject, atoui(g_lpSessionManager->GetConfig()->GetSetting("embedded_attachment_limit")), &fHaveChangeKey);
 	if (er != erSuccess)
 		goto exit;
@@ -3164,16 +3174,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		er = WriteLocalCommitTimeMax(soap, lpDatabase, ulParentObjId, &pvCommitTime);
 		if(er != erSuccess)
 			goto exit;
-	}
-
-	if (lpsSaveObj->ulServerId == 0) {
-		er = MapEntryIdToObjectId(lpecSession, lpDatabase, sReturnObject.ulServerId, sEntryId);
-		if (er != erSuccess)
-			goto exit;
-
-		ulObjId = sReturnObject.ulServerId;
-	} else {
-		ulObjId = lpsSaveObj->ulServerId;
 	}
 
 	// 3. pr_source_key magic
