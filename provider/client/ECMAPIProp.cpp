@@ -320,7 +320,12 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		break;
 	}
 	case PROP_ID(PR_EC_HIERARCHYID):
-		if(lpProp->m_sMapiObject && lpProp->m_sMapiObject->ulObjId > 0) {
+		if (lpProp->m_sMapiObject == NULL) {
+			hr = lpProp->HrLoadProps();
+			if (hr != hrSuccess)
+				goto exit;
+		}
+		if (lpProp->m_sMapiObject->ulObjId > 0) {
 			lpsPropValue->ulPropTag = ulPropTag;
 			lpsPropValue->Value.ul = lpProp->m_sMapiObject->ulObjId;
 		} else {
