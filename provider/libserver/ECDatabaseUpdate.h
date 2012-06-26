@@ -145,4 +145,6 @@ ECRESULT UpdateDatabaseClientUpdateStatus(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseConvertStores(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase);
 
+ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
+
 #endif // #ifndef ECDATABASEUPDATE_H

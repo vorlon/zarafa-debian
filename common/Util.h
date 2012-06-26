@@ -116,6 +116,7 @@ public:
 
 	static HRESULT bin2hex(ULONG inLength, LPBYTE input, char **output, void *parent = NULL);
 	static HRESULT hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *output, void *parent = NULL);
+	static HRESULT hex2bin(const char *input, size_t len, LPBYTE output);
 
 	template <size_t N>
 	static bool StrCaseCompare(const WCHAR *lpString, const WCHAR (&lpFind)[N], size_t pos = 0) {

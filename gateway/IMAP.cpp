@@ -1677,7 +1677,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	ULONG cStatusData = 0;
 	IMAPITable *lpTable = NULL;
 	ULONG cValues;
-	SizedSPropTagArray(3, sPropsFolderCounters) = { 3, { PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_RECORD_KEY } };
+	SizedSPropTagArray(3, sPropsFolderCounters) = { 3, { PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID } };
 	LPSPropValue lpPropCounters = NULL;
 	wstring strIMAPFolder;
 	SPropValue sPropMaxID;
@@ -1725,8 +1725,8 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 	if (lpPropCounters[1].ulPropTag == PR_CONTENT_UNREAD)
 		ulUnseen = lpPropCounters[1].Value.ul;
 
-	if (lpPropCounters[2].ulPropTag == PR_RECORD_KEY)
-		ulUIDValidity = *((ULONG*)lpPropCounters[2].Value.bin.lpb);
+	if (lpPropCounters[2].ulPropTag == PR_EC_HIERARCHYID)
+		ulUIDValidity = lpPropCounters[2].Value.ul;
 
 	// split statusdata
 	if (strStatusData.size() > 1 && strStatusData[0] == '(') {
@@ -1884,9 +1884,9 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		goto exit;
 	}
 
-	hr = HrGetOneProp(lpAppendFolder, PR_RECORD_KEY, &lpPropVal);
+	hr = HrGetOneProp(lpAppendFolder, PR_EC_HIERARCHYID, &lpPropVal);
 	if (hr == hrSuccess) {
-		ulFolderUid = *(ULONG*)lpPropVal->Value.bin.lpb;
+		ulFolderUid = lpPropVal->Value.ul;
 		MAPIFreeBuffer(lpPropVal);
 		lpPropVal = NULL;
 	}
@@ -3550,7 +3550,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	map<unsigned int, unsigned int>::iterator iterUID;
 	SPropValue sPropMax;
 	unsigned int ulUnseen = 0;
-	SizedSPropTagArray(2, sPropsFolderIDs) = { 2, { PR_EC_IMAP_MAX_ID, PR_RECORD_KEY } };
+	SizedSPropTagArray(2, sPropsFolderIDs) = { 2, { PR_EC_IMAP_MAX_ID, PR_EC_HIERARCHYID } };
 	LPSPropValue lpFolderIDs = NULL;
 	ULONG cValues;
 
@@ -3572,8 +3572,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	else
         ulMaxUID = 0;
 
-	if (lpulUIDValidity && lpFolderIDs[1].ulPropTag == PR_RECORD_KEY)
-		*lpulUIDValidity = *((ULONG*)lpFolderIDs[1].Value.bin.lpb);
+	if (lpulUIDValidity && lpFolderIDs[1].ulPropTag == PR_EC_HIERARCHYID)
+		*lpulUIDValidity = lpFolderIDs[1].Value.ul;
 
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &lpTable);
 	if (hr != hrSuccess)

@@ -441,12 +441,13 @@
 #define Z_UPDATE_CREATE_CLIENTUPDATE_TABLE		60
 #define Z_UPDATE_CONVERT_STORES					61
 #define Z_UPDATE_UPDATE_STORES					62
+#define Z_UPDATE_UPDATE_WLINK_RECKEY			63
 
 // This is the update ID of a release so never change 
 // this in a release version
-#define Z_UPDATE_RELEASE_ID						62
+#define Z_UPDATE_RELEASE_ID						63
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST							62
+#define Z_UPDATE_LAST							63
 
 #endif

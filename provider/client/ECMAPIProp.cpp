@@ -133,6 +133,7 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify, ECMAPIPr
 	this->HrAddPropHandlers(PR_PARENT_SOURCE_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_RECORD_KEY,				DefaultGetPropGetReal, 	DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_EC_SERVER_UID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
+	this->HrAddPropHandlers(PR_EC_HIERARCHYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 
 	// ICS system
 	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
@@ -318,6 +319,14 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		}
 		break;
 	}
+	case PROP_ID(PR_EC_HIERARCHYID):
+		if(lpProp->m_sMapiObject && lpProp->m_sMapiObject->ulObjId > 0) {
+			lpsPropValue->ulPropTag = ulPropTag;
+			lpsPropValue->Value.ul = lpProp->m_sMapiObject->ulObjId;
+		} else {
+			hr = MAPI_E_NOT_FOUND;
+		}
+		break;
 	default:
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;

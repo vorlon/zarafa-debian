@@ -167,6 +167,9 @@ extern int searchfolder_restart_required; // HACK
 
 	Version 7.0.1
 	* update receive folder to unicode and increase the messageclass column size
+	
+	Version 7.1.0
+	* update WLINK entries to new record key format
 
 	Version independed
 	* Add setting for IMAP
@@ -2407,6 +2410,25 @@ ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase)
 	std::string strQuery;
 	
 	strQuery = "UPDATE stores SET type="+stringify(ECSTORE_TYPE_PUBLIC)+" WHERE user_id=1 OR user_id IN (SELECT id FROM users where objectclass="+stringify(CONTAINER_COMPANY)+")";
+	er = lpDatabase->DoUpdate(strQuery);
+
+	return er;
+}
+
+// 63
+ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase)
+{
+	ECRESULT er = erSuccess;
+	std::string strQuery;
+	
+	strQuery = "update stores "	// For each store
+				"join properties as p1 on p1.tag = 0x35E6 and p1.hierarchyid=stores.hierarchy_id " // Get PR_COMMON_VIEWS_ENTRYID
+				"join indexedproperties as i1 on i1.val_binary = p1.val_binary and i1.tag=0xfff " // Get hierarchy for common views
+				"join hierarchy as h2 on h2.parent=i1.hierarchyid " // Get children of common views
+				"join properties as p2 on p2.hierarchyid=h2.id and p2.tag=0x684d " // Get PR_WLINK_RECKEY for each child
+				"join properties as p3 on p3.hierarchyid=h2.id and p3.tag=0x684c " // Get PR_WLINK_ENTRYID for each child
+				"set p2.val_binary = p3.val_binary "								// Set PR_WLINK_RECKEY = PR_WLINK_ENTRYID
+				"where length(p3.val_binary) = 48";									// Where entryid length is 48 (zarafa)
 	er = lpDatabase->DoUpdate(strQuery);
 
 	return er;

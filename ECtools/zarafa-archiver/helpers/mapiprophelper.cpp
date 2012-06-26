@@ -148,8 +148,8 @@ HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpS
 	ULONG ulState = 0;
 	int result = 0;
 
-	SizedSPropTagArray(6, sptaMessageProps) = {6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY, PROP_ORIGINAL_SOURCEKEY, PR_RECORD_KEY}};
-	enum {IDX_ENTRYID, IDX_STUBBED, IDX_DIRTY, IDX_SOURCE_KEY, IDX_ORIGINAL_SOURCEKEY, IDX_RECORD_KEY};
+	SizedSPropTagArray(6, sptaMessageProps) = {6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY, PROP_ORIGINAL_SOURCEKEY, PR_EC_HIERARCHYID}};
+	enum {IDX_ENTRYID, IDX_STUBBED, IDX_DIRTY, IDX_SOURCE_KEY, IDX_ORIGINAL_SOURCEKEY, IDX_HIERARCHYID};
 
 	if (!lpState) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -181,8 +181,8 @@ HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpS
 		hr = ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].Value.err;
 		goto exit;
 	}
-	if (PROP_TYPE(ptrMessageProps[IDX_RECORD_KEY].ulPropTag) == PT_ERROR) {
-		hr = ptrMessageProps[IDX_RECORD_KEY].Value.err;
+	if (PROP_TYPE(ptrMessageProps[IDX_HIERARCHYID].ulPropTag) == PT_ERROR) {
+		hr = ptrMessageProps[IDX_HIERARCHYID].Value.err;
 		goto exit;
 	}
 	hr = hrSuccess;
@@ -279,11 +279,11 @@ HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpS
 				 */
 				SPropValuePtr ptrRecordKey;
 
-				hr = HrGetOneProp(ptrMessage, PR_RECORD_KEY, &ptrRecordKey);
+				hr = HrGetOneProp(ptrMessage, PR_EC_HIERARCHYID, &ptrRecordKey);
 				if (hr != hrSuccess)
 					goto exit;
 
-				if (Util::CompareSBinary(ptrMessageProps[IDX_RECORD_KEY].Value.bin, ptrRecordKey->Value.bin) == 0) {
+				if (ptrMessageProps[IDX_HIERARCHYID].Value.ul != ptrRecordKey->Value.ul) {
 					// We opened the same message through the reference, which shouldn't be possible. This
 					// must have been a move operation.
 					ulState |= MessageState::msMove;

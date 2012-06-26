@@ -450,6 +450,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 		case PROP_ID(PR_ENTRYID):
 		case PROP_ID(PR_PARENT_ENTRYID): 
 		case PROP_ID(PR_STORE_ENTRYID):
+		case PROP_ID(PR_RECORD_KEY):
 		{
 			entryId sEntryId;
 			unsigned int ulEidFlags = 0;
@@ -647,16 +648,6 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			sPropVal.Value.bin->__size = sizeof(ULONG)*2;
 			memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 			memcpy(sPropVal.Value.bin->__ptr+sizeof(ULONG), &ulOrderId, sizeof(ULONG));
-			break;
-		case PROP_ID(PR_RECORD_KEY):
-			sPropVal.ulPropTag = ulPropTag;
-			sPropVal.__union = SOAP_UNION_propValData_bin;
-			
-			sPropVal.Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			sPropVal.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-			
-			sPropVal.Value.bin->__size = sizeof(ULONG);
-			memcpy(sPropVal.Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 			break;
 		case PROP_ID(PR_OBJECT_TYPE):
 			sPropVal.ulPropTag = PR_OBJECT_TYPE;

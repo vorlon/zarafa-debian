@@ -191,6 +191,9 @@ sUpdateList_t	sUpdateList[] = {
 
 	{ Z_UPDATE_CONVERT_STORES, 0, "Converting stores table", UpdateDatabaseConvertStores },
 	{ Z_UPDATE_UPDATE_STORES, 0, "Updating stores table", UpdateDatabaseUpdateStores },
+	
+	// Update from 7.0 to 7.1
+	{ Z_UPDATE_UPDATE_WLINK_RECKEY, 0, "Updating wunderbar record keys", UpdateWLinkRecordKeys },
 };
 
 static char *server_groups[] = {

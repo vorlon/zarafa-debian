@@ -2462,7 +2462,6 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 {
 	HRESULT hr = hrSuccess;
 	LPBYTE buffer = NULL;
-	ULONG i, j;
 
 	if (len % 2 != 0) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -2476,11 +2475,12 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (i = 0, j = 0; i < len; j++) {
-		buffer[j] = x2b(input[i++]) << 4;
-		buffer[j] |= x2b(input[i++]);
-	}
-	buffer[j] = '\0';
+
+	hr = hex2bin(input, len, buffer);
+	if(hr != hrSuccess)
+		goto exit;
+
+	buffer[len/2] = '\0';
 
 	*outLength = len/2;
 	*output = buffer;
@@ -2488,6 +2488,37 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 exit:
 	return hr;
 }
+
+
+/** 
+ * Converts a string containing hexidecimal numbers into binary
+ * data.
+ * 
+ * @param[in] input string to convert
+ * @param[in] len length of the input (must be a multiple of 2)
+ * @param[out] output binary version of the input, must be able to receive len/2 bytes
+ * 
+ * @return MAPI Error code
+ */
+HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
+{
+	HRESULT hr = hrSuccess;
+	ULONG i, j;
+
+	if (len % 2 != 0) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	for (i = 0, j = 0; i < len; j++) {
+		output[j] = x2b(input[i++]) << 4;
+		output[j] |= x2b(input[i++]);
+	}
+
+exit:
+	return hr;
+}
+
 
 /** 
  * Return the original body property tag of a message, or PR_NULL when unknown.
