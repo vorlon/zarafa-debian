@@ -283,7 +283,7 @@ HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpS
 				if (hr != hrSuccess)
 					goto exit;
 
-				if (ptrMessageProps[IDX_HIERARCHYID].Value.ul != ptrRecordKey->Value.ul) {
+				if (ptrMessageProps[IDX_HIERARCHYID].Value.ul == ptrRecordKey->Value.ul) {
 					// We opened the same message through the reference, which shouldn't be possible. This
 					// must have been a move operation.
 					ulState |= MessageState::msMove;
