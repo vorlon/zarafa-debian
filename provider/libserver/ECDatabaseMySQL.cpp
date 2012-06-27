@@ -803,12 +803,12 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 			FreeResult(lpResult);
 	}
 
+exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
 
-exit:
 	// Autolock, unlock data
 	if(m_bAutoLock)
 		UnLock();
