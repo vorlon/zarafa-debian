@@ -264,7 +264,7 @@ const char *szStreamObj =
 "  call GetProps(rootid, mode);\n"
 
 "  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
-
+ 
 "  OPEN cur_hierarchy;\n"
 
 "  the_loop: LOOP\n"
@@ -650,7 +650,7 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	}
 
 	if(err) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %lu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str()); 
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %lu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), (long unsigned int)strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
 		ASSERT(false);
 	}
@@ -765,23 +765,36 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
+	int ret = 0;
 
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
 		
 	if(!m_bFirstResult)
-		mysql_next_result( &m_lpMySQL );
+		ret = mysql_next_result( &m_lpMySQL );
 		
 	m_bFirstResult = false;
 		
-   	lpResult = mysql_store_result( &m_lpMySQL );
-   	
-    
-	if( lpResult == NULL ) {
+	if(ret < 0) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: expected more results", m_lpMySQL.thread_id);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] next_result failed: expected more results", m_lpMySQL.thread_id);
+		goto exit;
 	}
+	
+	if(ret > 0) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] next_result of multi-resultset failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL)); 
+		goto exit;
+	}		
+
+   	lpResult = mysql_store_result( &m_lpMySQL );
+   	if(lpResult == NULL) {
+   		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
+		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL)); 
+		goto exit;
+   	}
 
 	if (lppResult)
 		*lppResult = lpResult;
@@ -795,6 +808,7 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
 	}
 
+exit:
 	// Autolock, unlock data
 	if(m_bAutoLock)
 		UnLock();
