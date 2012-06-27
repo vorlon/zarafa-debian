@@ -916,7 +916,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
 
-		{ "search_enabled",			"no", CONFIGSETTING_RELOADABLE }, 
+		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE }, 
 		{ "search_socket",			"file:///var/run/zarafa-search", CONFIGSETTING_RELOADABLE },        
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
