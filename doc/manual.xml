@@ -4357,7 +4357,7 @@
 				  <manvolnum>1</manvolnum>
 				</citerefentry>
 			  service to be running.</para>
-			  <para>Default: <replaceable>no</replaceable></para>
+			  <para>Default: <replaceable>yes</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
