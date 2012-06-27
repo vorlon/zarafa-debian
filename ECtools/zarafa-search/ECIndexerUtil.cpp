@@ -821,43 +821,6 @@ exit:
 
 }
 
-
-HRESULT OpenProperty(IMessage *lpMessage, ULONG ulPropTag, LPVOID lpBase, LPSPropValue lpProp)
-{
-	HRESULT hr = hrSuccess;
-	StreamPtr ptrStream;
-	STATSTG statstg;
-	ULONG cbRead = 0;
-	LPVOID lpTmp = NULL;
-
-	if (lpMessage == NULL || lpBase == NULL || lpProp == NULL || PROP_TYPE(ulPropTag) != PT_TSTRING) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = lpMessage->OpenProperty(ulPropTag, &ptrStream.iid, 0, 0, &ptrStream);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrStream->Stat(&statstg, STATFLAG_NONAME);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = MAPIAllocateMore(statstg.cbSize.LowPart, lpBase, &lpTmp);	// No need to free on error
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrStream->Read(lpTmp, statstg.cbSize.LowPart, &cbRead);
-	if (hr != hrSuccess)
-		goto exit;
-
-	lpProp->ulPropTag = ulPropTag;
-	lpProp->Value.LPSZ = (LPTSTR)lpTmp;
-
-exit:
-	return hr;
-}
-
 HRESULT ParseProperties(const char *szExclude, std::set<unsigned int> &setPropIDs)
 {
 	HRESULT hr = hrSuccess;

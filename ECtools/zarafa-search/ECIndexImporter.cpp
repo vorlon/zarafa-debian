@@ -489,6 +489,15 @@ exit:
  * exporter will not fail since it could not send the entire stream.
  *
  * This function may also be called recursively for embedded messages.
+ *
+ * @param[in] folder Folder id of message to parse
+ * @param[in] doc Document id of message to parse
+ * @param[in] version Version of message to parse
+ * @param[in] lpSerializer Serializer to read data from
+ * @param[in] lpIndex Index database to write data to
+ * @param[in] bTop True if the message is a top-level message, false if it is an embedded message
+ * @param[out] lppStubTarget List of stub targets detected in this stream
+ * @return result
  */
 HRESULT ECIndexImporter::ParseStream(folderid_t folder, docid_t doc, unsigned int version, ECSerializer *lpSerializer, ECIndexDB *lpIndex, BOOL bTop, ArchiveItem **lppStubTarget)
 {
@@ -540,9 +549,14 @@ HRESULT ECIndexImporter::ParseStream(folderid_t folder, docid_t doc, unsigned in
         /* Put the data into the index */
         if (PROP_TYPE(lpProp->ulPropTag) == PT_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_UNICODE || PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE) {
         	std::wstring strContents = PropToString(lpProp);
+        	unsigned int ulPropId = PROP_ID(lpProp->ulPropTag);
+        	
+        	if(!bTop)
+        	    // Submessages will be indexed under PR_BODY instead of their respective fields.
+        	    ulPropId = PROP_ID(PR_BODY);
         	
         	if(!strContents.empty())
-        		hr = lpIndex->AddTerm(folder, doc, PROP_ID(lpProp->ulPropTag), version, strContents);
+        		hr = lpIndex->AddTerm(folder, doc, ulPropId, version, strContents);
         }
     }
 

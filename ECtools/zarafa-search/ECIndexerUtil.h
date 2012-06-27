@@ -116,17 +116,6 @@ std::wstring PropToString(LPSPropValue lpProp);
 HRESULT CreateSyncStream(IStream **lppStream, ULONG ulInitData = 0, LPBYTE lpInitData = NULL);
 
 /**
- * Open a property that was too large to be obtained with GetProps.
- *
- * @param[in]		lpMessage	The message to open the property of.
- * @param[in]		ulPropTag	The property to get.
- * @param[in]		lpBase		The base pointer used to allocate additional memory on.
- * @param[in,out]	lpProp		The property to update.
- * @return HRESULT
- */
-HRESULT OpenProperty(IMessage *lpMessage, ULONG ulPropTag, LPVOID lpBase, LPSPropValue lpProp);
-
-/**
  * Parse the exclude properties setting
  *
  * Must be space-separated hex property tags (may have leading zeros)
