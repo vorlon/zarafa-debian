@@ -145,6 +145,7 @@ ECServerIndexer::ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThrea
     pthread_mutex_init(&m_mutexExit, NULL);
     pthread_cond_init(&m_condExit, NULL);
     m_bExit = false;
+	m_bFast = false;
     m_bThreadStarted = false;
     
     pthread_mutex_init(&m_mutexTrack, NULL);
