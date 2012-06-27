@@ -459,7 +459,7 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 		{
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
 			dbl = strtod_l(strData.c_str(), NULL, loc);
-			er = lpSink->Write(&dbl, sizeof(flt), 1);
+			er = lpSink->Write(&dbl, sizeof(dbl), 1);
 		}
 		break;
 	case PT_MV_CURRENCY:
