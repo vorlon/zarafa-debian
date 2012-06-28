@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-12 00:02+0200\n"
-"PO-Revision-Date: 2012-05-15 09:53+0200\n"
+"POT-Creation-Date: 2012-06-29 00:02+0200\n"
+"PO-Revision-Date: 2012-06-28 08:51+0200\n"
 "Last-Translator: Hans-Peter <hps@zarafaserver.de>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
@@ -97,7 +97,7 @@ msgid "Unable to open MAPI session."
 msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden."
 
 #: provider/ECProps/Addin.cpp:1200 provider/ECProps/ECFavoritePropPage.cpp:110
-#: provider/client/ECMsgStore.cpp:2384
+#: provider/client/ECMsgStore.cpp:2381
 msgid "Shortcut"
 msgstr "Verknüpfung"
 
@@ -148,32 +148,32 @@ msgstr "Das Postfach konnte nicht geöffnet werden, Zugriff verweigert."
 msgid "Unable to open store."
 msgstr "Das Postfach konnte nicht geöffnet werden."
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:77
+#: provider/ECProps/OutOfOfficeDlg.cpp:78
 msgid "I am currently Out of the Office"
 msgstr "Ich bin derzeit nicht im Büro"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:79
+#: provider/ECProps/OutOfOfficeDlg.cpp:80
 msgid "Out of Office Assistant"
 msgstr "Abwesenheitsassistent"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:80
+#: provider/ECProps/OutOfOfficeDlg.cpp:81
 msgid "I am currently In the Office"
 msgstr "Ich bin derzeit im Büro"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:82
+#: provider/ECProps/OutOfOfficeDlg.cpp:83
 msgid "AutoReply only once to each sender with the following text:"
 msgstr ""
 "Nur einmal automatisch antworten an jeden Sender mit dem folgenden Text:"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:83 provider/client/ClientUtil.cpp:341
+#: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Betreff:"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:84
+#: provider/ECProps/OutOfOfficeDlg.cpp:85
 msgid "&Save"
 msgstr "&Speichern"
 
-#: provider/ECProps/OutOfOfficeDlg.cpp:85
+#: provider/ECProps/OutOfOfficeDlg.cpp:86
 #: provider/ECProps/SyncStatusDlg.cpp:67
 #: provider/ECProps/MapOtherUserDlg.cpp:249
 #: provider/ECProps/SyncConfigDlg.cpp:120
@@ -623,32 +623,32 @@ msgid "This delegate has the following permissions"
 msgstr "Der Stellvertreter hat folgende Berechtigungen"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
-#: provider/client/ECMsgStore.cpp:2461
+#: provider/client/ECMsgStore.cpp:2458
 msgid "Calendar"
 msgstr "Kalender"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:135
-#: provider/client/ECMsgStore.cpp:2507
+#: provider/client/ECMsgStore.cpp:2504
 msgid "Tasks"
 msgstr "Aufgaben"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:136
-#: provider/libserver/ECGenProps.cpp:952 provider/client/ECMsgStore.cpp:2401
+#: provider/libserver/ECGenProps.cpp:942 provider/client/ECMsgStore.cpp:2398
 msgid "Inbox"
 msgstr "Posteingang"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
-#: provider/client/ECMsgStore.cpp:2449
+#: provider/client/ECMsgStore.cpp:2446
 msgid "Contacts"
 msgstr "Kontakte"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
-#: provider/client/ECMsgStore.cpp:2495
+#: provider/client/ECMsgStore.cpp:2492
 msgid "Notes"
 msgstr "Notizen"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
-#: provider/client/ECMsgStore.cpp:2483
+#: provider/client/ECMsgStore.cpp:2480
 msgid "Journal"
 msgstr "Journal"
 
@@ -790,7 +790,7 @@ msgid "The folder and/or messages can not be deleted."
 msgstr ""
 "Der Ordner und/oder diese Nachrichten kann/können nicht gelöscht werden."
 
-#: provider/libserver/ECDBUpdateProgress.cpp:58
+#: provider/libserver/ECDBUpdateProgress.cpp:56
 msgid "Your offline cache database is being upgraded..."
 msgstr ""
 
@@ -798,13 +798,13 @@ msgstr ""
 msgid "Upgrade: "
 msgstr "Aktualisierung: "
 
-#: provider/libserver/ECGenProps.cpp:910
+#: provider/libserver/ECGenProps.cpp:900
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/client/ECMsgStorePublic.cpp:653
 msgid "Public Folders"
 msgstr "Alle Öffentlichen Ordner"
 
-#: provider/libserver/ECGenProps.cpp:954
+#: provider/libserver/ECGenProps.cpp:944
 msgid "Archive"
 msgstr "Archiv"
 
@@ -934,43 +934,43 @@ msgstr "Erster Abgleich der Ordner..."
 msgid "Sync folder items"
 msgstr "Ordnereinträge abgleichen"
 
-#: provider/client/ECMsgStore.cpp:2431
+#: provider/client/ECMsgStore.cpp:2428
 msgid "Outbox"
 msgstr "Postausgang"
 
-#: provider/client/ECMsgStore.cpp:2437
+#: provider/client/ECMsgStore.cpp:2434
 msgid "Deleted Items"
 msgstr "Gelöschte Objekte"
 
-#: provider/client/ECMsgStore.cpp:2443
+#: provider/client/ECMsgStore.cpp:2440
 msgid "Sent Items"
 msgstr "Gesendete Objekte"
 
-#: provider/client/ECMsgStore.cpp:2471
+#: provider/client/ECMsgStore.cpp:2468
 msgid "Drafts"
 msgstr "Entwürfe"
 
-#: provider/client/ECMsgStore.cpp:2519
+#: provider/client/ECMsgStore.cpp:2516
 msgid "Junk E-mail"
 msgstr "Junk E-Mail"
 
-#: provider/client/ECMsgStore.cpp:2541
+#: provider/client/ECMsgStore.cpp:2538
 msgid "RSS Feeds"
 msgstr "RSS Feeds"
 
-#: provider/client/ECMsgStore.cpp:2541
+#: provider/client/ECMsgStore.cpp:2538
 msgid "RSS Feed comment"
 msgstr "RSS Feed Kommentar"
 
-#: provider/client/ECMsgStore.cpp:2545
+#: provider/client/ECMsgStore.cpp:2542
 msgid "Conversation Action Settings"
 msgstr "Konversationseinstellungen"
 
-#: provider/client/ECMsgStore.cpp:2549
+#: provider/client/ECMsgStore.cpp:2546
 msgid "Quick Step Settings"
 msgstr "Quickstep Einstellungen"
 
-#: provider/client/ECMsgStore.cpp:2553
+#: provider/client/ECMsgStore.cpp:2550
 msgid "Suggested Contacts"
 msgstr "Vorgeschlagene Kontakte"
 
@@ -1388,7 +1388,7 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr "Möchten Sie fortfahren?"
 
-#: zarafa-libsync/ECSync.cpp:1947
+#: zarafa-libsync/ECSync.cpp:1948
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"
@@ -1397,7 +1397,7 @@ msgid ""
 msgstr ""
 "Ein Ordner konnte nicht synchronisiert werden. Wählen Sie Wiederholen um "
 "weiter zu machen oder Ignorieren um die Fehler zu unterdrücken.\r\n"
-"\\r\n"
+"\r\n"
 "Kontaktieren Sie den Systemadministrator wenn das Problem weiter besteht."
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
@@ -1603,24 +1603,24 @@ msgstr "Der angeforderte Zeitrahmen ist zu diesen Zeiten nicht verfügbar:"
 msgid "%x %X"
 msgstr "%x %X"
 
-#: php-ext/include/mapi/class.meetingrequest.php:1638
+#: php-ext/include/mapi/class.meetingrequest.php:1659
 msgid "Accepted"
 msgstr "Zugesagt"
 
-#: php-ext/include/mapi/class.meetingrequest.php:1642
+#: php-ext/include/mapi/class.meetingrequest.php:1663
 msgid "Declined"
 msgstr "Abgelehnt"
 
-#: php-ext/include/mapi/class.meetingrequest.php:1646
+#: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
 msgstr "Unter Vorbehalt"
 
-#: php-ext/include/mapi/class.meetingrequest.php:1652
+#: php-ext/include/mapi/class.meetingrequest.php:1673
 msgid "New Time Proposed"
 msgstr "Neue Zeit vorgeschlagen"
 
 # 75%
-#: php-ext/include/mapi/class.meetingrequest.php:2667
+#: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
 msgstr "Abgesagt"
 
