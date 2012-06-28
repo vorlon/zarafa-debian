@@ -309,7 +309,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = MAPIAllocateBuffer(sizeof(LPENTRYLIST), (void**)&lpDeleteItemEntryList);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpDeleteItemEntryList);
 	if (hr != hrSuccess)
 		goto exit;
 
