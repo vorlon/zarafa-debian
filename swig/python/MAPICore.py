@@ -1492,17 +1492,18 @@ class IECLicense(IUnknown):
 IECLicense_swigregister = _MAPICore.IECLicense_swigregister
 IECLicense_swigregister(IECLicense)
 
-class IECExportChanges(IUnknown):
+class IECExportChanges(IExchangeExportChanges):
     __swig_setmethods__ = {}
-    for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    for _s in [IExchangeExportChanges]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
     __setattr__ = lambda self, name, value: _swig_setattr(self, IECExportChanges, name, value)
     __swig_getmethods__ = {}
-    for _s in [IUnknown]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    for _s in [IExchangeExportChanges]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
     __getattr__ = lambda self, name: _swig_getattr(self, IECExportChanges, name)
     def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined - class is abstract")
     __repr__ = _swig_repr
     def GetChangeCount(self): return _MAPICore.IECExportChanges_GetChangeCount(self)
     def SetMessageInterface(self, *args): return _MAPICore.IECExportChanges_SetMessageInterface(self, *args)
+    def ConfigSelective(self, *args): return _MAPICore.IECExportChanges_ConfigSelective(self, *args)
     def SetLogger(self, *args): return _MAPICore.IECExportChanges_SetLogger(self, *args)
     __swig_destroy__ = _MAPICore.delete_IECExportChanges
     __del__ = lambda self : None;

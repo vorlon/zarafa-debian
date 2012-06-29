@@ -31419,6 +31419,148 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_IECExportChanges_ConfigSelective(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  IECExportChanges *arg1 = (IECExportChanges *) 0 ;
+  ULONG arg2 ;
+  LPENTRYLIST arg3 ;
+  LPENTRYLIST arg4 ;
+  ULONG arg5 ;
+  IUnknown *arg6 = (IUnknown *) 0 ;
+  LPSPropTagArray arg7 ;
+  LPSPropTagArray arg8 ;
+  ULONG arg9 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  unsigned int fl5 ;
+  int ecode5 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  unsigned int val9 ;
+  int ecode9 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  HRESULT result;
+  
+  arg3 = NULL;
+  arg4 = NULL;
+  ULONG ulFlags = 0;
+  arg7 = NULL;
+  arg8 = NULL;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:IECExportChanges_ConfigSelective",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IECExportChanges, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IECExportChanges_ConfigSelective" "', argument " "1"" of type '" "IECExportChanges *""'"); 
+  }
+  arg1 = reinterpret_cast< IECExportChanges * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IECExportChanges_ConfigSelective" "', argument " "2"" of type '" "ULONG""'");
+  } 
+  arg2 = static_cast< ULONG >(val2);
+  {
+    arg3 = List_to_LPENTRYLIST(obj2);
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    arg4 = List_to_LPENTRYLIST(obj3);
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    ecode5 = SWIG_AsVal_unsigned_SS_int (obj4, &fl5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "IECExportChanges_ConfigSelective" "', argument " "5"" of type '" "ULONG""'");
+    } 
+    arg5 = fl5;
+    ulFlags = fl5;
+  }
+  res6 = SWIG_ConvertPtr(obj5, &argp6,SWIGTYPE_p_IUnknown, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "IECExportChanges_ConfigSelective" "', argument " "6"" of type '" "IUnknown *""'"); 
+  }
+  arg6 = reinterpret_cast< IUnknown * >(argp6);
+  {
+    arg7 = List_to_LPSPropTagArray(obj6);
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    arg8 = List_to_LPSPropTagArray(obj7);
+    if(PyErr_Occurred()) goto fail;
+  }
+  ecode9 = SWIG_AsVal_unsigned_SS_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "IECExportChanges_ConfigSelective" "', argument " "9"" of type '" "ULONG""'");
+  } 
+  arg9 = static_cast< ULONG >(val9);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    {
+      try {
+        mark_call_from_python();
+        result = (arg1)->ConfigSelective(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+        unmark_call_from_python();
+      } catch (const Swig::DirectorException &) {
+        unmark_call_from_python();
+        SWIG_fail;
+      }
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  {
+    if(arg3)
+    MAPIFreeBuffer(arg3);
+  }
+  {
+    if(arg4)
+    MAPIFreeBuffer(arg4);
+  }
+  {
+    if(arg7)
+    MAPIFreeBuffer(arg7);
+  }
+  {
+    if(arg8)
+    MAPIFreeBuffer(arg8);
+  }
+  return resultobj;
+fail:
+  {
+    if(arg3)
+    MAPIFreeBuffer(arg3);
+  }
+  {
+    if(arg4)
+    MAPIFreeBuffer(arg4);
+  }
+  {
+    if(arg7)
+    MAPIFreeBuffer(arg7);
+  }
+  {
+    if(arg8)
+    MAPIFreeBuffer(arg8);
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_IECExportChanges_SetLogger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IECExportChanges *arg1 = (IECExportChanges *) 0 ;
@@ -34735,6 +34877,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IECLicense_swigregister", IECLicense_swigregister, METH_VARARGS, NULL},
 	 { (char *)"IECExportChanges_GetChangeCount", _wrap_IECExportChanges_GetChangeCount, METH_VARARGS, NULL},
 	 { (char *)"IECExportChanges_SetMessageInterface", _wrap_IECExportChanges_SetMessageInterface, METH_VARARGS, NULL},
+	 { (char *)"IECExportChanges_ConfigSelective", _wrap_IECExportChanges_ConfigSelective, METH_VARARGS, NULL},
 	 { (char *)"IECExportChanges_SetLogger", _wrap_IECExportChanges_SetLogger, METH_VARARGS, NULL},
 	 { (char *)"delete_IECExportChanges", _wrap_delete_IECExportChanges, METH_VARARGS, NULL},
 	 { (char *)"IECExportChanges_swigregister", IECExportChanges_swigregister, METH_VARARGS, NULL},
@@ -34818,6 +34961,9 @@ static void *_p_ECImportContentsChangesTo_p_IECImportContentsChanges(void *x, in
 }
 static void *_p_ExchangeExportChangesTo_p_IExchangeExportChanges(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IExchangeExportChanges *)  ((ExchangeExportChanges *) x));
+}
+static void *_p_IECExportChangesTo_p_IExchangeExportChanges(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((IExchangeExportChanges *)  ((IECExportChanges *) x));
 }
 static void *_p_ExchangeImportHierarchyChangesTo_p_IExchangeImportHierarchyChanges(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IExchangeImportHierarchyChanges *)  ((ExchangeImportHierarchyChanges *) x));
@@ -34940,7 +35086,7 @@ static void *_p_p_IMsgServiceAdminTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(n
     return (void *)((IUnknown **)  ((IMsgServiceAdmin **) x));
 }
 static void *_p_p_IECExportChangesTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
-    return (void *)((IUnknown **)  ((IECExportChanges **) x));
+    return (void *)((IUnknown **) (IExchangeExportChanges *) ((IECExportChanges **) x));
 }
 static void *_p_p_IECImportContentsChangesTo_p_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown **) (IExchangeImportContentsChanges *) ((IECImportContentsChanges **) x));
@@ -35072,7 +35218,7 @@ static void *_p_IMsgServiceAdminTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newme
     return (void *)((IUnknown *)  ((IMsgServiceAdmin *) x));
 }
 static void *_p_IECExportChangesTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
-    return (void *)((IUnknown *)  ((IECExportChanges *) x));
+    return (void *)((IUnknown *) (IExchangeExportChanges *) ((IECExportChanges *) x));
 }
 static void *_p_IECImportContentsChangesTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((IUnknown *) (IExchangeImportContentsChanges *) ((IECImportContentsChanges *) x));
@@ -35511,7 +35657,7 @@ static swig_cast_info _swigc__p_IECServiceAdmin[] = {  {&_swigt__p_IECServiceAdm
 static swig_cast_info _swigc__p_IECSingleInstance[] = {  {&_swigt__p_IECSingleInstance, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IECSpooler[] = {  {&_swigt__p_IECSpooler, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IECTestProtocol[] = {  {&_swigt__p_IECTestProtocol, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_IExchangeExportChanges[] = {  {&_swigt__p_IExchangeExportChanges, 0, 0, 0},  {&_swigt__p_ExchangeExportChanges, _p_ExchangeExportChangesTo_p_IExchangeExportChanges, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IExchangeExportChanges[] = {  {&_swigt__p_IExchangeExportChanges, 0, 0, 0},  {&_swigt__p_ExchangeExportChanges, _p_ExchangeExportChangesTo_p_IExchangeExportChanges, 0, 0},  {&_swigt__p_IECExportChanges, _p_IECExportChangesTo_p_IExchangeExportChanges, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IExchangeImportContentsChanges[] = {  {&_swigt__p_IExchangeImportContentsChanges, 0, 0, 0},  {&_swigt__p_ExchangeImportContentsChanges, _p_ExchangeImportContentsChangesTo_p_IExchangeImportContentsChanges, 0, 0},  {&_swigt__p_IECImportContentsChanges, _p_IECImportContentsChangesTo_p_IExchangeImportContentsChanges, 0, 0},  {&_swigt__p_ECImportContentsChanges, _p_ECImportContentsChangesTo_p_IExchangeImportContentsChanges, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IExchangeImportHierarchyChanges[] = {  {&_swigt__p_IExchangeImportHierarchyChanges, 0, 0, 0},  {&_swigt__p_ExchangeImportHierarchyChanges, _p_ExchangeImportHierarchyChangesTo_p_IExchangeImportHierarchyChanges, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IExchangeManageStore[] = {  {&_swigt__p_IExchangeManageStore, 0, 0, 0},{0, 0, 0, 0}};
