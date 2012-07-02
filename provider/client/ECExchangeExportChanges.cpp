@@ -346,8 +346,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 			sourcekey = m_sourcekey;
 			sourcekey[m_sourcekey.size()-1] &= ~0x80;
-			sourcekey.append('\x00');
-			sourcekey.append('\x00');
+			sourcekey.append(1, '\x00');
+			sourcekey.append(1, '\x00');
 		} else {
 			sourcekey = m_sourcekey;
 		}
