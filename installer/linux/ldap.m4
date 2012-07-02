@@ -138,7 +138,7 @@ ldap_password_attribute = ifelse(TYPE,`OPENLDAP',`userPassword',`unicodePwd')
 # Optional, default = bind
 # Choices: bind, password
 # Active directory: bind
-# LDAP: password
+# LDAP: bind
 ldap_authentication_method = bind
 
 # Optional, default = mail
@@ -162,7 +162,7 @@ ldap_isadmin_attribute = zarafaAdmin
 # Whether a user is a non-active user. This means that the user will
 # not count towards your user count, but the user will also not be
 # able to log in
-# Optional, default = empty
+# Optional, default = zarafaSharedStoreOnly
 # Active directory: zarafaSharedStoreOnly
 # LDAP: zarafaSharedStoreOnly
 ldap_nonactive_attribute = zarafaSharedStoreOnly
