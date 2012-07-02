@@ -2629,7 +2629,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			if(hr != hrSuccess)
 				break;
 
-			if(ulSize>0 && lpData){
+		if(ulSize>0 && lpData){
 				memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
 			}else
 				ulSize = 0;
@@ -2647,18 +2647,11 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
 
-		hr = lpMsgStore->HrGetRealProp(PR_MAPPING_SIGNATURE, ulFlags, lpBase, lpsPropValue);
-		if(hr != hrSuccess)
-			goto exit;
+		strServerGUID.assign((char*)&lpMessage->GetMsgStore()->GetStoreGuid(), sizeof(GUID));
 
-		strServerGUID.assign((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb);
-
-		hr = lpMessage->HrGetRealProp(PR_RECORD_KEY, ulFlags, lpBase, lpsPropValue);
-		if(hr != hrSuccess)
-			goto exit;
-
-		strID.assign((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb);
-
+		if(lpMessage->m_sMapiObject)
+			strID.assign((char *)&lpMessage->m_sMapiObject->ulObjId, sizeof(lpMessage->m_sMapiObject->ulObjId));
+							
 		// Resize so it trails 6 null bytes
 		strID.resize(6,0);
 
