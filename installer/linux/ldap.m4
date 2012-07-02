@@ -139,7 +139,7 @@ ldap_password_attribute = ifelse(TYPE,`OPENLDAP',`userPassword',`unicodePwd')
 # Choices: bind, password
 # Active directory: bind
 # LDAP: password
-ldap_authentication_method = ifelse(TYPE,`OPENLDAP',`password',`bind')
+ldap_authentication_method = bind
 
 # Optional, default = mail
 # Active directory: mail
@@ -165,7 +165,7 @@ ldap_isadmin_attribute = zarafaAdmin
 # Optional, default = empty
 # Active directory: zarafaSharedStoreOnly
 # LDAP: zarafaSharedStoreOnly
-ldap_nonactive_attribute = 
+ldap_nonactive_attribute = zarafaSharedStoreOnly
 
 # A nonactive store, or resource, can be specified to be a user, room or equipment.
 # Set it to 'room' or 'equipment' to make such types. If set to empty,
