@@ -298,24 +298,6 @@ exit:
 	return hr;
 }
 
-HRESULT FlushStream(ECSerializer *lpSerializer)
-{
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-	char buf[4096];
-	
-	while (er == erSuccess)
-		er = lpSerializer->Read(buf, 1, sizeof(buf));
-	
-	if (er == ZARAFA_E_CALL_FAILED)
-		er = erSuccess;
-	
-	if (er != erSuccess)
-		hr = ZarafaErrorToMAPIError(er);
-		
-	return hr;
-}
-
 HRESULT StreamToProperty(ECSerializer *lpSerializer, LPSPropValue *lppProp, LPMAPINAMEID *lppNameID)
 {
 	HRESULT hr = hrSuccess;

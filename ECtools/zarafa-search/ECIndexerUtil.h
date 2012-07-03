@@ -69,15 +69,6 @@
 HRESULT StreamToNextObject(ECSerializer *lpSerializer, ULONG ulObjType, ULONG ulProps = 0);
 
 /**
- * Flush a stream by reading until no data is available.
- * 
- * @param[in]	lpSerializer
- * 					Serializer containing the stream to be flushed.
- * @return HRESULT
- */
-HRESULT FlushStream(ECSerializer *lpSerializer);
-
-/**
  * Read IStream and initialize SPropValue
  *
  * @param[in]	lpSerializer
