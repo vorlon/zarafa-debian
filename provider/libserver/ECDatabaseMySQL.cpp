@@ -317,6 +317,7 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger, ECConfig *lpConfig)
 	m_bAutoLock			= true;
 	m_lpLogger			= lpLogger;
 	m_lpConfig			= lpConfig;
+	m_bSuppressLockErrorLogging = false;
 
 	// Create a mutex handle for mysql
 	pthread_mutexattr_t mattr;
@@ -650,7 +651,8 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 	}
 
 	if(err) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %lu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), (long unsigned int)strQuery.size(), strQuery.c_str()); 
+		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %lu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), (long unsigned int)strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
 		ASSERT(false);
 	}
@@ -698,7 +700,8 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
     
 	if( lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: %s, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.c_str()); 
+		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] result failed: %s, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.c_str()); 
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
@@ -1194,6 +1197,12 @@ DB_ERROR ECDatabaseMySQL::GetLastError()
 	}
 	
 	return dberr;
+}
+
+bool ECDatabaseMySQL::SuppressLockErrorLogging(bool bSuppress)
+{
+	std::swap(bSuppress, m_bSuppressLockErrorLogging);
+	return bSuppress;
 }
 
 ECRESULT ECDatabaseMySQL::Begin() {

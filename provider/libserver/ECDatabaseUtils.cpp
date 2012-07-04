@@ -876,3 +876,14 @@ ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettin
 
 	return er;
 }
+
+SuppressLockErrorLogging::SuppressLockErrorLogging(ECDatabase *lpDatabase)
+: m_lpDatabase(lpDatabase)
+, m_bResetValue(lpDatabase ? lpDatabase->SuppressLockErrorLogging(true) : false)
+{ }
+
+SuppressLockErrorLogging::~SuppressLockErrorLogging()
+{
+	if (m_lpDatabase)
+		m_lpDatabase->SuppressLockErrorLogging(m_bResetValue);
+}
