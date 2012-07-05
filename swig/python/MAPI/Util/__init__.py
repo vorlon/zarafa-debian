@@ -1,6 +1,7 @@
 # -*- indent-tabs-mode: nil -*-
 
 import random
+import sys
 
 # MAPI stuff
 from MAPI.Defs import *
@@ -15,41 +16,42 @@ def OpenECSession(user, password, path, **keywords):
     profname = '__pr__%d' % random.randint(0,100000)
     profadmin = MAPIAdminProfiles(0)
     profadmin.CreateProfile(profname, None, 0, 0)
-    admin = profadmin.AdminServices(profname, None, 0, 0)
-    if keywords.has_key('providers'):
-        for provider in keywords['providers']:
-            admin.CreateMsgService(provider, provider, 0, 0)
-    else:
-        admin.CreateMsgService("ZARAFA6", "Zarafa", 0, 0)
-    table = admin.GetMsgServiceTable(0)
-    rows = table.QueryRows(1,0)
-    prop = PpropFindProp(rows[0], PR_SERVICE_UID)
-    uid = prop.Value
-    profprops = [ SPropValue(PR_EC_PATH, path) ]
-    if user.__class__.__name__ == 'unicode':
-        profprops += [ SPropValue(PR_EC_USERNAME_W, user) ]
-    else:
-        profprops += [ SPropValue(PR_EC_USERNAME_A, user) ]
-    if password.__class__.__name__ == 'unicode':
-        profprops += [ SPropValue(PR_EC_USERPASSWORD_W, password) ]
-    else:
-        profprops += [ SPropValue(PR_EC_USERPASSWORD_A, password) ]
+    try:
+        admin = profadmin.AdminServices(profname, None, 0, 0)
+        if keywords.has_key('providers'):
+            for provider in keywords['providers']:
+                admin.CreateMsgService(provider, provider, 0, 0)
+        else:
+            admin.CreateMsgService("ZARAFA6", "Zarafa", 0, 0)
+        table = admin.GetMsgServiceTable(0)
+        rows = table.QueryRows(1,0)
+        prop = PpropFindProp(rows[0], PR_SERVICE_UID)
+        uid = prop.Value
+        profprops = [ SPropValue(PR_EC_PATH, path) ]
+        if user.__class__.__name__ == 'unicode':
+            profprops += [ SPropValue(PR_EC_USERNAME_W, user) ]
+        else:
+            profprops += [ SPropValue(PR_EC_USERNAME_A, user) ]
+        if password.__class__.__name__ == 'unicode':
+            profprops += [ SPropValue(PR_EC_USERPASSWORD_W, password) ]
+        else:
+            profprops += [ SPropValue(PR_EC_USERPASSWORD_A, password) ]
 
-    if keywords.has_key('sslkey_file') and keywords['sslkey_file']:
-        profprops += [ SPropValue(PR_EC_SSLKEY_FILE, keywords['sslkey_file']) ]
-    if keywords.has_key('sslkey_pass') and keywords['sslkey_pass']:
-        profprops += [ SPropValue(PR_EC_SSLKEY_PASS, keywords['sslkey_pass']) ]
+        if keywords.has_key('sslkey_file') and keywords['sslkey_file']:
+            profprops += [ SPropValue(PR_EC_SSLKEY_FILE, keywords['sslkey_file']) ]
+        if keywords.has_key('sslkey_pass') and keywords['sslkey_pass']:
+            profprops += [ SPropValue(PR_EC_SSLKEY_PASS, keywords['sslkey_pass']) ]
 
-    flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
-    if keywords.has_key('flags'):
-        flags = keywords['flags']
-    profprops += [ SPropValue(PR_EC_FLAGS, flags) ]
+        flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
+        if keywords.has_key('flags'):
+            flags = keywords['flags']
+        profprops += [ SPropValue(PR_EC_FLAGS, flags) ]
     
-    admin.ConfigureMsgService(uid, 0, 0, profprops)
+        admin.ConfigureMsgService(uid, 0, 0, profprops)
         
-    session = MAPILogonEx(0,profname,None,0)
-    
-    profadmin.DeleteProfile(profname, 0)
+        session = MAPILogonEx(0,profname,None,0)
+    finally:
+        profadmin.DeleteProfile(profname, 0)
     return session
     
 def GetDefaultStore(session):
