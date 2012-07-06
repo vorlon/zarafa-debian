@@ -199,6 +199,8 @@ void *ECWorkerThread::Work(void *lpParam)
 			// Record start of handling of this request
 			double dblStart = GetTimeOfDay();
 
+			((SOAPINFO *)lpWorkItem->soap->user)->fdone = NULL;
+
             // Do processing of work item
             soap_begin(lpWorkItem->soap);
             if(soap_begin_recv(lpWorkItem->soap)) {
@@ -242,6 +244,9 @@ void *ECWorkerThread::Work(void *lpParam)
             }
 
 done:	
+			if(((SOAPINFO *)lpWorkItem->soap->user)->fdone)
+				((SOAPINFO *)lpWorkItem->soap->user)->fdone(((SOAPINFO *)lpWorkItem->soap->user)->fdoneparam);
+
 			// Record statistics for number of requests and processing time
 			g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
 		    g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, (long long)((GetTimeOfDay() - dblStart) * 1000));
