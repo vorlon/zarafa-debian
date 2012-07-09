@@ -83,6 +83,9 @@ private:
 	pthread_mutex_t &m_mutex;
 };
 
+#define WITH_LOCK(_lock)	\
+	for (scoped_lock __lock(_lock), *ptr = NULL; ptr == NULL; ptr = &__lock)
+
 
 template<int(*fnlock)(pthread_rwlock_t*)>
 class scoped_rwlock {
