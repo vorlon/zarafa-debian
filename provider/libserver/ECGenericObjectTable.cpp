@@ -1097,7 +1097,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	{
 		sQueryRows.clear();
 
-		for(i=0; i < 20 && iterRows != lpRows->end(); i++) {
+		// if we use a restriction, memory usage goes up, so only fetch 20 rows at a time
+		for(i=0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->end(); i++) {
 			sQueryRows.push_back(*iterRows);
 			iterRows++;
 		}
