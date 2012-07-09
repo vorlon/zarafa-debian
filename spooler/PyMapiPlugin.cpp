@@ -421,8 +421,6 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 
 	Py_Initialize();
 
-	//lpMainmod = PyImport_AddModule("__main__");
-	
 	ptrModule = PyImport_ImportModule("MAPI");
 	PY_HANDLE_ERROR(m_lpLogger, ptrModule);
 
