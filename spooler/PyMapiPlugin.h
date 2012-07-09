@@ -77,13 +77,14 @@ typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObj
 #define MP_EXIT				4	// Exit the all the hook calls and go futher with the mail process.
 #define MP_RETRY_LATER		5	// Stop Process and retry later
 
+
 class PyMapiPlugin
 {
 public:
 	PyMapiPlugin(void);
 	virtual ~PyMapiPlugin(void);
 
-	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger, const char* lpPluginManagerClassName);
+	HRESULT Init(ECLogger *lpLogger, PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
 	HRESULT MessageProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IMAPIFolder *lpInbox, IMessage *lpMessage, ULONG *lpulResult);
 	HRESULT RulesProcessing(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore, IExchangeModifyTable *lpEMTRules, ULONG *lpulResult);
 	HRESULT RequestCallExecution(const char *lpFunctionName, IMAPISession *lpMapiSession, IAddrBook *lpAdrBook, IMsgStore *lpMsgStore,  IMAPIFolder *lpFolder, IMessage *lpMessage, ULONG *lpulDoCallexe, ULONG *lpulResult);
@@ -97,12 +98,38 @@ public:
 	swig_type_info *type_p_IExchangeModifyTable;
 
 private:
-	PyObjectAPtr m_ptrModMapiPlugin;
-	PyObjectAPtr m_ptrPyLogger;
 	PyObjectAPtr m_ptrMapiPluginManager;
 	ECLogger *m_lpLogger;
-	bool m_bEnablePlugin;
+
+private:
+	// Inhibit (accidental) copying
+	PyMapiPlugin(const PyMapiPlugin &);
+	PyMapiPlugin& operator=(const PyMapiPlugin &);
 };
+
+
+
+class PyMapiPluginFactory
+{
+public:
+	PyMapiPluginFactory();
+	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger);
+	~PyMapiPluginFactory();
+
+	HRESULT CreatePlugin(const char* lpPluginManagerClassName, PyMapiPlugin **lppPlugin);
+
+private:
+	PyObjectAPtr m_ptrModMapiPlugin;
+	bool m_bEnablePlugin;
+	std::string m_strPluginPath;
+	ECLogger *m_lpLogger;
+
+private:
+	// Inhibit (accidental) copying
+	PyMapiPluginFactory(const PyMapiPluginFactory &);
+	PyMapiPluginFactory& operator=(const PyMapiPluginFactory &);
+};
+
 
 
 inline void my_delete(PyMapiPlugin *obj) { delete obj; }

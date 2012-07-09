@@ -270,19 +270,18 @@ public:
 	bool bHasIMAP;
 };
 
-HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **lppPyMapiPlugin)
+HRESULT GetPluginObject(ECLogger *lpLogger, PyMapiPluginFactory *lpPyMapiPluginFactory, PyMapiPlugin **lppPyMapiPlugin)
 {
 	HRESULT hr = hrSuccess;
 	PyMapiPlugin *lpPyMapiPlugin = NULL;
 
-	if (!lpConfig || !lpLogger || !lppPyMapiPlugin) {
+	if (!lpLogger || !lpPyMapiPluginFactory || !lppPyMapiPlugin) {
 		ASSERT(FALSE);
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	lpPyMapiPlugin = new PyMapiPlugin();
-	if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "DAgentPluginManager") != hrSuccess) {
+	if (lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &lpPyMapiPlugin) != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize the dagent plugin manager, please check your configuration.");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -2789,6 +2788,7 @@ void *HandlerLMTP(void *lpArg) {
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
+	PyMapiPluginFactory pyMapiPluginFactory;
 
 	LMTP lmtp(lpArgs->lpChannel, (char *)lpArgs->strPath.c_str(), g_lpLogger, g_lpConfig);
 
@@ -2803,6 +2803,12 @@ void *HandlerLMTP(void *lpArg) {
 	if (lpEnvGDB && parseBool(lpEnvGDB)) {
 		Sleep(10000); //wait 10 seconds so you can attach gdb
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker for LMTP request");
+	}
+	
+	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
+		goto exit;
 	}
 
 	hr = HrGetSession(lpArgs, ZARAFA_SYSTEM_USER_W, &lpSession);
@@ -2946,7 +2952,7 @@ void *HandlerLMTP(void *lpArg) {
 				if (hr == hrSuccess) {
 
 					PyMapiPluginAPtr ptrPyMapiPlugin;
-					hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
+					hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
 					if (hr != hrSuccess) {
 						lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 						fclose(tmp);
@@ -3608,12 +3614,17 @@ int main(int argc, char *argv[]) {
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
 
-		PyMapiPluginAPtr ptrPyMapiPlugin;
-		{
-			hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
-			if (hr != hrSuccess) 
-				goto exit; // Error is logged in GetPluginObject
+		PyMapiPluginFactory pyMapiPluginFactory;
+		hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
+			goto exit;
 		}
+		
+		PyMapiPluginAPtr ptrPyMapiPlugin;
+		hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
+		if (hr != hrSuccess) 
+			goto exit; // Error is logged in GetPluginObject
 
 		hr = deliver_recipient(ptrPyMapiPlugin, argv[my_optind], strip_email, fp, &sDeliveryArgs);
 		fclose(fp);

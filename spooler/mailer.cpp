@@ -87,19 +87,18 @@ using namespace std;
 extern ECConfig *g_lpConfig;
 extern ECLogger *g_lpLogger;
 
-HRESULT GetPluginObject(ECConfig *lpConfig, ECLogger *lpLogger, PyMapiPlugin **lppPyMapiPlugin)
+HRESULT GetPluginObject(ECLogger *lpLogger, PyMapiPluginFactory *lpPyMapiPluginFactory, PyMapiPlugin **lppPyMapiPlugin)
 {
     HRESULT hr = hrSuccess;
     PyMapiPlugin *lpPyMapiPlugin = NULL;
 
-    if (!lpConfig || !lpLogger || !lppPyMapiPlugin) {
+    if (!lpLogger || !lpPyMapiPluginFactory || !lppPyMapiPlugin) {
         ASSERT(FALSE);
         hr = MAPI_E_INVALID_PARAMETER;
         goto exit;
     }
 
-    lpPyMapiPlugin = new PyMapiPlugin();
-    if(lpPyMapiPlugin->Init(lpConfig, lpLogger, "SpoolerPluginManager") != hrSuccess) {
+	if (lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &lpPyMapiPlugin) != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system, please check your configuration.");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -2092,6 +2091,7 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	LPSPropValue	lpAutoForward	= NULL;
 	LPSPropValue	lpMsgClass		= NULL;
 
+	PyMapiPluginFactory pyMapiPluginFactory;
 	PyMapiPluginAPtr ptrPyMapiPlugin;
 	ULONG ulResult = 0;
 
@@ -2109,7 +2109,13 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 	sopt.enable_dsn = parseBool(g_lpConfig->GetSetting("enable_dsn"));
 
 	// Init plugin system
-	hr = GetPluginObject(g_lpConfig, g_lpLogger, &ptrPyMapiPlugin);
+	hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
+		goto exit;
+	}
+	
+	hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
 	if (hr != hrSuccess)
 		goto exit; // Error logged in GetPluginObject
 
