@@ -235,5 +235,15 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<EntryId>& setOb
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsigned int ulFlags);				// single entryid, folder or message
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags);			// single sourcekey, folder or message
 
+typedef struct {
+    DynamicPropValArray *lpPropVals;
+    DynamicPropTagArray *lpPropTags;
+} CHILDPROPS;
+
+
+ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, std::map<unsigned int, CHILDPROPS> *lpChildProps);
+ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps);
+
+
 #endif//ZARAFACMD_UTIL_H
 

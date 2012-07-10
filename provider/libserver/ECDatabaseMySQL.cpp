@@ -221,7 +221,7 @@ const char *szGetProps =
 "  	 call GetBestBody(hid, bestbody);\n"
 "  END IF;\n"
   
-"  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, names.nameid, names.namestring, names.guid\n"
+"  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, 0, names.nameid, names.namestring, names.guid\n"
 "    FROM properties LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=hid AND (tag < 0x8500 OR names.id IS NOT NULL) AND (tag NOT IN (0x1009, 0x1013) OR mode = 0 OR (mode = 1 AND tag = bestbody) )\n"
 "  UNION\n"
 "  SELECT count(*), tag, mvproperties.type, \n"
@@ -232,9 +232,27 @@ const char *szGetProps =
 "          group_concat(length(mvproperties.val_longint),':', mvproperties.val_longint ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), \n"
 "          group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR ''), \n"
-"          names.nameid, names.namestring, names.guid \n"
+"          0, names.nameid, names.namestring, names.guid \n"
 "    FROM mvproperties LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=hid AND (tag < 0x8500 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
 "END;\n";
+
+const char *szPrepareGetProps =
+"CREATE PROCEDURE PrepareGetProps(IN hid integer)\n"
+"BEGIN\n"
+"  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, hierarchy.id, names.nameid, names.namestring, names.guid\n"
+"    FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchy.parent=hid AND (tag < 0x8500 OR names.id IS NOT NULL);\n"
+"  SELECT count(*), tag, mvproperties.type, \n"
+"          group_concat(length(mvproperties.val_ulong),':', mvproperties.val_ulong ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_string),':', mvproperties.val_string ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_binary),':', mvproperties.val_binary ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_double),':', mvproperties.val_double ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_longint),':', mvproperties.val_longint ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_hi),':', mvproperties.val_hi ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          group_concat(length(mvproperties.val_lo),':', mvproperties.val_lo ORDER BY mvproperties.orderid SEPARATOR ''), \n"
+"          hierarchy.id, names.nameid, names.namestring, names.guid \n"
+"    FROM mvproperties JOIN hierarchy ON mvproperties.hierarchyid=hierarchy.id LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchy.parent=hid AND (tag < 0x8500 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
+"END;\n";
+
 
 const char *szGetBestBody = 
 "CREATE PROCEDURE GetBestBody(hid integer, OUT bestbody integer)\n"
@@ -257,14 +275,16 @@ const char *szStreamObj =
 "DECLARE subsubid INT;\n"
 "DECLARE subtype INT;\n"
 "DECLARE cur_hierarchy CURSOR FOR\n"
-"	SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid; \n"
+"	SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid AND type=7; \n"
 "DECLARE CONTINUE HANDLER FOR NOT FOUND\n"
 "    SET no_more_rows = TRUE;\n"
 
 "  call GetProps(rootid, mode);\n"
 
-"  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
+"  call PrepareGetProps(rootid);\n"
  
+"  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
+
 "  OPEN cur_hierarchy;\n"
 
 "  the_loop: LOOP\n"
@@ -274,8 +294,6 @@ const char *szStreamObj =
 "      CLOSE cur_hierarchy;\n"
 "      LEAVE the_loop;\n"
 "    END IF;\n"
-
-"    call GetProps(subid, 0);\n"
 
 "    IF subtype = 7 THEN\n"
 "      BEGIN\n"
@@ -303,6 +321,7 @@ const char *szStreamObj =
 
 STOREDPROCS stored_procedures[] = {
 	{ "GetProps", szGetProps },
+	{ "PrepareGetProps", szPrepareGetProps },
 	{ "GetBestBody", szGetBestBody },
 	{ "StreamObj", szStreamObj }
 };

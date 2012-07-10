@@ -848,15 +848,6 @@ ECRESULT ECGetContentChangesHelper::ProcessRow(DB_ROW lpDBRow, DB_LENGTHS lpDBLe
 	if (er != erSuccess)
 		goto exit;
 		
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s %s message, sourcekey=%s", 
-		(ulChangeType == 0 ? "Ignoring" : ((ulChangeType & ICS_ACTION_MASK) == ICS_NEW ? "Creating" : 
-										  ((ulChangeType & ICS_ACTION_MASK) == ICS_CHANGE ? "Changing" :
-										  ((ulChangeType & ICS_ACTION_MASK) == ICS_FLAG ? "Changing" :
-										  ((ulChangeType & ICS_ACTION_MASK) == ICS_SOFT_DELETE ? "Soft deleting" :
-										  ((ulChangeType & ICS_ACTION_MASK) == ICS_HARD_DELETE ? "Hard deleting" : "Wondering about")))))),
-		(fMatch ? "matching" : "non-matching"),
-		bin2hex(lpDBLen[icsSourceKey], (unsigned char*)lpDBRow[icsSourceKey]).c_str());
-		
 	// If ulChangeType equals 0 we can skip this message
 	if (ulChangeType == 0)
 		goto exit;

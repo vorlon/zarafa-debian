@@ -56,6 +56,7 @@
 #include <Zarafa.h>
 
 #include "SOAPUtils.h"
+#include "SOAPAlloc.h"
 #include "stringutil.h"
 #include "ustringutil.h"
 
@@ -1530,8 +1531,8 @@ ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
 	int i = 0;
 
 	if(lpPropValArray) {
-		for(i=0;i<lpPropValArray->__size;i++) {
-			FreePropVal(&(lpPropValArray->__ptr[i]),false);
+		for(i=0; i<lpPropValArray->__size; i++) {
+			FreePropVal(&(lpPropValArray->__ptr[i]), false);
 		}
 
 		delete [] lpPropValArray->__ptr;
@@ -2282,12 +2283,17 @@ DynamicPropValArray::DynamicPropValArray(struct soap *soap, unsigned int ulHint)
     m_ulPropCount = 0;
     m_soap = soap;
 
-    m_lpPropVals = (struct propVal *)soap_malloc(m_soap, sizeof(propVal) * m_ulCapacity);
+    m_lpPropVals = s_alloc<struct propVal>(m_soap, m_ulCapacity);
 }
 
 DynamicPropValArray::~DynamicPropValArray()
 {
-    // We don't free anything because soap_malloc will cleanup allocations after the SOAP call
+	if(m_lpPropVals && !m_soap) {
+		for(unsigned int i=0; i < m_ulPropCount; i++) {
+			FreePropVal(&m_lpPropVals[i], false);
+		}
+		delete [] m_lpPropVals;
+	}
 }
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
@@ -2319,6 +2325,9 @@ ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArra
     lpPropValArray->__size = m_ulPropCount;
     lpPropValArray->__ptr = m_lpPropVals; // Transfer ownership to the caller
     
+    m_lpPropVals = NULL;					// We don't own these anymore
+    m_ulPropCount = 0;
+    
     return er;
 }
 
@@ -2332,7 +2341,7 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
         goto exit;
     }
     
-    lpNew = (struct propVal *)soap_malloc(m_soap, sizeof(propVal) * ulSize);
+    lpNew = s_alloc<struct propVal>(m_soap, ulSize);
     if(lpNew == NULL) {
         er = ZARAFA_E_INVALID_PARAMETER;
         goto exit;
@@ -2344,7 +2353,13 @@ ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
             goto exit;
     }
     
-    soap_dealloc(m_soap, m_lpPropVals);
+    if(!m_soap) {
+		for(unsigned int i=0; i < m_ulPropCount; i++) {
+			FreePropVal(&m_lpPropVals[i], false);
+		}
+		delete [] m_lpPropVals;
+	}
+	
     m_lpPropVals = lpNew;
     m_ulCapacity = ulSize;
     

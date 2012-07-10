@@ -113,6 +113,10 @@ const static struct StreamCaps {
 	{ true },		// version 1
 };
 
+#define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
+#define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
+#define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
+
 #define STREAM_VERSION			1	// encode strings in UTF-8.
 #define STREAM_CAPS_CURRENT		(&g_StreamCaps[STREAM_VERSION])
 
@@ -551,25 +555,25 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 	// If property is named property in the dynamic range we need to add some extra info
 	if (PROP_ID(ulPropTag) >= 0x8500) {
 		// Send out the GUID.
-		er = lpSink->Write(lpRow[FIELD_NR_MAX + 2], 1, lpLen[FIELD_NR_MAX + 2]);
+		er = lpSink->Write(lpRow[FIELD_NR_NAMEGUID], 1, lpLen[FIELD_NR_NAMEGUID]);
 
-		if (er == erSuccess && lpRow[FIELD_NR_MAX + 0] != NULL) {
+		if (er == erSuccess && lpRow[FIELD_NR_NAMEID] != NULL) {
 			ulKind = MNID_ID;
-			ulNameId = atoui((char*)lpRow[FIELD_NR_MAX + 0]);
+			ulNameId = atoui((char*)lpRow[FIELD_NR_NAMEID]);
 
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&ulNameId, sizeof(ulNameId), 1);
 
-		} else if (er == erSuccess && lpRow[FIELD_NR_MAX + 1] != NULL) {
+		} else if (er == erSuccess && lpRow[FIELD_NR_NAMESTR] != NULL) {
 			ulKind = MNID_STRING;
-			ulLen = lpLen[FIELD_NR_MAX + 1];
+			ulLen = lpLen[FIELD_NR_NAMESTR];
 
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
-				er = lpSink->Write(lpRow[FIELD_NR_MAX + 1], 1, ulLen);
+				er = lpSink->Write(lpRow[FIELD_NR_NAMESTR], 1, ulLen);
 
 		} else if (er == erSuccess)
 			er = ZARAFA_E_INVALID_TYPE;
@@ -586,6 +590,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
 	unsigned int ulLen;
 	unsigned char b;
+	unsigned int ulPropTag = sPropVal.ulPropTag;
 	std::string	strData;
 	convert_context converter;
 
@@ -593,8 +598,14 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		er = ZARAFA_E_INVALID_TYPE;
 		goto exit;
 	}
+	
+	// We always stream PT_STRING8
+	if(PROP_TYPE(ulPropTag) == PT_UNICODE)
+		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
+	else if(PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
+		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
 
-	er = lpSink->Write(&sPropVal.ulPropTag, sizeof(sPropVal.ulPropTag), 1);
+	er = lpSink->Write((unsigned char *)&ulPropTag, sizeof(ulPropTag), 1);
 	if (er != erSuccess)
 		goto exit;
 
@@ -717,6 +728,27 @@ exit:
 	return er;
 }
 
+ECRESULT SerializeProps(struct propValArray *lpPropVals, LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink)
+{
+	ECRESULT		er = erSuccess;
+	unsigned int	ulCount = 0;
+
+	ulCount = lpPropVals->__size;
+	
+    er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+	if (er != erSuccess)
+    	goto exit;
+    	
+	for(unsigned int i=0; i < ulCount; i++) {
+		er = SerializePropVal(lpStreamCaps, lpPropVals->__ptr[i], lpSink);
+        if (er != erSuccess)
+	        goto exit;
+	}
+	
+exit:
+	return er;                
+}
+
 ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
@@ -774,7 +806,7 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	if (er != erSuccess)
 		goto exit;
 
-	// Regular properties
+	// Properties
 	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL) {
@@ -804,28 +836,6 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	er = lpSink->Write(lpStream->GetBuffer(), 1, lpStream->GetSize());
 	if (er != erSuccess)
 		goto exit;
-
-	if (ulObjType == MAPI_ATTACH) {
-		
-		if (lpAttachmentStorage->ExistAttachment(ulObjId, PROP_ID(PR_ATTACH_DATA_BIN))) {
-			er = lpAttachmentStorage->GetSize(ulObjId, PROP_ID(PR_ATTACH_DATA_BIN), (ULONG*)&ulLen);
-			if (er != erSuccess)
-				goto exit;
-
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er != erSuccess)
-				goto exit;
-
-			er = lpAttachmentStorage->LoadAttachment(ulObjId, PROP_ID(PR_ATTACH_DATA_BIN), (int*)&ulLen, lpSink);
-			if (er != erSuccess)
-				goto exit;
-		} else {
-			ulLen = 0;
-			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-			if (er != erSuccess)
-				goto exit;
-		}
-	}
 
 exit:
 	if (lpStream)
@@ -857,10 +867,13 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 	unsigned int	ulSubObjId = 0;
 	unsigned int	ulSubObjType = 0;
 	unsigned int	ulCount = 0;
+	std::map<unsigned int, CHILDPROPS> mapChildProps;
+	std::map<unsigned int, CHILDPROPS>::iterator iterChild;
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT		lpDBResult = NULL;
+	DB_RESULT		lpDBResultAttachment = NULL;
 	std::string		strQuery;
 
 	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
@@ -884,41 +897,113 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 	er = SerializeProps(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulObjId, ulObjType, ulStoreId, lpsGuid, ulFlags, lpSink, bTop);
 	if (er != erSuccess)
 		goto exit;
+		
+	er = PrepareReadProps(NULL, lpStreamDatabase, false, true, 0, ulObjId, 0, &mapChildProps);
+	if (er != erSuccess)
+		goto exit;
 
-	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		// Serialize sub objects
-		er = lpStreamDatabase->GetNextResult(&lpDBResult);
+	// Serialize sub objects
+	er = lpStreamDatabase->GetNextResult(&lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	ulCount = lpStreamDatabase->GetNumRows(lpDBResult);
+	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+	if (er != erSuccess)
+		goto exit;
+
+	for (unsigned i = 0; i < ulCount; ++i) {
+		lpDBRow = lpStreamDatabase->FetchRow(lpDBResult);
+		lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
+
+		if (lpDBRow == NULL || lpDBLen == NULL) {
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+
+		ulSubObjType = atoi(lpDBRow[1]);
+		er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
 		if (er != erSuccess)
 			goto exit;
 
-		ulCount = lpStreamDatabase->GetNumRows(lpDBResult);
-		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+		ulSubObjId = atoi(lpDBRow[0]);
+		er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
 		if (er != erSuccess)
 			goto exit;
-
-		for (unsigned i = 0; i < ulCount; ++i) {
-			lpDBRow = lpStreamDatabase->FetchRow(lpDBResult);
-			lpDBLen = lpStreamDatabase->FetchRowLengths(lpDBResult);
-
-			if (lpDBRow == NULL || lpDBLen == NULL) {
-				er = ZARAFA_E_DATABASE_ERROR;
+			
+		// Output properties for this object
+		iterChild = mapChildProps.find(ulSubObjId);
+		
+		if(iterChild != mapChildProps.end()) {
+			struct propValArray props;
+			
+			iterChild->second.lpPropVals->GetPropValArray(&props);
+			
+			er = SerializeProps(&props, lpStreamCaps, lpSink);
+			if(er != erSuccess)
 				goto exit;
+				
+			FreePropValArray(&props, false);
+		}
+		
+		if(ulSubObjType == MAPI_ATTACH) {
+			unsigned int ulLen = 0;
+			
+			if (lpAttachmentStorage->ExistAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN))) {
+				er = lpAttachmentStorage->GetSize(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN), (ULONG*)&ulLen);
+				if (er != erSuccess)
+					goto exit;
+
+				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+				if (er != erSuccess)
+					goto exit;
+
+				er = lpAttachmentStorage->LoadAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN), (int*)&ulLen, lpSink);
+				if (er != erSuccess)
+					goto exit;
+			} else {
+				ulLen = 0;
+				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+				if (er != erSuccess)
+					goto exit;
 			}
 
-			ulSubObjType = atoi(lpDBRow[1]);
-			er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
+			er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
 			if (er != erSuccess)
 				goto exit;
-
-			ulSubObjId = atoi(lpDBRow[0]);
-			er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
+				
+			ulLen = lpStreamDatabase->GetNumRows(lpDBResultAttachment) >= 1 ? 1 : 0; // Force value to 0 or 1, we cannot output more than one submessage.
+			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				goto exit;
-
-			er = SerializeObject(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
-			if (er != erSuccess)
-				goto exit;
+												
+			lpDBRow = lpStreamDatabase->FetchRow(lpDBResultAttachment);
+			if(lpDBRow != NULL) {
+				if(lpDBRow[0] == NULL) {
+					er = ZARAFA_E_DATABASE_ERROR;
+					goto exit;
+				}
+				
+	            ulSubObjType = atoi(lpDBRow[1]);
+                er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
+                if (er != erSuccess)
+    	            goto exit;
+                                                    
+	            ulSubObjId = atoi(lpDBRow[0]);
+                er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
+                if (er != erSuccess)
+    	            goto exit;
+				
+				// Recurse into subobject
+				er = SerializeObject(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
+				if (er != erSuccess)
+					goto exit;
+			}
+			
+			lpStreamDatabase->FreeResult(lpDBResultAttachment);
+			lpDBResultAttachment = NULL;
 		}
+
 	}
 
 	if(bTop)
@@ -931,6 +1016,11 @@ exit:
 
 	if (lpDBResult)
 		lpStreamDatabase->FreeResult(lpDBResult);
+		
+	if (lpDBResultAttachment)
+	 	lpStreamDatabase->FreeResult(lpDBResultAttachment);
+	 	
+	FreeChildProps(&mapChildProps);
 		
 	return er;
 }

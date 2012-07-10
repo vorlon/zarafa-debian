@@ -1442,166 +1442,6 @@ exit:
 }
 SOAP_ENTRY_END()
 
-typedef struct {
-    DynamicPropValArray *lpPropVals;
-    DynamicPropTagArray *lpPropTags;
-} CHILDPROPS;
-
-// Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
-// retrieved with far less SQL queries, since this function bulk-receives the data. You may pass EITHER ulObjId OR ulParentId to retrieve an object itself, or
-// children of an object.
-ECRESULT PrepareReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObjId, unsigned int ulParentId, std::map<unsigned int, CHILDPROPS> *lpChildProps)
-{
-    ECRESULT er = erSuccess;
-	std::map<unsigned int, CHILDPROPS>::iterator iterChild;
-	unsigned int ulSize;
-	struct propVal sPropVal;
-    unsigned int ulChildId;
-	ECStringCompat stringCompat(lpecSession->GetCapabilities());
-	USE_DATABASE();
-
-	if(ulObjId == 0 && ulParentId == 0) {
-	    er = ZARAFA_E_INVALID_PARAMETER;
-	    goto exit;
-    }
-
-	if(ulObjId)
-        strQuery = "SELECT " + (std::string)PROPCOLORDER + ",hierarchyid FROM properties FORCE INDEX (PRIMARY) WHERE hierarchyid="+stringify(ulObjId);
-    else
-        strQuery = "SELECT " + (std::string)PROPCOLORDER + ",hierarchy.id FROM properties FORCE INDEX (PRIMARY) JOIN hierarchy FORCE INDEX (parenttypeflags) ON hierarchy.id=properties.hierarchyid WHERE parent="+stringify(ulParentId);
-
-    er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-    if(er != erSuccess)
-        goto exit;
-
-    while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-        unsigned int ulPropTag;
-        
-        lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
-        if(lpDBLen == NULL) {
-            er = ZARAFA_E_DATABASE_ERROR; // this should never happen
-            goto exit;
-        }
-
-        ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
-
-		// server strings are always unicode, for unicode clients.
-		if (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) {
-			if (PROP_TYPE(ulPropTag) == PT_STRING8)
-				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_UNICODE);
-			else if (PROP_TYPE(ulPropTag) == PT_MV_STRING8)
-				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
-		}
-
-        ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
-
-        iterChild = lpChildProps->find(ulChildId);
-        
-        if(iterChild == lpChildProps->end()) {
-            CHILDPROPS sChild;
-            
-            sChild.lpPropTags = new DynamicPropTagArray(soap);
-            sChild.lpPropVals = new DynamicPropValArray(soap, 20);
-            
-            // First property for this child
-            iterChild = lpChildProps->insert(std::pair<unsigned int, CHILDPROPS>(ulChildId, sChild)).first;
-        }
-        
-        er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
-        if(er != erSuccess)
-            goto exit;
-
-        er = GetPropSize(lpDBRow, lpDBLen, &ulSize);
-
-        if(er == erSuccess && ulSize < MAX_PROP_SIZE) {
-            // the size of this property is small enough to send in the initial loading sequence
-            
-            er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
-            if(er != erSuccess)
-                continue;
-
-			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
-			if (er != erSuccess)
-				continue;
-                
-            iterChild->second.lpPropVals->AddPropVal(sPropVal);
-        }
-    }
-
-    FREE_DBRESULT();
-
-    if(ulObjId)
-        strQuery = "SELECT " + (std::string)MVPROPCOLORDER + ", hierarchyid FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+" GROUP BY hierarchyid, tag";
-    else
-        strQuery = "SELECT " + (std::string)MVPROPCOLORDER + ", hierarchyid FROM mvproperties JOIN hierarchy ON hierarchy.id=mvproperties.hierarchyid WHERE hierarchy.parent="+stringify(ulParentId)+" GROUP BY hierarchyid, tag";
-
-    er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-    if(er != erSuccess)
-        goto exit;
-
-    // Do MV props
-    while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-        lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
-        if(lpDBLen == NULL) {
-            er = ZARAFA_E_DATABASE_ERROR; // this should never happen
-            goto exit;
-        }
-
-        ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
-
-        iterChild = lpChildProps->find(ulChildId);
-        
-        if(iterChild == lpChildProps->end()) {
-            CHILDPROPS sChild;
-            
-            sChild.lpPropTags = new DynamicPropTagArray(soap);
-            sChild.lpPropVals = new DynamicPropValArray(soap, 20);
-            
-            // First property for this child
-            iterChild = lpChildProps->insert(std::pair<unsigned int, CHILDPROPS>(ulChildId, sChild)).first;
-        }
-        
-        er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
-        if(er != erSuccess)
-            continue;
-
-		er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
-		if (er != erSuccess)
-			continue;
-            
-        er = iterChild->second.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-        if(er != erSuccess)
-            continue;
-
-        iterChild->second.lpPropVals->AddPropVal(sPropVal);
-    }
-
-exit:
-	FREE_DBRESULT();
-__soapentry_exit:
-	return er;
-}
-
-ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps)
-{
-    std::map<unsigned int, CHILDPROPS>::iterator iterChild;
-    
-    for(iterChild = lpChildProps->begin(); iterChild != lpChildProps->end(); iterChild++)
-    {
-        // We need to delete the DynamicProp* objects themselves. This leaves the data that was
-        // retrieved from those objects (via GetPropTagArray()) untouched though, since that is allocated
-        // via soap_malloc and will be auto-freed when the SOAP call is over.
-        delete iterChild->second.lpPropVals;
-        delete iterChild->second.lpPropTags;
-    }
-    
-    lpChildProps->clear();
-    
-    return erSuccess;
-}
-
 ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObjId, unsigned ulObjType, unsigned int ulObjTypeParent, CHILDPROPS sChildProps, struct propTagArray *lpsPropTag, struct propValArray *lpsPropVal)
 {
 	ECRESULT er = erSuccess;
@@ -3317,7 +3157,7 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 	
 	if(lpChildProps == NULL) {
 	    // We were not provided with a property list for this object, get our own now.
-	    er = PrepareReadProps(soap, lpecSession, ulObjId, 0, &mapChildProps);
+	    er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps);
 	    if(er != erSuccess)
 	        goto exit;
 	        
@@ -3338,7 +3178,7 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
         // Pre-load *all* properties of *all* subobjects for fast accessibility
-        er = PrepareReadProps(soap, lpecSession, 0, ulObjId, &mapChildProps);
+        er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps);
         if (er != erSuccess)
             goto exit;
 

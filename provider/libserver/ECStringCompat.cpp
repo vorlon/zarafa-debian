@@ -124,9 +124,9 @@ char *ECStringCompat::UTF8_to_WTF1252(soap *lpsoap, const char *szUTF8, convert_
 	return s_strcpy(lpsoap, strWTF1252.c_str());
 }
 
-ECStringCompat::ECStringCompat(unsigned int ulClientCaps)
-: m_ulClientCaps(ulClientCaps)
-, m_lpConverter(ulClientCaps & ZARAFA_CAP_UNICODE ? NULL : new convert_context)
+ECStringCompat::ECStringCompat(bool fUnicode) :
+  m_lpConverter(fUnicode ? NULL : new convert_context)
+, m_fUnicode(fUnicode)
 { }
 
 ECStringCompat::~ECStringCompat()

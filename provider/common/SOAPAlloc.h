@@ -87,5 +87,24 @@ inline char *s_memcpy(struct soap *soap, const char *str, unsigned int len) {
 	return s;
 }
 
+template<typename Type>
+inline void s_free(struct soap *soap, Type *p) {
+	if(soap == NULL) {
+		delete p;
+	} else {
+		soap_dealloc(soap, (void *)p);
+	}
+}
+
+template<typename Type>
+inline void s_free_array(struct soap *soap, Type *p) {
+	if(soap == NULL) {
+		delete [] p;
+	} else {
+		soap_dealloc(soap, (void *)p);
+	}
+}
+
+
 
 #endif

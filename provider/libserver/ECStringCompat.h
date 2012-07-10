@@ -75,7 +75,7 @@ public:
 	static char *WTF1252_to_UTF8(struct soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
 	static char *UTF8_to_WTF1252(struct soap *lpsoap, const char *szUTF8, convert_context *lpConverter = NULL);
 
-	ECStringCompat(unsigned int ulClientCaps = 0);
+	ECStringCompat(bool fUnicode = false);
 	~ECStringCompat();
 
 	/**
@@ -131,8 +131,8 @@ public:
 	ULONG string_prop_type() const;
 
 private:
-	unsigned int	m_ulClientCaps;
 	convert_context *m_lpConverter;
+	bool m_fUnicode;
 };
 
 
@@ -152,22 +152,22 @@ ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &strin
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const
 {
-	return (m_ulClientCaps & ZARAFA_CAP_UNICODE) ? (char*)szIn : WTF1252_to_UTF8(lpsoap, szIn, m_lpConverter);
+	return m_fUnicode ? (char*)szIn : WTF1252_to_UTF8(lpsoap, szIn, m_lpConverter);
 }
 
 inline char *ECStringCompat::from_UTF8(soap *lpsoap, const char *szIn) const
 {
-	return (m_ulClientCaps & ZARAFA_CAP_UNICODE) ? (char*)szIn : UTF8_to_WTF1252(lpsoap, szIn, m_lpConverter);
+	return m_fUnicode ? (char*)szIn : UTF8_to_WTF1252(lpsoap, szIn, m_lpConverter);
 }
 
 inline char *ECStringCompat::from_UTF8_cpy(soap *lpsoap, const char *szIn) const
 {
-	return (m_ulClientCaps & ZARAFA_CAP_UNICODE) ? s_strcpy(lpsoap, szIn) : UTF8_to_WTF1252(lpsoap, szIn);
+	return m_fUnicode ? s_strcpy(lpsoap, szIn) : UTF8_to_WTF1252(lpsoap, szIn);
 }
 
 inline ULONG ECStringCompat::string_prop_type() const
 {
-	return (m_ulClientCaps & ZARAFA_CAP_UNICODE) ? PT_UNICODE : PT_STRING8;
+	return m_fUnicode ? PT_UNICODE : PT_STRING8;
 }
 
 #endif // ndef ECSTRINGCOMPAT_H
