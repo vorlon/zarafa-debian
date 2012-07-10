@@ -467,7 +467,7 @@ HRESULT ECServerIndexer::BuildIndexes(IMAPISession *lpSession)
                 goto exit;
             }
                 
-            if(lpRows[i].lpProps[2].ulPropTag == PR_EC_STORETYPE && lpRows[i].lpProps[2].Value.ul != ECSTORE_TYPE_PRIVATE)
+            if(lpRows[i].lpProps[2].ulPropTag == PR_EC_STORETYPE && lpRows[i].lpProps[2].Value.ul != ECSTORE_TYPE_PRIVATE && lpRows[i].lpProps[2].Value.ul != ECSTORE_TYPE_PUBLIC)
                 continue;
             
             m_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting indexing of store %ls", WSTR(lpRows[i].lpProps[0]));
