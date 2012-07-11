@@ -482,16 +482,18 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 	// special case: stores and root containers are always allowed to be opened
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, &ulObjType);
-	if (er != erSuccess)
-		goto exit;
-	if (ulObjType == MAPI_STORE)
-		goto exit;
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
-	if (er != erSuccess)
-		goto exit;
-	if (ulObjType == MAPI_FOLDER && ulParentType == MAPI_STORE)
-		goto exit;
+	if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
+		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulParentId, NULL, NULL, &ulObjType);
+		if (er != erSuccess)
+			goto exit;
+		if (ulObjType == MAPI_STORE)
+			goto exit;
+		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
+		if (er != erSuccess)
+			goto exit;
+		if (ulObjType == MAPI_FOLDER && ulParentType == MAPI_STORE)
+			goto exit;
+	}
 
 	// Is the current user the owner of the store
 	if(GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
