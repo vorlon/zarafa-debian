@@ -1,5 +1,5 @@
 from MAPICore import *
 
-MAPIInitialize(None)
+MAPIInitialize_Multithreaded()
 
 unicode = False
