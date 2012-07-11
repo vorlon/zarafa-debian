@@ -67,7 +67,6 @@ public:
 };
 
 #if SWIGPYTHON
-#ifndef WIN32
 
 %{
 #include "swig_iunknown.h"
@@ -106,7 +105,6 @@ public:
 	}
 };
 
-#endif // ndef WIN32
 #endif // SWIGPYTHON
 
 

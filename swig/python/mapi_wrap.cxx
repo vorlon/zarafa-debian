@@ -3433,8 +3433,11 @@ namespace swig {
 #include "IECTestProtocol.h"
 #include "IECMultiStoreTable.h"
 #include "IECExportChanges.h"
-#include "IECLicense.h"
+#include "IECLicense.h" 
 
+// DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....
+#pragma include_alias( "mapi_wrap.h", "mapi_wrap_fixed.h" )
+  
 /*
  * perl: CORE/thread.h can define PTHREAD_CREATE_JOINABLE to a value. This clashes with
  * the windows pthread implementation, where it's used in an enum.
@@ -3445,6 +3448,13 @@ namespace swig {
 
 #include "MAPINotifSink.h"
 #include "director_util.h"
+
+HRESULT MAPIInitialize_Multithreaded() {
+	MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
+	
+	return MAPIInitialize(&init);
+}
+
 
 
 #include "conversion.h"
@@ -6649,6 +6659,30 @@ HRESULT SwigDirector_Stream::Write(void const *pv, ULONG cb, ULONG *OUTPUT) {
 #ifdef __cplusplus
 extern "C" {
 #endif
+SWIGINTERN PyObject *_wrap_MAPIInitialize_Multithreaded(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HRESULT result;
+  
+  if (!PyArg_ParseTuple(args,(char *)":MAPIInitialize_Multithreaded")) SWIG_fail;
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = MAPIInitialize_Multithreaded();
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  {
+    resultobj = Py_None;
+    Py_INCREF(Py_None);
+    if(FAILED(result)) {
+      DoException(result);
+      SWIG_fail;
+    }
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_IUnknown_QueryInterface(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IUnknown *arg1 = (IUnknown *) 0 ;
@@ -6656,10 +6690,10 @@ SWIGINTERN PyObject *_wrap_IUnknown_QueryInterface(PyObject *SWIGUNUSEDPARM(self
   void **arg3 = (void **) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
-  char *buf2 ;
-  size_t size2 ;
-  int alloc2 ;
+  int res2 = 0 ;
+  char *buf2 = NULL ;
+  size_t size2 = 0 ;
+  int alloc2 = 0 ;
   LPUNKNOWN temp3 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
@@ -7824,9 +7858,9 @@ SWIGINTERN PyObject *_wrap_IMAPIProp_OpenProperty(PyObject *SWIGUNUSEDPARM(self)
   unsigned int val2 ;
   int ecode2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int val4 ;
   int ecode4 = 0 ;
   unsigned int fl5 ;
@@ -8083,9 +8117,9 @@ SWIGINTERN PyObject *_wrap_IMAPIProp_CopyTo(PyObject *SWIGUNUSEDPARM(self), PyOb
   void *argp6 = 0 ;
   int res6 = 0 ;
   int res7 ;
-  char *buf7 ;
+  char *buf7 = NULL ;
   size_t size7 ;
-  int alloc7 ;
+  int alloc7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
   unsigned int fl9 ;
@@ -8231,9 +8265,9 @@ SWIGINTERN PyObject *_wrap_IMAPIProp_CopyProps(PyObject *SWIGUNUSEDPARM(self), P
   void *argp4 = 0 ;
   int res4 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
   unsigned int fl7 ;
@@ -8355,9 +8389,9 @@ SWIGINTERN PyObject *_wrap_IMAPIProp_GetNamesFromIDs(PyObject *SWIGUNUSEDPARM(se
   int res1 = 0 ;
   LPSPropTagArray tmp2 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   ULONG c5 ;
@@ -8718,9 +8752,9 @@ SWIGINTERN PyObject *_wrap_IMAPIContainer_OpenEntry(PyObject *SWIGUNUSEDPARM(sel
   size_t size2 ;
   int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   unsigned int fl5 ;
   int ecode5 ;
   ULONG ulType6 ;
@@ -9552,9 +9586,9 @@ SWIGINTERN PyObject *_wrap_IMsgStore_OpenEntry(PyObject *SWIGUNUSEDPARM(self), P
   size_t size2 ;
   int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   unsigned int fl5 ;
   int ecode5 ;
   ULONG ulType6 ;
@@ -10611,9 +10645,9 @@ SWIGINTERN PyObject *_wrap_IMAPIFolder_CreateMessage(PyObject *SWIGUNUSEDPARM(se
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   IMessage *temp4 ;
@@ -10692,9 +10726,9 @@ SWIGINTERN PyObject *_wrap_IMAPIFolder_CopyMessages(PyObject *SWIGUNUSEDPARM(sel
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
   unsigned int val5 ;
@@ -10896,9 +10930,9 @@ SWIGINTERN PyObject *_wrap_IMAPIFolder_CreateFolder(PyObject *SWIGUNUSEDPARM(sel
   unsigned int val2 ;
   int ecode2 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   unsigned int fl6 ;
   int ecode6 ;
   IMAPIFolder *temp7 ;
@@ -11075,9 +11109,9 @@ SWIGINTERN PyObject *_wrap_IMAPIFolder_CopyFolder(PyObject *SWIGUNUSEDPARM(self)
   size_t size2 ;
   int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   void *argp5 = 0 ;
   int res5 = 0 ;
   unsigned int val7 ;
@@ -11857,9 +11891,9 @@ SWIGINTERN PyObject *_wrap_IMessage_OpenAttach(PyObject *SWIGUNUSEDPARM(self), P
   unsigned int val2 ;
   int ecode2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   IAttach *temp5 ;
@@ -11942,9 +11976,9 @@ SWIGINTERN PyObject *_wrap_IMessage_CreateAttach(PyObject *SWIGUNUSEDPARM(self),
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   ULONG temp4 ;
@@ -15994,9 +16028,9 @@ SWIGINTERN PyObject *_wrap_IProviderAdmin_DeleteProvider(PyObject *SWIGUNUSEDPAR
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -16056,13 +16090,13 @@ SWIGINTERN PyObject *_wrap_IProviderAdmin_OpenProfileSection(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   IProfSect *temp5 ;
@@ -16793,9 +16827,9 @@ SWIGINTERN PyObject *_wrap_IMAPISession_OpenMsgStore(PyObject *SWIGUNUSEDPARM(se
   size_t size3 ;
   int alloc3 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   unsigned int fl6 ;
   int ecode6 ;
   IMsgStore *temp7 ;
@@ -16900,9 +16934,9 @@ SWIGINTERN PyObject *_wrap_IMAPISession_OpenAddressBook(PyObject *SWIGUNUSEDPARM
   unsigned int val2 ;
   int ecode2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   IAddrBook *temp5 ;
@@ -16985,13 +17019,13 @@ SWIGINTERN PyObject *_wrap_IMAPISession_OpenProfileSection(PyObject *SWIGUNUSEDP
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   IProfSect *temp5 ;
@@ -17147,9 +17181,9 @@ SWIGINTERN PyObject *_wrap_IMAPISession_OpenEntry(PyObject *SWIGUNUSEDPARM(self)
   size_t size2 ;
   int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   unsigned int fl5 ;
   int ecode5 ;
   ULONG ulType6 ;
@@ -18145,9 +18179,9 @@ SWIGINTERN PyObject *_wrap_IMAPISession_ShowForm(PyObject *SWIGUNUSEDPARM(self),
   void *argp4 ;
   int res4 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   unsigned int val6 ;
   int ecode6 = 0 ;
   void *argp7 ;
@@ -18316,9 +18350,9 @@ SWIGINTERN PyObject *_wrap_IMAPISession_PrepareForm(PyObject *SWIGUNUSEDPARM(sel
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   void *argp3 ;
   int res3 = 0 ;
   ULONG temp4 ;
@@ -18450,9 +18484,9 @@ SWIGINTERN PyObject *_wrap_IAddrBook_OpenEntry(PyObject *SWIGUNUSEDPARM(self), P
   size_t size2 ;
   int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   unsigned int fl5 ;
   int ecode5 ;
   ULONG ulType6 ;
@@ -21882,9 +21916,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_DeleteMsgService(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -21947,17 +21981,17 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_CopyMsgService(PyObject *SWIGUNUSEDP
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   int res4 ;
-  char *buf4 ;
+  char *buf4 = NULL ;
   size_t size4 ;
-  int alloc4 ;
+  int alloc4 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   void *argp6 ;
   int res6 = 0 ;
   unsigned int val7 ;
@@ -22119,9 +22153,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_RenameMsgService(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   std::string strInput4 ;
@@ -22237,9 +22271,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_ConfigureMsgService(PyObject *SWIGUN
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int val3 ;
   int ecode3 = 0 ;
   unsigned int fl4 ;
@@ -22340,13 +22374,13 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_OpenProfileSection(PyObject *SWIGUNU
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   IProfSect *temp5 ;
@@ -22436,9 +22470,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_MsgServiceTransportOrder(PyObject *S
   unsigned int val2 ;
   int ecode2 = 0 ;
   int res3 ;
-  char *buf3 ;
+  char *buf3 = NULL ;
   size_t size3 ;
-  int alloc3 ;
+  int alloc3 = 0 ;
   unsigned int fl4 ;
   int ecode4 ;
   PyObject * obj0 = 0 ;
@@ -22515,9 +22549,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_AdminProviders(PyObject *SWIGUNUSEDP
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   IProviderAdmin *temp4 ;
@@ -22592,9 +22626,9 @@ SWIGINTERN PyObject *_wrap_IMsgServiceAdmin_SetPrimaryIdentity(PyObject *SWIGUNU
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   unsigned int fl3 ;
   int ecode3 ;
   PyObject * obj0 = 0 ;
@@ -25990,9 +26024,9 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_ResolveStore(PyObject *SWIGUNUSEDPARM
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   ULONG temp3 ;
   int res3 = SWIG_TMPOBJ ;
   ULONG cbEntryID4 = 0 ;
@@ -26083,9 +26117,9 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_HookStore(PyObject *SWIGUNUSEDPARM(se
   size_t size3 ;
   int alloc3 = 0 ;
   int res5 ;
-  char *buf5 ;
+  char *buf5 = NULL ;
   size_t size5 ;
-  int alloc5 ;
+  int alloc5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -26243,9 +26277,9 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_RemoveStore(PyObject *SWIGUNUSEDPARM(
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
-  char *buf2 ;
+  char *buf2 = NULL ;
   size_t size2 ;
-  int alloc2 ;
+  int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -32470,10 +32504,10 @@ SWIGINTERN PyObject *_wrap_IECImportContentsChanges_SetMessageInterface(PyObject
   IID *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
-  char *buf2 ;
-  size_t size2 ;
-  int alloc2 ;
+  int res2 = 0 ;
+  char *buf2 = NULL ;
+  size_t size2 = 0 ;
+  int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   HRESULT result;
@@ -34523,6 +34557,7 @@ SWIGINTERN PyObject *ECSyncLog_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
 
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
+	 { (char *)"MAPIInitialize_Multithreaded", _wrap_MAPIInitialize_Multithreaded, METH_VARARGS, NULL},
 	 { (char *)"IUnknown_QueryInterface", _wrap_IUnknown_QueryInterface, METH_VARARGS, NULL},
 	 { (char *)"delete_IUnknown", _wrap_delete_IUnknown, METH_VARARGS, NULL},
 	 { (char *)"IUnknown_swigregister", IUnknown_swigregister, METH_VARARGS, NULL},

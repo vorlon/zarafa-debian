@@ -73,6 +73,10 @@ except:
     weakref_proxy = lambda x: x
 
 
+
+def MAPIInitialize_Multithreaded():
+  return _MAPICore.MAPIInitialize_Multithreaded()
+MAPIInitialize_Multithreaded = _MAPICore.MAPIInitialize_Multithreaded
 class IUnknown(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, IUnknown, name, value)

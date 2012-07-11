@@ -161,9 +161,9 @@
 //////////////////////////
 
 // Input
-%typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf, size_t size, int alloc),
-				LPCIID (int res, char *buf, size_t size, int alloc),
-				LPGUID (int res, char *buf, size_t size, int alloc)
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf = NULL, size_t size, int alloc = 0),
+				LPCIID (int res, char *buf = NULL, size_t size, int alloc = 0),
+				LPGUID (int res, char *buf = NULL, size_t size, int alloc = 0)
 {
   alloc = SWIG_OLDOBJ;
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -172,7 +172,7 @@
   }
   $1 = %reinterpret_cast(buf, $1_ltype);
 }
-%typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res, char *buf, size_t size, int alloc)
+%typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res = 0, char *buf = NULL, size_t size = 0, int alloc = 0)
 {
   alloc = SWIG_OLDOBJ;
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);

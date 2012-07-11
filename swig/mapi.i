@@ -12,8 +12,11 @@
 #include "IECTestProtocol.h"
 #include "IECMultiStoreTable.h"
 #include "IECExportChanges.h"
-#include "IECLicense.h"
+#include "IECLicense.h" 
 
+// DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....
+#pragma include_alias( "mapi_wrap.h", "mapi_wrap_fixed.h" )
+  
 /*
  * perl: CORE/thread.h can define PTHREAD_CREATE_JOINABLE to a value. This clashes with
  * the windows pthread implementation, where it's used in an enum.
@@ -24,9 +27,19 @@
 
 #include "MAPINotifSink.h"
 #include "director_util.h"
+
+HRESULT MAPIInitialize_Multithreaded() {
+	MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
+	
+	return MAPIInitialize(&init);
+}
+
 %}
 
 %include "typemap.i"
+
+HRESULT MAPIInitialize_Multithreaded();
+
 #if SWIGPYTHON
 %exception {
     try {
@@ -268,7 +281,6 @@ LPCIID IIDFromType(const char *type)
 %}
 
 #if SWIGPYTHON
-#ifndef WIN32
 %include "ECLogger.i"
 
 // Directors for IStream
@@ -290,7 +302,8 @@ public:
 	}
 };
 
+#ifndef WIN32
 %include "zarafasync.i"
-
 #endif
+
 #endif
