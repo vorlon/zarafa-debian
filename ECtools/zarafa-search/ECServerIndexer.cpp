@@ -467,12 +467,9 @@ HRESULT ECServerIndexer::BuildIndexes(IMAPISession *lpSession)
                 goto exit;
             }
                 
-            if(lpRows[i].lpProps[2].ulPropTag == PR_EC_STORETYPE && lpRows[i].lpProps[2].Value.ul != ECSTORE_TYPE_PRIVATE && lpRows[i].lpProps[2].Value.ul != ECSTORE_TYPE_PUBLIC)
-                continue;
-            
             m_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting indexing of store %ls", WSTR(lpRows[i].lpProps[0]));
             
-            hr = IndexStore(lpSession, &lpRows[i].lpProps[1].Value.bin);
+            hr = IndexStore(lpSession, &lpRows[i].lpProps[1].Value.bin, lpRows[i].lpProps[2].Value.ul);
             if(hr != hrSuccess)
                 goto exit;
         }
@@ -488,7 +485,7 @@ exit:
  * We index all the data in the store from IPM_SUBTREE and lower. This excludes associated messages and
  * folders under 'root'. Each folder is processed separately.
  */
-HRESULT ECServerIndexer::IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId)
+HRESULT ECServerIndexer::IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId, unsigned int ulStoreType)
 {
     HRESULT hr = hrSuccess;
     MsgStorePtr lpStore;
@@ -533,7 +530,10 @@ HRESULT ECServerIndexer::IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId
         goto exit;
     }
     
-    hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &lpPropSubtree);
+    if(ulStoreType == ECSTORE_TYPE_PUBLIC)
+        hr = HrGetOneProp(lpStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &lpPropSubtree);
+    else
+        hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &lpPropSubtree);
     if(hr != hrSuccess) {
         // If you have no IPM subtree, then we're done
         hr = hrSuccess;

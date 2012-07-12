@@ -89,7 +89,7 @@ private:
     static void *ThreadEntry(void *lpParam);
     
     HRESULT BuildIndexes(IMAPISession *lpSession);
-    HRESULT IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId);
+    HRESULT IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId, unsigned int ulStoreType);
     HRESULT IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndexDB);
     HRESULT IndexStubTargets(IMAPISession *lpSession, const std::list<ECIndexImporter::ArchiveItem> *lpStubTargets, ECIndexImporter *lpImporter);
     HRESULT IndexStubTargetsServer(IMAPISession *lpSession, const std::string& strServerName, const std::list<std::string> &lstStubTargets, ECIndexImporter *lpImporter);
