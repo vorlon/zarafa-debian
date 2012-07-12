@@ -236,6 +236,13 @@ int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger) {
  * closes some given file descriptors. The child process does not
  * return from this function.
  *
+ * @note the child process calls exit(0) at exit, not _exit(0), so
+ * atexit() and on_exit() callbacks from the parent are called and
+ * tmpfile() created files are removed from either parent and child.
+ * This is wanted behaviour for us since we don't use any exit
+ * callbacks and tmpfiles, but we do want coverage output from gcov,
+ * which seems to use an exit callback to write the usage info.
+ *
  * @param[in]	func	Pointer to a function with one void* parameter and returning a void* that should run in the child process.
  * @param[in]	param	Parameter to pass to the func function.
  * @param[in]	nCloseFDs	Number of file descriptors in pCloseFDs.
@@ -261,7 +268,8 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
 			if (pCloseFDs[n] >= 0)
 				close(pCloseFDs[n]);
 		func(param);
-		_exit(0);
+		// call normal cleanup exit
+		exit(0);
 	}
 
 	return pid;
