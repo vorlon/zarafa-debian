@@ -10941,6 +10941,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
 	lpMTOMSessionInfo->lpAttachmentStorage->AddRef();
 	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
+	lpMTOMSessionInfo->lpecSession->Lock();
 	lpMTOMSessionInfo->lpDatabase = lpDatabase;
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 
