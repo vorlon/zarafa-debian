@@ -2328,7 +2328,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         if(er == erSuccess && (ulMaxSize == 0 || ulSize < ulMaxSize)) {
             // the size of this property is small enough to send in the initial loading sequence
             
-            er = CopyDatabasePropValToSOAPPropVal(NULL, lpDBRow, lpDBLen, &sPropVal);
+            er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
             if(er != erSuccess)
                 continue;
 
@@ -2337,8 +2337,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				continue;
                 
             iterChild->second.lpPropVals->AddPropVal(sPropVal);
-            
-            FreePropVal(&sPropVal, false);
         }
     }
 
@@ -2396,8 +2394,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             continue;
 
         iterChild->second.lpPropVals->AddPropVal(sPropVal);
-
-        FreePropVal(&sPropVal, false);
     }
 
 exit:
