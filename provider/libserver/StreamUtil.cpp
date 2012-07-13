@@ -693,7 +693,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvbin.__size; x++) {
 			er = lpSink->Write(&sPropVal.Value.mvbin.__ptr[x].__size, sizeof(sPropVal.Value.mvbin.__ptr[x].__size), 1);
 			if (er == erSuccess)
-				er = lpSink->Write(&sPropVal.Value.mvbin.__ptr[x].__ptr, 1, sPropVal.Value.mvbin.__ptr[x].__size);
+				er = lpSink->Write(sPropVal.Value.mvbin.__ptr[x].__ptr, 1, sPropVal.Value.mvbin.__ptr[x].__size);
 		}
 		break;
 	case PT_MV_STRING8:
