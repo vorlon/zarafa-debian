@@ -380,10 +380,14 @@
 		{
 			// Check if user is existing delegate.
 			if(isset($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS])) {
-				return array_search($entryid, $this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS]);
-			} else {
-				return false;
+				$eidstr = bin2hex($entryid);
+				for($i=0; $i<count($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS]); $i++) {
+					if (EntryId::compareABEntryIds($eidstr, bin2hex($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS][$i]))) {
+						return $i;
+					}
+				}
 			}
+			return false;
 		}
 		
 		/**

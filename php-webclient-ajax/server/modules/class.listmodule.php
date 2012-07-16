@@ -1108,6 +1108,22 @@
 			$GLOBALS["bus"]->addData($this->responseData);
 		}
 
+		/* modified vesion of deletesmodule class */
+		function getDelegateIndex($entryid, $delegates)
+		{
+			// Check if user is existing delegate.
+			if(isset($delegates) && is_array($delegates)) {
+				$eidstr = bin2hex($entryid);
+				$obj = new EntryId();
+				for($i=0; $i<count($delegates); $i++) {
+					if ($obj->compareABEntryIds($eidstr, bin2hex($delegates[$i]))) {
+						return $i;
+					}
+				}
+			}
+			return false;
+		}
+
 		/**
 		 * Placeholder function
 		 * This function will be overridden by child classes
@@ -1134,7 +1150,7 @@
 								// if more then one delegates info is stored then find index of 
 								// current user
 								$userEntryId = $GLOBALS["mapisession"]->getUserEntryID();
-								$userIndex = array_search($userEntryId, $localFreeBusyFolderProps[PR_SCHDINFO_DELEGATE_ENTRYIDS]);
+								$userIndex = $this->getDelegateIndex($userEntryId, $localFreeBusyFolderProps[PR_SCHDINFO_DELEGATE_ENTRYIDS]);
 
 								if($userIndex !== false && $localFreeBusyFolderProps[PR_DELEGATES_SEE_PRIVATE][$userIndex] === 1) {
 									$hideItemData = false;

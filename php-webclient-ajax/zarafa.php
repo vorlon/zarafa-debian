@@ -69,6 +69,7 @@
 
 	require("server/core/class.conversion.php");
 	require("server/core/class.mapisession.php");
+	require("server/core/class.entryid.php");
 	
 	include("server/core/constants.php");
 	

@@ -103,6 +103,7 @@
 	require("server/core/constants.php");
 	require("server/core/class.conversion.php");
 	require("server/core/class.mapisession.php");
+	require("server/core/class.entryid.php");
 	
 	require("server/core/class.request.php");
 	require("server/core/class.settings.php");
