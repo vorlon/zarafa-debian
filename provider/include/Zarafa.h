@@ -92,7 +92,7 @@ typedef struct EID {
 	CHAR	szServer[1];
 	CHAR	szPadding[3];
 
-	EID(USHORT usType, GUID guid, GUID uniqueId, ULONG usFlags = 0) {
+	EID(USHORT usType, GUID guid, GUID uniqueId, USHORT usFlags = 0) {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = 1; //Always last version
 		this->usType = usType;
