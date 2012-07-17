@@ -752,25 +752,15 @@ exit:
 ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulRows = 0;
-	unsigned int	ulRowsMV = 0;
-	unsigned int	ulRowsNamed = 0;
-	unsigned int	ulRowsNamedMV = 0;
 	unsigned int	ulCount = 0;
-	unsigned int	ulLen = 0;
 
-	unsigned int	ulPropTag = 0;
 	struct soap		*soap = NULL;
 	struct propVal	sPropVal = {0};
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT		lpDBResult = NULL;
-	DB_RESULT		lpDBResultMV = NULL;
-	DB_RESULT		lpDBResultNamed = NULL;
-	DB_RESULT		lpDBResultNamedMV = NULL;
 	std::string		strQuery;
-	unsigned int	ulBodyTrans = 0;
 	
 	ECMemStream *	lpStream = NULL;
 	IStream *		lpIStream = NULL;
