@@ -128,6 +128,7 @@ public:
 
 private:
 	void CleanupObject();
+	void ReleaseContentsCache();
 
 	std::string GetCapabilityString(bool bAllFlags);
 
