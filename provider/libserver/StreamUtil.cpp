@@ -930,10 +930,11 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 			iterChild->second.lpPropVals->GetPropValArray(&props);
 			
 			er = SerializeProps(&props, lpStreamCaps, lpSink);
+
+			FreePropValArray(&props, false);
+
 			if(er != erSuccess)
 				goto exit;
-				
-			FreePropValArray(&props, false);
 		}
 		
 		if(ulSubObjType == MAPI_ATTACH) {
