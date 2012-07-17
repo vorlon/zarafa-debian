@@ -2337,6 +2337,9 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				continue;
                 
             iterChild->second.lpPropVals->AddPropVal(sPropVal);
+
+			if (!soap)
+				FreePropVal(&sPropVal, false);
         }
     }
 
@@ -2394,6 +2397,9 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             continue;
 
         iterChild->second.lpPropVals->AddPropVal(sPropVal);
+
+		if (!soap)
+			FreePropVal(&sPropVal, false);
     }
 
 exit:
