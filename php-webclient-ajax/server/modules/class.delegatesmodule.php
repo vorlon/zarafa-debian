@@ -76,6 +76,7 @@
 		{
 			$this->folders = array();
 			$this->messageProps = array();
+			$this->$entryIdObj = new EntryId();
 			parent::Module($id, $data);
 		}
 		
@@ -334,7 +335,7 @@
 				foreach($grants as $id => $grant){
 					$user = mapi_ab_openentry($ab, $grant["userid"]);
 					if (mapi_last_hresult() == NOERROR){
-						if ($userEntryId == $grant["userid"]){
+						if ($this->$entryIdObj->compareABEntryIds(bin2hex($userEntryId), bin2hex($grant["userid"]))) {
 							$rights["_content"] = $grant["rights"];
 						}
 					}
@@ -381,9 +382,8 @@
 			// Check if user is existing delegate.
 			if(isset($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS])) {
 				$eidstr = bin2hex($entryid);
-				$obj = new EntryId();
 				for($i=0; $i<count($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS]); $i++) {
-					if ($obj->compareABEntryIds($eidstr, bin2hex($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS][$i]))) {
+					if ($this->$entryIdObj->compareABEntryIds($eidstr, bin2hex($this->messageProps[PR_SCHDINFO_DELEGATE_ENTRYIDS][$i]))) {
 						return $i;
 					}
 				}
@@ -572,7 +572,7 @@
 
 					// check if user exists in addresslist for rule
 					foreach($adrlist as $key => $user) {
-						if($user[PR_ENTRYID] == $userEntryId) {
+						if($this->$entryIdObj(bin2hex($user[PR_ENTRYID]), bin2hex($userEntryId))) {
 							return true;
 						}
 					}
