@@ -872,7 +872,7 @@ exit:
 	LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": S %s", ulSessionId, szFname); \
 	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
 	const bool UNUSED_VAR bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE) != 0 : false); \
-	const ECStringCompat stringCompat(er == erSuccess ? lpecSession->GetCapabilities() : 0); \
+	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
 		goto __soapentry_exit; \
 	lpecSession->AddBusyState(pthread_self(), #fname);
@@ -1453,7 +1453,7 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 	ECAttachmentStorage *lpAttachmentStorage = NULL;
 
 	struct propVal sPropVal;
-	ECStringCompat stringCompat(lpecSession->GetCapabilities());
+	ECStringCompat stringCompat(lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE);
 
 	DB_RESULT		lpDBResultMV = NULL;
 	USE_DATABASE();
@@ -1880,7 +1880,7 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 	entryId sUserId;
 	std::string strUsername;
 
-	ECStringCompat stringCompat(lpecSession->GetCapabilities());
+	ECStringCompat stringCompat(lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE);
 	std::string	strColData;
 	
 	std::string strInsert;

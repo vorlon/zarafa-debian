@@ -252,7 +252,7 @@ void *ECNotificationManager::Work() {
 
 					ULONG ulCapabilities = lpecSession->GetCapabilities();
 					if (er == erSuccess && (ulCapabilities & ZARAFA_CAP_UNICODE) == 0) {
-						ECStringCompat stringCompat(ulCapabilities);
+						ECStringCompat stringCompat(false);
 						er = FixNotificationsEncoding(iterRequest->second.soap, stringCompat, notifications.pNotificationArray);
 					}
 						
