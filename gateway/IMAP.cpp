@@ -1058,6 +1058,11 @@ HRESULT IMAP::HrCmdSelect(const string &strTag, const string &strFolder, bool bR
 		goto exit;
 	}
 
+	// close old contents table if cached version was open
+	if (m_lpTable)
+		m_lpTable->Release();
+	m_lpTable = NULL;
+
 	// Apple mail client does this request, so we need to block it.
 	if (strFolder.empty()) {
 		HrResponse(RESP_TAGGED_NO, strTag, command+" invalid folder name");
@@ -1269,6 +1274,10 @@ HRESULT IMAP::HrCmdDelete(const string &strTag, const string &strFolderParam) {
 	// close folder if it was selected
 	if (strCurrentFolder == strFolder) {
 	    strCurrentFolder.clear();
+		// close old contents table if cached version was open
+		if (m_lpTable)
+			m_lpTable->Release();
+		m_lpTable = NULL;
     }
 
 	HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
@@ -2150,6 +2159,11 @@ HRESULT IMAP::HrCmdClose(const string &strTag) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CLOSE error no folder");
 		goto exit;
 	}
+
+	// close old contents table if cached version was open
+	if (m_lpTable)
+		m_lpTable->Release();
+	m_lpTable = NULL;
 
 	if (bCurrentFolderReadOnly) {
 		// cannot expunge messages on a readonly folder
