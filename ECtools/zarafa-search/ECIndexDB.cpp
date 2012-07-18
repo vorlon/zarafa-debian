@@ -220,7 +220,7 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bCompl
         if (bComplete)
             SetComplete();  // set m_bComplete
     } else
-        m_bComplete = GetComplete();
+        m_bComplete = QueryCompleteFromDB();
     
 exit:    
     return hr;
@@ -692,7 +692,7 @@ exit:
  * Query the db to determine if the index is marked complete.
  * Returns true if so, false otherwise.
  */
-bool ECIndexDB::GetComplete()
+bool ECIndexDB::QueryCompleteFromDB()
 {
     unsigned int ulKey = KT_COMPLETE;
     size_t ulLen = 0;

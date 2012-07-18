@@ -90,7 +90,7 @@ private:
     static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
 
     HRESULT FlushCache();
-    bool GetComplete();
+    bool QueryCompleteFromDB();
     
     ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
     ~ECIndexDB();
