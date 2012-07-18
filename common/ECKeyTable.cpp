@@ -901,7 +901,7 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 		break;
 	default:
 		er = GetBookmark(lbkOrgin, &lDestRow);
-		if (FAILED(er) != erSuccess)
+		if (er != ZARAFA_W_POSITION_CHANGED && er != erSuccess)
 			goto exit;
 
 		lDestRow += lSeekTo;
