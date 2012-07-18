@@ -188,6 +188,26 @@ exit:
     return hr;
 }
 
+/**
+ * Open or create the underlying TreeDB object.
+ * @param[in]   strIndexId      The id of the index to open.
+ * @param[in]   bCreate         If this argument is true and the 
+ *                              requested TreeDB does not yet exist it
+ *                              is created.
+ * @param[in]   bComplete       Ignored if bCreate is false or if the
+ *                              requested TreeDB already exists.
+ *                              If the requested TreeDB is created, its
+ *                              status is immediately set to Complete if
+ *                              this argument is true.
+ * 
+ * The bComplete is set to false during the building state because the
+ * index will only be complete once the initial scan is completed. So
+ * when the initial scan is done the index will be marked as complete.
+ * 
+ * During the running state a new store will be detected by it's first
+ * change. In this case a new index needs to be created which is
+ * complete to begin with because it's empty, just like a new store.
+ */
 HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bComplete)
 {
     HRESULT hr = hrSuccess;

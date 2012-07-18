@@ -695,15 +695,13 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
         goto exit;
     lpStubTargets.reset(lpArchived);
     
-    if (m_bExit)
-        hr = MAPI_E_USER_CANCEL;
-    
     // Don't attempt to process the stubs if exit was requested.
     if (!m_bExit) {
         hr = IndexStubTargets(lpSession, lpStubTargets.get(), lpImporter);
         if(hr != hrSuccess)
             goto exit;
-    }
+    } else
+        hr = MAPI_E_USER_CANCEL;
 
     // Don't save the state if exit was requested but we didn't process any 
     // stubs but there were stubs to process. Otherwise those stubs would
