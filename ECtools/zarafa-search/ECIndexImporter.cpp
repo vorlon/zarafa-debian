@@ -247,7 +247,7 @@ HRESULT ECIndexImporter::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSour
 	    hr = GetDocIdFromSourceKey(std::string((char *)lpSourceEntryList->lpbin[i].lpb, lpSourceEntryList->lpbin[i].cb), &doc, &guidStore);
 	    if(hr != hrSuccess) {
 			// eg. document that was never indexed
-	        m_lpLogger->Log(EC_LOGLEVEL_INFO, "Got deletion for unknown document: %d", doc);
+	        m_lpLogger->Log(EC_LOGLEVEL_INFO, "Got deletion for unknown sourcekey: %s", bin2hex(lpSourceEntryList->lpbin[i].cb, lpSourceEntryList->lpbin[i].lpb).c_str());
 	        hr = hrSuccess;
 	        continue; // There is nothing to delete
 	    }
