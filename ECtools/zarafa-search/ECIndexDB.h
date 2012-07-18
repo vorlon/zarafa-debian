@@ -83,13 +83,14 @@ public:
     HRESULT	SetSyncState(const std::string& strFolder, const std::string& strState);
     HRESULT	GetSyncState(const std::string& strFolder, std::string& strState);
 
-    bool Complete() { return false; };
-    HRESULT SetComplete() { return hrSuccess; };
+    bool Complete();
+    HRESULT SetComplete();
     
 private:
     static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, ECIndexDB **lppIndexDB);
 
     HRESULT FlushCache();
+    bool GetComplete();
     
     ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
     ~ECIndexDB();
@@ -112,7 +113,7 @@ private:
     friend class ECIndexFactory; // Create / Delete of ECIndexDB only allowed from factory
     
     unsigned int m_ulCacheSize;
-
+    bool m_bComplete;
 };
 
 #endif

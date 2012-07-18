@@ -677,13 +677,8 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
 		ulBlockBytes += ulBytes;
 		ulBlockChange += ulCreate + ulChange;
 			
-        if(hr == hrSuccess)
+        if(hr == hrSuccess || m_bExit)
             break;
-            
-        if(m_bExit) {
-            hr = MAPI_E_USER_CANCEL;
-            break;
-        }
         
 		if (ulLastStatsTime < time(NULL) - 10) {
 			unsigned int secs = time(NULL) - ulLastStatsTime;
@@ -700,15 +695,26 @@ HRESULT ECServerIndexer::IndexFolder(IMAPISession *lpSession, IMsgStore *lpStore
         goto exit;
     lpStubTargets.reset(lpArchived);
     
-    hr = IndexStubTargets(lpSession, lpStubTargets.get(), lpImporter);
-    if(hr != hrSuccess)
-        goto exit;
-
-    if(lpExporter->UpdateState(&state) == hrSuccess) {
-        if(lpIndex->SetSyncState(strFolderId, strFolderState) != hrSuccess) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save sync state");
-            hr = MAPI_E_NOT_FOUND;
+    if (m_bExit)
+        hr = MAPI_E_USER_CANCEL;
+    
+    // Don't attempt to process the stubs if exit was requested.
+    if (!m_bExit) {
+        hr = IndexStubTargets(lpSession, lpStubTargets.get(), lpImporter);
+        if(hr != hrSuccess)
             goto exit;
+    }
+
+    // Don't save the state if exit was requested but we didn't process any 
+    // stubs but there were stubs to process. Otherwise those stubs would
+    // never be processed again.
+    if (!m_bExit || !lpStubTargets->empty()) {
+        if(lpExporter->UpdateState(&state) == hrSuccess) {
+            if(lpIndex->SetSyncState(strFolderId, strFolderState) != hrSuccess) {
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save sync state");
+                hr = MAPI_E_NOT_FOUND;
+                goto exit;
+            }
         }
     }
 

@@ -126,7 +126,7 @@ typedef struct {
     unsigned short version;
 } VERSIONVALUE;
 
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE };
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE };
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -145,6 +145,7 @@ ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger
     m_lpIndex = NULL;
     m_lpCache = NULL;
     m_ulCacheSize = 0;
+    m_bComplete = false;
 
     m_lpCollator = Collator::createInstance(status);
 	m_lpCollator->setAttribute(UCOL_STRENGTH, UCOL_PRIMARY, status);
@@ -210,6 +211,8 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate)
         hr = MAPI_E_NOT_FOUND;
         goto exit;
     }
+    
+    m_bComplete = GetComplete();
     
 exit:    
     return hr;
@@ -642,3 +645,55 @@ exit:
     return hr;
 }
 
+/**
+ * Return true if the index is marked as complete. This indicates that
+ * the initial indexing is performed and the index is now incrementally
+ * updated.
+ */
+bool ECIndexDB::Complete()
+{
+    return m_bComplete;
+}
+
+/**
+ * Mark the index as complete. This indicates that the initial indexing
+ * is performed and the index is now incrementally updated.
+ */
+HRESULT ECIndexDB::SetComplete()
+{
+    HRESULT hr = hrSuccess;
+    
+    if (!m_bComplete) {
+        unsigned int ulKey = KT_COMPLETE;
+        unsigned char ulValue = 1;
+        
+        if (!m_lpIndex->set((char*)&ulKey, sizeof(ulKey),
+                            (char*)&ulValue, sizeof(ulValue))) {
+            hr = MAPI_E_DISK_ERROR;
+            goto exit;
+        }
+        
+        m_bComplete = true;
+    }
+    
+exit:
+    return hr;
+}
+
+/**
+ * Query the db to determine if the index is marked complete.
+ * Returns true if so, false otherwise.
+ */
+bool ECIndexDB::GetComplete()
+{
+    unsigned int ulKey = KT_COMPLETE;
+    size_t ulLen = 0;
+    unsigned char *lpValue = NULL;
+    bool bComplete = false;
+    
+    lpValue = (unsigned char*)m_lpIndex->get((char*)&ulKey, sizeof(ulKey), &ulLen);
+    bComplete = (lpValue && lpValue[0] != 0);
+    
+    delete[] lpValue;
+    return bComplete;
+}

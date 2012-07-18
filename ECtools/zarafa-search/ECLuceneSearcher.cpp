@@ -116,11 +116,16 @@ HRESULT ECLuceneSearcher::Create(ECThreadData *lpThreadData, GUID *lpServerGuid,
 		goto exit;
 	}
 
+	lpSearcher->AddRef();
+
 	hr = lpThreadData->lpIndexFactory->GetIndexDB(lpServerGuid, lpStoreGuid, false, &lpSearcher->m_lpIndex);
 	if(hr != hrSuccess)
 		goto exit;
 
-	lpSearcher->AddRef();
+	if (!lpSearcher->m_lpIndex->Complete()) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
 
 	if (lppSearcher)
 		*lppSearcher = lpSearcher;
