@@ -375,6 +375,7 @@ WebClient.prototype.getModule = function(moduleID)
 	}else {
 		// Loop through dialogs
 		for(var dialogname in this.dialogs){
+			try{ //try/catch in order to prevent IE from throwing an exception because of missing windows
 			if(this.dialogs[dialogname].window){
 				if(typeof this.dialogs[dialogname].window.webclient != "unknown" && typeof this.dialogs[dialogname].window.webclient == "object" && this.dialogs[dialogname].window.webclient != null){
 					module = this.dialogs[dialogname].window.webclient.getModule(moduleID);
@@ -383,6 +384,7 @@ WebClient.prototype.getModule = function(moduleID)
 					}
 				}
 			}
+			} catch(e) {}
 		}
 	}
 	
