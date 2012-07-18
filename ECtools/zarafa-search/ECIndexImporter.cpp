@@ -257,7 +257,7 @@ HRESULT ECIndexImporter::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSour
         if(m_lpIndex == NULL) {
             // Work in multi-store mode: each change we receive may be for a different store. This means
             // we have to get the correct store for each change.
-            hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, &guidStore, true, &lpIndex);
+            hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, &guidStore, true, true, &lpIndex);
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index database: %08X", hr);
                 goto exit;
@@ -423,7 +423,7 @@ HRESULT ECIndexImporter::ProcessThread()
             if(m_lpIndex == NULL) {
                 // Work in multi-store mode: each change we receive may be for a different store. This means
                 // we have to get the correct store for each change.
-                hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, &m_guidStore, true, &lpIndex);
+                hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, &m_guidStore, true, true, &lpIndex);
                 if(hr != hrSuccess) {
                     m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index database: %08X", hr);
                     goto exit;

@@ -66,7 +66,7 @@ public:
     ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger);
     ~ECIndexFactory();
     
-    virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, ECIndexDB **lppIndexDB);
+    virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
     virtual HRESULT ReleaseIndexDB(ECIndexDB *lpIndexDB);
 
     virtual HRESULT RemoveIndexDB(std::string strId);

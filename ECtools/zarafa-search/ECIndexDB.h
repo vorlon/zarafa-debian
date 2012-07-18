@@ -87,7 +87,7 @@ public:
     HRESULT SetComplete();
     
 private:
-    static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, ECIndexDB **lppIndexDB);
+    static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
 
     HRESULT FlushCache();
     bool GetComplete();
@@ -97,7 +97,7 @@ private:
 
     size_t GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput, size_t outLen);
     
-    HRESULT Open(const std::string &strIndexId, bool bCreate);
+    HRESULT Open(const std::string &strIndexId, bool bCreate, bool bComplete);
     
     ECLogger *m_lpLogger;
     ECConfig *m_lpConfig;

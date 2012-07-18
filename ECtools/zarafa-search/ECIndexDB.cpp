@@ -169,13 +169,13 @@ ECIndexDB::~ECIndexDB()
         delete m_lpCollator;
 }
 
-HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, ECIndexDB **lppIndexDB)
+HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB)
 {
     HRESULT hr = hrSuccess;
     
     ECIndexDB *lpIndex = new ECIndexDB(strIndexId, lpConfig, lpLogger);
     
-    hr = lpIndex->Open(strIndexId, bCreate);
+    hr = lpIndex->Open(strIndexId, bCreate, bComplete);
     if(hr != hrSuccess)
         goto exit;
 
@@ -188,7 +188,7 @@ exit:
     return hr;
 }
 
-HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate)
+HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bComplete)
 {
     HRESULT hr = hrSuccess;
     std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct";
@@ -204,15 +204,23 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate)
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Path '%s' not found or unable to create: %s", m_lpConfig->GetSetting("index_path"), strerror(errno));
         }
     }
-
-    if(!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | (bCreate ? TreeDB::OCREATE : 0 ))) {
-        if(bCreate)
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
     
-    m_bComplete = GetComplete();
+    if (!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER)) {
+        if (!bCreate) {
+            hr = MAPI_E_NOT_FOUND;
+            goto exit;
+        }
+
+        if (!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | (bCreate ? TreeDB::OCREATE : 0))) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
+            hr = MAPI_E_NOT_FOUND;
+            goto exit;
+        }
+
+        if (bComplete)
+            SetComplete();  // set m_bComplete
+    } else
+        m_bComplete = GetComplete();
     
 exit:    
     return hr;

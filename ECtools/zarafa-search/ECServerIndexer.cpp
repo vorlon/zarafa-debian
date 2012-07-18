@@ -513,7 +513,7 @@ HRESULT ECServerIndexer::IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId
         goto exit;
     }
     
-    hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, (GUID *)lpPropStore[1].Value.bin.lpb, true, &lpIndex);
+    hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, (GUID *)lpPropStore[1].Value.bin.lpb, true, false, &lpIndex);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index database: %08X", hr);
         goto exit;
