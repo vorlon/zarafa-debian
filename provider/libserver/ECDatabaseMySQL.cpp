@@ -1622,7 +1622,8 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 			 (ulMajor == PROJECT_VERSION_MAJOR && ulMinor > PROJECT_VERSION_MINOR) || 
 			 (ulMajor > PROJECT_VERSION_MAJOR)) {
 		// Start a old server with a new database
-		strReport = "Database version (" +stringify(ulRevision) + ") is newer than the server version (" + stringify(Z_UPDATE_LAST) + ")";
+		strReport = "Database version (" +stringify(ulRevision)+","+stringify(ulDatabaseRevision) +
+			") is newer than the server version (" + stringify(PROJECT_VERSION_REVISION)+","+stringify(Z_UPDATE_LAST) + ")";
 		er = ZARAFA_E_INVALID_VERSION;
 		goto exit;
 	}
