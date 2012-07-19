@@ -519,7 +519,7 @@ ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	ulThreadStack = atoui(lpRow[1]);
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack is set to %u, which is too small", ulThreadStack);
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please set thread_stack to %u or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK);
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
 		if (m_bIgnoreDbThreadStackSize)
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
 		else
