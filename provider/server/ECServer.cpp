@@ -93,6 +93,16 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+// The following value is based on:
+// http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
+// Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
+// for 64bit architectures.
+// We could use the 'version_compile_machine' variable, but I'm not sure if 32bit versions
+// will ever be build on 64bit machines and what that variable does. Plus we would need a
+// list of all possible 32bit architectures because if the architecture is unknown we'll
+// have to go with the safe value which is for 64bit.
+#define MYSQL_MIN_THREAD_STACK (256*1024)
+
 extern ECSessionManager*    g_lpSessionManager;
 
 // scheduled functions
@@ -115,6 +125,7 @@ bool				m_bIgnoreAttachmentStorageConflict = false;
 bool				m_bIgnoreDistributedZarafaConflict = false;
 bool				m_bForceDatabaseUpdate = false;
 bool				m_bIgnoreUnknownConfigOptions = false;
+bool				m_bIgnoreDbThreadStackSize = false;
 pthread_t			mainthread;
 
 ECConfig*			g_lpConfig = NULL;
@@ -484,6 +495,44 @@ exit:
 	return er;
 }
 
+ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
+{
+	ECRESULT er = erSuccess;
+	string strQuery;
+	DB_RESULT lpResult = NULL;
+	DB_ROW lpRow = NULL;
+	unsigned ulThreadStack = 0;
+
+	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
+	er = lpDatabase->DoSelect(strQuery, &lpResult);
+	if (er != erSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		goto exit;
+	}
+
+	lpRow = lpDatabase->FetchRow(lpResult);
+	if (!lpRow || !lpRow[1]) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No thread_stack variable returned");
+		goto exit;
+	}
+
+	ulThreadStack = atoui(lpRow[1]);
+	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack is set to %u, which is too small", ulThreadStack);
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please set thread_stack to %u or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK);
+		if (m_bIgnoreDbThreadStackSize)
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
+		else
+			er = ZARAFA_E_DATABASE_ERROR;
+	}
+
+exit:
+	if (lpResult)
+		lpDatabase->FreeResult(lpResult);
+
+	return er;
+}
+
 /**
  * Checks the server_hostname value of the configuration, and if
  * empty, gets the current FQDN through DNS lookups, and updates the
@@ -673,7 +722,8 @@ int main(int argc, char* argv[])
 		OPT_IGNORE_ATTACHMENT_STORAGE_CONFLICT,
 		OPT_OVERRIDE_DISTRIBUTED_LOCK,
 		OPT_FORCE_DATABASE_UPGRADE,
-		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
+		OPT_IGNORE_DB_THREAD_STACK_SIZE
 	};
 	struct option long_options [] = {
 		{ "help", 0, NULL, OPT_HELP },	// help text
@@ -684,6 +734,7 @@ int main(int argc, char* argv[])
 		{ "override-multiserver-lock", 0, NULL, OPT_OVERRIDE_DISTRIBUTED_LOCK },
 		{ "force-database-upgrade", 0, NULL, OPT_FORCE_DATABASE_UPGRADE },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
+		{ "ignore-db-thread-stack-size", 0, NULL, OPT_IGNORE_DB_THREAD_STACK_SIZE },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -716,6 +767,7 @@ int main(int argc, char* argv[])
 			cout << "     --override-multiserver-lock             Start in multiserver mode even if multiserver mode is locked" << endl;
 			cout << "     --force-database-upgrade                Start upgrade from 6.x database and continue running if upgrade is complete" << endl;
 			cout << "     --ignore-unknown-config-options         Start even if the configuration file contains invalid config options" << endl;
+			cout << "     --ignore-db-thread-stack-size           Start even if the thread_stack setting for MySQL is too low" << endl;
 			return 0;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SERVER_STR << endl
@@ -739,6 +791,9 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			m_bIgnoreUnknownConfigOptions = true;
+			break;
+		case OPT_IGNORE_DB_THREAD_STACK_SIZE:
+			m_bIgnoreDbThreadStackSize = true;
 			break;
 		};
 	}
@@ -1304,6 +1359,11 @@ int running_server(char *szName, const char *szConfig)
 
 	// check distributed mode started with, and maybe reject startup
 	er = check_distributed_zarafa(lpDatabase);
+	if (er != erSuccess)
+		goto exit;
+
+	// check whether the thread_stack is large enough.
+	er = check_database_thread_stack(lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
