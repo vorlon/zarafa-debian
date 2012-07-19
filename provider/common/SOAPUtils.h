@@ -71,7 +71,7 @@ void				FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase = true
 void				FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
 
 // Restrictions
-ECRESULT			FreeRestrictTable(struct restrictTable *lpRestrict);
+ECRESULT			FreeRestrictTable(struct restrictTable *lpRestrict, bool base = true);
 ECRESULT			CopyRestrictTable(struct soap *soap, struct restrictTable *lpSrc, struct restrictTable **lppDst);
 
 // SearchCriteria

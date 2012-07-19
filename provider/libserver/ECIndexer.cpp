@@ -179,7 +179,9 @@ ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
     }
         
     if(bModified) {
-        // We changed something, free the previous data and create a new list of children
+        // We changed something, free the previous toplevel data and create a new list of children
+		for(unsigned j = 0; j < lpRestrict->lpAnd->__size; j++)
+			delete lpRestrict->lpAnd->__ptr[j];
         delete [] lpRestrict->lpAnd->__ptr;
         
         lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
@@ -331,10 +333,9 @@ ECRESULT NormalizeRestrictionMultiFieldSearch(struct restrictTable *lpRestrict, 
             
             // We now have to remove the entire restriction since the top-level restriction here is
             // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
-            
-			if (lpRestrict->lpContent)
-				FreePropVal(lpRestrict->lpContent->lpProp, true);
-            delete lpRestrict->lpContent;
+			// Do not delete the lpRestrict itself, since we place new content in it.
+			FreeRestrictTable(lpRestrict, false);
+			memset(lpRestrict, 0, sizeof(struct restrictTable));
             
             lpRestrict->ulType = RES_AND;
             lpRestrict->lpAnd = new struct restrictAnd;
@@ -447,7 +448,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECLogger 
         er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, setExcludePropTags, &lstMultiSearches);
         if (er != erSuccess)
             goto exit; // Note this will happen if the restriction cannot be handled by the indexer
-            
+        
         if (lstMultiSearches.empty()) {
             // Although the restriction was strictly speaking indexer-compatible, no index queries could
             // be found, so bail out

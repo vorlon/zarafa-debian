@@ -989,7 +989,15 @@ void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel)
 		delete lpRowSet;
 }
 
-ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict)
+/** 
+ * Frees a soap restriction table
+ * 
+ * @param[in] lpRestrict the soap restriction table to free and everything below it
+ * @param[in] base always true, except when you know what you're doing (aka restriction optimizer for the zarafa-search)
+ * 
+ * @return 
+ */
+ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 {
 	ECRESULT er = erSuccess;
 	unsigned int i = 0;
@@ -1095,7 +1103,9 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict)
 		break;
 	}
 
-	delete lpRestrict;
+	// only when we're optimizing restrictions we must keep the base pointer, so we can replace it with new content
+	if (base)
+		delete lpRestrict;
 
 exit:
 	return er;
