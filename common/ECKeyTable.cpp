@@ -693,10 +693,12 @@ exit:
 
 ECRESULT ECKeyTable::Clear()
 {
-	ECTableRow *lpRow = lpRoot;
+	ECTableRow *lpRow = NULL;
 	ECTableRow *lpParent = NULL;
 
 	pthread_mutex_lock(&mLock);
+
+	lpRow = lpRoot;
 
 	// Depth-first delete of all nodes (excluding root)
 	while(lpRow) {
