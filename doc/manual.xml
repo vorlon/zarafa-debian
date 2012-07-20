@@ -1658,6 +1658,12 @@
 			  <para><parameter>--enable-feature</parameter> and
 			  <parameter>--disable-feature</parameter> to enable or
 			  disable specific features for users.</para>
+			  <para>This action is also required for all options to
+			  control the autoaccept of meeting requests. See the
+			  <parameter>--mr-accept</parameter>,
+			  <parameter>--mr-decline-conflict</parameter> and
+			  <parameter>--mr-decline-recurring</parameter>
+			  options.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -2188,19 +2194,6 @@
 			</listitem>
 		  </varlistentry>
 
-		  <varlistentry>
-			<term>
-			  <option>--config</option>
-			  <replaceable>file</replaceable>
-			</term>
-			<listitem>
-			  <para>Use a configuration file. See the
-			  <citerefentry><refentrytitle>CONFIG</refentrytitle></citerefentry>
-			  section for more information.</para>
-			  <para>Default: <replaceable>/etc/zarafa/admin.cfg</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
 		</variablelist>
 	  </refsection>
 
@@ -2417,21 +2410,6 @@
 		  </varlistentry>
 
 		  <varlistentry>
-			<term><option>--host</option></term>
-			<term>
-			  <option>-h</option>
-			  <replaceable>path</replaceable>
-			</term>
-			<listitem>
-			  <para>Connect to the Zarafa server through
-			  <replaceable>path</replaceable>, e.g.
-			  <filename>file:///path/to/socket</filename>. Default:
-			  <filename>file:///var/run/zarafa</filename>. This option
-			  can always be specified.</para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
 			<term>
 			  <option>-i</option>
 			  <replaceable>groupname</replaceable>
@@ -2462,12 +2440,13 @@
 			</term>
 			<listitem>
 			  <para>Specified that meeting requests should automatically be
-  			  accepted for this user. This means that when a meeting request
+  			  accepted for a user. This means that when a meeting request
 			  is sent to this user when specified as being a 'resource', the
 			  request will directly be honoured and written to the calendar.
 			  This is a client-side action and this setting therefore does
 			  not affect actual meeting requests being delivered via
-			  zarafa-dagent.
+			  zarafa-dagent. The user on which to operate is select using
+			  the <parameter>-u</parameter> switch.
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -2480,7 +2459,9 @@
 			<listitem>
 			  <para>This option only has effect when --mr-accept=yes is in
   			  effect. When specifying --mr-decline-conflict, meeting requests
-			  that conflict with an existing meeting will be declined.
+			  that conflict with an existing meeting will be declined. The
+			  user on which to operate is select using the <parameter>-u</parameter>
+			  switch.
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -2493,7 +2474,8 @@
 			<listitem>
 			  <para>This option only has effect when --mr-accept=yes is in
   			  effect. When specifying --mr-decline-recurring, meeting requests
-			  that are recurring will be declined.
+			  that are recurring will be declined. The user on which to operate
+			  is select using the <parameter>-u</parameter> switch.
 			  </para>
 			</listitem>
 		  </varlistentry>
@@ -2538,11 +2520,45 @@
 			<listitem>
 			  <para>Use <replaceable>language</replaceable> to create new
 			  stores; this means that folders in the new store will be in
-			  the language specified. Only useful in combination with
+			  the language specified. Only valid in combination with
 			  --create-store. When this options in not specified, the system
 			  default will be selected according the LC_* and LANG
 			  environment variables, depending on your OS.
 			  </para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+
+		<para>
+		  Other options to control the connection to the zarafa-server are:
+		</para>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>--host</option></term>
+			<term>
+			  <option>-h</option>
+			  <replaceable>path</replaceable>
+			</term>
+			<listitem>
+			  <para>Connect to the Zarafa server through
+			  <replaceable>path</replaceable>, e.g.
+			  <filename>file:///path/to/socket</filename>. Default:
+			  <filename>file:///var/run/zarafa</filename>. This option
+			  can always be specified.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--config</option>
+			  <replaceable>file</replaceable>
+			</term>
+			<listitem>
+			  <para>Use a configuration file. See the
+			  <citerefentry><refentrytitle>CONFIG</refentrytitle></citerefentry>
+			  section for more information.</para>
+			  <para>Default: <replaceable>/etc/zarafa/admin.cfg</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -2649,6 +2665,15 @@
 		<replaceable>80</replaceable> <option>--qs</option>
 		<replaceable>90</replaceable> <option>--qh</option>
 		<replaceable>100</replaceable></para>
+
+		<para>For automatically accepting meeting requests for a user or resource:</para>
+
+		<para><command>zarafa-admin</command>
+		<option>-u</option>	<replaceable>loginname</replaceable>
+		<option>--mr-accept</option> <replaceable>y</replaceable>
+		<option>--mr-decline-conflict</option> <replaceable>y</replaceable>
+		<option>--mr-decline-recurring</option> <replaceable>n</replaceable>
+		</para>
 
 	  </refsection>
 

@@ -97,6 +97,13 @@ to set quota levels\&. Use 0 with quota options to set as \*(Aqunlimited\*(Aq\&.
 and
 \fI\-\-disable\-feature\fR
 to enable or disable specific features for users\&.
+.sp
+This action is also required for all options to control the autoaccept of meeting requests\&. See the
+\fI\-\-mr\-accept\fR,
+\fI\-\-mr\-decline\-conflict\fR
+and
+\fI\-\-mr\-decline\-recurring\fR
+options\&.
 .RE
 .PP
 \fB\-g\fR \fIgroupname\fR
@@ -449,16 +456,6 @@ Reset the counters on all folders in
 .RS 4
 Shows an overview of user counts per type of user, and how much are allowed by your current license\&.
 .RE
-.PP
-\fB\-\-config\fR \fIfile\fR
-.RS 4
-Use a configuration file\&. See the
-\fBCONFIG\fR()
-section for more information\&.
-.sp
-Default:
-\fI/etc/zarafa/admin\&.cfg\fR
-.RE
 .SH "OPTIONS"
 .PP
 The options used by actions are as follows:
@@ -586,14 +583,6 @@ Set the hard quota level for all users within the specified tenant\&. The user w
 for warning emails\&.
 .RE
 .PP
-\fB\-\-host\fR, \fB\-h\fR \fIpath\fR
-.RS 4
-Connect to the Zarafa server through
-\fIpath\fR, e\&.g\&.
-file:///path/to/socket\&. Default:
-file:///var/run/zarafa\&. This option can always be specified\&.
-.RE
-.PP
 \fB\-i\fR \fIgroupname\fR
 .RS 4
 This sets the groupname for
@@ -610,17 +599,23 @@ This sets the companyname for all user, group and tenant commands\&. This option
 .PP
 \fB\-\-mr\-accept\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-Specified that meeting requests should automatically be accepted for this user\&. This means that when a meeting request is sent to this user when specified as being a \*(Aqresource\*(Aq, the request will directly be honoured and written to the calendar\&. This is a client\-side action and this setting therefore does not affect actual meeting requests being delivered via zarafa\-dagent\&.
+Specified that meeting requests should automatically be accepted for a user\&. This means that when a meeting request is sent to this user when specified as being a \*(Aqresource\*(Aq, the request will directly be honoured and written to the calendar\&. This is a client\-side action and this setting therefore does not affect actual meeting requests being delivered via zarafa\-dagent\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
 .RE
 .PP
 \fB\-\-mr\-decline\-conflict\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-conflict, meeting requests that conflict with an existing meeting will be declined\&.
+This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-conflict, meeting requests that conflict with an existing meeting will be declined\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
 .RE
 .PP
 \fB\-\-mr\-decline\-recurring\fR \fI[yes|y|1 / no|n|0]\fR
 .RS 4
-This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-recurring, meeting requests that are recurring will be declined\&.
+This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-recurring, meeting requests that are recurring will be declined\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
 .RE
 .PP
 \fB\-\-add\-sendas\fR \fIsender\fR
@@ -654,7 +649,27 @@ and
 .RS 4
 Use
 \fIlanguage\fR
-to create new stores; this means that folders in the new store will be in the language specified\&. Only useful in combination with \-\-create\-store\&. When this options in not specified, the system default will be selected according the LC_* and LANG environment variables, depending on your OS\&.
+to create new stores; this means that folders in the new store will be in the language specified\&. Only valid in combination with \-\-create\-store\&. When this options in not specified, the system default will be selected according the LC_* and LANG environment variables, depending on your OS\&.
+.RE
+.PP
+Other options to control the connection to the zarafa\-server are:
+.PP
+\fB\-\-host\fR, \fB\-h\fR \fIpath\fR
+.RS 4
+Connect to the Zarafa server through
+\fIpath\fR, e\&.g\&.
+file:///path/to/socket\&. Default:
+file:///var/run/zarafa\&. This option can always be specified\&.
+.RE
+.PP
+\fB\-\-config\fR \fIfile\fR
+.RS 4
+Use a configuration file\&. See the
+\fBCONFIG\fR()
+section for more information\&.
+.sp
+Default:
+\fI/etc/zarafa/admin\&.cfg\fR
 .RE
 .SH "CONFIG"
 .PP
@@ -752,6 +767,18 @@ For setting a specific quota level for a user\&. Warning level to 80 Mb, soft le
 \fI90\fR
 \fB\-\-qh\fR
 \fI100\fR
+.PP
+For automatically accepting meeting requests for a user or resource:
+.PP
+\fBzarafa\-admin\fR
+\fB\-u\fR
+\fIloginname\fR
+\fB\-\-mr\-accept\fR
+\fIy\fR
+\fB\-\-mr\-decline\-conflict\fR
+\fIy\fR
+\fB\-\-mr\-decline\-recurring\fR
+\fIn\fR
 .SH "EXTERNAL USERS"
 .PP
 When the users are located in an external database, and the Zarafa server is configured to use these users, a lot of commands from the zarafa\-admin tool make no sense anymore\&. An example of an external database, and currently the only option, is an LDAP database\&.
