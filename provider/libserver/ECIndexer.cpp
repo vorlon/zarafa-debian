@@ -171,6 +171,7 @@ ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 
             delete [] lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr;
             delete lpRestrict->lpAnd->__ptr[i]->lpAnd;
+			delete lpRestrict->lpAnd->__ptr[i];
             
             bModified = true;
         } else {
@@ -180,8 +181,6 @@ ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
         
     if(bModified) {
         // We changed something, free the previous toplevel data and create a new list of children
-		for(unsigned j = 0; j < lpRestrict->lpAnd->__size; j++)
-			delete lpRestrict->lpAnd->__ptr[j];
         delete [] lpRestrict->lpAnd->__ptr;
         
         lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
