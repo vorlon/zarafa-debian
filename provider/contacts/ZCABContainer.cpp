@@ -851,8 +851,10 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
 					break;
 			}
-			if (i == m_lpFolders->end())
+			if (i == m_lpFolders->end()) {
+				hr = MAPI_E_NOT_FOUND;
 				goto exit;
+			}
 
 			hr = ptrSession->OpenMsgStore(0, i->cbStore, (LPENTRYID)i->lpStore, NULL, 0, &ptrStore);
 			if (hr != hrSuccess)
