@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-22 00:18+0200\n"
-"PO-Revision-Date: 2012-07-20 20:53+0200\n"
+"POT-Creation-Date: 2012-07-23 00:36+0200\n"
+"PO-Revision-Date: 2012-07-22 11:44+0200\n"
 "Last-Translator: Michael <m.kromer@zarafa.com>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
@@ -1021,11 +1021,10 @@ msgid "Error description:"
 msgstr "Fehlerbeschreibung:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:531
-#, fuzzy
 msgid "Archives can not be destubbed when working offline."
 msgstr ""
-"Archive können nicht wieder hergestellt werden solange offline gearbeitet "
-"wird."
+"Archive können solange offline gearbeitet wird nicht wiederhergestellt "
+"werden."
 
 #: provider/client/ECABProviderSwitch.cpp:136
 #: provider/client/ECMSProviderSwitch.cpp:272
