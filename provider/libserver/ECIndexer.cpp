@@ -105,35 +105,6 @@ exit:
 }
 
 /**
- * Remove always false terms from an OR restriction
- *
- * Does inline removal of terms in an OR restriction that are always false (modifies the input structure)
- *
- * @param lpRestrict[in,out] Restriction to optimize
- * @return result
- */
-ECRESULT NormalizeRestrictionRemoveFalseInOr(struct restrictTable *lpRestrict)
-{
-    ECRESULT er = erSuccess;
-    
-    if(lpRestrict->ulType != RES_OR)
-        goto exit;
-        
-    for(unsigned int i = 0; i < lpRestrict->lpOr->__size;) {
-        if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i])) {
-            FreeRestrictTable(lpRestrict->lpOr->__ptr[i]);
-            memmove(&lpRestrict->lpOr->__ptr[i], lpRestrict->lpOr->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpOr->__size - i - 1));
-            lpRestrict->lpOr->__size--;
-        } else {
-            i++;
-        }
-    }
-    
-exit:
-    return er;
-}
-
-/**
  * Normalize nested AND clauses in a restriction
  *
  * Recursively normalize nested AND clauses:
