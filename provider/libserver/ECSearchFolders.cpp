@@ -102,6 +102,8 @@ ECSearchFolders::~ECSearchFolders() {
     STOREFOLDERIDSEARCH::iterator iterStore;
     FOLDERIDSEARCH::iterator iterFolder;
 
+	pthread_mutex_lock(&m_mutexMapSearchFolders);
+
     for(iterStore = m_mapSearchFolders.begin(); iterStore != m_mapSearchFolders.end(); iterStore++) {
         for(iterFolder = iterStore->second.begin(); iterFolder != iterStore->second.end(); iterFolder++) {
             delete iterFolder->second;
@@ -110,6 +112,8 @@ ECSearchFolders::~ECSearchFolders() {
     }
     
     m_mapSearchFolders.clear();
+
+	pthread_mutex_unlock(&m_mutexMapSearchFolders);
     
     pthread_mutex_destroy(&m_mutexMapSearchFolders);
     pthread_cond_destroy(&m_condThreadExited);
