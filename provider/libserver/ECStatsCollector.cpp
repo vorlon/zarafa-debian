@@ -146,11 +146,11 @@ void ECStatsCollector::AddStat(SCName index, SCType type, const char *name, cons
 	newStat.data.ll = 0;		// reset largest data var in union
 	newStat.avginc = 1;
 	newStat.type = type;
-	pthread_mutex_init(&newStat.lock, NULL);
 	newStat.name = name;
 	newStat.description = description;
 
 	m_StatData[index] = newStat;
+	pthread_mutex_init(&m_StatData[index].lock, NULL);
 }
 
 void ECStatsCollector::Increment(SCName name, float inc) {
