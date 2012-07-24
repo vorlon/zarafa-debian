@@ -51,6 +51,7 @@
 #define ECDEBUGTOOLS
 
 #include <string>
+#include <sstream>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -110,5 +111,7 @@ std::string PropValueToString(LPSPropValue  lpPropValue);
 std::string ABFlags(ULONG ulFlag);
 std::string EntryListToString(LPENTRYLIST lpMsgList);
 std::string PermissionRulesToString(ULONG cPermissions, LPECPERMISSION lpECPermissions);
+
+HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix = std::string());
 
 #endif
