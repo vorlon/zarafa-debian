@@ -10532,6 +10532,7 @@ typedef struct {
 	ECDatabase		*lpSharedDatabase;
 	ECDatabase		*lpDatabase;
 	ECAttachmentStorage *lpAttachmentStorage;
+	ECRESULT er;
 } MTOMSessionInfo;
 
 typedef struct {
@@ -10552,6 +10553,7 @@ typedef MTOMStreamInfo * LPMTOMStreamInfo;
 
 void *SerializeObject(void *arg)
 {
+	ECRESULT            er = erSuccess;
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	ECSerializer		*lpSink = NULL;
 
@@ -10561,15 +10563,18 @@ void *SerializeObject(void *arg)
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
 	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
-	SerializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpSharedDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
+	er = SerializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpSharedDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 
 	delete lpSink;
 
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
+
+	lpStreamInfo->lpSessionInfo->er = er;
+
 	return NULL;
 }
 
-void *MTOMReadOpen(struct soap* /*soap*/, void *handle, const char *id, const char* /*type*/, const char* /*options*/)
+void *MTOMReadOpen(struct soap* soap, void *handle, const char *id, const char* /*type*/, const char* /*options*/)
 {
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 
@@ -10578,13 +10583,20 @@ void *MTOMReadOpen(struct soap* /*soap*/, void *handle, const char *id, const ch
 
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
+	if (lpStreamInfo->lpSessionInfo->er != erSuccess) {
+		soap->error = SOAP_FATAL_ERROR;
+		return NULL;
+	}
+
 	if (strncmp(id, "emcas-", 6) == 0) {
 		if (pthread_create(&lpStreamInfo->hThread, NULL, &SerializeObject, lpStreamInfo)) {
 			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Failed to start serialization thread for '%s'", id);
+			soap->error = SOAP_FATAL_ERROR;
 			return NULL;
 		}
 	} else {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Got stream request for unknown id: '%s'", id);
+		soap->error = SOAP_FATAL_ERROR;
 		return NULL;
 	}
 	
@@ -10606,7 +10618,7 @@ size_t MTOMRead(struct soap* /*soap*/, void *handle, char *buf, size_t len)
 	
 	return cbRead;
 }
-void MTOMReadClose(struct soap* /*soap*/, void *handle)
+void MTOMReadClose(struct soap* soap, void *handle)
 { 
 	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
 	
@@ -10708,6 +10720,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
 	lpMTOMSessionInfo->lpecSession->Lock();
 	lpMTOMSessionInfo->lpSharedDatabase = lpBatchDB;
+	lpMTOMSessionInfo->er = erSuccess;
 	
 	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
 	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
@@ -10944,6 +10957,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	lpMTOMSessionInfo->lpecSession->Lock();
 	lpMTOMSessionInfo->lpDatabase = lpDatabase;
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
+	lpMTOMSessionInfo->er = erSuccess;
 
 	((SOAPINFO *)soap->user)->fdone = MTOMSessionDone;
 	((SOAPINFO *)soap->user)->fdoneparam = lpMTOMSessionInfo;
