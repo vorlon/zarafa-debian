@@ -112,6 +112,4 @@ std::string ABFlags(ULONG ulFlag);
 std::string EntryListToString(LPENTRYLIST lpMsgList);
 std::string PermissionRulesToString(ULONG cPermissions, LPECPERMISSION lpECPermissions);
 
-HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix = std::string());
-
 #endif

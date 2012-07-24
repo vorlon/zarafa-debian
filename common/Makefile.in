@@ -95,7 +95,8 @@ am_libcommon_mapi_la_OBJECTS = CommonUtil.lo rtfutil.lo codepage.lo \
 	ECMemTable.lo ECKeyTable.lo Util.lo ECDebug.lo \
 	favoritesutil.lo ZarafaCode.lo HtmlToTextParser.lo \
 	HtmlEntity.lo ECABEntryID.lo ECDebugPrint.lo ECIterators.lo \
-	MAPINotifSink.lo IStreamAdapter.lo MAPIConsoleTable.lo
+	MAPINotifSink.lo IStreamAdapter.lo MAPIConsoleTable.lo \
+	ECMAPIDebug.lo
 libcommon_mapi_la_OBJECTS = $(am_libcommon_mapi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -404,7 +405,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
-				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h \
+				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h ECMAPIDebug.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -434,7 +435,8 @@ libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
 			ECIterators.cpp								\
 			MAPINotifSink.cpp							\
 			IStreamAdapter.cpp							\
-			MAPIConsoleTable.cpp
+			MAPIConsoleTable.cpp						\
+			ECMAPIDebug.cpp
 
 libcommon_util_la_LDFLAGS = -static
 libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
@@ -574,6 +576,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIterators.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECKeyTable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLogger.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMAPIDebug.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMemStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECMemTable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECRestriction.Plo@am__quote@
