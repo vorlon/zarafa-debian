@@ -10581,22 +10581,28 @@ void *MTOMReadOpen(struct soap* soap, void *handle, const char *id, const char* 
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
 	ASSERT(lpStreamInfo != NULL);
 
-	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
-
 	if (lpStreamInfo->lpSessionInfo->er != erSuccess) {
 		soap->error = SOAP_FATAL_ERROR;
 		return NULL;
 	}
 
+	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
+
 	if (strncmp(id, "emcas-", 6) == 0) {
 		if (pthread_create(&lpStreamInfo->hThread, NULL, &SerializeObject, lpStreamInfo)) {
 			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Failed to start serialization thread for '%s'", id);
 			soap->error = SOAP_FATAL_ERROR;
+
+			delete lpStreamInfo->lpFifoBuffer;
+			lpStreamInfo->lpFifoBuffer = NULL;
 			return NULL;
 		}
 	} else {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Got stream request for unknown id: '%s'", id);
 		soap->error = SOAP_FATAL_ERROR;
+
+		delete lpStreamInfo->lpFifoBuffer;
+		lpStreamInfo->lpFifoBuffer = NULL;
 		return NULL;
 	}
 	
