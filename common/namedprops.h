@@ -60,6 +60,7 @@
 #define dispidSelectedMailingAddress		0x8022	//PT_LONG
 #define dispidJournal						0x8025	//PT_BOOLEAN
 #define dispidABPEmailList					0x8028	//PT_MV_LONG
+#define dispidABPArrayType					0x8029	//PT_LONG
 #define dispidWebPage						0x802B	//PT_STRING8
 #define dispidWorkAddressStreet				0x8045	//PT_STRING8
 #define dispidWorkAddressCity				0x8046	//PT_STRING8
