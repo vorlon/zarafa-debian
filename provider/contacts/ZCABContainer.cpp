@@ -197,6 +197,10 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	ECMemTable*		lpTable = NULL;
 	ECMemTableView*	lpTableView = NULL;
 	ULONG i, j = 0;
+	ECOrRestriction resOr;
+	ECAndRestriction resAnd;
+	SPropValue sRestrictProp;
+	SRestrictionPtr ptrRestriction;
 
 #define I_NCOLS 7
 	// data from the contact
@@ -217,9 +221,9 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	// named properties
 	SPropTagArrayPtr ptrNameTags;
 	LPMAPINAMEID *lppNames = NULL;
-	ULONG ulNames = (6 * 5) + 1;
+	ULONG ulNames = (6 * 5) + 2;
 	ULONG ulType = (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
-	MAPINAMEID mnNamedProps[(6 * 5) + 1] = {
+	MAPINAMEID mnNamedProps[(6 * 5) + 2] = {
 		// index with MVI_FLAG
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidABPEmailList}},
 
@@ -264,8 +268,13 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1Address}},
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1OriginalDisplayName}},
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1OriginalEntryID}},
+
+		// restriction
+		{(LPGUID)&PSETID_Address, MNID_ID, {dispidABPArrayType}},
 	};
-	
+
+
+	ulFlags = ulFlags & MAPI_UNICODE;
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&inputCols, &ptrInputCols);
 	if (hr != hrSuccess)
@@ -282,7 +291,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	if (m_lpContactFolder == NULL)
 		goto done;
 
-	hr = m_lpContactFolder->GetContentsTable(ulFlags, &ptrContents);
+	hr = m_lpContactFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &ptrContents);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -299,13 +308,14 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	// fix types
 	ptrNameTags->aulPropTag[0] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[0], PT_MV_LONG | MV_INSTANCE);
-	for (i = 0; i < (ulNames-1) / 5; i++) {
+	for (i = 0; i < (ulNames-2) / 5; i++) {
 		ptrNameTags->aulPropTag[1+ (i*5) + 0] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[1+ (i*5) + 0], ulType);
 		ptrNameTags->aulPropTag[1+ (i*5) + 1] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[1+ (i*5) + 1], ulType);
 		ptrNameTags->aulPropTag[1+ (i*5) + 2] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[1+ (i*5) + 2], ulType);
 		ptrNameTags->aulPropTag[1+ (i*5) + 3] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[1+ (i*5) + 3], ulType);
 		ptrNameTags->aulPropTag[1+ (i*5) + 4] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[1+ (i*5) + 4], PT_BINARY);
 	}
+	ptrNameTags->aulPropTag[ulNames-1] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[ulNames-1], PT_LONG);
 
 	// add func HrCombinePropTagArrays(part1, part2, dest);
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(ptrInputCols->cValues + ptrNameTags->cValues), &ptrContactCols);
@@ -318,15 +328,37 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		ptrContactCols->aulPropTag[j++] = ptrNameTags->aulPropTag[i];
 	ptrContactCols->cValues = j;
 
+	// the exists is extra compared to the outlook restriction
+	// restrict: ( distlist || ( contact && exist(abparraytype) && abparraytype != 0 ) )
+	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
+	sRestrictProp.Value.lpszA = "IPM.DistList";
+	resOr.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
+
+	sRestrictProp.Value.lpszA = "IPM.Contact";
+	resAnd.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
+	sRestrictProp.ulPropTag = ptrNameTags->aulPropTag[ulNames-1];
+	sRestrictProp.Value.ul = 0;
+	resAnd.append(ECExistRestriction(sRestrictProp.ulPropTag));
+	resAnd.append(ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp));
+
+	resOr.append(resAnd);
+
+	hr = resOr.CreateMAPIRestriction(&ptrRestriction);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrContents->Restrict(ptrRestriction, TBL_BATCH);
+	if (hr != hrSuccess)
+		goto exit;
 
 	// set columns
-	hr = ptrContents->SetColumns(ptrContactCols, 0);
+	hr = ptrContents->SetColumns(ptrContactCols, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
 	j = 0;
 	while (true) {
-		hr = ptrContents->QueryRows(256, ulFlags, &ptrRows);
+		hr = ptrContents->QueryRows(256, 0, &ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
 
