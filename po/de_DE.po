@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-23 00:36+0200\n"
+"POT-Creation-Date: 2012-07-28 02:42+0200\n"
 "PO-Revision-Date: 2012-07-22 11:44+0200\n"
 "Last-Translator: Michael <m.kromer@zarafa.com>\n"
 "Language-Team: de_DE <de@li.org>\n"
@@ -76,36 +76,36 @@ msgstr "Die Abwesenheitsbenachrichtigung konnte nicht gespeichert werden"
 msgid "Delegates"
 msgstr "Stellvertreter"
 
-#: provider/ECProps/Addin.cpp:895 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:908 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favoriten"
 
-#: provider/ECProps/Addin.cpp:907 provider/ECProps/PropPage.cpp:433
+#: provider/ECProps/Addin.cpp:920 provider/ECProps/PropPage.cpp:435
 msgid "Permissions"
 msgstr "Berechtigungen"
 
-#: provider/ECProps/Addin.cpp:1111 provider/ECProps/Addin.cpp:1112
+#: provider/ECProps/Addin.cpp:1130 provider/ECProps/Addin.cpp:1131
 msgid "Add to Public Favorites Folder"
 msgstr "Dem öffentlichen Favoritenordner hinzufügen"
 
-#: provider/ECProps/Addin.cpp:1196
+#: provider/ECProps/Addin.cpp:1215
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden."
 
-#: provider/ECProps/Addin.cpp:1200 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1219 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2387
 msgid "Shortcut"
 msgstr "Verknüpfung"
 
-#: provider/ECProps/Addin.cpp:1200 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1219 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Favoriten Ordner"
 
-#: provider/ECProps/Addin.cpp:1202
+#: provider/ECProps/Addin.cpp:1221
 msgid "Unable to get shortcut folder."
 msgstr "Favoritenordner konnte nicht geöffnet werden"
 
@@ -189,12 +189,12 @@ msgstr "Das Hinzufügen des Ordners zu den Favoriten war nicht möglich"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:254
 #: provider/ECProps/ECDelegatePropPage.cpp:167
-#: provider/ECProps/PropPage.cpp:385
+#: provider/ECProps/PropPage.cpp:387
 msgid "Unable to get property page site"
 msgstr "Konnte die Seiteneigenschaften nicht abrufen"
 
 #: provider/ECProps/ECFavoritePropPage.cpp:262
-#: provider/ECProps/PropPage.cpp:400
+#: provider/ECProps/PropPage.cpp:402
 msgid "Unable to receive store and folder information"
 msgstr "Konnte die Konto- und Ordnerinformationen nicht abrufen"
 
@@ -301,13 +301,13 @@ msgstr ""
 "Kontaktieren Sie Ihren Administrator."
 
 #: provider/ECProps/ECDelegatePropPage.cpp:248
-#: provider/ECProps/PropPage.cpp:714 provider/ECProps/ECFavoritesDlg.cpp:48
+#: provider/ECProps/PropPage.cpp:716 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/client/SettingsPropPageAdvance.cpp:105
 msgid "Add"
 msgstr "Hinzufügen"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:263
-#: provider/ECProps/PropPage.cpp:721 provider/ECProps/MapOtherUserDlg.cpp:175
+#: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:175
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
@@ -326,41 +326,46 @@ msgstr "Ausblenden"
 msgid "Close"
 msgstr "Schließen"
 
-#: provider/ECProps/SyncStatusDlg.cpp:131
+#: provider/ECProps/SyncStatusDlg.cpp:132
+#: provider/libserver/ECDBUpdateProgress.cpp:56
+msgid "Your offline cache database is being upgraded..."
+msgstr "Ihr Offline-Cache wird aktualisiert..."
+
+#: provider/ECProps/SyncStatusDlg.cpp:134
 msgid "Connection error"
 msgstr "Verbindungsfehler"
 
-#: provider/ECProps/SyncStatusDlg.cpp:142
+#: provider/ECProps/SyncStatusDlg.cpp:146
 msgid "Username or password incorrect. Please update your MAPI profile."
 msgstr ""
 "Der Benutzername oder das Passwort ist falsch. Aktualisieren Sie bitte Ihr "
 "MAPI Profil."
 
-#: provider/ECProps/SyncStatusDlg.cpp:142
+#: provider/ECProps/SyncStatusDlg.cpp:146
 msgid "Logon error"
 msgstr "Login Fehler"
 
-#: provider/ECProps/SyncStatusDlg.cpp:145
+#: provider/ECProps/SyncStatusDlg.cpp:149
 msgid "synchronization done"
 msgstr "Sychronisation beendet"
 
-#: provider/ECProps/SyncStatusDlg.cpp:150
+#: provider/ECProps/SyncStatusDlg.cpp:154
 msgid "Synchronizing folders ..."
 msgstr "Synchronisiere Ordner ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:152
+#: provider/ECProps/SyncStatusDlg.cpp:156
 msgid "Looking for changes ..."
 msgstr "Suche nach Änderungen ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:154
+#: provider/ECProps/SyncStatusDlg.cpp:158
 msgid "Synchronizing messages ..."
 msgstr "Synchronisiere Nachrichten ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:156
+#: provider/ECProps/SyncStatusDlg.cpp:160
 msgid "Logging in ..."
 msgstr "Anmelden ..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:158
+#: provider/ECProps/SyncStatusDlg.cpp:162
 msgid "Synchronizing ..."
 msgstr "Sychronisieren ..."
 
@@ -408,96 +413,96 @@ msgstr "Die Berechtigungen konnten nicht gesetzt werden."
 msgid "Unable to get user store"
 msgstr "Das Postfach des Benutzers konnte nicht abgerufen werden"
 
-#: provider/ECProps/PropPage.cpp:415 provider/client/ECDisplayTable.cpp:28
+#: provider/ECProps/PropPage.cpp:417 provider/client/ECDisplayTable.cpp:28
 msgid "Name"
 msgstr "Name"
 
-#: provider/ECProps/PropPage.cpp:419
+#: provider/ECProps/PropPage.cpp:421
 msgid "Permission Level"
 msgstr "Umfang der Zugriffsrechte"
 
-#: provider/ECProps/PropPage.cpp:423
+#: provider/ECProps/PropPage.cpp:425
 msgid "A&dd"
 msgstr "&Hinzufügen"
 
-#: provider/ECProps/PropPage.cpp:427
+#: provider/ECProps/PropPage.cpp:429
 msgid "Remo&ve"
 msgstr "Ent&fernen"
 
-#: provider/ECProps/PropPage.cpp:429
+#: provider/ECProps/PropPage.cpp:431
 msgid "&Properties"
 msgstr "Eigenschaften"
 
-#: provider/ECProps/PropPage.cpp:435
+#: provider/ECProps/PropPage.cpp:437
 msgid "Profile"
 msgstr "Profil"
 
-#: provider/ECProps/PropPage.cpp:440
+#: provider/ECProps/PropPage.cpp:442
 msgid "&Create items"
 msgstr "Einträge &anlegen"
 
-#: provider/ECProps/PropPage.cpp:441
+#: provider/ECProps/PropPage.cpp:443
 msgid "Read &items"
 msgstr "Einträge &lesen"
 
-#: provider/ECProps/PropPage.cpp:443
+#: provider/ECProps/PropPage.cpp:445
 msgid "Create &subfolders"
 msgstr "&Unterordner erstellen"
 
-#: provider/ECProps/PropPage.cpp:444
+#: provider/ECProps/PropPage.cpp:446
 msgid "Folder pe&rmissions"
 msgstr "Be&rechtigungen für Ordner"
 
-#: provider/ECProps/PropPage.cpp:445
+#: provider/ECProps/PropPage.cpp:447
 msgid "Folder visi&ble"
 msgstr "Ordner an&zeigen"
 
-#: provider/ECProps/PropPage.cpp:446
+#: provider/ECProps/PropPage.cpp:448
 msgid "F&older contact"
 msgstr "&Besitzer"
 
-#: provider/ECProps/PropPage.cpp:447
+#: provider/ECProps/PropPage.cpp:449
 msgid "&Edit items"
 msgstr "&Einträge ändern"
 
-#: provider/ECProps/PropPage.cpp:448
+#: provider/ECProps/PropPage.cpp:450
 msgid "De&lete items"
 msgstr "Einträge &löschen"
 
-#: provider/ECProps/PropPage.cpp:449 provider/ECProps/PropPage.cpp:452
+#: provider/ECProps/PropPage.cpp:451 provider/ECProps/PropPage.cpp:454
 #: provider/ECProps/SyncConfigDlg.cpp:105
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:162
 msgid "None"
 msgstr "Kein/e"
 
-#: provider/ECProps/PropPage.cpp:450 provider/ECProps/PropPage.cpp:453
+#: provider/ECProps/PropPage.cpp:452 provider/ECProps/PropPage.cpp:455
 msgid "Own"
 msgstr "Eigene/r"
 
-#: provider/ECProps/PropPage.cpp:451 provider/ECProps/PropPage.cpp:454
+#: provider/ECProps/PropPage.cpp:453 provider/ECProps/PropPage.cpp:456
 msgid "All"
 msgstr "Alle"
 
-#: provider/ECProps/PropPage.cpp:532
+#: provider/ECProps/PropPage.cpp:534
 msgid "<Unknown user or group>"
 msgstr "<Unbekannter Benutzer oder Gruppe>"
 
-#: provider/ECProps/PropPage.cpp:565 provider/ECProps/PropPage.cpp:1056
+#: provider/ECProps/PropPage.cpp:567 provider/ECProps/PropPage.cpp:1058
 msgid "Other"
 msgstr "Andere/r"
 
-#: provider/ECProps/PropPage.cpp:746 provider/ECProps/PropPage.cpp:761
+#: provider/ECProps/PropPage.cpp:748 provider/ECProps/PropPage.cpp:763
 msgid "One or more users cannot be added to the folder access list."
 msgstr ""
 "Einer oder mehrere Benutzer können nicht der Liste der Ordnerberechtigungen "
 "hinzugefügt werden."
 
-#: provider/ECProps/PropPage.cpp:746
+#: provider/ECProps/PropPage.cpp:748
 msgid "Non-local users cannot be given rights on this server."
 msgstr ""
 "Externen Benutzern können keine Rechte auf diesem Server zugewiesen werden."
 
-#: provider/ECProps/PropPage.cpp:761
+#: provider/ECProps/PropPage.cpp:763
 msgid "One or more users are already specified."
 msgstr "Einer oder mehrere Benutzer sind bereits ausgewählt."
 
@@ -789,10 +794,6 @@ msgstr ""
 msgid "The folder and/or messages can not be deleted."
 msgstr ""
 "Der Ordner und/oder diese Nachrichten kann/können nicht gelöscht werden."
-
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr "Ihr Offline-Cache wird aktualisiert..."
 
 #: provider/libserver/ECDBUpdateProgress.cpp:93
 msgid "Upgrade: "
@@ -1350,7 +1351,7 @@ msgstr ""
 "Falls Sie die Offline-Funktionalitäten nutzen möchten müssen Sie Outlook "
 "2000, 2003, 2007 oder später verwenden."
 
-#: provider/contacts/ZCABContainer.cpp:660
+#: provider/contacts/ZCABContainer.cpp:693
 msgid "Zarafa Contacts Folders"
 msgstr "Zarafa Kontakte Ordner"
 

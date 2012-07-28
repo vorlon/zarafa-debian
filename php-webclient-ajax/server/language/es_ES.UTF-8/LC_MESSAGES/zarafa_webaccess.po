@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 00:01+0200\n"
-"PO-Revision-Date: 2011-09-14 22:57+0200\n"
+"POT-Creation-Date: 2012-07-28 02:41+0200\n"
+"PO-Revision-Date: 2012-07-26 23:46+0200\n"
 "Last-Translator: Angel <craem@craem.net>\n"
 "Language-Team: es_ES <es@li.org>\n"
 "Language: es\n"
@@ -2053,7 +2053,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/dialogs/modal/delegatespermission.php:59
 #: php-webclient-ajax/client/layout/dialogs/settings/tabs/preferences.php:68
-#: php-webclient-ajax/client/core/webclient.js:552
+#: php-webclient-ajax/client/core/webclient.js:558
 #: php-webclient-ajax/client/layout/js/sharedfolder.js:6
 msgid "Inbox"
 msgstr "Bandeja de entrada"
@@ -2174,7 +2174,7 @@ msgstr "Reenviar a"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:168
 msgid "Forward as Attachment to"
-msgstr ""
+msgstr "Reenviar como adjunto a"
 
 #: php-webclient-ajax/client/layout/dialogs/modal/rule.php:180
 msgid "Stop processing more rules"
@@ -3523,7 +3523,7 @@ msgstr "Error en la búsqueda, por favor intentelo de nuevo"
 msgid "Error in search"
 msgstr "Error en la búsqueda"
 
-#: php-webclient-ajax/server/modules/class.listmodule.php:1097
+#: php-webclient-ajax/server/modules/class.listmodule.php:1113
 msgid "Private Appointment"
 msgstr "Cita privada"
 
@@ -3560,7 +3560,7 @@ msgid "kb"
 msgstr "kb"
 
 #: php-webclient-ajax/server/modules/class.propertiesmodule.php:301
-#: php-webclient-ajax/server/modules/class.delegatesmodule.php:411
+#: php-webclient-ajax/server/modules/class.delegatesmodule.php:416
 #: php-webclient-ajax/client/modules/propertiesmodule.js:137
 msgid "Unknown user/group"
 msgstr "Usuario/grupo desconocido"
@@ -3580,11 +3580,11 @@ msgstr "%s's Cumpleaños"
 msgid "%s's Anniversary"
 msgstr "%s's Aniversarios"
 
-#: php-webclient-ajax/server/modules/class.delegatesmodule.php:53
+#: php-webclient-ajax/server/modules/class.delegatesmodule.php:54
 msgid "Unable to get Delegates information."
 msgstr "No se puede obtener información de los delegados."
 
-#: php-webclient-ajax/server/modules/class.delegatesmodule.php:67
+#: php-webclient-ajax/server/modules/class.delegatesmodule.php:68
 msgid "Unable to set Delegates permissions."
 msgstr "No se puede configurar las permisos de los delegados."
 
@@ -3891,7 +3891,7 @@ msgstr "Participante requerido"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:44
 msgid "Sort on Required Attendee"
-msgstr ""
+msgstr "Ordenar por asistente requerido"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 #: php-webclient-ajax/client/modules/freebusymodule.js:1134
@@ -3900,11 +3900,11 @@ msgstr "Participante opcional"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:45
 msgid "Sort on Optional Attendee"
-msgstr ""
+msgstr "Organizar por el asistente opcional"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:46
 msgid "Sort on Resource"
-msgstr ""
+msgstr "Organizar por Recurso"
 
 #: php-webclient-ajax/server/core/class.tablecolumns.php:48
 msgid "Sort on Busy Status"
@@ -4856,7 +4856,7 @@ msgid "Select"
 msgstr "Seleccionar"
 
 #: php-webclient-ajax/client/modules/datepickerlistmodule.js:21
-#: php-webclient-ajax/client/core/webclient.js:575
+#: php-webclient-ajax/client/core/webclient.js:581
 #: php-webclient-ajax/client/views/today.calendar.view.js:90
 #: php-webclient-ajax/client/layout/js/date-picker-language.js:119
 msgid "Today"
@@ -4947,6 +4947,8 @@ msgstr "Ya existe ese usuario"
 msgid ""
 "You do not own this task. Your changes may be overwritten by the task owner."
 msgstr ""
+"Usted no es el propietario de esta tarea. Sus cambios pueden ser "
+"sobreescritos por el propietario de la misma."
 
 #: php-webclient-ajax/client/modules/tasklistmodule.js:126
 msgid "The due date of a task cannot occur before its start date."
@@ -5300,9 +5302,8 @@ msgid "more"
 msgstr "más"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:93
-#, fuzzy
 msgid "Due date"
-msgstr "Fecha límite"
+msgstr "Fecha límite de vencimiento"
 
 #: php-webclient-ajax/client/modules/previewreadmailitemmodule.js:301
 msgid "has accepted"
@@ -5725,27 +5726,30 @@ msgstr "Vencimiento de cada semana efectiva %s"
 #: php-webclient-ajax/client/core/utils.js:1587
 #, c-format
 msgid "Due %d day after this task is completed effective %s"
-msgstr ""
+msgstr "Dia %d de vencimiento después de que esta tarea esté completada %s"
 
+# 98%
 #: php-webclient-ajax/client/core/utils.js:1589
-#, c-format
+#, fuzzy, c-format
 msgid "Due %d days after this task is completed effective %s"
-msgstr ""
+msgstr "Dia %d de vencimiento después de que esta tarea esté completada %s"
 
 #: php-webclient-ajax/client/core/utils.js:1591
 #, fuzzy, c-format
 msgid "Due every %d days effective %s"
 msgstr "Vencimiento de cada semana efectiva %s"
 
+# 83%
 #: php-webclient-ajax/client/core/utils.js:1597
-#, c-format
+#, fuzzy, c-format
 msgid "Due every week after this task is completed effective %s"
-msgstr ""
+msgstr "Dia %d de vencimiento después de que esta tarea esté completada %s"
 
+# 88%
 #: php-webclient-ajax/client/core/utils.js:1599
-#, c-format
+#, fuzzy, c-format
 msgid "Due %s weeks after this task is completed effective %s"
-msgstr ""
+msgstr "Dia %d de vencimiento después de que esta tarea esté completada %s"
 
 #: php-webclient-ajax/client/core/utils.js:1603
 #, c-format
@@ -5763,9 +5767,9 @@ msgstr ""
 
 # 77%
 #: php-webclient-ajax/client/core/utils.js:1629
-#, fuzzy, c-format
+#, c-format
 msgid "Due the %d %d of every"
-msgstr "Por el %d %d de %d"
+msgstr "Vencimiento el %d %d de %d"
 
 #: php-webclient-ajax/client/core/utils.js:1635
 #, c-format
@@ -5912,7 +5916,7 @@ msgstr "cerrar sesión"
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "Fuera de la Oficina actualmente encendido. ¿Desea apagarlo?"
 
-#: php-webclient-ajax/client/core/webclient.js:561
+#: php-webclient-ajax/client/core/webclient.js:567
 msgid "Date picker"
 msgstr "Selector de fecha"
 
@@ -6822,7 +6826,7 @@ msgstr ""
 
 #: php-webclient-ajax/client/layout/js/dialog.js:324
 msgid "You must enter at least one recipient in To field."
-msgstr ""
+msgstr "Ud. debe introducir al menos un destinatario en el campo Para"
 
 #: php-webclient-ajax/client/layout/js/dialog.js:443
 msgid "No signatures"
