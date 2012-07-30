@@ -2,8 +2,8 @@
 
 SVNCOPATH=`dirname $0`
 svnrev=`svnversion -nc ${SVNCOPATH} | sed -e 's/^[^:]*://;s/[MS]//'`
-if [ -z $svnrev ]; then
-	svnrev=0
+if [ $svnrev = 'exported' ]; then
+	svnrev=$(git svn info|grep Revision|awk '{print $2}')
 fi
 
 dot_version=`cat version`
