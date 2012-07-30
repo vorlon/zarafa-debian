@@ -782,6 +782,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/zarafa-stats/Makefile
 		ECtools/zarafa-archiver/Makefile
 		ECtools/zarafa-search/Makefile
+		ECtools/zarafa-utils/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile

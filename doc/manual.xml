@@ -2880,6 +2880,403 @@
 
 <!--
   -+-+-
+	Zarafa set oof manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>zarafa-set-oof</refentrytitle>
+		<manvolnum>1</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>zarafa-set-oof</refname>
+		<refpurpose>Control a user's out of office settings.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>zarafa-set-oof</command>
+		  <arg choice="plain"><replaceable>USERNAME</replaceable></arg>
+		  <arg choice="plain"><replaceable>STATE</replaceable></arg>
+		  <arg choice="opt"><replaceable>SUBJECT</replaceable></arg>
+		  <arg choice="opt"><replaceable>MESSAGE FILE</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>This tool can be used to change a user's out of office settings.
+		The Zarafa server must be running for
+		<command>zarafa-set-oof</command> to work.
+		</para>
+
+		<para>You must choose a state, enabled or disabled, when using
+		this script.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Actions</title>
+		<para>zarafa-set-oof needs atleast a state command. Valid states are:</para>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>0</option>
+			</term>
+			<listitem>
+			  <para>Disable the user's out of office reply.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>1</option>
+			</term>
+			<listitem>
+			  <para>Enable the user's out of office reply.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+		<para>The options used by actions are as follows:</para>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>SUBJECT</option>
+			</term>
+			<listitem>
+			  <para>Set a new subject for the oof message. This
+			  subject will be placed between square brackets when the
+			  message is sent.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>MESSAGE FILE</option>
+			  <replaceable>/path/to/message</replaceable>
+			</term>
+			<listitem>
+			  <para>The contents of this file will be used as
+			  plain text body in the oof email.</para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+	</refentry>
+
+<!--
+  -+-+-
+	Zarafa mailbox permissions manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>zarafa-mailbox-permissions</refentrytitle>
+		<manvolnum>1</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>zarafa-mailbox-permissions</refname>
+		<refpurpose>Manage mailbox delegate permissions.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>zarafa-mailbox-permissions</command>
+		  <arg choice="plain"><replaceable>ACTION</replaceable></arg>
+		  <arg rep="repeat"><replaceable>MAILBOXES</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>This script can be used to show delegate permissions and
+		settings for users.  The Zarafa server must be running for
+		<command>zarafa-mailbox-permissions</command> to work.
+		</para>
+
+		<para>You can show delegates and permissions information, and
+		add or update delegate permissions on a mailbox.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Actions</title>
+		<para>zarafa-mailbox-permissions needs an action command with
+		the appropriate options. Valid actions are:</para>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>--update-delegates</option>
+			  <replaceable>username</replaceable>
+			</term>
+			<listitem>
+			  <para>Add or update delegate information for
+			  <replaceable>username</replaceable> on specified
+			  <replaceable>mailboxes</replaceable>.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--remove-all-permissions</option>
+			</term>
+			<listitem>
+			  <para>Removes all delegates and explicit permissions on
+			  folders from one or more <replaceable>mailboxes</replaceable>.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--list-permissions</option>
+			</term>
+			<listitem>
+			  <para>Show all delegates and folder permissions of one
+			  or more <replaceable>mailbox</replaceable>.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--list-permissions-per-folder</option>
+			</term>
+			<listitem>
+			  <para>Show delegates and folder containing explicit
+			  permissions of one or more
+			  <replaceable>mailbox</replaceable>.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+		<para>The options used by actions are as follows:</para>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>-a</option>, <option>--all</option>
+			</term>
+			<listitem>
+			  <para>Perform the action on all available users in the zarafa-server.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-h</option>, <option>--host</option>
+			  <replaceable>URL</replaceable>
+			</term>
+			<listitem>
+			  <para>Use URL to connect to the zarafa-server. Default
+			  is
+			  <replaceable>file:///var/run/zarafa</replaceable>.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-s</option>, <option>--sslkey-file</option>
+			  <replaceable>FILENAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Use this file as the SSL private key to connect to the zarafa-server. Default
+			  is no SSL key.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-p</option>, <option>--sslkey-pass</option>
+			  <replaceable>PASSWORD</replaceable>
+			</term>
+			<listitem>
+			  <para>Use this password as the SSL private key password. Default
+			  is no SSL key password.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--verbose</option>
+			</term>
+			<listitem>
+			  <para>Currently unused, but may be used in the future
+			  for more information.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--calendar</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the default calendar folder of the given
+			  <replaceable>mailboxes</replaceable>. Select one of the
+			  permission preset to set on the folder.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--tasks</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the default tasks folder of the given
+			  <replaceable>mailboxes</replaceable>. Select one of the
+			  permission preset to set on the folder.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--inbox</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the default inbox folder of the given
+			  <replaceable>mailboxes</replaceable>. Select one of the
+			  permission preset to set on the folder.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--notes</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the default notes folder of the given
+			  <replaceable>mailboxes</replaceable>. Select one of the
+			  permission preset to set on the folder.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--journal</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the default journal folder of the given
+			  <replaceable>mailboxes</replaceable>. Select one of the
+			  permission preset to set on the folder.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--store</option>
+			  <replaceable>[none|readonly|secretary|owner]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, set these permissions on
+			  the store of the given
+			  <replaceable>mailboxes</replaceable>. All folders in the
+			  store inherit these permissions unless explicitly
+			  overwritten. Select one of the permission preset to set
+			  on the store.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--see-private</option>
+			  <replaceable>[no|yes]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, allow the delegate to
+			  see private marked items of the given
+			  <replaceable>mailboxes</replaceable>.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--sendcopy</option>
+			  <replaceable>[no|yes]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, mark the delegate to
+			  receive a copy of meeting requests in their inbox for
+			  the given <replaceable>mailboxes</replaceable>.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--send-only-to-delegators</option>
+			  <replaceable>[no|yes]</replaceable>
+			</term>
+			<listitem>
+			  <para>When updating a delegate, and
+			  <option>--sendcopy</option> is used, let the delegates
+			  receive meeting requests only, and not the owner of the
+			  given <replaceable>mailboxes</replaceable>.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--help</option>
+			</term>
+			<listitem>
+			  <para>Show a help text of the program and some usage examples.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>See also</title>
+		<para>
+		  <citerefentry>
+			<refentrytitle>zarafa-server</refentrytitle>
+			<manvolnum>1</manvolnum>
+		  </citerefentry>
+		  <citerefentry>
+			<refentrytitle>zarafa-server.cfg</refentrytitle>
+			<manvolnum>5</manvolnum>
+		  </citerefentry>
+		</para>
+	  </refsection>
+	</refentry>
+
+<!--
+  -+-+-
 	Zarafa Server Configuration file manual page (5.0 ready)
   -+-+-
 -->
