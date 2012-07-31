@@ -749,6 +749,31 @@ exit:
 	return er;                
 }
 
+ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId, string *lpstrBestBody)
+{
+	ECRESULT er = erSuccess;
+	DB_ROW 			lpDBRow = NULL;
+	DB_RESULT		lpDBResult = NULL;
+	string strQuery;
+
+	strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (0x1009, 0x1013) ORDER BY tag LIMIT 1";
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (lpDBRow && lpDBRow[0])
+		*lpstrBestBody = lpDBRow[0];
+	else
+		*lpstrBestBody = "0";
+		
+ exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+
+	return er;
+}
+
 ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
@@ -798,14 +823,18 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	} else {
 		// szGetProps
 		string strMode = "0";
-		if(ulFlags & SYNC_BEST_BODY)
+		string strBestBody = "0";
+		if(ulFlags & SYNC_BEST_BODY) {
 			strMode = "1";
-		else if(ulFlags & SYNC_LIMITED_IMESSAGE)
+			er = GetBestBody(lpDatabase, ulObjId, &strBestBody);
+			if (er != erSuccess)
+				goto exit;
+		} else if(ulFlags & SYNC_LIMITED_IMESSAGE)
 			strMode = "2";
 		
 		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
 			"LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
-			"AND (tag NOT IN (0x1009, 0x1013) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = bestbody) ) "
+			"AND (tag NOT IN (0x1009, 0x1013) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ") ) "
 			"UNION "
 			"SELECT " MVPROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM mvproperties "
 			"LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
