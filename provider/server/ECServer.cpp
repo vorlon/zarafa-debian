@@ -503,6 +503,10 @@ ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	DB_ROW lpRow = NULL;
 	unsigned ulThreadStack = 0;
 
+	// only required when procedures are used
+	if (!parseBool(g_lpConfig->GetSetting("enable_sql_procedures")))
+		goto exit;
+
 	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
@@ -957,6 +961,7 @@ int running_server(char *szName, const char *szConfig)
 		{ "hide_system",			"no", CONFIGSETTING_RELOADABLE },			// whether internal user SYSTEM should be removed for users
 		{ "enable_gab",				"yes", CONFIGSETTING_RELOADABLE },			// whether the GAB is enabled
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
+        { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
 		
 		{ "report_path",			"/etc/zarafa/report", CONFIGSETTING_RELOADABLE },
 		{ "report_ca_path",			"/etc/zarafa/report-ca", CONFIGSETTING_RELOADABLE },

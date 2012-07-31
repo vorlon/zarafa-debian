@@ -1099,6 +1099,14 @@ Default:
 \fIyes\fR
 .RE
 .PP
+\fBenable_sql_procedures\fR
+.RS 4
+SQL Procedures allow for some optimized queries when streaming with enhanced ICS\&. This is default disabled because you must set \*(Aqthread_stack = 256k\*(Aq in your MySQL server config under the [mysqld] tag and restart your MySQL server\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
 \fBfolder_max_items\fR
 .RS 4
 Limits the amount of items (messages or folders) in a single folder\&. This makes sure that the server will not attempt to load folders that are so large that it would require huge amounts of memory just to show the data\&. In practice, folders of over 1000000 items are usually created by runaway processes which are therefore useless anyway\&.

@@ -765,6 +765,7 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	ECMemStream *	lpStream = NULL;
 	IStream *		lpIStream = NULL;
 	ECStreamSerializer *	lpTempSink = NULL;
+	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	std::list<struct propVal> sPropValList;
 
@@ -792,7 +793,26 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	if (bTop && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
 		sPropValList.push_back(sPropVal);
 
-	er = lpDatabase->GetNextResult(&lpDBResult);
+	if (bUseSQLMulti) {
+		er = lpDatabase->GetNextResult(&lpDBResult);
+	} else {
+		// szGetProps
+		string strMode = "0";
+		if(ulFlags & SYNC_BEST_BODY)
+			strMode = "1";
+		else if(ulFlags & SYNC_LIMITED_IMESSAGE)
+			strMode = "2";
+		
+		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
+			"LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
+			"AND (tag NOT IN (0x1009, 0x1013) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = bestbody) ) "
+			"UNION "
+			"SELECT " MVPROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM mvproperties "
+			"LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
+			"GROUP BY tag, mvproperties.type"
+			;
+		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	}
 	if (er != erSuccess)
 		goto exit;
 
@@ -865,6 +885,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 	DB_RESULT		lpDBResult = NULL;
 	DB_RESULT		lpDBResultAttachment = NULL;
 	std::string		strQuery;
+	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
 		er = ZARAFA_E_NO_SUPPORT;
@@ -884,16 +905,24 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 			goto exit;
 	}
 
+	// szGetProps
 	er = SerializeProps(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulObjId, ulObjType, ulStoreId, lpsGuid, ulFlags, lpSink, bTop);
 	if (er != erSuccess)
 		goto exit;
-		
-	er = PrepareReadProps(NULL, lpStreamDatabase, false, true, 0, ulObjId, 0, &mapChildProps);
+
+	// szPrepareGetProps
+	er = PrepareReadProps(NULL, lpStreamDatabase, !bUseSQLMulti, true, 0, ulObjId, 0, &mapChildProps);
 	if (er != erSuccess)
 		goto exit;
 
-	// Serialize sub objects
-	er = lpStreamDatabase->GetNextResult(&lpDBResult);
+	if (bUseSQLMulti) {
+		// Serialize sub objects
+		er = lpStreamDatabase->GetNextResult(&lpDBResult);
+	} else {
+		// begin of loop part
+		strQuery = "SELECT id,hierarchy.type FROM hierarchy WHERE parent=" + stringify(ulObjId);
+		er = lpStreamDatabase->DoSelect(strQuery, &lpDBResult);
+	}
 	if (er != erSuccess)
 		goto exit;
 
@@ -959,7 +988,13 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 					goto exit;
 			}
 
-			er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
+			// start sub objects, can only be 0 or 1
+			if (bUseSQLMulti) {
+				er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
+			} else {
+				strQuery = "SELECT id, hierarchy.type FROM hierarchy WHERE parent = " + stringify(ulSubObjId) + " LIMIT 1";
+				er = lpStreamDatabase->DoSelect(strQuery, &lpDBResultAttachment);
+			}
 			if (er != erSuccess)
 				goto exit;
 				
@@ -985,7 +1020,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
                 if (er != erSuccess)
     	            goto exit;
 				
-				// Recurse into subobject
+				// Recurse into subobject, depth is ignored when not using sql procedures
 				er = SerializeObject(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
 				if (er != erSuccess)
 					goto exit;
@@ -997,7 +1032,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 
 	}
 
-	if(bTop)
+	if(bTop && bUseSQLMulti)
 		lpStreamDatabase->FinalizeMulti();
 
 exit:

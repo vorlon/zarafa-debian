@@ -10671,6 +10671,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	std::set<SOURCEKEY> setParentSourcekeys;
 	std::set<EntryId>	setEntryIDs;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
+	bool				bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	// Backward compat, old clients do not send ulPropTag
 	if(!ulPropTag)
@@ -10795,8 +10796,9 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		lpStreamInfo->ulFlags = ulFlags;
 		lpStreamInfo->lpPropValArray = NULL;
 		lpStreamInfo->lpSessionInfo = lpMTOMSessionInfo;
-		
-		strQuery += "call StreamObj(" + stringify(ulObjectId) + "," + stringify(ulDepth) + ", " + stringify(ulMode) + ");";
+
+		if(bUseSQLMulti)
+			strQuery += "call StreamObj(" + stringify(ulObjectId) + "," + stringify(ulDepth) + ", " + stringify(ulMode) + ");";
 		
 		// Setup the MTOM Attachments
 		memset(&lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData, 0, sizeof(lpsResponse->sMsgStreams.__ptr[ulObjCnt].sStreamData));

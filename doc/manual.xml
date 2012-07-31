@@ -4820,6 +4820,18 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>enable_sql_procedures</option></term>
+			<listitem>
+			  <para>SQL Procedures allow for some optimized queries
+			  when streaming with enhanced ICS. This is default
+			  disabled because you must set 'thread_stack = 256k' in
+			  your MySQL server config under the [mysqld] tag and
+			  restart your MySQL server.</para>
+			  <para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>folder_max_items</option></term>
 			<listitem>
 			  <para>Limits the amount of items (messages or folders) in a
