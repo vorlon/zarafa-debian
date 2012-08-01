@@ -434,14 +434,19 @@ HRESULT ECIndexImporter::ProcessThread()
                 lpThisIndex = m_lpIndex;
             }
 
+            /**
+             * Purge old versions of this document and get a new version. We have to do this even when
+             * this is a 'new' message (SYNC_NEW_MESSAGE) according to ICS, since it may have been generated
+             * by a move. In this case, SYNC_NEW_MESSAGE will be set, but the 'old' version will already be
+             * in the database, so we have to generate a new version in that case.
+             */
+            hr = lpThisIndex->RemoveTermsDoc(m_ulDocId, &ulVersion);
+            if(hr != hrSuccess) {
+                m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error removing old fields for update: %08X, ignoring", hr);
+                hr = hrSuccess;
+            }
+            
             if(!(m_ulFlags & SYNC_NEW_MESSAGE)) {
-                // Purge data from previous version of this document
-                hr = lpThisIndex->RemoveTermsDoc(m_ulDocId, &ulVersion);
-                if(hr != hrSuccess) {
-                    m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error removing old fields for update: %08X, ignoring", hr);
-                    hr = hrSuccess;
-                }
-                
                 m_ulChanged++;
             } else {
                 m_ulCreated++;
