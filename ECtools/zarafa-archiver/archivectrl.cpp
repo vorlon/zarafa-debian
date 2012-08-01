@@ -584,7 +584,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const TCHAR *lpszUser)
 
 		hrTmp = CleanupArchive(*iArchive, ptrUserStore);
 		if (hrTmp != hrSuccess)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to cleanup archive. (hr=0x%08x)", hrTmp);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to cleanup archive. (hr=0x%08x)", hr);
 	}
 
 exit:
@@ -1107,8 +1107,8 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 			
 			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
 				if (PROP_TYPE(ptrRows[j].lpProps[0].ulPropTag) == PT_ERROR) {
-					m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got error while retrieving reference. Ignoring entry. (hr=0x%08x)", ptrRows[j].lpProps[0].Value.err);
-					continue;
+					hr = ptrRows[j].lpProps[0].Value.err;
+					goto exit;
 				}
 				
 				lpReferences->insert(ptrRows[j].lpProps[0].Value.bin);
@@ -1169,7 +1169,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 			
 			hr = AppendAllEntries(*i, &setEntries);
 			if (hr != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get all entries from archive folder. (hr=0x%08x)", hr);
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get all references from archive folder. (hr=0x%08x)", hr);
 				goto exit;
 			}
 		}
