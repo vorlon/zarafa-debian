@@ -1047,36 +1047,18 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 {
 	HRESULT hr = hrSuccess;
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
-	SPropValue pvRestrict = {0};
-	SRestriction resContent = {0};
 	
 	const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
-	SizedSSortOrderSet(1, ssosContent) = {0};
 
 	PROPMAP_START
 	PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT(lpFolder)
 	
-	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS & ~MVI_FLAG;
+	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS;
 	
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
-	
-	pvRestrict.ulPropTag = PROP_ITEM_ENTRYIDS & ~MVI_FLAG;
-	pvRestrict.Value.bin.cb = sizeof(GUID);
-	pvRestrict.Value.bin.lpb = prefixData;
-
-	resContent.rt = RES_CONTENT;
-	resContent.res.resContent.ulFuzzyLevel = FL_PREFIX;
-	resContent.res.resContent.ulPropTag = PROP_ITEM_ENTRYIDS & ~MVI_FLAG;
-	resContent.res.resContent.lpProp = &pvRestrict;
-
-	ssosContent.cSorts = 1;
-	ssosContent.cCategories = 0;
-	ssosContent.cExpanded = 0;
-	ssosContent.aSort[0].ulPropTag = PROP_ITEM_ENTRYIDS | MV_INSTANCE;
-	ssosContent.aSort[0].ulOrder = TABLE_SORT_ASCEND;
 	
 	for (size_t i = 0; i < arraySize(ulFlagArray); ++i) {
 		MAPITablePtr ptrTable;
@@ -1089,14 +1071,6 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 		if (hr != hrSuccess)
 			goto exit;
 		
-		hr = ptrTable->Restrict(&resContent, TBL_BATCH);
-		if (hr != hrSuccess)
-			goto exit;
-		
-		hr = ptrTable->SortTable((LPSSortOrderSet)&ssosContent, TBL_BATCH);
-		if (hr != hrSuccess)
-			goto exit;
-
 		while (true) {
 			SRowSetPtr ptrRows;
 			const ULONG batch_size = 128;
@@ -1106,12 +1080,16 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 				goto exit;
 			
 			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
-				if (PROP_TYPE(ptrRows[j].lpProps[0].ulPropTag) == PT_ERROR) {
-					hr = ptrRows[j].lpProps[0].Value.err;
-					goto exit;
-				}
+				if (PROP_TYPE(ptrRows[j].lpProps[0].ulPropTag) == PT_ERROR)
+					continue;
 				
-				lpReferences->insert(ptrRows[j].lpProps[0].Value.bin);
+				for (ULONG k = 0; k < ptrRows[j].lpProps[0].Value.MVbin.cValues; ++k) {
+					if (ptrRows[j].lpProps[0].Value.MVbin.lpbin[k].cb >= sizeof(prefixData) &&
+						memcmp(ptrRows[j].lpProps[0].Value.MVbin.lpbin[k].lpb, prefixData, sizeof(prefixData)) == 0)
+					{
+						lpReferences->insert(ptrRows[j].lpProps[0].Value.MVbin.lpbin[k]);
+					}
+				}
 			}
 			
 			if (ptrRows.size() < batch_size)
