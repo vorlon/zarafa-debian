@@ -72,7 +72,7 @@ class ECIndexDB {
 public:
     HRESULT AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsigned int ulVersion, std::wstring wstrTerm);
     HRESULT RemoveTermsFolder(folderid_t folder);
-    HRESULT RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion);
+    HRESULT RemoveTermsDoc(folderid_t folder, docid_t doc, unsigned int *lpulVersion);
     
     HRESULT StartTransaction();
     HRESULT EndTransaction();
@@ -90,7 +90,8 @@ private:
     static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
 
     HRESULT FlushCache();
-    bool QueryCompleteFromDB();
+    unsigned int QueryFromDB(unsigned int key);
+	HRESULT WriteToDB(unsigned int key, unsigned int value);
     
     ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
     ~ECIndexDB();

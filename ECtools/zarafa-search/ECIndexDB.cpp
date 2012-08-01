@@ -119,6 +119,7 @@ typedef struct {
 // Key/Value types for KT_VERSION
 typedef struct {
     unsigned int type; // Must be KT_VERSION
+    unsigned int folder;
     unsigned int doc;
 } VERSIONKEY;
 
@@ -126,7 +127,9 @@ typedef struct {
     unsigned short version;
 } VERSIONVALUE;
 
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE };
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE, KT_DBVERSION };
+
+#define INDEX_VERSION_VALUE 1
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -236,11 +239,24 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bCompl
             hr = MAPI_E_NOT_FOUND;
             goto exit;
         }
+		hr = WriteToDB(KT_DBVERSION, INDEX_VERSION_VALUE);
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
+			goto exit;
+		}
 
         if (bComplete)
             SetComplete();  // set m_bComplete
-    } else
-        m_bComplete = QueryCompleteFromDB();
+    } else {
+		unsigned int version = QueryFromDB(KT_DBVERSION);
+		if (version != INDEX_VERSION_VALUE) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Old index file %s version %d is unusable", strPath.c_str(), version);
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please remove all files in %s and restart zarafa-search", m_lpConfig->GetSetting("index_path"));
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
+        m_bComplete = (QueryFromDB(KT_COMPLETE) == 1);
+	}
     
 exit:    
     return hr;
@@ -346,7 +362,7 @@ HRESULT ECIndexDB::RemoveTermsFolder(folderid_t folder)
  * @param[out] lpulVersion Version of new terms to be added
  * @return Result
  */
-HRESULT ECIndexDB::RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion)
+HRESULT ECIndexDB::RemoveTermsDoc(folderid_t folder, docid_t doc, unsigned int *lpulVersion)
 {
     HRESULT hr = hrSuccess;
     VERSIONKEY sKey;
@@ -355,6 +371,7 @@ HRESULT ECIndexDB::RemoveTermsDoc(docid_t doc, unsigned int *lpulVersion)
     size_t cb = 0;
     
     sKey.type = KT_VERSION;
+	sKey.folder = folder;
     sKey.doc = doc;
     
     value = m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
@@ -491,6 +508,7 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
                 VERSIONVALUE *sVersion;
                 size_t cb = 0;
                 sKey.type = KT_VERSION;
+				sKey.folder = p->folder;
                 sKey.doc = p->doc;
                 
                 // Check if the version is ok
@@ -683,6 +701,36 @@ bool ECIndexDB::Complete()
     return m_bComplete;
 }
 
+/** 
+ * Write a simple integer value under an interger key in the database
+ */
+HRESULT ECIndexDB::WriteToDB(unsigned int key, unsigned int value)
+{
+	HRESULT hr = hrSuccess;
+	if (!m_lpIndex->set((char*)&key, sizeof(key),
+						(char*)&value, sizeof(value))) {
+		hr = MAPI_E_DISK_ERROR;
+	}
+	return hr;
+}
+
+/** 
+ * Read a simple integer value under an interger key from the database
+ */
+unsigned int ECIndexDB::QueryFromDB(unsigned int key)
+{
+    size_t len = 0;
+    unsigned char *lpValue = NULL;
+	unsigned int rValue = 0;
+
+    lpValue = (unsigned char*)m_lpIndex->get((char*)&key, sizeof(key), &len);
+	if (lpValue && len == sizeof(unsigned int))
+		rValue = *(unsigned int*)lpValue;
+    
+    delete[] lpValue;
+    return rValue;
+}
+
 /**
  * Mark the index as complete. This indicates that the initial indexing
  * is performed and the index is now incrementally updated.
@@ -692,36 +740,13 @@ HRESULT ECIndexDB::SetComplete()
     HRESULT hr = hrSuccess;
     
     if (!m_bComplete) {
-        unsigned int ulKey = KT_COMPLETE;
-        unsigned char ulValue = 1;
-        
-        if (!m_lpIndex->set((char*)&ulKey, sizeof(ulKey),
-                            (char*)&ulValue, sizeof(ulValue))) {
-            hr = MAPI_E_DISK_ERROR;
+		hr = WriteToDB(KT_COMPLETE, 1);
+		if (hr != hrSuccess)
             goto exit;
-        }
         
         m_bComplete = true;
     }
     
 exit:
     return hr;
-}
-
-/**
- * Query the db to determine if the index is marked complete.
- * Returns true if so, false otherwise.
- */
-bool ECIndexDB::QueryCompleteFromDB()
-{
-    unsigned int ulKey = KT_COMPLETE;
-    size_t ulLen = 0;
-    unsigned char *lpValue = NULL;
-    bool bComplete = false;
-    
-    lpValue = (unsigned char*)m_lpIndex->get((char*)&ulKey, sizeof(ulKey), &ulLen);
-    bComplete = (lpValue && lpValue[0] != 0);
-    
-    delete[] lpValue;
-    return bComplete;
 }

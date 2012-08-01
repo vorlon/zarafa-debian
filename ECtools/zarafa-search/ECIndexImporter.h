@@ -125,8 +125,8 @@ public:
 
     HRESULT GetStats(ULONG *lpulCreated, ULONG *lpulChanges, ULONG *lpulDeleted, ULONG *lpulBytes);
 
-    HRESULT SaveSourceKey(const std::string &strSourceKey, unsigned int doc, GUID guidStore);
-    HRESULT GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpdoc, GUID *lpGuidStore);
+    HRESULT SaveSourceKey(const std::string &strSourceKey, unsigned int folder, unsigned int doc, GUID guidStore);
+    HRESULT GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpfolder, unsigned int *lpdoc, GUID *lpGuidStore);
     
     HRESULT GetStubTargets(std::list<ArchiveItem> **lpArchived);
     

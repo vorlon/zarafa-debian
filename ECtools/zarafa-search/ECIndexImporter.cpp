@@ -72,6 +72,10 @@ using namespace kyotocabinet;
 #include "helpers/mapiprophelper.h"
 using namespace za::helpers;
 
+#define DATABASE_VERSION_KEY "DBV"
+#define DATABASE_VERSION_VALUE "1"
+
+
 /**
  * The index importer receives imports from the streaming exporter for the data received from the
  * server. To parallelize incoming streaming data and the processing of that data, a single processing
@@ -156,10 +160,18 @@ HRESULT ECIndexImporter::OpenDB()
 {
     HRESULT hr = hrSuccess;
     std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + bin2hex(sizeof(GUID), (unsigned char*)&m_guidServer) + ".kct";
-    
+	bool bNew = false;
+	int ret;
+	std::string strKey = DATABASE_VERSION_KEY;
+	std::string strValue;
+
     m_lpDB = new TreeDB();
-    
-    if(!m_lpDB->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | TreeDB::OCREATE)) {
+    ret = m_lpDB->open(strPath, TreeDB::OWRITER | TreeDB::OREADER);
+	if (!ret) {
+		bNew = true;
+		ret = m_lpDB->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | TreeDB::OCREATE);
+	}
+    if(!ret) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpDB->error().message());
         hr = MAPI_E_NOT_FOUND;
         goto exit;
@@ -170,6 +182,29 @@ HRESULT ECIndexImporter::OpenDB()
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
+
+	if (bNew) {
+		// write DB version
+		strValue = DATABASE_VERSION_VALUE;
+		if(!m_lpDB->set(strKey, strValue)) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set database version value: %s", m_lpDB->error().message());
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
+	} else {
+		// check DB version
+		if(!m_lpDB->get(strKey, &strValue)) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get database version value: %s", m_lpDB->error().message());
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
+		if (strValue.compare(DATABASE_VERSION_VALUE)) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Database version value incorrect, unusable index");
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please remove all files in %s and restart zarafa-search", m_lpConfig->GetSetting("index_path"));
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
+	}
 
 	hr = MAPIPropHelper::GetArchiverProps(MAPIPropPtr(m_lpMsgStore, true), NULL, &m_lpArchiveProps);
 	if(hr != hrSuccess)
@@ -240,20 +275,19 @@ HRESULT ECIndexImporter::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSour
     HRESULT hr = hrSuccess;
     ECIndexDB *lpIndex = NULL;
     ECIndexDB *lpThisIndex = NULL;
+    folderid_t folder;
     docid_t doc;
     GUID guidStore;
 
 	for (unsigned int i=0; i < lpSourceEntryList->cValues; i++) {
-	    hr = GetDocIdFromSourceKey(std::string((char *)lpSourceEntryList->lpbin[i].lpb, lpSourceEntryList->lpbin[i].cb), &doc, &guidStore);
+	    hr = GetDocIdFromSourceKey(std::string((char *)lpSourceEntryList->lpbin[i].lpb, lpSourceEntryList->lpbin[i].cb), &folder, &doc, &guidStore);
 	    if(hr != hrSuccess) {
 			// eg. document that was never indexed
 	        m_lpLogger->Log(EC_LOGLEVEL_INFO, "Got deletion for unknown sourcekey: %s", bin2hex(lpSourceEntryList->lpbin[i].cb, lpSourceEntryList->lpbin[i].lpb).c_str());
 	        hr = hrSuccess;
 	        continue; // There is nothing to delete
 	    }
-	    
-	    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Remove doc %d", doc);
-	    
+	    	    
         if(m_lpIndex == NULL) {
             // Work in multi-store mode: each change we receive may be for a different store. This means
             // we have to get the correct store for each change.
@@ -268,11 +302,12 @@ HRESULT ECIndexImporter::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSour
             lpThisIndex = m_lpIndex;
         }
 
-		hr = lpThisIndex->RemoveTermsDoc(doc, NULL);
+		hr = lpThisIndex->RemoveTermsDoc(folder, doc, NULL);
 		if(hr != hrSuccess) {
 		    m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to remove terms for document deletion: %08X", hr);
 		    goto exit;
 		}
+	    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Remove doc %d in folder %d", doc, folder);
 		
 		m_ulDeleted++;
 
@@ -359,7 +394,7 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     }
 
     // Record the sourcekey for future deletes since we will only receive the sourcekey in that case, and we need the docid and store guid
-    hr = SaveSourceKey(std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb), m_ulDocId, m_guidStore);
+    hr = SaveSourceKey(std::string((char *)lpPropSK->Value.bin.lpb, lpPropSK->Value.bin.cb), m_ulFolderId, m_ulDocId, m_guidStore);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to record sourcekey information for change: %08X", hr);
         pthread_mutex_unlock(&m_mutexStream);
@@ -440,7 +475,7 @@ HRESULT ECIndexImporter::ProcessThread()
              * by a move. In this case, SYNC_NEW_MESSAGE will be set, but the 'old' version will already be
              * in the database, so we have to generate a new version in that case.
              */
-            hr = lpThisIndex->RemoveTermsDoc(m_ulDocId, &ulVersion);
+            hr = lpThisIndex->RemoveTermsDoc(m_ulFolderId, m_ulDocId, &ulVersion);
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error removing old fields for update: %08X, ignoring", hr);
                 hr = hrSuccess;
@@ -645,7 +680,7 @@ HRESULT ECIndexImporter::GetStats(ULONG *lpulCreated, ULONG *lpulChanged, ULONG 
  *
  * This can be retrieved later with GetDocIdFromSourceKey()
  */
-HRESULT ECIndexImporter::SaveSourceKey(const std::string &strSourceKey, unsigned int doc, GUID guidStore)
+HRESULT ECIndexImporter::SaveSourceKey(const std::string &strSourceKey, unsigned int folder, unsigned int doc, GUID guidStore)
 {
     HRESULT hr = hrSuccess;
     std::string strKey;
@@ -654,7 +689,8 @@ HRESULT ECIndexImporter::SaveSourceKey(const std::string &strSourceKey, unsigned
     strKey = "SK";
     strKey.append(strSourceKey);
     
-    strValue.assign((char *)&doc, sizeof(doc));
+    strValue.assign((char *)&folder, sizeof(folder));
+    strValue.append((char *)&doc, sizeof(doc));
     strValue.append((char *)&guidStore, sizeof(guidStore));
     
     if(!m_lpDB->set(strKey, strValue)) {
@@ -674,7 +710,7 @@ exit:
  * Since the sourcekey is globally unique, each sourcekey maps to a specific document ID and store GUID on this
  * server. We can only resolve sourcekeys that were previously passed to SaveSourceKey().
  */
-HRESULT ECIndexImporter::GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpdoc, GUID *lpGuidStore)
+HRESULT ECIndexImporter::GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpfolder, unsigned int *lpdoc, GUID *lpGuidStore)
 {
     HRESULT hr = hrSuccess;
     std::string strKey;
@@ -688,8 +724,9 @@ HRESULT ECIndexImporter::GetDocIdFromSourceKey(const std::string &strSourceKey, 
         goto exit;
     }
     
-    *lpdoc = *(unsigned int *)strValue.data();
-    *lpGuidStore = *(GUID *)(strValue.data()+sizeof(unsigned int));
+    *lpfolder = *(unsigned int *)strValue.data();
+    *lpdoc = *(unsigned int *)(strValue.data()+sizeof(unsigned int));
+    *lpGuidStore = *(GUID *)(strValue.data()+sizeof(unsigned int)+sizeof(unsigned int));
     
 exit:    
     return hr;
