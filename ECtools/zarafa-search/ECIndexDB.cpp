@@ -709,6 +709,7 @@ HRESULT ECIndexDB::WriteToDB(unsigned int key, unsigned int value)
 	HRESULT hr = hrSuccess;
 	if (!m_lpIndex->set((char*)&key, sizeof(key),
 						(char*)&value, sizeof(value))) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write key %u value %u to index", key, value);
 		hr = MAPI_E_DISK_ERROR;
 	}
 	return hr;
@@ -726,7 +727,8 @@ unsigned int ECIndexDB::QueryFromDB(unsigned int key)
     lpValue = (unsigned char*)m_lpIndex->get((char*)&key, sizeof(key), &len);
 	if (lpValue && len == sizeof(unsigned int))
 		rValue = *(unsigned int*)lpValue;
-    
+	else
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read key %u from index, data %p length %lu", key, lpValue, len);
     delete[] lpValue;
     return rValue;
 }
