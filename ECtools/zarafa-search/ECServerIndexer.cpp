@@ -519,11 +519,6 @@ HRESULT ECServerIndexer::IndexStore(IMAPISession *lpSession, SBinary *lpsEntryId
         goto exit;
     }
 
-    if(lpIndex->Complete()) {
-        m_lpLogger->Log(EC_LOGLEVEL_INFO, "Skipping store since it has already been indexed");
-        goto exit;
-    }
-
     hr = ECIndexImporter::Create(m_lpConfig, m_lpLogger, lpStore, m_lpThreadData, NULL, m_guidServer, &lpImporter);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create stream importer: %08X", hr);
