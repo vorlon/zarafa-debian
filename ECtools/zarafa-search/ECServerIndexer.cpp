@@ -70,6 +70,7 @@
 #include <stdio.h>
 
 #include <memory>
+#include <set>
 #include "mapi_ptr.h"
 #include "IECExportChanges.h"
 
@@ -789,6 +790,7 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const s
 	EntryListPtr lpEntryList;
 	unsigned int n = 0;
     UnknownPtr lpImportInterface;
+    set<SBinary> setEntries;
 
     m_lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing %lu stubs on server '%s'", mapItems.size(), strServer.c_str());
 
@@ -826,9 +828,17 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const s
         
     // Cheap copy data from mapItems into lpEntryList
     for(std::list<std::string>::const_iterator i = mapItems.begin(); i != mapItems.end(); i++) {
-        lpEntryList->lpbin[n].lpb = (BYTE *)i->data();
-        lpEntryList->lpbin[n].cb = i->size();
-        n++;
+        SBinary bin = {i->size(), (BYTE *)i->data()};
+        
+        // We avoid duplicate entries in lpEntryList as the rowengine
+        // doesn't like duplicates.
+        // As a side effect only one out of multiple messages referencing
+        // the same archive message will have the content of the archive
+        // added to it's index data.
+        if (setEntries.insert(bin).second == false) {
+            lpEntryList->lpbin[n] = bin;
+            n++;
+        }
     }
     lpEntryList->cValues = n;
 
