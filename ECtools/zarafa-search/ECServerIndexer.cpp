@@ -835,10 +835,12 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(IMAPISession *lpSession, const s
         // As a side effect only one out of multiple messages referencing
         // the same archive message will have the content of the archive
         // added to it's index data.
-        if (setEntries.insert(bin).second == false) {
+        if (setEntries.insert(bin).second == true) {
+            // true indicates a new item was added to the set.
             lpEntryList->lpbin[n] = bin;
             n++;
-        }
+        } else
+            m_lpLogger->Log(EC_LOGLEVEL_INFO, "Removing duplicate entry from stub target list");
     }
     lpEntryList->cValues = n;
 
