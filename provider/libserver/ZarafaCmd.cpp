@@ -10668,8 +10668,6 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	ECDatabase 			*lpBatchDB;
 	unsigned int		ulDepth = 20;
 	unsigned int		ulMode = 0;
-	std::set<SOURCEKEY> setParentSourcekeys;
-	std::set<EntryId>	setEntryIDs;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
 	bool				bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
@@ -10685,26 +10683,33 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 	USE_DATABASE();
 
 	if(ulPropTag == PR_ENTRYID) {
-    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
+		std::set<EntryId>	setEntryIDs;
+
+    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i)
 	        setEntryIDs.insert(EntryId(sSourceKeyPairs.__ptr[i].sObjectKey));
-    	}
 
     	er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED);
-    	if(er != erSuccess)
-	        goto exit;
-	
 	} else if (ulPropTag == PR_SOURCE_KEY) {
-    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i) {
+		std::set<SOURCEKEY> setParentSourcekeys;
+
+    	for(unsigned i = 0; i < sSourceKeyPairs.__size; ++i)
 	        setParentSourcekeys.insert(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
-    	}
 
     	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
-    	if(er != erSuccess)
-	        goto exit;
-    } else {
+    } else
         er = ZARAFA_E_INVALID_PARAMETER;
-        goto exit;
-    }
+    
+    if (er == ZARAFA_E_NOT_FOUND) {
+		// BeginLockFolders returns ZARAFA_E_NOT_FOUND when there's no
+		// folder to lock, which can only happen if none of the passed
+		// objects exist.
+		// This is not an error as that's perfectly valid when performing
+		// a selective export. So we'll just return an empty batch, which
+		// will be interpreted by the caller as 'all message are deleted'.
+		er = erSuccess;
+		goto exit;
+	} else if (er != erSuccess)
+		goto exit;
 
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit"));
 	
