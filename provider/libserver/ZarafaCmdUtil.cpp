@@ -2274,9 +2274,13 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         if(ulObjId)
             strQuery = "SELECT " + (std::string)PROPCOLORDER + ",hierarchyid FROM properties FORCE INDEX (PRIMARY) WHERE hierarchyid="+stringify(ulObjId);
         else
-			// skip non-static named properties when using SQL version, since they should never be present on types 6, 7 or 8
-			// @note, sql procedures do get the named info here.
-            strQuery = "SELECT " + (std::string)PROPCOLORDER + ",hierarchy.id FROM properties FORCE INDEX (PRIMARY) JOIN hierarchy FORCE INDEX (parenttypeflags) ON hierarchy.id=properties.hierarchyid WHERE parent="+stringify(ulParentId) + " AND properties.tag <= 0x8500";
+            strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
+                       "FROM properties FORCE INDEX (PRIMARY) "
+                       "JOIN hierarchy FORCE INDEX (parenttypeflags) "
+                           "ON properties.hierarchyid=hierarchy.id "
+                       "LEFT JOIN names "
+                           "ON (properties.tag-0x8501)=names.id "
+                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag < 0x8500 OR names.id IS NOT NULL)";
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
