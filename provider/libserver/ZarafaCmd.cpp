@@ -3127,8 +3127,8 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 	struct saveObject sSavedObject;
 	int i;
 	GUID			sGuidServer;
-	std::map<unsigned int, CHILDPROPS> mapChildProps;
-	std::map<unsigned int, CHILDPROPS>::iterator iterProps;
+	ChildPropsMap mapChildProps;
+	ChildPropsMap::iterator iterProps;
 	USE_DATABASE();
 	CHILDPROPS		sEmptyProps;
 	
@@ -3157,7 +3157,7 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 	
 	if(lpChildProps == NULL) {
 	    // We were not provided with a property list for this object, get our own now.
-	    er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps);
+	    er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, NULL);
 	    if(er != erSuccess)
 	        goto exit;
 	        
@@ -3178,7 +3178,7 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
         // Pre-load *all* properties of *all* subobjects for fast accessibility
-        er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps);
+        er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
         if (er != erSuccess)
             goto exit;
 

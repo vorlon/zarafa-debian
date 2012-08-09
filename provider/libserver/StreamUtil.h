@@ -56,6 +56,7 @@
 #include "ECDatabase.h"
 #include "ECDatabaseUtils.h"
 #include "ECSession.h"
+#include "ZarafaCmdUtil.h"
 
 #include <SOAPUtils.h>
 
@@ -72,7 +73,7 @@ typedef const StreamCaps* LPCSTREAMCAPS;
 
 // Utility Functions
 ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamInfo, DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink);
-ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamInfo, const struct propVal &sPropVal, ECSerializer *lpSink);
+ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamInfo, const struct propVal &sPropVal, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs);
 ECRESULT SerializeProps(ECSession *lpecSession, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulParentId, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink);
 ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop);
 

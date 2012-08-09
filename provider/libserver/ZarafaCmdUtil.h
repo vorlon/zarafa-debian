@@ -51,6 +51,12 @@
 #define ZARAFACMD_UTIL_H
 
 #include "ECICS.h"
+#include "SOAPUtils.h"
+
+#include <map>
+#include <set>
+#include <list>
+#include <string>
 
 // Above EC_TABLE_CHANGE_THRESHOLD, a TABLE_CHANGE notification is sent instead of individual notifications
 #define EC_TABLE_CHANGE_THRESHOLD 10
@@ -236,12 +242,21 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsign
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags);			// single sourcekey, folder or message
 
 typedef struct {
+    GUID			guid;
+    unsigned int	ulKind;
+    unsigned int	ulId;
+    std::string		strName;
+} NAMEDPROPDEF;
+typedef std::map<unsigned int, NAMEDPROPDEF> NamedPropDefMap;
+
+typedef struct {
     DynamicPropValArray *lpPropVals;
     DynamicPropTagArray *lpPropTags;
 } CHILDPROPS;
+typedef std::map<unsigned int, CHILDPROPS> ChildPropsMap;
 
 
-ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, std::map<unsigned int, CHILDPROPS> *lpChildProps);
+ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedProps);
 ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps);
 
 

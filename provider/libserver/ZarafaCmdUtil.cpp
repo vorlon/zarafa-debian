@@ -76,6 +76,9 @@
 
 #include "ZarafaCmdUtil.h"
 
+#define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
+#define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
+#define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -2252,10 +2255,10 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, un
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
 // retrieved with far less SQL queries, since this function bulk-receives the data. You may pass EITHER ulObjId OR ulParentId to retrieve an object itself, or
 // children of an object.
-ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, std::map<unsigned int, CHILDPROPS> *lpChildProps)
+ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedPropDefs)
 {
     ECRESULT er = erSuccess;
-	std::map<unsigned int, CHILDPROPS>::iterator iterChild;
+	ChildPropsMap::iterator iterChild;
 	unsigned int ulSize;
 	struct propVal sPropVal;
     unsigned int ulChildId;
@@ -2272,7 +2275,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
     if(fDoQuery) {
         if(ulObjId)
-            strQuery = "SELECT " + (std::string)PROPCOLORDER + ",hierarchyid FROM properties FORCE INDEX (PRIMARY) WHERE hierarchyid="+stringify(ulObjId);
+            strQuery = "SELECT " PROPCOLORDER ",hierarchyid FROM properties FORCE INDEX (PRIMARY) WHERE hierarchyid="+stringify(ulObjId);
         else
             strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
                        "FROM properties FORCE INDEX (PRIMARY) "
@@ -2280,7 +2283,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
                            "ON properties.hierarchyid=hierarchy.id "
                        "LEFT JOIN names "
                            "ON (properties.tag-0x8501)=names.id "
-                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag < 0x8500 OR names.id IS NOT NULL)";
+                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag <= 0x8500 OR names.id IS NOT NULL)";
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
@@ -2302,6 +2305,29 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         }
 
         ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
+        
+        if (PROP_ID(ulPropTag) > 0x8500 && lpNamedPropDefs) {
+            std::pair<NamedPropDefMap::iterator, bool> resInsert = lpNamedPropDefs->insert(NamedPropDefMap::value_type(ulPropTag, NAMEDPROPDEF()));
+            if (resInsert.second) {
+                // New entry
+                if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
+                    er = ZARAFA_E_DATABASE_ERROR;
+                    goto exit;
+                }
+                memcpy(&resInsert.first->second.guid, lpDBRow[FIELD_NR_NAMEGUID], sizeof(resInsert.first->second.guid));
+                
+                if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
+                    resInsert.first->second.ulKind = MNID_ID;
+                    resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
+                } else if (lpDBRow[FIELD_NR_NAMESTR] != NULL) {
+                    resInsert.first->second.ulKind = MNID_STRING;
+                    resInsert.first->second.strName.assign((char*)lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
+                } else {
+                    er = ZARAFA_E_INVALID_TYPE;
+                    goto exit;
+                }
+            }
+        }
 
 		// server strings are always unicode, for unicode clients.
 		if (fUnicode) {
@@ -2322,7 +2348,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-            iterChild = lpChildProps->insert(std::pair<unsigned int, CHILDPROPS>(ulChildId, sChild)).first;
+            iterChild = lpChildProps->insert(ChildPropsMap::value_type(ulChildId, sChild)).first;
         }
         
         er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
@@ -2354,9 +2380,17 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
     if(fDoQuery) {
         if(ulObjId)
-            strQuery = "SELECT " + (std::string)MVPROPCOLORDER + ", hierarchyid FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+" GROUP BY hierarchyid, tag";
+            strQuery = "SELECT " MVPROPCOLORDER ", hierarchyid FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+" GROUP BY hierarchyid, tag";
         else
-            strQuery = "SELECT " + (std::string)MVPROPCOLORDER + ", hierarchyid FROM mvproperties JOIN hierarchy ON hierarchy.id=mvproperties.hierarchyid WHERE hierarchy.parent="+stringify(ulParentId)+" GROUP BY hierarchyid, tag";
+            strQuery = "SELECT " MVPROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
+                       "FROM mvproperties "
+                       "JOIN hierarchy "
+                           "ON mvproperties.hierarchyid=hierarchy.id "
+                       "LEFT JOIN names "
+                           "ON (mvproperties.tag-0x8501)=names.id "
+                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+                       "GROUP BY tag, mvproperties.type";
+                       
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
@@ -2375,6 +2409,32 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             er = ZARAFA_E_DATABASE_ERROR; // this should never happen
             goto exit;
         }
+        
+        if (lpNamedPropDefs) {
+            unsigned int ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
+            if (PROP_ID(ulPropTag) > 0x8500) {
+                std::pair<NamedPropDefMap::iterator, bool> resInsert = lpNamedPropDefs->insert(NamedPropDefMap::value_type(ulPropTag, NAMEDPROPDEF()));
+                if (resInsert.second) {
+                    // New entry
+                    if (lpDBLen[FIELD_NR_NAMEGUID] != sizeof(resInsert.first->second.guid)) {
+                        er = ZARAFA_E_DATABASE_ERROR;
+                        goto exit;
+                    }
+                    memcpy(&resInsert.first->second.guid, lpDBRow[FIELD_NR_NAMEGUID], sizeof(resInsert.first->second.guid));
+                    
+                    if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
+                        resInsert.first->second.ulKind = MNID_ID;
+                        resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
+                    } else if (lpDBRow[FIELD_NR_NAMESTR] != NULL) {
+                        resInsert.first->second.ulKind = MNID_STRING;
+                        resInsert.first->second.strName.assign((char*)lpDBRow[FIELD_NR_NAMESTR], lpDBLen[FIELD_NR_NAMESTR]);
+                    } else {
+                        er = ZARAFA_E_INVALID_TYPE;
+                        goto exit;
+                    }
+                }
+            }
+        }
 
         ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 
@@ -2387,7 +2447,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             
             // First property for this child
-            iterChild = lpChildProps->insert(std::pair<unsigned int, CHILDPROPS>(ulChildId, sChild)).first;
+            iterChild = lpChildProps->insert(ChildPropsMap::value_type(ulChildId, sChild)).first;
         }
         
         er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);

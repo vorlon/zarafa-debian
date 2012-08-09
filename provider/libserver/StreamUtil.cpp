@@ -553,7 +553,7 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 	}
 
 	// If property is named property in the dynamic range we need to add some extra info
-	if (PROP_ID(ulPropTag) >= 0x8500) {
+	if (PROP_ID(ulPropTag) > 0x8500) {
 		// Send out the GUID.
 		er = lpSink->Write(lpRow[FIELD_NR_NAMEGUID], 1, lpLen[FIELD_NR_NAMEGUID]);
 
@@ -584,7 +584,7 @@ exit:
 	return er;
 }
 
-ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPropVal, ECSerializer *lpSink)
+ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPropVal, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs)
 {
 	ECRESULT er = erSuccess;
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
@@ -593,18 +593,29 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	unsigned int ulPropTag = sPropVal.ulPropTag;
 	std::string	strData;
 	convert_context converter;
+	NamedPropDefMap::const_iterator iNamedPropDef;
 
-	if (PROP_ID(sPropVal.ulPropTag) >= 0x8500) {
-		er = ZARAFA_E_INVALID_TYPE;
-		goto exit;
-	}
-	
 	// We always stream PT_STRING8
 	if(PROP_TYPE(ulPropTag) == PT_UNICODE)
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
 	else if(PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
 
+	if (PROP_ID(ulPropTag) > 0x8500) {
+		ASSERT(lpNamedPropDefs);
+		if (!lpNamedPropDefs) {
+			er = ZARAFA_E_INVALID_TYPE;
+			goto exit;
+		}
+		
+		iNamedPropDef = lpNamedPropDefs->find(ulPropTag);
+		ASSERT(iNamedPropDef != lpNamedPropDefs->end());
+		if (iNamedPropDef == lpNamedPropDefs->end()) {
+			er = ZARAFA_E_NOT_FOUND;
+			goto exit;
+		}
+	}
+	
 	er = lpSink->Write((unsigned char *)&ulPropTag, sizeof(ulPropTag), 1);
 	if (er != erSuccess)
 		goto exit;
@@ -723,12 +734,36 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	default:
 		er = ZARAFA_E_INVALID_TYPE;
 	}
+	
+	// If property is named property in the dynamic range we need to add some extra info
+	if (PROP_ID(sPropVal.ulPropTag) > 0x8500) {
+		ASSERT(lpNamedPropDefs && iNamedPropDef != lpNamedPropDefs->end());
+		// Send out the GUID.
+		er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
+		if (er == erSuccess)
+			er = lpSink->Write(&iNamedPropDef->second.ulKind, sizeof(iNamedPropDef->second.ulKind), 1);
+
+		if (er == erSuccess) {
+			if (iNamedPropDef->second.ulKind == MNID_ID)
+				er = lpSink->Write(&iNamedPropDef->second.ulId, sizeof(iNamedPropDef->second.ulId), 1);
+
+			else if ( iNamedPropDef->second.ulKind == MNID_STRING) {
+				unsigned int ulLen = iNamedPropDef->second.strName.size();
+				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+				if (er == erSuccess)
+					er = lpSink->Write(iNamedPropDef->second.strName.data(), 1, ulLen);
+			}
+			
+			else
+				er = ZARAFA_E_INVALID_TYPE;
+		}
+	}
 
 exit:
 	return er;
 }
 
-ECRESULT SerializeProps(struct propValArray *lpPropVals, LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink)
+ECRESULT SerializeProps(struct propValArray *lpPropVals, LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulCount = 0;
@@ -740,7 +775,7 @@ ECRESULT SerializeProps(struct propValArray *lpPropVals, LPCSTREAMCAPS lpStreamC
     	goto exit;
     	
 	for(unsigned int i=0; i < ulCount; i++) {
-		er = SerializePropVal(lpStreamCaps, lpPropVals->__ptr[i], lpSink);
+		er = SerializePropVal(lpStreamCaps, lpPropVals->__ptr[i], lpSink, lpNamedPropDefs);
         if (er != erSuccess)
 	        goto exit;
 	}
@@ -833,11 +868,11 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 			strMode = "2";
 		
 		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
-			"LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
+			"LEFT JOIN names ON (properties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 0x8500 OR names.id IS NOT NULL) "
 			"AND (tag NOT IN (0x1009, 0x1013) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ") ) "
 			"UNION "
 			"SELECT " MVPROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM mvproperties "
-			"LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag < 0x8500 OR names.id IS NOT NULL) "
+			"LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 0x8500 OR names.id IS NOT NULL) "
 			"GROUP BY tag, mvproperties.type"
 			;
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -861,7 +896,7 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 	}
 
 	for (std::list<struct propVal>::const_iterator it = sPropValList.begin(); it != sPropValList.end(); ++it) {
-		er = SerializePropVal(lpStreamCaps, *it, lpTempSink);
+		er = SerializePropVal(lpStreamCaps, *it, lpTempSink, NULL);		// No NamedPropDefMap needed for computed properties
 		if (er != erSuccess)
 			goto exit;
 			
@@ -906,8 +941,9 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 	unsigned int	ulSubObjId = 0;
 	unsigned int	ulSubObjType = 0;
 	unsigned int	ulCount = 0;
-	std::map<unsigned int, CHILDPROPS> mapChildProps;
-	std::map<unsigned int, CHILDPROPS>::iterator iterChild;
+	ChildPropsMap	mapChildProps;
+	ChildPropsMap::iterator iterChild;
+	NamedPropDefMap	mapNamedPropDefs;
 
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
@@ -940,7 +976,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 		goto exit;
 
 	// szPrepareGetProps
-	er = PrepareReadProps(NULL, lpStreamDatabase, !bUseSQLMulti, true, 0, ulObjId, 0, &mapChildProps);
+	er = PrepareReadProps(NULL, lpStreamDatabase, !bUseSQLMulti, true, 0, ulObjId, 0, &mapChildProps, &mapNamedPropDefs);
 	if (er != erSuccess)
 		goto exit;
 
@@ -987,7 +1023,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 			
 			iterChild->second.lpPropVals->GetPropValArray(&props);
 			
-			er = SerializeProps(&props, lpStreamCaps, lpSink);
+			er = SerializeProps(&props, lpStreamCaps, lpSink, &mapNamedPropDefs);
 
 			FreePropValArray(&props, false);
 
@@ -1275,7 +1311,7 @@ ECRESULT DeserializePropVal(struct soap *soap, LPCSTREAMCAPS lpStreamCaps, Named
 	}
 
 	// If the proptag is in the dynamic named property range, we need to get the correct local proptag
-	if (PROP_ID(lpsPropval->ulPropTag) >= 0x8500) {
+	if (PROP_ID(lpsPropval->ulPropTag) > 0x8500) {
 		er = lpSource->Read(&guid, 1, sizeof(guid));
 		if (er == erSuccess)
 			er = lpSource->Read(&ulKind, sizeof(ulKind), 1);
