@@ -59,8 +59,8 @@ class MAPINAMEID(MAPIStruct):
 
 class SPropProblem(MAPIStruct):
     def __init__(self, index, tag, scode):
-        self.index = index
-        self.tag = tag
+        self.ulIndex = index
+        self.ulPropTag = tag
         self.scode = scode
 
 class SAndRestriction(MAPIStruct):
