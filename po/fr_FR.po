@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-28 02:42+0200\n"
-"PO-Revision-Date: 2012-05-16 19:34+0200\n"
+"POT-Creation-Date: 2012-08-12 00:02+0200\n"
+"PO-Revision-Date: 2012-08-11 14:15+0200\n"
 "Last-Translator: Pierrick <pierrick@zarafa.com>\n"
 "Language-Team: fr_FR <fr@li.org>\n"
 "Language: fr\n"
@@ -332,6 +332,8 @@ msgstr "Fermer"
 #: provider/libserver/ECDBUpdateProgress.cpp:56
 msgid "Your offline cache database is being upgraded..."
 msgstr ""
+"Le cache hors-connexion de votre base de donnée est en cours de mise à "
+"jour..."
 
 #: provider/ECProps/SyncStatusDlg.cpp:134
 msgid "Connection error"
@@ -489,7 +491,9 @@ msgstr "Tous"
 
 #: provider/ECProps/PropPage.cpp:534
 msgid "<Unknown user or group>"
-msgstr "<Utilisateur ou groupe inconnu>"
+msgstr ""
+"Le cache hors-connexion de votre base de données est en cours de mise à "
+"jour..."
 
 #: provider/ECProps/PropPage.cpp:567 provider/ECProps/PropPage.cpp:1058
 msgid "Other"
@@ -1043,6 +1047,8 @@ msgid ""
 "Your offline cache database is being upgraded. Outlook will start in online "
 "mode for this session."
 msgstr ""
+"Le cache hors-connexion de votre base de données est en cours de mise à "
+"jours. Outlook va démarrer en mode connecté pour cette session."
 
 #: provider/client/ECABProviderSwitch.cpp:209
 #: provider/client/ECMSProviderSwitch.cpp:379
@@ -1408,39 +1414,39 @@ msgstr ""
 "\r\n"
 "Veuillez contacte l'administrateur du système si le problème persiste."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:922
 msgid "Zarafa Archive"
 msgstr "Archive Zarafa"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:923
 msgid "This folder contains the special archive folders."
 msgstr "Ce répertoire contient les dossiers d'archives spécifiques."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:928
 msgid "History"
 msgstr "Historique"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:929
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr ""
 "Ce dossier contient les archives écrasées par des versions plus récentes."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:933
 msgid "Outgoing"
 msgstr "Courrier sortant"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:934
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Ce dossier contient les archives de l'ensemble du courrier sortant."
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Supprimé"
 
 # 98%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Ce répertoire contient des messages archivés qui ont été supprimés."
 
