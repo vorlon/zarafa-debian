@@ -245,7 +245,7 @@ void *ECWorkerThread::Work(void *lpParam)
 
 done:	
 			if(((SOAPINFO *)lpWorkItem->soap->user)->fdone)
-				((SOAPINFO *)lpWorkItem->soap->user)->fdone(((SOAPINFO *)lpWorkItem->soap->user)->fdoneparam);
+				((SOAPINFO *)lpWorkItem->soap->user)->fdone(lpWorkItem->soap, ((SOAPINFO *)lpWorkItem->soap->user)->fdoneparam);
 
 			// Record statistics for number of requests and processing time
 			g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);

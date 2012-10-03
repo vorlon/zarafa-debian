@@ -10528,6 +10528,10 @@ SOAP_ENTRY_START(setServerBehavior, *result, unsigned int ulBehavior, unsigned i
 } 
 SOAP_ENTRY_END() 
 
+typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
+
+typedef struct _MTOMStreamInfo MTOMStreamInfo;
+
 typedef struct {
 	ECSession		*lpecSession;
 	ECDatabase		*lpSharedDatabase;
@@ -10535,17 +10539,19 @@ typedef struct {
 	ECAttachmentStorage *lpAttachmentStorage;
 	ECRESULT er;
 	ECThreadPool	*lpThreadPool;
+	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
+	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
 } MTOMSessionInfo;
 
-typedef struct {
+typedef struct _MTOMStreamInfo {
 	ECFifoBuffer	*lpFifoBuffer;
 	unsigned int	ulObjectId;
 	unsigned int	ulStoreId;
 	bool			bNewItem;
 	unsigned long long ullIMAP;
 	GUID			sGuid;
-	ULONG			ulFlags;
-	ECWaitableTask  *lpTask;
+    ULONG			ulFlags;
+	task_type 		*lpTask;
 	struct propValArray *lpPropValArray;
 	MTOMSessionInfo *lpSessionInfo;
 } MTOMStreamInfo;
@@ -10553,7 +10559,7 @@ typedef struct {
 
 typedef MTOMStreamInfo * LPMTOMStreamInfo;
 
-void *SerializeObject(void *arg)
+ECRESULT SerializeObject(void *arg)
 {
 	ECRESULT            er = erSuccess;
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
@@ -10573,13 +10579,11 @@ void *SerializeObject(void *arg)
 
 	lpStreamInfo->lpSessionInfo->er = er;
 
-	return NULL;
+	return er;
 }
 
 void *MTOMReadOpen(struct soap* soap, void *handle, const char *id, const char* /*type*/, const char* /*options*/)
 {
-	typedef ECDeferredFunc<void*, void*(*)(void*), void*> task_type;
-
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
@@ -10612,6 +10616,8 @@ void *MTOMReadOpen(struct soap* soap, void *handle, const char *id, const char* 
 		return NULL;
 	}
 	
+	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = lpStreamInfo; // Track currently opened stream info
+	
 	return (void *)lpStreamInfo;
 }
 
@@ -10635,6 +10641,8 @@ void MTOMReadClose(struct soap* soap, void *handle)
 	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
 	
 	ASSERT(lpStreamInfo->lpFifoBuffer != NULL);
+	
+	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = NULL; // Cleanup done
 
 	// We get here when the last call to MTOMRead returned 0 OR when
 	// an error occured within gSOAP's bowels. In the last case we need
@@ -10650,16 +10658,30 @@ void MTOMReadClose(struct soap* soap, void *handle)
 	lpStreamInfo->lpFifoBuffer = NULL;
 }
 
-void MTOMSessionDone(void *param)
+void MTOMWriteClose(struct soap *soap, void *handle);
+
+void MTOMSessionDone(struct soap *soap, void *param)
 {
 	MTOMSessionInfo *lpInfo = (MTOMSessionInfo *)param;
 
+	if(lpInfo->lpCurrentWriteStream) {
+	    // Apparently a write stream was opened but not closed by gSOAP by calling MTOMWriteClose. Do it now.
+	    MTOMWriteClose(soap, lpInfo->lpCurrentWriteStream);
+    } else if(lpInfo->lpCurrentReadStream) {
+        // Same but for MTOMReadClose()
+        MTOMReadClose(soap, lpInfo->lpCurrentReadStream);
+    }
+
+    // We can now safely remove sessions, etc since nobody is using them.
+
 	lpInfo->lpAttachmentStorage->Release();
 	lpInfo->lpecSession->Unlock();
+	
 	delete lpInfo->lpSharedDatabase;
 	delete lpInfo->lpThreadPool;
 	delete lpInfo;
 }
+
 
 SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray sSourceKeyPairs, unsigned int ulPropTag, exportMessageChangesAsStreamResponse *lpsResponse)
 {
@@ -10737,6 +10759,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		goto exit;
 
 	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
+	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
 	lpMTOMSessionInfo->lpAttachmentStorage->AddRef();
 	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
@@ -10874,7 +10898,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-void *DeserializeObject(void *arg)
+ECRESULT DeserializeObject(void *arg)
 {
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	ECSerializer		*lpSource = NULL;
@@ -10887,13 +10911,11 @@ void *DeserializeObject(void *arg)
 	er = DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->bNewItem, lpStreamInfo->ullIMAP, lpSource, &lpStreamInfo->lpPropValArray);
 	delete lpSource;
 
-	return (void*)(uintptr_t)er;
+	return er;
 }
 
 void *MTOMWriteOpen(struct soap* soap, void *handle, const char * /*id*/, const char* /*type*/, const char* /*description*/, enum soap_mime_encoding /*encoding*/)
 {
-	typedef ECDeferredFunc<void*, void*(*)(void*), void*> task_type;
-
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
 
@@ -10907,7 +10929,7 @@ void *MTOMWriteOpen(struct soap* soap, void *handle, const char * /*id*/, const 
 		return NULL;
 	}
 	lpStreamInfo->lpTask = ptrTask.release();
-
+	lpStreamInfo->lpSessionInfo->lpCurrentWriteStream = lpStreamInfo; // Remember that MTOMWriteOpen was called, and that a cleanup is needed
 	return handle;
 }
 
@@ -10938,10 +10960,13 @@ void MTOMWriteClose(struct soap *soap, void *handle)
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
 	ASSERT(lpStreamInfo != NULL);
+	
+	lpStreamInfo->lpSessionInfo->lpCurrentWriteStream = NULL; // Since we are cleaning up ourselves, another cleanup is not necessary
 
 	lpStreamInfo->lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
 	if (lpStreamInfo->lpTask) {
 		lpStreamInfo->lpTask->wait();	// Todo: use result() to wait and get result
+		er = lpStreamInfo->lpTask->result();
 		delete lpStreamInfo->lpTask;
 	}
 	delete lpStreamInfo->lpFifoBuffer;
@@ -10951,6 +10976,7 @@ void MTOMWriteClose(struct soap *soap, void *handle)
 	if(er != erSuccess)
 		soap->error = SOAP_FATAL_ERROR;
 }
+
 
 SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigned int ulSyncId, entryId sFolderEntryId, entryId sEntryId, bool bIsNew, struct propVal *lpsConflictItems, struct xsd__Binary sStreamData, unsigned int *result)
 {
@@ -10983,6 +11009,8 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		goto exit;
 
 	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
+	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
 	lpMTOMSessionInfo->lpAttachmentStorage->AddRef();
 	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
@@ -11119,7 +11147,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	// We usualy don't pass database object to other threads. However, since
 	// we wan't to be able to perform a complete rollback we need to pass it
 	// to thread that processes the data and puts it in the database.
-	lpsStreamInfo = new MTOMStreamInfo;
+	lpsStreamInfo = (MTOMStreamInfo *)soap_malloc(soap, sizeof(MTOMStreamInfo));
 	lpsStreamInfo->ulObjectId = ulObjectId;
 	lpsStreamInfo->ulStoreId = ulStoreId;
 	lpsStreamInfo->bNewItem = bIsNew;
@@ -11221,7 +11249,6 @@ exit:
 	if (lpsStreamInfo) {
 		if (lpsStreamInfo->lpPropValArray)
 			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
-		delete lpsStreamInfo;
 	}
 
 	FreeDeletedItems(&lstDeleteItems);

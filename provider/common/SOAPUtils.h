@@ -184,7 +184,7 @@ struct SOAPINFO {
 	 CONNECTION_TYPE ulConnectionType;
 	 int (*fparsehdr)(struct soap *soap, const char *key, const char *val);
 	 bool bProxy;
-	 void (*fdone)(void *param);
+	 void (*fdone)(struct soap *soap, void *param);
 	 void *fdoneparam;
 };
 
