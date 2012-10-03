@@ -468,6 +468,51 @@ std::string ECDatabaseMySQL::GetDatabaseDir()
 	return m_strDatabaseDir;
 }
 
+ECRESULT ECDatabaseMySQL::CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist)
+{
+	ECRESULT		er = erSuccess;
+	std::string		strQuery;
+	DB_RESULT		lpDBResult = NULL;
+
+	strQuery = "SELECT 1 FROM information_schema.COLUMNS "
+				"WHERE TABLE_SCHEMA = '" + string(m_lpConfig->GetSetting("mysql_database")) + "' "
+				"AND TABLE_NAME = '" + strTable + "' "
+				"AND COLUMN_NAME = '" + strColumn + "'";
+				
+	er = DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+	
+	*lpbExist = (FetchRow(lpDBResult) != NULL);
+	
+exit:
+	if (lpDBResult)
+		FreeResult(lpDBResult);
+	
+	return er;
+}
+
+ECRESULT ECDatabaseMySQL::CheckExistIndex(const std::string strTable, const std::string &strKey, bool *lpbExist)
+{
+	ECRESULT		er = erSuccess;
+	std::string		strQuery;
+	DB_RESULT		lpDBResult = NULL;
+	
+	strQuery = "SHOW INDEXES FROM " + strTable + " WHERE Key_name='" + strKey + "'";
+
+	er = DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	*lpbExist = (FetchRow(lpDBResult) != NULL);
+
+exit:
+	if (lpDBResult)
+		FreeResult(lpDBResult);
+	
+	return er;
+}
+
 ECRESULT ECDatabaseMySQL::Connect()
 {
 	ECRESULT		er = erSuccess;
@@ -673,7 +718,9 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "SQL [%08lu] Failed: %s, Query Size: %lu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), (long unsigned int)strQuery.size(), strQuery.c_str()); 
 		er = ZARAFA_E_DATABASE_ERROR;
-		ASSERT(false);
+		// Don't assert on ER_NO_SUCH_TABLE because it's an anticipated error in the db upgrade code.
+		if (mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
+			ASSERT(false);
 	}
 
 exit:

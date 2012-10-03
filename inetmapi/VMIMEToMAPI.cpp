@@ -208,19 +208,28 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 	SPropValue sPropSMIMEClass;
 	IMAPITable *lpAttachTable = NULL;
 	LPSRowSet lpAttachRows = NULL;
+	size_t posHeaderEnd;
+	bool bUnix = false;
 
 	try {
 		if (m_mailState.ulMsgInMsg == 0)
 			m_mailState.reset();
 
 		// get raw headers
-		size_t pos = input.find("\r\n\r\n");
-		if(pos != std::string::npos) {
+		posHeaderEnd = input.find("\r\n\r\n");
+		if (posHeaderEnd == std::string::npos) {
+			// input was not rfc compliant, try unix enters
+			posHeaderEnd = input.find("\n\n");
+			bUnix = true;
+		}
+		if (posHeaderEnd != std::string::npos) {
 			SPropValue sPropHeaders;
-			std::string strHeaders = input.substr(0, pos);
+			std::string strHeaders = input.substr(0, posHeaderEnd);
 
 			// make sure we have us-ascii headers
 			transform(strHeaders.begin(), strHeaders.end(), strHeaders.begin(), forceAscii);
+			if (bUnix)
+				StringLFtoCRLF(strHeaders);
 
 			sPropHeaders.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
 			sPropHeaders.Value.lpszA = (char *) strHeaders.c_str();
@@ -287,7 +296,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			
 			// smime signature was found, so attach 
 			vmime::ref<vmime::header> vmHeader = vmMessage->getHeader();
-			string::size_type pos;
 
 			hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &lpAtt);
 			if (hr != hrSuccess)
@@ -306,9 +314,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			// find the original received body
 			// vmime re-generates different headers and spacings, so we can't use this.
-			pos = input.find("\r\n\r\n");
-			if (pos != string::npos) {
-				os.write(input.c_str() + pos, input.size() - pos);
+			if (posHeaderEnd != string::npos) {
+				os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
 			}
 
 			hr = lpStream->Commit(0);
@@ -2329,8 +2336,8 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 			 ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT) &&
 			(!strId.empty() || !strLocation.empty()) &&
 			m_mailState.bodyLevel == BODY_HTML &&
-			((!strId.empty() && str_icontains(m_mailState.strHTMLBody.c_str(), string("cid:"+strId).c_str(), ECLocale())) ||
-			 (!strLocation.empty() && str_icontains(m_mailState.strHTMLBody.c_str(), strLocation.c_str(), ECLocale())) ))
+			((!strId.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), string("cid:"+strId).c_str())) ||
+			 (!strLocation.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), strLocation.c_str())) ))
 		{
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
 			attProps[nProps++].Value.b = TRUE;

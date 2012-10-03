@@ -3338,7 +3338,11 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
 	bool bPartial = false;
 	// Properties that can never be copied (if you do this wrong, copying a message to a PST will fail)
-	SizedSPropTagArray(22, sExtraExcludes) = { 18, { PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_MAPPING_SIGNATURE, PR_MDB_PROVIDER, PR_ACCESS_LEVEL, PR_RECORD_KEY, PR_HASATTACH, PR_NORMALIZED_SUBJECT, PR_MESSAGE_SIZE, PR_DISPLAY_TO, PR_DISPLAY_CC, PR_DISPLAY_BCC, PR_ACCESS, PR_SUBJECT_PREFIX, PR_OBJECT_TYPE, PR_ENTRYID, PR_PARENT_ENTRYID, PR_NULL, PR_NULL, PR_NULL, PR_NULL }};
+	SizedSPropTagArray(23, sExtraExcludes) = { 19, { PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_MAPPING_SIGNATURE,
+													 PR_MDB_PROVIDER, PR_ACCESS_LEVEL, PR_RECORD_KEY, PR_HASATTACH, PR_NORMALIZED_SUBJECT,
+													 PR_MESSAGE_SIZE, PR_DISPLAY_TO, PR_DISPLAY_CC, PR_DISPLAY_BCC, PR_ACCESS, PR_SUBJECT_PREFIX,
+													 PR_OBJECT_TYPE, PR_ENTRYID, PR_PARENT_ENTRYID, PR_INTERNET_CONTENT,
+													 PR_NULL, PR_NULL, PR_NULL, PR_NULL }};
 
 	LPMAPIPROP lpPropSrc = NULL, lpPropDest = NULL;
 	LPSPropTagArray lpSPropTagArray = NULL;
@@ -4336,7 +4340,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrAttachTable;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 
 	SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
@@ -4353,7 +4357,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 		hr = lpMsg->DeleteAttach(ptrRows[i].lpProps[0].Value.l, 0, NULL, 0);
 		if (hr != hrSuccess)
 			goto exit;
@@ -4367,7 +4371,7 @@ HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
 {
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrRecipTable;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 
 	SizedSPropTagArray(1, sptaRowId) = {1, {PR_ROWID}};
 

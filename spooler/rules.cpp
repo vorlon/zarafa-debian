@@ -74,7 +74,7 @@ extern ECConfig *g_lpConfig;
 HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo, std::wstring &wstrCc, std::wstring &wstrBcc)
 {
 	HRESULT hr = hrSuccess;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 	MAPITablePtr ptrRecips;
 	SizedSPropTagArray(2, sptaDisplay)  = {2, { PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE } };
 	
@@ -488,14 +488,16 @@ exit:
  * 
  * @param[in] lpMessage The original delivered message performing the rule action
  * @param[in] lpRuleRecipients The recipient list from the rule
+ * @param[in] bOpDelegate	If the action a delegate or forward action
  * @param[out] lppNewRecipients The actual recipient list to perform the action on
  * 
  * @return MAPI error code
  */
-HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMessage, LPADRLIST lpRuleRecipients, LPADRLIST *lppNewRecipients)
+HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMessage, LPADRLIST lpRuleRecipients, bool bOpDelegate, LPADRLIST *lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpRecipients = NULL;
+	LPSPropValue lpMsgClass = NULL;
 	std::wstring strFromName, strFromType, strFromAddress;
 	std::wstring strRuleName, strRuleType, strRuleAddress;
 
@@ -512,6 +514,8 @@ HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMe
 	if (hr != hrSuccess)
 		goto exit;
 
+	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass); //ignore errors
+
 	lpRecipients->cEntries = 0;
 
 	for (ULONG i = 0; i < lpRuleRecipients->cEntries; i++) {
@@ -524,8 +528,12 @@ HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMe
 		}
 
 		if (strFromAddress == strRuleAddress) {
-			lpLogger->Log(EC_LOGLEVEL_INFO, "Same user found in From and rule, blocking for loop protection");
-			continue;
+			// Hack for Meeting requests
+			if (!bOpDelegate || !lpMsgClass || strstr(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.") == NULL) 
+			{
+				lpLogger->Log(EC_LOGLEVEL_INFO, "Same user found in From and rule, blocking for loop protection");
+				continue;
+			}
 		}
 
 		// copy recipient
@@ -554,10 +562,13 @@ exit:
 	if (lpRecipients)
 		FreeProws((LPSRowSet)lpRecipients);
 
+	if (lpMsgClass)
+		MAPIFreeBuffer(lpMsgClass);
+
 	return hr;
 }
 
-HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMESSAGE lpOrigMessage, LPADRLIST lpRuleRecipients, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
+HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigStore, LPMESSAGE lpOrigMessage, LPADRLIST lpRuleRecipients, bool bOpDelegate, bool bDoPreserveSender, bool bDoNotMunge, bool bForwardAsAttachment, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
@@ -599,7 +610,7 @@ HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook, LPMDB lpOrigS
 		goto exit;
 	}
 
-	hr = CheckRecipients(lpLogger, lpAdrBook, lpOrigMessage, lpRuleRecipients, &lpRecipients);
+	hr = CheckRecipients(lpLogger, lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, &lpRecipients);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exit;
 	if (hr != hrSuccess)
@@ -1011,6 +1022,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: forwarding e-mail");
 
 				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist,
+									   false,
 									   lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER,
 									   lpActions->lpAction[n].ulActionFlavor & FWD_DO_NOT_MUNGE_MSG, 
 									   lpActions->lpAction[n].ulActionFlavor & FWD_AS_ATTACHMENT,
@@ -1047,7 +1059,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				}
 				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: delegating e-mail");
 
-				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, false, &lpFwdMsg);
+				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &lpFwdMsg);
 				if (hr != hrSuccess) {
 					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": DELEGATE Unable to create delegate message");
 					goto nextact;

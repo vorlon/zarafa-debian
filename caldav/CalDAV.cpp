@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
 	setlocale(LC_CTYPE, "");
 
 	while (1) {
-		opt = my_getopt_long(argc, argv, "Fhc:V", long_options, NULL);
+		opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, NULL);
 
 		if (opt == -1)
 			break;
@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
 	xmlInitParser();
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpConfig->LoadSettings(lpszCfg) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
+	if (!g_lpConfig->LoadSettings(lpszCfg) || !g_lpConfig->ParseParams(argc-my_optind, &argv[my_optind], NULL) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(1, 0, "-");
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		goto exit;
@@ -710,6 +710,8 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	if(!strMethod.compare("OPTIONS"))
 	{
 		lpRequest->HrResponseHeader(200, "OK");
+		// @todo, if ical get is disabled, do not add GET as allowed option
+		// @todo, should check write access on url and only return read actions if not available
 		lpRequest->HrResponseHeader("Allow", "OPTIONS, GET, POST, PUT, DELETE, MOVE");
 		lpRequest->HrResponseHeader("Allow", "PROPFIND, PROPPATCH, REPORT, MKCALENDAR");
 		// most clients do not login with this action, no need to complain.
@@ -754,19 +756,15 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 
 	hr = lpBase->HrInitializeClass();
 	if (hr != hrSuccess) {
-		if (hr == MAPI_E_NOT_FOUND)
-			lpRequest->HrResponseHeader(404, "Folder not found");
-		else {
-			string strcode = stringify(hr, true);
-			lpRequest->HrResponseHeader(500, "Error "+strcode);
-		}
+		if (hr != MAPI_E_NOT_ME)
+			hr = lpRequest->HrToHTTPCode(hr);
 		goto exit;
 	}
 
 	hr = lpBase->HrHandleCommand(strMethod);
 
 exit:
-	if(hr != hrSuccess && !strMethod.empty())
+	if(hr != hrSuccess && !strMethod.empty() && hr != MAPI_E_NOT_ME)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error processing %s request, error code 0x%08x", strMethod.c_str(), hr);
 
 	if ( lpRequest && hr != MAPI_E_USER_CANCEL ) // do not send response to client if connection closed by client.

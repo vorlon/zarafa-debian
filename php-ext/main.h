@@ -147,12 +147,8 @@ ZEND_FUNCTION(mapi_parseoneoff);
 
 ZEND_FUNCTION(mapi_logon);
 ZEND_FUNCTION(mapi_logon_zarafa);
-ZEND_FUNCTION(mapi_logon_pst);
 ZEND_FUNCTION(mapi_getmsgstorestable);
 ZEND_FUNCTION(mapi_openmsgstore);
-ZEND_FUNCTION(mapi_openmsgstore_exchange);
-ZEND_FUNCTION(mapi_openmsgstore_zarafa);
-ZEND_FUNCTION(mapi_openmsgstore_zarafa_other);
 ZEND_FUNCTION(mapi_openprofilesection);
 
 ZEND_FUNCTION(mapi_openentry);
@@ -176,9 +172,13 @@ ZEND_FUNCTION(mapi_sink_timedwait);
 ZEND_FUNCTION(mapi_table_queryallrows);
 ZEND_FUNCTION(mapi_table_queryrows);
 ZEND_FUNCTION(mapi_table_getrowcount);
+ZEND_FUNCTION(mapi_table_setcolumns);
+ZEND_FUNCTION(mapi_table_seekrow);
 ZEND_FUNCTION(mapi_table_sort);
 ZEND_FUNCTION(mapi_table_restrict);
 ZEND_FUNCTION(mapi_table_findrow);
+ZEND_FUNCTION(mapi_table_createbookmark);
+ZEND_FUNCTION(mapi_table_freebookmark);
 
 ZEND_FUNCTION(mapi_folder_gethierarchytable);
 ZEND_FUNCTION(mapi_folder_getcontentstable);

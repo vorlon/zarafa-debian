@@ -568,6 +568,8 @@ string getMapiCodeString(HRESULT hr, const char* object = "object")
 		return string(object) + " already exists";
 	case MAPI_E_NO_ACCESS:
 		return "no access to " + string(object);
+	case MAPI_E_UNABLE_TO_COMPLETE:
+		return "please check your license";
 	case MAPI_E_INVALID_TYPE:
 		return "invalid type combination";
 	};
@@ -1018,7 +1020,7 @@ HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin, GUID *lpStoreGuid, c
 {
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
-	mapi_rowset_ptr ptrRowSet;
+	SRowSetPtr ptrRowSet;
 	SPropValue sStoreGuid;
 	LPSPropValue lpsName = NULL;
 	LPSPropValue lpsPropEntryId = NULL;
@@ -1909,7 +1911,7 @@ HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	AddrBookPtr		ptrAdrBook;
 	ABContainerPtr	ptrABContainer;
 	MAPITablePtr	ptrTable;
-	mapi_rowset_ptr	ptrRows;
+	SRowSetPtr	ptrRows;
 	ULONG			ulType = 0;
 	bool			bFail = false;
 
@@ -1995,7 +1997,7 @@ HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 		if (ptrRows.empty())
 			break;
 
-		for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR ||
 				PROP_TYPE(ptrRows[i].lpProps[1].ulPropTag) == PT_ERROR)
 			{
@@ -2048,7 +2050,7 @@ HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	MAPITablePtr ptrSystemTable;
 	SPropValue sPropDisplayName;
 	SRestrictionPtr ptrRestriction;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 	ULONG ulLicensedUsers = (ULONG)-1;	//!< active users allowed by license
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
@@ -2095,7 +2097,7 @@ HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		goto exit;
 	}
 
-	for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
+	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const char *lpszDisplayName = ptrRows[i].lpProps[IDX_DISPLAY_NAME_A].Value.lpszA;
 		
 		if (strcmp(lpszDisplayName, "usercnt_licensed") == 0)
@@ -2207,7 +2209,7 @@ HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore, const char
 	ULONG bFailures = false;
 	ULONG ulTotalUpdates = 0;
 	MAPITablePtr ptrTable;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 
 	SizedSPropTagArray(2, sptaTableProps) = {2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
@@ -2258,8 +2260,8 @@ HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore, const char
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
-		mapi_rowset_ptr::const_reference row = ptrRows[i];
+	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
+		SRowSetPtr::const_reference row = ptrRows[i];
 		const char* lpszName = "<Unknown>";
 
 		if (PROP_TYPE(row.lpProps[IDX_DISPLAY_NAME].ulPropTag) != PT_ERROR)

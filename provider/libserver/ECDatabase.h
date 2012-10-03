@@ -148,6 +148,9 @@ public:
 
 	virtual void			ThreadInit() = 0;
 	virtual void			ThreadEnd() = 0;
+	
+	virtual ECRESULT		CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist) = 0;
+	virtual ECRESULT		CheckExistIndex(const std::string strTable, const std::string &strKey, bool *lpbExist) = 0;
 
 	// Function requires m_bForceUpdate variable
 	friend ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);

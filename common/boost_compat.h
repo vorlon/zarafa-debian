@@ -47,23 +47,41 @@
  * 
  */
 
-#ifndef utf32iter_INCLUDED
-#define utf32iter_INCLUDED
+#ifndef boost_compat_INCLUDED
+#define boost_compat_INCLUDED
 
-#include <unicode/schriter.h>
+#include <string>
 
-class UTF32Iterator : public StringCharacterIterator
-{
-public:
-	UTF32Iterator(const UChar32 *lpszW);
+#include <boost/filesystem.hpp>
 
-	static UClassID         getStaticClassID(void);
-	virtual UClassID        getDynamicClassID(void) const;
+#if !defined(BOOST_FILESYSTEM_VERSION) || BOOST_FILESYSTEM_VERION == 2
 
-	CharacterIterator*	clone() const;
-	
-private:
-	UTF32Iterator(const StringCharacterIterator &other);
-};
+static inline std::string path_to_string(const boost::filesystem::path &p) {
+    return p.file_string();
+}
 
-#endif // ndef utf32iter_INCLUDED
+static inline boost::filesystem::path& remove_filename_from_path(boost::filesystem::path &p) {
+    return p.remove_leaf();
+}
+
+static inline std::string filename_from_path(const boost::filesystem::path &p) {
+    return p.leaf();
+}
+    
+#else
+
+static inline std::string path_to_string(const boost::filesystem::path &p) {
+    return p.string();
+}
+
+static inline boost::filesystem::path& remove_filename_from_path(boost::filesystem::path &p) {
+    return p.remove_filename();
+}
+
+static inline std::string filename_from_path(const boost::filesystem::path &p) {
+    return p.filename().string();
+}
+    
+#endif
+
+#endif // ndef boost_compat_INCLUDED

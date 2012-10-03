@@ -69,6 +69,7 @@ namespace ba = boost::algorithm;
 #include "ECSessionManager.h"
 #include "ECDatabase.h"
 #include "ECStatsCollector.h"
+#include "boost_compat.h"
 
 /* class and add constructor params? */
 extern ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath);
@@ -357,13 +358,13 @@ bool GetLatestVersionAtServer(char *szUpdatePath, unsigned int ulTrackid, Client
 
 		bfs::directory_iterator update_last;
 		for (bfs::directory_iterator update(updatesdir); update != update_last; update++) {
-			std::string strFilename = update->path().leaf();
-
-			if (!bfs::is_regular(*update) && !bfs::is_symlink(*update)) {
+			const bfs::file_type file_type = update->status().type();
+			if (file_type != bfs::regular_file && file_type != bfs::symlink_file) {
 				continue;
 			}
 
-			if (!ba::starts_with(update->path().leaf(), strFileStart)) {
+			const std::string strFilename = filename_from_path(update->path());
+			if (!ba::starts_with(strFilename, strFileStart)) {
 				g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Client update: trackid: 0x%08X, Ignoring file %s for client update", ulTrackid, strFilename.c_str());
 				continue;
 			}
@@ -602,10 +603,8 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 				stringify(tNow) + "), \"" + strCurVersion + "\", \"" + strLatestVersion + "\", \"" +
 				lpDatabase->Escape(sClientUpdateInfo.szComputerName).c_str()+"\", "+ stringify(UPDATE_STATUS_PENDING) + ")";
 
-	er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
+	// ignore error in database tracking, SQL error logged in server, still send new client
+	lpDatabase->DoUpdate(strQuery);
 
 	soap->fmimereadopen = &mime_file_read_open;
 	soap->fmimeread = &mime_file_read;

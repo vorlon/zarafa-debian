@@ -1146,6 +1146,52 @@
 
 <!--
   -+-+-
+    Zarafa auto respond manual page
+  -+-+-
+-->
+    <refentry>
+      <refmeta>
+        <refentrytitle>zarafa-autorespond</refentrytitle>
+        <manvolnum>1</manvolnum>
+      </refmeta>
+
+      <refnamediv>
+        <refname>zarafa-autorespond</refname>
+        <refpurpose>Vacation message response script.</refpurpose>
+      </refnamediv>
+
+      <refsynopsisdiv>
+        <cmdsynopsis>
+          <command>zarafa-autorespond</command>
+        </cmdsynopsis>
+      </refsynopsisdiv>
+
+      <refsection>
+        <title>Description</title>
+
+        <para>Script will be called by <command>zarafa-dagent</command> when the user 
+				enabled a vacation message.	</para>
+		<para>This script should not be executed from the command line.</para>
+      </refsection>
+
+      <refsection>
+        <title>Author</title>
+        <para>Written by Zarafa.</para>
+      </refsection>
+
+      <refsection>
+        <title>See also</title>
+        <para>
+          <citerefentry>
+            <refentrytitle>zarafa-dagent</refentrytitle>
+            <manvolnum>1</manvolnum>
+          </citerefentry>
+        </para>
+      </refsection>
+    </refentry>
+
+<!--
+  -+-+-
 	Zarafa Server manual page (5.0 ready)
   -+-+-
 -->
@@ -2898,7 +2944,7 @@
 		<cmdsynopsis>
 		  <command>zarafa-set-oof</command>
 		  <arg choice="plain"><replaceable>USERNAME</replaceable></arg>
-		  <arg choice="plain"><replaceable>STATE</replaceable></arg>
+		  <arg choice="plain"><replaceable>MODE</replaceable></arg>
 		  <arg choice="opt"><replaceable>SUBJECT</replaceable></arg>
 		  <arg choice="opt"><replaceable>MESSAGE FILE</replaceable></arg>
 		</cmdsynopsis>
@@ -2912,8 +2958,8 @@
 		<command>zarafa-set-oof</command> to work.
 		</para>
 
-		<para>You must choose a state, enabled or disabled, when using
-		this script.</para>
+		<para>You must choose a state, enabled, disabled or don't change,
+		when using this script.</para>
 	  </refsection>
 
 	  <refsection>
@@ -2936,6 +2982,22 @@
 			</term>
 			<listitem>
 			  <para>Enable the user's out of office reply.</para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
+			<term>
+			  <option>-</option>
+			</term>
+			<listitem>
+				<para>Don't enable or disable the user's out of office
+				reply. Just update the subject and message, unless the
+				user's out of office reply is enabled.</para>
+				<para>This is useful to update all out of office
+				settings without enabling them and without changing
+				the messages of enabled replies because that might
+				overwrite some useful information that a user has set.
+				</para>
 			</listitem>
 		  </varlistentry>
 
@@ -4920,14 +4982,67 @@
 
 	  <refsection>
 		<title>Reloading</title>
-		<para>The following options are reloadable by sending the zarafa-server process a HUP signal:</para>
+		<para>The following options are reloadable by sending the zarafa-server process a HUP signal or reload the process by the initscript</para>
 
 		<variablelist>
 		  <varlistentry>
-			<term>log_level</term>
-			<term>session_timeout</term>
+                        <term>system_email_address</term>
+                        <term>local_admin_users</term>
+                        <term>allow_local_users</term>
+                        <term>hide_system</term>
+                        <term>hide_everyone</term>
+                        <term>auth_method</term>
+                        <term>pam_service</term>
+			<term>enable_sso</term>
+                        <term>enable_gab</term>
+                        <term>sync_gab_realtime</term>
+                        <listitem><para></para></listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                        <term>session_timeout</term>
+                        <term>server_recv_timeout</term>
+                        <term>server_read_timeout</term>
+                        <term>server_send_timeout</term>
 			<term>sync_lifetime</term>
-			<term>enable_sso_ntlmauth</term>
+                        <listitem><para></para></listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+			<term>log_level</term>
+                        <term>audit_log_level</term>
+                        <listitem><para></para></listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                        <term>threads</term>
+                        <term>watchdog_max_age</term>
+                        <term>watchdog_frequency</term>
+                        <term>max_deferred_records</term>
+                        <term>max_deferred_records_folder</term>
+                        <listitem><para></para></listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                        <term>counter_reset</term>
+                        <term>user_safe_mode</term>
+                        <term>enable_enhanced_ics</term>
+                        <term>report_path</term>
+                        <term>report_ca_path</term>
+                        <term>client_update_log_level</term>
+                        <term>client_update_path</term>
+                        <term>client_update_log_path</term>
+                        <listitem><para></para></listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                        <term>search_enabled</term>
+                        <term>search_socket</term>
+                        <term>search_timeout</term>
+                        <term>disabled_features</term>
+                        <term>mysql_group_concat_max_len</term>
+                        <term>embedded_attachment_limit</term>
+                        <term>proxy_header</term>
 			<listitem><para></para></listitem>
 		  </varlistentry>
 
@@ -4935,6 +5050,7 @@
 			<term>quota_warn</term>
 			<term>quota_soft</term>
 			<term>quota_hard</term>
+                        <term>companyquota_warn</term>
 			<listitem><para></para></listitem>
 		  </varlistentry>
 
@@ -4943,6 +5059,8 @@
 			<term>deleteuser_script</term>
 			<term>creategroup_script</term>
 			<term>deletegroup_script</term>
+                        <term>createcompany_script</term>
+                        <term>deletecompany_script</term>
 			<listitem><para></para></listitem>
 		  </varlistentry>
 		</variablelist>
@@ -8315,8 +8433,6 @@
 			<term><option>userquota_soft_template</option></term>
 			<term><option>userquota_hard_template</option></term>
 			<term><option>companyquota_warning_template</option></term>
-			<term><option>companyquota_soft_template</option></term>
-			<term><option>companyquota_hard_template</option></term>
 			<listitem>
 			  <para>These templates are read by the zarafa-monitor when a
 			  user or tenant exceeds a particular quota level.
@@ -8508,6 +8624,15 @@
 			  Prompt for the password of the user to login with. Overrides
 			  the --pass option.
 			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+		  	<term><option>--acceptdisclaimer</option></term>
+			<listitem>
+			  <para>Auto accept the disclaimer so no user input is needed to 
+			  accept the disclaimer. This can be used for scripts along with 
+			  <parameter>--autofix </parameter>argument.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -12787,7 +12912,7 @@
 		  <varlistentry>
 			<term>
 			  <option>-s</option>
-			  <replaceable>sslkey_file</replaceable>
+			  <replaceable>sslkey-file</replaceable>
 			</term>
 			<listitem>
 			  <para>SSL key file for authentication.</para>
@@ -12797,10 +12922,124 @@
 		  <varlistentry>
 			<term>
 			  <option>-p</option>
-			  <replaceable>sslkey_pass</replaceable>
+			  <replaceable>sslkey-pass</replaceable>
 			</term>
 			<listitem>
 			  <para>Password for the SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+
+	</refentry>
+
+<!--
+  -+-+-
+	Zarafa Archive ACL Set manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>za-aclset</refentrytitle>
+		<manvolnum>1</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>za-aclset</refname>
+		<refpurpose>Reset the archive ACL settings for the owner.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>za-aclset</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		  <arg rep="repeat"><replaceable>USERS</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+		<para><command>za-aclset</command> sets or updates the permissions on
+		an archive store for the owner of that store.</para>
+		
+		<para>When an archive is attached to a store, the owner of the store
+		gets read-only or read/write permissions on the archive based on the
+		configuration or command line options passed at the time of attaching.
+		Also when an archive is attached to a store of a non-active user, no
+		permissions for that non-active user are set because that's not
+		possible.</para>
+		
+		<para>In the first case it can be desirable to change the permissions
+		at a later time because of company policy changes or because the
+		original setting was just wrong.</para>
+		
+		<para>In the second case, if the user is converted to an active user,
+		it's required to reset the permissions because the owner won't have
+		any permissions on his archive.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>-h</option>
+			  <replaceable>serverpath</replaceable>
+			</term>
+			<listitem>
+			  <para>Host to connect with.</para>
+			  <para>Default: <replaceable>file:///var/run/zarafa
+			  </replaceable></para>
+			  <para>Three formats are allowed for this option:</para>
+			  <para><option>UNIX socket</option> : file://<replaceable>path_to_the_UNIX_socket</replaceable></para>
+			  <para><option>HTTP</option> : http://<replaceable>host_or_IP</replaceable>:<replaceable>port</replaceable>/zarafa</para>
+			  <para><option>Secure HTTP</option> : https://<replaceable>host_or_IP</replaceable>:<replaceable>port</replaceable>/zarafa</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-s</option>
+			  <replaceable>sslkey-file</replaceable>
+			</term>
+			<listitem>
+			  <para>SSL key file for authentication.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-p</option>
+			  <replaceable>sslkey-pass</replaceable>
+			</term>
+			<listitem>
+			  <para>Password for the SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+		  
+		  <varlistentry>
+			<term><option>-w</option></term>
+			<listitem>
+			  <para>By default <command>za-aclset</command> makes an archive read-only
+			  for the user. By passing this option, the user will get
+			  read/write permissions in the attached archive.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--writable</option>
+			  <replaceable>yes|no</replaceable>
+			</term>
+			<listitem>
+			  <para>Explicitly enable or disable write permissions when
+			  setting permissions.</para>
 			</listitem>
 		  </varlistentry>
 		</variablelist>
@@ -12900,7 +13139,7 @@
 		  <varlistentry>
 			<term>
 			  <option>-s</option>
-			  <replaceable>sslkey_file</replaceable>
+			  <replaceable>sslkey-file</replaceable>
 			</term>
 			<listitem>
 			  <para>SSL key file for authentication.</para>
@@ -12910,7 +13149,7 @@
 		  <varlistentry>
 			<term>
 			  <option>-p</option>
-			  <replaceable>sslkey_pass</replaceable>
+			  <replaceable>sslkey-pass</replaceable>
 			</term>
 			<listitem>
 			  <para>Password for the SSL key file.</para>

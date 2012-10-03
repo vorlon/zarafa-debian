@@ -201,13 +201,13 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 	std::list<string_type> lstUsers;
 
 	while (true) {
-		mapi_rowset_ptr ptrRows;
+		SRowSetPtr ptrRows;
 
 		hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
 
-		for (mapi_rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
+		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
 				HRESULT hrTmp;
 				ULONG ulType;
@@ -348,7 +348,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 	ABContainerPtr	ptrDefaultDir;
 	ABContainerPtr	ptrCompanyDir;
 	MAPITablePtr	ptrHierarchyTable;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr		ptrRows;
 	MsgStorePtr		ptrStore;
 	ECServiceAdminPtr	ptrServiceAdmin;
 
@@ -617,7 +617,7 @@ exit:
 HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers)
 {
 	HRESULT hr = S_OK;
-	mapi_rowset_ptr ptrRows;
+	SRowSetPtr ptrRows;
 	MAPITablePtr ptrTable;
 	SRestriction sResAllUsers;
 	SPropValue sPropUser;
@@ -646,7 +646,7 @@ HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set
 	sResAllUsers.res.resAnd.cRes = 2;
 	sResAllUsers.res.resAnd.lpRes = sResSub;
 
-	lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
+	hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open contents table: 0x%08X", hr);
 		goto exit;
