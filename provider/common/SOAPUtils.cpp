@@ -2337,6 +2337,7 @@ ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArra
     
     m_lpPropVals = NULL;					// We don't own these anymore
     m_ulPropCount = 0;
+    m_ulCapacity = 0;
     
     return er;
 }
