@@ -2323,16 +2323,25 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     }
 
     if(fDoQuery) {
-        if(ulObjId)
-            strQuery = "SELECT " PROPCOLORDER ",hierarchyid FROM properties FORCE INDEX (PRIMARY) WHERE hierarchyid="+stringify(ulObjId);
-        else
-            strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
-                       "FROM properties FORCE INDEX (PRIMARY) "
-                       "JOIN hierarchy FORCE INDEX (parenttypeflags) "
-                           "ON properties.hierarchyid=hierarchy.id "
-                       "LEFT JOIN names "
-                           "ON (properties.tag-0x8501)=names.id "
-                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag <= 0x8500 OR names.id IS NOT NULL)";
+		// although we don't always use the names columns, we need to join anyway to check for existing nameids
+		// we may never stream propid's > 0x8500 without the names data
+		if (ulObjId) {
+			strQuery = "SELECT " PROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
+				"FROM properties FORCE INDEX (PRIMARY) ";
+		} else {
+			strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
+				"FROM properties FORCE INDEX (PRIMARY) "
+				"JOIN hierarchy FORCE INDEX (parenttypeflags) "
+			        "ON properties.hierarchyid=hierarchy.id ";
+		}
+		strQuery +=
+		    "LEFT JOIN names "
+			    "ON (properties.tag-0x8501)=names.id ";
+		if (ulObjId)
+			strQuery += "WHERE hierarchyid=" + stringify(ulObjId);
+		else
+			strQuery += "WHERE hierarchy.parent=" + stringify(ulParentId);
+		strQuery += " AND (tag <= 0x8500 OR names.id IS NOT NULL)";
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
@@ -2428,18 +2437,27 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     lpDBResult = NULL;
 
     if(fDoQuery) {
-        if(ulObjId)
-            strQuery = "SELECT " MVPROPCOLORDER ", hierarchyid FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+" GROUP BY hierarchyid, tag";
-        else
-            strQuery = "SELECT " MVPROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
-                       "FROM mvproperties "
-                       "JOIN hierarchy "
-                           "ON mvproperties.hierarchyid=hierarchy.id "
-                       "LEFT JOIN names "
-                           "ON (mvproperties.tag-0x8501)=names.id "
-                       "WHERE hierarchy.parent="+stringify(ulParentId)+" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
-                       "GROUP BY tag, mvproperties.type";
-                       
+		if (ulObjId) {
+			strQuery = "SELECT " MVPROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
+				"FROM mvproperties ";
+		} else {
+			strQuery = "SELECT " MVPROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
+				"FROM mvproperties "
+				"JOIN hierarchy "
+				    "ON mvproperties.hierarchyid=hierarchy.id ";
+		}
+		strQuery +=
+			"LEFT JOIN names "
+			    "ON (mvproperties.tag-0x8501)=names.id ";
+        if(ulObjId) {
+            strQuery +=	"WHERE hierarchyid=" + stringify(ulObjId) +
+				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+				" GROUP BY hierarchyid, tag";
+        } else {
+			strQuery +=	"WHERE hierarchy.parent=" + stringify(ulParentId) +
+				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
+				"GROUP BY tag, mvproperties.type";
+		}
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
