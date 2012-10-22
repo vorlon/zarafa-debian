@@ -910,7 +910,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
     while(!m_queueItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
+    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
@@ -1108,7 +1108,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
     // Empty the queue
     pthread_mutex_lock(&m_mutexItems);
     while(!m_queueItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
+    while(!m_queuePrioItems.empty()) { zarafa_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
     pthread_mutex_unlock(&m_mutexItems);
 
     // Close all listener sockets. 
