@@ -176,6 +176,9 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore);
 
+HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB);
+HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB);
+
 
 /**
  * NAMED PROPERTY utilities

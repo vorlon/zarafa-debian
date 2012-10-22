@@ -82,6 +82,7 @@
 #include "IECUnknown.h"
 #include "IECServiceAdmin.h"
 #include "EMSAbTag.h"
+#include "ECRestriction.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -3438,3 +3439,83 @@ exit:
 	return hr;
 }
 
+HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB)
+{
+	HRESULT hr = hrSuccess;
+	AddrBookPtr ptrAddrBook;
+
+	if (lpSession == NULL || lppGAB == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = lpSession->OpenAddressBook(NULL, 0, NULL, &ptrAddrBook);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetGAB(ptrAddrBook, lppGAB);
+
+exit:
+	return hr;
+}
+
+HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
+{
+	HRESULT hr = hrSuccess;
+	ULONG ulType = 0;
+	ABContainerPtr ptrRoot;
+	MAPITablePtr ptrTable;
+	SRowSetPtr ptrRows;
+	ABContainerPtr ptrGAB;
+
+	SPropValue propDisplayType;
+	SPropValue propEmsAbContainerid;
+
+	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
+
+	if (lpAddrBook == NULL || lppGAB == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid, MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &ptrTable);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	if (hr != hrSuccess)
+		goto exit;
+
+	propDisplayType.ulPropTag = PR_DISPLAY_TYPE;
+	propDisplayType.Value.l = DT_GLOBAL;
+
+	propEmsAbContainerid.ulPropTag = PR_EMS_AB_CONTAINERID;
+	propEmsAbContainerid.Value.l = 0;
+
+	hr = ECOrRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &propDisplayType, ECRestriction::Shallow) +
+			ECAndRestriction(
+				ECExistRestriction(PR_EMS_AB_CONTAINERID) +
+				ECPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, &propEmsAbContainerid, ECRestriction::Shallow)
+			)
+		).FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrTable->QueryRows(1, 0, &ptrRows);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[0].lpProps[0].Value.bin.lpb, &ptrGAB.iid, 0, &ulType, &ptrGAB);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = ptrGAB->QueryInterface(IID_IABContainer, (LPVOID*)lppGAB);
+
+exit:
+	return hr;
+}
