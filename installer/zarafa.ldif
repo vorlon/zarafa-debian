@@ -449,7 +449,7 @@ olcObjectClasses: (
   SUP top
   AUXILIARY
   MUST ( cn )
-  MAY ( zarafaQuotaOverride $ zarafaQuotaWarn $ zarafaQuotaSoft $ zarafaSendAsPrivilege $  zarafaQuotaHard $ zarafaAdmin $ zarafaSharedStoreOnly $ zarafaResourceType $  zarafaResourceCapacity $ zarafaAccount $ zarafaHidden $ zarafaAliases $  zarafaUserServer $ zarafaEnabledFeatures $ zarafaDisabledFeatures $  zarafaUserArchiveServers $ zarafaUserArchiveCouplings )
+  MAY ( zarafaQuotaOverride $ zarafaQuotaWarn $ zarafaQuotaSoft $ zarafaSendAsPrivilege $  zarafaQuotaHard $ zarafaAdmin $ zarafaSharedStoreOnly $ zarafaResourceType $  zarafaResourceCapacity $ zarafaAccount $ zarafaHidden $ zarafaAliases $  zarafaUserServer $ zarafaEnabledFeatures $ zarafaDisabledFeatures $  zarafaUserArchiveServers $ zarafaUserArchiveCouplings $  uidNumber )
   )
 #
 ################################################################################
@@ -473,7 +473,7 @@ olcObjectClasses: (
   SUP top
   AUXILIARY
   MUST ( cn )
-  MAY ( zarafaAccount $ zarafaHidden $ mail $ zarafaAliases $ zarafaSecurityGroup $ zarafaSendAsPrivilege )
+  MAY ( zarafaAccount $ zarafaHidden $ mail $ zarafaAliases $ zarafaSecurityGroup $ zarafaSendAsPrivilege $  gidNumber )
   )
 #
 ################################################################################
