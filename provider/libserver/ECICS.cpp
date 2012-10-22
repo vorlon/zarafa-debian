@@ -271,7 +271,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId, SOURCEKEY sSourc
 	if(er != erSuccess)
 		goto exit;
 
-	if (ulChange == ICS_MESSAGE_HARD_DELETE || ulChange == ICS_FOLDER_HARD_DELETE) {
+	if ((ulChange & ICS_HARD_DELETE) == ICS_HARD_DELETE || (ulChange & ICS_SOFT_DELETE) == ICS_SOFT_DELETE) {
 		if (ulSyncId != 0)
 			er = RemoveFromLastSyncedMessagesSet(lpDatabase, ulSyncId, sSourceKey, sParentSourceKey);
 		// The real item is removed from the database, So no further actions needed
@@ -1225,6 +1225,62 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 	if (er != erSuccess)
 		goto exit;
 		
+exit:
+	if (lpDBResult)
+		lpDatabase->FreeResult(lpDBResult);
+		
+	return er;
+}
+
+/** 
+ * Check if the object to remove is in the sync set. If it is outside,
+ * we don't need to remove it at all.
+ * 
+ * @param lpDatabase Database
+ * @param ulSyncId sync id, must be != 0
+ * @param sSourceKey sourcekey of the object
+ * 
+ * @return Zarafa error code
+ */
+ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey)
+{
+	ECRESULT	er = erSuccess;
+	std::string	strQuery;
+	DB_RESULT	lpDBResult	= NULL;
+	DB_ROW		lpDBRow;
+
+	strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+		
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (lpDBRow == NULL) {
+		er = ZARAFA_E_DATABASE_ERROR;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+		goto exit;
+	}
+	
+	if (lpDBRow[0] == NULL)	// none set for this sync id, not an error
+		goto exit;
+
+	// check if the delete would remove the message
+	strQuery = "SELECT 0 FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
+				" AND change_id=" + lpDBRow[0] +
+				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
+	
+	// cleanup the previous query result
+	lpDatabase->FreeResult(lpDBResult);
+	lpDBResult = NULL;
+	
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		goto exit;
+
+	lpDBRow = lpDatabase->FetchRow(lpDBResult);
+	if (lpDBRow == NULL)
+		er = ZARAFA_E_NOT_FOUND;
+
 exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);

@@ -451,6 +451,40 @@ ECRESULT DeleteObjectUpdateICS(ECSession *lpSession, unsigned int ulFlags, ECLis
 	return er;
 }
 
+/** 
+ * Check if the delete of the object should actually occur in the sync
+ * scope. Checks the syncedmessages table.
+ * 
+ * @param lpDatabase Database object
+ * @param lstDeleted Expanded list of all objects to check
+ * @param ulSyncId syncid to check with
+ * 
+ * @return Zarafa error code
+ */
+ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
+{
+	ECRESULT er = erSuccess;
+	ECListDeleteItems::iterator iterDeleteItems;
+
+	for(iterDeleteItems = lstDeleted.begin(); iterDeleteItems != lstDeleted.end(); )
+	{
+		er = CheckWithinLastSyncedMessagesSet(lpDatabase, ulSyncId, iterDeleteItems->sSourceKey);
+		if (er == ZARAFA_E_NOT_FOUND) {
+			// ignore delete of message
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_DEBUG, "Message not in sync scope, ignoring delete");
+			FreeDeleteItem(&(*iterDeleteItems));
+			lstDeleted.erase(iterDeleteItems++);
+			er = erSuccess;
+		} else if (er != erSuccess)
+			goto exit;
+		else
+			iterDeleteItems++;
+	}
+
+exit:
+	return er;
+}
+
 /*
  * Calculate and update the store size for deleted items
  *
@@ -1144,6 +1178,11 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 				lpSearchFolders->RemoveSearchFolder(iterDeleteItems->ulStoreId, iterDeleteItems->ulId);
 			}
 		}
+	}
+
+	// before actual delete check items which are outside the sync scope
+	if (ulSyncId != 0) {
+		CheckICSDeleteScope(lpDatabase, lstDeleteItems, ulSyncId);
 	}
 	
 	// Mark or delete objects
