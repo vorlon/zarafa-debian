@@ -97,6 +97,9 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
 	    
 	    // Remove all sessions except our own
 	    er = lpSession->GetSessionManager()->CancelAllSessions(id);
+    } else if(stricmp(szCommand, "sleep") == 0) {
+        if(ulArgs == 1 && args[0])
+            Sleep(atoui(args[0]) * 1000);
     }
     
 exit:

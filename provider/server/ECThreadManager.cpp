@@ -197,7 +197,15 @@ void *ECWorkerThread::Work(void *lpParam)
 			err = 0;
 
 			// Record start of handling of this request
-			double dblStart = GetTimeOfDay();
+			double dblStart = GetTimeOfDay(), dblEnd = 0;
+			
+			// Reset last session ID so we can use it reliably after the call is done
+            ((SOAPINFO *)lpWorkItem->soap->user)->ulLastSessionId = 0;
+            // Pass information on start time of the request into soap->user, so that it can be applied to the correct
+            // session after XML parsing
+            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &((SOAPINFO *)lpWorkItem->soap->user)->threadstart);
+            ((SOAPINFO *)lpWorkItem->soap->user)->start = GetTimeOfDay();
+            ((SOAPINFO *)lpWorkItem->soap->user)->szFname = NULL;
 
 			((SOAPINFO *)lpWorkItem->soap->user)->fdone = NULL;
 
@@ -247,10 +255,16 @@ done:
 			if(((SOAPINFO *)lpWorkItem->soap->user)->fdone)
 				((SOAPINFO *)lpWorkItem->soap->user)->fdone(lpWorkItem->soap, ((SOAPINFO *)lpWorkItem->soap->user)->fdoneparam);
 
-			// Record statistics for number of requests and processing time
+            dblEnd = GetTimeOfDay();
+
+            // Tell the session we're done processing the request for this session. This will also tell the session that this
+            // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
+            g_lpSessionManager->RemoveBusyState(((SOAPINFO *)lpWorkItem->soap->user)->ulLastSessionId, pthread_self());
+            
+			// Track cpu usage server-wide
 			g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
-		    g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, (long long)((GetTimeOfDay() - dblStart) * 1000));
-		    g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, (long long)((GetTimeOfDay() - lpWorkItem->dblReceiveStamp) * 1000));
+		    g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, (long long)((dblEnd - dblStart) * 1000));
+		    g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, (long long)((dblEnd - lpWorkItem->dblReceiveStamp) * 1000));
 
             // Clear memory used by soap calls. Note that this does not actually
             // undo our soap_new2() call so the soap object is still valid after these calls

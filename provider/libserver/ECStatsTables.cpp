@@ -292,6 +292,7 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 {
 	ECSessionStatsTable *lpThis = (ECSessionStatsTable*)obj;
 	sessiondata sd;
+	std::list<BUSYSTATE>::iterator iterBS;
 
 	if (!lpSession) {
 		// dynamic_cast failed
@@ -315,6 +316,21 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetProxyHost(&sd.proxyhost);
 	sd.requests = lpSession->GetRequests();
 
+	// To get up-to-date CPU stats, check each of the active threads on the session
+	// for their CPU usage, and add that to the already-logged time on the session
+	for (iterBS = sd.busystates.begin(); iterBS != sd.busystates.end(); iterBS++) {
+		clockid_t clock;
+		struct timespec now;
+		
+		if(pthread_getcpuclockid(iterBS->threadid, &clock) != 0)
+			continue;
+			
+		clock_gettime(clock, &now);
+		
+		sd.dblUser += timespec2dbl(now) - timespec2dbl(iterBS->threadstart);
+		sd.dblReal += GetTimeOfDay() - iterBS->start;
+	}
+
 	lpThis->m_mapSessionData[lpThis->id] = sd;
 	lpThis->id++;
 }
@@ -328,7 +344,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	int i, j, k;
 	std::string strTemp;
 	std::map<unsigned int, sessiondata>::iterator iterSD;
-	std::list<std::string>::iterator iterBS;
+	std::list<BUSYSTATE>::iterator iterBS;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -467,8 +483,25 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
 
 				for (j = 0, iterBS = iterSD->second.busystates.begin(); iterBS != iterSD->second.busystates.end(); j++, iterBS++) {
-					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j] = s_alloc<char>(soap, iterBS->length()+1);
-					strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j], iterBS->c_str());
+					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j] = s_strcpy(soap, iterBS->fname);
+				}
+				break;
+			case PROP_ID(PR_EC_STATS_SESSION_PROCSTATES):
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_mvszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+
+				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__size = iterSD->second.busystates.size();
+				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
+
+				for (j = 0, iterBS = iterSD->second.busystates.begin(); iterBS != iterSD->second.busystates.end(); j++, iterBS++) {
+					char *szState;
+					if(iterBS->state == SESSION_STATE_PROCESSING)
+						szState = "P";
+					else if(iterBS->state == SESSION_STATE_SENDING)
+						szState = "S";
+					else ASSERT(false);
+					
+					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j] = s_strcpy(soap, szState);
 				}
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_REQUESTS):

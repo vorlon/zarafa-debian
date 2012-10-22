@@ -1919,3 +1919,39 @@ ECLocale ECSessionManager::GetSortLocale(ULONG ulStoreId)
 exit:
 	return createLocaleFromName(lpszLocaleId);
 }
+
+/**
+ * Remove busy state for session
+ *
+ * Finds a session and calls RemoveBusyState on it if it is found
+ *
+ * @param[in] ecSessionId Session ID of session to remove busy state from
+ * @param[in] thread Thread ID to remove busy state of
+ * @return result
+ */
+ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t thread)
+{
+	ECRESULT er = erSuccess;
+	BTSession *lpSession = NULL;
+	ECSession *lpECSession = NULL;
+	
+	lpSession = GetSession(ecSessionId, true);
+	if(!lpSession)
+		goto exit;
+		
+	lpECSession = dynamic_cast<ECSession *>(lpSession);
+	
+	if(!lpECSession) {
+		ASSERT(lpECSession != NULL);
+		goto exit;
+	}
+	
+	lpECSession->RemoveBusyState(thread);
+	
+exit:
+	if(lpSession)
+		lpSession->Unlock();
+		
+	return er;
+}
+

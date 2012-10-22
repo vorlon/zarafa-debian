@@ -83,6 +83,16 @@ class SOURCEKEY;
 
 void CreateSessionID(unsigned int ulCapabilities, ECSESSIONID *lpSessionId);
 
+enum { SESSION_STATE_PROCESSING, SESSION_STATE_SENDING };
+
+typedef struct {
+    const char *fname;
+    struct timespec threadstart;
+    double start;
+    pthread_t threadid;
+    int state;
+} BUSYSTATE;
+
 /*
   BaseType session
 */
@@ -175,9 +185,10 @@ public:
 	ECRESULT UnlockObject(unsigned int ulObjId);
 	
 	/* for ECStatsSessionTable */
-	void AddBusyState(pthread_t threadId, const char *lpszState);
+	void AddBusyState(pthread_t threadId, const char *lpszState, struct timespec threadstart, double start);
+	void UpdateBusyState(pthread_t threadId, int state);
 	void RemoveBusyState(pthread_t threadId);
-	void GetBusyStates(std::list<std::string> *lpLstStates);
+	void GetBusyStates(std::list<BUSYSTATE> *lpLstStates);
 	
 	void AddClocks(double dblUser, double dblSystem, double dblReal);
 	void GetClocks(double *lpdblUser, double *lpdblSystem, double *lpdblReal);
@@ -197,7 +208,7 @@ private:
 	ECSecurity			*m_lpEcSecurity;
 
 	pthread_mutex_t		m_hStateLock;
-	std::map<pthread_t, const char*> m_mapBusyStates; /* which thread does what function */
+	std::map<pthread_t, BUSYSTATE> m_mapBusyStates; /* which thread does what function */
 	double			m_dblUser;
 	double			m_dblSystem;
 	double			m_dblReal;

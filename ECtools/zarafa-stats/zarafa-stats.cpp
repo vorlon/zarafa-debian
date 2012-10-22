@@ -152,19 +152,13 @@ typedef struct _SESSION {
     std::string strUser;
     std::string strIP;
     std::string strBusy;
+    std::string strState;
     std::string strPeer;
     std::string strClientVersion;
     std::string strClientApp;
     
     bool operator < (const _SESSION &b) { 
-        double total = this->dtimes.dblUser + this->dtimes.dblSystem;
-        double btotal = b.dtimes.dblUser + b.dtimes.dblSystem;
-        
-        if(total == btotal) {
-            return this->times.dblUser + this->times.dblSystem > b.times.dblUser + b.times.dblSystem;
-        } else {
-            return total > btotal;
-        }
+        return this->dtimes.dblReal > b.dtimes.dblReal;
     }
 } SESSION;
 
@@ -271,11 +265,12 @@ void showtop(LPMDB lpStore, bool bLocal)
     double dblUser, dblSystem;
     int wx,wy;
     int key;
+    double dblLast = 0, dblTime = 0;
 
 	// columns in sizes, not literal offsets
-	int cols[] = {0,4,21,13,25,16,15,8,8,7,7};
+	int cols[] = {0,4,21,13,25,16,15,8,8,7,7,5};
 	int ofs = 0;
-	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true}; // key 1 through err?
+	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true,true}; // key 1 through err?
 	SortFuncPtr fSort[] = {NULL,sort_sessionid,sort_version,sort_user,sort_ippeer,sort_app,NULL}; // key a through g
 	bool bReverse = false;
 	SizedSPropTagArray (2, sptaSystem) = { 2, { PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE } };
@@ -309,6 +304,9 @@ void showtop(LPMDB lpStore, bool bLocal)
         hr = lpTable->QueryRows(-1, 0, &lpsRowSet);
         if(hr != hrSuccess)
             goto exit;
+            
+        dblTime = GetTimeOfDay() - dblLast;
+        dblLast = GetTimeOfDay();
             
         for(ULONG i = 0; i< lpsRowSet->cRows;i++) {
             LPSPropValue lpName = PpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
@@ -345,6 +343,7 @@ void showtop(LPMDB lpStore, bool bLocal)
             session.strUser = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
             session.strIP = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_IPADDRESS);
             session.strBusy = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_BUSYSTATES);
+            session.strState = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_PROCSTATES);
             session.strClientVersion = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_VERSION);
             session.strClientApp = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION);
 
@@ -362,9 +361,9 @@ void showtop(LPMDB lpStore, bool bLocal)
 
             iterTimes = mapLastTimes.find(session.ullSessionId);
             if(iterTimes != mapLastTimes.end()) {
-                session.dtimes.dblUser = session.times.dblUser - iterTimes->second.dblUser;
-                session.dtimes.dblSystem = session.times.dblSystem - iterTimes->second.dblSystem;
-                session.dtimes.dblReal = session.times.dblReal - iterTimes->second.dblReal;
+                session.dtimes.dblUser = (session.times.dblUser - iterTimes->second.dblUser) / dblTime;
+                session.dtimes.dblSystem = (session.times.dblSystem - iterTimes->second.dblSystem) / dblTime;
+                session.dtimes.dblReal = (session.times.dblReal - iterTimes->second.dblReal) / dblTime;
                 
                 dblUser += session.dtimes.dblUser;
                 dblSystem += session.dtimes.dblSystem;
@@ -397,7 +396,7 @@ void showtop(LPMDB lpStore, bool bLocal)
 		memset(date, 0, 64);
 		now = time(NULL);
 		strftime(date, 64, "%c", localtime(&now) );
-        wprintw(win, "Last update: %s", date);
+        wprintw(win, "Last update: %s (%.1fs since last)", date, dblTime);
 		
         wmove(win, 1,0);
         wprintw(win, "Sess: %d", lstSessions.size());
@@ -418,13 +417,13 @@ void showtop(LPMDB lpStore, bool bLocal)
             wprintw(win, "RTT: %d ms", (int)(mapDiffStats["response_time"] / mapDiffStats["soap_request"]));
 
         wmove(win, 2, 0);
-        wprintw(win, "SQL/s SEL:%5d UPD:%4d INS:%4d DEL:%4d", (int)mapDiffStats["sql_select"], (int)mapDiffStats["sql_update"], (int)mapDiffStats["sql_insert"], (int)mapDiffStats["sql_delete"]);
+        wprintw(win, "SQL/s SEL:%5d UPD:%4d INS:%4d DEL:%4d", (int)(mapDiffStats["sql_select"]/dblTime), (int)(mapDiffStats["sql_update"]/dblTime), (int)(mapDiffStats["sql_insert"]/dblTime), (int)(mapDiffStats["sql_delete"]/dblTime));
         wmove(win, 2, 50);
         wprintw(win, "Threads(idle): %s(%s)", mapStats["threads"].c_str(), mapStats["threads_idle"].c_str());
         wmove(win, 2, 75);
-        wprintw(win, "MWOPS: %d  MROPS: %d", (int)mapDiffStats["mwops"], (int)mapDiffStats["mrops"]);
+        wprintw(win, "MWOPS: %d  MROPS: %d", (int)(mapDiffStats["mwops"]/dblTime), (int)(mapDiffStats["mrops"]/dblTime));
         wmove(win, 2, 102);
-        wprintw(win, "SOAP calls: %d", (int)mapDiffStats["soap_request"]);
+        wprintw(win, "SOAP calls: %d", (int)(mapDiffStats["soap_request"]/dblTime));
 
 		ofs = cols[0];
         if (bColumns[0]) { wmove(win, 4, ofs); wprintw(win, "GRP");			ofs += cols[1]; }
@@ -437,7 +436,8 @@ void showtop(LPMDB lpStore, bool bLocal)
         if (bColumns[7]) { wmove(win, 4, ofs); wprintw(win, "CPUTIME");		ofs += cols[8]; }
         if (bColumns[8]) { wmove(win, 4, ofs); wprintw(win, "CPU%");		ofs += cols[9]; }
         if (bColumns[9]) { wmove(win, 4, ofs); wprintw(win, "NREQ");		ofs += cols[10]; }
-        if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
+        if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "STAT");		ofs += cols[11]; }
+        if (bColumns[11]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
         
         for(iterSessions = lstSessions.begin(); iterSessions != lstSessions.end(); iterSessions++) {
             if(iterSessions->dtimes.dblUser + iterSessions->dtimes.dblSystem > 0)
@@ -502,6 +502,12 @@ void showtop(LPMDB lpStore, bool bLocal)
 				ofs += cols[10];
 			}
 			if (bColumns[10]) {
+				wmove(win, 5 + line, ofs);
+				wprintw(win, "%s", iterSessions->strState.c_str());
+				ofs += cols[11];
+			}
+
+			if (bColumns[11]) {
 				wmove(win, 5 + line, ofs);
 				wprintw(win, "%s", iterSessions->strBusy.c_str());
 			}

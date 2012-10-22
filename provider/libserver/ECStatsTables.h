@@ -51,6 +51,8 @@
 #define EC_STATS_TABLES_H
 
 #include "ECGenericObjectTable.h"
+#include "ECSession.h"
+
 #include <string>
 #include <list>
 #include <map>
@@ -90,7 +92,7 @@ typedef struct _sessiondata {
 	bool locked;
 	int peerpid;
 	std::string username;
-	std::list<std::string> busystates;
+	std::list<BUSYSTATE> busystates;
 	double dblUser, dblSystem, dblReal;
 	std::string version;
 	std::string clientapp;

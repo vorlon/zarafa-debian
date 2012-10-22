@@ -163,6 +163,9 @@ public:
 	
 	ECRESULT ValidateSession(struct soap *soap, ECSESSIONID sessionID, ECAuthSession **lppSession, bool fLockSession = false);
 	ECRESULT ValidateSession(struct soap *soap, ECSESSIONID sessionID, ECSession **lppSession, bool fLockSession = false);
+	
+	ECRESULT AddSessionClocks(ECSESSIONID ecSessionID, double dblUSer, double dblSystem, double dblReal);
+	ECRESULT RemoveBusyState(ECSESSIONID ecSessionID, pthread_t thread);
 
 	static	void*  SessionCleaner(void *lpTmpSessionManager);
 
@@ -262,5 +265,7 @@ protected:
 	unsigned long long 	m_ulSeqIMAP;
 	unsigned int		m_ulSeqIMAPQueue;
 };
+
+extern ECSessionManager *g_lpSessionManager;
 
 #endif // #ifndef ECSESSIONMANAGER

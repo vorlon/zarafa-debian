@@ -363,6 +363,10 @@ struct tm* gmtime_safe(const time_t* timer, struct tm *result)
 	return tmp;
 }
 
+double timespec2dbl(timespec t) {
+    return (double)t.tv_sec + t.tv_nsec/1000000000.0;
+}
+
 struct timespec GetDeadline(unsigned int ulTimeoutMs)
 {
 	struct timespec	deadline;

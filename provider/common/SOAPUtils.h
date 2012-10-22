@@ -58,6 +58,7 @@
 
 #include <list>
 #include <string>
+#include <pthread.h>
 
 // SortOrderSets
 void				FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);
@@ -181,11 +182,15 @@ private:
 
 // The structure of the data stored in soap->user on the server side
 struct SOAPINFO {
-	 CONNECTION_TYPE ulConnectionType;
-	 int (*fparsehdr)(struct soap *soap, const char *key, const char *val);
-	 bool bProxy;
-	 void (*fdone)(struct soap *soap, void *param);
-	 void *fdoneparam;
+	CONNECTION_TYPE ulConnectionType;
+	int (*fparsehdr)(struct soap *soap, const char *key, const char *val);
+	bool bProxy;
+	void (*fdone)(struct soap *soap, void *param);
+	void *fdoneparam;
+	ECSESSIONID ulLastSessionId; // Session ID of the last processed request
+	struct timespec threadstart; 	// Start count of when the thread started processing the request
+	double start;			// Start timestamp of when we started processing the request
+	const char *szFname;
 };
 
 #endif

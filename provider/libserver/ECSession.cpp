@@ -529,29 +529,72 @@ ECSecurity* ECSession::GetSecurity()
 	return m_lpEcSecurity;
 }
 
-void ECSession::AddBusyState(pthread_t threadId, const char *lpszState)
+void ECSession::AddBusyState(pthread_t threadId, const char *lpszState, struct timespec threadstart, double start)
 {
 	pthread_mutex_lock(&m_hStateLock);
-	m_mapBusyStates[threadId] = lpszState;
+	m_mapBusyStates[threadId].fname = lpszState;
+	m_mapBusyStates[threadId].threadstart = threadstart;
+	m_mapBusyStates[threadId].start = start;
+	m_mapBusyStates[threadId].threadid = threadId;
+	m_mapBusyStates[threadId].state = SESSION_STATE_PROCESSING;
+	pthread_mutex_unlock(&m_hStateLock);
+}
+
+void ECSession::UpdateBusyState(pthread_t threadId, int state)
+{
+	std::map<pthread_t, BUSYSTATE>::iterator i;
+
+	pthread_mutex_lock(&m_hStateLock);
+	
+	i = m_mapBusyStates.find(threadId);
+	
+	if(i != m_mapBusyStates.end()) {
+		i->second.state = state;
+	} else {
+		ASSERT(FALSE);
+	}
+	
 	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::RemoveBusyState(pthread_t threadId)
 {
+	std::map<pthread_t, BUSYSTATE>::iterator i;
+	
 	pthread_mutex_lock(&m_hStateLock);
-	m_mapBusyStates.erase(threadId);
+	
+	i = m_mapBusyStates.find(threadId);
+
+	if(i != m_mapBusyStates.end()) {
+		clockid_t clock;
+		struct timespec end;
+
+		// Since the specified thread is done now, record how much work it has done for us
+		if(pthread_getcpuclockid(threadId, &clock) == 0) {
+			clock_gettime(clock, &end);
+			
+			AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
+		} else {
+			ASSERT(FALSE);
+		}
+		m_mapBusyStates.erase(threadId);
+	} else {
+		ASSERT(FALSE);
+	}
+	
 	pthread_mutex_unlock(&m_hStateLock);
 }
 
-void ECSession::GetBusyStates(list<string> *lpLstStates)
+void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
 {
-	map<pthread_t, const char*>::iterator iMap;
+	map<pthread_t, BUSYSTATE>::iterator iMap;
 
 	// this map is very small, since a session only performs one or two functions at a time
 	// so the lock time is short, which will block _all_ incoming functions
+	lpStates->clear();
 	pthread_mutex_lock(&m_hStateLock);
 	for (iMap = m_mapBusyStates.begin(); iMap != m_mapBusyStates.end(); iMap++)
-		lpLstStates->push_back(iMap->second);
+		lpStates->push_back(iMap->second);
 	pthread_mutex_unlock(&m_hStateLock);
 }
 

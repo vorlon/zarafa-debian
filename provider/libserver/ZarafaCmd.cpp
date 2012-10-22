@@ -133,10 +133,6 @@ extern ECStatsCollector*	g_lpStatsCollector;
 // Hold the status of the softdelete purge system
 bool g_bPurgeSoftDeleteStatus = FALSE;
 
-double timespec2dbl(timespec t) {
-    return (double)t.tv_sec + t.tv_nsec/1000000000.0;
-}
-
 ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType, entryId** lppEntryId)
 {
 	ECRESULT	er = erSuccess;
@@ -876,18 +872,17 @@ exit:
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
 		goto __soapentry_exit; \
-	lpecSession->AddBusyState(pthread_self(), #fname);
+    ((SOAPINFO *)soap->user)->ulLastSessionId = ulSessionId; \
+    ((SOAPINFO *)soap->user)->szFname = szFname; \
+	lpecSession->AddBusyState(pthread_self(), #fname, ((SOAPINFO *)soap->user)->threadstart, ((SOAPINFO *)soap->user)->start);
 
 #define SOAP_ENTRY_FUNCTION_FOOTER \
 __soapentry_exit: \
     *lpResultVar = er; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
     if(lpecSession) { \
-    	lpecSession->AddClocks( timespec2dbl(endTimes) - timespec2dbl(startTimes), \
-    	                        0, \
-							    GetTimeOfDay() - dblStart); \
 		LOG_SOAP_DEBUG(g_lpSessionManager->GetLogger(), "%020"PRIu64": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
-		lpecSession->RemoveBusyState(pthread_self()); \
+		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
         lpecSession->Unlock(); \
     } \
     return SOAP_OK;

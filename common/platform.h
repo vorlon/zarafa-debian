@@ -125,6 +125,8 @@ struct tm* gmtime_safe(const time_t* timer, struct tm *result);
  */
 struct timespec GetDeadline(unsigned int ulTimeoutMs);
 
+double timespec2dbl(timespec t);
+
 bool operator ==(FILETIME a, FILETIME b);
 bool operator >(FILETIME a, FILETIME b);
 bool operator <(FILETIME a, FILETIME b);
