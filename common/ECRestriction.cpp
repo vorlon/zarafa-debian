@@ -67,7 +67,7 @@ static char THIS_FILE[] = __FILE__;
  * @param[out]	lppRestriction	The resulting SRestriction structure.
  * @retval	MAPI_E_INVALID_PARAMTER	lppRestriction is NULL.
  */
-HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) {
+HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestrictionPtr ptrRestriction;
 
@@ -85,6 +85,26 @@ HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULO
 		goto exit;
 
 	*lppRestriction = ptrRestriction.release();
+
+exit:
+	return hr;
+}
+
+HRESULT ECRestriction::RestrictTable(LPMAPITABLE lpTable) const
+{
+	HRESULT hr = hrSuccess;
+	SRestrictionPtr ptrRestriction;
+
+	if (lpTable == NULL) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
+	hr = CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpTable->Restrict(ptrRestriction, TBL_BATCH);
 
 exit:
 	return hr;
@@ -118,7 +138,7 @@ exit:
  *							the address of the newly allocated SPropValue.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) {
+HRESULT ECRestriction::CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
@@ -160,7 +180,7 @@ exit:
  *							the address of the newly allocated SPropValue array.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) {
+HRESULT ECRestriction::CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
@@ -206,11 +226,11 @@ HRESULT ECAndRestriction::append(const ECRestrictionList &list) {
 	return hrSuccess;
 }
 
-HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 	ULONG i = 0;
-	ResList::iterator iRestriction;
+	ResList::const_iterator iRestriction;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -253,11 +273,11 @@ HRESULT ECOrRestriction::append(const ECRestrictionList &list) {
 	return hrSuccess;
 }
 
-HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 	ULONG i = 0;
-	ResList::iterator iRestriction;
+	ResList::const_iterator iRestriction;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -295,7 +315,7 @@ ECRestriction *ECOrRestriction::Clone() const {
  */
 ECNotRestriction::ECNotRestriction(ResPtr ptrRestriction): m_ptrRestriction(ptrRestriction) {}
 
-HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 
@@ -345,7 +365,7 @@ ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, 
 , m_ptrProp(ptrProp)
 {}
 
-HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 
@@ -385,7 +405,7 @@ ECRestriction *ECContentRestriction::Clone() const {
 /**
  * ECBitMaskRestriction
  */
-HRESULT ECBitMaskRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) {
+HRESULT ECBitMaskRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	HRESULT hr = hrSuccess;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
@@ -428,7 +448,7 @@ ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropP
 , m_ptrProp(ptrProp)
 {}
 
-HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 
@@ -468,7 +488,7 @@ ECRestriction *ECPropertyRestriction::Clone() const {
 /**
  * ECComparePropsRestriction
  */
-HRESULT ECComparePropsRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) {
+HRESULT ECComparePropsRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	HRESULT hr = hrSuccess;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
@@ -493,7 +513,7 @@ ECRestriction *ECComparePropsRestriction::Clone() const {
 /**
  * ECSizeRestriction
  */
-HRESULT ECSizeRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) {
+HRESULT ECSizeRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	HRESULT hr = hrSuccess;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
@@ -518,7 +538,7 @@ ECRestriction *ECSizeRestriction::Clone() const {
 /**
  * ECExistRestriction
  */
-HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) {
+HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
 	HRESULT hr = hrSuccess;
 
 	if (lpBase == NULL || lpRestriction == NULL) {
@@ -546,7 +566,7 @@ ECSubRestriction::ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction)
 , m_ptrRestriction(ptrRestriction)
 {}
 
-HRESULT ECSubRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECSubRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 
@@ -599,7 +619,7 @@ ECCommentRestriction::ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues,
 { }
 
 
-HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 	SRestriction restriction = {0};
 
@@ -678,7 +698,7 @@ ECRawRestriction::ECRawRestriction(RawResPtr ptrRestriction)
 : m_ptrRestriction(ptrRestriction) 
 { }
 
-HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
 
 	if (lpBase == NULL || lpRestriction == NULL) {

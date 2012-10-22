@@ -71,7 +71,22 @@ public:
 
 	virtual ~ECRestriction() {}
 
-	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags = 0);
+	/**
+	 * Create an LPSRestiction object that represents the restriction on which CreateMAPIRestriction was called.
+	 * @param[in]	lppRestriction	Pointer to an LPSRestriction pointer, that will be set to the address
+	 * 								of the newly allocated restriction. This memory must be freed with
+	 * 								MAPIFreeBuffer.
+	 * @param[in]	ulFlags			When set to ECRestriction::Cheap, not all data will be copied to the 
+	 * 								new MAPI restriction. This is usefull if the ECRestriction will outlive
+	 * 								the MAPI restriction.
+	 */
+	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags = 0) const;
+	
+	/**
+	 * Apply the restriction on a table.
+	 * @param[in]	lpTable		The table on which to apply the restriction.
+	 */
+	HRESULT RestrictTable(LPMAPITABLE lpTable) const;
 
 	/**
 	 * Use the restriction to perform a FindRow on the passed table.
@@ -86,8 +101,8 @@ public:
 	 * @param[in]		lpBase			Base pointer used for allocating additional memory.
 	 * @param[in,out]	lpRestriction	Pointer to the SRestriction object that is to be populated.
 	 */
-	virtual HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags = 0) = 0;
-
+	virtual HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags = 0) const = 0;
+	
 	/**
 	 * Create a new ECRestriction derived class of the same type of the object on which this
 	 * method is invoked.
@@ -103,8 +118,8 @@ protected:
 	typedef std::list<ResPtr>					ResList;
 
 	ECRestriction() { }
-	HRESULT CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst);
-	HRESULT CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst);
+	HRESULT CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst) const;
+	HRESULT CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst) const;
 
 	static void DummyFree(LPVOID);
 };
@@ -155,7 +170,7 @@ public:
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 	HRESULT append(const ECRestriction &restriction) {
@@ -178,7 +193,7 @@ public:
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 	
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 	HRESULT append(const ECRestriction &restriction) {
@@ -198,7 +213,7 @@ public:
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -212,7 +227,7 @@ class ECContentRestriction : public ECRestriction {
 public:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -232,7 +247,7 @@ public:
 	, m_ulMask(ulMask) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -245,7 +260,7 @@ class ECPropertyRestriction : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -265,7 +280,7 @@ public:
 	, m_ulPropTag2(ulPropTag2)
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -282,7 +297,7 @@ public:
 	, m_cb(cb)
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -297,7 +312,7 @@ public:
 	: m_ulPropTag(ulPropTag) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -311,7 +326,7 @@ public:
 	, m_ptrRestriction(ResPtr(restriction.Clone()))
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -326,7 +341,7 @@ class ECCommentRestriction : public ECRestriction {
 public:
 	ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags = 0);
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
@@ -346,7 +361,7 @@ class ECRawRestriction : public ECRestriction {
 public:
 	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags);
+	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const;
 	ECRestriction *Clone() const;
 
 private:
