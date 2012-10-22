@@ -6360,7 +6360,7 @@
 		      <para>The attribute that contains the path on which the
 		      server listens for unix socket connections in Linux or
 		      named pipe connections in MS Windows.</para>
-		      <para>Default: <replaceable>zarafaSslPort</replaceable>
+		      <para>Default: <replaceable>zarafaFilePath</replaceable>
 		      </para>
 		    </listitem>
 		  </varlistentry>
