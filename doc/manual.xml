@@ -2597,6 +2597,17 @@
 
 		  <varlistentry>
 			<term>
+			  <option>--node</option>
+			  <replaceable>name</replaceable>
+			</term>
+			<listitem>
+				<para>Execute the command on cluster node
+				<replaceable>name</replaceable>replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
 			  <option>--config</option>
 			  <replaceable>file</replaceable>
 			</term>

@@ -348,8 +348,9 @@ void print_help(char *name) {
 	cout << "Note: the list-orphans and create/remove/hook/unhook-store functions only work on the server you're connected to. The commands will not be redirected in a multi-server environment." << endl;
 	cout << endl;
 	cout << "Global options: [-h|--host path]" << endl;
-	ct.Resize(3,2);
+	ct.Resize(4,2);
 	ct.AddColumn(0, "-h path"); ct.AddColumn(1, "Connect through <path>, e.g. file:///var/run/socket");
+	ct.AddColumn(0, "--node name"); ct.AddColumn(1, "Execute the command on cluster node <name>");
 	ct.AddColumn(0, "-V"); ct.AddColumn(1, "Print version info.");
 	ct.AddColumn(0, "--help"); ct.AddColumn(1, "Show this help text.");
 	ct.PrintTable();
