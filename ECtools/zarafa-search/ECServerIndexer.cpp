@@ -507,6 +507,8 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get store properties: %08X", hr);
         goto exit;
     }
+
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing store id %s", bin2hex(lpPropStore[1].Value.bin.cb, lpPropStore[1].Value.bin.lpb).c_str());
     
     hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, (GUID *)lpPropStore[1].Value.bin.lpb, true, false, &lpIndex);
     if(hr != hrSuccess) {
@@ -646,7 +648,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
     
     hr = lpStore->OpenEntry(lpsEntryId->cb, (LPENTRYID)lpsEntryId->lpb, &IID_IMAPIFolder, 0, &ulObjType, (IUnknown **)&lpFolder);
     if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open folder %ls, for indexing: %08X", WSTR(lpProps[0]), hr);
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open folder %ls in store %ls, for indexing: %08X", szName, WSTR(lpProps[0]), hr);
         goto exit;
     }
     

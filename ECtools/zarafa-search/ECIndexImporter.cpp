@@ -384,7 +384,7 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     iterArchived = m_mapArchived.find(std::string((char *)lpPropEntryID->Value.bin.lpb, lpPropEntryID->Value.bin.cb));
     
     if(iterArchived != m_mapArchived.end()) {
-        m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received archived item for doc %d", iterArchived->second.ulFolderId);
+        m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received archived item for doc %d", iterArchived->second.ulDocId);
         // The item was an archived message, use the original document identifiers
         m_ulFolderId = iterArchived->second.ulFolderId;
         m_ulDocId = iterArchived->second.ulDocId;
