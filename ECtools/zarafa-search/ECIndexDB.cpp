@@ -127,7 +127,7 @@ typedef struct {
     unsigned short version;
 } VERSIONVALUE;
 
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE, KT_DBVERSION };
+enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE, KT_DBVERSION, KT_STUBTARGETS };
 
 #define INDEX_VERSION_VALUE 1
 
@@ -645,16 +645,43 @@ exit:
 /**
  * Set the sync state for a folder. This can be read back from GetSyncState()
  * 
+ * The stub targets will be saved first because if that fails, the sync
+ * state won't be saved and the folder will be resynchronized from the
+ * previous sync state.
+ * If saving of the stub targets passes but saving of the sync state fails,
+ * we end up with the new stub targets and the previous sync state, which
+ * means that some stubs will be processed multiple times, which is fine.
+ * 
+ * The stub targets will contain the previous targets plus the new targets
+ * minus the processed targets. So no targets will be lost.
+
  * @param[in] strFolder Folder ID
  * @param[in] strState State blob
+ * @param[in] strStubTargets Stub targets blob
  * @return result
  */
-HRESULT ECIndexDB::SetSyncState(const std::string& strFolder, const std::string& strState)
+HRESULT ECIndexDB::SetSyncState(const std::string& strFolder, const std::string& strState, const std::string& strStubTargets)
 {
     HRESULT hr = hrSuccess;
-    unsigned int ulBlock = KT_STATE;
+    unsigned int ulBlock;
+    std::string strKey;
     
-    std::string strKey((const char *)&ulBlock, sizeof(ulBlock));
+    ulBlock = KT_STUBTARGETS;
+    strKey.assign((const char *)&ulBlock, sizeof(ulBlock));
+    strKey += strFolder;
+    
+    if(strStubTargets.empty()) {
+        m_lpIndex->remove(strKey);  // No error check.
+    } else {
+        if(!m_lpIndex->set(strKey, strStubTargets)) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set stub targets for folder");
+            hr = MAPI_E_DISK_ERROR;
+            goto exit;
+        }
+    }
+    
+    ulBlock = KT_STATE;
+    strKey.assign((const char *)&ulBlock, sizeof(ulBlock));
     strKey += strFolder;
     
     if(!m_lpIndex->set(strKey, strState)) {
@@ -670,21 +697,33 @@ exit:
 /**
  * Get the sync state for a folder.
  * 
- * @param[in] strFolder Folder ID
- * @param[in] strState State blob
+ * @param[out] strFolder Folder ID
+ * @param[out] strState State blob
+ * @param[out] strStubTargets Stub targets blob
  * @return result
  */
-HRESULT ECIndexDB::GetSyncState(const std::string& strFolder, std::string& strState)
+HRESULT ECIndexDB::GetSyncState(const std::string& strFolder, std::string& strState, std::string& strStubTargets)
 {
     HRESULT hr = hrSuccess;
-    unsigned int ulBlock = KT_STATE;
-    
-    std::string strKey((const char *)&ulBlock, sizeof(ulBlock));
+    unsigned int ulBlock;
+    std::string strKey;
+
+    ulBlock = KT_STATE;
+    strKey.assign((const char *)&ulBlock, sizeof(ulBlock));
     strKey += strFolder;
     
     if(!m_lpIndex->get(strKey, &strState)) {
         hr = MAPI_E_NOT_FOUND;
         goto exit;
+    }
+    
+    ulBlock = KT_STUBTARGETS;
+    strKey.assign((const char *)&ulBlock, sizeof(ulBlock));
+    strKey += strFolder;
+    
+    if(!m_lpIndex->get(strKey, &strStubTargets)) {
+        // If the key is absent, there were no targets, not an error
+        strStubTargets.clear();
     }
     
 exit:

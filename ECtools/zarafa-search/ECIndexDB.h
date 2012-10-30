@@ -80,8 +80,8 @@ public:
     HRESULT Normalize(const std::wstring &strInput, std::list<std::wstring> &lstOutput);
     HRESULT QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsigned int> &setFields, std::wstring &wstrTerm, std::list<docid_t> &matches);
 
-    HRESULT	SetSyncState(const std::string& strFolder, const std::string& strState);
-    HRESULT	GetSyncState(const std::string& strFolder, std::string& strState);
+    HRESULT	SetSyncState(const std::string& strFolder, const std::string& strState, const std::string& strStubTargets);
+    HRESULT	GetSyncState(const std::string& strFolder, std::string& strState, std::string& strStubTargets);
 
     bool Complete();
     HRESULT SetComplete();

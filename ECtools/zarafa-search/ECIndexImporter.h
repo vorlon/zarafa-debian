@@ -128,7 +128,9 @@ public:
     HRESULT SaveSourceKey(const std::string &strSourceKey, unsigned int folder, unsigned int doc, GUID guidStore);
     HRESULT GetDocIdFromSourceKey(const std::string &strSourceKey, unsigned int *lpfolder, unsigned int *lpdoc, GUID *lpGuidStore);
     
-    HRESULT GetStubTargets(std::list<ArchiveItem> **lpArchived);
+    HRESULT GetStubTargets(std::list<ArchiveItem> *lpArchived);
+    HRESULT SaveStubTargetState(const std::list<ArchiveItem> &lstArchived, std::string &strState);
+    HRESULT LoadStubTargetState(const std::string &strState, std::list<ArchiveItem> *lpArchived);
     
 private:
     // This is the stream that is currently being processed by the processing thread. If it is NULL,

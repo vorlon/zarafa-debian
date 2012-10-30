@@ -257,6 +257,9 @@ HRESULT ECIndexImporter::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERRO
 
 HRESULT ECIndexImporter::Config(LPSTREAM lpStream, ULONG ulFlags)
 {
+    m_lstArchived.clear();
+    m_mapArchived.clear();
+
     return hrSuccess;
 }
 
@@ -733,27 +736,176 @@ exit:
 }
 
 /**
- * Get a list of stub targets that were encountered in imports
+ * Get a list of stub targets that were encountered in imports, the list is appended to the
+ * existing data in the list pointed to by lpArchived.
  * 
  * The call is responsible for requesting the streams of these items and streaming them back
  * to *this instance* of the importer. The importer remembers the mapping of the archived items
  * back to the document id of the stub, so it is important not to free the importer and pass the
  * archived items back to a new instance, because the items would then be indexed under their own
  * document id and store, instead of the original stub's document id and store.
- *
- * @param[out] lppArchived The list of archive stub targets that should be retrieved
+ * 
+ * @param[out] lpArchived The list of archive stub targets that should be retrieved
  * @return success (cannot fail)
  */
-HRESULT ECIndexImporter::GetStubTargets(std::list<ArchiveItem> **lppArchived)
+HRESULT ECIndexImporter::GetStubTargets(std::list<ArchiveItem> *lpArchived)
 {
-    std::list<ArchiveItem> *lpArchived = new std::list<ArchiveItem>(m_lstArchived);
-    
-    *lppArchived = lpArchived;
-    
-    m_lstArchived.clear();
+    lpArchived->splice(lpArchived->end(), m_lstArchived);
     
     return hrSuccess;
 }
+
+/**
+ * Save the passed list of stub targets to a blob. This method combines the list with the
+ * information about the primary message, which is kept internally.
+ * 
+ * The format of one encoded stub target is:
+ * Total length in bytes (4 bytes)
+ * Length in bytes of the archive store id (4 bytes)
+ * The archive store id (variable)
+ * The length in bytes of the archive entryid (4 bytes)
+ * The archive entryid (variable)
+ * The primary folder id (4 bytes)
+ * The primary document id (4 bytes)
+ * The primary store GUID (16 bytes)
+ * 
+ * The returned state is built by concatenating multiple states together.
+ *
+ * @param[in]   lstArchived     The list of ArchiveItem objects.
+ * @param[out]  strState        The stub target state blob.
+ */
+HRESULT ECIndexImporter::SaveStubTargetState(const std::list<ArchiveItem> &lstArchived, std::string &strState)
+{
+    HRESULT hr = hrSuccess;
+    std::string strTemp;
+    std::list<ArchiveItem>::const_iterator iArchiveItem;
+    std::map<std::string, ArchiveItemId >::const_iterator iArchiveItemId;
+
+    // Complex loop variables
+    std::string strSub;
+
+    for (iArchiveItem = lstArchived.begin(); iArchiveItem != lstArchived.end(); ++iArchiveItem) {
+        unsigned int lenTotal = 0;
+        unsigned int lenStoreId = 0;
+        unsigned int lenEntryId = 0;
+
+        iArchiveItemId = m_mapArchived.find(iArchiveItem->strEntryId);
+        if (iArchiveItemId == m_mapArchived.end()) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save stub target state due to internal inconsistency.");
+            ASSERT(iArchiveItemId != m_mapArchived.end());
+            hr = MAPI_E_NOT_FOUND;
+            goto exit;
+        }
+
+        lenStoreId = iArchiveItem->strStoreId.size();
+        lenEntryId = iArchiveItem->strEntryId.size();
+        lenTotal = sizeof(lenTotal) +
+                   sizeof(lenStoreId) + lenStoreId + 
+                   sizeof(lenEntryId) + lenEntryId + 
+                   sizeof(iArchiveItemId->second.ulFolderId) +
+                   sizeof(iArchiveItemId->second.ulDocId) +
+                   sizeof(iArchiveItemId->second.guidStore);
+
+        strSub.clear();
+        strSub.reserve(lenTotal);
+
+        strSub.append((char*)&lenTotal, sizeof(lenTotal));
+        strSub.append((char*)&lenStoreId, sizeof(lenStoreId));
+        strSub.append(iArchiveItem->strStoreId);
+        strSub.append((char*)&lenEntryId, sizeof(lenEntryId));
+        strSub.append(iArchiveItem->strEntryId);
+        strSub.append((char*)&iArchiveItemId->second.ulFolderId, sizeof(iArchiveItemId->second.ulFolderId));
+        strSub.append((char*)&iArchiveItemId->second.ulDocId, sizeof(iArchiveItemId->second.ulDocId));
+        strSub.append((char*)&iArchiveItemId->second.guidStore, sizeof(iArchiveItemId->second.guidStore));
+
+        strTemp.append(strSub);
+    }
+
+    strState.swap(strTemp);
+
+exit:
+    return hr;
+}
+
+/**
+ * Load a stub target state. This returns a list of ArchiveItem objects and populates
+ * the internal mapping from archive entryid to primary folder, document and store GUID.
+ * 
+ * @param[in]   strState    The stub target state.
+ * @param[out]  lpArchived  The list of ArchiveItem objects. New objects are appended
+ *                          to the existing list.
+ */
+HRESULT ECIndexImporter::LoadStubTargetState(const std::string &strState, std::list<ArchiveItem> *lpArchived)
+{
+    HRESULT hr = hrSuccess;
+    std::list<ArchiveItem> lstArchived;
+    std::list<std::pair<std::string, ArchiveItemId> > lstArchiveIds;
+    const char *lpszState = strState.data();
+    size_t offset = 0;
+    
+    // (Complex) loop variables
+    std::string strStoreId;
+    std::string strEntryId;
+    unsigned int lenTotal = 0;
+    
+    while (strState.size() - offset >= sizeof(lenTotal)) {
+        const char *lpszSub = lpszState + offset;
+        unsigned int lenStoreId = 0;
+        unsigned int lenEntryId = 0;
+        unsigned int ulFolderId;
+        unsigned int ulDocId;
+        GUID guidStore;
+        
+        lenTotal = *(unsigned int*)lpszSub; lpszSub += sizeof(lenTotal);
+        if (strState.size() - offset < lenTotal) {
+            hr = MAPI_E_CORRUPT_DATA;
+            goto exit;
+        }
+        
+        lenStoreId = *(unsigned int*)lpszSub; lpszSub += sizeof(lenStoreId);
+        strStoreId.assign(lpszSub, lenStoreId); lpszSub += lenStoreId;
+        lenEntryId = *(unsigned int*)lpszSub; lpszSub += sizeof(lenEntryId);
+        strEntryId.assign(lpszSub, lenEntryId); lpszSub += lenEntryId;
+        ulFolderId = *(unsigned int*)lpszSub; lpszSub += sizeof(ulFolderId);
+        ulDocId = *(unsigned int*)lpszSub; lpszSub += sizeof(ulDocId);
+        guidStore = *(GUID*)lpszSub; lpszSub += sizeof(guidStore);
+        
+        if (lenTotal != sizeof(lenTotal) +
+                        sizeof(lenStoreId) + lenStoreId +
+                        sizeof(lenEntryId) + lenEntryId +
+                        sizeof(ulFolderId) +
+                        sizeof(ulDocId) +
+                        sizeof(guidStore)) {
+            
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Attempt to load corrupt stub target state.");
+            ASSERT(lenTotal == sizeof(lenTotal) +
+                               sizeof(lenStoreId) + lenStoreId +
+                               sizeof(lenEntryId) + lenEntryId +
+                               sizeof(ulFolderId) +
+                               sizeof(ulDocId) +
+                               sizeof(guidStore));
+            hr = MAPI_E_CORRUPT_DATA;
+            goto exit;
+        }
+        
+        lstArchived.push_back(ArchiveItem(strStoreId, strEntryId));
+        lstArchiveIds.push_back(std::make_pair(strEntryId, ArchiveItemId(ulFolderId, ulDocId, guidStore)));
+        
+        offset += lenTotal;
+    }
+    
+    if (offset != strState.size()) {
+        hr = MAPI_E_CORRUPT_DATA;
+        goto exit;
+    }
+    
+    lpArchived->splice(lpArchived->end(), lstArchived);
+    m_mapArchived.insert(lstArchiveIds.begin(), lstArchiveIds.end());
+    
+exit:
+    return hr;
+}
+
 
 // Interface forwarders
 

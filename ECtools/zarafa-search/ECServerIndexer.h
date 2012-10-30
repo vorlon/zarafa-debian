@@ -91,7 +91,7 @@ private:
     HRESULT BuildIndexes();
     HRESULT IndexStore(SBinary *lpsEntryId, unsigned int ulStoreType);
     HRESULT IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndexDB);
-    HRESULT IndexStubTargets(const std::list<ECIndexImporter::ArchiveItem> *lpStubTargets, ECIndexImporter *lpImporter);
+    HRESULT IndexStubTargets(const std::list<ECIndexImporter::ArchiveItem> &lstpStubTargets, ECIndexImporter *lpImporter);
     HRESULT IndexStubTargetsServer(const std::string& strServerName, const std::list<std::string> &lstStubTargets, ECIndexImporter *lpImporter);
     HRESULT GetServerState(std::string &strState);
     HRESULT ProcessChanges();

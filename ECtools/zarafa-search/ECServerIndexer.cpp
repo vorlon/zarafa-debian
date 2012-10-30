@@ -330,8 +330,7 @@ HRESULT ECServerIndexer::ProcessChanges()
     UnknownPtr lpImportInterface;
     ECIndexImporter *lpImporter = NULL;
     ExchangeExportChangesPtr lpExporter;
-	std::list<ECIndexImporter::ArchiveItem> *lpArchived;
-	auto_ptr<std::list<ECIndexImporter::ArchiveItem> > lpStubTargets;
+    std::list<ECIndexImporter::ArchiveItem> lstStubTargets;
     
     time_t ulStartTime = time(NULL);
     time_t ulLastTime = time(NULL);
@@ -392,12 +391,11 @@ HRESULT ECServerIndexer::ProcessChanges()
     }
 
     // Do a second-stage index of items in archived servers
-    hr = lpImporter->GetStubTargets(&lpArchived);
+    hr = lpImporter->GetStubTargets(&lstStubTargets);
     if(hr != hrSuccess)
         goto exit;
-    lpStubTargets.reset(lpArchived);
     
-    hr = IndexStubTargets(lpStubTargets.get(), lpImporter);
+    hr = IndexStubTargets(lstStubTargets, lpImporter);
     if(hr != hrSuccess)
         goto exit;
 
@@ -597,10 +595,12 @@ exit:
 HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndex)
 {
     HRESULT hr = hrSuccess;
+    HRESULT hrSaveState = hrSuccess;
     SPropArrayPtr lpProps;
     MAPIFolderPtr lpFolder;
     std::string strFolderId((char *)lpsEntryId->lpb, lpsEntryId->cb);
     std::string strFolderState;
+    std::string strStubTargetState;
     ULONG ulSteps = 0, ulStep = 0;
     ULONG cValues = 0;
     ULONG ulObjType = 0;
@@ -617,8 +617,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
 	ULONG ulChange = 0, ulCreate = 0, ulDelete = 0;
 	unsigned long long ulTotalBytes = 0;
 	
-	std::list<ECIndexImporter::ArchiveItem> *lpArchived;
-	auto_ptr<std::list<ECIndexImporter::ArchiveItem> > lpStubTargets;
+    std::list<ECIndexImporter::ArchiveItem> lstStubTargets;
     
     SizedSPropTagArray(3, sptaProps) = {3, { PR_DISPLAY_NAME_W, PR_MAPPING_SIGNATURE, PR_STORE_RECORD_KEY } };
 
@@ -632,7 +631,18 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
     if(FAILED(hr))
         goto exit;
         
-    lpIndex->GetSyncState(strFolderId, strFolderState); // ignore error and use empty state if this fails
+    lpIndex->GetSyncState(strFolderId, strFolderState, strStubTargetState); // ignore error and use empty state if this fails
+    
+    if (!strStubTargetState.empty()) {
+        hr = lpImporter->LoadStubTargetState(strStubTargetState, &lstStubTargets);
+        if (hr != hrSuccess) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to load saved stub target state: %08X", hr);
+            goto exit;
+        } else {
+            if (!lstStubTargets.empty())
+                m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Loaded %u stub targets from saved state", lstStubTargets.size());
+        }
+    }
     
     hr = lpStore->OpenEntry(lpsEntryId->cb, (LPENTRYID)lpsEntryId->lpb, &IID_IMAPIFolder, 0, &ulObjType, (IUnknown **)&lpFolder);
     if(hr != hrSuccess) {
@@ -681,38 +691,50 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
         
     }
     
-    // Do a second-stage index of items in archived servers
-    hr = lpImporter->GetStubTargets(&lpArchived);
-    if(hr != hrSuccess)
-        goto exit;
-    lpStubTargets.reset(lpArchived);
+    // Get the list of stub targets, either for processing or for saving in combination
+    // with the sync state.
+    lpImporter->GetStubTargets(&lstStubTargets);  // This can't fail
     
-    // Don't attempt to process the stubs if exit was requested.
-    if (!m_bExit) {
-        hr = IndexStubTargets(lpStubTargets.get(), lpImporter);
-        if(hr != hrSuccess)
+    // Don't attempt to process the stubs if exit was requested or a previous error has occurred.
+    if (!FAILED(hr)) {
+        if (!m_bExit) {
+            // Do a second-stage index of items in archived servers
+            hr = IndexStubTargets(lstStubTargets, lpImporter);
+            // Do not goto exit, we wish to save the sync state
+        } else
+            hr = MAPI_E_USER_CANCEL;
+    }
+    
+    // Failure to save the state is non-fatal. It can only cause a rescan of the folder
+    // in case the index of the store is incomplete and the server is restarted.
+    if (FAILED(hr)) {
+        hrSaveState = lpImporter->SaveStubTargetState(lstStubTargets, strStubTargetState);
+        if (hrSaveState != hrSuccess) {
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get stub target state: %08X", hrSaveState);
             goto exit;
-    } else
-        hr = MAPI_E_USER_CANCEL;
-
-    // Don't save the state if exit was requested but we didn't process any 
-    // stubs but there were stubs to process. Otherwise those stubs would
-    // never be processed again.
-    if (!m_bExit || !lpStubTargets->empty()) {
-        if(lpExporter->UpdateState(&state) == hrSuccess) {
-            if(lpIndex->SetSyncState(strFolderId, strFolderState) != hrSuccess) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save sync state");
-                hr = MAPI_E_NOT_FOUND;
-                goto exit;
-            }
         }
+        m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got %u bytes of stub target state", strStubTargetState.size());
+    } else {
+        // Clear the stub target state if we completed successfully
+        strStubTargetState.clear();
+    }
+    
+    hrSaveState = lpExporter->UpdateState(&state);
+    if (hrSaveState != hrSuccess) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to update sync state: %08X", hrSaveState);
+        goto exit;
+    }
+    
+    hrSaveState = lpIndex->SetSyncState(strFolderId, strFolderState, strStubTargetState);
+    if (hrSaveState != hrSuccess) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save sync state: %08X", hrSaveState);
+        goto exit;
     }
 
     if(ulTotalChange || m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
     	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed folder '%ls' with %d changes (%s) in %d seconds", szName, ulTotalChange, str_storage(ulTotalBytes, false).c_str(), (int)(time(NULL) - ulStartTime));
 
 exit:
-        
     return hr;
 }
 
@@ -722,9 +744,9 @@ exit:
  * This function retrieves data from archiveservers and indexes the data there as if the content
  * were in the original stub documents.
  *
- * @param[in] lpStubTargets A List of all stub targets to process
+ * @param[in] lstStubTargets A List of all stub targets to process
  */
-HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::ArchiveItem> *lpStubTargets, ECIndexImporter *lpImporter)
+HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::ArchiveItem> &lstStubTargets, ECIndexImporter *lpImporter)
 {
     HRESULT hr = hrSuccess;
     std::map<std::string, std::list<std::string> > mapArchiveServers;
@@ -732,14 +754,16 @@ HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::Archi
     std::list<ECIndexImporter::ArchiveItem>::const_iterator i;
     std::string strServerName;
     
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing %lu stub targets", lpStubTargets->size());
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing %lu stub targets", lstStubTargets.size());
     
     // Sort the items into groups per archive server
-    for(i = lpStubTargets->begin(); i != lpStubTargets->end(); i++) {
+    for(i = lstStubTargets.begin(); i != lstStubTargets.end(); i++) {
         hr = HrExtractServerName((LPENTRYID)i->strStoreId.data(), i->strStoreId.size(), strServerName);
         if(hr != hrSuccess) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to extract server name from store entryid: %08X", hr);
-            goto exit;
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Skipping stub target.");
+            hr = hrSuccess;
+            continue;
         }
         
         mapArchiveServers[strServerName].push_back(i->strEntryId);
