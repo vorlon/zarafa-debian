@@ -87,7 +87,7 @@ ECFifoBuffer::~ECFifoBuffer()
  * @retval	ZARAFA_E_NOT_ENOUGH_MEMORY	There was not enough memory available to store the data.
  * @retval	ZARAFA_E_TIMEOUT			Not all data was writting within the specified time limit.
  *										The amount of data that was written is returned in lpcbWritten.
- * @retval	ZARAFA_E_CALL_FAILED		The buffer was closed prior to this call.
+ * @retval	ZARAFA_E_NETWORK_ERROR		The buffer was closed prior to this call.
  */
 ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten)
 {
@@ -100,7 +100,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 		return ZARAFA_E_INVALID_PARAMETER;
 
 	if (IsClosed(cfWrite))
-	    return ZARAFA_E_CALL_FAILED;
+	    return ZARAFA_E_NETWORK_ERROR;
 
 	if (cbBuf == 0) {
 		if (lpcbWritten)
@@ -116,7 +116,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 	while (cbWritten < cbBuf) {
 		while (IsFull()) {
 		    if (IsClosed(cfRead)) {
-				er = ZARAFA_E_CALL_FAILED;
+				er = ZARAFA_E_NETWORK_ERROR;
 				goto exit;
 			}
 
@@ -173,7 +173,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		return ZARAFA_E_INVALID_PARAMETER;
 
 	if (IsClosed(cfRead))
-		return ZARAFA_E_CALL_FAILED;
+		return ZARAFA_E_NETWORK_ERROR;
 
 	if (cbBuf == 0) {
 		if (lpcbRead)
@@ -223,7 +223,7 @@ exit:
 
 /**
  * Close a buffer.
- * This causes new writes to the buffer to fail with ZARAFA_E_CALL_FAILED and all
+ * This causes new writes to the buffer to fail with ZARAFA_E_NETWORK_ERROR and all
  * (pending) reads on the buffer to return immediately.
  *
  * @retval	erSucces (never fails)
@@ -258,7 +258,7 @@ ECRESULT ECFifoBuffer::Close(close_flags flags)
 ECRESULT ECFifoBuffer::Flush()
 {
 	if (!IsClosed(cfWrite))
-		return ZARAFA_E_CALL_FAILED;
+		return ZARAFA_E_NETWORK_ERROR;
 
 	pthread_mutex_lock(&m_hMutex);
 	while (!(IsClosed(cfWrite) || IsEmpty()))
