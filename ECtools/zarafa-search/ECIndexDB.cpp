@@ -215,6 +215,7 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bCompl
 {
     HRESULT hr = hrSuccess;
     std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct";
+	int rv = 0;
 
     m_lpIndex = new TreeDB();
     m_lpCache = new TinyHashMap(1048583); // Default taken from kcdbext.h. This can be reached if each word has a key (instead of prefix)
@@ -227,14 +228,22 @@ HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bCompl
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Path '%s' not found or unable to create: %s", m_lpConfig->GetSetting("index_path"), strerror(errno));
         }
     }
-    
-    if (!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER)) {
+
+	try {
+		rv = m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER);
+	}
+	catch (std::exception &e) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
+		hr = MAPI_E_DISK_ERROR;
+		goto exit;
+	}
+    if (!rv) {
         if (!bCreate) {
             hr = MAPI_E_NOT_FOUND;
             goto exit;
         }
-
-        if (!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | (bCreate ? TreeDB::OCREATE : 0))) {
+		// no need to try/catch, since there is no data to read yet
+        if (!m_lpIndex->open(strPath, TreeDB::OWRITER | TreeDB::OREADER | TreeDB::OCREATE)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index %s: %s", strPath.c_str(), m_lpIndex->error().message());
             hr = MAPI_E_NOT_FOUND;
             goto exit;
@@ -376,11 +385,21 @@ HRESULT ECIndexDB::RemoveTermsDoc(folderid_t folder, docid_t doc, unsigned int *
     
     value = m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
     
-    if(!value || cb != sizeof(VERSIONVALUE)) {
-        sValue.version = 1;
+    if(!value) {
+		if (m_lpIndex->error() == kyotocabinet::BasicDB::Error::NOREC)
+			sValue.version = 1;
+		else {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get version from index %s: %s", m_lpIndex->path().c_str(), m_lpIndex->error().message());
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
     } else {
-        sValue = *(VERSIONVALUE *)value;
-        sValue.version++;
+		if (cb != sizeof(VERSIONVALUE))
+			sValue.version = 1;
+		else {
+			sValue = *(VERSIONVALUE *)value;
+			sValue.version++;
+		}
     }
     
     if(!m_lpIndex->set((char *)&sKey, sizeof(sKey), (char *)&sValue, sizeof(sValue))) {
@@ -513,8 +532,11 @@ HRESULT ECIndexDB::QueryTerm(std::list<unsigned int> &lstFolders, std::set<unsig
                 
                 // Check if the version is ok
                 sVersion = (VERSIONVALUE *)m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
-                
-                if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
+				if(!sVersion && m_lpIndex->error() != kyotocabinet::BasicDB::Error::NOREC) {
+					m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get term version from index %s: %s", m_lpIndex->path().c_str(), m_lpIndex->error().message());
+					hr = MAPI_E_DISK_ERROR;
+					goto exit;
+				} else if(!sVersion || cb != sizeof(VERSIONVALUE) || sVersion->version == p->version)
                     setMatches.insert(p->doc);
                     
                 delete [] sVersion;
@@ -593,8 +615,14 @@ HRESULT ECIndexDB::FlushCache()
     }
     
     vbuf = m_lpIndex->get((char *)&key, sizeof(key), &cb);
-    if(cb != sizeof(ulBlock) || !vbuf) {
-        ulBlock = 0;
+    if(!vbuf) {
+		if (m_lpIndex->error() == kyotocabinet::BasicDB::Error::NOREC)
+			ulBlock = 0;
+		else if (m_lpIndex->error()) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to fetch block id: %s", m_lpIndex->error().message());
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
     } else {
         ulBlock = *(unsigned int *)vbuf;
     }
@@ -674,7 +702,7 @@ HRESULT ECIndexDB::SetSyncState(const std::string& strFolder, const std::string&
         m_lpIndex->remove(strKey);  // No error check.
     } else {
         if(!m_lpIndex->set(strKey, strStubTargets)) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set stub targets for folder");
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set stub targets for folder: %s", m_lpIndex->error().message());
             hr = MAPI_E_DISK_ERROR;
             goto exit;
         }
@@ -685,7 +713,7 @@ HRESULT ECIndexDB::SetSyncState(const std::string& strFolder, const std::string&
     strKey += strFolder;
     
     if(!m_lpIndex->set(strKey, strState)) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set state for folder");
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set state for folder: %s", m_lpIndex->error().message());
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
@@ -713,7 +741,12 @@ HRESULT ECIndexDB::GetSyncState(const std::string& strFolder, std::string& strSt
     strKey += strFolder;
     
     if(!m_lpIndex->get(strKey, &strState)) {
-        hr = MAPI_E_NOT_FOUND;
+		if (m_lpIndex->error() == kyotocabinet::BasicDB::Error::NOREC)
+			hr = MAPI_E_NOT_FOUND;
+		else {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read sync state for folder: %s", m_lpIndex->error().message());
+			hr = MAPI_E_DISK_ERROR;
+		}
         goto exit;
     }
     
@@ -723,7 +756,13 @@ HRESULT ECIndexDB::GetSyncState(const std::string& strFolder, std::string& strSt
     
     if(!m_lpIndex->get(strKey, &strStubTargets)) {
         // If the key is absent, there were no targets, not an error
-        strStubTargets.clear();
+		if (m_lpIndex->error() == kyotocabinet::BasicDB::Error::NOREC)
+			strStubTargets.clear();
+		else if (m_lpIndex->error()) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read sync state for stubtargets: %s", m_lpIndex->error().message());
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
     }
     
 exit:
@@ -748,7 +787,7 @@ HRESULT ECIndexDB::WriteToDB(unsigned int key, unsigned int value)
 	HRESULT hr = hrSuccess;
 	if (!m_lpIndex->set((char*)&key, sizeof(key),
 						(char*)&value, sizeof(value))) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write key %u value %u to index", key, value);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write key %u value %u to index: %s", key, value, m_lpIndex->error().message());
 		hr = MAPI_E_DISK_ERROR;
 	}
 	return hr;
@@ -766,8 +805,8 @@ unsigned int ECIndexDB::QueryFromDB(unsigned int key)
     lpValue = (unsigned char*)m_lpIndex->get((char*)&key, sizeof(key), &len);
 	if (lpValue && len == sizeof(unsigned int))
 		rValue = *(unsigned int*)lpValue;
-	else
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read key %u from index, data %p length %lu", key, lpValue, len);
+	else if (!lpValue && m_lpIndex->error() != kyotocabinet::BasicDB::Error::NOREC)
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read key %u from index: %s", key, m_lpIndex->error().message());
     delete[] lpValue;
     return rValue;
 }
