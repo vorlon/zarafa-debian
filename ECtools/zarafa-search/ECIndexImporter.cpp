@@ -237,7 +237,8 @@ void *ECIndexImporter::Thread(void *lpArg)
 {
     ECIndexImporter *lpImporter = (ECIndexImporter *)lpArg;
     
-    return (void *)lpImporter->ProcessThread();
+    lpImporter->ProcessThread();
+	return NULL;
 }
 
 HRESULT ECIndexImporter::QueryInterface(REFIID refiid, void **lppInterface)

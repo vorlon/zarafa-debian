@@ -81,11 +81,6 @@ typedef struct __attribute__((__packed__)) {
     unsigned char len;
 } TERMENTRY;
 
-typedef struct {
-    unsigned int type; // Must be KT_TERMS
-    char prefix[1]; // Actually more than 1 char
-} TERMKEY;
-
 /**
  * The format for the term entries
  *
@@ -127,7 +122,17 @@ typedef struct {
     unsigned short version;
 } VERSIONVALUE;
 
-enum KEYTYPES { KT_TERMS, KT_VERSION, KT_SOURCEKEY, KT_BLOCK, KT_STATE, KT_COMPLETE, KT_DBVERSION, KT_STUBTARGETS };
+enum KEYTYPES {
+	KT_TERMS,		// N [KT_TERMS, (lucene sort key of) 3 "letter" term + \0 + block id (global)] <term0,
+	KT_VERSION,		// N [KT_VESION, struct VERSIONKEY] <version>
+	KT_SOURCEKEY,	// unused
+	KT_BLOCK,		// 1 [KT_BLOCK] <block id>
+	KT_STATE,		// 1 [KT_STATE] <syncstate>
+	KT_COMPLETE,	// 1 [KT_COMPLETE] <bool>, false if the store index was aborted during the first index step
+	KT_DBVERSION,	// 1 [KT_DBVERSION] <version> current vesion of the database
+	KT_STUBTARGETS,	// 1 [KT_STUBTARGETS] <archiver info>
+	KT_OPTIMIZETS	// 1 [KT_OPTIMIZETS] <last optimized timestamp>
+};
 
 #define INDEX_VERSION_VALUE 1
 
@@ -591,29 +596,34 @@ size_t ECIndexDB::GetSortKey(const wchar_t *wszInput, size_t len, char *szOutput
  * Flush cache from in-memory cache by merging the contents into the
  * tree
  */
-HRESULT ECIndexDB::FlushCache()
+HRESULT ECIndexDB::FlushCache(kyotocabinet::TinyHashMap *lpCache, bool bTransaction)
 {
     HRESULT hr = hrSuccess;
     char k[1024];
     const char* kbuf, *vbuf;
-    size_t ksiz, vsiz;
+    size_t ksize, vsize;
     unsigned int ulBlock = 0;
     unsigned int key = KT_BLOCK;
     size_t cb;
     double dblStart = GetTimeOfDay();
-    TinyHashMap::Sorter sorter(m_lpCache);
 
-    if(m_lpCache->count() == 0)
+	if (lpCache == NULL)
+		lpCache = m_lpCache;
+
+    TinyHashMap::Sorter sorter(lpCache);
+
+    if(lpCache->count() == 0)
         goto exit; // Nothing to flush
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing the cache");
     
-    if(!m_lpIndex->begin_transaction()) {
+    if(bTransaction && !m_lpIndex->begin_transaction()) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
-    
+
+	// get current block id
     vbuf = m_lpIndex->get((char *)&key, sizeof(key), &cb);
     if(!vbuf) {
 		if (m_lpIndex->error() == kyotocabinet::BasicDB::Error::NOREC)
@@ -632,22 +642,23 @@ HRESULT ECIndexDB::FlushCache()
     
     ulBlock++;
     
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing %u values to block %d", (unsigned)m_lpCache->count(), ulBlock);
-    
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing %u values to block %d", (unsigned)lpCache->count(), ulBlock);
+
+	// set new current block id
     if(!m_lpIndex->set((char *)&key, sizeof(key), (char *)&ulBlock, sizeof(ulBlock))) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write block id: %s", m_lpIndex->error().message());
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
     
-    while ((kbuf = sorter.get(&ksiz, &vbuf, &vsiz)) != NULL) {
-        ksiz = MIN(ksiz, sizeof(k)-sizeof(int)-1);
-        memcpy(k, kbuf, ksiz);
+    while ((kbuf = sorter.get(&ksize, &vbuf, &vsize)) != NULL) {
+        ksize = MIN(ksize, sizeof(k)-sizeof(int)-1);
+        memcpy(k, kbuf, ksize);
         // Value in the DB is <sortkey>\0<blockid>
-        *(k+ksiz)=0;
-        *(unsigned int *)(k+ksiz+1) = htonl(ulBlock);
-        ASSERT(m_lpIndex->get(k, ksiz+sizeof(ulBlock)+1, &cb) == NULL);
-        if (!m_lpIndex->set(k, ksiz+sizeof(ulBlock)+1, vbuf, vsiz)) {
+        *(k+ksize)=0;
+        *(unsigned int *)(k+ksize+1) = htonl(ulBlock);
+        ASSERT(m_lpIndex->get(k, ksize+sizeof(ulBlock)+1, &cb) == NULL);
+        if (!m_lpIndex->set(k, ksize+sizeof(ulBlock)+1, vbuf, vsize)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to flush index data: %s", m_lpIndex->error().message());
             hr = MAPI_E_DISK_ERROR;
             goto exit;
@@ -655,14 +666,14 @@ HRESULT ECIndexDB::FlushCache()
         sorter.step();
     }
 
-    if(!m_lpIndex->end_transaction()) {
+    if(bTransaction && !m_lpIndex->end_transaction()) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
     
     m_ulCacheSize = 0;
-    m_lpCache->clear();
+    lpCache->clear();
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Flushing the cache took %.2f seconds", GetTimeOfDay() - dblStart);
     
@@ -780,7 +791,7 @@ bool ECIndexDB::Complete()
 }
 
 /** 
- * Write a simple integer value under an interger key in the database
+ * Write a simple integer value under an integer key in the database
  */
 HRESULT ECIndexDB::WriteToDB(unsigned int key, unsigned int value)
 {
@@ -794,7 +805,7 @@ HRESULT ECIndexDB::WriteToDB(unsigned int key, unsigned int value)
 }
 
 /** 
- * Read a simple integer value under an interger key from the database
+ * Read a simple integer value under an integer key from the database
  */
 unsigned int ECIndexDB::QueryFromDB(unsigned int key)
 {
@@ -829,4 +840,230 @@ HRESULT ECIndexDB::SetComplete()
     
 exit:
     return hr;
+}
+
+/** 
+ * Walks through all KT_TERMS keys in the database, and removes all
+ * old versions of a document, and combines keys if possible.
+ * 
+ * @return MAPI Error code
+ */
+HRESULT ECIndexDB::Optimize()
+{
+	HRESULT hr = hrSuccess;
+	kyotocabinet::DB::Cursor *cursor = NULL;
+	char *firstkey = NULL;
+	size_t firstlen = 0;
+	char *currkey = NULL;
+	size_t currlen = 0;
+	char *value = NULL;
+	size_t len = 0;
+	size_t offset = 0;
+	size_t steps = 0;
+	size_t removes = 0;
+	kyotocabinet::TinyHashMap *lpCache = new kyotocabinet::TinyHashMap();
+	time_t tsLast = 0, tsEnd = 0;
+	int iLast = 0;
+	const char *szAge = NULL;
+	std::string strValues;
+	unsigned int ulLastBlock = 0;
+
+	if (!m_bComplete)
+		goto exit;
+
+	iLast = QueryFromDB(KT_OPTIMIZETS);
+	tsLast = time(NULL);
+	szAge = m_lpConfig->GetSetting("optimize_age");
+	if (iLast + (::atoi(szAge)*24*60*60) > tsLast) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Ignoring optimized index %s", m_lpIndex->path().c_str());
+		goto exit;
+	}
+
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Optimizing index %s", m_lpIndex->path().c_str());
+
+	hr = FlushCache();
+	if (hr != hrSuccess)
+		goto exit;
+
+	cursor = m_lpIndex->cursor();
+
+	if (!cursor->jump())
+		goto exit;
+
+	while (true) {
+
+		currkey = cursor->get_key(&currlen, false);
+		if (!currkey)
+			break;
+		if (currlen < 4) {
+			cursor->step();
+			goto cleanup;
+		}
+		if(*(unsigned int*)currkey != KT_TERMS) {
+			cursor->step();
+			goto cleanup;
+		}
+
+		if (firstkey == NULL) {
+			// mark start of block
+			firstkey = currkey;
+			firstlen = currlen;
+		} else if (currlen != firstlen || memcmp(firstkey, currkey, currlen - sizeof(unsigned int)) != 0) {
+			// new block, flush previous processed blocks
+			goto cleanup;
+		}
+		ulLastBlock = ntohl(*(currkey + currlen - sizeof(unsigned int)));
+
+		// KT_TERMS <sortkeydata N bytes> blockid
+
+		value = cursor->get_value(&len);
+		if (!value) {
+			cursor->step();
+			goto cleanup;
+		}
+
+		offset = 0;
+
+		strValues.reserve(len);
+		// find all current values in the block, and save them in the cache
+		while(value && offset < len) {
+			TERMENTRY *entry = (TERMENTRY *) (value + offset);
+			VERSIONKEY sKey;
+			VERSIONVALUE *sVersion;
+			size_t cb = 0;
+
+			sKey.type = KT_VERSION;
+			sKey.folder = entry->folder;
+			sKey.doc = entry->doc;
+
+			sVersion = (VERSIONVALUE *)m_lpIndex->get((char *)&sKey, sizeof(sKey), &cb);
+
+			if(!sVersion && m_lpIndex->error() != kyotocabinet::BasicDB::Error::NOREC) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get term version from index %s: %s", m_lpIndex->path().c_str(), m_lpIndex->error().message());
+				hr = MAPI_E_DISK_ERROR;
+				delete [] value;
+				goto exit;
+			} else if(!sVersion || (cb == sizeof(VERSIONVALUE) && sVersion->version == entry->version)) {
+				strValues.append((char *)entry, sizeof(TERMENTRY) + entry->len);
+			} else {
+				// skip this entry so it's removed
+				removes++;
+			}
+
+			delete [] sVersion;
+
+			offset += sizeof(TERMENTRY) + entry->len;
+		}
+		// keep entry, strip block id from key. another -1 because of terminating 0 added in sorter loop in FlushCache.
+		lpCache->append(currkey, currlen - sizeof(unsigned int) -1, strValues.data(), strValues.length());
+		strValues.clear();
+
+		delete [] value;
+		if (firstkey != currkey) {
+			delete [] currkey;
+			currkey = NULL;
+			currlen = 0;
+		}
+
+		// find next key
+		if (cursor->step()) {
+			steps++;
+			continue;
+		} else {
+			// incomplete index, since a KT_TERMS entry can't be last
+			if (m_lpIndex->error() != kyotocabinet::BasicDB::Error::NOREC)
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Index is faulty: %s", m_lpIndex->error().message());
+			else
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Index is incomplete");
+			
+			hr = MAPI_E_DISK_ERROR;
+			goto exit;
+		}
+
+	cleanup:
+		if (firstkey && (removes || steps > 1)) {
+			if(!m_lpIndex->begin_transaction()) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
+				hr = MAPI_E_DISK_ERROR;
+				goto exit;
+			}
+
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Merging %lu blocks and removing %lu out of date entries", steps, removes);
+
+			// remove old data from file
+			if (!cursor->jump(firstkey, firstlen)) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to jump back to first key to combine in index %s: %s", m_lpIndex->path().c_str(), m_lpIndex->error().message());
+				hr = MAPI_E_DISK_ERROR;
+				goto exit;
+			}
+			// since the indexer can place new data in the index while we're optimizing, 
+			// remove only blocks we've actually seen by testing the block id
+			{
+				char *cmpkey = NULL;
+				size_t cmplen = 0;
+				do {
+					cmpkey = cursor->get_key(&cmplen);
+					if (!cmpkey || cmplen < 4 || (*(unsigned int*)cmpkey != KT_TERMS))
+						break;
+					if (cmplen != firstlen || memcmp(firstkey, cmpkey, cmplen - sizeof(unsigned int)) != 0)
+						break;
+					if (ntohl(*(cmpkey + cmplen - sizeof(unsigned int))) <= ulLastBlock)
+						cursor->remove();
+					else
+						break;
+					delete [] cmpkey;
+				} while (true);
+				delete [] cmpkey;
+			}
+
+			// write new data to file
+			FlushCache(lpCache, false);
+
+			if(!m_lpIndex->end_transaction()) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start transaction: %s", m_lpIndex->error().message());
+				hr = MAPI_E_DISK_ERROR;
+				goto exit;
+			}
+
+			// jump back were we left off, or stop processing
+			if (currkey) {
+				if (!cursor->jump(currkey, currlen)) {
+					m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to jump to next key to combine in index %s: %s", m_lpIndex->path().c_str(), m_lpIndex->error().message());
+					hr = MAPI_E_DISK_ERROR;
+					goto exit;
+				}
+			} else
+				break;
+		}
+		// reset function
+		steps = 0;
+		removes = 0;
+		delete [] currkey;
+		currlen = 0;
+		currkey = NULL;
+		delete [] firstkey;
+		firstlen = 0;
+		firstkey = NULL;
+		lpCache->clear();
+	}
+
+	// write new timestamp
+	tsEnd = time(NULL);
+	hr = WriteToDB(KT_OPTIMIZETS, (unsigned int)tsEnd);
+
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Optimized index in %lu seconds", tsEnd - tsLast);
+
+exit:
+	// print stats, processed %d terms
+	delete lpCache;
+	// may not have cleaned this if we jumped
+	if (firstkey && firstkey != currkey)
+		delete [] firstkey;
+	delete [] currkey;
+
+	if (cursor && hr == hrSuccess)
+		m_lpIndex->defrag();
+
+	delete cursor;
+	return hr;
 }

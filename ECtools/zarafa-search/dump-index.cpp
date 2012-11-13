@@ -47,23 +47,47 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,2,38269
-#define PROJECT_VERSION_SERVER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_CLIENT		7,1,2,38269
-#define PROJECT_VERSION_CLIENT_STR	"7,1,2,38269"
-#define PROJECT_VERSION_EXT_STR		"7,1,2,38269"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,2,38269"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,2,38269"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,2,38269"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,2,38269"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,2,38269"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,2,38269"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_SEARCH_STR	"7,1,2,38269"
-#define PROJECT_VERSION_DOT_STR		"7.1.2"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"38269"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			38269
+#include <iostream>
+#include <memory>
+using namespace std;
+
+#include <kchashdb.h>
+#include <kcmap.h>
+using namespace kyotocabinet;
+
+#include "platform.h"
+#include "stringutil.h"
+
+int main(int argc, char *argv[])
+{
+	DB::Cursor *cursor = NULL;
+	auto_ptr<TreeDB> ptrIndex(new TreeDB());
+
+	if (argc < 2) {
+		cerr << argv[0] << " <index.kct>" << endl;
+		return 1;
+	}
+
+	ptrIndex->tune_options(TreeDB::TCOMPRESS);
+	if (!ptrIndex->open(argv[1], TreeDB::OREADER)) {
+		cerr << "unable to open " << argv[1] << endl;
+		return 1;
+	}
+
+	cursor = ptrIndex->cursor();
+	if (!cursor->jump()) {
+		cerr << "unable to jump to start of file" << endl;
+		return 1;
+	}
+	std::string key, value;
+	while (true) {
+		if (!cursor->get_key(&key, false))
+			break;
+		if (!cursor->get_value(&value))
+			break;
+		cout << bin2hex(key) << " " << bin2hex(value) << endl;
+		cursor->step();
+	}
+	
+	return 0;
+}

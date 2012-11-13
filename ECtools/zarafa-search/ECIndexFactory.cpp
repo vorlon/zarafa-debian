@@ -51,6 +51,7 @@
 
 #include <mapix.h>
 #include "stringutil.h"
+#include "Util.h"
 
 #include "ECIndexFactory.h"
 #include "ECIndexDB.h"
@@ -141,3 +142,33 @@ std::string ECIndexFactory::GetStoreId(GUID *lpServer, GUID *lpStore)
     return bin2hex(sizeof(GUID), (unsigned char *)lpServer) + "-" + bin2hex(sizeof(GUID), (unsigned char *)lpStore);
 }
 
+/** 
+ * Parses a filename to return the server and store guids
+ * 
+ * @param[in] strFilename filename of the index without path
+ * @param[out] lpServer server guid
+ * @param[out] lpStore store guid
+ * 
+ * @return MAPI Error code
+ */
+HRESULT ECIndexFactory::GetStoreIdFromFilename(const std::string &strFilename, GUID *lpServer, GUID *lpStore)
+{
+	HRESULT hr = MAPI_E_INVALID_PARAMETER;
+	GUID guidServer, guidStore;
+	
+	// serverguid - storeguid .kct
+	if (strFilename.length() != 32 + 1 + 32 + 4)
+		goto exit;
+
+	if (Util::hex2bin(strFilename.c_str() + 0, 32, (LPBYTE)&guidServer) != hrSuccess)
+		goto exit;
+	if (Util::hex2bin(strFilename.c_str() + 32+1, 32, (LPBYTE)&guidStore) != hrSuccess)
+		goto exit;
+
+	hr = hrSuccess;
+	*lpServer = guidServer;
+	*lpStore = guidStore;
+
+exit:
+	return hr;
+}

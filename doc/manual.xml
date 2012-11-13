@@ -11518,6 +11518,47 @@
 	  </refsection>
 
 	  <refsection>
+		<title>Explanation of the Index Optimize Schedule parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>optimize_start</option></term>
+			<listitem>
+			  <para>Start the optimization routine at this hour every
+			  day. The routine optimizes every index, removing old
+			  data and recompressing it, making it faster and
+			  smaller. Notation is in 24h format, default starts at 2 am.</para>
+			  <para>Default: <replaceable>2</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>optimize_stop</option></term>
+			<listitem>
+			  <para>Stop the optimization routine at this hour when
+			  not all files were processed. The routine will continue
+			  were left off the next day it's started. The current
+			  file being processed will be finished, so the time will
+			  be passed. Notation is in 24h format, default stops at 5
+			  am.</para>
+			  <para>Default: <replaceable>5</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>optimize_age</option></term>
+			<listitem>
+			  <para>Only optimize the index file if it wasn't optmized
+			  for the past X days. Notation is in days, default is to
+			  optimize an index each week.</para>
+			  <para>Default: <replaceable>7</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
 		<title>Explanation of the Attachment Search Settings parameters</title>
 
 		<variablelist>

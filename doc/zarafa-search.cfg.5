@@ -217,6 +217,31 @@ Directory under which all index files will be placed\&.
 Default:
 \fI/var/lib/zarafa/index/\fR
 .RE
+.SH "EXPLANATION OF THE INDEX OPTIMIZE SCHEDULE PARAMETERS"
+.PP
+\fBoptimize_start\fR
+.RS 4
+Start the optimization routine at this hour every day\&. The routine optimizes every index, removing old data and recompressing it, making it faster and smaller\&. Notation is in 24h format, default starts at 2 am\&.
+.sp
+Default:
+\fI2\fR
+.RE
+.PP
+\fBoptimize_stop\fR
+.RS 4
+Stop the optimization routine at this hour when not all files were processed\&. The routine will continue were left off the next day it\*(Aqs started\&. The current file being processed will be finished, so the time will be passed\&. Notation is in 24h format, default stops at 5 am\&.
+.sp
+Default:
+\fI5\fR
+.RE
+.PP
+\fBoptimize_age\fR
+.RS 4
+Only optimize the index file if it wasn\*(Aqt optmized for the past X days\&. Notation is in days, default is to optimize an index each week\&.
+.sp
+Default:
+\fI7\fR
+.RE
 .SH "EXPLANATION OF THE ATTACHMENT SEARCH SETTINGS PARAMETERS"
 .PP
 \fBindex_attachments\fR

@@ -35,6 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @WITH_CLUCENE_TRUE@bin_PROGRAMS = zarafa-search$(EXEEXT)
+@WITH_CLUCENE_TRUE@noinst_PROGRAMS = dump-index$(EXEEXT)
 subdir = ECtools/zarafa-search
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -54,16 +55,23 @@ CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
+PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+am_dump_index_OBJECTS = dump-index.$(OBJEXT)
+dump_index_OBJECTS = $(am_dump_index_OBJECTS)
+am__DEPENDENCIES_1 =
+dump_index_DEPENDENCIES = ${top_builddir}/common/libcommon_util.la \
+	$(am__DEPENDENCIES_1)
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
 am_zarafa_search_OBJECTS = zarafa-search.$(OBJEXT) ECIndexer.$(OBJEXT) \
 	ECServerIndexer.$(OBJEXT) ECIndexerUtil.$(OBJEXT) \
 	ECSearcher.$(OBJEXT) ECSearcherRequest.$(OBJEXT) \
 	ECIndexImporterAttachments.$(OBJEXT) \
 	ECLuceneSearcher.$(OBJEXT) ECAnalyzers.$(OBJEXT) \
 	ECIndexDB.$(OBJEXT) ECIndexFactory.$(OBJEXT) \
-	ECIndexImporter.$(OBJEXT)
+	ECIndexImporter.$(OBJEXT) ECIndexOptimizer.$(OBJEXT)
 zarafa_search_OBJECTS = $(am_zarafa_search_OBJECTS)
-am__DEPENDENCIES_1 =
 zarafa_search_DEPENDENCIES =  \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
@@ -72,10 +80,8 @@ zarafa_search_DEPENDENCIES =  \
 	${top_builddir}/common/libcommon_service.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-AM_V_lt = $(am__v_lt_$(V))
-am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
-am__v_lt_0 = --silent
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -118,8 +124,8 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(zarafa_search_SOURCES)
-DIST_SOURCES = $(zarafa_search_SOURCES)
+SOURCES = $(dump_index_SOURCES) $(zarafa_search_SOURCES)
+DIST_SOURCES = $(dump_index_SOURCES) $(zarafa_search_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -334,7 +340,8 @@ zarafa_search_LDADD = \
 	${top_builddir}/common/libcommon_ssl.la \
     ${top_builddir}/common/libcommon_service.la \
     ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS)
+	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS) \
+	$(BOOST_SYSTEM_LIBS) $(BOOST_FILESYSTEM_LIBS)
 
 zarafa_search_SOURCES = \
 	zarafa-search.cpp zarafa-search.h \
@@ -348,7 +355,13 @@ zarafa_search_SOURCES = \
 	ECAnalyzers.cpp ECAnalyzers.h \
 	ECIndexDB.cpp ECIndexDB.h \
 	ECIndexFactory.cpp ECIndexFactory.h \
-	ECIndexImporter.cpp ECIndexImporter.h
+	ECIndexImporter.cpp ECIndexImporter.h \
+	ECIndexOptimizer.cpp ECIndexOptimizer.h
+
+dump_index_SOURCES = dump-index.cpp
+dump_index_LDADD = \
+	${top_builddir}/common/libcommon_util.la \
+	$(KYOTOCABINET_LIBS)
 
 all: all-am
 
@@ -427,6 +440,18 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+dump-index$(EXEEXT): $(dump_index_OBJECTS) $(dump_index_DEPENDENCIES) 
+	@rm -f dump-index$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(dump_index_OBJECTS) $(dump_index_LDADD) $(LIBS)
 zarafa-search$(EXEEXT): $(zarafa_search_OBJECTS) $(zarafa_search_DEPENDENCIES) 
 	@rm -f zarafa-search$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(zarafa_search_OBJECTS) $(zarafa_search_LDADD) $(LIBS)
@@ -442,12 +467,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexImporter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexImporterAttachments.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexOptimizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECIndexerUtil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLuceneSearcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearcherRequest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECServerIndexer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump-index.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zarafa-search.Po@am__quote@
 
 .cpp.o:
@@ -596,7 +623,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -667,18 +695,18 @@ uninstall-am: uninstall-binPROGRAMS
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libtool ctags distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	clean-generic clean-libtool clean-noinstPROGRAMS ctags \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS
 
 
 check-syntax:

@@ -47,23 +47,79 @@
  * 
  */
 
-#define PROJECT_VERSION_SERVER		7,1,2,38269
-#define PROJECT_VERSION_SERVER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_CLIENT		7,1,2,38269
-#define PROJECT_VERSION_CLIENT_STR	"7,1,2,38269"
-#define PROJECT_VERSION_EXT_STR		"7,1,2,38269"
-#define PROJECT_VERSION_SPOOLER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_GATEWAY_STR	"7,1,2,38269"
-#define PROJECT_VERSION_CALDAV_STR	"7,1,2,38269"
-#define PROJECT_VERSION_DAGENT_STR	"7,1,2,38269"
-#define PROJECT_VERSION_PROFADMIN_STR	"7,1,2,38269"
-#define PROJECT_VERSION_MONITOR_STR	"7,1,2,38269"
-#define PROJECT_VERSION_PASSWD_STR	"7,1,2,38269"
-#define PROJECT_VERSION_FBSYNCER_STR	"7,1,2,38269"
-#define PROJECT_VERSION_SEARCH_STR	"7,1,2,38269"
-#define PROJECT_VERSION_DOT_STR		"7.1.2"
-#define PROJECT_SPECIALBUILD			"beta"
-#define PROJECT_SVN_REV_STR			"38269"
-#define PROJECT_VERSION_MAJOR			7
-#define PROJECT_VERSION_MINOR			1
-#define PROJECT_VERSION_REVISION			38269
+#include "platform.h"
+#include "ECIndexOptimizer.h"
+#include "ECIndexFactory.h"
+#include "Util.h"
+#include "boost_compat.h"
+
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
+
+ECIndexOptimizer::ECIndexOptimizer()
+{
+}
+
+ECIndexOptimizer::~ECIndexOptimizer()
+{
+}
+
+void* ECIndexOptimizer::Run(void* param)
+{
+	ECThreadData *lpThreadData = (ECThreadData*)param;
+	HRESULT hr = hrSuccess;
+	const char *szPath;
+	ECIndexDB *lpIndex = NULL;
+	GUID guidServer, guidStore;
+	bfs::path		indexdir;
+	bfs::directory_iterator ilast;
+	time_t now;
+	struct tm local;
+	int until;
+
+	// Fatal so the user knows the reason the zarafa-search is hogging the CPU
+	lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting to optimize index files");
+
+	until = atoi(lpThreadData->lpConfig->GetSetting("optimize_stop"));
+
+	szPath = lpThreadData->lpConfig->GetSetting("index_path");
+	indexdir = szPath;
+	if (!bfs::exists(indexdir)) {
+		lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to optimize indexes: path %s not found or access denied", szPath);
+		return NULL;
+	}
+
+	for (bfs::directory_iterator index(indexdir); index != ilast; index++) {
+		std::string strFilename;
+
+		strFilename = filename_from_path(index->path());
+
+		lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Checking file %s", strFilename.c_str());
+
+		if (is_directory(index->status()))
+			continue;
+
+		hr = lpThreadData->lpIndexFactory->GetStoreIdFromFilename(strFilename, &guidServer, &guidStore);
+		if (hr != hrSuccess)
+			continue;
+
+		// open through index factory to get a shared object
+		hr = lpThreadData->lpIndexFactory->GetIndexDB(&guidServer, &guidStore, false, false, &lpIndex);
+		if (hr != hrSuccess)
+			continue;
+
+		lpIndex->Optimize();
+
+		lpThreadData->lpIndexFactory->ReleaseIndexDB(lpIndex);
+
+		now = time(NULL);
+		localtime_r(&now, &local);
+		if (local.tm_hour > until)
+			break;
+	}
+
+	// Fatal so the user knows how we're done.
+	lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Stopping index optimization");
+	return NULL;
+}

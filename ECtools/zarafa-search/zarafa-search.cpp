@@ -74,6 +74,7 @@
 #include <md5.h>
 
 #include "ECIndexFactory.h"
+#include "ECIndexOptimizer.h"
 #include "ECIndexer.h"
 #include "ECSearcher.h"
 #include "zarafa-search.h"
@@ -180,13 +181,15 @@ exit:
 }
 
 ECThreadData::ECThreadData()
-	: lpLogger(NULL), lpConfig(NULL), bShutdown(FALSE),
+	: lpLogger(NULL), lpConfig(NULL), lpScheduler(NULL), bShutdown(FALSE),
 	  m_strCommand(), m_ulAttachMaxSize(0), m_ulParserMaxMemory(0), m_ulParserMaxCpuTime(0)
 {
 }
 
 ECThreadData::~ECThreadData()
 {
+	if (lpScheduler)
+		delete lpScheduler;
 	if (lpIndexFactory)
 		delete lpIndexFactory;
 	if (lpLogger)
@@ -375,6 +378,10 @@ HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemoni
 	if (unix_runas(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger))
 		goto exit;
 
+	// create scheduler after daemonization because of pthread conditions in the class
+	g_lpThreadData->lpScheduler = new ECScheduler(g_lpThreadData->lpLogger);
+	g_lpThreadData->lpScheduler->AddSchedule(SCHEDULE_DAY, atoi(g_lpThreadData->lpConfig->GetSetting("optimize_start")), ECIndexOptimizer::Run, g_lpThreadData);
+
 	hr = running_service(lpszPath, ulSocket, bUseSsl);
 	if (hr != hrSuccess)
 		goto exit;
@@ -451,6 +458,9 @@ int main(int argc, char *argv[]) {
 		{ "index_attachment_extension_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "index_exclude_properties", "007D 0064 0C1E 0075 678E 678F" }, /* PR_TRANSPORT_MESSAGE_HEADERS, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENDER_ADDRTYPE, PR_RECEIVED_BY_ADDRTYPE, PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE */
 		{ "term_cache_size", "64M", CONFIGSETTING_SIZE },
+		{ "optimize_start", "2" }, // scheduler is not reloadable.
+		{ "optimize_stop", "5", CONFIGSETTING_RELOADABLE },
+		{ "optimize_age", "7", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 

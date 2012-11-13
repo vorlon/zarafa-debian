@@ -55,6 +55,7 @@
 
 #include "ECLogger.h"
 #include "ECConfig.h"
+#include "ECScheduler.h"
 #include "stringutil.h"
 
 class ECFileIndex;
@@ -118,6 +119,11 @@ public:
 	 * ECConfig for reading configuration from file
 	 */
 	ECConfig *lpConfig;
+
+	/**
+	 * ECScheduler for scheduling the index optimization process
+	 */
+	ECScheduler *lpScheduler;
 
 	/**
 	 * Index database factory

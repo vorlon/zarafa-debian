@@ -1,5 +1,6 @@
 if WITH_CLUCENE
 bin_PROGRAMS = zarafa-search
+noinst_PROGRAMS = dump-index
 endif
 
 AM_CPPFLAGS = \
@@ -16,7 +17,8 @@ zarafa_search_LDADD = \
 	${top_builddir}/common/libcommon_ssl.la \
     ${top_builddir}/common/libcommon_service.la \
     ${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS)
+	$(PROG_LIBS) $(SSL_LIBS) $(KYOTOCABINET_LIBS) $(CLUCENE_LIBS) \
+	$(BOOST_SYSTEM_LIBS) $(BOOST_FILESYSTEM_LIBS)
 
 zarafa_search_SOURCES = \
 	zarafa-search.cpp zarafa-search.h \
@@ -30,7 +32,13 @@ zarafa_search_SOURCES = \
 	ECAnalyzers.cpp ECAnalyzers.h \
 	ECIndexDB.cpp ECIndexDB.h \
 	ECIndexFactory.cpp ECIndexFactory.h \
-	ECIndexImporter.cpp ECIndexImporter.h
+	ECIndexImporter.cpp ECIndexImporter.h \
+	ECIndexOptimizer.cpp ECIndexOptimizer.h
+
+dump_index_SOURCES = dump-index.cpp
+dump_index_LDADD = \
+	${top_builddir}/common/libcommon_util.la \
+	$(KYOTOCABINET_LIBS)
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

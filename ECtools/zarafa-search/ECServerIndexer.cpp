@@ -213,7 +213,8 @@ void *ECServerIndexer::ThreadEntry(void *lpParam)
 {
     ECServerIndexer *lpIndexer = (ECServerIndexer *)lpParam;
     
-    return (void *)lpIndexer->Thread();
+    lpIndexer->Thread();
+	return NULL;
 }
 
 /**

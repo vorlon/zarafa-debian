@@ -85,12 +85,14 @@ public:
 
     bool Complete();
     HRESULT SetComplete();
-    
+
+	HRESULT Optimize();
+
 private:
     static HRESULT Create(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
 
-    HRESULT FlushCache();
-    unsigned int QueryFromDB(unsigned int key);
+    HRESULT FlushCache(kyotocabinet::TinyHashMap *lpCache = NULL, bool bTransaction = true);
+    unsigned int QueryFromDB(unsigned int key, bool bSilent = false);
 	HRESULT WriteToDB(unsigned int key, unsigned int value);
     
     ECIndexDB(const std::string& strIndexId, ECConfig *lpConfig, ECLogger *lpLogger);
