@@ -10926,6 +10926,7 @@ void *MTOMWriteOpen(struct soap* soap, void *handle, const char * /*id*/, const 
 	std::auto_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
 	if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Failed to dispatch deserialization task");
+		lpStreamInfo->lpSessionInfo->er = ZARAFA_E_UNABLE_TO_COMPLETE;
 		soap->error = SOAP_FATAL_ERROR;
 		return NULL;
 	}
@@ -10946,7 +10947,7 @@ int MTOMWrite(struct soap* soap, void *handle, const char *buf, size_t len)
 	if (lpStreamInfo->lpTask) {
 		er = lpStreamInfo->lpFifoBuffer->Write(buf, len, STR_DEF_TIMEOUT, NULL);
 		if (er != erSuccess) {
-			soap->errnum = (int)er;
+			lpStreamInfo->lpSessionInfo->er = er;
 			return SOAP_EOF;
 		}
 	}
@@ -10974,8 +10975,10 @@ void MTOMWriteClose(struct soap *soap, void *handle)
 	lpStreamInfo->lpFifoBuffer = NULL;
 
 	// Signal error to caller
-	if(er != erSuccess)
+	if(er != erSuccess) {
+		lpStreamInfo->lpSessionInfo->er = er;
 		soap->error = SOAP_FATAL_ERROR;
+	}
 }
 
 
@@ -11163,9 +11166,8 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		struct soap_multipart *content;
 		
 		content = soap_get_mime_attachment(soap, (void*)lpsStreamInfo);
-		
 		if (!content) {
-			er = ZARAFA_E_CALL_FAILED;
+			er = (lpMTOMSessionInfo->er ? lpMTOMSessionInfo->er : ZARAFA_E_CALL_FAILED);
 			goto exit;
 		}
 		
