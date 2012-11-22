@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-03 00:03+0200\n"
+"POT-Creation-Date: 2012-10-05 18:07+0200\n"
 "PO-Revision-Date: 2012-09-02 15:06+0200\n"
 "Last-Translator: Abdulahadov  <abdulahadov@cg.ru>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -61,15 +61,15 @@ msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Открыть общие каталоги Outlook (календарь, почту и т.д.) другого пользователя"
 
-#: provider/ECProps/Addin.cpp:673
+#: provider/ECProps/Addin.cpp:674
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr "Активен статус «Я недоступен». Хотите отключить этот режим?"
 
-#: provider/ECProps/Addin.cpp:673
+#: provider/ECProps/Addin.cpp:674
 msgid "Out Of Office Turned On"
 msgstr "Активен статус «Я недоступен»"
 
-#: provider/ECProps/Addin.cpp:679
+#: provider/ECProps/Addin.cpp:680
 msgid "Unable to save Out of Office status"
 msgstr "Не удалось сохранить статус «Я недоступен»"
 
@@ -175,7 +175,7 @@ msgstr "&Сохранить"
 
 #: provider/ECProps/OutOfOfficeDlg.cpp:86
 #: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/MapOtherUserDlg.cpp:249
+#: provider/ECProps/MapOtherUserDlg.cpp:260
 #: provider/ECProps/SyncConfigDlg.cpp:120
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
@@ -250,7 +250,7 @@ msgid "Unable to get session"
 msgstr "Не удалось открыть сессию"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:183
-#: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
+#: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:273
 msgid "Unable to get addressbook"
 msgstr "Не удалось открыть адресную книгу"
 
@@ -303,7 +303,7 @@ msgid "Add"
 msgstr "Добавить"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:263
-#: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:175
+#: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
@@ -499,58 +499,62 @@ msgstr "Удаленные пользователи не могут получи
 msgid "One or more users are already specified."
 msgstr "Один или несколько пользователей уже существуют."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:34
+#: provider/ECProps/MapOtherUserDlg.cpp:35
 msgid "Entire Inbox (Permanent)"
 msgstr "Все каталоги (Постоянно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:35
+#: provider/ECProps/MapOtherUserDlg.cpp:36
 msgid "Calendar (Temporary)"
 msgstr "Календарь (Временно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:36
+#: provider/ECProps/MapOtherUserDlg.cpp:37
 msgid "Notes (Temporary)"
 msgstr "Заметки (Временно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:37
+#: provider/ECProps/MapOtherUserDlg.cpp:38
 msgid "Tasks (Temporary)"
 msgstr "Задачи (Временно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:38
+#: provider/ECProps/MapOtherUserDlg.cpp:39
 msgid "Contacts (Temporary)"
 msgstr "Контакты (Временно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:39
+#: provider/ECProps/MapOtherUserDlg.cpp:40
 msgid "Inbox (Temporary)"
 msgstr "Входящие (Временно)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:120
+#: provider/ECProps/MapOtherUserDlg.cpp:114
+msgid "User could not be resolved (GAB is unavailable)."
+msgstr ""
+
+#: provider/ECProps/MapOtherUserDlg.cpp:131
 #: provider/client/SettingsPropPageAdvance.cpp:171
 msgid "User could not be resolved."
 msgstr "Невозможно обнаружить пользователя."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:131
+#: provider/ECProps/MapOtherUserDlg.cpp:142
 msgid "Select a folder type or cancel."
 msgstr "Выберите тип папки или отмените операцию."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:238
+#: provider/ECProps/MapOtherUserDlg.cpp:249
 msgid "Folder of other user"
 msgstr "Каталоги других пользователей"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:240
+#: provider/ECProps/MapOtherUserDlg.cpp:251
 #: provider/client/SettingsTabConnection.cpp:85
 #: provider/client/PasswordDlg.cpp:87 provider/client/SettingsDlg.cpp:132
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:244
+#: provider/ECProps/MapOtherUserDlg.cpp:255
 msgid "Foldertype"
 msgstr "Тип каталога"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:248
+#: provider/ECProps/MapOtherUserDlg.cpp:259
 msgid "Ok"
 msgstr "ОK"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:250
+#: provider/ECProps/MapOtherUserDlg.cpp:261
 #: provider/client/SettingsPropPageAdvance.cpp:106
 msgid "Name..."
 msgstr "Имя..."
@@ -1333,7 +1337,7 @@ msgstr ""
 "желаете использовать кэширующий режим, воспользуйтесь Outlook версии 2000, "
 "2003, 2007 и выше."
 
-#: provider/contacts/ZCABContainer.cpp:693
+#: provider/contacts/ZCABContainer.cpp:740
 msgid "Zarafa Contacts Folders"
 msgstr "Каталог контактов Zarafa"
 
@@ -1370,7 +1374,7 @@ msgstr "Сертификат является доверенным, однако
 msgid "Do you wish to continue?"
 msgstr "Вы действительно хотите продолжить?"
 
-#: zarafa-libsync/ECSync.cpp:1936
+#: zarafa-libsync/ECSync.cpp:1949
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"
@@ -1381,6 +1385,12 @@ msgstr ""
 "«Игнорировать» для пропуска всех ошибок.\r\n"
 "\r\n"
 "Обратитесь к вашему системному администратору в случае повтора проблемы."
+
+# 84%
+#: zarafa-libsync/ECSync.cpp:1951
+#, fuzzy
+msgid "Error codes: "
+msgstr "Код ошибки:"
 
 #: ECtools/zarafa-archiver/helpers/archivehelper.cpp:922
 msgid "Zarafa Archive"

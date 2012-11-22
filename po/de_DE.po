@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-28 02:42+0200\n"
-"PO-Revision-Date: 2012-07-22 11:44+0200\n"
+"POT-Creation-Date: 2012-10-30 10:31+0100\n"
+"PO-Revision-Date: 2012-10-29 14:50+0200\n"
 "Last-Translator: Michael <m.kromer@zarafa.com>\n"
 "Language-Team: de_DE <de@li.org>\n"
 "Language: de\n"
@@ -14,103 +14,103 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.1.5\n"
 
-#: provider/ECProps/Addin.cpp:506 provider/ECProps/SyncBar.cpp:326
+#: provider/ECProps/Addin.cpp:522 provider/ECProps/SyncBar.cpp:326
 msgid "Configure"
 msgstr "Eigenschaften"
 
-#: provider/ECProps/Addin.cpp:508 provider/ECProps/SyncBar.cpp:318
+#: provider/ECProps/Addin.cpp:524 provider/ECProps/SyncBar.cpp:318
 msgid "Synchronize"
 msgstr "Synchronisieren"
 
-#: provider/ECProps/Addin.cpp:510
+#: provider/ECProps/Addin.cpp:526
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
 msgid "Open Shared Folders..."
 msgstr "Gemeinsame Ordner öffnen..."
 
-#: provider/ECProps/Addin.cpp:512 provider/ECProps/Addin.cpp:553
+#: provider/ECProps/Addin.cpp:528 provider/ECProps/Addin.cpp:569
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
 msgid "Recover Deleted Items..."
 msgstr "Gelöschte Objekte wiederherstellen..."
 
-#: provider/ECProps/Addin.cpp:514 provider/ECProps/Addin.cpp:555
+#: provider/ECProps/Addin.cpp:530 provider/ECProps/Addin.cpp:571
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
 msgid "Out of Office Assistant..."
 msgstr "Abwesenheitsassistent..."
 
-#: provider/ECProps/Addin.cpp:518
+#: provider/ECProps/Addin.cpp:534
 msgid "Offline"
 msgstr "Offline"
 
-#: provider/ECProps/Addin.cpp:547 provider/ECProps/SyncBar.cpp:328
+#: provider/ECProps/Addin.cpp:563 provider/ECProps/SyncBar.cpp:328
 msgid "Configure offline synchronization"
 msgstr "Offline Synchronisation konfigurieren"
 
-#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:320
+#: provider/ECProps/Addin.cpp:565 provider/ECProps/SyncBar.cpp:320
 msgid "Start offline synchronization"
 msgstr "Starte Offline Synchronisation"
 
-#: provider/ECProps/Addin.cpp:551
+#: provider/ECProps/Addin.cpp:567
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
 msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
 msgstr ""
 "Die freigegebenen Ordner eines anderen Benutzers öffnen (Kalender, E-Mail, "
 "etc.)"
 
-#: provider/ECProps/Addin.cpp:663
+#: provider/ECProps/Addin.cpp:680
 msgid "Out of Office currently on. Would you like to turn it off?"
 msgstr ""
 "Die Abwesenheitsbenachrichtigung ist momentan aktiv. Möchten Sie diese jetzt "
 "abschalten?"
 
-#: provider/ECProps/Addin.cpp:663
+#: provider/ECProps/Addin.cpp:680
 msgid "Out Of Office Turned On"
 msgstr "Die Abwesenheitsbenachrichtigung wurde eingeschaltet"
 
-#: provider/ECProps/Addin.cpp:669
+#: provider/ECProps/Addin.cpp:686
 msgid "Unable to save Out of Office status"
 msgstr "Die Abwesenheitsbenachrichtigung konnte nicht gespeichert werden"
 
-#: provider/ECProps/Addin.cpp:771
+#: provider/ECProps/Addin.cpp:787
 msgid "Delegates"
 msgstr "Stellvertreter"
 
-#: provider/ECProps/Addin.cpp:908 provider/client/ECMAPIFolderPublic.cpp:164
+#: provider/ECProps/Addin.cpp:924 provider/client/ECMAPIFolderPublic.cpp:164
 #: provider/client/ECMsgStorePublic.cpp:547
 msgid "Favorites"
 msgstr "Favoriten"
 
-#: provider/ECProps/Addin.cpp:920 provider/ECProps/PropPage.cpp:435
+#: provider/ECProps/Addin.cpp:936 provider/ECProps/PropPage.cpp:435
 msgid "Permissions"
 msgstr "Berechtigungen"
 
-#: provider/ECProps/Addin.cpp:1130 provider/ECProps/Addin.cpp:1131
+#: provider/ECProps/Addin.cpp:1147 provider/ECProps/Addin.cpp:1148
 msgid "Add to Public Favorites Folder"
 msgstr "Dem öffentlichen Favoritenordner hinzufügen"
 
-#: provider/ECProps/Addin.cpp:1215
+#: provider/ECProps/Addin.cpp:1232
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
 #: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
 #: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
 msgid "Unable to open MAPI session."
 msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden."
 
-#: provider/ECProps/Addin.cpp:1219 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1236 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2387
 msgid "Shortcut"
 msgstr "Verknüpfung"
 
-#: provider/ECProps/Addin.cpp:1219 provider/ECProps/ECFavoritePropPage.cpp:110
+#: provider/ECProps/Addin.cpp:1236 provider/ECProps/ECFavoritePropPage.cpp:110
 msgid "Shortcut folder"
 msgstr "Favoriten Ordner"
 
-#: provider/ECProps/Addin.cpp:1221
+#: provider/ECProps/Addin.cpp:1238
 msgid "Unable to get shortcut folder."
 msgstr "Favoritenordner konnte nicht geöffnet werden"
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:136
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:102
+#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:107
 msgid ""
 "You are currently offline. To use this command, connect to the online server."
 msgstr ""
@@ -140,11 +140,11 @@ msgstr "Sie haben nicht die Berechtigung, dieses Postfach zu öffnen."
 msgid "Access Denied"
 msgstr "Zugriff verweigert"
 
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:104
+#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:109
 msgid "Unable to open store, access denied."
 msgstr "Das Postfach konnte nicht geöffnet werden, Zugriff verweigert."
 
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:106
+#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:111
 msgid "Unable to open store."
 msgstr "Das Postfach konnte nicht geöffnet werden."
 
@@ -175,7 +175,7 @@ msgstr "&Speichern"
 
 #: provider/ECProps/OutOfOfficeDlg.cpp:86
 #: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/MapOtherUserDlg.cpp:249
+#: provider/ECProps/MapOtherUserDlg.cpp:260
 #: provider/ECProps/SyncConfigDlg.cpp:120
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
@@ -250,7 +250,7 @@ msgid "Unable to get session"
 msgstr "Es konnte keine Sitzung hergestellt werden"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:183
-#: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:262
+#: provider/ECProps/PropPage.cpp:237 provider/ECProps/MapOtherUserDlg.cpp:273
 msgid "Unable to get addressbook"
 msgstr "Konnte das Adressbuch nicht abrufen"
 
@@ -307,7 +307,7 @@ msgid "Add"
 msgstr "Hinzufügen"
 
 #: provider/ECProps/ECDelegatePropPage.cpp:263
-#: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:175
+#: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
@@ -506,58 +506,62 @@ msgstr ""
 msgid "One or more users are already specified."
 msgstr "Einer oder mehrere Benutzer sind bereits ausgewählt."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:34
+#: provider/ECProps/MapOtherUserDlg.cpp:35
 msgid "Entire Inbox (Permanent)"
 msgstr "Gesamter Posteingang (dauerhaft)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:35
+#: provider/ECProps/MapOtherUserDlg.cpp:36
 msgid "Calendar (Temporary)"
 msgstr "Kalender (vorübergehend)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:36
+#: provider/ECProps/MapOtherUserDlg.cpp:37
 msgid "Notes (Temporary)"
 msgstr "Notizen (vorübergehend)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:37
+#: provider/ECProps/MapOtherUserDlg.cpp:38
 msgid "Tasks (Temporary)"
 msgstr "Aufgaben (vorübergehend)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:38
+#: provider/ECProps/MapOtherUserDlg.cpp:39
 msgid "Contacts (Temporary)"
 msgstr "Kontakte (vorübergehend)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:39
+#: provider/ECProps/MapOtherUserDlg.cpp:40
 msgid "Inbox (Temporary)"
 msgstr "Posteingang (vorübergehend)"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:120
+#: provider/ECProps/MapOtherUserDlg.cpp:114
+msgid "User could not be resolved (GAB is unavailable)."
+msgstr "Der Name kann nicht aufgelöst werden (GAB ist nicht verfügbar)."
+
+#: provider/ECProps/MapOtherUserDlg.cpp:131
 #: provider/client/SettingsPropPageAdvance.cpp:171
 msgid "User could not be resolved."
 msgstr "Der Name kann nicht aufgelöst werden."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:131
+#: provider/ECProps/MapOtherUserDlg.cpp:142
 msgid "Select a folder type or cancel."
 msgstr "Bitte wählen Sie einen Ordnertyp oder brechen Sie diesen Vorgang ab."
 
-#: provider/ECProps/MapOtherUserDlg.cpp:238
+#: provider/ECProps/MapOtherUserDlg.cpp:249
 msgid "Folder of other user"
 msgstr "Ordner eines anderen Benutzers"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:240
+#: provider/ECProps/MapOtherUserDlg.cpp:251
 #: provider/client/SettingsTabConnection.cpp:85
 #: provider/client/PasswordDlg.cpp:87 provider/client/SettingsDlg.cpp:132
 msgid "Username"
 msgstr "Benutzername"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:244
+#: provider/ECProps/MapOtherUserDlg.cpp:255
 msgid "Foldertype"
 msgstr "Ordnertyp"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:248
+#: provider/ECProps/MapOtherUserDlg.cpp:259
 msgid "Ok"
 msgstr "Ok"
 
-#: provider/ECProps/MapOtherUserDlg.cpp:250
+#: provider/ECProps/MapOtherUserDlg.cpp:261
 #: provider/client/SettingsPropPageAdvance.cpp:106
 msgid "Name..."
 msgstr "Name..."
@@ -1351,7 +1355,7 @@ msgstr ""
 "Falls Sie die Offline-Funktionalitäten nutzen möchten müssen Sie Outlook "
 "2000, 2003, 2007 oder später verwenden."
 
-#: provider/contacts/ZCABContainer.cpp:693
+#: provider/contacts/ZCABContainer.cpp:740
 msgid "Zarafa Contacts Folders"
 msgstr "Zarafa Kontakte Ordner"
 
@@ -1390,7 +1394,7 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr "Möchten Sie fortfahren?"
 
-#: zarafa-libsync/ECSync.cpp:1936
+#: zarafa-libsync/ECSync.cpp:1961
 msgid ""
 "The synchronization of a folder failed. Press retry to continue or ignore to "
 "supress all errors.\r\n"
@@ -1402,39 +1406,44 @@ msgstr ""
 "\r\n"
 "Kontaktieren Sie den Systemadministrator wenn das Problem weiter besteht."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:895
+# 84%
+#: zarafa-libsync/ECSync.cpp:1963
+msgid "Error codes: "
+msgstr "Fehlercode:"
+
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:922
 msgid "Zarafa Archive"
 msgstr "Zarafa Archiv"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:896
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:923
 msgid "This folder contains the special archive folders."
 msgstr "Der Ordner enthält die speziellen Archivordner."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:901
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:928
 msgid "History"
 msgstr "Verlauf"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:902
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:929
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
 msgstr ""
 "Der Ordner enthält Archive die mit einer neueren Version ersetzt wurden."
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:906
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:933
 msgid "Outgoing"
 msgstr "Ausgehend"
 
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:907
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:934
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Der Ordner beinhaltet Archive der ausgehenden Emails."
 
 # 85%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:911
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Gelöscht"
 
 # 98%
-#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:912
+#: ECtools/zarafa-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Der Ordner beinhaltet Archive der gelöschten Objekte."
 
@@ -1732,7 +1741,7 @@ msgstr "Jahre"
 #: php-ext/include/mapi/class.recurrence.php:577
 #: php-ext/include/mapi/class.recurrence.php:578
 msgid "d-m-Y"
-msgstr "d-m-Y"
+msgstr "d.m.Y"
 
 #: php-ext/include/mapi/class.recurrence.php:579
 #: php-ext/include/mapi/class.recurrence.php:580
@@ -1742,70 +1751,74 @@ msgstr "G:i"
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Fällt jeden %s an, beginnend am %s von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
 #, php-format
 msgid "Occurs every %s %s effective %s from %s to %s."
-msgstr ""
+msgstr "Fällt jeden %s %s an, beginnend am %s von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Fällt jeden %s an, beginnend am %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
 msgid "Occurs every %s %s effective %s."
-msgstr ""
+msgstr "Fällt jeden %s %s an, beginnend am %s."
 
 #: php-ext/include/mapi/class.recurrence.php:608
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
 msgstr[0] ""
+"Fällt jeden %s an, beginnend am %s für %s Wiederholung von %s bis %s."
 msgstr[1] ""
+"Fällt jeden %s an, beginnend am %s für %s Wiederholungen von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:611
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
 msgstr[0] ""
+"Fällt jeden %s %s an, beginnend am %s für %s Wiederholung von %s bis %s."
 msgstr[1] ""
+"Fällt jeden %s %s an, beginnend am %s für %s Wiederholungen von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence."
 msgid_plural "Occurs every %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fällt jeden %s an, beginnend am %s für %s Wiederholung."
+msgstr[1] "Fällt jeden %s an, beginnend am %s für %s Wiederholungen."
 
 #: php-ext/include/mapi/class.recurrence.php:619
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence."
 msgid_plural "Occurs every %s %s effective %s for %s occurences."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fällt jeden %s %s an, beginnend am %s für %s Wiederholung."
+msgstr[1] "Fällt jeden %s %s an, beginnend am %s für %s Wiederholungen."
 
 #: php-ext/include/mapi/class.recurrence.php:627
 #, php-format
 msgid "Occurs every %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Fällt jeden %s an, beginnend am %s bis %s von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:629
 #, php-format
 msgid "Occurs every %s %s effective %s until %s from %s to %s."
-msgstr ""
+msgstr "Fällt jeden %s %s an, beginnend am %s bis %s von %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:633
 #, php-format
 msgid "Occurs every %s effective %s until %s."
-msgstr ""
+msgstr "Fällt jeden %s an, beginnend am %s bis %s."
 
 #: php-ext/include/mapi/class.recurrence.php:635
 #, php-format
 msgid "Occurs every %s %s effective %s until %s."
-msgstr ""
+msgstr "Fällt jeden %s %s an, beginnend am %s bis %s."
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
