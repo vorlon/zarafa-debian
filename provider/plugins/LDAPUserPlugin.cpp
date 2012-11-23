@@ -553,8 +553,8 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	if (m_ldap != NULL)
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, &m_timeout, 0, &res);
 
-	if (m_ldap == NULL || result == LDAP_SERVER_DOWN) {
-		// server is 'down'. try 1 reconnect and retry, and if that fails, just completely fail
+	if (m_ldap == NULL || result != LDAP_SUCCESS) {
+		// try 1 reconnect and retry, and if that fails, just completely fail
 		// We need this because LDAP server connections can timeout
 		char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 		char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
@@ -572,15 +572,11 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, NULL, 0, &res);
 	}
 
-	if(result == LDAP_SERVER_DOWN) {
+	if(result != LDAP_SUCCESS) {
 		if (m_ldap != NULL) {
 			ldap_unbind_s(m_ldap);
 			m_ldap = NULL;
 		}
-		m_logger->Log(EC_LOGLEVEL_ERROR, "The ldap service is unavailable, or the ldap service is shutting down");
-
-		goto exit;
-	} else if(result != LDAP_SUCCESS) {
 		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
 		goto exit;
 	}
