@@ -188,10 +188,13 @@
 		$GLOBALS["language"]->setLanguage($lang);
 		if($_GET && array_key_exists("logon", $_GET)) {
 			$GLOBALS['PluginManager']->triggerHook("server.index.login.success");
-			if(isset($_POST) && isset($_POST["action_url"]) && $_POST["action_url"] != "") {
-				// if action attributes are passed in POST variable then append it to URL for
+			if(isset($_GET["action"]) && $_GET["action"] != "" ) {
+				$actionReqURI = getActionRequestURI();
+
+				// if action attributes are passed in GET variable then append it to URL for
 				// further processing
-				$url = "index.php" . $_POST["action_url"];
+				$url = "index.php" . $actionReqURI;
+
 				header("Location: $url", true, 303);
 				exit;
 			} else {
