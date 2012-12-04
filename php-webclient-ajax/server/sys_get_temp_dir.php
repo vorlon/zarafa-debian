@@ -50,52 +50,34 @@
 
 ?>
 <?php
-/**
- * This file is used to set configuration options to a default value that have 
- * not been set in the config.php.Each definition of a configuration value must 
- * be preceeded by "if(!defined('KEY'))"
- */
-if(!defined('STATE_FILE_MAX_LIFETIME')) define('STATE_FILE_MAX_LIFETIME', 28*60*60);
-if(!defined('UPLOADED_ATTACHMENT_MAX_LIFETIME')) define('UPLOADED_ATTACHMENT_MAX_LIFETIME', 6*60*60);
-if(!defined('DISABLE_FULL_CONTACTLIST_THRESHOLD')) define('DISABLE_FULL_CONTACTLIST_THRESHOLD', -1);
-if(!defined('ENABLE_PUBLIC_FOLDERS')) define('ENABLE_PUBLIC_FOLDERS', true);
-if(!defined('FILE_UPLOAD_LIMIT')) define('FILE_UPLOAD_LIMIT', 50);
-if(!defined('FILE_QUEUE_LIMIT')) define('FILE_QUEUE_LIMIT', 20);
-
-/**
- * When set to true this disables the fitlering of the HTML body.
- */
-if(!defined('DISABLE_HTMLBODY_FILTER')) define('DISABLE_HTMLBODY_FILTER', false);
-/**
- * When set to true this disables the login with the REMOTE_USER set by apache.
- */
-if(!defined('DISABLE_REMOTE_USER_LOGIN')) define('DISABLE_REMOTE_USER_LOGIN', false);
-if(!defined('DISABLE_DELETE_IN_RESTORE_ITEMS')) define('DISABLE_DELETE_IN_RESTORE_ITEMS', false);
-
-/**
- * When set to true, enable the multi-upload feature of the attachment dialog. This has the following caveats:
- * - In FireFox, you can only upload to HTTPS when the certificate is recognized as an official (not self-signed
- *   SSL certificate)
- * - In Linux, some versions of flash do not support this feature and can crash during upload. Updating to the latest
- *   version of flash should fix the issue.
- * - In Windows, upload fails if the internet status is 'offline' - open internet explorer to reconnect
- */
-if(!defined('ENABLE_MULTI_UPLOAD')) define('ENABLE_MULTI_UPLOAD', false);
-
-/**
- * Limit the amount of members shown in the addressbook details dialog for a distlist. If the list 
- * is too great the browser will hang loading and rendereing all the items. By default set to 0 
- * which means it loads all members.
- */
-if(!defined('ABITEMDETAILS_MAX_NUM_DISTLIST_MEMBERS')) define('ABITEMDETAILS_MAX_NUM_DISTLIST_MEMBERS', 0);
-
-/**
- * Use direct booking by default (books resources directly in the calendar instead of sending a meeting
- * request)
- */
-if(!defined('ENABLE_DIRECT_BOOKING')) define('ENABLE_DIRECT_BOOKING', true);
-
-if(!defined('ENABLED_LANGUAGES')) define("ENABLED_LANGUAGES", "de_DE;en_EN;en_US;es_ES;fi_FI;fr_FR;he_IL;hu_HU;it_IT;nb_NO;nl_NL;pl_PL;pt_BR;ru_RU;zh_CN");
-
-
+// Backwards compatibility for the function sys_get_temp_dir which was
+// introduced in PHP 5.2.1
+if ( !function_exists('sys_get_temp_dir') ) {
+	// Reference http://php.net/manual/en/function.sys-get-temp-dir.php
+	// Based on http://www.phpit.net/
+	// article/creating-zip-tar-archives-dynamically-php/2/
+	function sys_get_temp_dir()
+	{
+		// Try to get from environment variable
+		if ( !empty($_ENV['TMP']) ) {
+			return realpath( $_ENV['TMP'] );
+		} else if ( !empty($_ENV['TMPDIR']) ) {
+			return realpath( $_ENV['TMPDIR'] );
+		} else if ( !empty($_ENV['TEMP']) ) {
+			return realpath( $_ENV['TEMP'] );
+		} else {
+			// Detect by creating a temporary file
+			// Try to use system's temporary directory
+			// as random name shouldn't exist
+			$temp_file = tempnam( md5(uniqid(rand(), TRUE)), '' );
+			if ( $temp_file ) {
+				$temp_dir = realpath( dirname($temp_file) );
+				unlink( $temp_file );
+				return $temp_dir;
+			} else {
+				return FALSE;
+			}
+		}
+	}
+}
 ?>
