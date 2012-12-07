@@ -5872,13 +5872,13 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 
 	memset(&srightsArray, 0 , sizeof(srightsArray));
 
-	if((unsigned int)sStoreId.__size < sizeof(EID)) {
+	if((unsigned int)sStoreId.__size < sizeof(EID_V0)) {
 	    er = ZARAFA_E_INVALID_PARAMETER;
 	    goto exit;
     }
     
     // Normalize flags
-	((EID *)sStoreId.__ptr)->usFlags = 0;
+	((EID_V0 *)sStoreId.__ptr)->usFlags = 0;
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
