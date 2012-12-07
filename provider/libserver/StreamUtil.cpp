@@ -934,7 +934,28 @@ exit:
 	return er;
 }
 
-ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
+/**
+ * Serialize a Message directly from the database.
+ * This method handles direct subobjects and recurses whenever an embedded
+ * message is encountered.
+ * 
+ * @param[in] lpecSession			Pointer to the current session.
+ * @param[in] lpStreamDatabase		Pointer to the database.
+ * @param[in] lpAttachmentStorage	Pointer to the attachmentstore.
+ * @param[in] lpStreamCaps			Pointer to a stream capability structore. Must be NULL except
+ * 									when called by SerializeMessage itself.
+ * @param[in] ulObjId				The hierarchyid of the object to serialize.
+ * @param[in] ulObjType				The type of the object to serialize. Must be MAPI_MESSAGE.
+ * @param[in] ulStoreId				The id of the store containing the message.
+ * @param[in] lpsGuid				Seems to be unused.
+ * @param[in] ulFlags				Flags (SYNC_BEST_BODY to stream the best body for the message,
+ * 									SYNC_LIMITED_IMESSAGE to only stream the plain text body).
+ * @param[in] lpSink				Pointer to an ECSerializer instance to which the serialized
+ * 									data should be written.
+ * @param[in] bTop					Specifies that this is a toplevel message. Must be true excep
+ * 									when called by SerializeMessage itself.
+ */
+ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulStreamVersion = STREAM_VERSION;
@@ -952,7 +973,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 	std::string		strQuery;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
-	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
+	if (ulObjType != MAPI_MESSAGE) {
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
 	}
@@ -1005,6 +1026,9 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
 			goto exit;
 		}
 
+		// ulSubObjType should be MAPI_MAILUSER, MAPI_DISTLIST or MAPI_ATTACH. But in reality
+		// it can be anything. We'll send the 'wrong' type so the receiver can also return
+		// the wrong type that might be expected by a client.
 		ulSubObjType = atoi(lpDBRow[1]);
 		er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
 		if (er != erSuccess)
@@ -1086,7 +1110,7 @@ ECRESULT SerializeObject(ECSession *lpecSession, ECDatabase *lpStreamDatabase, E
     	            goto exit;
 				
 				// Recurse into subobject, depth is ignored when not using sql procedures
-				er = SerializeObject(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
+				er = SerializeMessage(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
 				if (er != erSuccess)
 					goto exit;
 			}
@@ -1558,7 +1582,7 @@ next_property:
 		}
 	}
 
-	if (bNewItem && ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
+	if (bNewItem && ulParentType == MAPI_FOLDER && RealObjType(ulObjType, ulParentType) == MAPI_MESSAGE) {
 		iterInserted = setInserted.find(PR_SOURCE_KEY);
 		if (iterInserted == setInserted.end()) {
 			er = lpecSession->GetNewSourceKey(&sSourceKey);
@@ -1574,7 +1598,7 @@ next_property:
 		}
 	}
 
-	if (ulObjType == MAPI_ATTACH) {
+	if (RealObjType(ulObjType, ulParentType) == MAPI_ATTACH) {
 
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
@@ -1614,9 +1638,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	ECRESULT		er = erSuccess;
 	unsigned int	ulStreamVersion = 0;
 	unsigned int	ulObjType = 0;
-	unsigned int	ulSubObjCount = 0;
-	unsigned int	ulSubObjId = 0;
-	unsigned int	ulSubObjType = 0;
+	unsigned int	ulRealObjType = 0;
 	unsigned int	ulParentId = 0;
 	unsigned int	ulParentType = 0;
 	unsigned int	ulSize =0 ;
@@ -1635,8 +1657,11 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentType);
 	if (er != erSuccess)
 		goto exit;
+		
+	// Normalize the object type, but keep the original for storing in the db
+	ulRealObjType = RealObjType(ulObjType, ulParentType);
 
-	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_ATTACH && ulObjType != MAPI_MAILUSER && ulObjType != MAPI_DISTLIST) {
+	if (ulRealObjType != MAPI_MESSAGE && ulRealObjType != MAPI_ATTACH && ulRealObjType != MAPI_MAILUSER && ulRealObjType != MAPI_DISTLIST) {
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
 	}
@@ -1689,8 +1714,11 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 
 
 
-	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		BOOL fHasAttach = FALSE;
+	if (ulRealObjType == MAPI_MESSAGE || ulRealObjType == MAPI_ATTACH) {
+		unsigned int	ulSubObjCount = 0;
+		unsigned int	ulSubObjId = 0;
+		unsigned int	ulSubObjType = 0;
+		BOOL			fHasAttach = FALSE;
 		
 		er = lpSource->Read(&ulSubObjCount, sizeof(ulSubObjCount), 1);
 		if (er != erSuccess)
@@ -1701,7 +1729,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			if (er != erSuccess)
 				goto exit;
 
-			if (ulSubObjType == MAPI_ATTACH)
+			if (RealObjType(ulSubObjType, ulRealObjType) == MAPI_ATTACH)
 				fHasAttach = TRUE;
 
 			er = lpSource->Read(&ulSubObjId, sizeof(ulSubObjId), 1);
@@ -1721,7 +1749,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 				goto exit;
 		}
 
-		if (ulObjType == MAPI_MESSAGE) {
+		if (ulRealObjType == MAPI_MESSAGE) {
 			// We have to generate/update PR_HASATTACH
 			
 			sObjectTableKey key(ulObjId, 0);
@@ -1770,7 +1798,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			if (er != erSuccess)
 				goto exit;
 
-			if (ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
+			if (ulRealObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
 				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
 				if (er != erSuccess)
 					goto exit;
