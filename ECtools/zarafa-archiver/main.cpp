@@ -52,6 +52,7 @@
 #include "stringutil.h"
 #include "ECConfig.h"
 #include "charset/convert.h"
+#include "ecversion.h"
 #include <locale.h>
 #include <iostream>
 #include <list>
@@ -464,7 +465,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Startup command: %s", strCmdLine.c_str());
+	ptrArchiver->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Startup command: %s", strCmdLine.c_str());
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version: %s", PROJECT_VERSION_ARCHIVER_STR);
 
 	lSettings = ptrArchiver->GetConfig()->GetAllSettings();
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
