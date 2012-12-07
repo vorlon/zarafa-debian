@@ -54,6 +54,7 @@
 #include "charset/convert.h"
 #include <locale.h>
 #include <iostream>
+#include <list>
 using namespace std;
 
 #include <initguid.h>
@@ -233,6 +234,7 @@ int main(int argc, char *argv[])
 	ArchiverPtr ptrArchiver;
 	convert_context converter;
 	const std::string strCmdLine = args_to_cmdline(argc, argv);
+	std::list<configsetting_t> lSettings;
 	
     ULONG ulFlags = 0;
     
@@ -463,6 +465,11 @@ int main(int argc, char *argv[])
 	}
 
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Startup command: %s", strCmdLine.c_str());
+
+	lSettings = ptrArchiver->GetConfig()->GetAllSettings();
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
+	for (std::list<configsetting_t>::iterator i = lSettings.begin(); i != lSettings.end(); ++i)
+		ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", i->szName, i->szValue);
 
 	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
 		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
