@@ -152,6 +152,19 @@ void print_mode_error(modes modeSet, modes modeReq, const char *name)
 	print_help(cerr, name);
 }
 
+static std::string args_to_cmdline(int argc, const char * const argv[])
+{
+	if (argc <= 0)
+		return std::string();
+	
+	std::string strCmdLine(argv[0]);
+
+	for (int i = 1; i < argc; ++i)
+		strCmdLine.append(" '").append(shell_escape(argv[i])).append(1, '\'');
+
+	return strCmdLine;
+}
+
 enum cmdOptions {
 	OPT_USER = 129,
 	OPT_ATTACH,
@@ -219,6 +232,7 @@ int main(int argc, char *argv[])
 	unsigned ulAttachFlags = 0;
 	ArchiverPtr ptrArchiver;
 	convert_context converter;
+	const std::string strCmdLine = args_to_cmdline(argc, argv);
 	
     ULONG ulFlags = 0;
     
@@ -447,6 +461,8 @@ int main(int argc, char *argv[])
 		cerr << "Failed to initialize" << endl;
 		return 1;
 	}
+
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Startup command: %s", strCmdLine.c_str());
 
 	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
 		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
