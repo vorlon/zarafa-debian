@@ -3,6 +3,8 @@
 import sys, os
 from MAPI import *
 from MAPI.Util import *
+import locale
+locale.setlocale(locale.LC_CTYPE, '')
 
 PR_EC_OUTOFOFFICE                   = PROP_TAG(PT_BOOLEAN,    PR_EC_BASE+0x60)
 PR_EC_OUTOFOFFICE_MSG               = PROP_TAG(PT_TSTRING,    PR_EC_BASE+0x61)
