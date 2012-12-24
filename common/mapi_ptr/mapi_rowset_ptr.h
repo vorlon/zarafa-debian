@@ -169,6 +169,12 @@ public:
 		}
 		return &m_lpsRowSet;
 	}
+	
+	set_pointer_type release() {
+		set_pointer_type lpsRowSet = m_lpsRowSet;
+		m_lpsRowSet = NULL;
+		return lpsRowSet;
+	}
 
 	size_type size() const { return m_lpsRowSet ? details::traits<_T>::GetSize(m_lpsRowSet) : 0; }
 	bool empty() const { return m_lpsRowSet ? (details::traits<_T>::GetSize(m_lpsRowSet) == 0) : true; }
