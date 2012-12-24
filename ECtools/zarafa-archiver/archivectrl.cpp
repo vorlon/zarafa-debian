@@ -567,7 +567,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const TCHAR *lpszUser)
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Cleanup store for user '" TSTRING_PRINTF "'", lpszUser);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Cleanup store for user '" TSTRING_PRINTF "', mode=%s", lpszUser, m_lpConfig->GetSetting("cleanup_action"));
 	
 	if (m_bCleanupFollowPurgeAfter) {
 		ULARGE_INTEGER li;
@@ -1422,7 +1422,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 	MAPIFolderPtr ptrDelItemsFolder;
 	EntryListPtr ptrMessageList;
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Moving messages to the special 'Deleted Items' folder...");
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Moving "SIZE_T_PRINTF" messages to the special 'Deleted Items' folder...", setEIDs.size());
 
 	hr = ptrArchiveHelper->GetDeletedItemsFolder(&ptrDelItemsFolder);
 	if (hr != hrSuccess) {
@@ -1499,7 +1499,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	MAPIPropHelperPtr ptrHelper;
 	ECFolderIterator iEnd;
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Moving folder to the special 'Deleted Items' folder...");
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Moving folder to the special 'Deleted Items' folder...");
 
 	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &ptrEntryID);
 	if (hr != hrSuccess) {
@@ -1546,7 +1546,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 
 	hr = lpArchiveFolder->CopyFolder(ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb, &ptrDelItemsFolder.iid, ptrDelItemsFolder, NULL, 0, NULL, FOLDER_MOVE);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to move messages. (hr=0x%08x)", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to move folder. (hr=0x%08x)", hr);
 		goto exit;
 	}
 
@@ -1564,6 +1564,8 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 {
 	HRESULT hr = hrSuccess;
 	EntryListPtr ptrMessageList;
+	
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting "SIZE_T_PRINTF" messages...", setEIDs.size());
 
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrMessageList);
 	if (hr != hrSuccess) {
@@ -1600,6 +1602,8 @@ HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 {
 	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrEntryId;
+	
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting folder...");
 
 	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &ptrEntryId);
 	if (hr != hrSuccess) {
