@@ -98,7 +98,7 @@ libarchiver_la_DEPENDENCIES =  \
 am_libarchiver_la_OBJECTS = archiver-session.lo archiver-common.lo \
 	archivemanage.lo archivestatecollector.lo \
 	archivestateupdater.lo archivehelper.lo storehelper.lo \
-	mapiprophelper.lo
+	mapiprophelper.lo logger.lo
 libarchiver_la_OBJECTS = $(am_libarchiver_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am_zarafa_archiver_OBJECTS = main.$(OBJEXT)
@@ -373,7 +373,8 @@ libarchiver_la_SOURCES = \
 	archivestateupdater.cpp archivestateupdater.h archivestateupdater_fwd.h \
 	helpers/archivehelper.cpp helpers/archivehelper.h \
 	helpers/storehelper.cpp helpers/storehelper.h \
-	helpers/mapiprophelper.cpp helpers/mapiprophelper.h 
+	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \
+	logger.cpp logger.h
 
 libarchiver_core_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
@@ -535,6 +536,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copier.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deleter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/instanceidmapper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logger.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapiprophelper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/operations.Plo@am__quote@
