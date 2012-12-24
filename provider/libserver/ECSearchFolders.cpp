@@ -1046,7 +1046,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase, ECSession
     }
     
     // If the searchfolder counte have changed, update counts and send notifications
-    if((lCount || lUnreadCount) && bNotify) {
+    if(bNotify) {
 		m_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulFolderId);
 		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
 		
