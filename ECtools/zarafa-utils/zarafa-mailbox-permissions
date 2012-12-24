@@ -249,7 +249,8 @@ def UserAccountsToEntryIDs(session, users):
         addrlist.append([SPropValue(PR_DISPLAY_NAME, user)])
         flaglist.append(MAPI_UNRESOLVED)
 
-    (rows, flags) = gab.ResolveNames([PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_ENTRYID], MAPI_UNICODE, addrlist, flaglist)
+    # We need flag EMS_AB_ADDRESS_LOOKUP in zarafa to avoid ambiguous users
+    (rows, flags) = gab.ResolveNames([PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_ENTRYID], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, addrlist, flaglist)
     # workaround until ZCP-10454 is merged
     if not isinstance(rows[0], list):
         rows = [rows]
@@ -259,6 +260,7 @@ def UserAccountsToEntryIDs(session, users):
     for i in xrange(0, len(rows)):
         if flags[i] == MAPI_UNRESOLVED or flags[i] == MAPI_AMBIGUOUS:
             errors += 1
+            print "unable to resolve user '%s' with flags 0x%08x" % (users[i], flags[i])
             continue
 
         row = rows[i]
@@ -343,7 +345,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
         fbrights = ecRightsNone
 
         # Store permissions
-        setMailboxFolderPermissions(store, None, members, listfolderrights.get('store', ecRightsTemplateReadOnly))
+        setMailboxFolderPermissions(store, None, members, listfolderrights.get('store', None))
 
         # Calendar
         setMailboxFolderPermissions(store, inboxprops[0].Value, members, listfolderrights.get('calendar', ecRightsNone))
@@ -365,7 +367,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
             fbrights = ecRightsTemplateReadOnly; # need atleast read-only rights to be a delegate
 
         # Journal
-        setMailboxFolderPermissions(store, inboxprops[2].Value, members, listfolderrights.get('journal'))
+        setMailboxFolderPermissions(store, inboxprops[2].Value, members, listfolderrights.get('journal', ecRightsNone))
 
         # update freebusy data
         fbProps = fbmsg.GetProps([PR_SCHDINFO_DELEGATE_ENTRYIDS, CHANGE_PROP_TYPE(PR_SCHDINFO_DELEGATE_NAMES, PT_MV_UNICODE), PR_DELEGATE_FLAGS], 0)
@@ -569,11 +571,10 @@ def setMailboxFolderPermissions(store, entryid, members, rights):
 
     rows = []
     for member in members:
-        if rights > 0:
+        if rights != None: 
             rows.append(ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, member[0]), SPropValue(PR_MEMBER_RIGHTS, rights)]))
         else:
             pass
-            # todo if rights is 0, i want remove the permiossions
 
     if len(rows) > 0:
         aclemt.ModifyTable(0, rows)
