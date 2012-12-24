@@ -82,6 +82,8 @@
 #include "ECSoapServerConnection.h"
 #include <libintl.h>
 #include <map>
+#include "tstring.h"
+#include <charset/convstring.h>
 
 
 #if HAVE_ICU
@@ -816,6 +818,11 @@ int main(int argc, char* argv[])
 #define ZARAFA_SERVER_PIPE "/var/run/zarafa"
 #define ZARAFA_SERVER_PRIO "/var/run/zarafa-prio"
 
+void InitBindTextDomain() {
+	// Set gettext codeset, used for generated folder name translations
+	bind_textdomain_codeset("zarafa", "UTF-8");
+}
+
 int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 {
 	int				retval = 0;
@@ -1017,8 +1024,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	// init translations according to environment variables
 	setlocale(LC_ALL, "");
 
-	// Set gettext codeset, used for generated folder name translations
-	bind_textdomain_codeset("zarafa", "UTF-8");
+	InitBindTextDomain();
 
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
