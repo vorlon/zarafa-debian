@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2012  Zarafa B.V.
+ * Copyright 2005 - 2013  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -161,7 +161,8 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 	if (lpAction != NULL) {
 		eipaAction = icalproperty_get_action(lpAction);
 
-		if (eipaAction != ICAL_ACTION_NONE)
+		// iMac Calendar 6.0 sends ACTION:NONE, which libical doesn't parse correcty to the ICAL_ACTION_NONE enum value
+		if (eipaAction > ICAL_ACTION_X && eipaAction < ICAL_ACTION_NONE)
 			bReminderSet = true;
 	}
 
