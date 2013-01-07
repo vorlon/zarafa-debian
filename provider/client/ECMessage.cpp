@@ -2430,6 +2430,7 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
+		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
 		GetBodyType(&m_ulBodyType);
 		SyncRtf();
 	} else if (pvalHtml) {
@@ -2889,6 +2890,7 @@ HRESULT ECMessage::HrSetRealProp(SPropValue *lpsPropValue)
 		goto exit;
 
 	if (lpsPropValue->ulPropTag == PR_RTF_COMPRESSED) {
+		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
 		GetBodyType(&m_ulBodyType);
 		SyncRtf();
 	} else if (lpsPropValue->ulPropTag == PR_HTML) {
