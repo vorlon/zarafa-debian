@@ -406,7 +406,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		}
 
 		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-			if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM &&
+			if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
 				details.GetPropBool(OB_PROP_B_AB_HIDDEN))
 				continue;
 		}
@@ -443,7 +443,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			ulObjectId = iterExternLocal->second;
 
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM &&
+				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
 					iterExternDetails->second.GetPropBool(OB_PROP_B_AB_HIDDEN))
 						continue;
 			}
@@ -551,7 +551,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				goto exit;
 
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM &&
+				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
 					details.GetPropBool(OB_PROP_B_AB_HIDDEN))
 					continue;
 			}
@@ -729,7 +729,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			lpCompanies->push_back(localobjectdetails_t(0, CONTAINER_COMPANY));
 
 		for (iterObjects = lpCompanies->begin(); iterObjects != lpCompanies->end(); iterObjects++) {
-			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, iterObjects->ulId, &lpObjectsTmp, ulFlags);
+			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, iterObjects->ulId, &lpObjectsTmp, ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
 				goto exit;
 
@@ -763,7 +763,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		if (er != erSuccess)
 			goto exit;
 
-		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags, lpObjects);
+		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags | USERMANAGEMENT_SHOW_HIDDEN, lpObjects);
 		if (er != erSuccess)
 			goto exit;
 	}

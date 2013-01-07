@@ -156,6 +156,7 @@ private:
 #define USERMANAGEMENT_IDS_ONLY			0x1		// Return only local userID (the ulId field). 'details' is undefined in this case
 #define USERMANAGEMENT_ADDRESSBOOK		0x2		// Return only objects which should be visible in the address book
 #define USERMANAGEMENT_FORCE_SYNC		0x4		// Force sync with external database
+#define USERMANAGEMENT_SHOW_HIDDEN		0x8		// Show hidden entries
 
 // Use for ulLicenseStatus in CheckUserLicense()
 #define USERMANAGEMENT_LIMIT_ACTIVE_USERS		0x1	/* Limit reached, but not yet exceeded */
