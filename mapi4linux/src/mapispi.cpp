@@ -225,20 +225,8 @@ HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals
 	HRESULT hr = hrSuccess;
 	M4LMAPISession *lpSession = (M4LMAPISession *)this->session;
 
-	if (lpSession->lpProps)
-		MAPIFreeBuffer(lpSession->lpProps);
-	lpSession->lpProps = NULL;
-	lpSession->cValues = 0;
+	hr = lpSession->setStatusRow(cValues, lpColumnVals);
 
-	MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void **) &lpSession->lpProps);
-
-	hr = Util::HrCopyPropertyArray(lpColumnVals, cValues, lpSession->lpProps, lpSession->lpProps);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpSession->cValues = cValues;
-
-exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::ModifyStatusRow", "0x%08x", hr);
     return hr;
 }

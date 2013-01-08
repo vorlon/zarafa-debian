@@ -1064,8 +1064,9 @@ M4LMAPISession::M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_s
 	profileName = (char*)new_profileName;
 	serviceAdmin = new_serviceAdmin;
 	serviceAdmin->AddRef();
-	cValues = 0;
-	lpProps = NULL;
+	m_cValuesStatus = 0;
+	m_lpPropsStatus = NULL;
+	pthread_mutex_init(&m_mutexStatusRow, NULL);
 }
 
 M4LMAPISession::~M4LMAPISession() {
@@ -1075,8 +1076,9 @@ M4LMAPISession::~M4LMAPISession() {
         iterStores->second->Release();
     }
 
-	if(lpProps)
-		MAPIFreeBuffer(lpProps);
+	if(m_lpPropsStatus)
+		MAPIFreeBuffer(m_lpPropsStatus);
+	pthread_mutex_destroy(&m_mutexStatusRow);
 
 	serviceAdmin->Release();
 }
@@ -1691,7 +1693,9 @@ HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 	LPSPropValue lpProp = NULL;
 	LPENTRYID lpEntryID = NULL;
 
-	lpProp = PpropFindProp(this->lpProps, this->cValues, PR_IDENTITY_ENTRYID);
+	pthread_mutex_lock(&m_mutexStatusRow);
+
+	lpProp = PpropFindProp(this->m_lpPropsStatus, this->m_cValuesStatus, PR_IDENTITY_ENTRYID);
 	if(lpProp == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -1704,6 +1708,7 @@ HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 	*lpcbEntryID = lpProp->Value.bin.cb;
 
 exit:
+	pthread_mutex_unlock(&m_mutexStatusRow);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::QueryIdentity", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -1763,6 +1768,26 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 	}
 
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::QueryInterface", "0x%08x", hr);
+	return hr;
+}
+
+HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
+{
+	HRESULT hr = hrSuccess;
+
+	pthread_mutex_lock(&m_mutexStatusRow);
+
+	if (m_lpPropsStatus)
+		MAPIFreeBuffer(m_lpPropsStatus);
+	m_lpPropsStatus = NULL;
+	m_cValuesStatus = 0;
+
+	hr = Util::HrCopyPropertyArray(lpProps, cValues, &m_lpPropsStatus, &m_cValuesStatus, true);
+	if(hr != hrSuccess)
+		goto exit;
+
+exit:
+	pthread_mutex_unlock(&m_mutexStatusRow);
 	return hr;
 }
 

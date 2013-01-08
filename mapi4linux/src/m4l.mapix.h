@@ -209,11 +209,15 @@ public:
 	virtual ULONG __stdcall Release();
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
 
-	ULONG cValues;
-	LPSPropValue lpProps;
-
 private:
     std::map<GUID, IMsgStore *> mapStores;
+	/* @todo need a status row per provider */
+	ULONG m_cValuesStatus;
+	LPSPropValue m_lpPropsStatus;
+    pthread_mutex_t m_mutexStatusRow;
+
+public:
+	HRESULT __stdcall setStatusRow(ULONG cValues, LPSPropValue lpProps);
 };
 
 
