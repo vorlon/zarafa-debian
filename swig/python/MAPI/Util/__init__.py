@@ -46,6 +46,12 @@ def OpenECSession(user, password, path, **keywords):
         if keywords.has_key('flags'):
             flags = keywords['flags']
         profprops += [ SPropValue(PR_EC_FLAGS, flags) ]
+
+        impersonate = keywords.get('impersonate')
+        if impersonate and impersonate.__class__.__name__ == 'unicode':
+            profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_W, impersonate))
+        elif impersonate:
+            profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
     
         admin.ConfigureMsgService(uid, 0, 0, profprops)
         

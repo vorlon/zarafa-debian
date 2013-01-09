@@ -772,7 +772,12 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
 	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != NULL)
 		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-	
+
+	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != NULL)
+		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
+	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != NULL)
+		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
+
 	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
 		lpsProfileProps->ulProfileFlags = lpProp->Value.ul;
 	else

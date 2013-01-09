@@ -126,7 +126,7 @@ public:
 
 	virtual ECRESULT CreateAuthSession(struct soap *soap, unsigned int ulCapabilities, ECSESSIONID *sessionID, ECAuthSession **lppAuthSession, bool bRegisterSession, bool bLockSession);
 	// Creates a session based on passed credentials
-	virtual ECRESULT CreateSession(struct soap *soap, char *szName, char *szPassword, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *sessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth);
+	virtual ECRESULT CreateSession(struct soap *soap, char *szName, char *szPassword, char *szImpersonateUser, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *sessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth);
 	// Creates a session without credential checking (caller must check credentials)
 	virtual ECRESULT RegisterSession(ECAuthSession *lpAuthSession, ECSESSIONGROUPID sessionGroupID, char *szClientVersion, char *szClientApp, ECSESSIONID *sessionID, ECSession **lppSession, bool fLockSession);
 	virtual ECRESULT CreateSessionInternal(ECSession **lppSession, unsigned int ulUserId = ZARAFA_UID_SYSTEM);

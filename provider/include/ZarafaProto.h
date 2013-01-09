@@ -988,8 +988,8 @@ struct resetFolderCountResponse {
 
 #define fnevZarafaIcsChange			(fnevExtended | 0x00000001)
 
-int ns__logon(char * szUsername, char * szPassword, char * szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsLogonResponse);
-int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, struct xsd__base64Binary *lpInput, char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse);
+int ns__logon(char * szUsername, char * szPassword, char * szImpersonateUser, char * szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsLogonResponse);
+int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, char * szImpersonateUser, struct xsd__base64Binary *lpInput, char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse);
 
 int ns__getStore(ULONG64 ulSessionId, entryId* lpsEntryId, struct getStoreResponse *lpsResponse);
 int ns__getStoreName(ULONG64 ulSessionId, entryId sEntryId, struct getStoreNameResponse* lpsResponse);

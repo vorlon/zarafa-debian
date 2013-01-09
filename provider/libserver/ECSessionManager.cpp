@@ -640,7 +640,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	return er;
 }
 
-ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
+ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szImpersonateUser, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
 {
 	ECRESULT		er			= erSuccess;
 	ECAuthSession	*lpAuthSession	= NULL;
@@ -665,21 +665,21 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 		goto exit;
 
 	// If we've connected with SSL, check if there is a certificate, and check if we accept that certificate for that user
-	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName) == erSuccess) {
+	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName, szImpersonateUser) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_SSL);
 		method = "SSL Certificate";
 		goto authenticated;
 	}
 
 	// First, try socket authentication (dagent, won't print error)
-	if(fAllowUidAuth && lpAuthSession->ValidateUserSocket(soap->socket, szName) == erSuccess) {
+	if(fAllowUidAuth && lpAuthSession->ValidateUserSocket(soap->socket, szName, szImpersonateUser) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_SOCKET);
 		method = "Pipe socket";
 		goto authenticated;
 	}
 
 	// If that fails, try logon with supplied username/password (clients, may print logon error)
-	if(lpAuthSession->ValidateUserLogon(szName, szPassword) == erSuccess) {
+	if(lpAuthSession->ValidateUserLogon(szName, szPassword, szImpersonateUser) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_PASSWORD);
 		method = "User supplied password";
 		goto authenticated;
@@ -708,10 +708,21 @@ authenticated:
 
 	er = RegisterSession(lpAuthSession, sessionGroupID, szClientVersion, szClientApp, lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User %s authenticated, but failed to create session. Error 0x%08X", szName, er);
+		if (er == ZARAFA_E_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed attempt to impersonate user %s by user %s", szImpersonateUser, szName);
+			LOG_AUDIT(m_lpAudit, "impersonate failed user='%s', from='%s' program='%s' impersonator='%s'",
+					  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
+		} else
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User %s authenticated, but failed to create session. Error 0x%08X", szName, er);
 		goto exit;
 	}
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "User %s receives session %llu", szName, *lpSessionID);
+	if (!szImpersonateUser || *szImpersonateUser == '\0')
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "User %s receives session %llu", szName, *lpSessionID);
+	else {
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "User %s impersonated by %s receives session %llu", szImpersonateUser, szName, *lpSessionID);
+		LOG_AUDIT(m_lpAudit, "impersonate ok user='%s', from='%s' program='%s' impersonator='%s'",
+				  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
+	}
 
 exit:
 	if (lpAuthSession)
@@ -767,7 +778,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 		goto exit;
 	}
 
-	er = lpSession->GetSecurity()->SetUserContext(ulUserId);
+	er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);
 	if (er != erSuccess) {
 		delete lpSession;
 		goto exit;

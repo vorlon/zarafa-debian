@@ -800,7 +800,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::
 		goto exit;
 	}
 
-	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID);
+	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID, m_ulImpersonatorID);
 	if (er != erSuccess)
 		goto exit;				// user not found anymore, or error in getting groups
 
@@ -816,7 +816,7 @@ exit:
 
 // This is a standard user/pass login.
 // You always log in as the user you are authenticating with.
-ECRESULT ECAuthSession::ValidateUserLogon(char *lpszName, char *lpszPassword)
+ECRESULT ECAuthSession::ValidateUserLogon(char *lpszName, char *lpszPassword, char *lpszImpersonateUser)
 {
 	ECRESULT er = erSuccess;
 	
@@ -830,6 +830,10 @@ ECRESULT ECAuthSession::ValidateUserLogon(char *lpszName, char *lpszPassword)
 	if(er != erSuccess)
 		goto exit;
 
+	er = ProcessImpersonation(lpszImpersonateUser);
+	if (er != erSuccess)
+		goto exit;
+
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_USERPASSWORD;
 
@@ -841,7 +845,7 @@ exit:
 // that you can connect as a different user than you are specifying in the username. For example,
 // you could be connecting as 'root' and being granted access because the zarafa-server process
 // is also running as 'root', but you are actually loggin in as user 'user1'.
-ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName)
+ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lpszImpersonateUser)
 {
 	ECRESULT 		er = erSuccess;
 	char			*p = NULL;
@@ -934,6 +938,10 @@ userok:
 	if (er != erSuccess)
 	    goto exit;
 
+	er = ProcessImpersonation(lpszImpersonateUser);
+	if (er != erSuccess)
+		goto exit;
+
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SOCKET;
 	m_ulConnectingPid = pid;
@@ -945,7 +953,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECAuthSession::ValidateUserCertificate(struct soap *soap, char *lpszName)
+ECRESULT ECAuthSession::ValidateUserCertificate(struct soap *soap, char *lpszName, char *lpszImpersonateUser)
 {
 	ECRESULT		er = ZARAFA_E_LOGON_FAILED;
 	X509			*cert = NULL;			// client certificate
@@ -1034,6 +1042,10 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap *soap, char *lpszNam
 	if (er != erSuccess)
 		goto exit;
 
+	er = ProcessImpersonation(lpszImpersonateUser);
+	if (er != erSuccess)
+		goto exit;
+
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SSL_CERT;
 
@@ -1048,7 +1060,7 @@ exit:
 }
 
 #define NTLMBUFFER 8192
-ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, char *lpszName, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, char *lpszName, char *lpszImpersonateUser, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = ZARAFA_E_LOGON_FAILED;
 
@@ -1057,7 +1069,14 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, char *lpszName, char 
 		er = ValidateSSOData_NTLM(soap, lpszName, szClientVersion, szClientApp, lpInput, lppOutput);
 	else
 		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, lpInput, lppOutput);
+	if (er != erSuccess)
+		goto exit;
 
+	er = ProcessImpersonation(lpszImpersonateUser);
+	if (er != erSuccess)
+		goto exit;
+
+exit:
 	return er;
 }
 
@@ -1065,12 +1084,11 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap *soap, char *lpszName, char 
 ECRESULT ECAuthSession::LogKRB5Error(ECLogger *lpLogger, const char *msg, OM_uint32 code, OM_uint32 type)
 {
 	gss_buffer_desc gssMessage = GSS_C_EMPTY_BUFFER;
-	OM_uint32 retval = 0;
 	OM_uint32 status = 0;
 	OM_uint32 context = 0;
 
 	while (true) {
-		retval = gss_display_status(&status, code, type, GSS_C_NULL_OID, &context, &gssMessage);
+		gss_display_status(&status, code, type, GSS_C_NULL_OID, &context, &gssMessage);
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s: %s", msg, (char*)gssMessage.value);
 		gss_release_buffer(&status, &gssMessage);
 		if (!context)
@@ -1414,6 +1432,23 @@ exit:
 }
 #undef NTLMBUFFER
 
+ECRESULT ECAuthSession::ProcessImpersonation(char *lpszImpersonateUser)
+{
+	ECRESULT er = erSuccess;
+
+	if (lpszImpersonateUser == NULL || *lpszImpersonateUser == '\0') {
+		m_ulImpersonatorID = EC_NO_IMPERSONATOR;
+		goto exit;
+	}
+
+	m_ulImpersonatorID = m_ulUserID;
+	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszImpersonateUser, &m_ulUserID);
+
+exit:
+	return er;
+}
+
+
 ECAuthSessionOffline::ECAuthSessionOffline(const std::string &strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) : 
 	ECAuthSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
@@ -1439,7 +1474,7 @@ ECRESULT ECAuthSessionOffline::CreateECSession(ECSESSIONGROUPID ecSessionGroupId
 		goto exit;
 	}
 
-	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID);
+	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID, m_ulImpersonatorID);
 	if (er != erSuccess)
 		goto exit;				// user not found anymore, or error in getting groups
 

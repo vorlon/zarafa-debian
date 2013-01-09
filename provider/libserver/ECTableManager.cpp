@@ -416,8 +416,14 @@ static void AuditStatsAccess(ECSession *lpSession, const char *access, const cha
 {
 	if (lpSession->GetSessionManager()->GetAudit()) {
 		std::string strUsername;
+		std::string strImpersonator;
+		
 		lpSession->GetSecurity()->GetUsername(&strUsername);
-		LOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
+		if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess) {
+			LOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
+		} else {
+			LOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
+		}
 	}
 }
 

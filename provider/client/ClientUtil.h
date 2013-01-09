@@ -67,6 +67,8 @@ enum ePropZarafaProfileColumns
 	PZP_EC_USERNAME_W,
 	PZP_EC_USERPASSWORD_A,
 	PZP_EC_USERPASSWORD_W,
+	PZP_EC_IMPERSONATEUSER_A,
+	PZP_EC_IMPERSONATEUSER_W,
 	PZP_EC_FLAGS,
 	PZP_EC_SSLKEY_FILE,
 	PZP_EC_SSLKEY_PASS,
@@ -92,6 +94,8 @@ const static SizedSPropTagArray(NUM_ZARAFAPROFILE_PROPS, sptaZarafaProfile) = {
 		PR_EC_USERNAME_W,
 		PR_EC_USERPASSWORD_A,
 		PR_EC_USERPASSWORD_W,
+		PR_EC_IMPERSONATEUSER_A,
+		PR_EC_IMPERSONATEUSER_W,
 		PR_EC_FLAGS,
 		PR_EC_SSLKEY_FILE,
 		PR_EC_SSLKEY_PASS,
@@ -113,6 +117,7 @@ struct sGlobalProfileProps
 	std::string		strProfileName;
 	std::wstring	strUserName;
 	std::wstring	strPassword;
+    std::wstring    strImpersonateUser;
 	ULONG			ulProfileFlags;
 	std::string		strSSLKeyFile;
 	std::string		strSSLKeyPass;

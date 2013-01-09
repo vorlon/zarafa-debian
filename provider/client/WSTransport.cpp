@@ -270,6 +270,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	convert_context	converter;
 	utf8string		strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
 	utf8string		strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
+    utf8string		strImpersonateUser = converter.convert_to<utf8string>(sProfileProps.strImpersonateUser);
 	
 	LockSoap();
 
@@ -305,7 +306,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 			ulCapabilities |= ZARAFA_CAP_COMPRESSION; // only to remote server .. windows?
 
 		// try single signon logon
-		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid);
+		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid);
 		if (er == erSuccess)
 			goto auth;
 	} else {
@@ -314,7 +315,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	}
 	
 	// Login with username and password
-	if (SOAP_OK != lpCmd->ns__logon((char*)strUserName.c_str(), (char *)strPassword.c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
+	if (SOAP_OK != lpCmd->ns__logon((char*)strUserName.c_str(), (char *)strPassword.c_str(), (char*)strImpersonateUser.c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
 		er = ZARAFA_E_SERVER_NOT_RESPONDING;
 	else
 		er = sResponse.er;
@@ -324,14 +325,13 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	// then the password was also simply wrong.
 	if(er == ZARAFA_E_LOGON_FAILED && SymmetricIsCrypted(sProfileProps.strPassword) && !(sResponse.ulCapabilities & ZARAFA_CAP_CRYPT)) {
 		// Login with username and password
-		if (SOAP_OK != lpCmd->ns__logon((char *)strUserName.c_str(), (char *)SymmetricDecrypt(sProfileProps.strPassword).c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
+		if (SOAP_OK != lpCmd->ns__logon((char *)strUserName.c_str(), (char *)SymmetricDecrypt(sProfileProps.strPassword).c_str(), (char*)strImpersonateUser.c_str(), PROJECT_VERSION_CLIENT_STR, ulCapabilities, ulLogonFlags, sLicenseRequest, m_ecSessionGroupId, (char *)GetAppName().c_str(), &sResponse))
 			er = ZARAFA_E_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;
 	}
 
 	hr = ZarafaErrorToMAPIError(er, MAPI_E_LOGON_FAILED);
-
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -361,6 +361,12 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	// From here the login is ok
 
 auth: // User have a logon
+	// See if the server supports impersonation. If it doesn't but imporsonation was attempted,
+	// we should fail now because the client won't expect his own store to be returned.
+	if (!strImpersonateUser.empty() && (sResponse.ulCapabilities & ZARAFA_CAP_IMPERSONATION) == 0) {
+		hr = MAPI_E_NO_SUPPORT;	// or just MAPI_E_LOGON_FAILED?
+		goto exit;
+	}
 
 	if (ulServerCapabilities & ZARAFA_CAP_COMPRESSION) {
 		soap_set_imode(lpCmd->soap, SOAP_ENC_ZLIB);	// also autodetected
@@ -492,7 +498,7 @@ exit:
 	return hr;
 }
 
-ECRESULT WSTransport::TrySSOLogon(ZarafaCmd* lpCmd, LPCSTR szServer, utf8string strUsername, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid)
+ECRESULT WSTransport::TrySSOLogon(ZarafaCmd* lpCmd, LPCSTR szServer, utf8string strUsername, utf8string strImpersonateUser, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid)
 {
 	ECRESULT		er = ZARAFA_E_LOGON_FAILED;
 	return er;

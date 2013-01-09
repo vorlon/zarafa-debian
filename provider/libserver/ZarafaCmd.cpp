@@ -533,7 +533,7 @@ ECRESULT SaveLogonTime(ECSession *lpecSession, bool bLogon);
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__logon(struct soap *soap, char *user, char *pass, char *clientVersion, unsigned int clientCaps, unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsResponse)
+int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char *clientVersion, unsigned int clientCaps, unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsResponse)
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpecSession = NULL;
@@ -557,7 +557,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *clientVersion, un
 	}
 
 	// check username and password
-	er = g_lpSessionManager->CreateSession(soap, user, pass, clientVersion, szClientApp, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & ZARAFA_LOGON_NO_UID_AUTH) == 0);
+	er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & ZARAFA_LOGON_NO_UID_AUTH) == 0);
 	if(er != erSuccess){
 		er = ZARAFA_E_LOGON_FAILED;
 		goto exit;
@@ -652,7 +652,7 @@ exit:
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, struct xsd__base64Binary *lpInput, char *szClientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse)
+int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char *szImpersonateUser, struct xsd__base64Binary *lpInput, char *szClientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse)
 {
 	ECRESULT		er = ZARAFA_E_LOGON_FAILED;
 	ECAuthSession	*lpecAuthSession = NULL;
@@ -697,7 +697,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, struc
 		szClientApp = ECStringCompat::WTF1252_to_UTF8(soap, szClientApp);
 	}
 
-	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szClientVersion, szClientApp, lpInput, &lpOutput);
+	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szImpersonateUser, szClientVersion, szClientApp, lpInput, &lpOutput);
 	if (er == ZARAFA_E_SSO_CONTINUE) {
 		// continue validation exchange
 		lpsResponse->lpOutput = lpOutput;

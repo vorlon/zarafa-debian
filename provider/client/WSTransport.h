@@ -337,7 +337,7 @@ private:
 	virtual HRESULT UnLockSoap();
 
 	//TODO: Move this function to the right file
-	static ECRESULT TrySSOLogon(ZarafaCmd* lpCmd, LPCSTR szServer, utf8string strUsername, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid);
+	static ECRESULT TrySSOLogon(ZarafaCmd* lpCmd, LPCSTR szServer, utf8string strUsername, utf8string strImpersonateUser, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid);
 
 	// Returns name of calling application (eg 'program.exe' or 'httpd')
 	std::string GetAppName();

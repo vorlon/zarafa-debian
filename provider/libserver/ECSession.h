@@ -234,15 +234,16 @@ public:
 	ECAuthSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 	virtual ~ECAuthSession();
 
-	ECRESULT ValidateUserLogon(char *lpszName, char *lpszPassword);
-	ECRESULT ValidateUserSocket(int socket, char *lpszName);
-	ECRESULT ValidateUserCertificate(struct soap *soap, char *lpszName);
-	ECRESULT ValidateSSOData(struct soap *soap, char *lpszName, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
+	ECRESULT ValidateUserLogon(char *lpszName, char *lpszPassword, char *lpszImpersonateUser);
+	ECRESULT ValidateUserSocket(int socket, char *lpszName, char *lpszImpersonateUser);
+	ECRESULT ValidateUserCertificate(struct soap *soap, char *lpszName, char *lpszImpersonateUser);
+	ECRESULT ValidateSSOData(struct soap *soap, char *lpszName, char *lpszImpersonateUser, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
 
 	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
 
 protected:
 	unsigned int m_ulUserID;
+    unsigned int m_ulImpersonatorID;    // The ID of the user who's credentials were used to login when using impersonation
 	bool m_bValidated;
 	
 	AUTHMETHOD m_ulValidationMethod;
@@ -256,6 +257,8 @@ private:
 	ECRESULT LogKRB5Error(ECLogger *lpLogger, const char *msg, OM_uint32 major, OM_uint32 minor); /* added logger to distinguish from the other function */
 	ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif
+
+    ECRESULT ProcessImpersonation(char *lpszImpersonateUser);
 
 	/* NTLM */
 	pid_t m_NTLM_pid;

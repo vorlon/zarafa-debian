@@ -143,12 +143,13 @@ ECSecurity::~ECSecurity()
  * 
  * @return Zarafa error code
  */
-ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId)
+ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID)
 {
 	ECRESULT er = erSuccess;
 	ECUserManagement *lpUserManagement = m_lpSession->GetUserManagement();
 
 	m_ulUserID = ulUserId;
+	m_ulImpersonatorID = ulImpersonatorID;
 
 	er = lpUserManagement->GetObjectDetails(m_ulUserID, &m_details);
 	if(er != erSuccess)
@@ -159,6 +160,26 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId)
 		m_ulCompanyID = m_details.GetPropInt(OB_PROP_I_COMPANYID);
 	} else {
 		m_ulCompanyID = 0;
+	}
+
+	if (m_ulImpersonatorID != EC_NO_IMPERSONATOR) {
+		unsigned int ulAdminLevel = 0;
+
+		er = lpUserManagement->GetObjectDetails(m_ulImpersonatorID, &m_impersonatorDetails);
+		if (er != erSuccess)
+			goto exit;
+
+		ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
+		if (ulAdminLevel == 0) {
+			er = ZARAFA_E_NO_ACCESS;
+			goto exit;
+		} else if (m_lpSession->GetSessionManager()->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
+			unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
+			if (ulCompanyID != m_ulCompanyID) {
+				er = ZARAFA_E_NO_ACCESS;
+				goto exit;
+			}
+		}
 	}
 
 	/*
@@ -1579,6 +1600,27 @@ ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername)
 	else
 		*lpstrUsername = ZARAFA_SYSTEM_USER;
 	return erSuccess;
+}
+
+/** 
+ * Get the username of the user impersonating the current user
+ * 
+ * @param[out] lpstrImpersonator login name of the impersonator
+ * 
+ * @return always erSuccess
+ */
+ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
+{
+	ECRESULT er = erSuccess;
+
+	if (m_ulImpersonatorID == EC_NO_IMPERSONATOR)
+		er = ZARAFA_E_NOT_FOUND;
+	else if (m_ulImpersonatorID)
+		*lpstrImpersonator = m_impersonatorDetails.GetPropString(OB_PROP_S_LOGIN);
+	else
+		*lpstrImpersonator = ZARAFA_SYSTEM_USER;
+
+	return er;
 }
 
 /**

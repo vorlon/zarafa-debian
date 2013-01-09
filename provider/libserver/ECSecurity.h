@@ -63,6 +63,8 @@
 
 class ECSession;
 
+#define EC_NO_IMPERSONATOR		((unsigned int)-1)
+
 class ECSecurity  
 {
 
@@ -71,7 +73,7 @@ public:
 	virtual ~ECSecurity();
 
 	/* must be called once the object is created */
-	virtual ECRESULT SetUserContext(unsigned int ulUserId);
+	virtual ECRESULT SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID);
 
 	virtual ECRESULT CheckDeletedParent(unsigned int ulId);
 	virtual ECRESULT CheckPermission(unsigned int ulObjId, unsigned int ulCheckRights);
@@ -114,6 +116,7 @@ public:
 
 	// information for ECSessionStatsTable
 	virtual ECRESULT GetUsername(std::string *lpstrUsername);
+    virtual ECRESULT GetImpersonator(std::string *lpstrUsername);
 
 	virtual unsigned int GetObjectSize();
 
@@ -130,8 +133,10 @@ protected:
 	ECConfig			*m_lpConfig;
 
 	unsigned int		m_ulUserID; // current user id
+    unsigned int        m_ulImpersonatorID; // id of user that is impersonating the current user
 	unsigned int		m_ulCompanyID; // Company to which the user belongs to
 	objectdetails_t		m_details;
+    objectdetails_t 	m_impersonatorDetails;
 	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
 	std::list<localobjectdetails_t> *m_lpGroups; // current user groups
 	std::list<localobjectdetails_t> *m_lpViewCompanies; // current visible companies

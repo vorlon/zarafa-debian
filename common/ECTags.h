@@ -86,6 +86,12 @@
 #define PR_EC_SERVERNAME_A				PROP_TAG(PT_STRING8,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
 #define PR_EC_SERVERNAME_W				PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x11) /* same as PR_EC_HIERARCHYID, but on archive store profile sections! */
 
+// Used for impersonation
+#define PR_EC_IMPERSONATEUSER			PROP_TAG(PT_TSTRING,	PR_EC_BASE+0x12)
+#define PR_EC_IMPERSONATEUSER_A			PROP_TAG(PT_STRING8,	PR_EC_BASE+0x12)
+#define PR_EC_IMPERSONATEUSER_W			PROP_TAG(PT_UNICODE,	PR_EC_BASE+0x12)
+
+
 /* same as properties below, but on different objects */
 #define PR_ZC_CONTACT_STORE_ENTRYIDS	PROP_TAG(PT_MV_BINARY, PR_EC_BASE+0x11)
 #define PR_ZC_CONTACT_FOLDER_ENTRYIDS	PROP_TAG(PT_MV_BINARY, PR_EC_BASE+0x12)

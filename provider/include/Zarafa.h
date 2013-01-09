@@ -377,16 +377,17 @@ typedef EID * PEID;
 #define ZARAFA_CAP_MSGLOCK				0x0400
 // ExportMessageChangeAsStream supports ulPropTag parameter
 #define ZARAFA_CAP_EXPORT_PROPTAG		0x0800
+// Support impersonation
+#define ZARAFA_CAP_IMPERSONATION        0x1000
 
 // Do *not* use this from a client. This is just what the latest server supports.
-#define ZARAFA_LATEST_CAPABILITIES		ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER | ZARAFA_CAP_LOADPROP_ENTRYID | ZARAFA_CAP_EXPORT_PROPTAG
+#define ZARAFA_LATEST_CAPABILITIES		ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER | ZARAFA_CAP_LOADPROP_ENTRYID | ZARAFA_CAP_EXPORT_PROPTAG | ZARAFA_CAP_IMPERSONATION
 
 //
 // Logon flags, sent with ns__logon()
 //
 // Don't allow uid based authentication (unix socket only)
 #define ZARAFA_LOGON_NO_UID_AUTH		0x0001
-
 
 // MTOM IDs
 #define MTOM_ID_EXPORTMESSAGES			"idExportMessages"
