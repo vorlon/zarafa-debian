@@ -126,7 +126,7 @@ def MakeUserList(users):
 
 # main()
 try:
-    opts, users = getopt.gnu_getopt(sys.argv[1:], "v", ["verbose"])
+    opts, arg_users = getopt.gnu_getopt(sys.argv[1:], "v", ["verbose"])
 except getopt.GetoptError, err:
     # print help information and exit:
     print str(err)
@@ -140,7 +140,7 @@ session = OpenECSession('SYSTEM', '', os.getenv('ZARAFA_SOCKET', 'file:///var/ru
 admin = GetDefaultStore(session)
 abook = session.OpenAddressBook(0, None, MAPI_UNICODE)
 
-if users:
+if arg_users:
     print "Using given user list"
     companies = GetEmptyCompany()
 else:
@@ -148,8 +148,8 @@ else:
     companies = GetCompanyList(admin)
 for company in companies:
     print 'Processing ' + company.Companyname
-    if users:
-        users = MakeUserList(users)
+    if arg_users:
+        users = MakeUserList(arg_users)
     else:
         try:
             users = GetUserList(admin, company.CompanyID)
