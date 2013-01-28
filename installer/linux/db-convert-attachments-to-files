@@ -88,7 +88,7 @@ if ( $dbsize >= $free ) {
 
 
 print "Finding all attachments...\n";
-$sth = $db->prepare("SELECT distinct(instanceid) FROM lob WHERE tag=0x3701");
+$sth = $db->prepare("SELECT distinct(instanceid) FROM lob");
 $sth->execute() || die $DBI::errstr;;
 
 if ($sth->rows == 0) {
@@ -127,7 +127,7 @@ print "Done.\n";
 
 if (defined($delete) && $delete) {
 	print "Deleting attachments from database...\n";
-	$sth = $db->prepare("DELETE FROM lob WHERE tag=0x3701");
+	$sth = $db->prepare("DELETE FROM lob");
 	$sth->execute() || die $DBI::errstr;
 	print "Done.\n";
 }
