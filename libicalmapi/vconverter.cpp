@@ -2648,15 +2648,33 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 	HRESULT hr = hrSuccess;
 	bool bIsSeriesAllDay = false;
 	LPSPropValue lpPropVal = NULL;
+	LPSPropValue lpPropClean = NULL;
+	LPSPropValue lpPropGlobal = NULL;
 	icaltimetype icTime = {0};
 	std::string strUid;
 	time_t tRecId = 0;
 	ULONG ulRecurStartTime = -1;	// as 0 states start of day
 	ULONG ulRecurEndTime = -1;		// as 0 states start of day	
-	
+
+	// We cannot check if PROP_ISEXCEPTION is set to TRUE, since Outlook sends accept messages on excetions with that property set to false.
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN));
-	if (!lpPropVal || !lpPropVal->Value.b)
-		goto exit;
+	if (!lpPropVal || lpPropVal->Value.b == FALSE) {
+		lpPropGlobal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
+		if (!lpPropGlobal)
+			goto exit;
+
+		lpPropClean = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
+		if (!lpPropClean)
+			goto exit;
+
+		if (lpPropClean->Value.bin.cb != lpPropGlobal->Value.bin.cb)
+			goto exit;
+
+		if (memcmp(lpPropClean->Value.bin.lpb, lpPropGlobal->Value.bin.lpb, lpPropGlobal->Value.bin.cb) == 0)
+			goto exit;
+
+		// different timestamp in dispidGlobalObjectID, export RECURRENCE-ID
+	}
 
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURSTARTTIME], PT_LONG));
 	if (lpPropVal)
@@ -2677,6 +2695,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 	// set Recurrence-ID for exception msg if dispidRecurringbase prop is present	
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
 	if (!lpPropVal) {
+		// This code happens when we're sending acceptance mail for an exception.
 
 		// if RecurringBase prop is not present then retrieve date from GlobalObjId from 16-19th bytes
 		// combine this date with time from dispidStartRecurrenceTime and set it as RECURRENCE-ID
@@ -2695,6 +2714,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		icTime.year = strtol(strUid.substr(32, 4).c_str(), NULL, 16);
 		icTime.month = strtol(strUid.substr(36, 2).c_str(), NULL, 16);
 		icTime.day = strtol(strUid.substr(38, 2).c_str(), NULL, 16);
+		// Although the timestamp is probably 0, it does not seem to matter.
 		icTime.hour = ulRecurStartTime / 4096;
 		ulRecurStartTime -= icTime.hour * 4096;
 		icTime.minute = ulRecurStartTime / 64;
