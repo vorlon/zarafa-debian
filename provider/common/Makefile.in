@@ -56,8 +56,7 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 libzarafacommon_la_LIBADD =
 am_libzarafacommon_la_OBJECTS = SOAPUtils.lo SOAPHelpers.lo \
 	SOAPDebug.lo SOAPSock.lo ZarafaUtil.lo ZarafaUser.lo \
-	ECChannelClient.lo ECLicenseClient.lo ECSearchClient.lo \
-	ECOfflineState.lo
+	ECLicenseClient.lo ECSearchClient.lo ECOfflineState.lo
 libzarafacommon_la_OBJECTS = $(am_libzarafacommon_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -318,7 +317,6 @@ libzarafacommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
 	SOAPSock.cpp SOAPSock.h \
 	ZarafaUtil.cpp ZarafaUtil.h \
 	ZarafaUser.h ZarafaUser.cpp \
-	ECChannelClient.h ECChannelClient.cpp \
 	ECLicenseClient.h ECLicenseClient.cpp \
 	ECSearchClient.h ECSearchClient.cpp \
 	ECOfflineState.h ECOfflineState.cpp \
@@ -376,7 +374,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChannelClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECLicenseClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECOfflineState.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECSearchClient.Plo@am__quote@

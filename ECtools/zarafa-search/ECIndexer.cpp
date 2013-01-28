@@ -104,3 +104,8 @@ HRESULT ECIndexer::RunSynchronization()
 
 	return hr;
 }
+
+HRESULT ECIndexer::ReindexStore(const std::string &strServerGuid, const std::string &strStoreGuid)
+{
+	return m_lpServerIndexer->ReindexStore(strServerGuid, strStoreGuid);
+}

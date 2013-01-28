@@ -142,7 +142,8 @@ enum KEYTYPES {
 ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger)
 {
     UErrorCode status = U_ZERO_ERROR;
-    
+
+	m_strIndexId = strIndexId;
     m_lpConfig = lpConfig;
     m_lpLogger = lpLogger;
     
@@ -183,7 +184,7 @@ HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECL
     
     ECIndexDB *lpIndex = new ECIndexDB(strIndexId, lpConfig, lpLogger);
     
-    hr = lpIndex->Open(strIndexId, bCreate, bComplete);
+    hr = lpIndex->Open(bCreate, bComplete);
     if(hr != hrSuccess)
         goto exit;
 
@@ -216,10 +217,10 @@ exit:
  * change. In this case a new index needs to be created which is
  * complete to begin with because it's empty, just like a new store.
  */
-HRESULT ECIndexDB::Open(const std::string &strIndexId, bool bCreate, bool bComplete)
+HRESULT ECIndexDB::Open(bool bCreate, bool bComplete)
 {
     HRESULT hr = hrSuccess;
-    std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + strIndexId + ".kct";
+    std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + m_strIndexId + ".kct";
 	int rv = 0;
 
     m_lpIndex = new TreeDB();
@@ -1066,4 +1067,21 @@ exit:
 
 	delete cursor;
 	return hr;
+}
+
+HRESULT ECIndexDB::Remove()
+{
+    std::string strPath = std::string(m_lpConfig->GetSetting("index_path")) + PATH_SEPARATOR + m_strIndexId + ".kct";
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Removing %s", strPath.c_str());
+	if (unlink(strPath.c_str()) < 0) {
+		switch (errno) {
+		case EACCES:
+			return MAPI_E_NO_ACCESS;
+		case ENOENT:
+			return MAPI_E_NOT_FOUND;
+		default:
+			return MAPI_E_CALL_FAILED;
+		};
+	}
+	return hrSuccess;
 }

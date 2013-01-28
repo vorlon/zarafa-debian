@@ -62,11 +62,12 @@ public:
 	ECChannelClient(const char *szPath, const char *szTokenizer);
 	~ECChannelClient();
 
+	ECRESULT DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse);
+
 protected:
 	ECRESULT Connect();
 	ECRESULT ConnectSocket();
 	ECRESULT ConnectHttp();
-	ECRESULT DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse);
 
 	unsigned int m_ulTimeout; ///< Response timeout in second
 

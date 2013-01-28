@@ -73,6 +73,10 @@
 #include <ECChannel.h>
 #include <md5.h>
 
+#include <ECChannelClient.h>
+#include "mapi_ptr.h"
+#include "charset/convert.h"
+
 #include "ECIndexFactory.h"
 #include "ECIndexOptimizer.h"
 #include "ECIndexer.h"
@@ -394,6 +398,67 @@ exit:
 	return hr;
 }
 
+void reindex_user(const char *szUsername, const char *szURI)
+{
+	HRESULT hr = hrSuccess;
+	ECChannelClient *lpClient = new ECChannelClient(szURI, ":");
+	std::vector<std::string> result;
+	MAPISessionPtr ptrSession;
+	char *szMAPIPath = g_lpThreadData->lpConfig->GetSetting("server_socket");
+	MsgStorePtr ptrStore;
+	// prop in sequence how we send it to the zarafa-search daemon
+	SizedSPropTagArray(2, sptaProps) = {2, { PR_MAPPING_SIGNATURE, PR_STORE_RECORD_KEY } };
+	ULONG cValues = 0;
+	SPropArrayPtr ptrProps;
+	string strCommand("REINDEX");
+
+	// possibly update according to environment
+	szMAPIPath = GetServerUnixSocket(szMAPIPath);
+
+
+	hr = HrOpenECAdminSession(&ptrSession, szMAPIPath, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+                              g_lpThreadData->lpConfig->GetSetting("sslkey_file", "", NULL), 
+                              g_lpThreadData->lpConfig->GetSetting("sslkey_pass", "", NULL));
+	if (hr != hrSuccess) {
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to the zarafa server: 0x%08X", hr);
+		goto exit;
+	}
+
+	hr = HrOpenUserMsgStore(ptrSession, (WCHAR*)convert_to<std::wstring>(szUsername).c_str(), &ptrStore);
+	if (hr != hrSuccess) {
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open the store of user %s: 0x%08X", szUsername, hr);
+		goto exit;
+	}
+
+	hr = ptrStore->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &ptrProps);
+	if (hr != hrSuccess) {
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get data from the store: 0x%08X", hr);
+		goto exit;
+	}
+
+	for (ULONG i = 0; i < cValues; i++) {
+		if (PROP_TYPE(ptrProps[i].ulPropTag) != PT_BINARY) {
+			hr = MAPI_E_INVALID_TYPE;
+			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Missing store id for user %s", szUsername);
+			goto exit;
+		}
+		strCommand += " " + bin2hex(ptrProps[i].Value.bin.cb, ptrProps[i].Value.bin.lpb);
+	}
+
+	hr = ZarafaErrorToMAPIError(lpClient->DoCmd(strCommand, result), MAPI_E_NO_ACCESS);
+	if (hr == hrSuccess)
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Reindex of user %s started", szUsername);
+	else if (hr == MAPI_E_CALL_FAILED && !result.empty())
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Reindex of user %s failed: %s", szUsername, result[0].c_str());
+	else if (hr == MAPI_E_NETWORK_ERROR)
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Reindex of user %s failed, unable to connect to zarafa-search", szUsername);
+	else
+		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Reindex of user %s failed: 0x%08X", szUsername, hr);
+
+exit:
+	delete lpClient;
+}
+
 void print_help(char *name) {
 	cout << "Usage:\n" << endl;
 	cout << name << " [-F] [-h|--host <serverpath>] [-c|--config <configfile>]" << endl;
@@ -403,6 +468,8 @@ void print_help(char *name) {
 	cout << "  -V\t\tPrint version information" << endl;
 	cout << endl;
 	cout << "  --ignore-unknown-config-options\tStart even if the configuration file contains invalid config options" << endl;
+	cout << endl;
+	cout << "  --reindex username\tRemove the current index of the given user and start to make a new index immediately" << endl;
 	cout << endl;
 }
 
@@ -418,6 +485,7 @@ int main(int argc, char *argv[]) {
 	const char *szPath = NULL;
 	bool daemonize = true;
 	bool bIgnoreUnknownConfigOptions = false;	
+	const char *szUsername = NULL;
 
 	// Default settings
 	const configsetting_t lpDefaults[] = {
@@ -469,14 +537,16 @@ int main(int argc, char *argv[]) {
 		OPT_HOST,
 		OPT_CONFIG,
 		OPT_FOREGROUND,
-		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
+		OPT_REINDEX
 	};
 	struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },
 		{ "host", 1, NULL, OPT_HOST },
 		{ "config", 1, NULL, OPT_CONFIG },
-		{ "foreground", 1, NULL, OPT_FOREGROUND },
+		{ "foreground", 0, NULL, OPT_FOREGROUND },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
+		{ "reindex", 1, NULL, OPT_REINDEX },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -505,6 +575,9 @@ int main(int argc, char *argv[]) {
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
 			break;
+		case OPT_REINDEX:
+			szUsername = my_optarg;
+			break;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SEARCH_STR << endl
 				 << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
@@ -530,7 +603,10 @@ int main(int argc, char *argv[]) {
 	g_lpThreadData->ReloadConfigOptions();
 
 	// setup logging
-	g_lpThreadData->lpLogger = CreateLogger(g_lpThreadData->lpConfig, argv[0], "zarafa-search");
+	if (szUsername)
+		g_lpThreadData->lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
+	else
+		g_lpThreadData->lpLogger = CreateLogger(g_lpThreadData->lpConfig, argv[0], "zarafa-search");
 
 	if ( (bIgnoreUnknownConfigOptions && g_lpThreadData->lpConfig->HasErrors()) || g_lpThreadData->lpConfig->HasWarnings())
 		LogConfigErrors(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger);
@@ -543,12 +619,22 @@ int main(int argc, char *argv[]) {
 	if (!szPath)
 		szPath = g_lpThreadData->lpConfig->GetSetting("server_socket");
 
-	hr = service_start(argc, argv, szPath, daemonize);
+	if (szUsername) {
+		hr = MAPIInitialize(NULL);
+		if (hr != hrSuccess) {
+			g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI: 0x%08X", hr);
+			goto exit;
+		}
+
+		reindex_user(szUsername, g_lpThreadData->lpConfig->GetSetting("server_bind_name"));
+
+		MAPIUninitialize();
+	} else
+		hr = service_start(argc, argv, szPath, daemonize);
 
 exit:
 	if(g_lpThreadData)
 		delete g_lpThreadData;
-
 
 	SSL_library_cleanup(); //cleanup memory so valgrind is happy
 

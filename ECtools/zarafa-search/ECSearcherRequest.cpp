@@ -318,6 +318,14 @@ HRESULT ECSearcherRequest::parseRequest(std::string &strRequest, command_t *lpul
 			hr = MAPI_E_STRING_TOO_LONG;
 			goto exit;
 		}
+	} else if (stricmp(strCommand.c_str(), "REINDEX") == 0) {
+		*lpulCommand = COMMAND_REINDEX;
+
+		*lplistArgs = tokenize(strArgs, " ");
+		if (lplistArgs->size() != 2) {
+			hr = MAPI_E_STRING_TOO_LONG;
+			goto exit;
+		}
 	} else {
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
@@ -433,6 +441,16 @@ HRESULT ECSearcherRequest::handleRequest(command_t ulCommand, std::vector<std::s
 		break;
 	case COMMAND_SYNCRUN:
 		hr = m_lpIndexer->RunSynchronization();
+		if (hr != hrSuccess) {
+			*lpstrResponse = stringify(hr, true) + ": Command failed";
+			hr = hrSuccess;
+			goto exit;
+		}
+
+		*lpstrResponse = "OK:";
+		break;
+	case COMMAND_REINDEX:
+		hr = m_lpIndexer->ReindexStore(listArgs[0], listArgs[1]);
 		if (hr != hrSuccess) {
 			*lpstrResponse = stringify(hr, true) + ": Command failed";
 			hr = hrSuccess;

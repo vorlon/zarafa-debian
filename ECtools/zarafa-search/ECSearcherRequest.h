@@ -68,7 +68,8 @@ enum command_t {
 	COMMAND_SCOPE,
 	COMMAND_FIND,
 	COMMAND_QUERY,
-	COMMAND_SYNCRUN
+	COMMAND_SYNCRUN,
+	COMMAND_REINDEX
 };
 
 class ECSearcherRequest : public ECUnknown {

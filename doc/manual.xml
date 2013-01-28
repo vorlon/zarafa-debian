@@ -11177,6 +11177,19 @@
             </listitem>
 		  </varlistentry>
 
+	      <varlistentry>
+		    <term>
+			  <option>--reindex</option>
+			  <replaceable>username</replaceable>
+			</term>
+			<listitem>
+				<para>Remove the current index of the given user and
+				start to make a new index immediately.</para>
+				<para>The zarafa-search daemon must already be running
+				on the same machine.</para>
+            </listitem>
+		  </varlistentry>
+
 		</variablelist>
 
 		<para>

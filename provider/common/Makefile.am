@@ -11,7 +11,6 @@ libzarafacommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
 	SOAPSock.cpp SOAPSock.h \
 	ZarafaUtil.cpp ZarafaUtil.h \
 	ZarafaUser.h ZarafaUser.cpp \
-	ECChannelClient.h ECChannelClient.cpp \
 	ECLicenseClient.h ECLicenseClient.cpp \
 	ECSearchClient.h ECSearchClient.cpp \
 	ECOfflineState.h ECOfflineState.cpp \

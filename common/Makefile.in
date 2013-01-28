@@ -109,7 +109,8 @@ libcommon_service_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(libcommon_service_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 libcommon_ssl_la_LIBADD =
-am_libcommon_ssl_la_OBJECTS = SSLUtil.lo ECChannel.lo
+am_libcommon_ssl_la_OBJECTS = SSLUtil.lo ECChannelClient.lo \
+	ECChannel.lo
 libcommon_ssl_la_OBJECTS = $(am_libcommon_ssl_la_OBJECTS)
 libcommon_ssl_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
@@ -398,7 +399,7 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
 				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
-				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h ECMAPIDebug.h boost_compat.h \
+				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h ECMAPIDebug.h boost_compat.h ECChannelClient.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -445,6 +446,7 @@ libcommon_util_la_SOURCES = platform.cpp platform.linux.cpp md5.cpp \
 libcommon_ssl_la_LDFLAGS = -static
 libcommon_ssl_la_SOURCES = \
 			SSLUtil.cpp								\
+			ECChannelClient.cpp						\
 			ECChannel.cpp
 
 libcommon_service_la_LDFLAGS = -static
@@ -555,6 +557,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECACL.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECCache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChannel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECChannelClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECConfig.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECConfigImpl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ECDatabaseMySQL.Plo@am__quote@

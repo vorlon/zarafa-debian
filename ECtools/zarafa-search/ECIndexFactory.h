@@ -64,12 +64,12 @@ class ECConfig;
 class ECIndexFactory {
 public:
     ECIndexFactory(ECConfig *lpConfig, ECLogger *lpLogger);
-    ~ECIndexFactory();
+    virtual ~ECIndexFactory();
     
     virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
     virtual HRESULT ReleaseIndexDB(ECIndexDB *lpIndexDB);
 
-    virtual HRESULT RemoveIndexDB(std::string strId);
+	virtual HRESULT RemoveIndexDB(const std::string &strServerGuid, const std::string &strStoreGuid);
 
 	virtual HRESULT GetStoreIdFromFilename(const std::string &strFilename, GUID *lpServer, GUID *lpStore);
 

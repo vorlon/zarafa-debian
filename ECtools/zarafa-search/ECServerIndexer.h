@@ -79,6 +79,7 @@ public:
     // This is only to FORCE a new synchronization NOW. This is normally not needed in
     // production.
     HRESULT RunSynchronization();
+	HRESULT ReindexStore(const std::string &strServerGuid, const std::string &strStoreGuid);
     
 private:
     ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData);
@@ -87,6 +88,10 @@ private:
     HRESULT Start();
     HRESULT Thread();
     static void *ThreadEntry(void *lpParam);
+
+	HRESULT ThreadRebuild();
+	static void *ThreadRebuildEntry(void *lpParam);
+	
     
     HRESULT BuildIndexes();
     HRESULT IndexStore(SBinary *lpsEntryId, unsigned int ulStoreType);
@@ -109,6 +114,11 @@ private:
     pthread_cond_t m_condExit;
     bool m_bExit;
 
+    pthread_t m_threadRebuild;
+    pthread_mutex_t m_mutexRebuild;
+    pthread_cond_t m_condRebuild;
+	std::list<std::pair<std::string, std::string> > m_listRebuildStores;
+
     pthread_mutex_t m_mutexTrack;
     pthread_cond_t m_condTrack;
     unsigned int m_ulTrack;
@@ -126,7 +136,6 @@ private:
     HRESULT SaveState();
 
     enum { stateUnknown = 0, stateBuilding, stateRunning };
- 
 };
 
 #endif

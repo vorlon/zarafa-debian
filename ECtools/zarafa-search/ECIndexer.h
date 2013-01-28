@@ -66,6 +66,7 @@ public:
 	static HRESULT Create(ECThreadData *lpThreadData, ECIndexer **lppIndexer);
 
 	HRESULT RunSynchronization();
+	HRESULT ReindexStore(const std::string &strServerGuid, const std::string &strStoreGuid);
 
 private:
     ECServerIndexer *m_lpServerIndexer;

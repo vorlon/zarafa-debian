@@ -61,6 +61,7 @@
 #include "pthreadutil.h"
 #include "mapi_ptr.h"
 #include "CommonUtil.h"
+#include "ECRestriction.h"
 
 #include <mapi.h>
 #include <mapicode.h>
@@ -152,6 +153,9 @@ ECServerIndexer::ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThrea
     pthread_mutex_init(&m_mutexTrack, NULL);
     pthread_cond_init(&m_condTrack, NULL);
     m_ulTrack = 0;
+
+	pthread_mutex_init(&m_mutexRebuild, NULL);
+	pthread_cond_init(&m_condRebuild, NULL);
     
     m_guidServer = GUID_NULL;
     
@@ -164,8 +168,13 @@ ECServerIndexer::~ECServerIndexer()
     m_bExit = true;
     pthread_cond_signal(&m_condExit);
     pthread_mutex_unlock(&m_mutexExit);
+
+    pthread_mutex_lock(&m_mutexRebuild);
+    pthread_cond_signal(&m_condRebuild);
+    pthread_mutex_unlock(&m_mutexRebuild);
     
     pthread_join(m_thread, NULL);
+    pthread_join(m_threadRebuild, NULL);
 }
 
 HRESULT ECServerIndexer::Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThreadData *lpThreadData, ECServerIndexer **lppIndexer)
@@ -195,6 +204,12 @@ HRESULT ECServerIndexer::Start()
     HRESULT hr = hrSuccess;
     
     if(pthread_create(&m_thread, NULL, ECServerIndexer::ThreadEntry, this) != 0) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
+        hr = MAPI_E_CALL_FAILED;
+        goto exit;
+    }
+
+    if(pthread_create(&m_threadRebuild, NULL, ECServerIndexer::ThreadRebuildEntry, this) != 0) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
         hr = MAPI_E_CALL_FAILED;
         goto exit;
@@ -643,7 +658,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
             goto exit;
         } else {
             if (!lstStubTargets.empty())
-                m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Loaded %u stub targets from saved state", lstStubTargets.size());
+                m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Loaded %u stub targets from saved state", (unsigned int)lstStubTargets.size());
         }
     }
     
@@ -716,7 +731,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get stub target state: %08X", hrSaveState);
             goto exit;
         }
-        m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got %u bytes of stub target state", strStubTargetState.size());
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got %u bytes of stub target state", (unsigned int)strStubTargetState.size());
     } else {
         // Clear the stub target state if we completed successfully
         strStubTargetState.clear();
@@ -844,7 +859,7 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
         
     // Cheap copy data from mapItems into lpEntryList
     for(std::list<std::string>::const_iterator i = mapItems.begin(); i != mapItems.end(); i++) {
-        SBinary bin = {i->size(), (BYTE *)i->data()};
+        SBinary bin = {(unsigned int)i->size(), (BYTE *)i->data()};
         
         // We avoid duplicate entries in lpEntryList as the rowengine
         // doesn't like duplicates.
@@ -1062,4 +1077,135 @@ HRESULT ECServerIndexer::RunSynchronization()
     m_bFast = false;
     
     return hr;
+}
+
+/** 
+ * Removes the current index of a given user on a server, and starts the indexer
+ * 
+ * @param strStoreGuid 
+ * 
+ * @return 
+ */
+HRESULT ECServerIndexer::ReindexStore(const std::string &strServerGuid, const std::string &strStoreGuid)
+{
+	HRESULT hr = hrSuccess;
+
+	pthread_mutex_lock(&m_mutexRebuild);
+
+	// MAPI_E_NOT_ME when serverguid != m_guidServer ?
+
+	if (m_ulIndexerState < stateRunning) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Reindex of store %s-%s impossible, indexer in wrong state", strServerGuid.c_str(), strStoreGuid.c_str());
+		hr = MAPI_E_BUSY;
+		goto exit;
+	}
+
+    hr = m_lpThreadData->lpIndexFactory->RemoveIndexDB(strServerGuid, strStoreGuid);
+    if(hr != hrSuccess) {
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to remove index database: %08X", hr);
+        goto exit;
+    }
+
+	m_listRebuildStores.push_back(make_pair<std::string, std::string>(strServerGuid, strStoreGuid));
+    pthread_cond_signal(&m_condRebuild);
+
+exit:
+	pthread_mutex_unlock(&m_mutexRebuild);
+
+	return hr;
+}
+
+/** 
+ * Rebuilding thread entry point back into class space.
+ * 
+ * @param lpParam ECServerIndexer instance
+ * 
+ * @return NULL
+ */
+void *ECServerIndexer::ThreadRebuildEntry(void *lpParam)
+{
+    ECServerIndexer *lpIndexer = (ECServerIndexer *)lpParam;
+	lpIndexer->ThreadRebuild();
+	return NULL;
+}
+
+/** 
+ * Rebuilding thread. Waits for condition to exit or rebuild a store.
+ * 
+ * @return hrSuccess
+ */
+HRESULT ECServerIndexer::ThreadRebuild()
+{
+	HRESULT hr = hrSuccess;
+    ExchangeManageStorePtr ptrEMS;
+    MAPITablePtr ptrTable;
+    SRowSetPtr ptrRows;
+    SizedSPropTagArray(3, sptaProps) = { 3, { PR_DISPLAY_NAME_W, PR_ENTRYID, PR_EC_STORETYPE } };
+	std::string strServerGuid, strStoreGuid;
+	SPropValue propServerGuid, propStoreGuid;
+
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting rebuild thread");
+
+	pthread_mutex_lock(&m_mutexRebuild);
+	while (!m_bExit) {
+		if (m_listRebuildStores.empty())
+			pthread_cond_wait(&m_condRebuild, &m_mutexRebuild);
+
+		if (m_bExit)
+			break;
+
+		if (m_listRebuildStores.empty())
+			continue;
+		
+		strServerGuid = hex2bin(m_listRebuildStores.front().first);
+		strStoreGuid = hex2bin(m_listRebuildStores.front().second);
+		m_listRebuildStores.pop_front();
+
+		pthread_mutex_unlock(&m_mutexRebuild);
+
+		// lookup store 
+
+		hr = m_ptrAdminStore->QueryInterface(IID_IExchangeManageStore, (void **)&ptrEMS);
+		if(hr != hrSuccess)
+			goto next;
+        
+		hr = ptrEMS->GetMailboxTable(NULL, &ptrTable, 0);
+		if(hr != hrSuccess)
+			goto next;
+        
+		hr = ptrTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
+		if(hr != hrSuccess)
+			goto next;
+
+		propServerGuid.ulPropTag = PR_MAPPING_SIGNATURE;
+		propServerGuid.Value.bin.cb = strServerGuid.length();
+		propServerGuid.Value.bin.lpb = (BYTE*)strServerGuid.data();
+		propStoreGuid.ulPropTag = PR_STORE_RECORD_KEY;
+		propStoreGuid.Value.bin.cb = strStoreGuid.length();
+		propStoreGuid.Value.bin.lpb = (BYTE*)strStoreGuid.data();
+		
+		hr = ECAndRestriction(
+				ECPropertyRestriction(RELOP_EQ, PR_MAPPING_SIGNATURE, &propServerGuid, ECRestriction::Shallow) +
+				ECPropertyRestriction(RELOP_EQ, PR_STORE_RECORD_KEY, &propStoreGuid, ECRestriction::Shallow)
+			 ).FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
+		if(hr != hrSuccess)
+			goto next;
+
+		hr = ptrTable->QueryRows(1, 0, &ptrRows);
+		if(hr != hrSuccess)
+			goto next;
+
+		// start building index
+
+		hr = IndexStore(&ptrRows[0].lpProps[1].Value.bin, ptrRows[0].lpProps[2].Value.ul);
+
+next:
+		if (hr != hrSuccess)
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to reindex store, 0x%08X", hr);
+		pthread_mutex_lock(&m_mutexRebuild);
+	}
+	pthread_mutex_unlock(&m_mutexRebuild);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Stopping rebuild thread");
+
+	return hrSuccess;
 }

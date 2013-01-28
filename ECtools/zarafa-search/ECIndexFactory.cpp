@@ -132,9 +132,35 @@ HRESULT ECIndexFactory::ReleaseIndexDB(ECIndexDB *lpIndexDB)
     return hr;
 }
 
-HRESULT ECIndexFactory::RemoveIndexDB(std::string strId)
+HRESULT ECIndexFactory::RemoveIndexDB(const std::string &strServerGuid, const std::string &strStoreGuid)
 {
-    return hrSuccess;
+	HRESULT hr = hrSuccess;
+    std::map<std::string, std::pair<unsigned int, ECIndexDB *> >::iterator i;
+	std::string strStore = strServerGuid + "-" + strStoreGuid;
+	ECIndexDB *lpIndexDB = NULL;
+
+    pthread_mutex_lock(&m_mutexIndexes);
+    i = m_mapIndexes.find(strStore);
+    
+    if (i != m_mapIndexes.end()) {
+		// index is being used
+		hr = MAPI_E_BUSY;
+    } else {
+        hr = ECIndexDB::Create(strStore, m_lpConfig, m_lpLogger, false, false, &lpIndexDB);
+		if (hr == MAPI_E_NOT_FOUND) {
+			hr = hrSuccess;
+			goto exit;
+		}
+        if(hr != hrSuccess)
+            goto exit;
+
+		hr = lpIndexDB->Remove();
+    }
+
+exit:
+    pthread_mutex_unlock(&m_mutexIndexes);
+	delete lpIndexDB;
+    return hr;
 }
 
 std::string ECIndexFactory::GetStoreId(GUID *lpServer, GUID *lpStore)

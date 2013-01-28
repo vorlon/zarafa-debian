@@ -73,6 +73,13 @@ Print the version and exit\&.
 When unknown options exists in the configuration file the search daemon will report an error and shutdown\&. Pass this option to ignore unknown options so zarafa\-search will start\&.
 .RE
 .PP
+\fB\-\-reindex\fR \fIusername\fR
+.RS 4
+Remove the current index of the given user and start to make a new index immediately\&.
+.sp
+The zarafa\-search daemon must already be running on the same machine\&.
+.RE
+.PP
 When invoked with no options, the zarafa\-search daemon will search for a configuration file in
 /etc/zarafa/search\&.cfg\&. If no configuration file is found, default values are used\&. See
 \fBzarafa-search.cfg\fR(5)
