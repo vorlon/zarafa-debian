@@ -763,7 +763,7 @@ ECAuthSession::~ECAuthSession()
 #ifdef WEXITSTATUS
 				if(WIFEXITED(status)) { /* Child exited by itself */
 					if(WEXITSTATUS(status))
-						m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "ntlm_auth exited with non-zero status %d", WEXITSTATUS(status));
+						m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_NOTICE, "ntlm_auth exited with non-zero status %d", WEXITSTATUS(status));
 				} else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
 					m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "ntlm_auth was killed by signal %d", WTERMSIG(status));
 
@@ -772,7 +772,7 @@ ECAuthSession::~ECAuthSession()
 				}
 #else
 				if (status)
-					m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "ntlm_auth exited with status %d", status);
+					m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_NOTICE, "ntlm_auth exited with status %d", status);
 #endif
 		}
 	}
@@ -1343,7 +1343,9 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap, char *lpszName, 
 	if (FD_ISSET(m_stderr, &fds)) {
 		// log stderr of ntlm_auth to logfile (loop?)
 		bytes = read(m_stderr, buffer, NTLMBUFFER-1);
-		m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, string("Received error from ntlm_auth:\n") + buffer);
+		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
+		// login error is returned to the client, which was expected anyway.
+		m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_NOTICE, string("Received error from ntlm_auth:\n") + buffer);
 		goto exit;
 	}
 
