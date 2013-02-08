@@ -2851,24 +2851,31 @@ HRESULT ECMessage::HrLoadProps()
 
 
 	if (fRTFOK) {
-		hr = GetBodyType(&m_ulBodyType);
-		if (hr != hrSuccess)
-			goto exit;
+		HRESULT hrTmp = hrSuccess;
 
-		if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
-			(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
-		{
-			hr = SyncRtf();
-			if (hr != hrSuccess)
-				goto exit;
+		hrTmp = GetBodyType(&m_ulBodyType);
+		if (FAILED(hrTmp))
+			TRACE_RELEASE("Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
+		else {
+			if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
+				(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
+			{
+				hr = SyncRtf();
+				if (hr != hrSuccess)
+					goto exit;
+			}
 		}
 	}
 
-	else if (fHTMLOK)
-		m_ulBodyType = bodyTypeHTML;
+	if (m_ulBodyType == bodyTypeUnknown) {
+		// We get here if there was no RTF data or when determining the body type based
+		// on that data failed.
+		if (fHTMLOK)
+			m_ulBodyType = bodyTypeHTML;
 
-	else if (fBodyOK)
-		m_ulBodyType = bodyTypePlain;
+		else if (fBodyOK)
+			m_ulBodyType = bodyTypePlain;
+	}
 
 exit:
 	if(lpsBodyProps)
