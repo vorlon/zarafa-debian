@@ -1946,7 +1946,12 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 	BTSession *lpSession = NULL;
 	ECSession *lpECSession = NULL;
 	
+	pthread_rwlock_rdlock(&m_hCacheRWLock);
+	
 	lpSession = GetSession(ecSessionId, true);
+
+	pthread_rwlock_unlock(&m_hCacheRWLock);
+
 	if(!lpSession)
 		goto exit;
 		
