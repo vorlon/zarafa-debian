@@ -1767,6 +1767,7 @@ typedef struct {
 	char *relAttr;				//!< resolveObject(s)FromAttributeType 3rd parameter
 	char *relAttrType;			//!< resolveObject(s)FromAttributeType 4th parameter
 	property_key_t propname;	//!< object prop to add/set from the result
+	std::string result_attr;	//!< optional: attribute to use from resulting object(s), if none then unique id
 } postaction;
 
 auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(const list<objectid_t> &objectids) throw(std::exception)
@@ -1974,80 +1975,79 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 					// this property is only supported on ADS and OpenLDAP 2.4+ with slapo-memberof enabled
 				case 0x8008:	/* PR_EMS_AB_IS_MEMBER_OF_DL */
 				case 0x800E:	/* PR_EMS_AB_REPORTS */
+				{
 					/*
 					 * These properties should contain the DN of the object,
 					 * resolve them to the objectid and them as the PT_MV_BINARY
 					 * version, the server will create the EntryIDs so the client
 					 * can use the openEntry() to get the correct references.
 					 */
-					ldap_attrs = getLDAPAttributeValues(att, entry);
 					ulPropTag = (ulPropTag & 0xffff0000) | 0x1102;
-					try {
-						objectclass_t objclass = OBJECTCLASS_DISTLIST;
+					postaction p;
 
-						if (ulPropTag == 0x800E1102) objclass = OBJECTCLASS_USER;
+					p.objectid = objectid;
 
-						auto_ptr<signatures_t> signatures = objectDNtoObjectSignatures(objclass, ldap_attrs);
+					if(ulPropTag == 0x800E1102)
+    					p.objclass = OBJECTCLASS_USER;
+                    else
+                        p.objclass = OBJECTCLASS_DISTLIST;
+                        
+					p.ldap_attrs = getLDAPAttributeValues(att, entry);
 
-						for (signatures_t::iterator iter = signatures->begin(); iter != signatures->end(); iter++)
-							sObjDetails.AddPropObject((property_key_t)ulPropTag, iter->id);
-					} catch(ldap_error &e) {
-						throw;
-					} catch (exception &e) {
-						/* Ignore... */
-					}
+					p.relAttr = "dn";
+					p.relAttrType = "dn";
+
+					p.propname = (property_key_t)ulPropTag;
+					lPostActions.push_back(p);
+
 					break;
+                }
 				case 0x3A4E:	/* PR_MANAGER_NAME */
 					/* Rename to PR_EMS_AB_MANAGER */
 					ulPropTag = 0x8005001E;
 				case 0x8005:	/* PR_EMS_AB_MANAGER */
 				case 0x800C:	/* PR_EMS_AB_OWNER */
+				{
 					/*
 					 * These properties should contain the DN of the object,
 					 * resolve it to the objectid and store it as the PT_BINARY
 					 * version, the server will create the EntryID so the client
 					 * can use OpenEntry() to get the correct reference.
 					 */
-					ldap_attr = getLDAPAttributeValue(att, entry);
 					ulPropTag = (ulPropTag & 0xffff0000) | 0x0102;
-					try {
-						objectid_t object = objectDNtoObjectSignature(OBJECTCLASS_USER, ldap_attr).id;
-						sObjDetails.SetPropObject((property_key_t)ulPropTag, object);
-					} catch(ldap_error &e) {
-						if(!LDAP_NAME_ERROR(e.GetLDAPError())) {
-							throw;
-						} else {
-							/* Store DN as name */
-							sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attr);
-						}
-					} catch (exception &e) {
-						/* Store DN as name */
-						sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attr);
-					}
+					postaction p;
+
+					p.objectid = objectid;
+                    p.objclass = OBJECTCLASS_USER;
+					p.ldap_attr = getLDAPAttributeValue(att, entry);
+					p.relAttr = "dn";
+					p.relAttrType = "dn";
+
+					p.propname = (property_key_t)ulPropTag;
+					lPostActions.push_back(p);
 					break;
+                }
 				case 0x3A30:	/* PR_ASSISTANT */
-					ulPropTag = 0x3A30001E;
+				{
 					/*
 					 * These properties should contain the full name of the object,
 					 * the client won't need to resolve them to a Address Book entry
 					 * so a fullname will be sufficient.
 					 */
-					ldap_attr = getLDAPAttributeValue(att, entry);
-					try {
-						string name = objectDNtoAttributeData(ldap_attr, m_config->GetSetting("ldap_fullname_attribute"));
-						sObjDetails.SetPropString((property_key_t)ulPropTag, name);
-					} catch(ldap_error &e) {
-						if(!LDAP_NAME_ERROR(e.GetLDAPError())) {
-							throw;
-						} else {
-							/* Store DN as name */
-							sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attr);
-						}
-					} catch (exception &e) {
-						/* Store DN as name */
-						sObjDetails.SetPropString((property_key_t)ulPropTag, ldap_attr);
-					}
+					ulPropTag = 0x3A30001E;
+					postaction p;
+
+					p.objectid = objectid;
+                    p.objclass = OBJECTCLASS_USER;
+					p.ldap_attr = getLDAPAttributeValue(att, entry);
+					p.relAttr = "dn";
+					p.relAttrType = "dn";
+					p.result_attr = m_config->GetSetting("ldap_fullname_attribute");
+					
+					p.propname = (property_key_t)ulPropTag;
+					lPostActions.push_back(p);
 					break;
+                }
 				default:
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 
@@ -2253,6 +2253,10 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 		if (p->ldap_attr.empty()) {
 			// list, so use AddPropObject()
 			try {
+			    // Currently not supported for multivalued arrays. This would require multiple calls to objectUniqueIDtoAttributeData
+			    // which is inefficient, and it is currently unused.
+			    ASSERT(p->result_attr.empty());
+			    
 				auto_ptr<signatures_t> lstSignatures;
 				signatures_t::iterator iSignature;
 				lstSignatures = resolveObjectsFromAttributeType(p->objclass, p->ldap_attrs, p->relAttr, p->relAttrType);
@@ -2274,10 +2278,23 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 			try {
 				objectsignature_t signature;
 				signature = resolveObjectFromAttributeType(p->objclass, p->ldap_attr, p->relAttr, p->relAttrType);
-				if (!signature.id.id.empty())
-					o->second.SetPropObject(p->propname, signature.id);
-				else
-					m_logger->Log(EC_LOGLEVEL_ERROR, "Unable to find relation %s in attribute %s", p->ldap_attr.c_str(), p->relAttr);
+				if (!p->result_attr.empty()) {
+				    // String type
+				    try {
+    				    o->second.SetPropString(p->propname, objectUniqueIDtoAttributeData(signature.id, p->result_attr.c_str()));
+                    } catch (ldap_error &e) {
+                        if(!LDAP_NAME_ERROR(e.GetLDAPError()))
+                            throw;
+                    } catch (std::exception &e) {
+                        m_logger->Log(EC_LOGLEVEL_ERROR, "Unable to get attribute %s for relation '%s' for object '%s'", p->result_attr.c_str(), p->ldap_attr.c_str(), o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
+                    }
+				} else {
+				    // ID type
+    				if (!signature.id.id.empty())
+		    			o->second.SetPropObject(p->propname, signature.id);
+	    			else
+			    		m_logger->Log(EC_LOGLEVEL_ERROR, "Unable to find relation %s in attribute %s", p->ldap_attr.c_str(), p->relAttr);
+                }
 			} catch (ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
 					throw;
