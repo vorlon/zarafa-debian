@@ -5136,7 +5136,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	}
 		
 
-	if (!lplstCompanyObjects) {
+	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
 		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &lplstUserObjects, ulFlags);
 		if (er != erSuccess) {
