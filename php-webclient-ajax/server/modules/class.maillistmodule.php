@@ -310,7 +310,7 @@
 							array_push($searchprops, $prop);
 					}
 
-					$searchterms = preg_split("/\W+/", $searchterms);
+					$searchterms = preg_split("/ +/", $searchterms);
 					
 					$res_and = array();
 					foreach($searchterms as $term) {
