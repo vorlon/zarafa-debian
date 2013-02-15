@@ -3340,17 +3340,17 @@ unsigned int ECGenericObjectTable::GetObjectSize()
 	ulSize += SortOrderArraySize(lpsSortOrderArray);
 	ulSize += PropTagArraySize(lpsPropTagArray);
 	ulSize += RestrictTableSize(lpsRestrict);
-	ulSize += m_listMVSortCols.size() * sizeof(ECListInt::value_type);
+	ulSize += MEMORY_USAGE_LIST(m_listMVSortCols.size(), ECListInt);
 
-	ulSize += mapObjects.size() * sizeof(ECObjectTableMap::value_type);
+	ulSize += MEMORY_USAGE_MAP(mapObjects.size(), ECObjectTableMap);
 	ulSize += lpKeyTable->GetObjectSize();
 
-	ulSize += m_mapCategories.size() * sizeof(ECCategoryMap::value_type);
+	ulSize += MEMORY_USAGE_MAP(m_mapCategories.size(), ECCategoryMap);
 	for(iterCat = m_mapCategories.begin(); iterCat != m_mapCategories.end(); iterCat++) {
 		ulSize += iterCat->second->GetObjectSize();
 	}
 	
-	ulSize += m_mapLeafs.size() * sizeof(ECLeafMap::value_type);
+	ulSize += MEMORY_USAGE_MAP(m_mapLeafs.size(), ECLeafMap);
 
 	pthread_mutex_unlock(&m_hLock);
 

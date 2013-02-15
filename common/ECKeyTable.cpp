@@ -1549,12 +1549,12 @@ unsigned int ECKeyTable::GetObjectSize()
 
 	pthread_mutex_lock(&mLock);
 	
-	ulSize += mapRow.size() * sizeof(ECTableRowMap::value_type);
+	ulSize += MEMORY_USAGE_MAP(mapRow.size(), ECTableRowMap);
 
 	for(iterRow = mapRow.begin(); iterRow != mapRow.end(); iterRow++)
 		ulSize += iterRow->second->GetObjectSize();
 
-	ulSize += m_mapBookmarks.size() * sizeof(ECBookmarkMap::value_type);
+	ulSize += MEMORY_USAGE_MAP(m_mapBookmarks.size(), ECBookmarkMap);
 
 	pthread_mutex_unlock(&mLock);
 

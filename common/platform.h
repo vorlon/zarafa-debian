@@ -152,4 +152,17 @@ void	sleep_ms(unsigned int millis);
 
  #define ZARAFA_API
 
+
+/**
+ * Memory usage calculation macros
+ */
+#define MEMALIGN(x) (((x) + sizeof(void*) - 1) & ~(sizeof(void*) - 1))
+
+#define MEMORY_USAGE_MAP(items, map)		(items * (sizeof(map) + sizeof(map::value_type)))
+#define MEMORY_USAGE_LIST(items, list)		(items * (MEMALIGN(sizeof(list) + sizeof(list::value_type))))
+#define MEMORY_USAGE_HASHMAP(items, map)	MEMORY_USAGE_MAP(items, map)
+#define MEMORY_USAGE_STRING(str)			( (str.capacity() + 1) * sizeof(char) )
+#define MEMORY_USAGE_MULTIMAP(items, map)	MEMORY_USAGE_MAP(items, map)
+
+
 #endif // PLATFORM_H

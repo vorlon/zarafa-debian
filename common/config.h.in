@@ -239,6 +239,9 @@
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
+/* Google TCMalloc available */
+#undef HAVE_TCMALLOC
+
 /* Define to 1 if you have the `timegm' function. */
 #undef HAVE_TIMEGM
 

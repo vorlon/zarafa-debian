@@ -216,7 +216,7 @@ struct option long_options[] = {
 		{ "list-companyquota-recipients", 0, NULL, OPT_LIST_CQUOTA_RECIPIENT },
 		{ "purge-softdelete", 1, NULL, OPT_PURGE_SOFTDELETE },
 		{ "purge-deferred", 0, NULL, OPT_PURGE_DEFERRED },
-		{ "clear-cache", 0, NULL, OPT_CLEAR_CACHE },
+		{ "clear-cache", 2, NULL, OPT_CLEAR_CACHE },
 		{ "config", 1, NULL, OPT_CONFIG },
 		{ "utf8", 0, NULL, OPT_UTF8 },
 		{ "force-resync", 0, NULL, OPT_FORCE_RESYNC },
@@ -2461,6 +2461,7 @@ int main(int argc, char* argv[])
 	IMAPIFolder *lpDeletedStoresFolder = NULL;
 	IMAPIFolder *lpRootFolder = NULL;
 	ULONG ulObjType = 0;
+	ULONG ulCachePurgeMode = PURGE_CACHE_ALL; 
 
 	InputValidator validateInput;
 
@@ -2728,6 +2729,8 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_CLEAR_CACHE:
 			mode = MODE_CLEAR_CACHE;
+			if (my_optarg)
+				ulCachePurgeMode = strtol(my_optarg, NULL, 0);
 			break;
 		case OPT_PURGE_DEFERRED:
 			mode = MODE_PURGE_DEFERRED;
@@ -4212,12 +4215,16 @@ int main(int argc, char* argv[])
 		cout << "Softdelete purge done." << endl;
 		break;
 	case MODE_CLEAR_CACHE:
-		hr = lpServiceAdmin->PurgeCache(PURGE_CACHE_ALL);
+		hr = lpServiceAdmin->PurgeCache(ulCachePurgeMode);
 		if (hr != hrSuccess) {
 			cerr << "Cache clear failed" << endl;
 			goto exit;
 		}
-		cout << "Cache cleared." << endl;
+		if (ulCachePurgeMode != PURGE_CACHE_ALL) {
+			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
+		} else {
+			cout << "Cache cleared." << endl;
+		}
 		break;
 	case MODE_PURGE_DEFERRED:
 		while(1) {

@@ -1413,7 +1413,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_rwlock_rdlock(&m_hCacheRWLock);
 
 	sStats.session.ulItems = m_mapSessions.size();
-	sStats.session.ullSize = sStats.session.ulItems * sizeof(SESSIONMAP::value_type);
+	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
 
 	// lock and copy sessions so we can release the main sessionmanager lock before we call the tablemanager to avoid other locks
 
@@ -1436,7 +1436,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 		lpSess = *i;
 		lpSess->GetTableManager()->GetStats(&ulTmpTables, &ulTmpTableSize);
 
-		sStats.session.ullSize += lpSess->GetSecurity()->GetObjectSize();
+		sStats.session.ullSize += lpSess->GetObjectSize();
 		sStats.session.ulOpenTables += ulTmpTables;
 		sStats.session.ulTableSize += ulTmpTableSize;
 
@@ -1447,7 +1447,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_rwlock_rdlock(&m_hGroupLock);
 	
 	sStats.group.ulItems = m_mapSessionGroups.size();
-	sStats.group.ullSize = sStats.group.ulItems * sizeof(SESSIONGROUPMAP::value_type);
+	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, SESSIONGROUPMAP);
 
 	for (itersg = m_mapSessionGroups.begin(); itersg != m_mapSessionGroups.end(); itersg++) {
 		sStats.group.ullSize += itersg->second->GetObjectSize();
@@ -1459,10 +1459,10 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_mutex_lock(&m_mutexPersistent);
 
 	sStats.ulPersistentByConnection = m_mapPersistentByConnection.size();
-	sStats.ulPersistentByConnectionSize = sStats.ulPersistentByConnection * sizeof(PERSISTENTBYCONNECTION::value_type);
+	sStats.ulPersistentByConnectionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentByConnection, PERSISTENTBYCONNECTION);
 
 	sStats.ulPersistentBySession = m_mapPersistentBySession.size();
-	sStats.ulPersistentBySessionSize = sStats.ulPersistentBySession * sizeof(PERSISTENTBYSESSION::value_type);
+	sStats.ulPersistentBySessionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentBySession, PERSISTENTBYSESSION);
 
 	pthread_mutex_unlock(&m_mutexPersistent);
 
@@ -1470,7 +1470,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_mutex_lock(&m_mutexTableSubscriptions);
 	
 	sStats.ulTableSubscriptions = m_mapTableSubscriptions.size();
-	sStats.ulTableSubscriptionSize = sStats.ulTableSubscriptions * sizeof(TABLESUBSCRIPTIONMULTIMAP::value_type);
+	sStats.ulTableSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulTableSubscriptions, TABLESUBSCRIPTIONMULTIMAP);
 
 	pthread_mutex_unlock(&m_mutexTableSubscriptions);
 
@@ -1478,7 +1478,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_mutex_lock(&m_mutexObjectSubscriptions);
 
 	sStats.ulObjectSubscriptions = m_mapObjectSubscriptions.size();
-	sStats.ulObjectSubscriptionSize = sStats.ulObjectSubscriptions * sizeof(OBJECTSUBSCRIPTIONSMULTIMAP::value_type);
+	sStats.ulObjectSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulObjectSubscriptions, OBJECTSUBSCRIPTIONSMULTIMAP);
 
 	pthread_mutex_unlock(&m_mutexObjectSubscriptions);
 

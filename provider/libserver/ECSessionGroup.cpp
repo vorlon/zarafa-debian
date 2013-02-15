@@ -584,28 +584,29 @@ unsigned int ECSessionGroup::GetObjectSize()
 {
 	NOTIFICATIONLIST::iterator  iterlNotify;
 	unsigned int ulSize = 0;
+	unsigned int ulItems;
 
 	pthread_mutex_lock(&m_hNotificationLock);
 
-	ulSize += m_listNotification.size() * sizeof(NOTIFICATIONLIST::value_type);
-	ulSize += m_mapSubscribe.size() * sizeof(SUBSCRIBEMAP::value_type);
-	ulSize += m_mapChangeSubscribe.size() * sizeof(CHANGESUBSCRIBEMAP::value_type);
+	ulSize += MEMORY_USAGE_MAP(m_mapSubscribe.size(), SUBSCRIBEMAP);
+	ulSize += MEMORY_USAGE_MAP(m_mapChangeSubscribe.size(), CHANGESUBSCRIBEMAP);
 
-	for(iterlNotify = m_listNotification.begin(); iterlNotify != m_listNotification.end(); iterlNotify++)
+	for(iterlNotify = m_listNotification.begin(), ulItems = 0; iterlNotify != m_listNotification.end(); iterlNotify++, ulItems++)
 	{
 		ulSize += iterlNotify->GetObjectSize();
 	}
+	ulSize += MEMORY_USAGE_LIST(ulItems, NOTIFICATIONLIST);
 
 	pthread_mutex_unlock(&m_hNotificationLock);
 
 	ulSize += sizeof(*this);
 
 	pthread_mutex_lock(&m_hSessionMapLock);
-	ulSize += m_mapSessions.size() * sizeof(SESSIONINFOMAP::value_type);
+	ulSize += MEMORY_USAGE_MAP(m_mapSessions.size(), SESSIONINFOMAP);
 	pthread_mutex_unlock(&m_hSessionMapLock);
 
 	pthread_mutex_lock(&m_mutexSubscribedStores);
-	ulSize += m_mapSubscribedStores.size() * sizeof(unsigned int);
+	ulSize += MEMORY_USAGE_MULTIMAP(m_mapSubscribedStores.size(), SUBSCRIBESTOREMULTIMAP);
 	pthread_mutex_unlock(&m_mutexSubscribedStores);
 
 	return ulSize;

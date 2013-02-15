@@ -123,8 +123,11 @@ if test "$want_unicode" = "yes"; then
     ZCXXFLAGS="$ZCXXFLAGS -DUNICODE"
 fi
 
-AC_ARG_ENABLE(tcmalloc, AC_HELP_STRING([--enable-tcmalloc],[enable use of tcmalloc lib]),
+AC_ARG_ENABLE(tcmalloc, AC_HELP_STRING([--enable-tcmalloc],[enable use of tcmalloc minimal lib]),
   [want_tcmalloc=${enableval}],[want_tcmalloc=no])
+
+AC_ARG_ENABLE(tcmalloc-full, AC_HELP_STRING([--enable-tcmalloc-full],[enable use of tcmalloc full lib]),
+  [want_tcmalloc_full=${enableval}],[want_tcmalloc_full=no])
 
 AC_ARG_ENABLE(sparsehash, AC_HELP_STRING([--enable-sparsehash],[enable use of sparsehash]),
   [want_sparsehash=${enableval}],[want_sparsehash=no])
@@ -477,12 +480,20 @@ CXXFLAGS=$CXXFLAGS_system
 CPPFLAGS=$CPPFLAGS_system
 
 # Check for google perftools tcmalloc availability
-if test "$want_tcmalloc" = "yes"; then
+if test "$want_tcmalloc_full" = "yes"; then
+    AC_ARG_WITH(tcmalloc-prefix,
+      AC_HELP_STRING([--with-tcmalloc-prefix=PATH],[path to tcmalloc lib, e.g. /usr/lib/]),
+      [TCMALLOC_PREFIX=${withval}],[TCMALLOC_PREFIX=/usr/lib])
+    AC_CHECK_LIB(tcmalloc, [open],
+      [ TCMALLOC_LIBS="${TCMALLOC_PREFIX}/libtcmalloc.so" AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc available]) ],
+      [ WITH_TCMALLOC=no ])
+    AC_SUBST(TCMALLOC_LIBS)
+elif test "$want_tcmalloc" = "yes"; then
     AC_ARG_WITH(tcmalloc-prefix,
       AC_HELP_STRING([--with-tcmalloc-prefix=PATH],[path to tcmalloc lib, e.g. /usr/lib/]),
       [TCMALLOC_PREFIX=${withval}],[TCMALLOC_PREFIX=/usr/lib])
     AC_CHECK_LIB(tcmalloc_minimal, [open],
-      [ TCMALLOC_LIBS="${TCMALLOC_PREFIX}/libtcmalloc_minimal.a" ],
+      [ TCMALLOC_LIBS="${TCMALLOC_PREFIX}/libtcmalloc_minimal.a" AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc available]) ],
       [ WITH_TCMALLOC=no ])
     AC_SUBST(TCMALLOC_LIBS)
 else

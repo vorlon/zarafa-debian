@@ -150,7 +150,8 @@ public:
 	
 	size_type Size() const
 	{
-		return (m_map.size() * sizeof(typename _MapType::value_type) + 64) + m_ulSize;
+		// it works with map and hash_map
+		return (m_map.size() * (sizeof(typename _MapType::value_type) + sizeof(_MapType) )) + m_ulSize;
 	}
 
 	ECRESULT RemoveCacheItem(const key_type &key) 
@@ -165,6 +166,7 @@ public:
 		}
 
 		m_ulSize -= GetCacheAdditionalSize(iter->second);
+		m_ulSize -= GetCacheAdditionalSize(key);
 		m_map.erase(iter);
 
 	exit:
@@ -248,6 +250,7 @@ public:
 		} else {
 			// We just inserted a new entry.
 			m_ulSize += GetCacheAdditionalSize(value);
+			m_ulSize += GetCacheAdditionalSize(key);
 			
 			result.first->second.ulLastAccess = GetProcessTime();
 			
@@ -290,6 +293,7 @@ private:
 			iterMap = iterEntry->key;
 
 			m_ulSize -= GetCacheAdditionalSize(iterMap->second);
+			m_ulSize -= GetCacheAdditionalSize(iterMap->first);
 			m_map.erase(iterMap);
 		}
 

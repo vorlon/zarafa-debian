@@ -94,6 +94,15 @@ unsigned int GetCacheAdditionalSize(const ECsCells &val) {
 	return val.GetSize();
 }
 
+template<>
+unsigned int GetCacheAdditionalSize(const std::string &val) {
+	return MEMORY_USAGE_STRING(val);
+}
+
+template<>
+unsigned int GetCacheAdditionalSize(const ECsUEIdKey &val) {
+	return MEMORY_USAGE_STRING(val.strExternId);
+}
 
 ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory, ECLogger *lpLogger)
 : m_QuotaCache("quota", atoi(lpConfig->GetSetting("cache_quota_size")), atoi(lpConfig->GetSetting("cache_quota_lifetime")) * 60)

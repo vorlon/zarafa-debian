@@ -286,16 +286,15 @@ unsigned int objectdetails_t::GetObjectSize()
 	property_mv_map::iterator mvi;
 	std::list<std::string>::iterator istr;
 
-	ulSize += sizeof(property_map::value_type) * m_mapProps.size();
+	ulSize += MEMORY_USAGE_MAP(m_mapProps.size(), property_map);
 	for (i = m_mapProps.begin(); i != m_mapProps.end(); i++)
-		ulSize += i->second.size();
+		ulSize += MEMORY_USAGE_STRING(i->second);
 
-	ulSize += sizeof(property_mv_map::value_type) * m_mapMVProps.size();
+	ulSize += MEMORY_USAGE_MAP(m_mapMVProps.size(), property_mv_map);
 
 	for (mvi = m_mapMVProps.begin(); mvi != m_mapMVProps.end(); mvi++) {
-		ulSize += mvi->second.size() * sizeof(std::string);
 		for (istr = mvi->second.begin(); istr != mvi->second.end(); istr++)
-			ulSize += (*istr).size();
+			ulSize += MEMORY_USAGE_STRING((*istr));
 	}
 
 	return ulSize;

@@ -764,7 +764,7 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 	pthread_mutex_lock(&hListMutex);
 
 	ulTables = mapTable.size();
-	ulSize = ulTables * (sizeof(TABLEENTRYMAP::value_type) + sizeof(TABLE_ENTRY));
+	ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
 
 	for(iterEntry = mapTable.begin(); iterEntry !=  mapTable.end(); iterEntry++) {
 		if(iterEntry->second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS) // Skip system stats since it would recursively include itself

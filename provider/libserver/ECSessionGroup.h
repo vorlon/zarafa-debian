@@ -83,6 +83,7 @@ struct subscribeItem {
 
 typedef std::list<ECNotification> NOTIFICATIONLIST;
 typedef std::map<unsigned int, subscribeItem> SUBSCRIBEMAP;
+typedef std::multimap<unsigned int, unsigned int> SUBSCRIBESTOREMULTIMAP;
 
 struct changeSubscribeItem {
 	ECSESSIONID		ulSession;
@@ -182,7 +183,7 @@ private:
 	ECSessionManager *	m_lpSessionManager;
 	
 	/* Multimap of subscriptions that we have (key -> store id) */
-	std::multimap<unsigned int, unsigned int>	m_mapSubscribedStores;
+	SUBSCRIBESTOREMULTIMAP	m_mapSubscribedStores;
 	pthread_mutex_t		m_mutexSubscribedStores;
 	
 private:

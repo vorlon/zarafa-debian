@@ -66,6 +66,11 @@
 
 #include "ECStatsCollector.h"
 
+#ifdef HAVE_TCMALLOC
+#include "google/malloc_extension.h"
+#endif
+
+
 // Link to provider/server
 void zarafa_get_server_stats(unsigned int *lpulQueueLen, double *lpDblQueueAge, unsigned int *lpulThreads, unsigned int *lpulIdleThreads);
 
@@ -131,6 +136,38 @@ ECRESULT ECSystemStatsTable::Load()
 	//lpSession->GetSessionManager()->GetLicensedUsers(1/*SERVICE_TYPE_ARCHIVE*/, &ulLicensedArchivedUsers);
 	//GetStatsCollectorData("??????????", "Number of allowed archive users", stringify(ulLicensedArchivedUsers), this);
 
+#ifdef HAVE_TCMALLOC
+	size_t value = 0;
+	MallocExtension::instance()->GetNumericProperty("generic.current_allocated_bytes", &value);
+	GetStatsCollectorData("tc_allocated", "Current allocated memory by TCMalloc", stringify_int64(value), this); // Bytes in use by application
+
+	value = 0;
+	MallocExtension::instance()->GetNumericProperty("generic.heap_size", &value);
+	GetStatsCollectorData("tc_reserved", "Bytes of system memory reserved by TCMalloc", stringify_int64(value), this);
+
+	value = 0;
+	MallocExtension::instance()->GetNumericProperty("tcmalloc.pageheap_free_bytes", &value);
+	GetStatsCollectorData("tc_page_map_free", "Number of bytes in free, mapped pages in page heap", stringify_int64(value), this); 
+
+	value = 0;
+	MallocExtension::instance()->GetNumericProperty("tcmalloc.pageheap_unmapped_bytes", &value);
+	GetStatsCollectorData("tc_page_unmap_free", "Number of bytes in free, unmapped pages in page heap (released to OS)", stringify_int64(value), this);
+
+	value = 0;
+	MallocExtension::instance()->GetNumericProperty("tcmalloc.max_total_thread_cache_bytes", &value);
+	GetStatsCollectorData("tc_threadcache_max", "A limit to how much memory TCMalloc dedicates for small objects", stringify_int64(value), this);
+
+	value = 0;
+	MallocExtension::instance()->GetNumericProperty("tcmalloc.current_total_thread_cache_bytes", &value);
+	GetStatsCollectorData("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", stringify_int64(value), this);
+
+#ifdef DEBUG
+	char test[2048] = {0};
+	MallocExtension::instance()->GetStats(test, sizeof(test));
+	GetStatsCollectorData("tc_stats_string", "TCMalloc memory debug data", test, this);
+#endif
+
+#endif
 
 	// add all items to the keytable
 	for (i = 0; i < id; i++) {

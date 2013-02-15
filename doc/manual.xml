@@ -2093,7 +2093,26 @@
 		  	  any data requested after the cache is cleared needs to be
 		  	  re-requested from the database or LDAP server. Normally this
 		  	  option is never needed; it is mostly used as a diagnostics
-		  	  tool.</para>
+			  tool.</para>
+	  		  <para>Optionally use <parameter>--clear-cache=</parameter> to specify a set
+			  of purge options. The following options can be used:
+			  <simplelist type='horiz' columns='1'>
+				<member>0x0000    Release no longer used memory back to the kernel</member>
+				<member>0x0001    Purge the quota cache</member>
+                <member>0x0002    Purge the quota default cache</member>
+                <member>0x0004    Purge the object cache</member>
+                <member>0x0008    Purge the store cache</member>
+                <member>0x0010    Purge the ACL cache</member>
+                <member>0x0020    Purge the cell cache</member>
+                <member>0x0040    Purge the index1 cache</member>
+                <member>0x0080    Purge the index2 cache</member>
+                <member>0x0100    Purge the indexproperty cache</member>
+                <member>0x0200    Purge the user object cache</member>
+                <member>0x0400    Purge the externid cache</member>
+                <member>0x0800    Purge the userdetails cache</member>
+                <member>0x1000    Purge the server cache</member>
+				</simplelist>
+			</para>
 		  	</listitem>
 		  </varlistentry>
 

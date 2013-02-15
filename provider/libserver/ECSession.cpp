@@ -151,6 +151,8 @@ BTSession::BTSession(const std::string& strSourceAddr, ECSESSIONID sessionID, EC
 	m_lpUserManagement = NULL;
 	m_ulRequests = 0;
 
+	m_ulLastRequestPort = 0;
+
 	// Protects the object from deleting while a thread is running on a method in this object
 	pthread_cond_init(&m_hThreadReleased, NULL);
 	pthread_mutex_init(&m_hThreadReleasedMutex, NULL);
@@ -272,6 +274,28 @@ void BTSession::RecordRequest(struct soap *soap)
 unsigned int BTSession::GetRequests() 
 {
     return m_ulRequests;
+}
+
+void BTSession::GetRequestURL(std::string *lpstrClientURL)
+{
+	lpstrClientURL->assign(m_strLastRequestURL);
+}
+
+void BTSession::GetProxyHost(std::string *lpstrProxyHost)
+{
+	lpstrProxyHost->assign(m_strProxyHost);
+}
+
+void BTSession::GetClientPort(unsigned int *lpulPort)
+{
+	*lpulPort = m_ulLastRequestPort;
+}
+
+size_t BTSession::GetInternalObjectSize()
+{
+	return MEMORY_USAGE_STRING(m_strSourceAddr) + 
+			MEMORY_USAGE_STRING(m_strLastRequestURL) +
+			MEMORY_USAGE_STRING(m_strProxyHost);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -622,20 +646,6 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
     lpstrClientApp->assign(m_strClientApp);
 }
 
-void ECSession::GetRequestURL(std::string *lpstrClientURL)
-{
-	lpstrClientURL->assign(m_strLastRequestURL);
-}
-
-void ECSession::GetProxyHost(std::string *lpstrProxyHost)
-{
-	lpstrProxyHost->assign(m_strProxyHost);
-}
-
-void ECSession::GetClientPort(unsigned int *lpulPort)
-{
-	*lpulPort = m_ulLastRequestPort;
-}
 
 /**
  * Get the object id of the object specified by the provided entryid.
@@ -704,6 +714,28 @@ ECRESULT ECSession::UnlockObject(unsigned int ulObjId)
 
 exit:
 	return er;
+}
+
+size_t ECSession::GetObjectSize()
+{
+	size_t ulSize = sizeof(*this);
+
+	ulSize += GetInternalObjectSize();
+	ulSize += MEMORY_USAGE_STRING(m_strClientApp) + 
+			MEMORY_USAGE_STRING(m_strUsername) + 
+			MEMORY_USAGE_STRING(m_strClientVersion);
+
+	ulSize += MEMORY_USAGE_MAP(m_mapBusyStates.size(), BusyStateMap);
+	ulSize += MEMORY_USAGE_MAP(m_mapLocks.size(), LockMap);
+
+	if (m_lpEcSecurity)
+		ulSize += m_lpEcSecurity->GetObjectSize();
+
+
+	// The Table manager size is not callculated here
+//	ulSize += GetTableManager()->GetObjectSize();
+
+	return ulSize;
 }
 
 
@@ -1448,6 +1480,13 @@ ECRESULT ECAuthSession::ProcessImpersonation(char *lpszImpersonateUser)
 
 exit:
 	return er;
+}
+
+size_t ECAuthSession::GetObjectSize()
+{
+	size_t ulSize = sizeof(*this);
+
+	return ulSize;
 }
 
 

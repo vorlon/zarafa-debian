@@ -115,6 +115,10 @@
 #include "ZarafaCmdUtil.h"
 #include "ECThreadPool.h"
 
+#ifdef HAVE_TCMALLOC
+#include "google/malloc_extension.h"
+#endif
+
 #define STRIN_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::WTF1252_to_UTF8(soap, (s)))
 #define STROUT_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
 #define STROUT_FIX_CPY(s) (bSupportUnicode ? s_strcpy(soap, (s)) : ECStringCompat::UTF8_to_WTF1252(soap, (s)))
@@ -5846,6 +5850,10 @@ SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result
     }
 
     er = g_lpSessionManager->GetCacheManager()->PurgeCache(ulFlags);
+
+#ifdef HAVE_TCMALLOC
+	MallocExtension::instance()->ReleaseFreeMemory();
+#endif
 
 	g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(NULL));
 exit:

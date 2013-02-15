@@ -371,6 +371,52 @@ to indicate for what kind of object the sendas details are being requested\&.
 \fB\-\-clear\-cache\fR
 .RS 4
 Clears the server\*(Aqs caches\&. All data cached inside the zarafa\-server is cleared\&. Although this can never cause any data loss, it can affect the performance of your server, since any data requested after the cache is cleared needs to be re\-requested from the database or LDAP server\&. Normally this option is never needed; it is mostly used as a diagnostics tool\&.
+.sp
+Optionally use
+\fI\-\-clear\-cache=\fR
+to specify a set of purge options\&. The following options can be used:
+.RS 4
+0x0000    Release no longer used memory back to the kernel
+.RE
+.RS 4
+0x0001    Purge the quota cache
+.RE
+.RS 4
+0x0002    Purge the quota default cache
+.RE
+.RS 4
+0x0004    Purge the object cache
+.RE
+.RS 4
+0x0008    Purge the store cache
+.RE
+.RS 4
+0x0010    Purge the ACL cache
+.RE
+.RS 4
+0x0020    Purge the cell cache
+.RE
+.RS 4
+0x0040    Purge the index1 cache
+.RE
+.RS 4
+0x0080    Purge the index2 cache
+.RE
+.RS 4
+0x0100    Purge the indexproperty cache
+.RE
+.RS 4
+0x0200    Purge the user object cache
+.RE
+.RS 4
+0x0400    Purge the externid cache
+.RE
+.RS 4
+0x0800    Purge the userdetails cache
+.RE
+.RS 4
+0x1000    Purge the server cache
+.RE
 .RE
 .PP
 \fB\-\-purge\-softdelete\fR \fIdays\fR

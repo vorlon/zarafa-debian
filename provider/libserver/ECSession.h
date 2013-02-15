@@ -123,6 +123,13 @@ public:
 	virtual void RecordRequest(struct soap *soap);
     virtual unsigned int GetRequests();
 
+    virtual void GetClientPort(unsigned int *lpulPort);
+    virtual void GetRequestURL(std::string *lpstrURL);
+    virtual void GetProxyHost(std::string *lpstrProxyHost);
+
+	size_t GetInternalObjectSize();
+	virtual size_t GetObjectSize() = 0;
+
 	time_t GetIdleTime();
 	std::string GetSourceAddr();
 
@@ -194,9 +201,8 @@ public:
 	void GetClocks(double *lpdblUser, double *lpdblSystem, double *lpdblReal);
 	void GetClientVersion(std::string *lpstrVersion);
     void GetClientApp(std::string *lpstrClientApp);
-    void GetClientPort(unsigned int *lpulPort);
-    void GetRequestURL(std::string *lpstrURL);
-    void GetProxyHost(std::string *lpstrProxyHost);
+
+	size_t GetObjectSize();
 
 	unsigned int ClientVersion() const { return m_ulClientVersion; }
 
@@ -208,7 +214,8 @@ private:
 	ECSecurity			*m_lpEcSecurity;
 
 	pthread_mutex_t		m_hStateLock;
-	std::map<pthread_t, BUSYSTATE> m_mapBusyStates; /* which thread does what function */
+	typedef std::map<pthread_t, BUSYSTATE> BusyStateMap;
+	BusyStateMap	m_mapBusyStates; /* which thread does what function */
 	double			m_dblUser;
 	double			m_dblSystem;
 	double			m_dblReal;
@@ -240,6 +247,8 @@ public:
 	ECRESULT ValidateSSOData(struct soap *soap, char *lpszName, char *lpszImpersonateUser, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
 
 	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
+
+	size_t GetObjectSize();
 
 protected:
 	unsigned int m_ulUserID;

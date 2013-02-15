@@ -1631,26 +1631,35 @@ ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
 unsigned int ECSecurity::GetObjectSize()
 {
 	unsigned int ulSize = sizeof(*this);
+	unsigned int ulItems;
 
 	list<localobjectdetails_t>::iterator iter;
 
 	ulSize += m_details.GetObjectSize();
+	ulSize += m_impersonatorDetails.GetObjectSize();
+	
 
 	if (m_lpGroups) {
-		for (iter = m_lpGroups->begin(); iter != m_lpGroups->end(); iter++)
+		for (iter = m_lpGroups->begin(), ulItems = 0; iter != m_lpGroups->end(); iter++, ulItems++) 
 			ulSize += iter->GetObjectSize();
+
+		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 
 	if (m_lpViewCompanies)
 	{
-		for (iter = m_lpViewCompanies->begin(); iter != m_lpViewCompanies->end(); iter++)
+		for (iter = m_lpViewCompanies->begin(), ulItems = 0; iter != m_lpViewCompanies->end(); iter++, ulItems++)
 			ulSize += iter->GetObjectSize();
+
+		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 
 	if (m_lpAdminCompanies)
 	{
-		for (iter = m_lpAdminCompanies->begin(); iter != m_lpAdminCompanies->end(); iter++)
+		for (iter = m_lpAdminCompanies->begin(), ulItems = 0; iter != m_lpAdminCompanies->end(); iter++, ulItems++)
 			ulSize += iter->GetObjectSize();
+
+		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 
 	return ulSize;
