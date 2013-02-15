@@ -119,7 +119,7 @@ void* ReportLicense(void *);
 int running_server(char *szName, const char *config, int argc, char *argv[]);
 
 
-int					g_Quit;
+int					g_Quit = 0;
 int					daemonize = 1;
 int					restart_searches = 0;
 int					searchfolder_restart_required = 0; //HACK for rebuild the searchfolders with an upgrade
@@ -1461,8 +1461,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	
 	if (restart_searches) // restart_searches if specified
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
-
-	 g_Quit = 0;
 
 	// Create scheduler system
 	g_lpScheduler = new ECScheduler(g_lpLogger);
