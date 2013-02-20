@@ -60,6 +60,8 @@ public:
 	~ECIndexOptimizer();
 
 	static void* Run(void* param);
+
+	static HRESULT GetServerMailboxList(ECThreadData *lpThreadData, GUID &guidMBServer, std::set<GUID> &setStoreGuid);
 };
 
 #endif

@@ -69,6 +69,7 @@ public:
     virtual HRESULT GetIndexDB(GUID *lpServer, GUID *lpStore, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB);
     virtual HRESULT ReleaseIndexDB(ECIndexDB *lpIndexDB);
 
+	virtual HRESULT RemoveIndexDB(const GUID &guidServer, const GUID &guidStore);
 	virtual HRESULT RemoveIndexDB(const std::string &strServerGuid, const std::string &strStoreGuid);
 
 	virtual HRESULT GetStoreIdFromFilename(const std::string &strFilename, GUID *lpServer, GUID *lpStore);

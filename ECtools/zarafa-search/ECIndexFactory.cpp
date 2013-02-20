@@ -132,6 +132,14 @@ HRESULT ECIndexFactory::ReleaseIndexDB(ECIndexDB *lpIndexDB)
     return hr;
 }
 
+HRESULT ECIndexFactory::RemoveIndexDB(const GUID &guidServer, const GUID &guidStore) 
+{
+	std::string strServerGuid = bin2hex(sizeof(GUID), (unsigned char *)&guidServer);
+	std::string strStoreGuid = bin2hex(sizeof(GUID), (unsigned char *)&guidStore);
+
+	return RemoveIndexDB(strServerGuid, strStoreGuid);
+}
+
 HRESULT ECIndexFactory::RemoveIndexDB(const std::string &strServerGuid, const std::string &strStoreGuid)
 {
 	HRESULT hr = hrSuccess;

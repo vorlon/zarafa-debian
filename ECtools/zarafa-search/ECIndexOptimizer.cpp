@@ -54,7 +54,18 @@
 #include "boost_compat.h"
 
 #include <boost/filesystem.hpp>
+
+#include "CommonUtil.h"
+#include "mapi_ptr.h"
+#include <set>
+
 namespace bfs = boost::filesystem;
+
+
+bool operator <(const GUID &left, const GUID &right)
+{
+	return memcmp(&left, &right, sizeof(GUID)) < 0;
+}
 
 
 ECIndexOptimizer::ECIndexOptimizer()
@@ -77,9 +88,12 @@ void* ECIndexOptimizer::Run(void* param)
 	time_t now;
 	struct tm local;
 	int until;
+	std::list<std::string> listIndexFiles;
+	GUID guidMBServer;
+	std::set<GUID> setStoreGuid;
 
 	// Fatal so the user knows the reason the zarafa-search is hogging the CPU
-	lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting to optimize index files");
+	lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting to cleanup and optimize index files");
 
 	until = atoi(lpThreadData->lpConfig->GetSetting("optimize_stop"));
 
@@ -90,19 +104,44 @@ void* ECIndexOptimizer::Run(void* param)
 		return NULL;
 	}
 
+	// Get the indexed stores from disk
 	for (bfs::directory_iterator index(indexdir); index != ilast; index++) {
 		std::string strFilename;
 
 		strFilename = filename_from_path(index->path());
 
-		lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Checking file %s", strFilename.c_str());
-
 		if (is_directory(index->status()))
 			continue;
 
-		hr = lpThreadData->lpIndexFactory->GetStoreIdFromFilename(strFilename, &guidServer, &guidStore);
+		listIndexFiles.push_back(strFilename);
+	}
+
+	// Get stores table from the server
+	hr = GetServerMailboxList(lpThreadData, guidMBServer, setStoreGuid);
+	if (hr != hrSuccess) {
+		lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create a mailbox list, cleanup of indexes (temporarily) disabled");
+		setStoreGuid.clear();
+	} 
+
+	for (std::list<std::string>::iterator iter = listIndexFiles.begin(); !lpThreadData->bShutdown && iter != listIndexFiles.end(); iter++) 
+	{
+		hr = lpThreadData->lpIndexFactory->GetStoreIdFromFilename(*iter, &guidServer, &guidStore);
 		if (hr != hrSuccess)
 			continue;
+
+		lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Checking file %s", (*iter).c_str());
+
+		if (!setStoreGuid.empty() && guidServer == guidMBServer && setStoreGuid.find(guidStore) == setStoreGuid.end() ) {
+			lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Detect removed store %s, start to cleanup index",  bin2hex(sizeof(GUID), (unsigned char*)&guidStore).c_str() );
+
+			hr = lpThreadData->lpIndexFactory->RemoveIndexDB(guidServer, guidStore);
+			if (hr == MAPI_E_BUSY)
+				 lpThreadData->lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to cleanup index for store %s, index is use", bin2hex(sizeof(GUID), (unsigned char*)&guidStore).c_str() );
+			else if (hr != hrSuccess)
+				lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to cleanup index for store %s: 0x%08X", bin2hex(sizeof(GUID), (unsigned char*)&guidStore).c_str(), hr);
+
+			continue;
+		}
 
 		// open through index factory to get a shared object
 		hr = lpThreadData->lpIndexFactory->GetIndexDB(&guidServer, &guidStore, false, false, &lpIndex);
@@ -122,4 +161,72 @@ void* ECIndexOptimizer::Run(void* param)
 	// Fatal so the user knows how we're done.
 	lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "Stopping index optimization");
 	return NULL;
+}
+
+HRESULT ECIndexOptimizer::GetServerMailboxList(ECThreadData *lpThreadData, GUID &guidMBServer, std::set<GUID> &setStoreGuid)
+{
+	HRESULT hr = hrSuccess;
+	ECLogger *lpLogger = lpThreadData->lpLogger;
+	ECConfig *lpConfig = lpThreadData->lpConfig;
+	MAPISessionPtr ptrSession;
+	MsgStorePtr ptrAdminStore;
+	SPropValuePtr ptrPropSign;
+	ExchangeManageStorePtr ptrEMS;
+	MAPITablePtr ptrTable;
+	SRowSetPtr ptrRows;
+	SizedSPropTagArray(1, sptaProps) = { 1, { PR_STORE_RECORD_KEY } };
+
+	hr = HrOpenECSession(&ptrSession, L"SYSTEM", L"", lpConfig->GetSetting("server_socket"), 0, lpConfig->GetSetting("sslkey_file"),  lpConfig->GetSetting("sslkey_pass"));
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to contact zarafa server %s: 0x%08X. Will retry.", lpConfig->GetSetting("server_socket"), hr);
+		goto exit;
+	}
+
+	hr = HrOpenDefaultStore(ptrSession, &ptrAdminStore);
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open system admin store: 0x%08X", hr);
+		goto exit;
+	}
+
+	hr = HrGetOneProp(ptrAdminStore, PR_MAPPING_SIGNATURE, &ptrPropSign);
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get server guid: 0x%08X", hr);
+		goto exit;
+	}
+
+	hr = ptrAdminStore->QueryInterface(IID_IExchangeManageStore, (void **)&ptrEMS);
+	if(hr != hrSuccess)
+		goto exit;
+
+	hr = ptrEMS->GetMailboxTable(L"", &ptrTable, 0);
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get mailbox table: 0x%08X", hr);
+		goto exit;
+	}
+
+	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set columns for mailbox table: 0x%08X", hr);
+		goto exit;
+	}
+
+	while(1) {
+		hr = ptrTable->QueryRows(20, 0, &ptrRows);
+		if(hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get rows from mailbox table: 0x%08X", hr);
+			goto exit;
+		}
+
+		if(ptrRows.empty())
+			break;
+
+		for(unsigned int i = 0; i < ptrRows.size(); i++) {
+			if (ptrRows[i].lpProps[0].Value.bin.lpb)
+				setStoreGuid.insert(*((GUID*)ptrRows[i].lpProps[0].Value.bin.lpb));
+		}
+	}
+
+	guidMBServer = *(GUID*)ptrPropSign->Value.bin.lpb;
+exit:
+	return hr;
 }
