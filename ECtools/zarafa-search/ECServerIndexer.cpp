@@ -839,8 +839,17 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
         
     hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, (TCHAR *)strServer.c_str(), 0, &lpRemoteStore);
     if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open remote admin store on server '%s': %08X. Make sure your SSL authentication is properly configured for access from this host to the remote host.", strServer.c_str(), hr);
-        goto exit;
+        if(hr == MAPI_E_NOT_FOUND) {
+            // The idea of ignoring this is that when people take servers out of commission completely, they are apparently no longer
+            // interested in the data
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to contact server '%s': Server not found. Skipping stubs on this server.", strServer.c_str());
+            hr = hrSuccess;
+            goto exit;
+        } else {
+            // Most other errors (network error, logon failed) are unintentional, therefore we should give the sysadmin the chance to fix the problem before continuing.
+            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open remote admin store on server '%s': %08X. Make sure your SSL authentication is properly configured for access from this host to the remote host.", strServer.c_str(), hr);
+            goto exit;
+        }
     }
 
     hr = lpRemoteStore->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IECExportChanges, 0, 0, &lpExporter);
