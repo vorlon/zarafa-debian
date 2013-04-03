@@ -281,7 +281,7 @@
 		 */
 		function getActionStore($action)
 		{
-			$store = false;
+			$store = null;
 
 			if(isset($action["store"]) && $action["store"] != "") {
 				$store = $GLOBALS["mapisession"]->openMessageStore(hex2bin($action["store"]));

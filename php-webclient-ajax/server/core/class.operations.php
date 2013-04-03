@@ -3559,10 +3559,10 @@
 		 * @param $store MAPIobject Store object of the store
 		 * @return array information about quota and current store size (in KB)
 		 */
-		function getQuotaDetails($store = false){
+		function getQuotaDetails($store = null){
 			$checkQouta = true;
 
-			if($store === false) {
+			if($store === null) {
 				$store = $GLOBALS["mapisession"]->getDefaultMessageStore();
 			}
 
