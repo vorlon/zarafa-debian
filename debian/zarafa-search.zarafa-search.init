@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 ### BEGIN INIT INFO
-# Provides:          zarafa-indexer
+# Provides:          zarafa-search
 # Required-Start:    $syslog $network $remote_fs
 # Required-Stop:     $syslog $network $remote_fs
 # Should-Start:      zarafa-server
@@ -9,18 +9,18 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: The Search Indexer of the Zarafa Collaboration Platform
-# Description:       The Zarafa Indexer is the indexer daemon for full-text 
+# Description:       The Zarafa Search is the indexer daemon for full-text 
 #                    search through all objects (including attachments)
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-INDEXER=/usr/bin/zarafa-indexer
-DESC="Zarafa indexer"
-NAME=`basename $INDEXER`
+SEARCH=/usr/bin/zarafa-search
+DESC="Zarafa search"
+NAME=`basename $SEARCH`
 #QUIETDAEMON=--quiet
 PIDFILE=/var/run/$NAME.pid
 
-test -x $INDEXER || exit 0
+test -x $SEARCH || exit 0
 
 # Include zarafa defaults if available
 if [ -f /etc/default/zarafa ] ; then
@@ -30,8 +30,8 @@ if [ -z "$ZARAFA_LOCALE" ]; then
 	ZARAFA_LOCALE="C"
 fi
 
-if [ -e $INDEXER_CONFIG ]; then
-	INDEXER_OPTS="$INDEXER_OPTS -c $INDEXER_CONFIG"
+if [ -e "$SEARCH_CONFIG" ]; then
+	SEARCH_OPTS="$SEARCH_OPTS -c $SEARCH_CONFIG"
 fi
 
 #set -e
@@ -40,34 +40,39 @@ fi
 
 case "$1" in
   start)
-	if [ "$INDEXER_ENABLED" = "no" ]; then
-		log_warning_msg "Zarafa Search Indexer daemon not enabled in /etc/default/zarafa ... not starting"
+	if [ "$SEARCH_ENABLED" = "no" ]; then
+		log_warning_msg "Zarafa Search daemon not enabled in /etc/default/zarafa ... not starting"
 		exit 0
 	fi
 	log_begin_msg "Starting $DESC: $NAME"
 	export LC_ALL=$ZARAFA_LOCALE
 	export LANG=$ZARAFA_LOCALE
-	start-stop-daemon --start $QUIETDAEMON --pidfile $PIDFILE --exec $INDEXER -- $INDEXER_OPTS
+	start-stop-daemon --start $QUIETDAEMON --pidfile $PIDFILE --exec $SEARCH -- $SEARCH_OPTS
 	log_end_msg $?
 	unset LC_ALL LANG
 	;;
   stop)
 	log_begin_msg "Stopping $DESC: $NAME"
-	start-stop-daemon --stop $QUIETDAEMON --pidfile $PIDFILE --retry TERM/15/KILL --exec $INDEXER
-	log_end_msg $?
+	start-stop-daemon --stop $QUIETDAEMON --pidfile $PIDFILE --retry TERM/15/KILL --exec $SEARCH
+	RETVAL=$?
+	rm -f $PIDFILE
+	log_end_msg $RETVAL
 	;;
   restart)
 	$0 stop
 	$0 start
 	;;
+  status)
+	status_of_proc "$SEARCH" "$NAME" && exit 0 || exit $?
+	;;
   reload|force-reload)
 	log_begin_msg "Reloading $DESC: $NAME"
-	start-stop-daemon --stop $QUIETDAEMON --signal HUP --pidfile $PIDFILE --exec $INDEXER
+	start-stop-daemon --stop $QUIETDAEMON --signal HUP --pidfile $PIDFILE --exec $SEARCH
 	log_end_msg $?
 	;;
   *)
 	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $N {start|stop|restart|reload|force-reload|status}" >&2
 	exit 1
 	;;
 esac

@@ -3,12 +3,12 @@ Section: mail
 Priority: optional
 Maintainer: Giraffe Maintainers <pkg-giraffe-maintainers@lists.alioth.debian.org>
 Uploaders: John van der Kamp <j.vdkamp@zarafa.com>
-Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, g++, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev
+Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, g++, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev, libkyotocabinet-dev
 Standards-Version: 3.7.3
 
 Package: zarafa
 Architecture: all
-Depends: zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-indexer
+Depends: zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search
 Recommends: zarafa-webaccess
 Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
  This groupware solution combines the usability of 
@@ -107,7 +107,7 @@ Package: zarafa-spooler
 Architecture: any
 Conflicts: zarafa (<< 7.0)
 Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-libarchiver
 Description: E-mail Spooler for the Zarafa Collaboration Platform
  Sends all outgoing e-mail requests from Zarafa to an SMTP server.
 
@@ -160,15 +160,6 @@ Description: PHP MAPI bindings
  Using this module, you can create PHP programs which use MAPI
  calls to interact with Zarafa.
 
-Package: zarafa-indexer
-Architecture: any
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), lsb-base, coreutils (>= 5.93), mktemp (>= 1.5), bash (>= 3.0), gawk, w3m, xsltproc, poppler-utils, unzip, file, catdoc
-Description: Indexer search engine for the Zarafa Collaboration Platform
- Based on the CLucene search engine, the zarafa-indexer makes an index
- per user of messages and attachments. When this service is enabled,
- search queries on the server will use this index to quickly find
- messages and even in contents of attached documents.
-
 Package: zarafa-archiver
 Architecture: any
 Depends: ${shlibs:Depends}, zarafa-libarchiver (= ${binary:Version})
@@ -186,4 +177,16 @@ Description: A web interface for the Zarafa Collaboration Platform
  Provides a web-client written in PHP that makes use of AJAX to allow
  users to make full use of the Zarafa Collaboration Platform through a
  modern web browser.
+
+Package: zarafa-search
+Architecture: any
+Section: mail
+Depends: ${shlibs:Depends}, libkyotocabinet16, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-common (= ${binary:Version})
+Conflicts: zarafa-indexer
+Replaces: zarafa-indexer
+Description: Indexed search engine for the Zarafa Collaboration Platform
+ Based on the CLucene search engine, the zarafa-search makes an index
+ per user of messages and attachments. When this service is enabled,
+ search queries on the server will use this index to quickly find
+ messages and even in contents of attached documents.
 

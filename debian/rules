@@ -111,11 +111,9 @@ install-arch:
 		mv $$file $(INSTDIR)/usr/share/zarafa/userscripts; \
 		ln -sf /usr/share/zarafa/userscripts/`basename $$file` $$file; \
 	done
-	# link indexerscripts
-	ln -sf /usr/share/zarafa/indexerscripts $(INSTDIR)/etc/zarafa/indexerscripts
 
 # move example-config files
-	for package in spooler gateway monitor dagent ical indexer archiver; do \
+	for package in spooler gateway monitor dagent ical search archiver; do \
 		mkdir -p $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 		mv $(INSTDIR)/usr/share/doc/zarafa/example-config/$$package.cfg $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 	done
@@ -166,7 +164,7 @@ binary-arch-real: install-arch
 	dh_installinit --name zarafa-gateway
 	dh_installinit --name zarafa-monitor
 	dh_installinit --name zarafa-ical
-	dh_installinit --name zarafa-indexer
+	dh_installinit --name zarafa-search
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman
