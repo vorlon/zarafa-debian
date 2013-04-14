@@ -1,4 +1,0 @@
-0001-Don-t-try-to-remove-non-existant-directory.patch
-0002-fix-gzfile-conversion-error.patch
-0003-fix-pval-to-zval.patch
-0004-remove-hex2bin-provided-with-php-5.4.0.patch
