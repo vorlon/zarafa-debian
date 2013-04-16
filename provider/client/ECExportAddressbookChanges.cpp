@@ -108,7 +108,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
     HRESULT hr = hrSuccess;
 	LARGE_INTEGER lint = {{ 0, 0 }};
     ABEID abeid;
-    ULONG ulNewSyncId = 0; // this is, in fact, ignored. This is because we just take the highest id that we see in the changes list.
 	STATSTG sStatStg;
 	ULONG ulCount = 0;
 	ULONG ulProcessed = 0;
@@ -169,16 +168,13 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 		MAPIFreeBuffer(m_lpRawChanges);
 	m_lpRawChanges = NULL;
 
-    hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string((char *)&abeid, sizeof(ABEID)), 0, m_ulChangeId, ICS_SYNC_AB, 0, NULL, &ulNewSyncId, &m_ulChanges, &m_lpRawChanges);
+    hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string((char *)&abeid, sizeof(ABEID)), 0, m_ulChangeId, ICS_SYNC_AB, 0, NULL, &m_ulMaxChangeId, &m_ulChanges, &m_lpRawChanges);
     if(hr != hrSuccess)
         goto exit;
 
 	LOG_DEBUG(m_lpLogger, "Got %u address book changes from server.", m_ulChanges);
 
 	if (m_ulChanges > 0) {
-		// Store the max changeid for later.
-		m_ulMaxChangeId = m_lpRawChanges[m_ulChanges - 1].ulChangeId;
-
 		/*
 		 * Sort the changes:
 		 * Users must exist before the company, but before the group they are member of
@@ -363,10 +359,8 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 		// All changes have been processed, we can discard processed changes and go to the next server change ID
 		m_setProcessed.clear();
 
-		// The last change ID we received is always the highest change ID, unless there were 0 changes, then we stay
-		// at the same change count
-		if(m_ulChanges != 0)
-			m_ulChangeId = m_ulMaxChangeId;
+		// The last change ID we received is always the highest change ID
+		m_ulChangeId = m_ulMaxChangeId;
 	}
 
 	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);

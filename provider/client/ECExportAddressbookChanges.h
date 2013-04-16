@@ -92,7 +92,7 @@ private:
 	ECMsgStore					*m_lpMsgStore;
 	unsigned int				m_ulThisChange;
 	ULONG						m_ulChanges;
-	unsigned int				m_ulMaxChangeId;
+	ULONG						m_ulMaxChangeId;
 	ICSCHANGE					*m_lpRawChanges; // Raw data from server
 	ICSCHANGE					*m_lpChanges;	 // Same data, but sorted (users, then groups)
 	std::set<ULONG>				m_setProcessed;
