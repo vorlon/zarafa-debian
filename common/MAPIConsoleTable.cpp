@@ -74,7 +74,7 @@ std::string ToString(SPropValue *lpProp)
             char buf[32]; // must be at least 26 bytes
             FileTimeToUnixTime(lpProp->Value.ft, &t);
             ctime_r(&t, buf);
-            buf[strlen(buf)-2] = 0;
+            buf[strlen(buf)-1] = 0;
             return std::string(buf);
         }
         case PT_MV_STRING8:
