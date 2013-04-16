@@ -92,6 +92,9 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	HRESULT		hr = hrSuccess;
 	ECABProp*	lpProp = (ECABProp *)lpParam;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RECORD_KEY):
 		lpsPropValue->ulPropTag = PR_RECORD_KEY;
@@ -101,8 +104,6 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 
 			ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpsPropValue->Value.bin.cb);
-		} else {
-			hr = MAPI_E_NOT_FOUND;
 		}
 		break;
 	case PROP_ID(PR_STORE_SUPPORT_MASK):
@@ -114,8 +115,6 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 		if (ulClientVersion > CLIENT_VERSION_OLK2002) {
 			lpsPropValue->Value.l = STORE_UNICODE_OK;
 			lpsPropValue->ulPropTag = PR_STORE_SUPPORT_MASK;
-		} else {
-			hr = MAPI_E_NOT_FOUND;
 		}
 		break;
 	}
@@ -125,6 +124,9 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	}
 	
 exit:
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
+
 	return hr;
 }
 

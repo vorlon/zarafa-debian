@@ -146,29 +146,36 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 {
 	HRESULT hr = hrSuccess;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	ECMsgStorePublic *lpStore = (ECMsgStorePublic *)lpParam;
 
 	switch(ulPropTag) {
 	case PR_IPM_SUBTREE_ENTRYID:
+		lpsPropValue->ulPropTag = ulPropTag;
 		hr = ::GetPublicEntryId(ePE_IPMSubtree, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 		break;
 	case PR_IPM_PUBLIC_FOLDERS_ENTRYID:
+		lpsPropValue->ulPropTag = ulPropTag;
 		hr = ::GetPublicEntryId(ePE_PublicFolders, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 		break;
 	case PR_IPM_FAVORITES_ENTRYID:
+		lpsPropValue->ulPropTag = ulPropTag;
 		hr = ::GetPublicEntryId(ePE_Favorites, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 		break;
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:
+		lpsPropValue->ulPropTag = ulPropTag;
 		hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess) {
 			lpsPropValue->ulPropTag = PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID;
 		}
 		break;
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
 	}
-
+	
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
+		
 	return hr;
 }
 

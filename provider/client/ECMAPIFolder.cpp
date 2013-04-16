@@ -168,6 +168,9 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 	HRESULT hr = hrSuccess;
 	ECMAPIFolder *lpFolder = (ECMAPIFolder *)lpParam;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	switch(ulPropTag) {
 	case PR_CONTENT_COUNT:
 	case PR_CONTENT_UNREAD:
@@ -213,10 +216,10 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 			lpsPropValue->Value.err = hr;
 		}
 		break;
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
 	}
+
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
 
 	return hr;
 }

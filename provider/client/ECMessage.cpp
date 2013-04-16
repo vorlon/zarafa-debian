@@ -2497,6 +2497,9 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 	LPBYTE	lpData = NULL;
 	ECMessage *lpMessage = (ECMessage *)lpParam;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RTF_IN_SYNC):
 		lpsPropValue->ulPropTag = PR_RTF_IN_SYNC;
@@ -2670,14 +2673,14 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->ulPropTag = PR_SOURCE_KEY;
 		lpsPropValue->Value.bin.cb = strSourceKey.size();
 		memcpy(lpsPropValue->Value.bin.lpb, strSourceKey.c_str(), strSourceKey.size());
+		}
+		break;
+	}
 
-		break;
-	}
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
-	}
 exit:
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
+
 	return hr;
 }
 

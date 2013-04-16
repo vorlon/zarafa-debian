@@ -188,6 +188,9 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	LPSPropValue lpSectionUid = NULL;
 	IProfSect *lpProfSect = NULL;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_EMSMDB_SECTION_UID): {
 		ECABLogon *lpLogon = (ECABLogon *)lpProvider;
@@ -272,6 +275,9 @@ exit:
 	if(lpSectionUid)
 		MAPIFreeBuffer(lpSectionUid);
 
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
+
 	return hr;
 }
 
@@ -335,8 +341,9 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 		default:
 			hr = MAPI_E_NOT_FOUND;
 			break;
+			
 	}
-
+	
 exit:
 	return hr;
 }

@@ -1326,6 +1326,9 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	IProfSect *lpProfSect = NULL;
 	LPSPropValue lpProp = NULL;
 
+	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
+
 	ECMsgStore *lpStore = (ECMsgStore *)lpParam;
 
 	switch(PROP_ID(ulPropTag)) {
@@ -1374,8 +1377,6 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 					lpsPropValue->Value.bin.cb = cbWrapped;
 
 					MAPIFreeBuffer(lpWrapped);
-				} else {
-					hr = MAPI_E_NOT_FOUND;
 				}
 				break;
 			}
@@ -1461,10 +1462,6 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 				lpsPropValue->Value.err = hr;
 			}
 			break;
-
-		default:
-			hr = MAPI_E_NOT_FOUND;
-			break;
 	}
 
 exit:
@@ -1473,6 +1470,9 @@ exit:
 
 	if(lpProp)
 		MAPIFreeBuffer(lpProp);
+
+	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
+		hr = MAPI_W_ERRORS_RETURNED;
 
 	return hr;
 }
