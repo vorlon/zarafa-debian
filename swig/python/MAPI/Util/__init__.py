@@ -2,6 +2,7 @@
 
 import random
 import sys
+import os.path
 
 # MAPI stuff
 from MAPI.Defs import *
@@ -27,28 +28,33 @@ def OpenECSession(user, password, path, **keywords):
         rows = table.QueryRows(1,0)
         prop = PpropFindProp(rows[0], PR_SERVICE_UID)
         uid = prop.Value
-        profprops = [ SPropValue(PR_EC_PATH, path) ]
-        if user.__class__.__name__ == 'unicode':
-            profprops += [ SPropValue(PR_EC_USERNAME_W, user) ]
+        profprops = list()
+        profprops.append(SPropValue(PR_EC_PATH, path))
+        if isinstance(user, unicode):
+            profprops.append(SPropValue(PR_EC_USERNAME_W, user))
         else:
-            profprops += [ SPropValue(PR_EC_USERNAME_A, user) ]
-        if password.__class__.__name__ == 'unicode':
-            profprops += [ SPropValue(PR_EC_USERPASSWORD_W, password) ]
+            assert isinstance(user, str)
+            profprops.append(SPropValue(PR_EC_USERNAME_A, user))
+        if isinstance(password, unicode):
+            profprops.append(SPropValue(PR_EC_USERPASSWORD_W, password))
         else:
-            profprops += [ SPropValue(PR_EC_USERPASSWORD_A, password) ]
+            assert isinstance(password, str)
+            profprops.append(SPropValue(PR_EC_USERPASSWORD_A, password))
 
-        if keywords.has_key('sslkey_file') and keywords['sslkey_file']:
-            profprops += [ SPropValue(PR_EC_SSLKEY_FILE, keywords['sslkey_file']) ]
-        if keywords.has_key('sslkey_pass') and keywords['sslkey_pass']:
-            profprops += [ SPropValue(PR_EC_SSLKEY_PASS, keywords['sslkey_pass']) ]
+        sslkey_file = keywords.get('sslkey_file')
+        if isinstance(sslkey_file, basestring) and os.path.isfile(sslkey_file):
+            profprops.append(SPropValue(PR_EC_SSLKEY_FILE, str(sslkey_file)))
+            sslkey_pass = keywords.get('sslkey_pass')
+            if isinstance(sslkey_pass, basestring):
+                profprops.append(SPropValue(PR_EC_SSLKEY_PASS, str(sslkey_pass)))
 
         flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
         if keywords.has_key('flags'):
             flags = keywords['flags']
-        profprops += [ SPropValue(PR_EC_FLAGS, flags) ]
+        profprops.append(SPropValue(PR_EC_FLAGS, flags))
 
         impersonate = keywords.get('impersonate')
-        if impersonate and impersonate.__class__.__name__ == 'unicode':
+        if impersonate and isinstance(impersonate, unicode):
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_W, impersonate))
         elif impersonate:
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
