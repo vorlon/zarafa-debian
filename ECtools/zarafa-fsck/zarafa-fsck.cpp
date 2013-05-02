@@ -64,7 +64,7 @@
 #include <edkguid.h>
 #include "charset/convert.h"
 #include "charset/localeutil.h"
-
+#include "Util.h"
 #include "zarafa-fsck.h"
 
 using namespace std;
@@ -301,7 +301,7 @@ exit:
 	return hr;
 }
 
-HRESULT RunFolderValidation(LPMAPIFOLDER lpRootFolder, LPSRow lpRow, CHECKMAP checkmap)
+HRESULT RunFolderValidation(const std::set<std::string> &setFolderIgnore, LPMAPIFOLDER lpRootFolder, LPSRow lpRow, CHECKMAP checkmap)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpItemProperty = NULL;
@@ -339,6 +339,12 @@ HRESULT RunFolderValidation(LPMAPIFOLDER lpRootFolder, LPSRow lpRow, CHECKMAP ch
 			cout << " \"" << strName << "\"" << endl;
 		} else
 			cout << "Failed to detect folder details." << endl;
+		goto exit;
+	}
+
+	if (setFolderIgnore.find(string((const char*)lpItemProperty->Value.bin.lpb, lpItemProperty->Value.bin.cb)) != setFolderIgnore.end()) {
+		cout << "Ignoring folder: ";
+		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 		goto exit;
 	}
 
@@ -388,6 +394,11 @@ HRESULT RunStoreValidation(char* strHost, char* strUser, char* strPass, char *st
 	wstring strwUsername;
 	wstring strwAltUsername;
 	wstring strwPassword;
+	std::set<std::string> setFolderIgnore;
+	LPSPropValue lpAddRenProp = NULL;
+	ULONG cbEntryIDSrc = 0;
+	LPENTRYID lpEntryIDSrc = NULL;
+
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
@@ -453,6 +464,11 @@ HRESULT RunStoreValidation(char* strHost, char* strUser, char* strPass, char *st
 		goto exit;
 	}
 
+	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &lpAddRenProp) == hrSuccess &&
+		Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &lpEntryIDSrc) == hrSuccess) {
+		setFolderIgnore.insert(string((const char*)lpEntryIDSrc, cbEntryIDSrc));
+	}
+
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHierarchyTable);
 	if (hr != hrSuccess) {
 		cout << "Failed to open hierarchy." << endl;
@@ -483,7 +499,7 @@ HRESULT RunStoreValidation(char* strHost, char* strUser, char* strPass, char *st
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; i++)
-			RunFolderValidation(lpRootFolder, &lpRows->aRow[i], checkmap);
+			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows->aRow[i], checkmap);
 
 		if (lpRows) {
 			FreeProws(lpRows);
@@ -502,6 +518,12 @@ exit:
 		FreeProws(lpRows);
 		lpRows = NULL;
 	}
+
+	if (lpEntryIDSrc)
+		MAPIFreeBuffer(lpEntryIDSrc);
+
+	if (lpAddRenProp)
+		MAPIFreeBuffer(lpAddRenProp);
 
 	if(lpHierarchyTable)
 		lpHierarchyTable->Release();

@@ -4494,3 +4494,75 @@ exit:
 		
 	return hr;
 }
+
+HRESULT Util::ExtractRSSEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	return ExtractAdditionalRenEntryID(lpPropBlob, RSF_PID_RSS_SUBSCRIPTION, lpcbEntryID, lppEntryID);
+}
+
+HRESULT Util::ExtractSuggestedContactsEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	return ExtractAdditionalRenEntryID(lpPropBlob, RSF_PID_SUGGESTED_CONTACTS , lpcbEntryID, lppEntryID);
+}
+
+HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned short usBlockType, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	HRESULT hr = hrSuccess;
+
+	LPBYTE lpPos = lpPropBlob->Value.bin.lpb;
+	LPBYTE lpEnd = lpPropBlob->Value.bin.lpb + lpPropBlob->Value.bin.cb;
+		
+	while (true) {
+		if (lpPos + 8 <= lpEnd) {
+			if (*(unsigned short*)lpPos == 0) {
+				hr = MAPI_E_NOT_FOUND;
+				goto exit;
+			}
+			if (*(unsigned short*)lpPos == usBlockType) {
+				unsigned short usLen = 0;
+
+				lpPos += 4;	// Skip ID + total length
+				if (*(unsigned short*)lpPos != RSF_ELID_ENTRYID) {
+					hr = MAPI_E_CORRUPT_DATA;
+					goto exit;
+				}
+				lpPos += 2;	// Skip check
+				usLen = *(unsigned short*)lpPos;
+
+				lpPos += 2;
+				if (lpPos + usLen > lpEnd) {
+					hr = MAPI_E_CORRUPT_DATA;
+					goto exit;
+				}
+
+				hr = MAPIAllocateBuffer(usLen, (LPVOID*)lppEntryID);
+				if (hr != hrSuccess)
+					goto exit;
+
+				memcpy(*lppEntryID, lpPos, usLen);
+				*lpcbEntryID = usLen;
+				goto exit;
+			} else {
+				unsigned short usLen = 0;
+
+				lpPos += 2;	// Skip ID
+				usLen = *(unsigned short*)lpPos;
+				
+				lpPos += 2;
+				if (lpPos + usLen > lpEnd) {
+					hr = MAPI_E_CORRUPT_DATA;
+					goto exit;
+				}
+
+				lpPos += usLen;
+			}
+		} else {
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+	}
+
+exit:
+	return hr;
+}
+
