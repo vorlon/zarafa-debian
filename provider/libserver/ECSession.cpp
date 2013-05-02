@@ -1134,7 +1134,7 @@ ECRESULT ECAuthSession::LogKRB5Error(ECLogger *lpLogger, const char *msg, OM_uin
 
 	while (true) {
 		gss_display_status(&status, code, type, GSS_C_NULL_OID, &context, &gssMessage);
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s: %s", msg, (char*)gssMessage.value);
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "%s: %s", msg, (char*)gssMessage.value);
 		gss_release_buffer(&status, &gssMessage);
 		if (!context)
 			break;
