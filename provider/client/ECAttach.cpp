@@ -276,9 +276,6 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	ULONG cValues = 0;
 	LPSPropValue lpProps = NULL;
 
-	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
-	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
-
 	switch(ulPropTag) {
 	case PR_ATTACH_DATA_OBJ:
 		sPropArray.cValues = 1;
@@ -288,32 +285,31 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 		{
 			lpsPropValue->ulPropTag = PR_ATTACH_DATA_OBJ;
 			lpsPropValue->Value.x = 1;
-		}
-		hr = hrSuccess;
+		}else
+			hr = MAPI_E_NOT_FOUND;
 	
 		break;
 	case PR_ATTACH_DATA_BIN:
 		sPropArray.cValues = 1;
 		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
 		hr = lpAttach->GetProps(&sPropArray, 0, &cValues, &lpProps);
-
-		if(hr == hrSuccess && lpProps[0].ulPropTag == PR_ATTACH_METHOD && lpProps[0].Value.ul == ATTACH_OLE) {
-			break; // Attchment type is OLE property is set to error not found
+		if(lpProps[0].Value.ul == ATTACH_OLE) {
+			hr = MAPI_E_NOT_FOUND;
+		}else {
+			// 8k limit
+			hr = lpAttach->HrGetRealProp(PR_ATTACH_DATA_BIN, ulFlags, lpBase, lpsPropValue, 8192);
 		}
-
-		// 8k limit
-		hr = lpAttach->HrGetRealProp(PR_ATTACH_DATA_BIN, ulFlags, lpBase, lpsPropValue, 8192);
 		break;
 	case PR_ATTACH_NUM:
 		lpsPropValue->ulPropTag = PR_ATTACH_NUM;
 		lpsPropValue->Value.ul = lpAttach->ulAttachNum;
 		break;
+	case PR_ENTRYID:// ignore property
+	default:
+		hr = MAPI_E_NOT_FOUND;
 	}
 
 	if(lpProps){ ECFreeBuffer(lpProps); lpProps = NULL; }
-
-	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
-		hr = MAPI_W_ERRORS_RETURNED;
 
 	return hr;
 }

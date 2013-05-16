@@ -141,9 +141,6 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	LPCTSTR lpszName = NULL;
 	ECMAPIFolderPublic *lpFolder = (ECMAPIFolderPublic *)lpParam;
 
-	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
-	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
-
 	switch(PROP_ID(ulPropTag)) {
 
 	case PROP_ID(PR_FOLDER_TYPE):
@@ -293,21 +290,22 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	case PROP_ID(PR_ORIGINAL_ENTRYID):
 		// entryid on the server (only used for "Public Folders" folder)
 		if (lpFolder->m_lpEntryId) {
-			lpsPropValue->ulPropTag = PR_ORIGINAL_ENTRYID;
 			MAPIAllocateMore(lpFolder->m_cbEntryId, lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb);
 			memcpy(lpsPropValue->Value.bin.lpb, lpFolder->m_lpEntryId, lpFolder->m_cbEntryId);
 
 			lpsPropValue->Value.bin.cb = lpFolder->m_cbEntryId;
 
 			hr = hrSuccess;
+		} else {
+			hr = MAPI_E_NOT_FOUND;
 		}
+		break;
+	default:
+		hr = MAPI_E_NOT_FOUND;
 		break;
 	}
 
 exit:
-	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
-		hr = MAPI_W_ERRORS_RETURNED;
-
 	return hr;
 }
 
@@ -342,7 +340,7 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void* lpProvider, LP
 			hr = lpFolder->HrSetRealProp(lpsPropValue);
 		}
 		break;
-		
+	
 	default:
 		hr = MAPI_E_NOT_FOUND;
 		break;

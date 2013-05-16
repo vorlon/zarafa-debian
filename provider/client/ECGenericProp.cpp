@@ -323,9 +323,6 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 exit:
 	dwLastError = hr;
 
-	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
-		hr = MAPI_W_ERRORS_RETURNED;
-
 	return hr;
 }
 
@@ -377,9 +374,6 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 {
 	HRESULT			hr = hrSuccess;
 	ECGenericProp*	lpProp = (ECGenericProp *)lpParam;
-	
-	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
-	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
 
 	switch(PROP_ID(ulPropTag))
 	{
@@ -392,6 +386,8 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 
 				ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
 				memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
+			} else {
+				hr = MAPI_E_NOT_FOUND;
 			}
 			break;
 
@@ -408,6 +404,8 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 			if(ulPropTag == PR_NULL) {
 				lpsPropValue->ulPropTag = PR_NULL;
 				memset(&lpsPropValue->Value, 0, sizeof(lpsPropValue->Value)); // make sure all bits, 32 or 64, are 0
+			} else {
+				hr = MAPI_E_NOT_FOUND;
 			}
 			break;
 
@@ -420,9 +418,6 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 			hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 			break;
 	}
-
-	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
-		hr = MAPI_W_ERRORS_RETURNED;
 
 	return hr;
 }
@@ -948,12 +943,12 @@ exit:
 HRESULT ECGenericProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray)
 {
 	HRESULT			hr = hrSuccess;
+	HRESULT			hrT = hrSuccess;
 	LPSPropTagArray	lpGetPropTagArray = lpPropTagArray;
 	GetPropCallBack	lpfnGetProp = NULL;
 	void*			lpParam = NULL;
 	LPSPropValue	lpsPropValue = NULL;
 	unsigned int	i;
-	bool			bErrors = false;
 
 	//FIXME: check lpPropTagArray on PROP_TYPE()
 	if((lpPropTagArray != NULL && lpPropTagArray->cValues == 0) || Util::ValidatePropTagArray(lpPropTagArray) == false)
@@ -972,18 +967,22 @@ HRESULT ECGenericProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, U
 		if(HrGetHandler(lpGetPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
 			lpsPropValue[i].ulPropTag = lpGetPropTagArray->aulPropTag[i];
 
-			hr = lpfnGetProp(lpGetPropTagArray->aulPropTag[i], this->lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
+			hrT = lpfnGetProp(lpGetPropTagArray->aulPropTag[i], this->lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
 		} else {
-			hr = HrGetRealProp(lpGetPropTagArray->aulPropTag[i], ulFlags, lpsPropValue, &lpsPropValue[i], 8192);
+			hrT = HrGetRealProp(lpGetPropTagArray->aulPropTag[i], ulFlags, lpsPropValue, &lpsPropValue[i], 8192);
+			if(hrT != hrSuccess && hrT != MAPI_E_NOT_FOUND && hrT != MAPI_E_NOT_ENOUGH_MEMORY && hrT != MAPI_W_ERRORS_RETURNED) {
+				hr = hrT;
+				goto exit;
+			}
 		}
 
-		if(HR_FAILED(hr))
-			goto exit;
-			
-		if(hr != hrSuccess)
-			bErrors = true;
-			
-		hr = hrSuccess;
+		if(HR_FAILED(hrT)) {
+			lpsPropValue[i].ulPropTag = PROP_TAG(PT_ERROR,PROP_ID(lpGetPropTagArray->aulPropTag[i]));
+			lpsPropValue[i].Value.err = hrT;
+			hr = MAPI_W_ERRORS_RETURNED;
+		} else if(hrT != hrSuccess) {
+			hr = MAPI_W_ERRORS_RETURNED;
+		}
 	}
 
 	*lppPropArray = lpsPropValue;
@@ -992,9 +991,6 @@ exit:
 
 	if(lpPropTagArray == NULL)
 		ECFreeBuffer(lpGetPropTagArray);
-		
-	if(hr == hrSuccess && bErrors)
-		hr = MAPI_W_ERRORS_RETURNED;
 
 	return hr;
 

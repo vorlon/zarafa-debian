@@ -124,7 +124,7 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify, ECMAPIPr
 	this->HrAddPropHandlers(PR_STORE_RECORD_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_SUPPORT_MASK,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_UNICODE_MASK,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_MAPPING_SIGNATURE,		DefaultGetPropGetReal,	DefaultSetPropComputed, (void*) this);
+	this->HrAddPropHandlers(PR_MAPPING_SIGNATURE,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_PARENT_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_MDB_PROVIDER,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_LAST_MODIFICATION_TIME,	DefaultMAPIGetProp,		DefaultSetPropSetReal,  (void*) this);
@@ -217,9 +217,6 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 	ECMsgStore* lpMsgStore = (ECMsgStore*) lpProvider;
 	ECMAPIProp*	lpProp = (ECMAPIProp *)lpParam;
 
-	lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
-	lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
-
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_SOURCE_KEY):
 		hr = lpProp->HrGetRealProp(PR_SOURCE_KEY, ulFlags, lpBase, lpsPropValue);
@@ -233,6 +230,13 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		lpsPropValue->Value.li.QuadPart = 1688871835664386LL;
 		break;
 		
+	case PROP_ID(PR_MAPPING_SIGNATURE):
+		// get the mapping signature from the store
+		if(lpMsgStore == NULL || lpMsgStore->HrGetRealProp(PR_MAPPING_SIGNATURE, ulFlags, lpBase, lpsPropValue) != hrSuccess) {
+			hr = MAPI_E_NOT_FOUND;
+		}
+		break;
+
 	case PROP_ID(PR_STORE_RECORD_KEY):
 		lpsPropValue->ulPropTag = PR_STORE_RECORD_KEY;
 		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
@@ -326,15 +330,14 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		if (lpProp->m_sMapiObject->ulObjId > 0) {
 			lpsPropValue->ulPropTag = ulPropTag;
 			lpsPropValue->Value.ul = lpProp->m_sMapiObject->ulObjId;
+		} else {
+			hr = MAPI_E_NOT_FOUND;
 		}
 		break;
 	default:
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;
 	}
-
-	if(hr == hrSuccess && PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR)
-		hr = MAPI_W_ERRORS_RETURNED;
 	
 exit:
 	return hr;
