@@ -203,6 +203,21 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	lpProp = PpropFindProp(lpProps, cValues, PR_TRANSMITABLE_DISPLAY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_TRANSMITABLE_DISPLAY_NAME);
 
+	lpProp = PpropFindProp(lpProps, cValues, PR_ENTRYID);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_ENTRYID);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_ENTRYID);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_SOURCE_KEY);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_CHANGE_KEY);
+
 exit:
 	return hr;
 }
@@ -242,6 +257,21 @@ HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	// real eid members in 0x81051102 (gab, maybe I only need this one)
 	lpProp = PpropFindProp(lpProps, cValues, 0x81051102);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, 0x81051102);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_ENTRYID);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_ENTRYID);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_ENTRYID);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_SOURCE_KEY);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY);
+
+	lpProp = PpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
+	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_CHANGE_KEY);
 
 exit:
 	return hr;
