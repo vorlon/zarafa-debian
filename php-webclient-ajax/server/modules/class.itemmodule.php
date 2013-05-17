@@ -579,10 +579,10 @@
 				}
 				
 				// Open embedded message in embedded message in ...
-				if(isset($action["rootentryid"]) && isset($action["attachments"])) {
-					if(isset($action["attachments"]["attach_num"]) && is_array($action["attachments"]["attach_num"])) {
-						$data["item"] = $GLOBALS["operations"]->getEmbeddedMessage($store, $entryid, $this->properties, $action["attachments"]["attach_num"]);
-					}
+				$attachNum = $this->getAttachNum($action);
+				if($attachNum) {
+					$attachedMessage = $GLOBALS["operations"]->openMessage($store, $entryid, $attachNum);
+					$data["item"] = $GLOBALS["operations"]->getEmbeddedMessageProps($store, $attachedMessage, $this->properties, $entryid, $attachNum);
 				}
 
 				// check if this message is a NDR (mail)message, if so, generate a new body message
@@ -915,6 +915,22 @@
 			// Add file information into response data.
 			array_push($this->responseData["action"], $data);
 			$GLOBALS["bus"]->addData($this->responseData);
+		}
+
+		/**
+		 * Checks whether the attachnum information is passed in the $action Array and returns this. 
+		 * Otherwise it will return false.
+		 * @param Array $action Action information
+		 * @return Boolean|Array Returns the attach num array or false if none is set
+		 */
+		function getAttachNum($action){
+			// TODO: Not 100% sure why the rootentryid is still checked
+			if(isset($action["rootentryid"]) && isset($action["attachments"])){ 
+				if(isset($action["attachments"]["attach_num"]) && is_array($action["attachments"]["attach_num"])) {
+					return $action["attachments"]["attach_num"];
+				}
+			}
+			return false;
 		}
 	}
 ?>

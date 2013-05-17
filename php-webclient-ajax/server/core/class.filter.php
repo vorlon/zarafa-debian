@@ -95,7 +95,14 @@
 			$GLOBALS["preg_replace"] = array();
 			$GLOBALS["preg_replace"]["storeid"] = $storeid;
 			$GLOBALS["preg_replace"]["entryid"] = $entryid;
-			$GLOBALS["preg_replace"]["attachNum"] = $attachNum;
+			// When inline_img_attachments() tries to use attachNum in the function join it needs to
+			// be of the Array type and cannot be false. We do need to support false to be passed as
+			// an argument though, as other components can have their attachNum set to false.
+			if(is_array($attachNum)){
+				$GLOBALS["preg_replace"]["attachNum"] = $attachNum;
+			}else{
+				$GLOBALS["preg_replace"]["attachNum"] = Array();
+			}
 
 			// inline images can be specified without cid: tag also so replace that also, but exclude external link to images
 			$html = preg_replace_callback('/<img[^>]*src\s*=\s*[\"\']([^\"\']*)[\"\'].*?>/msi', "inline_img_attachments", $html);
