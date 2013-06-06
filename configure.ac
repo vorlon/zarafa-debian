@@ -411,7 +411,14 @@ AC_SUBST(VMIME_LIBS)
 CXXFLAGS=$CXXFLAGS_system
 CPPFLAGS=$CPPFLAGS_system
 
-PKG_CHECK_MODULES([KYOTOCABINET], [kyotocabinet])
+AC_ARG_ENABLE(kyotocabinet, AC_HELP_STRING([--enable-kyotocabinet], [enable building with kyotocabinet support]), [want_kyotocabinet=${enableval}], [want_kyotocabinet=yes])
+if test "$want_kyotocabinet" = "yes"; then
+  PKG_CHECK_MODULES([KYOTOCABINET], [kyotocabinet])
+else
+  AC_MSG_CHECKING([for KYOTOCABINET])
+  AC_MSG_RESULT([$want_kyotocabinet])
+fi
+AM_CONDITIONAL([WITH_KYOTOCABINET], [test "$want_kyotocabinet" = "yes"])
 AC_SUBST(KYOTOCABINET_CFLAGS)
 AC_SUBST(KYOTOCABINET_LIBS)
 

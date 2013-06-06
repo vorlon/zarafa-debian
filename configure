@@ -795,6 +795,8 @@ WITH_CLUCENE_FALSE
 WITH_CLUCENE_TRUE
 ICAL_LIBS
 ICAL_CFLAGS
+WITH_KYOTOCABINET_FALSE
+WITH_KYOTOCABINET_TRUE
 KYOTOCABINET_LIBS
 KYOTOCABINET_CFLAGS
 VMIME_LIBS
@@ -999,6 +1001,7 @@ with_xml2_config
 with_mysql_config
 enable_embedded_mysql
 with_vmime_prefix
+enable_kyotocabinet
 with_ical_prefix
 with_clucene_lib_prefix
 with_clucene_include_prefix
@@ -1674,6 +1677,7 @@ Optional Features:
   --enable-swig           enable regenerating swig code
   --enable-python         enable building python binding
   --enable-embedded-mysql Compile zarafa-server with the embedded MySQL server
+  --enable-kyotocabinet   enable building with kyotocabinet support
   --enable-epoll          enable building epoll socket handling
   --enable-static-boost   Prefer the static boost libraries over the shared
                           ones [no]
@@ -5157,13 +5161,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5160: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5164: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5163: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5167: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5166: output\"" >&5)
+  (eval echo "\"\$as_me:5170: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6369,7 +6373,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6372 "configure"' > conftest.$ac_ext
+  echo '#line 6376 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7868,11 +7872,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7871: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7875: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7875: \$? = $ac_status" >&5
+   echo "$as_me:7879: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8207,11 +8211,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8210: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8214: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8214: \$? = $ac_status" >&5
+   echo "$as_me:8218: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8312,11 +8316,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8315: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8319: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8319: \$? = $ac_status" >&5
+   echo "$as_me:8323: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8367,11 +8371,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8370: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8374: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8374: \$? = $ac_status" >&5
+   echo "$as_me:8378: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10751,7 +10755,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10754 "configure"
+#line 10758 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10847,7 +10851,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10850 "configure"
+#line 10854 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14526,11 +14530,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14529: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14533: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14533: \$? = $ac_status" >&5
+   echo "$as_me:14537: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14625,11 +14629,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14628: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14632: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14632: \$? = $ac_status" >&5
+   echo "$as_me:14636: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14677,11 +14681,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14680: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14684: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14684: \$? = $ac_status" >&5
+   echo "$as_me:14688: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18196,6 +18200,14 @@ done
 CXXFLAGS=$CXXFLAGS_system
 CPPFLAGS=$CPPFLAGS_system
 
+# Check whether --enable-kyotocabinet was given.
+if test "${enable_kyotocabinet+set}" = set; then :
+  enableval=$enable_kyotocabinet; want_kyotocabinet=${enableval}
+else
+  want_kyotocabinet=yes
+fi
+
+if test "$want_kyotocabinet" = "yes"; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for KYOTOCABINET" >&5
@@ -18285,6 +18297,20 @@ else
 $as_echo "yes" >&6; }
 
 fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for KYOTOCABINET" >&5
+$as_echo_n "checking for KYOTOCABINET... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $want_kyotocabinet" >&5
+$as_echo "$want_kyotocabinet" >&6; }
+fi
+ if test "$want_kyotocabinet" = "yes"; then
+  WITH_KYOTOCABINET_TRUE=
+  WITH_KYOTOCABINET_FALSE='#'
+else
+  WITH_KYOTOCABINET_TRUE='#'
+  WITH_KYOTOCABINET_FALSE=
+fi
+
 
 
 
@@ -20868,6 +20894,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WITH_XML2_TRUE}" && test -z "${WITH_XML2_FALSE}"; then
   as_fn_error $? "conditional \"WITH_XML2\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WITH_KYOTOCABINET_TRUE}" && test -z "${WITH_KYOTOCABINET_FALSE}"; then
+  as_fn_error $? "conditional \"WITH_KYOTOCABINET\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WITH_CLUCENE_TRUE}" && test -z "${WITH_CLUCENE_FALSE}"; then

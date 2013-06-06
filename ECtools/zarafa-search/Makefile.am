@@ -1,6 +1,8 @@
 if WITH_CLUCENE
+if WITH_KYOTOCABINET
 bin_PROGRAMS = zarafa-search
 noinst_PROGRAMS = dump-index
+endif
 endif
 
 AM_CPPFLAGS = \
