@@ -10825,7 +10825,7 @@
 
 		  <varlistentry>
 			<term>
-			  <option>--user</option>
+			  <option>--users</option>
 			</term>
 			<listitem>
 			  <para>Dump the user table. This table contains
