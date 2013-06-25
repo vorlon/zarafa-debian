@@ -429,6 +429,11 @@ HRESULT	ECGenericProp::DefaultGetPropGetReal(ULONG ulPropTag, void* lpProvider, 
 	return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue, 8192);
 }
 
+HRESULT	ECGenericProp::DefaultGetPropNotFound(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
+{
+	return MAPI_E_NOT_FOUND;
+}
+
 HRESULT ECGenericProp::DefaultSetPropSetReal(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
 {
 	ECGenericProp *lpProp = (ECGenericProp *)lpParam;
