@@ -287,7 +287,7 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *
 		{ "ldap_protocol", "ldap" },
 		{ "ldap_server_charset", "UTF-8" },
 		{ "ldap_bind_user","" },
-		{ "ldap_bind_passwd","", CONFIGSETTING_RELOADABLE },
+		{ "ldap_bind_passwd","", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE },
 		{ "ldap_search_base","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_object_type_attribute", "objectClass", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_type_attribute_value", "", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE },
