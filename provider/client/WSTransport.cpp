@@ -295,7 +295,7 @@ HRESULT WSTransport::HrLogon(const sGlobalProfileProps &sProfileProps)
 	// Attach session to sessiongroup
 	m_ecSessionGroupId = g_ecSessionManager.GetSessionGroupId(sProfileProps);
 
-	ulCapabilities |= ZARAFA_CAP_MAILBOX_OWNER | ZARAFA_CAP_MULTI_SERVER | ZARAFA_CAP_ENHANCED_ICS | ZARAFA_CAP_UNICODE | ZARAFA_CAP_MSGLOCK;
+	ulCapabilities |= ZARAFA_CAP_MAILBOX_OWNER | ZARAFA_CAP_MULTI_SERVER | ZARAFA_CAP_ENHANCED_ICS | ZARAFA_CAP_UNICODE | ZARAFA_CAP_MSGLOCK | ZARAFA_CAP_MAX_ABCHANGEID;
 
 	if (sizeof(ECSESSIONID) == 8)
 		ulCapabilities |= ZARAFA_CAP_LARGE_SESSIONID;

@@ -169,6 +169,10 @@ public:
 	
 	static HRESULT ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
 	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData);
+
+	static HRESULT ExtractRSSEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	static HRESULT ExtractSuggestedContactsEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	static HRESULT ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned short usBlockType, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 };
 
 #define RTF_TAG_TYPE_TEXT	0x0000

@@ -358,7 +358,7 @@ HRESULT ECIndexImporter::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPro
     
     if(!lpPropSK || !lpPropDocId || !lpPropFolderId || !lpPropEntryID || (!m_lpIndex && !lpPropStoreGuid)) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Imported document is missing identifier");
-        hr = MAPI_E_NOT_FOUND;
+        hr = SYNC_E_IGNORE;
         goto exit;
     }
 

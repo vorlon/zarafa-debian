@@ -740,7 +740,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 				hr = MAPI_E_LOGON_FAILED;
 			}
 
-			if(hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION) {
+			if(hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER) {
 				bShowDialog = true;
 			} else if(hr != erSuccess){ // Big error?
 				bShowDialog = true;

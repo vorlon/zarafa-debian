@@ -906,8 +906,9 @@ ItemModule.prototype.setData = function(storeid, parententryid)
  * @param string entryid message entryid
  * @param string rootentryid the root entryid, used for embedded message in embedded message ... (optional)
  * @param array attachNum the attachment numbers, used for embedded message in embedded message ... (optional)
+ * @param array basedate the basedate for appointments (optional)
  */ 
-ItemModule.prototype.open = function(entryid, rootentryid, attachNum)
+ItemModule.prototype.open = function(entryid, rootentryid, attachNum, basedate)
 {
 	if(entryid) {
 		entryid = (entryid.indexOf('_') > 0) ? entryid.substr(0, entryid.indexOf('_')) : entryid;
@@ -925,6 +926,10 @@ ItemModule.prototype.open = function(entryid, rootentryid, attachNum)
 		data["store"] = this.storeid;
 		data["parententryid"] = this.parententryid;
 		data["entryid"] = entryid;
+
+		if(basedate){
+			data['basedate'] = basedate;
+		}
 		
 		if(rootentryid) {
 			data["rootentryid"] = rootentryid;

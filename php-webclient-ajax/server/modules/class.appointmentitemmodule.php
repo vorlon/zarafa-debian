@@ -76,11 +76,12 @@
 		
 		function open($store, $entryid, $action)
 		{
-			if(isset($action["attachments"]) && isset($action["attachments"]["attach_num"]) && isset($action["attachments"]["attach_num"][0])) {
-				$basedate = $action["attachments"]["attach_num"][0];
+			$attachNum = $this->getAttachNum($action);
+			if(isset($action["basedate"])) {
+				$basedate = $action["basedate"];
 				
-				$message = mapi_msgstore_openentry($store, $entryid);
-				
+				$message = $GLOBALS["operations"]->openMessage($store, $entryid, $attachNum);
+
 				$recur = new Recurrence($store, $message);
 				
 				$exceptionatt = $recur->getExceptionAttachment($basedate);
@@ -160,14 +161,18 @@
 				return;
 			}
 			
-			$message = mapi_msgstore_openentry($store, $entryid);
-			
 			// Normal item (may be the 'entire series' for a recurring item)
 			$data = array();
 			$data["attributes"] = array("type" => "item");
 
-			// Get the standard properties
-			$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, true);
+			$message = $GLOBALS["operations"]->openMessage($store, $entryid, $attachNum);
+			if(!$attachNum){
+				// Get the standard properties
+				$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, true);
+			}else{
+				// Get the sub-message properties
+				$data["item"] = $GLOBALS["operations"]->getEmbeddedMessageProps($store, $message, $this->properties, $entryid, $attachNum);
+			}
 
 			// Get the recurrence information			
 			$recur = new Recurrence($store, $message);

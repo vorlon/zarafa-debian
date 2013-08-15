@@ -1221,38 +1221,23 @@
 		 * of a MAPI message.
 		 *
 		 * @param object $store MAPI Message Store Object
-		 * @param string $entryid entryid of the root message
+		 * @param object $message MAPI Message Object
 		 * @param array $properties a set of properties which will be selected
+		 * @param array $entryid Entryid of the root message that is used for referencing to attachments for downloading
 		 * @param array $attach_num a list of attachment numbers (aka 2,1 means 'attachment nr 1 of attachment nr 2')
 		 * @return array item XML array structure of the embedded message
 		 */
-		function getEmbeddedMessage($store, $entryid, $properties, $attach_num)
+		function getEmbeddedMessageProps($store, $message, $properties, $entryid, $attach_num)
 		{
-			$message = mapi_msgstore_openentry($store, $entryid);
-			$props = array();
-			
-			if($message) {
-				foreach($attach_num as $num)
-				{
-					$attachment = mapi_message_openattach($message, $num);
-					
-					if($attachment) {
-  						$message = mapi_attach_openobj($attachment);
-  					} else {
-  						return $props;
-  					}
-  				}
-  				
-				$msgprops = mapi_getprops($message, Array(PR_MESSAGE_CLASS));
-				switch($msgprops[PR_MESSAGE_CLASS]){
-					case 'IPM.Note':
-						$html2text = false;
-						break;
-					default:
-						$html2text = true;
-				}
-  				$props = $this->getMessageProps($store, $message, $properties, $html2text, $entryid, $attach_num);
+			$msgprops = mapi_getprops($message, Array(PR_MESSAGE_CLASS));
+			switch($msgprops[PR_MESSAGE_CLASS]){
+				case 'IPM.Note':
+					$html2text = false;
+					break;
+				default:
+					$html2text = true;
 			}
+			$props = $this->getMessageProps($store, $message, $properties, $html2text, $entryid, $attach_num);
 			
 			return $props;
 		}
@@ -1275,11 +1260,26 @@
 		 *
 		 * @param object $store MAPI Message Store Object
 		 * @param string $entryid entryid of the message
+		 * @param array $attachNum a list of attachment numbers (aka 2,1 means 'attachment nr 1 of attachment nr 2')
 		 * @return object MAPI Message
 		 */
-		function openMessage($store, $entryid)
+		function openMessage($store, $entryid, $attachNum = false)
 		{
-			return mapi_msgstore_openentry($store, $entryid); 
+			
+			$message = mapi_msgstore_openentry($store, $entryid); 
+			
+			if($message && $attachNum) {
+				foreach($attachNum as $num){
+					$attachment = mapi_message_openattach($message, $num);
+					
+					if($attachment) {
+  						$message = mapi_attach_openobj($attachment);
+  					}else{
+						return false;
+					}
+  				}
+			}
+			return $message;
 		}
 		
 		/**
@@ -2210,12 +2210,8 @@
 						$copyfromStore = $GLOBALS["mapisession"]->openMessageStore($fileinfo["storeid"]);
 						$copyfrom = mapi_msgstore_openentry($copyfromStore , $fileinfo["entryid"]);
 
-						$msg_props = mapi_message_getprops($copyfrom );
-						//set the props of embedded message same as the selected message
-						$props = $props + $msg_props;
-						mapi_message_setprops($imessage, $props);
-						//hardcode the message class props as we need all message as normal.
-						mapi_message_setprops($imessage,array(PR_MESSAGE_CLASS => "IPM.NOTE" ));
+						// Copy the properties from the source message to the attachment
+						mapi_copyto($copyfrom, array(), array(), $imessage, 0);
 
 						// copy attachment property to embedded message
 						$attachmentTable = mapi_message_getattachmenttable($copyfrom);

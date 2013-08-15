@@ -84,21 +84,23 @@
 			$result = false;
 			
 			if($store && $entryid) {
-				$data = array();
-				$data["attributes"] = array("type" => "item");
-				$message = $GLOBALS["operations"]->openMessage($store, $entryid);
-				
 				$convertToPlainFormat = true;
 				if($GLOBALS['settings']->get('createmail/mailformat',"html") == 'html' && FCKEDITOR_INSTALLED){
 					$convertToPlainFormat = false;
 				}
-				$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, $convertToPlainFormat);
-				
-				// Open embedded message in embedded message in ...
-				if(isset($action["rootentryid"]) && isset($action["attachments"])) {
-					if(isset($action["attachments"]["attach_num"]) && is_array($action["attachments"]["attach_num"])) {
-						$data["item"] = $GLOBALS["operations"]->getEmbeddedMessage($store, $entryid, $this->properties, $action["attachments"]["attach_num"]);
-					}
+
+				$data = array();
+				$data["attributes"] = array("type" => "item");
+
+				$attachNum = $this->getAttachNum($action);
+				$message = $GLOBALS["operations"]->openMessage($store, $entryid, $attachNum);
+
+				if(!$attachNum){
+					// Get the standard properties
+					$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, $convertToPlainFormat);
+				}else{
+					// Get the sub-message properties
+					$data["item"] = $GLOBALS["operations"]->getEmbeddedMessageProps($store, $message, $this->properties, $entryid, $attachNum);
 				}
 
 				array_push($this->responseData["action"], $data);

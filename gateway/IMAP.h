@@ -245,6 +245,7 @@ private:
 	IMAPITable *m_lpIdleTable;
 	pthread_mutex_t m_mIdleLock;
 	ULONG m_ulLastUid;
+	ULONG m_ulErrors;
 
 	wstring m_strwUsername;
 

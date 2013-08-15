@@ -130,6 +130,9 @@ function getJavaScript_onload(){
 	
 	$tabbar->initJavascript("tabbar", "\t\t\t\t\t");
 ?>
+					var rootentryid = false;
+					var attachNum = false;
+
 					//general
 					tabbar.addExternalHandler(onAppointmentTabChange);
 					dragdrop = new DragDrop;
@@ -144,7 +147,21 @@ function getJavaScript_onload(){
 					
 					var entryid = <?=get("entryid","false","'", ID_REGEX)?>;
 					if(entryid) {
-						module.open(entryid, entryid, <?=(isset($_GET["basedate"]))?('new Array(\'' . intval(get("basedate", false, false, TIMESTAMP_REGEX)) .'\')') :"false"?>);
+
+						// If attachNum is set then it is embedded message
+						<? if(isset($_GET["attachNum"]) && is_array($_GET["attachNum"])) { ?>
+							rootentryid = <?=get("rootentryid", "false", "'", ID_REGEX)?>;
+							attachNum = new Array();
+						
+							<? foreach($_GET["attachNum"] as $attachNum) { 
+								if(preg_match_all(NUMERIC_REGEX, $attachNum, $matches)) {
+								?>
+									attachNum.push(<?=intval($attachNum)?>);
+							<?	}
+							} ?>
+						<? } ?>
+
+						module.open(entryid, entryid, attachNum, <?=(isset($_GET["basedate"]))?('new Array(\'' . intval(get("basedate", false, false, TIMESTAMP_REGEX)) .'\')') :"false"?>);
 					} else {
 						var startDateTime = <?=isset($_GET["startdate"]) ? "new Date(".intval(get("startdate", false, false, TIMESTAMP_REGEX))."*1000)":"''"?>; 
 						var endDateTime = <?=isset($_GET["enddate"]) ? "new Date(".intval(get("enddate", false, false, TIMESTAMP_REGEX))."*1000)":"''"?>; 
