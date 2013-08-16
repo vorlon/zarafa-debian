@@ -8,7 +8,7 @@ Standards-Version: 3.7.3
 
 Package: zarafa
 Architecture: all
-Depends: ${misc:Depends}, zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search
+Depends: ${misc:Depends}, zarafa-server (>= ${binary:Version}), zarafa-server (<< ${binary:Version}.1~), zarafa-client (>= ${binary:Version}), zarafa-client (<< ${binary:Version}.1~), zarafa-libs (>= ${binary:Version}), zarafa-libs (<< ${binary:Version}.1~), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search
 Recommends: zarafa-webaccess
 Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
  This groupware solution combines the usability of 
