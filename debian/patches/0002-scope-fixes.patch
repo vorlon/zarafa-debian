@@ -1,0 +1,122 @@
+From: Matthias Geerdsen <matthias@vorlons.info>
+Date: Thu, 15 Aug 2013 21:32:54 +0200
+Subject: scope fixes
+
+---
+ ECtools/zarafa-search/ECIndexImporter.cpp          |    3 ++-
+ .../zarafa-search/ECIndexImporterAttachments.cpp   |   24 ++++++++++++--------
+ 2 files changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/ECtools/zarafa-search/ECIndexImporter.cpp b/ECtools/zarafa-search/ECIndexImporter.cpp
+index 50c25f8..793fbc6 100644
+--- a/ECtools/zarafa-search/ECIndexImporter.cpp
++++ b/ECtools/zarafa-search/ECIndexImporter.cpp
+@@ -47,6 +47,7 @@
+  * 
+  */
+ 
++#include <memory>
+ #include "platform.h"
+ 
+ #include "ECIndexImporter.h"
+@@ -437,7 +438,7 @@ HRESULT ECIndexImporter::ProcessThread()
+     ECIndexDB *lpIndex = NULL;
+     ECIndexDB *lpThisIndex = NULL;
+     ArchiveItem *lpArchiveItem = NULL;
+-    auto_ptr<ArchiveItem> lpStubTarget;
++    std::auto_ptr<ArchiveItem> lpStubTarget;
+     
+     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Importer thread started");
+     
+diff --git a/ECtools/zarafa-search/ECIndexImporterAttachments.cpp b/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
+index c7e0a81..fd7215d 100644
+--- a/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
++++ b/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
+@@ -47,6 +47,10 @@
+  * 
+  */
+ 
++#include <algorithm>
++#include <set>
++#include <string>
++
+ #include <platform.h>
+ 
+ #include <mapi.h>
+@@ -246,7 +250,7 @@ HRESULT ECIndexImporterAttachment::CopyStreamToParser(IStream *lpStream, int ulF
+ 	ULONG ulWriteData;
+ 	fd_set rset, wset;
+ 	int res;
+-	int fd = max(ulFpWrite, ulFpRead);
++	int fd = std::max(ulFpWrite, ulFpRead);
+ 	struct timeval timeout;
+ 
+ 
+@@ -267,7 +271,7 @@ HRESULT ECIndexImporterAttachment::CopyStreamToParser(IStream *lpStream, int ulF
+ 		FD_ZERO(&wset);
+ 		if (ulTotalWriteData) {
+ 			FD_SET(ulFpWrite, &wset);
+-			fd = max(ulFpWrite, ulFpRead);
++			fd = std::max(ulFpWrite, ulFpRead);
+ 		} else {
+ 			fd = ulFpRead;
+ 		}
+@@ -437,10 +441,10 @@ HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid
+ 	command.assign(m_strCommand + " ");
+ 
+ 	if (!strMimeTag.empty() && strMimeTag.compare(_T("application/octet-stream")) != 0) {
+-		string tmp = trim(convert_to<string>(strMimeTag), "\r\n ");
++		std::string tmp = trim(convert_to<std::string>(strMimeTag), "\r\n ");
+ 		size_t pos = tmp.find_first_of('/');
+ 		if (pos != std::string::npos) {
+-			set<string, stricmp_comparison>::iterator i = m_lpThreadData->m_setMimeFilter.find(string(tmp,0,pos));
++			std::set<std::string, stricmp_comparison>::iterator i = m_lpThreadData->m_setMimeFilter.find(std::string(tmp,0,pos));
+ 			if (i != m_lpThreadData->m_setMimeFilter.end()) {
+ 				m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping filtered attachment mimetype: %s for %ls", tmp.c_str(), strFilename.c_str());
+ 				hr = MAPI_E_INVALID_OBJECT;
+@@ -452,8 +456,8 @@ HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid
+ 		command.append("'");
+ 	} else if (!strExtension.empty()) {
+ 		// this string mostly does not exist
+-		string tmp = trim(convert_to<string>(strExtension), "\r\n ");
+-		set<string, stricmp_comparison>::iterator i = m_lpThreadData->m_setExtFilter.find(string(tmp,1)); // skip dot in extension find
++		std::string tmp = trim(convert_to<std::string>(strExtension), "\r\n ");
++		std::set<std::string, stricmp_comparison>::iterator i = m_lpThreadData->m_setExtFilter.find(std::string(tmp,1)); // skip dot in extension find
+ 		if (i != m_lpThreadData->m_setExtFilter.end()) {
+ 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping filtered attachment extension: %s for %ls", tmp.c_str(), strFilename.c_str());
+ 			hr = MAPI_E_INVALID_OBJECT;
+@@ -463,14 +467,14 @@ HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid
+ 		command.append(forcealnum(tmp, "."));
+ 		command.append("'");
+ 	} else if (!strFilename.empty()) {
+-		std::string tmp = trim(convert_to<string>(strFilename), "\r\n ");
++		std::string tmp = trim(convert_to<std::string>(strFilename), "\r\n ");
+ 		size_t pos = tmp.find_last_of('.');
+ 		if (pos == std::string::npos)
+ 			goto exit;
+ 
+ 		
+ 		// skip dot in find
+-		set<string, stricmp_comparison>::iterator i = m_lpThreadData->m_setExtFilter.find(string(tmp, pos+1));
++		std::set<std::string, stricmp_comparison>::iterator i = m_lpThreadData->m_setExtFilter.find(std::string(tmp, pos+1));
+ 		if (i != m_lpThreadData->m_setExtFilter.end()) {
+ 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping filtered attachment extension: %ls", strFilename.c_str());
+ 			hr = MAPI_E_INVALID_OBJECT;
+@@ -478,7 +482,7 @@ HRESULT ECIndexImporterAttachment::ParseValueAttachment(folderid_t folder, docid
+ 		}
+ 
+ 		command.append("ext '");
+-		command.append(forcealnum(string(tmp, pos), "."));
++		command.append(forcealnum(std::string(tmp, pos), "."));
+ 		command.append("'");
+ 	} else {
+ 		m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_DEBUG, "Invalid attachment, no mimetag, extension or filename");
+@@ -599,7 +603,7 @@ HRESULT ECIndexImporterAttachment::ParseAttachment(folderid_t folder, docid_t do
+ 	if (ulAttachSize) {
+ 		/* Copy attachment data into stream */
+ 		while (TRUE) {
+-			ULONG ulRead = min(m_ulCache, ulAttachSize);
++			ULONG ulRead = std::min(m_ulCache, ulAttachSize);
+ 			ULONG ulCopy = ulRead;
+ 			ULONG ulWritten = 0;
+ 

@@ -1,0 +1,114 @@
+From: Matthias Geerdsen <matthias@vorlons.info>
+Date: Thu, 15 Aug 2013 21:50:10 +0200
+Subject: fix for newer clucene
+
+---
+ ECtools/zarafa-search/ECAnalyzers.cpp |   14 +++++++-------
+ ECtools/zarafa-search/ECAnalyzers.h   |    5 ++---
+ ECtools/zarafa-search/ECIndexDB.cpp   |    4 ++--
+ 3 files changed, 11 insertions(+), 12 deletions(-)
+
+diff --git a/ECtools/zarafa-search/ECAnalyzers.cpp b/ECtools/zarafa-search/ECAnalyzers.cpp
+index b16c26c..b14a00f 100644
+--- a/ECtools/zarafa-search/ECAnalyzers.cpp
++++ b/ECtools/zarafa-search/ECAnalyzers.cpp
+@@ -78,24 +78,24 @@ EmailFilter::~EmailFilter() {
+  * @param token Output token
+  * @return false if no more token was available
+  */
+-bool EmailFilter::next(lucene::analysis::Token *token) {
++lucene::analysis::Token *EmailFilter::next(lucene::analysis::Token *token) {
+ 	// See if we had any stored tokens
+ 	if(part < parts.size()) {
+ 		token->set(parts[part].c_str(), 0, 0, _T("<EMAIL>"));
+ 		token->setPositionIncrement(0);
+ 		part++;
+-		return true;
++		return token;
+ 	} else {
+ 		// No more stored token, get a new one
+ 		if(!input->next(token))
+-			return false;
++			return NULL;
+ 
+ 		// Split EMAIL tokens into the various parts
+ 		if(wcscmp(token->type(), L"<EMAIL>") == 0) {
+ 			// Split into user, domain, com
+-			parts = tokenize((std::wstring)token->_termText, (std::wstring)L".@");
++			parts = tokenize((std::wstring)token->termBuffer(), (std::wstring)L".@");
+ 			// Split into user, domain.com
+-			std::vector<std::wstring> moreparts = tokenize((std::wstring)token->_termText, (std::wstring)L"@");
++			std::vector<std::wstring> moreparts = tokenize((std::wstring)token->termBuffer(), (std::wstring)L"@");
+ 			parts.insert(parts.end(), moreparts.begin(), moreparts.end());
+ 			
+ 			// Only add parts once (unique parts)
+@@ -105,7 +105,7 @@ bool EmailFilter::next(lucene::analysis::Token *token) {
+ 			part = 0;
+ 		}
+ 		
+-		return true;
++		return token;
+ 	}
+ }
+ 
+@@ -124,7 +124,7 @@ ECAnalyzer::~ECAnalyzer()
+  * @param reader Reader to read the bytestream to tokenize
+  * @return A TokenStream outputting the tokens to be indexed
+  */
+-lucene::analysis::TokenStream* ECAnalyzer::tokenStream(const TCHAR* fieldName, lucene::util::Reader* reader) 
++lucene::analysis::TokenStream *ECAnalyzer::tokenStream(const TCHAR *fieldName, CL_NS(util)::BufferedReader *reader)
+ {
+ 	lucene::analysis::TokenStream* ret = _CLNEW lucene::analysis::standard::StandardTokenizer(reader);
+ 	ret = _CLNEW lucene::analysis::standard::StandardFilter(ret,true);
+diff --git a/ECtools/zarafa-search/ECAnalyzers.h b/ECtools/zarafa-search/ECAnalyzers.h
+index 6938007..7ebf2ba 100644
+--- a/ECtools/zarafa-search/ECAnalyzers.h
++++ b/ECtools/zarafa-search/ECAnalyzers.h
+@@ -50,7 +50,6 @@
+ #ifndef ANALYZERS_H
+ 
+ #include "CLucene/StdHeader.h"
+-#include "CLucene/util/Reader.h"
+ #include "CLucene/analysis/standard/StandardAnalyzer.h"
+ #include "CLucene/analysis/AnalysisHeader.h"
+ 
+@@ -68,7 +67,7 @@ class EmailFilter: public lucene::analysis::TokenFilter {
+ public:
+ 	EmailFilter(lucene::analysis::TokenStream* in, bool deleteTokenStream);
+ 	virtual ~EmailFilter();
+-	bool next(lucene::analysis::Token* token);
++	lucene::analysis::Token *next(lucene::analysis::Token *token);
+ private:
+ 	lucene::analysis::Token curtoken;
+ 	
+@@ -86,7 +85,7 @@ public:
+ 	ECAnalyzer();
+ 	virtual ~ECAnalyzer();
+ 
+-	virtual lucene::analysis::TokenStream* tokenStream(const TCHAR* fieldName, CL_NS(util)::Reader* reader);
++	virtual lucene::analysis::TokenStream *tokenStream(const TCHAR *fieldName, CL_NS(util)::BufferedReader *reader);
+ };
+ 
+ #endif
+diff --git a/ECtools/zarafa-search/ECIndexDB.cpp b/ECtools/zarafa-search/ECIndexDB.cpp
+index e753cf2..c27b218 100644
+--- a/ECtools/zarafa-search/ECIndexDB.cpp
++++ b/ECtools/zarafa-search/ECIndexDB.cpp
+@@ -68,7 +68,7 @@
+ #include <string>
+ #include <algorithm>
+ 
+-#include <CLucene/util/Reader.h>
++#include <CLucene/util/CLStreams.h>
+ 
+ using namespace kyotocabinet;
+ 
+@@ -305,7 +305,7 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
+         unsigned int len;
+         unsigned int keylen;
+         
+-        lucene::util::StringReader reader(wstrTerm.c_str());
++        CL_NS(util)::StringReader reader(wstrTerm.c_str());
+         
+         stream = m_lpAnalyzer->tokenStream(L"", &reader);
+         
