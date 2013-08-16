@@ -91,7 +91,7 @@ Package: zarafa-utils
 Architecture: any
 Conflicts: zarafa (<< 7.0)
 Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version})
 Description: Admin command-line utils for the Zarafa Collaboration Platform
  Commandline clients to control and check the ZCP server.
 
