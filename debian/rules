@@ -169,7 +169,7 @@ binary-arch-real: install-arch
 #	dh_installinfo
 #	dh_installman
 	dh_link
-	dh_strip --dbg-package=zarafa-dbg
+	dh_strip --dbg-package=giraffe-dbg
 	dh_compress -X.py -X.pl
 	dh_fixperms
 #	dh_perl
