@@ -170,13 +170,13 @@ Description: Archive messages to a secondary Giraffe server
  server. Clients will still be able to open the message from the
  secondary Giraffe server directly.
 
-Package: zarafa-webaccess
+Package: giraffe-webaccess
 Architecture: all
 Section: web
 Depends:  ${misc:Depends}, php5-mapi
-Description: A web interface for the Zarafa Collaboration Platform
+Description: A web interface for the Giraffe Collaboration Platform
  Provides a web-client written in PHP that makes use of AJAX to allow
- users to make full use of the Zarafa Collaboration Platform through a
+ users to make full use of the Giraffe Collaboration Platform through a
  modern web browser.
 
 Package: zarafa-search
