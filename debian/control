@@ -143,23 +143,23 @@ Description: ICal and CalDAV Gateway for the Giraffe Collaboration Platform
 Package: python-mapi
 Architecture: any
 Section: python
-Conflicts: zarafa-python
-Replaces: zarafa-python
-Provides: zarafa-python
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
+Conflicts: giraffe-python
+Replaces: giraffe-python
+Provides: giraffe-python
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
 Description: Python MAPI bindings
  Using this module, you can create python programs which use MAPI
- calls to interact with Zarafa.
+ calls to interact with Giraffe.
 
 Package: php5-mapi
 Architecture: any
 Section: php
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${php:Depends}, zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), apache2 | apache-ssl | apache-perl | apache | httpd, libapache2-mod-php5 | libapache-mod-php5 | php5-cgi
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${php:Depends}, giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), apache2 | apache-ssl | apache-perl | apache | httpd, libapache2-mod-php5 | libapache-mod-php5 | php5-cgi
 Description: PHP MAPI bindings
  Using this module, you can create PHP programs which use MAPI
- calls to interact with Zarafa.
+ calls to interact with Giraffe.
 
 Package: zarafa-archiver
 Architecture: any
