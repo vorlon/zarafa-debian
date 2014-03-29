@@ -72,13 +72,13 @@ Description: MAPI provider adding contact folders in the addressbook
  Additional MAPI provider which finds all contact folders of a user
  and adds the contents transparently into the MAPI addrbook.
 
-Package: zarafa-libs
+Package: giraffe-libs
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, libvmime0 (>= 0.9.1), libvmime0 (<< 1.0), libical0 (>= 0.44)
 Description: Conversion libraries between Open Standards and MAPI
- Commonly used libraries by Zarafa Collaboration Platform client
+ Commonly used libraries by Giraffe Collaboration Platform client
  programs.
 
 Package: zarafa-libarchiver
