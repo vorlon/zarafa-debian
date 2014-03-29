@@ -238,7 +238,6 @@ Description: A web interface for the Giraffe Collaboration Platform
 
 Package: giraffe-search
 Architecture: any
-Section: mail
 Depends: ${shlibs:Depends}, ${misc:Depends}, libkyotocabinet16, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-common (= ${binary:Version})
 Conflicts: giraffe-indexer
 Replaces: giraffe-indexer
