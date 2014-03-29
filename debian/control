@@ -95,12 +95,12 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-client (
 Description: Admin command-line utils for the Giraffe Collaboration Platform
  Commandline clients to control and check the GCP server.
 
-Package: zarafa-monitor
+Package: giraffe-monitor
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
-Description: Quota Monitor for the Zarafa Collaboration Platform
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version})
+Description: Quota Monitor for the Giraffe Collaboration Platform
  Regularly checks stores for total usage. If a quota limit has been
  exceeded, an e-mail will be internally sent to this account.
 
