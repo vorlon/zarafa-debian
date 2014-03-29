@@ -179,14 +179,14 @@ Description: A web interface for the Giraffe Collaboration Platform
  users to make full use of the Giraffe Collaboration Platform through a
  modern web browser.
 
-Package: zarafa-search
+Package: giraffe-search
 Architecture: any
 Section: mail
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyotocabinet16, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-common (= ${binary:Version})
-Conflicts: zarafa-indexer
-Replaces: zarafa-indexer
-Description: Indexed search engine for the Zarafa Collaboration Platform
- Based on the CLucene search engine, the zarafa-search makes an index
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyotocabinet16, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-common (= ${binary:Version})
+Conflicts: giraffe-indexer
+Replaces: giraffe-indexer
+Description: Indexed search engine for the Giraffe Collaboration Platform
+ Based on the CLucene search engine, the giraffe-search makes an index
  per user of messages and attachments. When this service is enabled,
  search queries on the server will use this index to quickly find
  messages and even in contents of attached documents.
