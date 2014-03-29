@@ -104,13 +104,13 @@ Description: Quota Monitor for the Giraffe Collaboration Platform
  Regularly checks stores for total usage. If a quota limit has been
  exceeded, an e-mail will be internally sent to this account.
 
-Package: zarafa-spooler
+Package: giraffe-spooler
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version}), zarafa-libarchiver
-Description: E-mail Spooler for the Zarafa Collaboration Platform
- Sends all outgoing e-mail requests from Zarafa to an SMTP server.
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), giraffe-libarchiver
+Description: E-mail Spooler for the Giraffe Collaboration Platform
+ Sends all outgoing e-mail requests from Giraffe to an SMTP server.
 
 Package: zarafa-dagent
 Architecture: any
