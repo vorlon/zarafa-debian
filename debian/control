@@ -18,13 +18,13 @@ Description: The Giraffe Collaboration Platform (metapackage depending on the la
  brilliant integration options with all sorts of clients including 
  all most popular mobile platforms. 
 
-Package: zarafa-common
+Package: giraffe-common
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
 Depends: lsb-base, ${misc:Depends}
-Description: Shared files between ZCP services.
- Common components for services of the Zarafa Collaboration Platform.
+Description: Shared files between GCP services.
+ Common components for services of the Giraffe Collaboration Platform.
 
 Package: zarafa-server
 Architecture: any
