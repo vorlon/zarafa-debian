@@ -161,14 +161,14 @@ Description: PHP MAPI bindings
  Using this module, you can create PHP programs which use MAPI
  calls to interact with Giraffe.
 
-Package: zarafa-archiver
+Package: giraffe-archiver
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, zarafa-libarchiver (= ${binary:Version})
-Description: Archive messages to a secondary Zarafa server
- To decrease the database size of your production Zarafa server, the
- Zarafa Archiver copies or moves messages to a secondary Zarafa
+Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-libarchiver (= ${binary:Version})
+Description: Archive messages to a secondary Giraffe server
+ To decrease the database size of your production Giraffe server, the
+ Giraffe Archiver copies or moves messages to a secondary Giraffe
  server. Clients will still be able to open the message from the
- secondary Zarafa server directly.
+ secondary Giraffe server directly.
 
 Package: zarafa-webaccess
 Architecture: all
