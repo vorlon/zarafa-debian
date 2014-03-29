@@ -36,13 +36,13 @@ Description: Server component for the Giraffe Collaboration Platform
  clients connect. The server requires a MySQL server to use for
  storage.
 
-Package: zarafa-dbg
+Package: giraffe-dbg
 Priority: extra
 Architecture: any
 Section: debug
 Depends: ${misc:Depends}
-Description: Debug files for the Zarafa Collaboration Platform
- This package contains the debug symbols for the Zarafa
+Description: Debug files for the Giraffe Collaboration Platform
+ This package contains the debug symbols for the Giraffe
  Collaboration Platform
 
 Package: zarafa-dev
