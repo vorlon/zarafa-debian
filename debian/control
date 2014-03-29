@@ -121,14 +121,14 @@ Description: E-Mail Delivery Agent for the Giraffe Collaboration Platform
  Delivers incoming e-mail from your SMTP server to stores in the
  Giraffe server.
 
-Package: zarafa-gateway
+Package: giraffe-gateway
 Architecture: any
 Suggests: python-mapi
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libs (= ${binary:Version})
-Description: POP3 and IMAP Gateway for the Zarafa Collaboration Platform
- Provides access to the Zarafa server through the POP3 and IMAP
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
+Description: POP3 and IMAP Gateway for the Giraffe Collaboration Platform
+ Provides access to the Giraffe server through the POP3 and IMAP
  protocols.
 
 Package: zarafa-ical
