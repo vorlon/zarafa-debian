@@ -81,11 +81,11 @@ Description: Conversion libraries between Open Standards and MAPI
  Commonly used libraries by Giraffe Collaboration Platform client
  programs.
 
-Package: zarafa-libarchiver
+Package: giraffe-libarchiver
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, zarafa-client (= ${binary:Version}), zarafa-common (= ${binary:Version})
-Description: Library with shared ZCP archiver functionality
- Library with shared archiver functionality for the Zarafa Collaboration Platform.
+Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-client (= ${binary:Version}), giraffe-common (= ${binary:Version})
+Description: Library with shared GCP archiver functionality
+ Library with shared archiver functionality for the Giraffe Collaboration Platform.
 
 Package: zarafa-utils
 Architecture: any
