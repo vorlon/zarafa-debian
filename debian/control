@@ -54,14 +54,14 @@ Description: C++ Development files for the Giraffe Collaboration Platform
  Giraffe. You can find examples and documentation on the website
  http://developer.zarafa.com/
 
-Package: zarafa-client
+Package: giraffe-client
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, locales
-Description: MAPI4Linux and the Zarafa MAPI provider libraries
- The main libraries for any Zarafa client program. This package is
- required by all Zarafa client programs.
+Description: MAPI4Linux and the Giraffe MAPI provider libraries
+ The main libraries for any Giraffe client program. This package is
+ required by all Giraffe client programs.
 
 Package: zarafa-contacts
 Architecture: any
