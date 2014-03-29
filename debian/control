@@ -6,15 +6,15 @@ Uploaders: John van der Kamp <j.vdkamp@zarafa.com>
 Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev, libkyotocabinet-dev
 Standards-Version: 3.7.3
 
-Package: zarafa
+Package: giraffe
 Architecture: all
-Depends: ${misc:Depends}, zarafa-server (>= ${binary:Version}), zarafa-server (<< ${binary:Version}.1~), zarafa-client (>= ${binary:Version}), zarafa-client (<< ${binary:Version}.1~), zarafa-libs (>= ${binary:Version}), zarafa-libs (<< ${binary:Version}.1~), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search
-Recommends: zarafa-webaccess
-Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
+Depends: ${misc:Depends}, giraffe-server (>= ${binary:Version}), giraffe-server (<< ${binary:Version}.1~), giraffe-client (>= ${binary:Version}), giraffe-client (<< ${binary:Version}.1~), giraffe-libs (>= ${binary:Version}), giraffe-libs (<< ${binary:Version}.1~), giraffe-utils, giraffe-monitor, giraffe-spooler, giraffe-dagent, giraffe-ical, giraffe-gateway, giraffe-search
+Recommends: giraffe-webaccess
+Description: The Giraffe Collaboration Platform (metapackage depending on the latest version)
  This groupware solution combines the usability of 
  Outlook with the stability and flexibility of a Linux server.
  .
- It features a rich web-interface, the Zarafa WebAccess, and provides 
+ It features a rich web-interface, the Giraffe WebAccess, and provides 
  brilliant integration options with all sorts of clients including 
  all most popular mobile platforms. 
 
