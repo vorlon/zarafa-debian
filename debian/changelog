@@ -1,6 +1,4 @@
-giraffe (7.0.5-1~1.gbp05eaf4) UNRELEASED; urgency=low
-
-  ** SNAPSHOT build @05eaf43b59f342c87248b0a5d125ddb8ab726548 **
+giraffe (7.0.5.final-1~1.gbp05eaf4) UNRELEASED; urgency=low
 
   [ Guido Günther ]
   * [6dbdff8] Change project name to giraffe
