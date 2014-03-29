@@ -45,13 +45,13 @@ Description: Debug files for the Giraffe Collaboration Platform
  This package contains the debug symbols for the Giraffe
  Collaboration Platform
 
-Package: zarafa-dev
+Package: giraffe-dev
 Priority: extra
 Architecture: any
-Depends: ${misc:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-libs (= ${binary:Version})
-Description: C++ Development files for the Zarafa Collaboration Platform
+Depends: ${misc:Depends}, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-libs (= ${binary:Version})
+Description: C++ Development files for the Giraffe Collaboration Platform
  Development files to create MAPI programs under Linux for use with
- Zarafa. You can find examples and documentation on the website
+ Giraffe. You can find examples and documentation on the website
  http://developer.zarafa.com/
 
 Package: zarafa-client
