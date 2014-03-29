@@ -1,4 +1,6 @@
-giraffe (7.0.5.final-1~1.gbp05eaf4) UNRELEASED; urgency=low
+giraffe (7.1.5.final-1~1.gbpdcf72d) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @dcf72d11495083f2275fa118afad08bba3903cfb **
 
   [ Guido Günther ]
   * [6dbdff8] Change project name to giraffe
@@ -20,7 +22,31 @@ giraffe (7.0.5.final-1~1.gbp05eaf4) UNRELEASED; urgency=low
   * [e73e75a] fix typo in package name
   * [05eaf43] add patch to remove hex2bin() declaration, it is available in php 5.4.0
 
- -- Matthias Geerdsen <matthias@vorlons.info>  Sun, 25 Mar 2012 11:13:39 +0200
+  [ Robert Kehl ]
+  * Renaming zarafa to giraffe
+  * Renaming zarafa-common to giraffe-common
+  * Renaming zarafa-server to giraffe-server
+  * Renaming zarafa-dbg to giraffe-dbg
+  * Renaming zarafa-dev to giraffe-dev
+  * Renaming zarafa-client to giraffe-client
+  * Renaming zarafa-contacts to giraffe-contacts
+  * Renaming zarafa-libs to giraffe-libs
+  * Renaming zarafa-libarchiver to giraffe-libarchiver
+  * Renaming zarafa-utils to giraffe-utils
+  * Renaming zarafa-monitor to giraffe-monitor
+  * Renaming zarafa-spooler to giraffe-spooler
+  * Renaming zarafa-dagent to giraffe-dagent
+  * Renaming zarafa-gateway to giraffe-gateway
+  * Renaming zarafa-ical to giraffe-ical
+  * Renaming zarafa to giraffe
+  * Renaming zarafa-archiver to giraffe-archiver
+  * Renaming zarafa-webaccess to giraffe-webaccess
+  * Renaming zarafa-search to giraffe-search
+  * Clarifying package descriptions
+  * fixing file names in conf files
+  * fix rename
+
+ -- Robert Kehl <robertkehl@robertkehl.de>  Sat, 29 Mar 2014 14:39:50 +0100
 
 giraffe (7.0.3~beta1-1~1.gbpe4c14c) UNRELEASED; urgency=low
 

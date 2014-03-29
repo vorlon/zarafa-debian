@@ -49,7 +49,7 @@ Package: giraffe-dbg
 Priority: extra
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, giraffe-client (= ${binary:Version}) | giraffe-webaccess (= ${binary:Version}) | giraffe-archiver (= ${binary:Version}) | giraffe-contatcs (= ${binary:Version})
 Description: Debug files for the Giraffe Collaboration Platform
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
