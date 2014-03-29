@@ -63,11 +63,11 @@ Description: MAPI4Linux and the Giraffe MAPI provider libraries
  The main libraries for any Giraffe client program. This package is
  required by all Giraffe client programs.
 
-Package: zarafa-contacts
+Package: giraffe-contacts
 Architecture: any
-Conflicts: zarafa (<< 7.0)
-Replaces: zarafa (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, locales, zarafa-client (= ${binary:Version})
+Conflicts: giraffe (<< 7.0)
+Replaces: giraffe (<< 7.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, locales, giraffe-client (= ${binary:Version})
 Description: MAPI provider adding contact folders in the addressbook
  Additional MAPI provider which finds all contact folders of a user
  and adds the contents transparently into the MAPI addrbook.
