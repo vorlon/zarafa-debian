@@ -97,7 +97,7 @@ Package: giraffe-libs
 Architecture: any
 Conflicts: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, libvmime0 (>= 0.9.1), libvmime0 (<< 1.0), libical0 (>= 0.44)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libvmime0 (>= 0.9.1), libvmime0 (<< 1.0)
 Description: Conversion libraries between Open Standards and MAPI
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
