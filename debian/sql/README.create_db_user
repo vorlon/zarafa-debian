@@ -1,0 +1,27 @@
+# Creation of the database user
+# 
+# The Zarafa Wiki [1] states that the server itself creates the database,
+# tables and stuff. Thus, we need a database user, whom we don't want to
+# create manually. If we would want to, we would fire this:
+#
+# GRANT
+#  ALL PRIVILEGES
+#
+# -or-
+#
+#  alter, create,
+#  alter routine, create routine,
+#  delete, drop,
+#  index, insert,
+#  lock tables,
+#  select, update
+#
+# ON zarafa.* TO
+#  'zarafa'@'localhost'
+#
+# IDENTIFIED BY
+#  'password'
+# ;
+#
+# [1] http://doc.zarafa.com/7.1/Administrator_Manual/en-US/html-single/index.html#_configure_the_zarafa_server
+#
