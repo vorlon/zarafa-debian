@@ -37,6 +37,7 @@ Architecture: any
 Conflicts: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version})
+Suggests: mysql-server (>= 4.1)
 Description: Server component for the Giraffe Collaboration Platform
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
@@ -142,6 +143,7 @@ Architecture: any
 Conflicts: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), giraffe-libarchiver
+Suggests: exim4 | mail-transport-agent
 Description: E-mail Spooler for the Giraffe Collaboration Platform
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
@@ -153,6 +155,7 @@ Architecture: any
 Conflicts: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), php5-cli, php5-mapi, python-mapi (= ${binary:Version})
+Suggests: exim4 | mail-transport-agent
 Description: E-Mail Delivery Agent for the Giraffe Collaboration Platform
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
