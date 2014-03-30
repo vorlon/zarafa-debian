@@ -3,9 +3,9 @@
 set -e
 
 # enable zarafa-webaccess for apache
-if [ -x "`which a2ensite`" ]; then
+if [ -x "`which a2enconf`" ]; then
   # no error, file may have been renamed
-  a2ensite zarafa-webaccess || true
+  a2enconf zarafa-webaccess || true
 fi
 
 #DEBHELPER#

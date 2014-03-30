@@ -87,8 +87,8 @@ install-indep:
 	# fix webaccess correct owner writable files
 	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess/tmp
 	# add apache config
-	mkdir -p $(INSTDIR)/etc/apache2/sites-available
-	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess
+	mkdir -p $(INSTDIR)/etc/apache2/conf-available
+	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/conf-available/
 
 	# install debranding artwork
 	cp debian/artwork/login.jpg $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/img/
