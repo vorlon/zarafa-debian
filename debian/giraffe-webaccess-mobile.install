@@ -1,6 +1,0 @@
-etc/zarafa/webaccess-mobile/config.php
-etc/apache2/sites-available/zarafa-webaccess-mobile
-usr/share/zarafa-webaccess-mobile
-var/lib/zarafa-webaccess-mobile/cache
-var/lib/zarafa-webaccess-mobile/config
-var/lib/zarafa-webaccess-mobile/templates_c
