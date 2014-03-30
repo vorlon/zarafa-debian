@@ -90,6 +90,12 @@ install-indep:
 	mkdir -p $(INSTDIR)/etc/apache2/sites-available
 	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess
 
+	# install debranding artwork
+	cp debian/artwork/login.jpg $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/img/
+	cp debian/artwork/zarafa_top_logo.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/img/zarafa_top_logo.gif
+	cp debian/artwork/zarafa_top_logo_SILVER.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/themes/silver/img/zarafa_top_logo.gif
+	cp debian/artwork/zarafa_top_logo_WHITE.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/themes/white/img/zarafa_top_logo.gif
+
 	dh_install -i --sourcedir=debian/tmp --fail-missing
 
 install-arch:
