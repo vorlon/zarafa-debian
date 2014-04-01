@@ -51,6 +51,9 @@ case "$1" in
 	log_end_msg $?
 	unset LC_ALL LANG
 	;;
+  status)
+	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+	;;
   stop)
 	log_begin_msg "Stopping $DESC: $NAME"
 	start-stop-daemon --stop $QUIETDAEMON --pidfile $PIDFILE --retry TERM/15/KILL --exec $ICAL

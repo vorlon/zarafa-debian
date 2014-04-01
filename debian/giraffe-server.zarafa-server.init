@@ -55,6 +55,9 @@ case "$1" in
 	log_end_msg $?
 	unset LC_ALL LANG
 	;;
+  status)
+	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+	;;
   stop)
 	if [ -f /tmp/zarafa-upgrade-lock ]; then
 		echo
