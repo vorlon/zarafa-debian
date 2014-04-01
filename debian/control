@@ -3,7 +3,7 @@ Section: mail
 Priority: optional
 Maintainer: Giraffe Maintainers <pkg-giraffe-maintainers@lists.alioth.debian.org>
 Uploaders: John van der Kamp <j.vdkamp@zarafa.com>
-Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev, libkyotocabinet-dev
+Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, automake (>= 1:1.9), autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, python-support, libclucene-dev, libical-dev, libgoogle-perftools-dev, libkyotocabinet-dev
 Standards-Version: 3.9.5
 
 Package: giraffe
