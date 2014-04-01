@@ -61,6 +61,7 @@ Description: Debug files for the Giraffe Collaboration Platform
 
 Package: giraffe-dev
 Priority: extra
+Homepage: http://developer.zarafa.com/
 Architecture: any
 Depends: ${misc:Depends}, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-libs (= ${binary:Version})
 Description: C++ Development files for the Giraffe Collaboration Platform
@@ -68,8 +69,8 @@ Description: C++ Development files for the Giraffe Collaboration Platform
  distribution.
  .
  Development files to create MAPI programs under Linux for use with
- Giraffe. You can find examples and documentation on the website
- http://developer.zarafa.com/
+ Giraffe. You can find examples and documentation on the developer website
+ of Zarafa.
 
 Package: giraffe-client
 Architecture: any
