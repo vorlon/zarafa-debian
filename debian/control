@@ -11,12 +11,12 @@ Package: giraffe
 Architecture: all
 Depends: ${misc:Depends}, giraffe-server (>= ${binary:Version}), giraffe-server (<< ${binary:Version}.1~), giraffe-client (>= ${binary:Version}), giraffe-client (<< ${binary:Version}.1~), giraffe-libs (>= ${binary:Version}), giraffe-libs (<< ${binary:Version}.1~), giraffe-utils, giraffe-monitor, giraffe-spooler, giraffe-dagent, giraffe-ical, giraffe-gateway, giraffe-search
 Recommends: giraffe-webaccess
-Description: The Giraffe Collaboration Platform (metapackage depending on the latest version)
+Description: Core of the Giraffe Collaboration Platform (metapackage)
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
  .
- This groupware solution combines the usability of 
- Outlook with the stability and flexibility of a Linux server.
+ This groupware solution combines the usability of Outlook with the
+ stability and flexibility of a Linux server.
  .
  It features a rich web-interface, the Giraffe WebAccess, and provides 
  brilliant integration options with all sorts of clients including 
