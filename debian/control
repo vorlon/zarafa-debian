@@ -115,7 +115,8 @@ Description: Library with shared GCP archiver functionality
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
  .
- Library with shared archiver functionality for the Giraffe Collaboration Platform.
+ Library with shared archiver functionality for the Giraffe Collaboration
+ Platform.
 
 Package: giraffe-utils
 Architecture: any
