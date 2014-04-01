@@ -27,7 +27,7 @@ Architecture: any
 Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: lsb-base, ${misc:Depends}
-Description: Shared files between GCP services.
+Description: Shared files between GCP services
  Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
  distribution.
  .
