@@ -149,7 +149,7 @@ binary-indep: install-indep
 	dh_installchangelogs -i
 	dh_compress -i
 	dh_fixperms -i -Xvar/lib/zarafa-webaccess/tmp
-	dh_pysupport -i
+	dh_python2 -i
 	dh_installdeb -i
 	dh_gencontrol -i
 	dh_md5sums -i
@@ -191,7 +191,7 @@ binary-arch-real: install-arch
 	dh_fixperms
 #	dh_perl
 #	dh_python
-	dh_pysupport
+	dh_python2
 	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
