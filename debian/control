@@ -23,7 +23,7 @@ Description: The Giraffe Collaboration Platform (metapackage depending on the la
 
 Package: giraffe-common
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: lsb-base, ${misc:Depends}
 Description: Shared files between GCP services.
@@ -34,7 +34,7 @@ Description: Shared files between GCP services.
 
 Package: giraffe-server
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version})
 Suggests: mysql-server (>= 4.1)
@@ -72,7 +72,7 @@ Description: C++ Development files for the Giraffe Collaboration Platform
 
 Package: giraffe-client
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, locales
 Description: MAPI4Linux and the Giraffe MAPI provider libraries
@@ -84,7 +84,7 @@ Description: MAPI4Linux and the Giraffe MAPI provider libraries
 
 Package: giraffe-contacts
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, locales, giraffe-client (= ${binary:Version})
 Description: MAPI provider adding contact folders in the addressbook
@@ -96,7 +96,7 @@ Description: MAPI provider adding contact folders in the addressbook
 
 Package: giraffe-libs
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, libvmime0 (>= 0.9.1), libvmime0 (<< 1.0)
 Description: Conversion libraries between Open Standards and MAPI
@@ -117,7 +117,7 @@ Description: Library with shared GCP archiver functionality
 
 Package: giraffe-utils
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version})
 Description: Admin command-line utils for the Giraffe Collaboration Platform
@@ -128,7 +128,7 @@ Description: Admin command-line utils for the Giraffe Collaboration Platform
 
 Package: giraffe-monitor
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version})
 Description: Quota Monitor for the Giraffe Collaboration Platform
@@ -140,7 +140,7 @@ Description: Quota Monitor for the Giraffe Collaboration Platform
 
 Package: giraffe-spooler
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), giraffe-libarchiver
 Suggests: exim4 | mail-transport-agent
@@ -152,7 +152,7 @@ Description: E-mail Spooler for the Giraffe Collaboration Platform
 
 Package: giraffe-dagent
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), php5-cli, php5-mapi, python-mapi (= ${binary:Version})
 Suggests: exim4 | mail-transport-agent
@@ -166,7 +166,7 @@ Description: E-Mail Delivery Agent for the Giraffe Collaboration Platform
 Package: giraffe-gateway
 Architecture: any
 Suggests: python-mapi
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
 Description: POP3 and IMAP Gateway for the Giraffe Collaboration Platform
@@ -178,7 +178,7 @@ Description: POP3 and IMAP Gateway for the Giraffe Collaboration Platform
 
 Package: giraffe-ical
 Architecture: any
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
 Description: ICal and CalDAV Gateway for the Giraffe Collaboration Platform
@@ -205,7 +205,7 @@ Description: Python MAPI bindings
 Package: php5-mapi
 Architecture: any
 Section: php
-Conflicts: giraffe (<< 7.0)
+Breaks: giraffe (<< 7.0)
 Replaces: giraffe (<< 7.0)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${php:Depends}, giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), apache2 | apache-ssl | apache-perl | apache | httpd, libapache2-mod-php5 | libapache-mod-php5 | php5-cgi
 Description: PHP MAPI bindings
