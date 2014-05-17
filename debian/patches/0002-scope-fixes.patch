@@ -3,12 +3,12 @@ Date: Thu, 15 Aug 2013 21:32:54 +0200
 Subject: scope fixes
 
 ---
- ECtools/zarafa-search/ECIndexImporter.cpp          |    3 ++-
- .../zarafa-search/ECIndexImporterAttachments.cpp   |   24 ++++++++++++--------
+ ECtools/zarafa-search/ECIndexImporter.cpp          |  3 ++-
+ .../zarafa-search/ECIndexImporterAttachments.cpp   | 24 +++++++++++++---------
  2 files changed, 16 insertions(+), 11 deletions(-)
 
 diff --git a/ECtools/zarafa-search/ECIndexImporter.cpp b/ECtools/zarafa-search/ECIndexImporter.cpp
-index 50c25f8..793fbc6 100644
+index 0cc985c..cd24f73 100644
 --- a/ECtools/zarafa-search/ECIndexImporter.cpp
 +++ b/ECtools/zarafa-search/ECIndexImporter.cpp
 @@ -47,6 +47,7 @@
@@ -29,7 +29,7 @@ index 50c25f8..793fbc6 100644
      m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Importer thread started");
      
 diff --git a/ECtools/zarafa-search/ECIndexImporterAttachments.cpp b/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
-index c7e0a81..fd7215d 100644
+index 2d759d3..923ae2e 100644
 --- a/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
 +++ b/ECtools/zarafa-search/ECIndexImporterAttachments.cpp
 @@ -47,6 +47,10 @@

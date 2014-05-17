@@ -3,11 +3,11 @@ Date: Thu, 15 Aug 2013 21:27:57 +0200
 Subject: 0002-CLucene-with-pkgconfig
 
 ---
- configure.ac |   46 +++-------------------------------------------
+ configure.ac | 46 +++-------------------------------------------
  1 file changed, 3 insertions(+), 43 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 96c53f6..7bc85a0 100644
+index 069740f..55faadf 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -439,52 +439,12 @@ AC_SUBST(ICAL_LIBS)
