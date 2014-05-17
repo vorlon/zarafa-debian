@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -57,6 +57,7 @@
 #include <mapiutil.h>
 #include <mapix.h>
 #include <namedprops.h>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include "zarafa-fsck.h"
 
@@ -149,14 +150,12 @@ HRESULT ZarafaFsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		}
 
 		/* If a prefix and suffix were provided, strip them from the fullname */
-		if (!result[E_PREFIX].empty()) {
-			if (result[E_FULLNAME].substr(0, result[E_PREFIX].size()) == result[E_PREFIX])
-				result[E_FULLNAME].erase(0, result[E_PREFIX].size());
-		}
+		if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX])) {
+            result[E_FULLNAME].erase(0, result[E_PREFIX].size());
+        }
 
-		if (!result[E_SUFFIX].empty()) {
-			if (result[E_FULLNAME].substr(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos) == result[E_SUFFIX])
-				result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
+		if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX])) {
+            result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
 		}
 
 		/* Well technically this could happen... But somebody seriously wrecked his item in that case :S */

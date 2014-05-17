@@ -2,16 +2,24 @@ import MAPI
 from MAPI.Util import *
 
 def GetStores(session, users = None, flags = MDB_WRITE):
+    # Get rid of potential MAPI_UNICODE flag, which was allowed in
+    # previous versions to specify the string typ of the users list,
+    # which is now autodetected.
+    flags &= ~MAPI_UNICODE
     ems = GetDefaultStore(session).QueryInterface(IID_IExchangeManageStore)
     if users is None:
-        users = GetUserList(session)
+        users = GetUserList(session, flags = MAPI_UNICODE)
     elif isinstance(users, basestring):
         users = [users]
 
     for user in users:
         try:
-            storeid = ems.CreateStoreEntryID(None, user, 0)
-            store = session.OpenMsgStore(0, storeid, IID_IMsgStore, flags)      
+            if isinstance(user, unicode):
+                fMapiUnicode = MAPI_UNICODE
+            else:
+                fMapiUnicode = 0
+            storeid = ems.CreateStoreEntryID(None, user, fMapiUnicode)
+            store = session.OpenMsgStore(0, storeid, IID_IMsgStore, flags)
         except MAPIErrorNotFound:
             continue
         yield store

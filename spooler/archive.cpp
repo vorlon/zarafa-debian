@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -58,7 +58,8 @@
 #include "helpers/storehelper.h"
 #include "operations/copier.h"
 #include "operations/instanceidmapper.h"
-#include "archiver-session.h"
+#include "ArchiverSession.h"
+#include "helpers/ArchiveHelper.h"
 
 #include <list>
 #include <sstream>
@@ -132,7 +133,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives;
 	ObjectEntryList::iterator iArchive;
-	SessionPtr ptrSession;
+	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	HelperPtr ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
@@ -177,7 +178,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = Session::Create(m_ptrSession, m_lpLogger, &ptrSession);
+	hr = ArchiverSession::Create(m_ptrSession, m_lpLogger, &ptrSession);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -257,7 +258,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
 	ObjectEntryList::iterator iArchive;
-	SessionPtr ptrSession;
+	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	HelperPtr ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
@@ -296,7 +297,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		goto exit;
 	}
 
-	hr = Session::Create(m_ptrSession, m_lpLogger, &ptrSession);
+	hr = ArchiverSession::Create(m_ptrSession, m_lpLogger, &ptrSession);
 	if (hr != hrSuccess)
 		goto exit;
 

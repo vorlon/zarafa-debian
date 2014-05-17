@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -57,6 +57,7 @@
 #include "CommonUtil.h"
 #include "stringutil.h"
 #include "charset/convert.h"
+#include "charset/utf8string.h"
 
 #include <arpa/inet.h>
 #include <unicode/coll.h>
@@ -158,6 +159,8 @@ ECIndexDB::ECIndexDB(const std::string &strIndexId, ECConfig *lpConfig, ECLogger
 
     m_lpCollator = Collator::createInstance(status);
 	m_lpCollator->setAttribute(UCOL_STRENGTH, UCOL_PRIMARY, status);
+
+    pthread_mutex_init(&m_writeMutex, NULL);
 }
 
 ECIndexDB::~ECIndexDB()
@@ -176,6 +179,8 @@ ECIndexDB::~ECIndexDB()
         
     if(m_lpCollator)
         delete m_lpCollator;
+
+    pthread_mutex_destroy(&m_writeMutex);
 }
 
 HRESULT ECIndexDB::Create(const std::string &strIndexId, ECConfig *lpConfig, ECLogger *lpLogger, bool bCreate, bool bComplete, ECIndexDB **lppIndexDB)
@@ -298,6 +303,10 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
     
     memcpy(keybuf, (char *)&type, sizeof(type));
 
+    pthread_mutex_lock(&m_writeMutex);
+
+    m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SEARCH, "add term 0x%08X: '%s'", field, convert_to<utf8string>(wstrTerm).c_str());
+
     // Check if the property is excluded from indexing
     if (m_setExcludeProps.find(field) == m_setExcludeProps.end())
     {   
@@ -335,6 +344,7 @@ HRESULT ECIndexDB::AddTerm(folderid_t folder, docid_t doc, fieldid_t field, unsi
                 sTerm->len = klen;
             }
                 
+            m_lpLogger->Log(EC_LOGLEVEL_DEBUG|EC_LOGLEVEL_SEARCH, "token: '%s' type %s, key: '%s'", convert_to<utf8string>(text).c_str(), convert_to<utf8string>(token->type()).c_str(), keybuf+sizeof(unsigned int));
             m_lpCache->append(keybuf, sizeof(unsigned int) + keylen, buf, sizeof(TERMENTRY) + sTerm->len);
             m_ulCacheSize += sizeof(unsigned int) + keylen + sizeof(TERMENTRY) + sTerm->len;
 
@@ -352,6 +362,8 @@ next:
 exit:    
     if(stream)
         delete stream;
+
+    pthread_mutex_unlock(&m_writeMutex);
     
     return hr;
 }
@@ -869,6 +881,8 @@ HRESULT ECIndexDB::Optimize()
 	std::string strValues;
 	unsigned int ulLastBlock = 0;
 
+    pthread_mutex_lock(&m_writeMutex);
+
 	if (!m_bComplete)
 		goto exit;
 
@@ -1066,6 +1080,9 @@ exit:
 		m_lpIndex->defrag();
 
 	delete cursor;
+
+	pthread_mutex_unlock(&m_writeMutex);
+
 	return hr;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -223,6 +223,7 @@ int main(int argc, char *argv[]) {
 		{ "companyquota_warning_template", "/etc/zarafa/quotamail/companywarning.mail", CONFIGSETTING_RELOADABLE },
 		{ "companyquota_soft_template", "/etc/zarafa/quotamail/companysoft.mail", CONFIGSETTING_RELOADABLE },
 		{ "companyquota_hard_template", "/etc/zarafa/quotamail/companyhard.mail", CONFIGSETTING_RELOADABLE },
+		{ "servers", "" },
 		{ NULL, NULL },
 	};
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -70,7 +70,7 @@ public:
 
 	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);
 
-	HRESULT HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues);
+	HRESULT HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last=false);
 
 	typedef enum freq_type {DAILY, WEEKLY, MONTHLY, YEARLY} freq_type;
 	typedef enum term_type {DATE, NUMBER, NEVER} term_type;
@@ -222,6 +222,8 @@ private:
 */
 
 	ULONG calcBits(ULONG x);
+    bool CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues);
+
 };
 
 #endif

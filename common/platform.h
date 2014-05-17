@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -129,7 +129,9 @@ double timespec2dbl(timespec t);
 
 bool operator ==(FILETIME a, FILETIME b);
 bool operator >(FILETIME a, FILETIME b);
+bool operator >=(FILETIME a, FILETIME b);
 bool operator <(FILETIME a, FILETIME b);
+bool operator <=(FILETIME a, FILETIME b);
 time_t operator -(FILETIME a, FILETIME b);
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */
@@ -161,7 +163,7 @@ void	sleep_ms(unsigned int millis);
 #define MEMORY_USAGE_MAP(items, map)		(items * (sizeof(map) + sizeof(map::value_type)))
 #define MEMORY_USAGE_LIST(items, list)		(items * (MEMALIGN(sizeof(list) + sizeof(list::value_type))))
 #define MEMORY_USAGE_HASHMAP(items, map)	MEMORY_USAGE_MAP(items, map)
-#define MEMORY_USAGE_STRING(str)			( (str.capacity() + 1) * sizeof(char) )
+#define MEMORY_USAGE_STRING(str)			(str.capacity() + 1)
 #define MEMORY_USAGE_MULTIMAP(items, map)	MEMORY_USAGE_MAP(items, map)
 
 

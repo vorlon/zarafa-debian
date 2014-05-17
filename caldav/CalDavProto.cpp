@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1275,7 +1275,7 @@ HRESULT CalDAV::HrPut()
 		goto exit;
 
 	//save Ical data to mapi.
-	CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &lpICalToMapi);
+	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
 	
 	m_lpRequest->HrGetBody(&strIcal);
 
@@ -2361,14 +2361,18 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			sWebProperty.lstValues.push_back(sWebVal);
 
 		} else if (strProperty == "calendar-home-set" && !strCalHome.empty()) {
-			// Purpose: Identifies the URL of any WebDAV collections that contain
-			//          calendar collections owned by the associated principal resource.
-			// apple seems to use this as the root container where you have your calendars (and would create more)
-			// MKCALENDAR would be called with this url as a base.
-			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
-			sWebVal.strValue = strPrincipalURL;
-			sWebProperty.lstValues.push_back(sWebVal);
-
+			// do not set on public, so thunderbird/lightning doesn't require calendar-user-address-set, schedule-inbox-URL and schedule-outbox-URL
+			// public doesn't do meeting requests
+			// check here, because lpFoundProp is set to display name and isn't binary
+			if ((m_ulUrlFlag & REQ_PUBLIC) == 0) {
+				// Purpose: Identifies the URL of any WebDAV collections that contain
+				//          calendar collections owned by the associated principal resource.
+				// apple seems to use this as the root container where you have your calendars (and would create more)
+				// MKCALENDAR would be called with this url as a base.
+				HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
+				sWebVal.strValue = strPrincipalURL;
+				sWebProperty.lstValues.push_back(sWebVal);
+			}
 		} else if (strProperty == "calendar-user-type") {
 			if (SPropValToString(lpFoundProp) == "0")
 				sWebProperty.strValue = "INDIVIDUAL";

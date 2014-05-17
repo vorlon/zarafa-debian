@@ -3,7 +3,10 @@ lib_LTLIBRARIES = libzarafaclient.la
 sysconf_configdir = ${MAPICONFIGDIR}
 dist_sysconf_config_DATA = zarafa.inf
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX	\
+sampleconfdir = ${docdir}/example-config
+sampleconf_DATA = zarafa.inf
+
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS)	\
 	$(GSOAP_CFLAGS) $(SSL_CFLAGS)				\
 	-I${top_srcdir}/provider/include			\
 	-I${top_srcdir}/provider/common				\
@@ -14,7 +17,7 @@ AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX	\
 	-I${top_srcdir}/common						\
 	-I${top_srcdir}/zarafa-libsync
 
-libzarafaclient_la_LDFLAGS = -avoid-version
+libzarafaclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
 libzarafaclient_la_LIBADD = $(GSOAP_LIBS) $(SSL_LIBS)	\
 	${top_builddir}/provider/soap/libgsoap.la			\
 	${top_builddir}/provider/soap/libsoapclient.la		\

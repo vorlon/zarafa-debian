@@ -2688,28 +2688,27 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 
 #define SWIGTYPE_p_FBBlock_1 swig_types[0]
 #define SWIGTYPE_p_FBUser swig_types[1]
-#define SWIGTYPE_p_FILETIME swig_types[2]
-#define SWIGTYPE_p_HRESULT swig_types[3]
-#define SWIGTYPE_p_HWND swig_types[4]
-#define SWIGTYPE_p_IEnumFBBlock swig_types[5]
-#define SWIGTYPE_p_IFreeBusyData swig_types[6]
-#define SWIGTYPE_p_IFreeBusySupport swig_types[7]
-#define SWIGTYPE_p_IFreeBusyUpdate swig_types[8]
-#define SWIGTYPE_p_IID swig_types[9]
-#define SWIGTYPE_p_IMAPISession swig_types[10]
-#define SWIGTYPE_p_IMsgStore swig_types[11]
-#define SWIGTYPE_p_IUnknown swig_types[12]
-#define SWIGTYPE_p_LONG swig_types[13]
-#define SWIGTYPE_p_ULONG swig_types[14]
-#define SWIGTYPE_p_char swig_types[15]
-#define SWIGTYPE_p_p_IEnumFBBlock swig_types[16]
-#define SWIGTYPE_p_p_IFreeBusyData swig_types[17]
-#define SWIGTYPE_p_p_IFreeBusyUpdate swig_types[18]
-#define SWIGTYPE_p_p_void swig_types[19]
-#define SWIGTYPE_p_unsigned_int swig_types[20]
-#define SWIGTYPE_p_wchar_t swig_types[21]
-static swig_type_info *swig_types[23];
-static swig_module_info swig_module = {swig_types, 22, 0, 0, 0, 0};
+#define SWIGTYPE_p_HRESULT swig_types[2]
+#define SWIGTYPE_p_HWND swig_types[3]
+#define SWIGTYPE_p_IEnumFBBlock swig_types[4]
+#define SWIGTYPE_p_IFreeBusyData swig_types[5]
+#define SWIGTYPE_p_IFreeBusySupport swig_types[6]
+#define SWIGTYPE_p_IFreeBusyUpdate swig_types[7]
+#define SWIGTYPE_p_IID swig_types[8]
+#define SWIGTYPE_p_IMAPISession swig_types[9]
+#define SWIGTYPE_p_IMsgStore swig_types[10]
+#define SWIGTYPE_p_IUnknown swig_types[11]
+#define SWIGTYPE_p_LONG swig_types[12]
+#define SWIGTYPE_p_ULONG swig_types[13]
+#define SWIGTYPE_p_char swig_types[14]
+#define SWIGTYPE_p_p_IEnumFBBlock swig_types[15]
+#define SWIGTYPE_p_p_IFreeBusyData swig_types[16]
+#define SWIGTYPE_p_p_IFreeBusyUpdate swig_types[17]
+#define SWIGTYPE_p_p_void swig_types[18]
+#define SWIGTYPE_p_unsigned_int swig_types[19]
+#define SWIGTYPE_p_wchar_t swig_types[20]
+static swig_type_info *swig_types[22];
+static swig_module_info swig_module = {swig_types, 21, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2828,6 +2827,7 @@ namespace swig {
 #define SWIG_OWNER SWIG_POINTER_OWN
 
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
+
 
 
   #define SWIG_From_long   PyInt_FromLong 
@@ -3097,6 +3097,42 @@ SWIG_AsVal_unsigned_SS_int (PyObject * obj, unsigned int *val)
       if (val) *val = static_cast< unsigned int >(v);
     }
   }  
+  return res;
+}
+
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_long_SS_long (PyObject *obj, unsigned long long *val)
+{
+  int res = SWIG_TypeError;
+  if (PyLong_Check(obj)) {
+    unsigned long long v = PyLong_AsUnsignedLongLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  } else {
+    unsigned long v;
+    res = SWIG_AsVal_unsigned_SS_long (obj,&v);
+    if (SWIG_IsOK(res)) {
+      if (val) *val = v;
+      return res;
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    double d;
+    res = SWIG_AsVal_double (obj,&d);
+    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
+      if (val) *val = (unsigned long long)(d);
+      return SWIG_AddCast(res);
+    }
+    res = SWIG_TypeError;
+  }
+#endif
   return res;
 }
 
@@ -3503,10 +3539,6 @@ SWIGINTERN PyObject *_wrap_IFreeBusyUpdate_SaveChanges(PyObject *SWIGUNUSEDPARM(
   FILETIME arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -3519,30 +3551,10 @@ SWIGINTERN PyObject *_wrap_IFreeBusyUpdate_SaveChanges(PyObject *SWIGUNUSEDPARM(
   }
   arg1 = reinterpret_cast< IFreeBusyUpdate * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IFreeBusyUpdate_SaveChanges" "', argument " "2"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IFreeBusyUpdate_SaveChanges" "', argument " "2"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = Object_to_FILETIME(obj1);
   }
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IFreeBusyUpdate_SaveChanges" "', argument " "3"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IFreeBusyUpdate_SaveChanges" "', argument " "3"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
+    arg3 = Object_to_FILETIME(obj2);
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -3843,10 +3855,6 @@ SWIGINTERN PyObject *_wrap_IEnumFBBlock_Restrict(PyObject *SWIGUNUSEDPARM(self),
   FILETIME arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -3859,30 +3867,10 @@ SWIGINTERN PyObject *_wrap_IEnumFBBlock_Restrict(PyObject *SWIGUNUSEDPARM(self),
   }
   arg1 = reinterpret_cast< IEnumFBBlock * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IEnumFBBlock_Restrict" "', argument " "2"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IEnumFBBlock_Restrict" "', argument " "2"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+    arg2 = Object_to_FILETIME(obj1);
   }
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IEnumFBBlock_Restrict" "', argument " "3"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IEnumFBBlock_Restrict" "', argument " "3"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
+    arg3 = Object_to_FILETIME(obj2);
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -3984,10 +3972,6 @@ SWIGINTERN PyObject *_wrap_IFreeBusyData_EnumBlocks(PyObject *SWIGUNUSEDPARM(sel
   void *argp1 = 0 ;
   int res1 = 0 ;
   IEnumFBBlock *temp2 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  void *argp4 ;
-  int res4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4001,30 +3985,10 @@ SWIGINTERN PyObject *_wrap_IFreeBusyData_EnumBlocks(PyObject *SWIGUNUSEDPARM(sel
   }
   arg1 = reinterpret_cast< IFreeBusyData * >(argp1);
   {
-    res3 = SWIG_ConvertPtr(obj1, &argp3, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "IFreeBusyData_EnumBlocks" "', argument " "3"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IFreeBusyData_EnumBlocks" "', argument " "3"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
+    arg3 = Object_to_FILETIME(obj1);
   }
   {
-    res4 = SWIG_ConvertPtr(obj2, &argp4, SWIGTYPE_p_FILETIME,  0  | 0);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "IFreeBusyData_EnumBlocks" "', argument " "4"" of type '" "FILETIME""'"); 
-    }  
-    if (!argp4) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "IFreeBusyData_EnumBlocks" "', argument " "4"" of type '" "FILETIME""'");
-    } else {
-      FILETIME * temp = reinterpret_cast< FILETIME * >(argp4);
-      arg4 = *temp;
-      if (SWIG_IsNewObj(res4)) delete temp;
-    }
+    arg4 = Object_to_FILETIME(obj2);
   }
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
@@ -5777,7 +5741,6 @@ static void *_p_IFreeBusyUpdateTo_p_IUnknown(void *x, int *SWIGUNUSEDPARM(newmem
 }
 static swig_type_info _swigt__p_FBBlock_1 = {"_p_FBBlock_1", "FBBlock_1 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_FBUser = {"_p_FBUser", "FBUser *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_FILETIME = {"_p_FILETIME", "FILETIME *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_HRESULT = {"_p_HRESULT", "HRESULT *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_HWND = {"_p_HWND", "HWND *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_IEnumFBBlock = {"_p_IEnumFBBlock", "IEnumFBBlock *", 0, 0, (void*)0, 0};
@@ -5801,7 +5764,6 @@ static swig_type_info _swigt__p_wchar_t = {"_p_wchar_t", "wchar_t *", 0, 0, (voi
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_FBBlock_1,
   &_swigt__p_FBUser,
-  &_swigt__p_FILETIME,
   &_swigt__p_HRESULT,
   &_swigt__p_HWND,
   &_swigt__p_IEnumFBBlock,
@@ -5825,7 +5787,6 @@ static swig_type_info *swig_type_initial[] = {
 
 static swig_cast_info _swigc__p_FBBlock_1[] = {  {&_swigt__p_FBBlock_1, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_FBUser[] = {  {&_swigt__p_FBUser, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_FILETIME[] = {  {&_swigt__p_FILETIME, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_HRESULT[] = {  {&_swigt__p_HRESULT, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_HWND[] = {  {&_swigt__p_HWND, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_IEnumFBBlock[] = {  {&_swigt__p_IEnumFBBlock, 0, 0, 0},{0, 0, 0, 0}};
@@ -5849,7 +5810,6 @@ static swig_cast_info _swigc__p_wchar_t[] = {  {&_swigt__p_wchar_t, 0, 0, 0},{0,
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_FBBlock_1,
   _swigc__p_FBUser,
-  _swigc__p_FILETIME,
   _swigc__p_HRESULT,
   _swigc__p_HWND,
   _swigc__p_IEnumFBBlock,

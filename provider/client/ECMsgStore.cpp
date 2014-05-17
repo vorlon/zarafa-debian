@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -281,9 +281,10 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 
 	REGISTER_INTERFACE(IID_ISelectUnicode, &this->m_xUnknown);
 
-	if (refiid == IID_IExchangeManageStore) {
+	if (refiid == IID_IExchangeManageStore || refiid == IID_IExchangeManageStore6) {
 		if (m_bOfflineStore == FALSE) {			
 			REGISTER_INTERFACE(IID_IExchangeManageStore, &this->m_xExchangeManageStore);
+			REGISTER_INTERFACE(IID_IExchangeManageStore6, &this->m_xExchangeManageStore6);
 		}
 	}
 
@@ -5286,6 +5287,76 @@ HRESULT ECMSLogon::xMSLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, 
 	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
 	HRESULT hr = pThis->OpenStatusEntry(lpInterface, ulFlags, lpulObjType, lppEntry);
 	TRACE_MAPI(TRACE_RETURN, "IMSLogon::OpenStatusEntry", "%s", GetMAPIErrorDescription(hr).c_str());
+	return hr;
+}
+
+// IExchangeManageStore6
+ULONG ECMsgStore::xExchangeManageStore6::AddRef() {
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::AddRef", "");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	return pThis->AddRef();
+}
+
+ULONG ECMsgStore::xExchangeManageStore6::Release() {
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::Release", "");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	ULONG ulRef = pThis->Release();
+	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::Release", "%d", ulRef);
+	return ulRef;
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::QueryInterface(REFIID refiid, void **lppInterface)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
+	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
+	return hr;
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::CreateStoreEntryID","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
+	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryID","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
+	return hr;
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::EntryIDFromSourceKey","");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	return pThis->EntryIDFromSourceKey(cFolderKeySize, lpFolderSourceKey, cMessageKeySize, lpMessageSourceKey, lpcbEntryID, lppEntryID);
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetRights","");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	return pThis->GetRights(cbUserEntryID, lpUserEntryID, cbEntryID, lpEntryID, lpulRights);
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetMailboxTable","");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	return pThis->GetMailboxTable(lpszServerName, lppTable, ulFlags);
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetPublicFolderTable","");
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	return pThis->GetPublicFolderTable(lpszServerName, lppTable, ulFlags);
+}
+
+HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
+{
+	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::CreateStoreEntryIDEx","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
+	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
+	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
+	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryIDEx","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
 	return hr;
 }
 

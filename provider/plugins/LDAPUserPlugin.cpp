@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -553,7 +553,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	if (m_ldap != NULL)
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, &m_timeout, 0, &res);
 
-	if (m_ldap == NULL || result != LDAP_SUCCESS) {
+	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
 		// try 1 reconnect and retry, and if that fails, just completely fail
 		// We need this because LDAP server connections can timeout
 		char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
@@ -573,11 +573,16 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	}
 
 	if(result != LDAP_SUCCESS) {
-		if (m_ldap != NULL) {
-			ldap_unbind_s(m_ldap);
-			m_ldap = NULL;
-		}
-		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
+   		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
+
+		if(LDAP_API_ERROR(result)) {
+		    // Some kind of API error occurred (error is not from the server). Unbind the connection so any next try will re-bind
+		    // which will possibly connect to a different (failed over) server.
+            if (m_ldap != NULL) {
+                ldap_unbind_s(m_ldap);
+                m_ldap = NULL;
+            }
+        }
 		goto exit;
 	}
 
@@ -1275,7 +1280,7 @@ string LDAPUserPlugin::objectDNtoAttributeData(const string &dn, const char *lpA
 	return strData;
 }
 
-string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid) throw(std::exception)
+string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache) throw(std::exception)
 {
 	std::auto_ptr<dn_cache_t> lpCache = m_lpCache->getObjectDNCache(this, uniqueid.objclass);
 	auto_free_ldap_message res;
@@ -1286,13 +1291,18 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid) thro
 	 * The cache should actually contain this entry, search for the uniqueid in there first.
 	 * In the rare case that the cache didn't contain the entry, check LDAP.
 	 */
-	dn = m_lpCache->getDNForObject(lpCache, uniqueid);
-	if (!dn.empty())
-		return dn;
+	if (cache) {
+		dn = m_lpCache->getDNForObject(lpCache, uniqueid);
+		if (!dn.empty())
+			return dn;
+	}
 
 	/*
 	 * That's odd, the cache didn't contain the uniqueid. Perform a LDAP query
 	 * to search for the object, but chances are high the object doesn't exist at all.
+	 *
+	 * Except if we skipped the cache as per ZCP-11720, where we always
+	 * want to issue an LDAP query.
 	 */
 	string			ldap_basedn = getSearchBase();
 	string			ldap_filter = getObjectSearchFilter(uniqueid);
@@ -1594,7 +1604,11 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 
 	try {
 		signature = resolveName(ACTIVE_USER, username, company);
-		dn = objectUniqueIDtoObjectDN(signature.id);
+		/*
+		 * ZCP-11720: When looking for users, explicitly request
+		 * skipping the cache.
+		 */
+		dn = objectUniqueIDtoObjectDN(signature.id, false);
 
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
 	} catch (exception &e) {

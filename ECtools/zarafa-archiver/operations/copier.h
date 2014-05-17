@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -69,7 +69,7 @@ namespace za { namespace operations {
 class Copier : public ArchiveOperationBaseEx
 {
 public:
-	Copier(SessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread);
+	Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread);
 	~Copier();
 
 	/**
@@ -94,7 +94,7 @@ public:
 	class Helper // For lack of a better name
 	{
 	public:
-		Helper(SessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder);
+		Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -131,13 +131,13 @@ public:
 		/**
 		 * Get the Session instance associated with this instance.
 		 */
-		SessionPtr& GetSession() { return m_ptrSession; }
+		ArchiverSessionPtr& GetSession() { return m_ptrSession; }
 
 	private:
 		typedef std::map<entryid_t,MAPIFolderPtr> ArchiveFolderMap;
 		ArchiveFolderMap m_mapArchiveFolders;
 
-		SessionPtr m_ptrSession;
+		ArchiverSessionPtr m_ptrSession;
 		ECLogger *m_lpLogger;
 		LPSPropTagArray m_lpExcludeProps;
 		MAPIFolderPtr m_ptrFolder;
@@ -235,7 +235,7 @@ private:
 	HRESULT UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &refMsgEntry, TransactionPtr ptrTransaction);
 
 private:
-	SessionPtr m_ptrSession;
+	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig;
 	ObjectEntryList m_lstArchives;
 	SPropTagArrayPtr m_ptrExcludeProps;

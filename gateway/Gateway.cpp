@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -295,13 +295,13 @@ void *Handler(void *lpArg) {
 			bQuit = true;
 		}
 		if (hr == MAPI_E_END_OF_SESSION) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Disconnecting client.");
+			lpLogger->Log(EC_LOGLEVEL_NOTICE, "Disconnecting client.");
 			bQuit = true;
 		}
 	}
 
 exit:
-	lpLogger->Log(EC_LOGLEVEL_FATAL, "Client %s thread exiting", lpChannel->GetIPAddress().c_str());
+	lpLogger->Log(EC_LOGLEVEL_NOTICE, "Client %s thread exiting", lpChannel->GetIPAddress().c_str());
 
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
@@ -338,6 +338,7 @@ int main(int argc, char *argv[]) {
 		{ "pid_file", "/var/run/zarafa-gateway.pid" },
 		{ "running_path", "/" },
 		{ "process_model", "fork" },
+		{ "coredump_enabled", "no" },
 		{ "pop3_enable", "yes" },
 		{ "pop3_port", "110" },
 		{ "pop3s_enable", "no" },
@@ -350,6 +351,7 @@ int main(int argc, char *argv[]) {
 		{ "imap_public_folders", "yes", CONFIGSETTING_RELOADABLE },
 		{ "imap_capability_idle", "yes", CONFIGSETTING_RELOADABLE },
 		{ "imap_always_generate", "no", CONFIGSETTING_UNUSED },
+		{ "imap_max_fail_commands", "10", CONFIGSETTING_RELOADABLE },
 		{ "imap_max_messagesize", "128M", CONFIGSETTING_RELOADABLE | CONFIGSETTING_SIZE },
 		{ "imap_generate_utf8", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_expunge_on_delete", "no", CONFIGSETTING_RELOADABLE },
@@ -603,6 +605,9 @@ HRESULT running_service(char *szPath, char *servicename) {
         g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
     }        
 
+	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
+		unix_coredump_enable(g_lpLogger);
+
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger))
@@ -679,7 +684,7 @@ HRESULT running_service(char *szPath, char *servicename) {
 			pthread_t POP3Thread;
 			const char *method = usessl ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker %s for %s request", model, method);
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
@@ -731,7 +736,7 @@ HRESULT running_service(char *szPath, char *servicename) {
 			pthread_t IMAPThread;
 			const char *method = usessl ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker %s for %s request", model, method);
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&IMAPThread, &ThreadAttr, Handler, lpHandlerArgs) != 0) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
@@ -772,14 +777,14 @@ HRESULT running_service(char *szPath, char *servicename) {
 	// wait max 10 seconds (init script waits 15 seconds)
 	for(int i = 10; (nChildren && i); i--) {
 		if (i % 5 == 0)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", nChildren);
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Waiting for %d processes to exit", nChildren);
 		sleep(1);
 	}
 
 	if (nChildren)
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", nChildren);
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Forced shutdown with %d processes left", nChildren);
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3/IMAP Gateway shutdown complete");
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "POP3/IMAP Gateway shutdown complete");
 
 
 	MAPIUninitialize();

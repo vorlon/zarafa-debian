@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -226,6 +226,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			break;
 		case ICAL_UNIMPLEMENTED_ERROR:
 			hr = E_NOTIMPL;
+			break;
 		case ICAL_UNKNOWN_ERROR:
 		case ICAL_PARSE_ERROR:
 		case ICAL_INTERNAL_ERROR:

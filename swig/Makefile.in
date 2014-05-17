@@ -39,14 +39,8 @@ subdir = swig
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -104,7 +98,9 @@ am__relativize = \
   reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -191,6 +187,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -234,6 +231,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -245,6 +243,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -302,14 +301,18 @@ top_srcdir = @top_srcdir@
 
 # make sure common swig lib builds first
 SUBDIRS = . $(am__append_1)
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
+	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common \
+	-I${top_srcdir}/common
+
 EXTRA_DIST = edkmdb.i mapi.i mapiutil.i mapidefs.i mapicode.i mapix.i \
 	mapinotifsink.i typemap.i helpers.i IECExportChanges.i \
 	IECMultiStoreTable.i IECServiceAdmin.i IECSpooler.i \
 	IECTestProtocol.i IECLicense.i inetmapi.i icalmapi.i \
 	swig_iunknown.h ecdefs.i libcommon.i archiver.i \
 	licenseclient.i libfreebusy.i zarafasync.i ECLogger.i \
-	RecurrenceState.i RecurrenceState.swig.h $(am__append_2)
+	RecurrenceState.i RecurrenceState.swig.h mapicalendar.i \
+	mapitimezone.i $(am__append_2)
 all: all-recursive
 
 .SUFFIXES:

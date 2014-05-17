@@ -22,9 +22,9 @@
 #		cat <attachment> | <command>
 #
 text/plain;txt	`cat /dev/stdin`
-text/html;html;htm	`FILE=$(zmktemp); w3m -dump -s -O utf-8 $FILE`
+text/html;html;htm	`FILE=$(zmktemp); w3m -dump -T text/html -s -O utf-8 $FILE`
 application/xml;text/xml;xml	`xsltproc ${SCRIPTPATH}/xmltotext.xslt -`
-application/pdf;pdf	`pdftotext -enc UTF-8 -q -nopgbrk $(zmktemp) /dev/stdout`
+application/pdf;pdf	`pdftotext -q -nopgbrk $(zmktemp) /dev/stdout`
 application/msword;doc `catdoc -s cp1252 -d utf-8 -f ascii -w /dev/stdin`
 application/mspowerpoint;application/powerpoint;application/x-mspowerpoint;application/vnd.ms-powerpoint;ppt	`catppt -s cp1252 -d utf-8 /dev/stdin`
 application/excel;application/x-excel;application/x-msexcel;application/vnd.ms-excel;xls	`xls2csv -s cp1252 -d utf-8 -c ' ' /dev/stdin`
@@ -37,4 +37,4 @@ application/vnd.oasis.opendocument.presentation;odp	`zmktemp | unzip -p $(cat /d
 image/gif;image/jpeg;image/png;image/tiff;gif;jpg;jpeg;png;tif;tiff	`echo -n`
 
 # fallback if the mimetype was not specified
-application/octet-stream `FILE=$(zmktemp); attachments_parser $(file --mime-type $FILE | awk '{print $2}' | sed -e 's%application/octet-stream%stop_loop%') $FILE`
+application/octet-stream `FILE=$(zmktemp); cat $FILE | attachments_parser mime $(file --mime-type $FILE | awk '{print $2}' | sed -e 's%application/octet-stream%stop_loop%')`

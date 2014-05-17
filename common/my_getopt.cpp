@@ -1,7 +1,7 @@
 #include "platform.h"
 /*
  *  my_getopt.c - my re-implementation of getopt.
- *  Copyright 1997, 2000, 2001, 2002, Benjamin Sittler
+ *  Copyright 1997, 2000, 2001, 2002, 2006, Benjamin Sittler
  *
  *  Permission is hereby granted, free of charge, to any person
  *  obtaining a copy of this software and associated documentation
@@ -24,16 +24,25 @@
  *  DEALINGS IN THE SOFTWARE.
  */
 
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "my_getopt.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 int my_optind=1, my_opterr=1, my_optopt=0;
 char *my_optarg=0;
+static int charind = 0;
+
+/* reset argument parser to start-up values */
+int my_getopt_reset(void)
+{
+    my_optind = 1;
+    my_opterr = 1;
+    my_optopt = 0;
+    my_optarg = 0;
+    return 0;
+}
 
 /* this is the plain old UNIX getopt, with GNU-style extensions. */
 /* if you're porting some piece of UNIX software, this is all you need. */
@@ -41,7 +50,6 @@ char *my_optarg=0;
 
 int my_getopt(int argc, char * argv[], const char *opts)
 {
-  static int charind=0;
   const char *s;
   char mode, colon_mode;
   int off = 0, opt = -1;
@@ -248,15 +256,13 @@ int _my_getopt_internal(int argc, char * argv[], const char *shortopts,
         opt = '?';
         if(my_opterr) fprintf(stderr,
                            "%s: unrecognized option `%s'\n",
-                           argv[0], argv[my_optind]);
-        my_optind++;
+                           argv[0], argv[my_optind++]);
       }
     } else {
       opt = '?';
       if(my_opterr) fprintf(stderr,
                          "%s: option `%s' is ambiguous\n",
-                         argv[0], argv[my_optind]);
-        my_optind++;
+                         argv[0], argv[my_optind++]);
     }
   }
   if (my_optind > argc) my_optind = argc;
@@ -275,10 +281,12 @@ int my_getopt_long_only(int argc, char * argv[], const char *shortopts,
   return _my_getopt_internal(argc, argv, shortopts, longopts, longind, 1);
 }
 
+/* zarafa's own code (not written by bsittler) follows... */
 int my_getopt_long_permissive(int argc, char * argv[], const char *shortopts,
                 const struct option *longopts, int *longind)
 {
     int my_opterr_save = my_opterr;
+    int saved_optind = my_optind, saved_charind = charind;
     my_opterr = 0;
     
     int c = my_getopt_long(argc, argv, shortopts, longopts, longind);
@@ -287,6 +295,11 @@ int my_getopt_long_permissive(int argc, char * argv[], const char *shortopts,
         // Move this parameter to the end of the list if it a long option
         if(argv[my_optind-1][0] == '-' && argv[my_optind-1][1] == '-' && argv[my_optind-1][2] != '\0') {
             int i = my_optind-1;
+            /*
+             * Continue parsing at the next argument before moving the unknown
+             * option to the end, otherwise a potentially endless loop could
+             * ensue.
+             */
             c = my_getopt_long_permissive(argc, argv, shortopts, longopts, longind);
             
             char *tmp = argv[i];
@@ -295,6 +308,7 @@ int my_getopt_long_permissive(int argc, char * argv[], const char *shortopts,
             }
             argv[i] = tmp;
             my_optind--;
+            --saved_optind;
         }
     }
     
@@ -302,7 +316,8 @@ int my_getopt_long_permissive(int argc, char * argv[], const char *shortopts,
     
     // Show error
     if(c == '?') {
-        my_optind--;
+    	my_optind = saved_optind;
+    	charind = saved_charind;
         my_getopt_long(argc, argv, shortopts, longopts, longind);
     }
     

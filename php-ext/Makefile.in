@@ -40,14 +40,8 @@ DIST_COMMON = $(dist_data_DATA) $(dist_sysconf_DATA) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -76,7 +70,7 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" \
-	"$(DESTDIR)$(sysconfdir)"
+	"$(DESTDIR)$(sysconfdir)" "$(DESTDIR)$(sampleconfdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 mapi_la_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
@@ -138,13 +132,15 @@ am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(mapi_la_SOURCES)
 DIST_SOURCES = $(mapi_la_SOURCES)
-DATA = $(dist_data_DATA) $(dist_sysconf_DATA)
+DATA = $(dist_data_DATA) $(dist_sysconf_DATA) $(sampleconf_DATA)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -231,6 +227,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -274,6 +271,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -285,6 +283,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -340,14 +339,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = mapi.la
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include \
 	-I$(top_srcdir)/libfreebusy \
 	-I$(top_srcdir)/inetmapi \
 	-I${top_srcdir}/common \
 	$(PHP_INCLUDES)
 
-mapi_la_LDFLAGS = -module -avoid-version \
+mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	$(PHP_LDFLAGS)
 
 mapi_la_LIBADD = \
@@ -365,6 +364,8 @@ mapi_la_LIBADD = \
 # therefore, we explicitly link mapi.so with -lpthread :(
 dist_data_DATA = include/mapi/mapicode.php include/mapi/mapidefs.php include/mapi/mapitags.php include/mapi/mapi.util.php include/mapi/class.recurrence.php include/mapi/class.meetingrequest.php include/mapi/class.freebusypublish.php include/mapi/class.baseexception.php include/mapi/class.mapiexception.php include/mapi/mapiguid.php include/mapi/class.baserecurrence.php include/mapi/class.taskrequest.php include/mapi/class.taskrecurrence.php
 dist_sysconf_DATA = zarafa.ini
+sampleconfdir = ${docdir}/example-config
+sampleconf_DATA = zarafa.ini
 mapi_la_SOURCES = main.cpp util.cpp \
 	phpconfig.h main.h util.h \
 	ECImportContentsChangesProxy.cpp ECImportContentsChangesProxy.h \
@@ -523,6 +524,26 @@ uninstall-dist_sysconfDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(sysconfdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(sysconfdir)" && rm -f $$files
+install-sampleconfDATA: $(sampleconf_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(sampleconfdir)" || $(MKDIR_P) "$(DESTDIR)$(sampleconfdir)"
+	@list='$(sampleconf_DATA)'; test -n "$(sampleconfdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(sampleconfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(sampleconfdir)" || exit $$?; \
+	done
+
+uninstall-sampleconfDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sampleconf_DATA)'; test -n "$(sampleconfdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(sampleconfdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sampleconfdir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -610,7 +631,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(sysconfdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(sysconfdir)" "$(DESTDIR)$(sampleconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -661,7 +682,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_dataDATA
+install-data-am: install-dist_dataDATA install-sampleconfDATA
 
 install-dvi: install-dvi-am
 
@@ -708,7 +729,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-dist_dataDATA uninstall-dist_sysconfDATA \
-	uninstall-libLTLIBRARIES
+	uninstall-libLTLIBRARIES uninstall-sampleconfDATA
 
 .MAKE: install-am install-strip
 
@@ -721,12 +742,13 @@ uninstall-am: uninstall-dist_dataDATA uninstall-dist_sysconfDATA \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
 	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-ps install-ps-am install-sampleconfDATA install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-dist_dataDATA \
-	uninstall-dist_sysconfDATA uninstall-libLTLIBRARIES
+	uninstall-dist_sysconfDATA uninstall-libLTLIBRARIES \
+	uninstall-sampleconfDATA
 
 
 check-syntax:

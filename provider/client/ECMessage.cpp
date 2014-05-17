@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -2854,9 +2854,10 @@ HRESULT ECMessage::HrLoadProps()
 		HRESULT hrTmp = hrSuccess;
 
 		hrTmp = GetBodyType(&m_ulBodyType);
-		if (FAILED(hrTmp))
-			TRACE_RELEASE("Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
-		else {
+		if (FAILED(hrTmp)) {
+			// eg. this fails then RTF property is present but empty
+			TRACE_MAPI(TRACE_WARNING, "GetBestBody", "Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
+		} else {
 			if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
 				(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
 			{

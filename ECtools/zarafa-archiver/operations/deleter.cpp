@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -48,7 +48,7 @@
  */
 
 #include <platform.h>
-#include "logger.h"
+#include "ECArchiverLogger.h"
 #include "deleter.h"
 
 using namespace std;

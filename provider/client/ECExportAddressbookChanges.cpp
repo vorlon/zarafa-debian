@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -360,7 +360,8 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 		m_setProcessed.clear();
 
 		// The last change ID we received is always the highest change ID
-		m_ulChangeId = m_ulMaxChangeId;
+		if(m_ulMaxChangeId > 0)
+			m_ulChangeId = m_ulMaxChangeId;
 	}
 
 	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);

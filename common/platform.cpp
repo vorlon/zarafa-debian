@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -302,11 +302,21 @@ bool operator >(FILETIME a, FILETIME b)
 		 (a.dwLowDateTime > b.dwLowDateTime)));
 }
 
+bool operator >=(FILETIME a, FILETIME b)
+{
+	return a > b || a == b;
+}
+
 bool operator <(FILETIME a, FILETIME b)
 {
 	return ((a.dwHighDateTime < b.dwHighDateTime) ||
 		((a.dwHighDateTime == b.dwHighDateTime) &&
 		 (a.dwLowDateTime < b.dwLowDateTime)));
+}
+
+bool operator <=(FILETIME a, FILETIME b)
+{
+	return a < b || a == b;
 }
 
 time_t operator -(FILETIME a, FILETIME b)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -126,7 +126,7 @@ void TraceMsg(char* lpMsg, int time, char *func, char *format, va_list va)
 
 	len = pos + 3;
 
-	if (format && va) {
+	if (format) {
 		va_copy(va_lentest, va);
 		len += _vsnprintf(NULL, 0, format, va_lentest);
 		va_end(va_lentest);
@@ -135,11 +135,11 @@ void TraceMsg(char* lpMsg, int time, char *func, char *format, va_list va)
 	if (BUFFER_LIMIT != 0 && pos+3 < BUFFER_LIMIT && len > BUFFER_LIMIT)
 		len = BUFFER_LIMIT;
 
-	buffer = (char*)malloc( len * sizeof(char) );
+	buffer = (char*)malloc(len);
 
 	memcpy(buffer, debug, pos);
 
-	if (format && va)
+	if (format)
 		pos = _vsnprintf(buffer+pos, len-pos, format, va);
 
 	if(pos == -1) {

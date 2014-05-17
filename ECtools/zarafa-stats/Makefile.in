@@ -41,14 +41,8 @@ DIST_COMMON = $(am__dist_noinst_DATA_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -60,10 +54,10 @@ PROGRAMS = $(bin_PROGRAMS)
 am_zarafa_stats_OBJECTS = zarafa-stats.$(OBJEXT)
 zarafa_stats_OBJECTS = $(am_zarafa_stats_OBJECTS)
 am__DEPENDENCIES_1 =
-zarafa_stats_DEPENDENCIES = ${top_builddir}/mapi4linux/src/libmapi.la \
+zarafa_stats_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
-	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	${top_builddir}/common/libcommon_util.la $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
@@ -103,7 +97,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -190,6 +186,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -233,6 +230,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -244,6 +242,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -299,17 +298,21 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 @OSS_ONLY_FALSE@dist_noinst_DATA = zarafa-ssm zarafa-ssm.default zarafa-ssm.cron
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	$(NCURSES_FLAGS) \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/libfreebusy	\
 	-I${top_srcdir}/common
 
+
+# ncurses needs to come first, because ICU_LIBS erroneously has -L/usr/lib64
+# which overrides the ncurses lib selection >:-(
 zarafa_stats_LDADD = \
+	$(NCURSES_LIBS) \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
-	$(PROG_LIBS) $(NCURSES_LIBS)
+	$(PROG_LIBS)
 
 zarafa_stats_SOURCES = zarafa-stats.cpp
 all: all-am
@@ -568,8 +571,7 @@ info: info-am
 info-am:
 
 install-data-am:
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
+
 install-dvi: install-dvi-am
 
 install-dvi-am:
@@ -616,30 +618,22 @@ ps-am:
 
 uninstall-am: uninstall-binPROGRAMS
 
-.MAKE: install-am install-data-am install-strip
+.MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
 	clean-generic clean-libtool ctags distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am \
-	install-data-hook install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS
+	install-binPROGRAMS install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-binPROGRAMS
 
-
-install-data-hook:
-@OSS_ONLY_FALSE@	mkdir -p $(DESTDIR)/$(sysconfdir)/default
-@OSS_ONLY_FALSE@	install -m 644 ${top_srcdir}/ECtools/zarafa-stats/zarafa-ssm.default $(DESTDIR)/$(sysconfdir)/default/zarafa-ssm
-@OSS_ONLY_FALSE@	mkdir -p $(DESTDIR)/$(sysconfdir)/cron.d
-@OSS_ONLY_FALSE@	install -m 644 ${top_srcdir}/ECtools/zarafa-stats/zarafa-ssm.cron $(DESTDIR)/$(sysconfdir)/cron.d/zarafa-ssm
-@OSS_ONLY_FALSE@	mkdir -p $(DESTDIR)/$(bindir)
-@OSS_ONLY_FALSE@	install -m 755 ${top_srcdir}/ECtools/zarafa-stats/zarafa-ssm $(DESTDIR)/$(bindir)
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

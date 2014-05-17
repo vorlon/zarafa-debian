@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -371,6 +371,9 @@ HRESULT service_start(int argc, char *argv[], const char *lpszPath, bool daemoni
 		g_lpThreadData->lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 
+	if (parseBool(g_lpThreadData->lpConfig->GetSetting("coredump_enabled")))
+		unix_coredump_enable(g_lpThreadData->lpLogger);
+
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (daemonize && unix_daemonize(g_lpThreadData->lpConfig, g_lpThreadData->lpLogger))
@@ -498,6 +501,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "" },
 		{ "run_as_group", "" },
 		{ "running_path", "/" },
+		{ "coredump_enabled", "yes" },
 		/* Logging options */
 		{ "log_method","file" },
 		{ "log_file", INDEXER_DEFAULT_LOGFILE },

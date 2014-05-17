@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1106,41 +1106,43 @@ exit:
 
 /**
  * Extract the server URL from a store entryid.
- * @param[in]	cbEntryId		The length of the entryid pointed to by lpEntryId
- * @param[in]	lpEntryId		Pointer to the store entryid.
- * @param[out]	lppServerPath	Pointer to a char pointer that will be set to the server path
- *								extracted from the entry id. Memory for this path will be allocates
- *								with MAPIAllocateBuffer and must be freed by the caller.
- * @param[out]	lpbIsPseudoUrl	Pointer to a boolean that will be set to true if the extracted
- *								server path is a pseudo URL.
- * @retval	MAPI_E_INVALID_PARAMETER	lpEntryId, lppServerName or lpbIsPseudoUrl is NULL
- * @retval	MAPI_E_NOT_FOUND			The extracted server path does not start with http://, https://, file:// or pseudo://
+ * @param[in]	cbEntryId			The length of the entryid pointed to by
+						lpEntryId
+ * @param[in]	lpEntryId			Pointer to the store entryid.
+ * @param[out]	rServerPath			Reference to a std::string that will be
+ *						set to the server path extracted from
+ *						the entry id.
+ * @param[out]	lpbIsPseudoUrl			Pointer to a boolean that will be set to
+ *						true if the extracted server path is a
+ *						pseudo URL.
+ * @retval	MAPI_E_INVALID_PARAMETER	lpEntryId or lpbIsPseudoUrl is NULL
+ * @retval	MAPI_E_NOT_FOUND		The extracted server path does not start
+ *						with http://, https://, file:// or pseudo://
  */
-HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, char** lppServerName, bool *lpbIsPseudoUrl)
+HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std::string& rServerPath, bool *lpbIsPseudoUrl)
 {
-	HRESULT		hr = hrSuccess;
-	PEID		peid = (PEID)lpEntryId;
-	EID_V0*		peid_V0 = NULL;
+	HRESULT	hr = hrSuccess;
+	PEID	peid = (PEID)lpEntryId;
+	EID_V0*	peid_V0 = NULL;
 
-	ULONG		ulMaxSize = 0;
-	ULONG		ulSize = 0;
-	char*		lpServerName = NULL;
-	char*		lpTmpServerName = NULL;
-	bool		bIsPseudoUrl = false;
+	ULONG	ulMaxSize = 0;
+	ULONG	ulSize = 0;
+	char*	lpTmpServerName = NULL;
+	bool	bIsPseudoUrl = false;
 
-	if(lpEntryId == NULL || lppServerName == NULL || lpbIsPseudoUrl == NULL) {
+	if (lpEntryId == NULL || lpbIsPseudoUrl == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	if(peid->ulVersion == 0) 
+	if (peid->ulVersion == 0) 
 	{
 		peid_V0 = (EID_V0*)lpEntryId;
 
 		ulMaxSize = cbEntryId - offsetof(EID_V0, szServer);
 		ulSize = strnlen((char*)peid_V0->szServer, ulMaxSize);
 		lpTmpServerName = (char*)peid_V0->szServer;
-	}else {
+	} else {
 		ulMaxSize = cbEntryId - offsetof(EID, szServer);
 		ulSize = strnlen((char*)peid->szServer, ulMaxSize);
 		lpTmpServerName = (char*)peid->szServer;
@@ -1161,23 +1163,32 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, cha
 		goto exit;
 	}
 
-	ECAllocateBuffer(strlen(lpTmpServerName) + 1, (void**)&lpServerName);
-	strcpy(lpServerName, lpTmpServerName);
-
-	*lppServerName = lpServerName;
+	rServerPath = lpTmpServerName;
 	*lpbIsPseudoUrl = bIsPseudoUrl;
 
 exit:
 	return hr;
 }
 
-HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, char *lpszUrl, std::string *lpstrServerPath, bool *lpbIsPeer)
+/**
+ * Resolve a pseudoURL
+ * @param[in]	lpTransport			Pointer to a WebServices transport object
+ * @param[in]	lpszUrl				C string containing pseudoURL.
+ * @param[out]	serverPath			Reference to a std::string that will be
+ *						set to the iresolved server path.
+ * @param[out]	lpbIsPeer			Pointer to a boolean that will be set to
+ *						true the server is a peer.
+ * @retval	MAPI_E_INVALID_PARAMETER	lpTransport or lpszUrl are NULL
+ * @retval	MAPI_E_NOT_FOUND		The extracted server path does not start
+ *						with pseudo://
+ */
+HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::string& serverPath, bool *lpbIsPeer)
 {
 	HRESULT		hr = hrSuccess;
 	char		*lpszServerPath = NULL;
 	bool		bIsPeer = false;
 
-	if (lpTransport == NULL || lpszUrl == NULL || lpstrServerPath == NULL)
+	if (lpTransport == NULL || lpszUrl == NULL)
 	{
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -1193,7 +1204,7 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, char *lpszUrl, std::string 
 	if (hr != hrSuccess)
 		goto exit;
 
-	*lpstrServerPath = lpszServerPath;
+	serverPath = lpszServerPath;
 	if (lpbIsPeer)
 		*lpbIsPeer = bIsPeer;
 

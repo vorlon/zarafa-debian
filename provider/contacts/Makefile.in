@@ -40,14 +40,8 @@ DIST_COMMON = $(dist_sysconf_config_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -76,7 +70,7 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(sysconf_configdir)"
+	"$(DESTDIR)$(sysconf_configdir)" "$(DESTDIR)$(sampleconfdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libzarafacontacts_la_DEPENDENCIES =  \
@@ -138,13 +132,15 @@ am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libzarafacontacts_la_SOURCES)
 DIST_SOURCES = $(libzarafacontacts_la_SOURCES)
-DATA = $(dist_sysconf_config_DATA)
+DATA = $(dist_sysconf_config_DATA) $(sampleconf_DATA)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -231,6 +227,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -274,6 +271,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -285,6 +283,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -342,14 +341,16 @@ top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libzarafacontacts.la
 sysconf_configdir = ${MAPICONFIGDIR}
 dist_sysconf_config_DATA = zcontacts.inf
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX		\
+sampleconfdir = ${docdir}/example-config
+sampleconf_DATA = zcontacts.inf
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS)	\
 	-I${top_srcdir}/provider/include	\
 	-I${top_srcdir}/provider/common		\
 	-I${top_srcdir}/provider/client		\
 	-I${top_srcdir}/mapi4linux/include	\
 	-I${top_srcdir}/common
 
-libzarafacontacts_la_LDFLAGS = -avoid-version
+libzarafacontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
 libzarafacontacts_la_LIBADD = \
 	${top_builddir}/common/libcommon_util.la			\
 	${top_builddir}/common/libcommon_mapi.la			\
@@ -491,6 +492,26 @@ uninstall-dist_sysconf_configDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(sysconf_configdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(sysconf_configdir)" && rm -f $$files
+install-sampleconfDATA: $(sampleconf_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(sampleconfdir)" || $(MKDIR_P) "$(DESTDIR)$(sampleconfdir)"
+	@list='$(sampleconf_DATA)'; test -n "$(sampleconfdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(sampleconfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(sampleconfdir)" || exit $$?; \
+	done
+
+uninstall-sampleconfDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sampleconf_DATA)'; test -n "$(sampleconfdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(sampleconfdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sampleconfdir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -578,7 +599,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sysconf_configdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sysconf_configdir)" "$(DESTDIR)$(sampleconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -629,7 +650,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_sysconf_configDATA
+install-data-am: install-dist_sysconf_configDATA \
+	install-sampleconfDATA
 
 install-dvi: install-dvi-am
 
@@ -676,7 +698,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-dist_sysconf_configDATA \
-	uninstall-libLTLIBRARIES
+	uninstall-libLTLIBRARIES uninstall-sampleconfDATA
 
 .MAKE: install-am install-strip
 
@@ -689,12 +711,12 @@ uninstall-am: uninstall-dist_sysconf_configDATA \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-libLTLIBRARIES \
 	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-dist_sysconf_configDATA \
-	uninstall-libLTLIBRARIES
+	install-ps-am install-sampleconfDATA install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-dist_sysconf_configDATA \
+	uninstall-libLTLIBRARIES uninstall-sampleconfDATA
 
 
 check-syntax:

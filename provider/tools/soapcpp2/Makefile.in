@@ -40,14 +40,8 @@ DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	soapcpp2_lex.c soapcpp2_yacc.c soapcpp2_yacc.h
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -114,7 +108,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -201,6 +197,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -244,6 +241,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -255,6 +253,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -313,7 +312,7 @@ AM_YFLAGS = -d -v
 AM_LFLAGS = $(LEX_FLAGS)
 
 # platform=LINUX
-soapcpp2_CFLAGS = $(BISON_DEFINE) $(LEX_DEFINE) $(C_DEBUG_FLAGS) -DLINUX
+soapcpp2_CFLAGS = $(BISON_DEFINE) $(LEX_DEFINE) $(C_DEBUG_FLAGS)
 soapcpp2_LDADD = $(YACC_LIB) $(LEXLIB)
 soapcpp2_SOURCES = soapcpp2_yacc.y soapcpp2_lex.l symbol2.c error2.c init2.c soapcpp2.c soapcpp2.h error2.h
 # make sure build waits for this file

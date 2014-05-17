@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -93,7 +93,7 @@ public:
 	// Constructors
 	mapi_object_ptr() : m_lpObject(NULL) {}
 	
-	explicit mapi_object_ptr(pointer lpObject, bool bAddRef = false) : m_lpObject(lpObject) {
+	explicit mapi_object_ptr(pointer lpObject, bool bAddRef = true) : m_lpObject(lpObject) {
 		if (bAddRef && m_lpObject)
 			m_lpObject->AddRef();
 	}
@@ -114,14 +114,6 @@ public:
 	
 	
 	// Assignment
-	mapi_object_ptr& operator=(pointer lpObject) {
-		if (m_lpObject != lpObject) {
-			mapi_object_ptr tmp(lpObject);
-			swap(tmp);
-		}
-		return *this;
-	}
-	
 	mapi_object_ptr& operator=(const mapi_object_ptr &other) {
 		if (this != &other) {
 			mapi_object_ptr tmp(other);
@@ -150,7 +142,7 @@ public:
 		if (m_lpObject) {
 			hr = m_lpObject->QueryInterface(_U::iid, (void**)&lpNewObject);
 			if (hr == hrSuccess)
-				refResult = lpNewObject;
+				refResult.reset(lpNewObject, false);
 
 			/**
 			 * Here we check if it makes sence to try to get the requested interface through the 
@@ -172,7 +164,7 @@ public:
 
 				hr = ((IECUnknown*)ptrPropValue->Value.lpszA)->QueryInterface(_U::iid, (void**)&lpNewObject);
 				if (hr == hrSuccess)
-					refResult = lpNewObject;
+					refResult.reset(lpNewObject, false);
 			}
 		}
 
@@ -203,15 +195,37 @@ public:
 		return ptrTmp;
 	}
 
+	/**
+	 * Replace the managed object.
+	 * If an object was managed, its refcount will be decremented.
+	 * If a new object is assigned, its refcount will be incremented.
+	 */
 	void reset(pointer lpObject = NULL) {
+		reset(lpObject, true);
+	}
+	
+	/**
+	 * Replace the managed object, and optionally increment the
+	 * new objects refcount.
+	 * If an object was managed, its refcount will always be decremented.
+	 * If a new object is assigned and bAddRef is true, the refcount of
+	 * the new object is incremented.
+	 */
+	void reset(pointer lpObject, bool bAddRef) {
 		if (m_lpObject)
 			m_lpObject->Release();
 
 		m_lpObject = lpObject;
-		if (m_lpObject)
+		if (m_lpObject && bAddRef)
 			m_lpObject->AddRef();
 	}
 
+	/**
+	 * Release a managed object and return a pointer to it.
+	 * The refcount of the managed object is not decremented and the
+	 * caller will have to make sure it will be decremented at some
+	 * point in time.
+	 */
 	pointer release() {
 		pointer p = m_lpObject;
 		m_lpObject = NULL;
@@ -275,7 +289,5 @@ private:
 
 template<typename _T, REFIID _R>
 const IID mapi_object_ptr<_T,_R>::iid(_R);
-
-#define DEFINEMAPIPTR(_class) typedef mapi_object_ptr<I ## _class, IID_I ## _class> _class ## Ptr
 
 #endif // mapi_object_ptr_INCLUDED

@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -58,26 +58,26 @@
 
 	/**
 	 * Function which reads the XML. This XML is send by the WebClient.
-	 * @return string XML	
+	 * @return string XML
 	 */
 	function readXML() {
 		$xml = "";
 		$putData = fopen("php://input", "r");
-		
-		while($block = fread($putData, 1024)) 
+
+		while($block = fread($putData, 1024))
 		{
 			$xml .= $block;
 		}
-		
+
 		fclose($putData);
 		return $xml;
-	}	
-	
+	}
+
 	/**
 	 * Function which is called every time the "session_start" method is called.
 	 * It unserializes the objects in the session. This function called by PHP.
 	 * @param string @className the className of the object in the session
-	 */	 	
+	 */
 	function sessionModuleLoader($className)
 	{
 		$className = strtolower($className); // for PHP5 set className to lower case to find the file (see ticket #839 for more information)
@@ -87,7 +87,7 @@
 			case "bus":
 				require_once("core/class.bus.php");
 				break;
-				
+
 			default:
 				if(array_search($className, $GLOBALS["availableModules"])!==false) {
 					require_once("modules/class." . $className . ".php");
@@ -103,13 +103,13 @@
 
 	/**
 	 * Function which returns a list of available modules.
-	 * @return array a list of available modules	 
-	 */	 	
+	 * @return array a list of available modules
+	 */
 	function getAvailableModules()
 	{
 		$modules = array();
 		$dir = opendir("server/modules");
-		
+
 		while(($file = readdir($dir)) !== false)
 		{
 			$file = substr($file,6,-4);
@@ -117,15 +117,15 @@
 				array_push($modules, $file);
 			}
 		}
-		
+
 		return $modules;
 	}
-	
+
 	/**
-	 * Will extract a specific list of arguments from the $_GET object and construct a properly 
-	 * (raw)urlencoded REQUEST_URI to be used for appending to an URL. 
-	 * A token can be supplied to change the first character. By default it will set an ? as the 
-	 * first character to directly append it to an URL. When other arguments preceed this string it 
+	 * Will extract a specific list of arguments from the $_GET object and construct a properly
+	 * (raw)urlencoded REQUEST_URI to be used for appending to an URL.
+	 * A token can be supplied to change the first character. By default it will set an ? as the
+	 * first character to directly append it to an URL. When other arguments preceed this string it
 	 * can be changed to an & or to any other value, including to no character by supplying an empty
 	 * string.
 	 * @param String $token (Optional) First character of the returned string. Defaults to "?".
@@ -134,16 +134,16 @@
 	function getActionRequestURI($token = '?'){
 		$requestURI = '';
 		$allowedArgs = Array(
-			'action', 
-			'url', 
-			'to', 
-			'cc', 
-			'bcc', 
-			'storeid', 
-			'parententryid', 
-			'entryid', 
-			'message_action', 
-			'subject', 
+			'action',
+			'url',
+			'to',
+			'cc',
+			'bcc',
+			'storeid',
+			'parententryid',
+			'entryid',
+			'message_action',
+			'subject',
 			'body');
 
 		$urlArgs = Array();
@@ -172,64 +172,64 @@
 	/**
 	 * Function which replaces some characters to correct XML values.
 	 * @param string @string string which should be converted
-	 * @return string correct XML	 
-	 */	 	
+	 * @return string correct XML
+	 */
 	function xmlentities($string) {
 		$string = str_replace("\x00", "", $string);
 		$string = preg_replace("/[\x01-\x08\x0b\x0c\x0e-\x1f]+/", "", $string); // remove control chars, they would break the xml, and aren't needed anyway
 		return str_replace ( array ( '&', '"', "'", '<', '>'), array ( '&amp;' , '&quot;', '&apos;' , '&lt;' , '&gt;'), $string );
 	}
-	
+
 	/**
 	 * Function which checks if an array is an associative array.
 	 * @param array $data array which should be verified
 	 * @return boolean true if the given array is an associative array, false if not
-	 */	 	
+	 */
 	function is_assoc_array($data) {
 		return is_array($data) && !empty($data) && !preg_match('/^\d+$/', implode('', array_keys($data)));
 	}
-	
+
 	/**
 	 * Function which compares two users on there full name. Used for sorting the user list.
 	 * @param array $a user
 	 * @param array $b user
 	 * @return integer -1 - $a < $b || 0 - equal || 1 - $a > $b
-	 */	 	
+	 */
 	function cmpUserList($a, $b) {
 		if (strtolower($a["fullname"]) == strtolower($b["fullname"])) {
 			return 0;
 		}
-		
+
 		return (strtolower($a["fullname"]) < strtolower($b["fullname"])) ? -1 : 1;
 	}
-	
+
 	/**
 	 * Function which compares two groups on there group name. Used for sorting the group list.
 	 * @param array $a group
 	 * @param array $b group
 	 * @return integer -1 - $a < $b || 0 - equal || 1 - $a > $b
-	 */	 	
+	 */
 	function cmpGroupList($a, $b) {
 		if (strtolower($a["groupname"]) == strtolower($b["groupname"])) {
 			return 0;
 		}
-		
+
 		return (strtolower($a["groupname"]) < strtolower($b["groupname"])) ? -1 : 1;
 	}
-	
+
 	/**
-	 * Function which is simular to the php function array_merge_recursive, but this 
+	 * Function which is simular to the php function array_merge_recursive, but this
 	 * one overwrites duplicates.
 	 * @param array $array1 array
 	 * @param array $array1 array
-	 * @return array merged array	 	 	 
+	 * @return array merged array
 	 */
 	function array_merge_recursive_overwrite($array1, $array2)
 	{
 		if (!is_array($array1) || !is_array($array2)) {
 			return $array2;
 		}
-		
+
 		foreach ($array2 as $key=>$value) {
 			if (isset($array1[$key])){
 				$array1[$key] = array_merge_recursive_overwrite($array1[$key], $value);
@@ -239,12 +239,12 @@
 		}
 		return $array1;
 	}
-	
+
 	/**
 	 * Function which adds a download url for inline attachments in mail body's.
 	 * This function is called in the filter class (it is a preg_replace_callback function)
 	 * @param array $match the information which part of the body is found.
-	 * @return string download string	 	 	 
+	 * @return string download string
 	 */
 	function inline_attachments($match)
 	{
@@ -260,7 +260,7 @@
 	 * The regular expression written for this replacement works for only 'img' tags. We search for all parts of img tag,
 	 * replace link for src part and put together with all other parts in img tag. This is done after filtering html in filter class.
 	 * @param array $match the information which part of the body is found.
-	 * @return string download string	 	 	 
+	 * @return string download string
 	 */
 	function inline_img_attachments($match)
 	{
@@ -279,12 +279,12 @@
 			return $match[0];
 		}
 	}
-	
+
 	/**
 	 * Function which adds a new mail popup on links which are mail addresses in mail body's.
 	 * This function is called in the filter class (it is a preg_replace_callback function)
 	 * @param array $match the information which part of the body is found.
-	 * @return string new mail popup string	 	 	 
+	 * @return string new mail popup string
 	 */
 	function mailto_newmail($match)
 	{
@@ -312,7 +312,7 @@
 		if(isset($newMail["SUBJECT"])) $parameterString .= '&subject=' . $newMail['SUBJECT'];
 
 		// 'encode' newMail array
-		$newMailString = bin2hex(serialize($newMail)); 
+		$newMailString = bin2hex(serialize($newMail));
 		return '<'.$match[1].$match[2].'='.$match[3].'mailto:'.$match[4].(!empty($match[5])?'?'.$match[5]:'').$match[6].' onclick='."\"parent.webclient.openWindow(this, 'createmail', 'index.php?load=dialog&task=createmail_standard" . $parameterString . "'); return false;\"".$match[7].'>';
 	}
 
@@ -347,7 +347,7 @@
 		} else if (strpos($upload_max_value, "M")!== false){
 			$upload_max_value = ((int) $upload_max_value) * 1024 * 1024;
 		} else if (strpos($upload_max_value, "G")!== false){
-			$upload_max_value = ((int) $upload_max_value) * 1024 * 1024 * 1024; 
+			$upload_max_value = ((int) $upload_max_value) * 1024 * 1024 * 1024;
 		}
 
 		// calculate post_max_value value to bytes
@@ -356,7 +356,7 @@
 		} else if (strpos($post_max_value, "M")!== false){
 			$post_max_value = ((int) $post_max_value) * 1024 * 1024;
 		} else if (strpos($post_max_value, "G")!== false){
-			$post_max_value = ((int) $post_max_value) * 1024 * 1024 * 1024; 
+			$post_max_value = ((int) $post_max_value) * 1024 * 1024 * 1024;
 		}
 
 		// check which one is larger
@@ -389,7 +389,7 @@
 	function GetMaxFileUploads()
 	{
 		$maxfileuploads = intval(ini_get('max_file_uploads'));
-	
+
 		if ($maxfileuploads == 0 || $maxfileuploads > FILE_QUEUE_LIMIT)
 			$maxfileuploads = FILE_QUEUE_LIMIT;
 
@@ -398,7 +398,7 @@
 
 	/**
 	 * cleanTemp
-	 * 
+	 *
 	 * Cleans up the temp directory.
 	 * @param String $directory The path to the temp dir or sessions dir.
 	 * @param Integer $maxLifeTime The maximum allowed age of files in seconds.
@@ -472,11 +472,11 @@
 		if (mapi_last_hresult()!=0){
 			return;
 		}
-		
+
 		$hierarchytable = mapi_folder_gethierarchytable($finderfolder);
-		mapi_table_restrict($hierarchytable, array(RES_AND, 
+		mapi_table_restrict($hierarchytable, array(RES_AND,
 												array(
-													array(RES_CONTENT, 
+													array(RES_CONTENT,
 														array(
 															FUZZYLEVEL	=> FL_PREFIX,
 															ULPROPTAG	=> PR_DISPLAY_NAME,
@@ -501,9 +501,9 @@
 	}
 
 	function dechex_32($dec){
-		// Because on 64bit systems PHP handles integers as 64bit, 
-		// we need to convert these 64bit integers to 32bit when we 
-		// want the hex value 
+		// Because on 64bit systems PHP handles integers as 64bit,
+		// we need to convert these 64bit integers to 32bit when we
+		// want the hex value
 		$result = unpack("H*",pack("N", $dec));
 		return $result[1];
 	}
@@ -552,7 +552,7 @@
 
 	/**
 	 * getDaysLeftOnTrialPeriod
-	 * Returns the number of days left on the trial of the connected zarafa-server. This number is 
+	 * Returns the number of days left on the trial of the connected zarafa-server. This number is
 	 * based on the remaining seconds left in the trial and rounded up to whole days.
 	 * @return Integer Number of days remaining on trial. Returns 0 when not on a trial license.
 	 */
@@ -602,9 +602,9 @@
 
 	/**
 	 * This function will encode the input string for the header based on the browser that makes the
-	 * HTTP request. MSIE has an issue with unicode filenames. All browsers do not seem to follow 
-	 * the RFC specification. Firefox requires an unencoded string in the HTTP header. MSIE will 
-	 * break on this and requires encoding. 
+	 * HTTP request. MSIE has an issue with unicode filenames. All browsers do not seem to follow
+	 * the RFC specification. Firefox requires an unencoded string in the HTTP header. MSIE will
+	 * break on this and requires encoding.
 	 * @param String $input Unencoded string
 	 * @return String Encoded string
 	 */
@@ -617,8 +617,8 @@
 	}
 
 	/**
-	 * Shortcut function that uses getPropIdsFromStrings() to convert a string to the proper ID of 
-	 * the named property. When the Id is retrieved it is converted to hex. 0xFFFFFFFF00000000 is 
+	 * Shortcut function that uses getPropIdsFromStrings() to convert a string to the proper ID of
+	 * the named property. When the Id is retrieved it is converted to hex. 0xFFFFFFFF00000000 is
 	 * substracted from the result.
 	 * @param String $id String with the ID of the property
 	 * @return String Hex ID of the named property preceeded by "0x"
@@ -628,4 +628,37 @@
 		return '0x' . dechex( $propID['prop']&0xffffffff );
 	}
 
+	/**
+	 * Function will be used to decode smime messages and convert it to normal messages
+	 * @param {MAPIStore} $store user's store
+	 * @param {MAPIMessage} $message smime message
+	 */
+	function parse_smime($store, $message)
+	{
+		$props = mapi_getprops($message, array(PR_MESSAGE_CLASS));
+
+		if(isset($props[PR_MESSAGE_CLASS]) && $props[PR_MESSAGE_CLASS] == 'IPM.Note.SMIME.MultipartSigned') {
+			// this is a signed message. decode it.
+			$atable = mapi_message_getattachmenttable($message);
+
+			$rows = mapi_table_queryallrows($atable, Array(PR_ATTACH_MIME_TAG, PR_ATTACH_NUM));
+			$attnum = false;
+
+			foreach($rows as $row) {
+				if(isset($row[PR_ATTACH_MIME_TAG]) && $row[PR_ATTACH_MIME_TAG] == 'multipart/signed') {
+					$attnum = $row[PR_ATTACH_NUM];
+					break;
+				}
+			}
+
+			if($attnum !== false) {
+				$att = mapi_message_openattach($message, $attnum);
+				$data = mapi_openproperty($att, PR_ATTACH_DATA_BIN);
+
+				mapi_message_deleteattach($message, $attnum);
+
+				mapi_inetmapi_imtomapi($GLOBALS['mapisession']->getSession(), $store, $GLOBALS['mapisession']->getAddressbook(), $message, $data, Array("parse_smime_signed" => 1));
+			}
+		}
+	}
 ?>

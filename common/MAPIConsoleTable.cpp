@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -74,8 +74,7 @@ std::string ToString(SPropValue *lpProp)
             char buf[32]; // must be at least 26 bytes
             FileTimeToUnixTime(lpProp->Value.ft, &t);
             ctime_r(&t, buf);
-            buf[strlen(buf)-1] = 0;
-            return std::string(buf);
+            return trim(buf, " \t\n\r\v\f");
         }
         case PT_MV_STRING8:
         {
@@ -94,7 +93,7 @@ std::string ToString(SPropValue *lpProp)
     return std::string();
 }
 
-HRESULT MAPITablePrint(IMAPITable *lpTable)
+HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 {
     HRESULT hr = hrSuccess;
     SPropTagArrayPtr ptrColumns;
@@ -122,7 +121,7 @@ HRESULT MAPITablePrint(IMAPITable *lpTable)
         }
     }
     
-    ct.PrintTable();
+	humanreadable ? ct.PrintTable() : ct.DumpTable();
         
 exit:
     return hr;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -47,10 +47,10 @@
  * 
  */
 
-#ifndef tstring_INCLUDED
-#define tstring_INCLUDED
+#ifndef TSTRING_INCLUDED
+#define TSTRING_INCLUDED
 
 #include <string>
 typedef std::basic_string<TCHAR> tstring;
 
-#endif // ndef tstring_INCLUDED
+#endif // ndef TSTRING_INCLUDED

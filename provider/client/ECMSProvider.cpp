@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -474,14 +474,14 @@ HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, UL
 HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
 	HRESULT		hr = hrSuccess;
-	char		*lpszServerPath = NULL;		// The extracted server path
+	string		extractedServerPath;		// The extracted server path
 	bool		bIsPseudoUrl = false;
 	WSTransport	*lpTransport = NULL;
 
 	ASSERT(lppTransport && *lppTransport);
 	lpTransport = *lppTransport;
 
-	hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, &lpszServerPath, &bIsPseudoUrl);
+	hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, extractedServerPath, &bIsPseudoUrl);
 	if (hr != hrSuccess) {
 		hr = MAPI_E_FAILONEPROVIDER;
 		goto exit;
@@ -491,7 +491,7 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 	if (!bIsPseudoUrl) {
 		sGlobalProfileProps sOtherProps = *lpsProfileProps;
 		
-		sOtherProps.strServerPath = lpszServerPath;
+		sOtherProps.strServerPath = extractedServerPath;
 		hr = lpTransport->HrLogon(sOtherProps);
 		if(hr != hrSuccess) {
 			// If we failed to open a non-pseudo-URL, fallback to using the server from the global
@@ -508,7 +508,7 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = HrResolvePseudoUrl(lpTransport, lpszServerPath, &strServerPath, &bIsPeer);
+		hr = HrResolvePseudoUrl(lpTransport, extractedServerPath.c_str(), strServerPath, &bIsPeer);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -524,9 +524,6 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 	}
 
 exit:
-	if (lpszServerPath)
-		MAPIFreeBuffer(lpszServerPath);
-
 	return hr;
 }
 

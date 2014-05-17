@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -206,6 +206,25 @@ void ConsoleTable::PrintRow(const vector<wstring>& vRow)
 	cout << endl;
 }
 
+/** 
+ * Dumps one row of a table as comma separated fields
+ * 
+ * @param[in] vRow reference to the row wanted on the screen
+ */
+void ConsoleTable::DumpRow(const vector<wstring>& vRow)
+{
+	vector<wstring>::const_iterator iCol;
+	size_t nCol;
+	for (nCol = 0, iCol = vRow.begin(); iCol != vRow.end(); iCol++, nCol++) {
+		// cout can't print wstring, and wcout is not allowed to mix with cout.
+		printf("%ls", iCol->c_str());
+		if (nCol+1 < m_iColumns) {
+			printf(";");
+		}
+	}
+	printf("\n");
+}
+
 /**
  * Prints the table on screen
  */
@@ -227,3 +246,17 @@ void ConsoleTable::PrintTable()
 		PrintRow(m_vTable[nRow]);
 	}
 }
+
+/**
+ * Dumps the table as comma separated fields
+ */
+void ConsoleTable::DumpTable()
+{
+	if (bHaveHeader) {
+		DumpRow(m_vHeader);
+	}
+	for (size_t nRow = 0; nRow < m_nRow; nRow++) {
+		DumpRow(m_vTable[nRow]);
+	}
+}
+

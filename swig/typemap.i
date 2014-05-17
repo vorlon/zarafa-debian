@@ -15,6 +15,7 @@
 %include "cstring.i"
 %include "cwstring.i"
 %cstring_input_binary(const char *pv, ULONG cb);
+%cstring_input_binary(const void *pv, ULONG cb);
 %cstring_output_allocate_size(char **lpOutput, ULONG *ulRead, MAPIFreeBuffer(*$1));
 
 /////////////////////////////////
@@ -69,13 +70,37 @@
  %append_output(SWIG_From(unsigned long long)($1->QuadPart));
 }
 
+/////////////////////////////////
+// FILETIME
+/////////////////////////////////
+
+%typemap(in,fragment=SWIG_AsVal_frag(unsigned long long)) FILETIME
+{
+  $1 = Object_to_FILETIME($input);
+}
+
+%typemap(in,numinputs=0) FILETIME * (FILETIME ft)
+{
+  $1 = &ft;
+}
+
+%typemap(argout,fragment=SWIG_From_frag(unsigned long long)) FILETIME *
+{
+  %append_output(Object_from_FILETIME(*$1));
+}
+
+%typecheck(9999) FILETIME
+{
+  $1 = Object_is_FILETIME($input);
+}
+
 
 //////////////////
 // ULONG+LP
 //////////////////
 
 // Input
-%typemap(in)				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = 0, size_t size, int alloc = 0)
+%typemap(in, fragment="SWIG_AsCharPtrAndSize")				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = 0, size_t size, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -196,7 +221,7 @@
 
 %typemap(in, numinputs=0) LPMAPIUID OUTPUT (MAPIUID tmpUid)
 {
-	$1 = &tmpUid;
+	$1 = ($1_type)&tmpUid;
 }
 
 %typemap(argout) LPMAPIUID OUTPUT
@@ -307,6 +332,21 @@
 }
 
 /////////////////////////////////////////////
+// STATSTG
+/////////////////////////////////////////////
+
+%typemap(in,numinputs=0) STATSTG * (STATSTG stat)
+{
+	$1 = &stat;
+	memset(&stat, 0, sizeof(stat));
+}
+
+%typemap(argout) STATSTG *
+{
+	%append_output(Object_from_STATSTG($1));
+}
+
+/////////////////////////////////////////////
 // MAPISTRUCT (MAPI data struct)
 /////////////////////////////////////////////
 
@@ -377,6 +417,12 @@
 // MAPIARRAY (List of objects)
 /////////////////////////////////////////////
 
+// Check
+%typecheck(9999)	(ULONG, MAPIARRAY)
+{
+	$1 = Object_is_list_of($input, &Object_is$2_mangle);
+}
+
 // Output
 %typemap(in,numinputs=0)	(ULONG *,MAPIARRAY *)(ULONG c, $*2_type lp)
 	"lp = NULL; $2 = &lp; c = 0; $1 = &c;";
@@ -397,6 +443,14 @@
 	if($2)
 		MAPIFreeBuffer((void *)$2);
 }
+
+//////////////////
+// SYSTEMTIME
+//////////////////
+// Output (specifics are in typemap_python.i)
+%typemap(in, numinputs=0)	(SYSTEMTIME *)(SYSTEMTIME st)
+	"$1 = &st;";
+
 
 ///////////////////////////////////
 // ECLogger director
@@ -442,7 +496,7 @@
 %apply MAPISTRUCT {LPSRestriction, LPSSortOrderSet, LPSPropValue, LPNOTIFICATION};
 
 // Output
-%apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUT, LPSPropValue *OUTPUT), (ULONG *OUTPUT, LPNOTIFICATION *OUTPUT), (ULONG *OUTPUT, LPMAPINAMEID **OUTPUT)};
+%apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPNOTIFICATION *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
 %apply MAPILIST * {LPADRLIST *OUTPUT, LPSRowSet *OUTPUT, LPSPropProblemArray *OUTPUT, LPSPropTagArray *OUTPUT, LPENTRYLIST *OUTPUT};
 %apply MAPISTRUCT * {LPMAPIERROR *OUTPUT, LPSSortOrderSet *OUTPUT, LPSRestriction *OUTPUT};
 
@@ -453,6 +507,9 @@
 %apply MAPICLASS *{IMAPISession **, IProfAdmin **, IMsgServiceAdmin **, IMAPITable **, IMsgStore **, IMAPIFolder **, IMAPITable **, IStream **, IMessage **, IAttach **, IAddrBook **, IProviderAdmin **, IProfSect **, IUnknown **}
 
 // Specialization for LPSRowSet and LPADRLIST
+%typemap(arginit) LPSRowSet INPUT, LPADRLIST INPUT
+	"$1 = NULL;"
+
 %typemap(freearg) LPSRowSet *OUTPUT, LPADRLIST *OUTPUT
 {
 	FreeProws((LPSRowSet)*$1);

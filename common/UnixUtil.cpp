@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -59,6 +59,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/resource.h>
 
 #include <string>
 using namespace std;
@@ -122,7 +123,7 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 
 	gid = getgid();
 
-	if (strcmp(groupname,"")) {
+	if (groupname && strcmp(groupname,"")) {
 		gr = (struct group *) getgrnam(groupname);
 		if (gr)
 			gid = gr->gr_gid;
@@ -130,13 +131,26 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 
 	uid = getuid();
 
-	if (strcmp(username,"")) {
+	if (username && strcmp(username,"")) {
 		pw = (struct passwd *) getpwnam(username);
 		if (pw)
 			uid = pw->pw_uid;
 	}
 
 	return chown(filename, uid, gid);
+}
+
+void unix_coredump_enable(ECLogger *logger)
+{
+	struct rlimit limit;
+
+	limit.rlim_cur = RLIM_INFINITY;
+	limit.rlim_max = RLIM_INFINITY;
+	if (setrlimit(RLIMIT_CORE, &limit) == 0)
+		return;
+	if (logger == NULL)
+		return;
+	logger->Log(EC_LOGLEVEL_FATAL, "Unable to raise coredump filesize limit");
 }
 
 int unix_create_pidfile(char *argv0, ECConfig *lpConfig, ECLogger *lpLogger, bool bForce) {

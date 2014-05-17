@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1559,6 +1559,22 @@ ULONG recurrence::MonthDayFromTime(time_t t)
 	return lpT->tm_mday;
 }
 
+bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues) {
+	time_t tsOccStart = 0;
+	time_t tsOccEnd = 0;
+        lpLogger->Log(EC_LOGLEVEL_DEBUG, "Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
+        if(isOccurrenceValid(tsStart, tsEnd , tsNow + getStartTimeOffset())) {
+                tsOccStart = LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
+                tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
+                lpLogger->Log(EC_LOGLEVEL_DEBUG, "Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+                AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, lppOccrInfoAll, lpcValues);
+                return true;
+        } else {
+                lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
+                return false;
+        }
+}
+
 /**
  * Calculates occurrences of a recurrence between a specified period
  * @param[in]	tsStart			starting time of period
@@ -1566,12 +1582,13 @@ ULONG recurrence::MonthDayFromTime(time_t t)
  * @param[in]	lpLogger		optional logger
  * @param[in]	ttZinfo			timezone struct of the recurrence
  * @param[in]	ulBusyStatus	freebusy status of the recurrence
+ * @param[in]	last	        only return last occurrence (fast)
  * @param[out]	lppOccrInfo		array of occurrences
  * @param[out]	lpcValues		number of occurrences in lppOccrInfo
  *
  * @return		HRESULT
  */
-HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo, ULONG *lpcValues)
+HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo, ULONG *lpcValues, bool last)
 {
 	HRESULT hr = 0;
 	ECLogger *lpNullLogger = new ECLogger_Null();
@@ -1582,6 +1599,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 	time_t tsDayEnd = 0;
 	time_t tsDayStart = 0;
 	time_t tsRangeEnd = 0;	
+    time_t remainder = 0;
 	ULONG ulWday = 0;
 	OccrInfo *lpOccrInfoAll = *lppOccrInfo;
 	
@@ -1614,33 +1632,41 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 
 		if(m_sRecState.ulPatternType == 0)
 		{
-			for(tsNow = tsDayStart ; tsNow <= tsDayEnd ; tsNow += (m_sRecState.ulPeriod *60))
-			{			
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
-				if(isOccurrenceValid(tsStart, tsEnd , tsNow + getStartTimeOffset())) {
-					tsOccStart =  LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
-					tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
-					AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-				} else {
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
-				}
-			}
-
+                        if (last) {
+                                remainder = (tsDayEnd-tsDayStart) % (m_sRecState.ulPeriod * 60);
+                                for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= m_sRecState.ulPeriod * 60) {
+                                        if(CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+                                            break;
+                                        }
+                                }
+                        } else {
+                                for(tsNow = tsDayStart ; tsNow <= tsDayEnd ; tsNow += (m_sRecState.ulPeriod *60)) { 
+                                        CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+                                }
+                        }
 		} else {
 			// daily, but every weekday (outlook)
-			for(tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7 
-				tm *sTm = NULL;
-				sTm =  gmtime(&tsNow);
-				
-				if(sTm->tm_wday > 0 && sTm->tm_wday < 6) {
-					
-					if(isOccurrenceValid(tsStart, tsEnd , tsNow + getStartTimeOffset())) {						
-						tsOccStart =  LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
-						tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
-						AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-					}
-				}
+                        if (last) {
+                                remainder = (tsDayEnd-tsDayStart) % (60 * 1440); // shouldn't this be m_sRecState.ulPeriod * 60? (see above)
+                                for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= 60 * 1440) { //604800 = 60*60*24*7 
+                                        tm *sTm = NULL;
+                                        sTm =  gmtime(&tsNow);
+
+                                        if(sTm->tm_wday > 0 && sTm->tm_wday < 6) {
+                                                if(CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+                                                        break;
+                                                }
+                                        }
+                                }
+                        } else {
+                                for(tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7 
+                                        tm *sTm = NULL;
+                                        sTm =  gmtime(&tsNow);
+                            
+                                        if(sTm->tm_wday > 0 && sTm->tm_wday < 6) {
+                                                CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+                                        }
+                                }
 			}
 		}
 		break;// CASE : DAILY
@@ -1649,31 +1675,44 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 		if(m_sRecState.ulPeriod <= 0)
 			m_sRecState.ulPeriod = 1;
 			
-		for(tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7 
-			// Loop through the whole following week to the first occurrence of the week, add each day that is specified
-			for(int i = 0; i < 7; i++) {
-				ULONG ulWday = 0;
-
-				tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
-				lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly tsDayNow : %s", ctime(&tsDayNow));		
-				ulWday = WeekDayFromTime(tsDayNow);
-				
-				if(m_sRecState.ulWeekDays & (1 << ulWday)) {
-					
-					
-					lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly isOccurrenceValid : %s", ctime(&tsDayNow));
-				
-					if(isOccurrenceValid(tsStart, tsEnd , tsDayNow + getStartTimeOffset())){
-						tsOccStart =  LocalToUTC(tsDayNow + getStartTimeOffset(), ttZinfo);
-						tsOccEnd = LocalToUTC(tsDayNow + getEndTimeOffset(), ttZinfo);
-
-						lpLogger->Log(EC_LOGLEVEL_DEBUG,"Valid occurrence adding : %s", ctime(&tsOccStart));
-				
-						AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-					}
-				}
-			} 
-
+                if(last) {
+                        bool found = false;
+                        remainder = (tsDayEnd-tsDayStart) % (m_sRecState.ulPeriod * 604800);
+                        for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7 
+                               // Loop through the whole following week to the first occurrence of the week, add each day that is specified
+                                for(int i = 6; i >= 0; i--) {
+                                        ULONG ulWday = 0;
+                    
+                                        tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
+                                        lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly tsDayNow : %s", ctime(&tsDayNow));
+                                        ulWday = WeekDayFromTime(tsDayNow);
+                    
+                                        if(m_sRecState.ulWeekDays & (1 << ulWday)) {
+                                                if(CheckAddValidOccr(tsDayNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+                                                        found=true;
+                                                        break;
+                                                }
+                                        }
+                                }
+                                if(found) {
+                                        break;
+                                }
+                        }
+                } else {
+                        for(tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7 
+                                // Loop through the whole following week to the first occurrence of the week, add each day that is specified
+                                for(int i = 0; i < 7; i++) {
+                                        ULONG ulWday = 0;
+                            
+                                        tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
+                                        lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly tsDayNow : %s", ctime(&tsDayNow));
+                                        ulWday = WeekDayFromTime(tsDayNow);
+                            
+                                        if(m_sRecState.ulWeekDays & (1 << ulWday)) {
+                                                CheckAddValidOccr(tsDayNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+                                        }
+                                }
+                        }            
 		}
 		break;// CASE : WEEKLY
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -48,6 +48,7 @@
  */
 
 #include "platform.h"
+#include "config.h"
 
 #include <iostream>
 #include <fstream>
@@ -55,7 +56,7 @@
 #include <mapiutil.h>
 #include <edkmdb.h>
 
-#if HAVE_NCURSES
+#ifdef HAVE_CURSES_H
 #include <curses.h>
 #endif
 
@@ -71,7 +72,7 @@
 
 using namespace std;
 
-enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SERVER_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER };
+enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SERVER_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER, OPTION_DUMP };
 
 struct option long_options[] = {
 		{ "system", 0, NULL, SYSTEM_STATS },
@@ -82,6 +83,7 @@ struct option long_options[] = {
 		{ "top", 0, NULL, SESSION_TOP },
 		{ "host", 1, NULL, OPTION_HOST },
 		{ "user", 1, NULL, OPTION_USER },
+		{ "dump", 0, NULL, OPTION_DUMP },
 		{ NULL, 0, NULL, 0 }
 };
 
@@ -244,7 +246,7 @@ double GetDouble(LPSPropValue lpProps, ULONG cValues, ULONG ulPropTag)
 
 void showtop(LPMDB lpStore, bool bLocal)
 {
-#if HAVE_NCURSES
+#ifdef HAVE_CURSES_H
     HRESULT hr = hrSuccess;
     IMAPITable *lpTable = NULL;
     LPSRowSet lpsRowSet = NULL;
@@ -556,14 +558,10 @@ exit:
 #endif
 }
  
-void dumptable(eTableType eTable, LPMDB lpStore) {
+void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable) {
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
 	LPSRowSet lpRowSet = NULL;
-	ULONG c, p, m;
-	time_t t;
-	char *szTimeString = NULL;
-	ULONG ulTimeLength = 0;
 
 	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpTable);
 	if (hr != hrSuccess) {
@@ -579,7 +577,7 @@ void dumptable(eTableType eTable, LPMDB lpStore) {
 		goto exit;
 	}
 
-	hr = MAPITablePrint(lpTable);
+	hr = MAPITablePrint(lpTable, humanreadable);
 
 exit:
 	if (lpRowSet)
@@ -603,6 +601,7 @@ void print_help(char *name)
 	cout << "Options:" << endl;
 	cout << "  --user, -u <user>" << "\tUse specified username to logon" << endl;
 	cout << "  --host, -h <url>" << "\tUse specified url to logon (eg http://127.0.0.1:236/zarafa)" << endl;
+	cout << "  --dump, -d" << "\t\tPrint output as comma separated fields" << endl;
 }
 
 int main(int argc, char *argv[])
@@ -616,6 +615,7 @@ int main(int argc, char *argv[])
 	char *host = NULL;
 	wstring strwUsername;
 	wstring strwPassword;
+	bool humanreadable(true);
 
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");
@@ -627,7 +627,7 @@ int main(int argc, char *argv[])
 
 	int c;
 	while (1) {
-		c = my_getopt_long(argc, argv, "h:u:", long_options, NULL);
+		c = my_getopt_long(argc, argv, "h:u:d", long_options, NULL);
 		if(c == -1)
 			break;
 		switch(c) {
@@ -640,6 +640,10 @@ int main(int argc, char *argv[])
 				break;
 			case 'u':
 				user = my_optarg;
+				break;
+			case OPTION_DUMP:
+			case 'd':
+				humanreadable = false;
 				break;
 			case SYSTEM_STATS:
 			case SESSION_STATS:
@@ -688,7 +692,7 @@ int main(int argc, char *argv[])
 	if(eTable == SESSION_TOP)
     	showtop(lpStore, host == NULL);
     else
-    	dumptable(eTable, lpStore);
+    	dumptable(eTable, lpStore, humanreadable);
 
 exit:
 	if(lpStore)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -200,7 +200,7 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 							goto exit;
 						for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; c++) {
 							ansi = converter.convert_to<string>((*i)->Value.MVszW.lppszW[c]);
-							hr = MAPIAllocateMore(ansi.length() * sizeof(char) + sizeof(char), props, (void**)&sConvert.Value.MVszA.lppszA[c]);
+							hr = MAPIAllocateMore(ansi.length() + 1, props, (void**)&sConvert.Value.MVszA.lppszA[c]);
 							if (hr != hrSuccess)
 								goto exit;
 							strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());

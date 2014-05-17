@@ -2811,6 +2811,7 @@ namespace swig {
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
 
 
+
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
 {
@@ -3995,6 +3996,66 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_delivery_options_parse_smime_signed_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  delivery_options *arg1 = (delivery_options *) 0 ;
+  bool arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  bool val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:delivery_options_parse_smime_signed_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__do, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delivery_options_parse_smime_signed_set" "', argument " "1"" of type '" "delivery_options *""'"); 
+  }
+  arg1 = reinterpret_cast< delivery_options * >(argp1);
+  ecode2 = SWIG_AsVal_bool(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "delivery_options_parse_smime_signed_set" "', argument " "2"" of type '" "bool""'");
+  } 
+  arg2 = static_cast< bool >(val2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    if (arg1) (arg1)->parse_smime_signed = arg2;
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delivery_options_parse_smime_signed_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  delivery_options *arg1 = (delivery_options *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delivery_options_parse_smime_signed_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__do, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delivery_options_parse_smime_signed_get" "', argument " "1"" of type '" "delivery_options *""'"); 
+  }
+  arg1 = reinterpret_cast< delivery_options * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (bool) ((arg1)->parse_smime_signed);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_delivery_options(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   delivery_options *result = 0 ;
@@ -4310,6 +4371,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delivery_options_mark_as_read_get", _wrap_delivery_options_mark_as_read_get, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_add_imap_data_set", _wrap_delivery_options_add_imap_data_set, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_add_imap_data_get", _wrap_delivery_options_add_imap_data_get, METH_VARARGS, NULL},
+	 { (char *)"delivery_options_parse_smime_signed_set", _wrap_delivery_options_parse_smime_signed_set, METH_VARARGS, NULL},
+	 { (char *)"delivery_options_parse_smime_signed_get", _wrap_delivery_options_parse_smime_signed_get, METH_VARARGS, NULL},
 	 { (char *)"new_delivery_options", _wrap_new_delivery_options, METH_VARARGS, NULL},
 	 { (char *)"delete_delivery_options", _wrap_delete_delivery_options, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_swigregister", delivery_options_swigregister, METH_VARARGS, NULL},

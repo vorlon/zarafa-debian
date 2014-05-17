@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -104,7 +104,7 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 	}
 
 	while (!feof(fin)) {
-		readsize = fread(bufferin, sizeof(char), BLOCKSIZE / 2, fin);
+		readsize = fread(bufferin, 1, BLOCKSIZE / 2, fin);
 		if (ferror(fin)) {
 			perror("Read error");//FIXME: What an error?, what now?
 			hr = MAPI_E_CORRUPT_DATA;
@@ -113,7 +113,7 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 
 		BufferLFtoCRLF(readsize, bufferin, bufferout, &sizebufferout);
 
-		if (fwrite(bufferout, sizeof(char), sizebufferout, fTmp) != sizebufferout) {
+		if (fwrite(bufferout, 1, sizebufferout, fTmp) != sizebufferout) {
 			perror("Write error");//FIXME: What an error?, what now?
 			hr = MAPI_E_CORRUPT_DATA;
 			break;
@@ -180,7 +180,7 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
 	/* mmap failed (probably reading from STDIN as a stream), just read the file into memory, and return that */
 	lpBuffer = (char*)malloc(BLOCKSIZE); // will be deleted as soon as possible
 	while (!feof(f)) {
-		ulReadsize = fread(lpBuffer+offset, sizeof(char), BLOCKSIZE, f);
+		ulReadsize = fread(lpBuffer+offset, 1, BLOCKSIZE, f);
 		if (ferror(f)) {
 			perror("Read error");
 			break;
@@ -309,7 +309,7 @@ bool DuplicateFile(ECLogger *lpLogger, FILE *lpFile, std::string &strFileName)
 	}
 
 	while (!feof(lpFile)) {
-		ulReadsize = fread(lpBuffer, sizeof(char), BLOCKSIZE, lpFile);
+		ulReadsize = fread(lpBuffer, 1, BLOCKSIZE, lpFile);
 		if (ferror(lpFile)) {
 			if (lpLogger)
 				lpLogger->Log(EC_LOGLEVEL_FATAL, "Read error, error %d", errno);
@@ -321,7 +321,7 @@ bool DuplicateFile(ECLogger *lpLogger, FILE *lpFile, std::string &strFileName)
 		}
 		
 
-		if (fwrite(lpBuffer, sizeof(char), ulReadsize , pfNew) != ulReadsize) {
+		if (fwrite(lpBuffer, 1, ulReadsize , pfNew) != ulReadsize) {
 			if (lpLogger)
 				lpLogger->Log(EC_LOGLEVEL_FATAL, "Write error, error %d", errno);
 			else
@@ -389,7 +389,7 @@ bool ConvertFileFromUCS2ToUTF8(ECLogger *lpLogger, const std::string &strSrcFile
 		goto exit;
 	}
 	
-	if (fwrite(strConverted.c_str(), sizeof(char), strConverted.size(), pfDst) != strConverted.size()) { 
+	if (fwrite(strConverted.c_str(), 1, strConverted.size(), pfDst) != strConverted.size()) { 
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write to file '%s', error %d", strDstFileName.c_str(), errno);
 		else

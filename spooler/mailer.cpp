@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -693,6 +693,76 @@ exit:
 	return hr;
 }
 
+HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
+{
+	HRESULT			hr = hrSuccess;
+	IMAPITable		*lpTable = NULL;
+	LPSRowSet		lpRowSet = NULL;
+	LPSPropValue	lpEmailAddress = NULL;
+	LPSPropValue	lpRecipType = NULL;
+	wstring			strEmail;
+
+	SizedSPropTagArray(3, sptaColumns) = {
+		3, {
+			PR_ROWID,
+			PR_EMAIL_ADDRESS_W,
+			PR_RECIPIENT_TYPE,
+		}
+	};
+
+	hr = lpMessage->GetRecipientTable(0, &lpTable);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpTable->SetColumns((LPSPropTagArray)&sptaColumns, 0);
+	if (hr != hrSuccess)
+		goto exit;
+
+	while (TRUE) {
+		if (lpRowSet) {
+			FreeProws(lpRowSet);
+			lpRowSet = NULL;
+		}
+
+		hr = lpTable->QueryRows(1, 0, &lpRowSet);
+		if (hr != hrSuccess)
+			goto exit;
+
+		if (lpRowSet->cRows == 0)
+			break;
+
+		lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
+		lpRecipType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
+
+		if (!lpEmailAddress || !lpRecipType)
+			continue;
+   
+        strEmail = lpEmailAddress->Value.lpszW;
+        if((strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
+           (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"')) {
+
+            g_lpLogger->Log(EC_LOGLEVEL_INFO, "Rewrite quoted recipient: %ls", strEmail.c_str());
+
+            strEmail = strEmail.substr(1, strEmail.size()-2);
+            lpEmailAddress->Value.lpszW = (WCHAR *)strEmail.c_str();
+            hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST)lpRowSet);
+
+			if (hr != hrSuccess) {
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to rewrite quoted recipient");
+                goto exit;
+            }
+        }
+	}
+
+exit:
+	if (lpRowSet)
+		FreeProws(lpRowSet);
+
+	if (lpTable)
+		lpTable->Release();
+
+	return hr;
+}
 /**
  * Removes all MAPI_P1 marked recipients from a message.
  *
@@ -2382,6 +2452,8 @@ HRESULT ProcessMessage(IMAPISession *lpAdminSession, IMAPISession *lpUserSession
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to remove duplicate recipients");
 	}
 
+
+    RewriteQuotedRecipients(lpMessage);
 
 	hr = ptrPyMapiPlugin->MessageProcessing("PreSending", lpUserSession, lpAddrBook, lpUserStore, NULL, lpMessage, &ulResult);
 	if (hr != hrSuccess)

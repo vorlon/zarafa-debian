@@ -52,6 +52,7 @@ typedef struct _do {
         bool use_received_date;         // Use the 'received' date instead of the current date as delivery date
         bool mark_as_read;              // Deliver the message 'read' instead of unread
         bool add_imap_data;				// Save IMAP optimized data to the server
+	    bool parse_smime_signed;        // Parse actual S/MIME content instead of just writing out the S/MIME data to a single attachment
         /* LPSBinary user_entryid;         // If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties. */
 
         %extend {

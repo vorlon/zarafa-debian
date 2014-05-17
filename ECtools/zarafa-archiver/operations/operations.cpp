@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -50,10 +50,10 @@
 #include <platform.h>
 #include "ECConfig.h"
 #include "operations.h"
-#include "logger.h"
+#include "ECArchiverLogger.h"
 #include "helpers/mapiprophelper.h"
-#include "helpers/archivehelper.h"
-#include "archiver-session.h"
+#include "helpers/ArchiveHelper.h"
+#include "ArchiverSession.h"
 #include "ECRestriction.h"
 
 #include <mapiutil.h>

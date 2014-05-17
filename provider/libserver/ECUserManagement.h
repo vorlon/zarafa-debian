@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -264,6 +264,7 @@ private:
 	virtual ECRESULT	UpdateUserDetailsToClient(objectdetails_t *lpDetails);
 	ECRESULT ComplementDefaultFeatures(objectdetails_t *lpDetails);
 	ECRESULT RemoveDefaultFeatures(objectdetails_t *lpDetails);
+	bool				MustHide(/*const*/ ECSecurity& security, unsigned int ulFlags, const objectdetails_t& details);
 
 	// Get object details from list
 	ECRESULT	GetLocalObjectListFromSignatures(const list<objectsignature_t> &lstSignatures,

@@ -109,7 +109,7 @@ class Disclaimer(IMapiSpoolerPlugin):
     def PreSending(self, session, addrbook, store, folder, message):
 
         if os.path.isdir(self.disclaimerdir) == False:
-           self.logger.logWarn("!--- Disclaimer directory '%s' doesn't exists." % self.disclaimerdir)
+           self.logger.logWarn("!--- Disclaimer directory '%s' doesn't exist." % self.disclaimerdir)
            return MP_CONTINUE,
 
         company = None
@@ -136,38 +136,19 @@ class Disclaimer(IMapiSpoolerPlugin):
             bodystream.Seek(0, STREAM_SEEK_END)
             bodystream.Write(disclaimer.encode('utf-32-le'))
             bodystream.Commit(0)
-        elif bodytag == PR_HTML:
-            props = message.GetProps([PR_INTERNET_CPID], 0)
 
+        elif bodytag == PR_HTML:
             charset = "us-ascii"
+            props = message.GetProps([PR_INTERNET_CPID], 0)
             if props[0].ulPropTag == PR_INTERNET_CPID:
                 charset = self.getCharSetByCP(props[0].Value)
 
-            disclaimer = "<br>" + self.getDisclaimer('html', company)
+            disclaimer = u"<br>" + unicode(self.getDisclaimer('html', company), 'utf-8')
 
             stream = message.OpenProperty(PR_HTML, IID_IStream, 0, MAPI_MODIFY)
-            if charset != 'utf-8':
-                self.logger.logDebug("*--- Convert HTML body charset from '%s' to 'utf-8'" % charset)
-                body = ''
-                stream.Seek(0, STREAM_SEEK_SET)
-                while True:
-                    data = stream.Read(0xFFFF)
-                    if len(data) == 0:
-                        break
-
-                    body += data
-
-                stream.SetSize(0)
-                stream.Write(unicode(body, charset).encode('utf8'))
-
             stream.Seek(0, STREAM_SEEK_END)
-            stream.Write(disclaimer)
-
+            stream.Write(disclaimer.encode(charset))
             stream.Commit(0)
-
-            if charset != 'utf-8':
-                # Set the PR_INTERNET_CPID to utf8
-                message.SetProps([SPropValue(PR_INTERNET_CPID, 65001)])
 
         elif bodytag == PR_RTF_COMPRESSED:
             self.logger.logWarn("!--- RTF disclaimer is not supported")

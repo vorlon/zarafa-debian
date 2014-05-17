@@ -53,6 +53,9 @@ class MAPINAMEID(MAPIStruct):
         self.guid = guid
         self.kind = kind
         self.id = id
+
+    def __hash__(self):
+        return (self.guid, self.kind, self.id).__hash__()
         
     def __repr__(self):
         if (self.kind == MAPICore.MNID_ID):
@@ -62,8 +65,8 @@ class MAPINAMEID(MAPIStruct):
 
 class SPropProblem(MAPIStruct):
     def __init__(self, index, tag, scode):
-        self.index = index
-        self.tag = tag
+        self.ulIndex = index
+        self.ulPropTag = tag
         self.scode = scode
 
 class SAndRestriction(MAPIStruct):
@@ -217,7 +220,7 @@ class MAPIError(Exception):
     
     @staticmethod
     def _initialize_errors():
-        for name, value in inspect.getmembers(sys.modules['MAPICore'], lambda obj: isinstance(obj, int)):
+        for name, value in inspect.getmembers(sys.modules['MAPICore'], lambda obj: isinstance(obj, (long, int))):
             if name.startswith('MAPI_E_'):
                 clsname = 'MAPIError' + ''.join(s.capitalize() for s in name[7:].split('_'))
                 def construct_class(hr):
@@ -368,5 +371,19 @@ class ECQUOTASTATUS(MAPIStruct):
         self.StoreSize = StoreSize
         self.QuotaStatus = QuotaStatus
 
+class STATSTG(MAPIStruct):
+    def __init__(self, cbSize):
+        self.cbSize = cbSize
+
+class SYSTEMTIME(MAPIStruct):
+    def __init__(self, wYear, wMonth, wDayOfWeek, wDay, wHour, wMinute, wSecond, wMilliseconds):
+        self.wYear = wYear
+        self.wMonth = wMonth
+        self.wDayOfWeek = wDayOfWeek
+        self.wDay = wDay
+        self.wHour = wHour
+        self.wMinute = wMinute
+        self.wSecond = wSecond
+        self.wMilliseconds = wMilliseconds
 
 MAPIError._initialize_errors()

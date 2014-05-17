@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -81,6 +81,8 @@
 #include <set>
 #include <string>
 using namespace std;
+
+#include "boost/algorithm/string.hpp"
 
 #define QUOTA_CONFIG_MSG "Zarafa.Quota"
 
@@ -351,6 +353,8 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(LPECCOMPANY lpecCompany)
 	LPMDB				lpAdminStore = NULL;
 
 	set<string> setServers;
+	char *lpszServersConfig;
+	std::set<string, stricmp_comparison> setServersConfig;
 	set<string>::iterator iServers;
 	char *lpszConnection = NULL;
 	bool bIsPeer = false;
@@ -396,8 +400,18 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(LPECCOMPANY lpecCompany)
 		}
 
 	} else {
+		lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
+		if(lpszServersConfig) {
+			// split approach taken from varafa-backup/backup.cpp
+			boost::algorithm::split(setServersConfig, lpszServersConfig, boost::algorithm::is_any_of("\t "), boost::algorithm::token_compress_on);
+			setServersConfig.erase(string());
+		}
+
 		for (iServers = setServers.begin(); iServers != setServers.end(); iServers++)
 		{
+                        if(!setServersConfig.empty() && (setServersConfig.find((*iServers).c_str()) == setServersConfig.end()))
+                                continue;
+ 
 			hr = lpServiceAdmin->ResolvePseudoUrl((char*)string("pseudo://"+ (*iServers)).c_str(), &lpszConnection, &bIsPeer);
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", iServers->c_str(), hr);

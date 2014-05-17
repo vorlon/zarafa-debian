@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -635,6 +635,7 @@ exit:
 ECRESULT check_server_configuration()
 {
 	ECRESULT		er = erSuccess;
+	bool			bHaveErrors = false;
 	bool			bCheck = false;
 	std::string		strServerName;
 	ECSession		*lpecSession = NULL;
@@ -660,21 +661,24 @@ ECRESULT check_server_configuration()
 	
 	strServerName = g_lpConfig->GetSetting("server_name");
 	if (strServerName.empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: No 'server_name' specified while operating in multiserver mode.");
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "ERROR: No 'server_name' specified while operating in multiserver mode.");
 		er = ZARAFA_E_INVALID_PARAMETER;
+		// unable to check any other server details if we have no name, skip other tests
 		goto exit;
 	}
 
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
-	if (er != erSuccess)
+	if (er != erSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Internal error 0x%08x while checking distributed configuration", er);
 		goto exit;
+	}
 
 	lpecSession->Lock();
 	
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
-		if (er == ZARAFA_E_NOT_FOUND)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to find server information on LDAP for '%s'. Check your server name.", strServerName.c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
+		// unable to check anything else if we have no details, skip other tests
 		goto exit;
 	}
 		
@@ -682,56 +686,47 @@ ECRESULT check_server_configuration()
 	if (parseBool(g_lpConfig->GetSetting("server_pipe_enabled")) == true) {
 		if (sServerDetails.GetFilePath().empty()) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 		if (sServerDetails.GetFilePath().compare((std::string)"file://" + g_lpConfig->GetSetting("server_pipe_name")) != 0) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetFilePath().empty()) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
-		er = ZARAFA_E_INVALID_PARAMETER;
-		goto exit;
+		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_tcp_enabled")) == true) {
 		if (sServerDetails.GetHttpPath().empty()) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
 		if (sServerDetails.GetHttpPort() != ulPort) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetHttpPath().empty()) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
-		er = ZARAFA_E_INVALID_PARAMETER;
-		goto exit;
+		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_ssl_enabled")) == true) {
 		if (sServerDetails.GetSslPath().empty()) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_ssl_port"));
 		if (sServerDetails.GetSslPort() != ulPort) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
-			er = ZARAFA_E_INVALID_PARAMETER;
-			goto exit;
+			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetSslPath().empty()) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
-		er = ZARAFA_E_INVALID_PARAMETER;
-		goto exit;
+		bHaveErrors = true;
 	}	
 	
 exit:
@@ -739,11 +734,13 @@ exit:
 		lpecSession->Unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	}
-		
-	if (er != erSuccess)
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Inconsistencies detected between local and LDAP based configuration.");
-		
-	return erSuccess;	// Not fatal as a sysadmin might be smarter than us.
+
+	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
+	if (bHaveErrors)
+ 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Inconsistencies detected between local and LDAP based configuration.");
+
+	// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
+	return er;
 }
 
 int main(int argc, char* argv[])
@@ -1236,12 +1233,8 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 
-	if (parseBool(g_lpConfig->GetSetting("coredump_enabled"))) {
-		limit.rlim_cur = RLIM_INFINITY;
-		limit.rlim_max = RLIM_INFINITY;
-		if(setrlimit(RLIMIT_CORE, &limit) < 0)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to raise coredump filesize limit");
-	}
+	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
+		unix_coredump_enable(g_lpLogger);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -1340,6 +1333,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
 #ifdef EMBEDDED_MYSQL
+{
 	unsigned int ulResult = 0;
 	// setting upgrade_tables
 	// 1 = upgrade from mysql 4.1.23 to 5.22
@@ -1353,6 +1347,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 		SetDatabaseSetting(lpDatabase, "upgrade_tables", 1);
 	}
+}
 #endif
 
 	// perform database upgrade .. may take a very long time
@@ -1444,6 +1439,12 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	// We don't really need it - just testing it loads at all
 	delete lpUserPlugin;	lpUserPlugin = NULL;
 	delete lpPluginFactory;	lpPluginFactory = NULL;
+	
+	// Some shared objects that are closed during plugin factory deletion will
+	// remove our threading cleanup. To make sure we have our threading setup in
+	// place, re-initialize SSL threading
+	ssl_threading_cleanup();
+	ssl_threading_setup();
 
 	// check for conflicting settings in local config and LDAP, after zarafa_init since this needs the sessionmanager.
 	er = check_server_configuration();

@@ -1,0 +1,2 @@
+# every sunday, 00:05
+5 0 * * 0 root [ -x /usr/bin/zarafa-ssm ] && /usr/bin/zarafa-ssm

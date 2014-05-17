@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -52,7 +52,7 @@
 <?php
 	/**
 	 * ItemModule
-	 * Module which openes, creates, saves and deletes an item. It 
+	 * Module which openes, creates, saves and deletes an item. It
 	 * extends the Module class.
 	 */
 	class ItemModule extends Module
@@ -66,7 +66,7 @@
 		{
 			parent::Module($id, $data);
 		}
-		
+
 		/**
 		 * Executes all the actions in the $data variable.
 		 * @return boolean true on success of false on fialure.
@@ -74,7 +74,7 @@
 		function execute()
 		{
 			$result = false;
-			
+
 			foreach($this->data as $action)
 			{
 				if(isset($action["attributes"]) && isset($action["attributes"]["type"])) {
@@ -87,7 +87,7 @@
 					$overQouta = $this->checkOverQoutaRestriction($store, $action);
 					if(!empty($overQouta)) {
 						if($overQouta == "quota_hard") {
-							$errorMessage = _("The message store has exceeded its hard quota limit.") . "\n\n" . 
+							$errorMessage = _("The message store has exceeded its hard quota limit.") . "\n\n" .
 											_("To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them.");
 						} else if($overQouta == "quota_soft") {
 							$errorMessage = _("The message store has exceeded its soft quota limit.") . "\n\n" .
@@ -141,8 +141,8 @@
 							$basedate = (isset($action['basedate']) ? $action['basedate'] : false);
 							$delete = false;
 							/**
-							 * Get message class from original message. This can be changed to 
-							 * IPM.Appointment if the item is a Meeting Request in the maillist. 
+							 * Get message class from original message. This can be changed to
+							 * IPM.Appointment if the item is a Meeting Request in the maillist.
 							 * After Accepting/Declining the message is moved and changed.
 							 */
 							$originalMessageProps = mapi_getprops($message, array(PR_MESSAGE_CLASS));
@@ -153,7 +153,7 @@
 								$req->setMeetingTimeInfo($action['meetingTimeInfo']);
 								unset($action['meetingTimeInfo']);
 							}
-							
+
 							// sendResponse flag if it is set then send the mail response to the organzer.
 							$sendResponse = true;
 							if(isset($action["noResponse"]) && $action["noResponse"] == "true") {
@@ -178,10 +178,10 @@
 							$GLOBALS["operations"]->publishFreeBusy($store);
 
 							/**
-							 * Now if the item is the Meeting Request that was sent to the attendee 
-							 * it is removed when the user has clicked on Accept/Decline. If the 
+							 * Now if the item is the Meeting Request that was sent to the attendee
+							 * it is removed when the user has clicked on Accept/Decline. If the
 							 * item is the appointment in the calendar it will not be moved. To only
-							 * notify the bus when the item is a Meeting Request we are going to 
+							 * notify the bus when the item is a Meeting Request we are going to
 							 * check the PR_MESSAGE_CLASS and see if it is "IPM.Meeting*".
 							 */
 							$messageProps = mapi_getprops($message, array(PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID, PR_MESSAGE_CLASS));
@@ -230,7 +230,7 @@
 						case "convert_item":
 							$result = $this->getItemData($store, $parententryid, $action);
 							break;
-							
+
 						case "getAttachments":
 							// Get list of uploaded attachments.
 							$result = $this->getAttachments($store, $entryid, $action);
@@ -263,7 +263,7 @@
 					}
 				}
 			}
-			
+
 			return $result;
 		}
 
@@ -272,12 +272,12 @@
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure 
+		 * @return boolean true on success or false on failure
 		 */
 		function forwardMultipleItems($store, $parententryid, $action)
 		{
 			$result = false;
-			
+
 			if($store){
 				if(isset($action["entryids"]) && $action["entryids"]){
 					if(!is_array($action["entryids"])){
@@ -308,13 +308,13 @@
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure 
+		 * @return boolean true on success or false on failure
 		 */
 		function getItemData($store, $parententryid, $action)
 		{
 			$result = false;
 			$msg = array();
-			
+
 			if($store){
 				if(isset($action["messages"]["message"]) && is_array($action["messages"]["message"])){
 
@@ -332,7 +332,7 @@
 					foreach($msg as $messageItem){
 						$items = array();
 						$message = mapi_msgstore_openentry($store, hex2bin($messageItem['id']));
-						
+
 						// get the properties of selected message
 						switch($messageItem['type']) {
 							case "Appointment":
@@ -347,7 +347,7 @@
 								$props = mapi_getprops($message, array(PR_DISPLAY_NAME, PR_MESSAGE_CLASS, PR_BODY, PR_OBJECT_TYPE));
 
 								$memberItem = $GLOBALS["operations"]->expandDistributionList($store, hex2bin($messageItem['id']), false, $GLOBALS["properties"]->getContactABProperties(), $GLOBALS["properties"]->getAddressBookProperties());
-								
+
 								$items["dl_name"] = w2u($props[PR_DISPLAY_NAME]);
 								$items["message_class"] = w2u($props[PR_MESSAGE_CLASS]);
 								$items["body"] = w2u($props[PR_BODY]);
@@ -367,7 +367,7 @@
 						}
 						if(!$messageIsDistList)
 							$items = $GLOBALS["operations"]->getMessageProps($store, $message, $properties, true);
-						
+
 						array_push($data["item"], $items);
 					}
 
@@ -378,33 +378,37 @@
 			}
 			return $result;
 		}
-		
+
 		/**
 		 * Function which opens an item.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $entryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure 
+		 * @return boolean true on success or false on failure
 		 */
 		function open($store, $entryid, $action)
 		{
 			$result = false;
-			
+
 			if($store && $entryid) {
 				$data = array();
 				$data["attributes"] = array("type" => "item");
 				$message = $GLOBALS["operations"]->openMessage($store, $entryid);
+
+				// Decode smime signed messages on this message
+ 				parse_smime($store, $message);
+
 				if (isset($this->plaintext) && $this->plaintext){
 					$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, true);
 				}else{
 					$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, false);
 				}
-				
+
 				if(isset($data["item"]["message_class"]) && $data["item"]["message_class"] == "IPM.DistList") {
 					// remove non-client props
 					unset($data["item"]["members"]);
 					unset($data["item"]["oneoff_members"]);
-					
+
 					// get members
 					$messageProps = mapi_getprops($message, array($this->properties["members"], $this->properties["oneoff_members"]));
 					$members = isset($messageProps[$this->properties["members"]]) ? $messageProps[$this->properties["members"]] : array();
@@ -443,7 +447,7 @@
 								}else{
 									$item["missing"] = "1";
 								}
-								
+
 								switch($parts["type"]) {
 		                            case 0:
 										$item["missing"] = "0";
@@ -554,7 +558,7 @@
 				if (isset($data["item"]["message_class"]) && strpos($data["item"]["message_class"], "IPM.TaskRequest") !== false) {
 					$tr = new TaskRequest($store, $message, $GLOBALS["mapisession"]->getSession());
 					$properties = $GLOBALS["properties"]->getTaskProperties();
-					
+
 					// @FIXME is this code used anywhere?
 					if($tr->isTaskRequest()) {
 						$tr->processTaskRequest();
@@ -569,7 +573,7 @@
 							PR_STORE_ENTRYID => hex2bin($taskProps["store_entryid"]["_content"])
 						));
 					}
-					
+
 					if($tr->isTaskRequestResponse()) {
 						$tr->processTaskResponse();
 						$task = $tr->getAssociatedTask(false);
@@ -577,7 +581,7 @@
 						$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $task, $properties, true);
 					}
 				}
-				
+
 				// Open embedded message in embedded message in ...
 				$attachNum = $this->getAttachNum($action);
 				if($attachNum) {
@@ -589,7 +593,7 @@
 				if(isset($data["item"]["message_class"]) && $data["item"]["message_class"] == "REPORT.IPM.Note.NDR"){
 					$data["item"]["body"] = $GLOBALS["operations"]->getNDRbody($GLOBALS["operations"]->openMessage($store, $entryid));
 				}
-								
+
 				// Allowing to hook in just before the data sent away to be sent to the client
 				$GLOBALS['PluginManager']->triggerHook("server.module.itemmodule.open.after", array(
 					'moduleObject' =>& $this,
@@ -602,26 +606,26 @@
 
 				array_push($this->responseData["action"], $data);
 				$GLOBALS["bus"]->addData($this->responseData);
-				
+
 				$result = true;
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Function which saves an item.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid parent entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure		 		 
+		 * @return boolean true on success or false on failure
 		 */
 		function save($store, $parententryid, $action)
 		{
 			$result = false;
-			
+
 			if(isset($action["props"])) {
-				
+
 				if(!$store && !$parententryid) {
 					if(isset($action["props"]["message_class"])) {
 						$store = $GLOBALS["mapisession"]->getDefaultMessageStore();
@@ -635,38 +639,38 @@
 				if($store && $parententryid) {
 					$messageProps = array(); // returned props
 					$result = $GLOBALS["operations"]->saveMessage($store, $parententryid, Conversion::mapXML2MAPI($this->properties, $action["props"]), false, (isset($action["dialog_attachments"])?$action["dialog_attachments"]:null), $messageProps);
-					
+
 					if($result) {
 						$GLOBALS["bus"]->notify(bin2hex($parententryid), TABLE_SAVE, $messageProps);
 					}
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Function which deletes an item.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid parent entryid of the message
-		 * @param string $entryid entryid of the message		 
+		 * @param string $entryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure		 		 
+		 * @return boolean true on success or false on failure
 		 */
 		function delete($store, $parententryid, $entryid, $action)
 		{
 			$result = false;
-			
+
 			if($store && $parententryid && $entryid) {
 				$props = array();
 				$props[PR_PARENT_ENTRYID] = $parententryid;
 				$props[PR_ENTRYID] = $entryid;
-	
+
 				$storeprops = mapi_getprops($store, array(PR_ENTRYID));
 				$props[PR_STORE_ENTRYID] = $storeprops[PR_ENTRYID];
-				
+
 				$result = $GLOBALS["operations"]->deleteMessages($store, $parententryid, $entryid);
-				
+
 				if($result) {
 					$GLOBALS["bus"]->notify(bin2hex($parententryid), TABLE_DELETE, $props);
 
@@ -683,49 +687,49 @@
 
 				}
 			}
-		
+
 			return $result;
 		}
-		
+
 		/**
 		 * Function which sets the PR_MESSAGE_FLAGS property of an item.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid parent entryid of the message
-		 * @param string $entryid entryid of the message		 
+		 * @param string $entryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure		 		 
+		 * @return boolean true on success or false on failure
 		 */
 		function setReadFlag($store, $parententryid, $entryid, $action)
 		{
 			$result = false;
-			
+
 			if($store && $parententryid && $entryid) {
 				$flags = "read,noreceipt";
 				if(isset($action["flag"])) {
 					$flags = $action["flag"];
 				}
-				
+
 				$props = array();
 				$result = $GLOBALS["operations"]->setMessageFlag($store, $entryid, $flags, $props);
-	
+
 				if($result) {
 					$GLOBALS["bus"]->notify(bin2hex($parententryid), TABLE_SAVE, $props);
 				}
 			}
-			
+
 			return $result;
 		}
-				
+
 		/**
-		 * Function which returns the entryid of a default folder.		 		 		 
+		 * Function which returns the entryid of a default folder.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $messageClass the class of the folder
-		 * @return string entryid of a default folder, false if not found		 		 
+		 * @return string entryid of a default folder, false if not found
 		 */
 		function getDefaultFolderEntryID($store, $messageClass)
 		{
 			$entryid = false;
-			
+
 			if($store) {
 				$rootcontainer = mapi_msgstore_openentry($store);
 				$rootcontainerprops = mapi_getprops($rootcontainer, array(PR_IPM_DRAFTS_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID, PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_IPM_TASK_ENTRYID));
@@ -760,30 +764,30 @@
 						break;
 				}
 			}
-			
+
 			return $entryid;
 		}
-		
+
 		function resolveConflict($store, $parententryid, $entryid, $action)
 		{
-			
+
 			if(!is_array($entryid)) {
 				$entryid = array($entryid);
 			}
 			$srcmessage = mapi_openentry($GLOBALS["mapisession"]->getSession(), $entryid[0], 0);
 			if(!$srcmessage)
 				return false;
-			
+
 			$dstmessage = mapi_openentry($GLOBALS["mapisession"]->getSession(), hex2bin($action["conflictentryid"]), MAPI_MODIFY);
 			if(!$dstmessage)
 				return false;
-			
+
 			$srcfolder = mapi_openentry($GLOBALS["mapisession"]->getSession(), $parententryid, MAPI_MODIFY);
-			
+
 			$result = mapi_copyto($srcmessage, array(), array(PR_CONFLICT_ITEMS, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST), $dstmessage);
 			if(!$result)
 				return $result;
-				
+
 			//remove srcmessage entryid from PR_CONFLICT_ITEMS
 			$props = mapi_getprops($dstmessage, array(PR_CONFLICT_ITEMS));
 			if(isset($props[PR_CONFLICT_ITEMS])){
@@ -805,20 +809,20 @@
 					mapi_deleteprops($dstmessage, array(PR_CONFLICT_ITEMS));
 				}
 			}
-			
-				
+
+
 			mapi_savechanges($dstmessage);
-			
+
 			$result = mapi_folder_deletemessages($srcfolder, $entryid);
-			
+
 			$props = array();
 			$props[PR_PARENT_ENTRYID] = $parententryid;
 			$props[PR_ENTRYID] = $entryid[0];
-			
+
 			$storeprops = mapi_getprops($store, array(PR_ENTRYID));
 			$props[PR_STORE_ENTRYID] = $storeprops[PR_ENTRYID];
 			$GLOBALS["bus"]->notify(bin2hex($parententryid), TABLE_DELETE, $props);
-			
+
 			if(!$result)
 				return $result;
 		}
@@ -918,14 +922,14 @@
 		}
 
 		/**
-		 * Checks whether the attachnum information is passed in the $action Array and returns this. 
+		 * Checks whether the attachnum information is passed in the $action Array and returns this.
 		 * Otherwise it will return false.
 		 * @param Array $action Action information
 		 * @return Boolean|Array Returns the attach num array or false if none is set
 		 */
 		function getAttachNum($action){
 			// TODO: Not 100% sure why the rootentryid is still checked
-			if(isset($action["rootentryid"]) && isset($action["attachments"])){ 
+			if(isset($action["rootentryid"]) && isset($action["attachments"])){
 				if(isset($action["attachments"]["attach_num"]) && is_array($action["attachments"]["attach_num"])) {
 					return $action["attachments"]["attach_num"];
 				}

@@ -12,11 +12,12 @@
 #include "IECTestProtocol.h"
 #include "IECMultiStoreTable.h"
 #include "IECExportChanges.h"
-#include "IECLicense.h" 
+#include "IECLicense.h"
+#include "mapi_ptr.h"
 
 // DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....
 #pragma include_alias( "mapi_wrap.h", "mapi_wrap_fixed.h" )
-  
+
 /*
  * perl: CORE/thread.h can define PTHREAD_CREATE_JOINABLE to a value. This clashes with
  * the windows pthread implementation, where it's used in an enum.
@@ -30,7 +31,7 @@
 
 HRESULT MAPIInitialize_Multithreaded() {
 	MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
-	
+
 	return MAPIInitialize(&init);
 }
 
@@ -116,14 +117,33 @@ class ISequentialStream : public IUnknown {
 public:
 	// Hard to typemap so using other method below
     // virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *OUTPUT) = 0;
-    virtual HRESULT Write(const char *pv, ULONG cb, ULONG *OUTPUT) = 0;
+    virtual HRESULT Write(const void *pv, ULONG cb, ULONG *OUTPUT) = 0;
 	%extend {
 		HRESULT Read(ULONG cb, char **lpOutput, ULONG *ulRead) {
+			HRESULT hr = hrSuccess;
 			char *buffer;
-			HRESULT hr = MAPIAllocateBuffer(cb, (void **)&buffer);
+			StreamPtr ptrStream;
 
-			if(hr != hrSuccess)
-				goto exit;			
+			if (self->QueryInterface(ptrStream.iid, &ptrStream) == hrSuccess) {
+				const LARGE_INTEGER liMove = {0, 0};
+				ULARGE_INTEGER liPosition;
+				STATSTG statbuf;
+
+				hr = ptrStream->Seek(liMove, SEEK_CUR, &liPosition);
+				if (hr != hrSuccess)
+					goto exit;
+
+				hr = ptrStream->Stat(&statbuf, 0);
+				if (hr != hrSuccess)
+					goto exit;
+
+				if ((statbuf.cbSize.QuadPart - liPosition.QuadPart) < cb)
+					cb = (ULONG)(statbuf.cbSize.QuadPart - liPosition.QuadPart);
+			}
+
+			hr = MAPIAllocateBuffer(cb, (void **)&buffer);
+			if (hr != hrSuccess)
+				goto exit;
 
 			self->Read(buffer, cb, ulRead);
 
@@ -145,7 +165,7 @@ public:
     virtual HRESULT Revert() = 0;
     virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
     virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) = 0;
-    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag) = 0;
+    virtual HRESULT Stat(STATSTG *OUTPUT, DWORD grfStatFlag) = 0;
     virtual HRESULT Clone(IStream **ppstm) = 0;
 
 	%extend {
@@ -245,6 +265,8 @@ swig_type_info *TypeFromIID(REFIID iid)
   TYPECASE(IECSingleInstance)
   TYPECASE(IECLicense)
   TYPECASE(IProxyStoreObject)
+  TYPECASE(IECImportContentsChanges)
+  TYPECASE(IECImportHierarchyChanges)
   return NULL;
 }
 
@@ -276,6 +298,8 @@ LPCIID IIDFromType(const char *type)
   IIDCASE(IECSingleInstance)
   IIDCASE(IECLicense)
   IIDCASE(IProxyStoreObject)
+  IIDCASE(IECImportContentsChanges)
+  IIDCASE(IECImportHierarchyChanges)
   return &IID_IUnknown;
 }
 %}
@@ -287,8 +311,10 @@ LPCIID IIDFromType(const char *type)
 
 %{
 #include "swig_iunknown.h"
+
 typedef IUnknownImplementor<IStream> Stream;
 %}
+
 
 %feature("director") Stream;
 %feature("nodirector") Stream::QueryInterface;
@@ -297,10 +323,12 @@ public:
 	Stream(ULONG cInterfaces, LPCIID lpInterfaces);
     virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *cbOUTPUT) = 0;
     virtual HRESULT Write(const void *pv, ULONG cb, ULONG *OUTPUT) = 0;
+
 	%extend {
-		virtual ~Stream() { delete self; };
+		virtual ~Stream() { self->Release(); };
 	}
 };
+
 
 #ifndef WIN32
 %include "zarafasync.i"

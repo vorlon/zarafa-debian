@@ -73,6 +73,35 @@ except:
     weakref_proxy = lambda x: x
 
 
+class SwigPyIterator(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, SwigPyIterator, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, SwigPyIterator, name)
+    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined - class is abstract")
+    __repr__ = _swig_repr
+    __swig_destroy__ = _MAPICore.delete_SwigPyIterator
+    __del__ = lambda self : None;
+    def value(self): return _MAPICore.SwigPyIterator_value(self)
+    def incr(self, n = 1): return _MAPICore.SwigPyIterator_incr(self, n)
+    def decr(self, n = 1): return _MAPICore.SwigPyIterator_decr(self, n)
+    def distance(self, *args): return _MAPICore.SwigPyIterator_distance(self, *args)
+    def equal(self, *args): return _MAPICore.SwigPyIterator_equal(self, *args)
+    def copy(self): return _MAPICore.SwigPyIterator_copy(self)
+    def next(self): return _MAPICore.SwigPyIterator_next(self)
+    def __next__(self): return _MAPICore.SwigPyIterator___next__(self)
+    def previous(self): return _MAPICore.SwigPyIterator_previous(self)
+    def advance(self, *args): return _MAPICore.SwigPyIterator_advance(self, *args)
+    def __eq__(self, *args): return _MAPICore.SwigPyIterator___eq__(self, *args)
+    def __ne__(self, *args): return _MAPICore.SwigPyIterator___ne__(self, *args)
+    def __iadd__(self, *args): return _MAPICore.SwigPyIterator___iadd__(self, *args)
+    def __isub__(self, *args): return _MAPICore.SwigPyIterator___isub__(self, *args)
+    def __add__(self, *args): return _MAPICore.SwigPyIterator___add__(self, *args)
+    def __sub__(self, *args): return _MAPICore.SwigPyIterator___sub__(self, *args)
+    def __iter__(self): return self
+SwigPyIterator_swigregister = _MAPICore.SwigPyIterator_swigregister
+SwigPyIterator_swigregister(SwigPyIterator)
+
 
 def MAPIInitialize_Multithreaded():
   return _MAPICore.MAPIInitialize_Multithreaded()
@@ -884,6 +913,110 @@ MDB_TEMPORARY = _MAPICore.MDB_TEMPORARY
 MDB_NO_MAIL = _MAPICore.MDB_NO_MAIL
 AB_NO_DIALOG = _MAPICore.AB_NO_DIALOG
 EC_OVERRIDE_HOMESERVER = _MAPICore.EC_OVERRIDE_HOMESERVER
+class MAPIProp(IMAPIProp):
+    __swig_setmethods__ = {}
+    for _s in [IMAPIProp]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, MAPIProp, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IMAPIProp]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, MAPIProp, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == MAPIProp:
+            _self = None
+        else:
+            _self = self
+        this = _MAPICore.new_MAPIProp(_self, *args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_MAPIProp
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_MAPIProp(self)
+        return weakref_proxy(self)
+MAPIProp_swigregister = _MAPICore.MAPIProp_swigregister
+MAPIProp_swigregister(MAPIProp)
+
+class Message(IMessage):
+    __swig_setmethods__ = {}
+    for _s in [IMessage]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Message, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IMessage]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, Message, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == Message:
+            _self = None
+        else:
+            _self = self
+        this = _MAPICore.new_Message(_self, *args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_Message
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_Message(self)
+        return weakref_proxy(self)
+Message_swigregister = _MAPICore.Message_swigregister
+Message_swigregister(Message)
+
+class Attach(IAttach):
+    __swig_setmethods__ = {}
+    for _s in [IAttach]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Attach, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IAttach]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, Attach, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == Attach:
+            _self = None
+        else:
+            _self = self
+        this = _MAPICore.new_Attach(_self, *args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_Attach
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_Attach(self)
+        return weakref_proxy(self)
+Attach_swigregister = _MAPICore.Attach_swigregister
+Attach_swigregister(Attach)
+
+class MAPITable(IMAPITable):
+    __swig_setmethods__ = {}
+    for _s in [IMAPITable]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, MAPITable, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IMAPITable]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, MAPITable, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == MAPITable:
+            _self = None
+        else:
+            _self = self
+        this = _MAPICore.new_MAPITable(_self, *args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_MAPITable
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_MAPITable(self)
+        return weakref_proxy(self)
+MAPITable_swigregister = _MAPICore.MAPITable_swigregister
+MAPITable_swigregister(MAPITable)
+
+
+def wrap_IMessage(*args):
+  return _MAPICore.wrap_IMessage(*args)
+wrap_IMessage = _MAPICore.wrap_IMessage
 MAPI_ALLOW_OTHERS = _MAPICore.MAPI_ALLOW_OTHERS
 MAPI_EXPLICIT_PROFILE = _MAPICore.MAPI_EXPLICIT_PROFILE
 MAPI_SERVICE_UI_ALWAYS = _MAPICore.MAPI_SERVICE_UI_ALWAYS
@@ -1571,6 +1704,21 @@ class IECImportContentsChanges(IExchangeImportContentsChanges):
 IECImportContentsChanges_swigregister = _MAPICore.IECImportContentsChanges_swigregister
 IECImportContentsChanges_swigregister(IECImportContentsChanges)
 
+class IECImportHierarchyChanges(IExchangeImportHierarchyChanges):
+    __swig_setmethods__ = {}
+    for _s in [IExchangeImportHierarchyChanges]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, IECImportHierarchyChanges, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IExchangeImportHierarchyChanges]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, IECImportHierarchyChanges, name)
+    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined - class is abstract")
+    __repr__ = _swig_repr
+    def ImportFolderChangeEx(self, *args): return _MAPICore.IECImportHierarchyChanges_ImportFolderChangeEx(self, *args)
+    __swig_destroy__ = _MAPICore.delete_IECImportHierarchyChanges
+    __del__ = lambda self : None;
+IECImportHierarchyChanges_swigregister = _MAPICore.IECImportHierarchyChanges_swigregister
+IECImportHierarchyChanges_swigregister(IECImportHierarchyChanges)
+
 class IECSingleInstance(IUnknown):
     __swig_setmethods__ = {}
     for _s in [IUnknown]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
@@ -1636,6 +1784,31 @@ class ECImportContentsChanges(IECImportContentsChanges):
         return weakref_proxy(self)
 ECImportContentsChanges_swigregister = _MAPICore.ECImportContentsChanges_swigregister
 ECImportContentsChanges_swigregister(ECImportContentsChanges)
+
+class ECImportHierarchyChanges(IECImportHierarchyChanges):
+    __swig_setmethods__ = {}
+    for _s in [IECImportHierarchyChanges]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
+    __setattr__ = lambda self, name, value: _swig_setattr(self, ECImportHierarchyChanges, name, value)
+    __swig_getmethods__ = {}
+    for _s in [IECImportHierarchyChanges]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
+    __getattr__ = lambda self, name: _swig_getattr(self, ECImportHierarchyChanges, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        if self.__class__ == ECImportHierarchyChanges:
+            _self = None
+        else:
+            _self = self
+        this = _MAPICore.new_ECImportHierarchyChanges(_self, *args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _MAPICore.delete_ECImportHierarchyChanges
+    __del__ = lambda self : None;
+    def __disown__(self):
+        self.this.disown()
+        _MAPICore.disown_ECImportHierarchyChanges(self)
+        return weakref_proxy(self)
+ECImportHierarchyChanges_swigregister = _MAPICore.ECImportHierarchyChanges_swigregister
+ECImportHierarchyChanges_swigregister(ECImportHierarchyChanges)
 
 MAPI_ORIG = _MAPICore.MAPI_ORIG
 MAPI_TO = _MAPICore.MAPI_TO
@@ -1726,6 +1899,135 @@ class Stream(IStream):
         return weakref_proxy(self)
 Stream_swigregister = _MAPICore.Stream_swigregister
 Stream_swigregister(Stream)
+
+class string(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, string, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, string, name)
+    __repr__ = _swig_repr
+    def length(self): return _MAPICore.string_length(self)
+    def max_size(self): return _MAPICore.string_max_size(self)
+    def capacity(self): return _MAPICore.string_capacity(self)
+    def reserve(self, __res_arg = 0): return _MAPICore.string_reserve(self, __res_arg)
+    def copy(self, *args): return _MAPICore.string_copy(self, *args)
+    def c_str(self): return _MAPICore.string_c_str(self)
+    def find(self, *args): return _MAPICore.string_find(self, *args)
+    def rfind(self, *args): return _MAPICore.string_rfind(self, *args)
+    def find_first_of(self, *args): return _MAPICore.string_find_first_of(self, *args)
+    def find_last_of(self, *args): return _MAPICore.string_find_last_of(self, *args)
+    def find_first_not_of(self, *args): return _MAPICore.string_find_first_not_of(self, *args)
+    def find_last_not_of(self, *args): return _MAPICore.string_find_last_not_of(self, *args)
+    def substr(self, *args): return _MAPICore.string_substr(self, *args)
+    def empty(self): return _MAPICore.string_empty(self)
+    def size(self): return _MAPICore.string_size(self)
+    def swap(self, *args): return _MAPICore.string_swap(self, *args)
+    def get_allocator(self): return _MAPICore.string_get_allocator(self)
+    def begin(self): return _MAPICore.string_begin(self)
+    def end(self): return _MAPICore.string_end(self)
+    def rbegin(self): return _MAPICore.string_rbegin(self)
+    def rend(self): return _MAPICore.string_rend(self)
+    def erase(self, *args): return _MAPICore.string_erase(self, *args)
+    def __init__(self, *args): 
+        this = _MAPICore.new_string(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def assign(self, *args): return _MAPICore.string_assign(self, *args)
+    def resize(self, *args): return _MAPICore.string_resize(self, *args)
+    def iterator(self): return _MAPICore.string_iterator(self)
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self): return _MAPICore.string___nonzero__(self)
+    def __bool__(self): return _MAPICore.string___bool__(self)
+    def __len__(self): return _MAPICore.string___len__(self)
+    def __getslice__(self, *args): return _MAPICore.string___getslice__(self, *args)
+    def __setslice__(self, *args): return _MAPICore.string___setslice__(self, *args)
+    def __delslice__(self, *args): return _MAPICore.string___delslice__(self, *args)
+    def __delitem__(self, *args): return _MAPICore.string___delitem__(self, *args)
+    def __getitem__(self, *args): return _MAPICore.string___getitem__(self, *args)
+    def __setitem__(self, *args): return _MAPICore.string___setitem__(self, *args)
+    def insert(self, *args): return _MAPICore.string_insert(self, *args)
+    def replace(self, *args): return _MAPICore.string_replace(self, *args)
+    def __iadd__(self, *args): return _MAPICore.string___iadd__(self, *args)
+    def __add__(self, *args): return _MAPICore.string___add__(self, *args)
+    def __radd__(self, *args): return _MAPICore.string___radd__(self, *args)
+    def __str__(self): return _MAPICore.string___str__(self)
+    def __rlshift__(self, *args): return _MAPICore.string___rlshift__(self, *args)
+    def __eq__(self, *args): return _MAPICore.string___eq__(self, *args)
+    def __ne__(self, *args): return _MAPICore.string___ne__(self, *args)
+    def __gt__(self, *args): return _MAPICore.string___gt__(self, *args)
+    def __lt__(self, *args): return _MAPICore.string___lt__(self, *args)
+    def __ge__(self, *args): return _MAPICore.string___ge__(self, *args)
+    def __le__(self, *args): return _MAPICore.string___le__(self, *args)
+    __swig_destroy__ = _MAPICore.delete_string
+    __del__ = lambda self : None;
+string_swigregister = _MAPICore.string_swigregister
+string_swigregister(string)
+cvar = _MAPICore.cvar
+string.npos = _MAPICore.cvar.string_npos
+
+class wstring(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, wstring, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, wstring, name)
+    __repr__ = _swig_repr
+    def length(self): return _MAPICore.wstring_length(self)
+    def max_size(self): return _MAPICore.wstring_max_size(self)
+    def capacity(self): return _MAPICore.wstring_capacity(self)
+    def reserve(self, __res_arg = 0): return _MAPICore.wstring_reserve(self, __res_arg)
+    def copy(self, *args): return _MAPICore.wstring_copy(self, *args)
+    def c_str(self): return _MAPICore.wstring_c_str(self)
+    def find(self, *args): return _MAPICore.wstring_find(self, *args)
+    def rfind(self, *args): return _MAPICore.wstring_rfind(self, *args)
+    def find_first_of(self, *args): return _MAPICore.wstring_find_first_of(self, *args)
+    def find_last_of(self, *args): return _MAPICore.wstring_find_last_of(self, *args)
+    def find_first_not_of(self, *args): return _MAPICore.wstring_find_first_not_of(self, *args)
+    def find_last_not_of(self, *args): return _MAPICore.wstring_find_last_not_of(self, *args)
+    def substr(self, *args): return _MAPICore.wstring_substr(self, *args)
+    def empty(self): return _MAPICore.wstring_empty(self)
+    def size(self): return _MAPICore.wstring_size(self)
+    def swap(self, *args): return _MAPICore.wstring_swap(self, *args)
+    def get_allocator(self): return _MAPICore.wstring_get_allocator(self)
+    def begin(self): return _MAPICore.wstring_begin(self)
+    def end(self): return _MAPICore.wstring_end(self)
+    def rbegin(self): return _MAPICore.wstring_rbegin(self)
+    def rend(self): return _MAPICore.wstring_rend(self)
+    def erase(self, *args): return _MAPICore.wstring_erase(self, *args)
+    def __init__(self, *args): 
+        this = _MAPICore.new_wstring(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def assign(self, *args): return _MAPICore.wstring_assign(self, *args)
+    def resize(self, *args): return _MAPICore.wstring_resize(self, *args)
+    def iterator(self): return _MAPICore.wstring_iterator(self)
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self): return _MAPICore.wstring___nonzero__(self)
+    def __bool__(self): return _MAPICore.wstring___bool__(self)
+    def __len__(self): return _MAPICore.wstring___len__(self)
+    def __getslice__(self, *args): return _MAPICore.wstring___getslice__(self, *args)
+    def __setslice__(self, *args): return _MAPICore.wstring___setslice__(self, *args)
+    def __delslice__(self, *args): return _MAPICore.wstring___delslice__(self, *args)
+    def __delitem__(self, *args): return _MAPICore.wstring___delitem__(self, *args)
+    def __getitem__(self, *args): return _MAPICore.wstring___getitem__(self, *args)
+    def __setitem__(self, *args): return _MAPICore.wstring___setitem__(self, *args)
+    def insert(self, *args): return _MAPICore.wstring_insert(self, *args)
+    def replace(self, *args): return _MAPICore.wstring_replace(self, *args)
+    def __iadd__(self, *args): return _MAPICore.wstring___iadd__(self, *args)
+    def __add__(self, *args): return _MAPICore.wstring___add__(self, *args)
+    def __radd__(self, *args): return _MAPICore.wstring___radd__(self, *args)
+    def __str__(self): return _MAPICore.wstring___str__(self)
+    def __rlshift__(self, *args): return _MAPICore.wstring___rlshift__(self, *args)
+    def __eq__(self, *args): return _MAPICore.wstring___eq__(self, *args)
+    def __ne__(self, *args): return _MAPICore.wstring___ne__(self, *args)
+    def __gt__(self, *args): return _MAPICore.wstring___gt__(self, *args)
+    def __lt__(self, *args): return _MAPICore.wstring___lt__(self, *args)
+    def __ge__(self, *args): return _MAPICore.wstring___ge__(self, *args)
+    def __le__(self, *args): return _MAPICore.wstring___le__(self, *args)
+    __swig_destroy__ = _MAPICore.delete_wstring
+    __del__ = lambda self : None;
+wstring_swigregister = _MAPICore.wstring_swigregister
+wstring_swigregister(wstring)
+wstring.npos = _MAPICore.cvar.wstring_npos
 
 EC_SYNC_OPT_STREAM = _MAPICore.EC_SYNC_OPT_STREAM
 EC_SYNC_OPT_CHANGENOTIF = _MAPICore.EC_SYNC_OPT_CHANGENOTIF

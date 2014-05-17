@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -958,6 +958,13 @@ HRESULT ResolveServerToPath(IMAPISession *lpSession, serverrecipients_t *lpServe
 
 	lpSrvNameList->cServers = 0;
 	for (iter = lpServerNameRecips->begin(); iter != lpServerNameRecips->end(); iter++) {
+		if (iter->first.empty()) {
+			// recipient doesn't have a home server.
+			// don't try to resolve since that will break the GetServerDetails call
+			// and thus fail all recipients, not just this one
+			continue;
+		}
+
 		hr = MAPIAllocateMore((iter->first.size() + 1) * sizeof(WCHAR), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]);
 		if (hr != hrSuccess)
 			goto exit;
@@ -981,12 +988,6 @@ HRESULT ResolveServerToPath(IMAPISession *lpSession, serverrecipients_t *lpServe
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
 						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
 		lpServerPathRecips->insert(serverrecipients_t::value_type((LPWSTR)lpSrvList->lpsaServer[i].lpszPreferedPath, iter->second));
-	}
-
-	if (lpServerNameRecips->size() != lpServerPathRecips->size()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve all server names to paths");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
 	}
 
 exit:
@@ -1374,9 +1375,11 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	string  unquoted, quoted;
 	string  command = strBaseCommand;	
 	// Environment
-	const char *env[3];
+	const char *env[4];
 	std::string strToMe;
 	std::string strCcMe;
+	std::string strTmpFile;
+	std::string strTmpFileEnv;
 
 	// @fixme need to stream PR_TRANSPORT_MESSAGE_HEADERS_A and PR_EC_OUTOFOFFICE_MSG_W if they're > 8Kb
 
@@ -1395,8 +1398,8 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 		if (lpMDB->OpenProperty(PR_EC_OUTOFOFFICE_MSG_W, &IID_IStream, 0, 0, &ptrStream) != hrSuccess ||
 			Util::HrStreamToString(ptrStream, strBody) != hrSuccess)
 		{
-			hr = MAPI_E_NOT_FOUND;
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to download out of office message.");
+            hr = MAPI_E_FAILURE;
 			goto exit;
 		}
 	} else {
@@ -1425,6 +1428,17 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 			// Vacation header already present, do not send vacation reply
 			// Precedence: list/bulk/junk, do not reply to these mails
 			goto exit;
+		// save headers to a file so they can also be tested from the script we're runing
+		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", getenv("TEMP") == NULL ? "/tmp" : getenv("TEMP"));
+		fd = mkstemp(szTemp);
+		if (fd >= 0) {
+			hr = WriteOrLogError(fd, lpMessageProps[0].Value.lpszA, strlen(lpMessageProps[0].Value.lpszA));
+			if (hr == hrSuccess)
+				strTmpFile = szTemp; // pass to script
+			else
+				unlink(szTemp);	// ignore headers, but still try oof script
+			close(fd);
+		}
 	}
 	
 
@@ -1438,6 +1452,7 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	fd = mkstemp(szTemp);
 	if (fd < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create temp file for out of office mail: %s", strerror(errno));
+        hr = MAPI_E_FAILURE;
 		goto exit;
 	}
 
@@ -1445,16 +1460,19 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	// PATH_MAX should never be reached though.
 	quoted = ToQuotedBase64Header(lpRecip->wstrFullname);
 	snprintf(szHeader, PATH_MAX, "From: %s <%s>", quoted.c_str(), lpRecip->strSMTP.c_str());
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	snprintf(szHeader, PATH_MAX, "\nTo: %ls", strFromEmail.c_str());
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	// add anti-loop header
 	snprintf(szHeader, PATH_MAX, "\nX-Zarafa-Vacation: autorespond");
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W) {
@@ -1465,29 +1483,46 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	}
 	quoted = ToQuotedBase64Header(szwHeader);
 	snprintf(szHeader, PATH_MAX, "\nSubject: %s", quoted.c_str());
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
+		goto exit;
+
+	{
+		locale_t timelocale = createlocale(LC_TIME, "C");
+		time_t now = time(NULL);
+		tm local;
+		localtime_r(&now, &local);
+		strftime_l(szHeader, PATH_MAX, "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
+		freelocale(timelocale);
+	}
 	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
 		goto exit;
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Type: text/plain; charset=utf-8; format=flowed");
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Transfer-Encoding: base64");
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	snprintf(szHeader, PATH_MAX, "\n\n"); // last header line has double \n
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	if (hr != hrSuccess)
 		goto exit;
 
 	// write body
 	unquoted = convert_to<string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
 	quoted = base64_encode((const unsigned char*)unquoted.c_str(), unquoted.length());
-	if (WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76) != hrSuccess)
+	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
+	if (hr != hrSuccess)
 		goto exit;
 
 	close(fd);
@@ -1504,7 +1539,9 @@ HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB, LPMESSAGE lpMessage, E
 	strCcMe = (std::string)"MESSAGE_CC_ME=" + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
 	env[0] = strToMe.c_str();
 	env[1] = strCcMe.c_str();
-	env[2] = NULL;
+	strTmpFileEnv = "MAILHEADERS=" + strTmpFile;
+	env[2] = strTmpFileEnv.c_str();
+	env[3] = NULL;
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting autoresponder for out-of-office message");
 	command += " 2>&1";
@@ -1519,6 +1556,8 @@ exit:
 
 	if (szTemp[0] != 0)
 		unlink(szTemp);
+	if (!strTmpFile.empty())
+		unlink(strTmpFile.c_str());
 	
 	if (lpStoreProps)
 		MAPIFreeBuffer(lpStoreProps);
@@ -2430,6 +2469,8 @@ void RespondMessageExpired(recipients_t::iterator start, recipients_t::iterator 
  * For a specific zarafa server, deliver the same message to a list of
  * recipients. This makes sure this message is correctly single
  * instanced on this server.
+ *
+ * In this function it's mandatory to have processed all recipients in the list.
  * 
  * @param[in] lpUserSession optional session of one user the message is being delivered to (cmdline dagent, NULL on LMTP mode)
  * @param[in] lpMessage an already delivered message
@@ -2487,12 +2528,20 @@ HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpUs
 		if (hr == hrSuccess || hr == MAPI_E_CANCEL) {
 			if (hr == hrSuccess) {
 				LPSPropValue lpMessageId = NULL;
+				LPSPropValue lpSubject = NULL;
 				wstring wMessageId;
 				if (HrGetOneProp(lpMessageTmp, PR_INTERNET_MESSAGE_ID_W, &lpMessageId) == hrSuccess) {
 					wMessageId = lpMessageId->Value.lpszW;
 					MAPIFreeBuffer(lpMessageId);
 				}
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Delivered message to '%ls', Message-Id: %ls", (*iter)->wstrUsername.c_str(), wMessageId.c_str());
+				HrGetOneProp(lpMessageTmp, PR_SUBJECT_W, &lpSubject);
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL,
+					"Delivered message to '%ls', Subject: \"%ls\", Message-Id: %ls",
+					(*iter)->wstrUsername.c_str(),
+					(lpSubject != NULL) ? lpSubject->Value.lpszW : L"<none>",
+					wMessageId.c_str());
+				if (lpSubject != NULL)
+					MAPIFreeBuffer(lpSubject);
 			}
 			// cancel already logged.
 			hr = hrSuccess;
@@ -2681,12 +2730,13 @@ exit:
  * 
  * @return MAPI Error code 
  */
-HRESULT FindLowestAdminLevel(serverrecipients_t *lpServerRecips, ECRecipient **lppRecipient)
+HRESULT FindLowestAdminLevelSession(serverrecipients_t *lpServerRecips, DeliveryArgs *lpArgs, IMAPISession **lppUserSession)
 {
 	HRESULT hr = hrSuccess;
 	serverrecipients_t::iterator iterSRV;
 	recipients_t::iterator iterRCP;
 	ECRecipient *lpRecip = NULL;
+	bool bFound = false;
 
 	for (iterSRV = lpServerRecips->begin(); iterSRV != lpServerRecips->end(); iterSRV++) {
 		for (iterRCP = iterSRV->second.begin(); iterRCP != iterSRV->second.end(); iterRCP++) {
@@ -2694,18 +2744,30 @@ HRESULT FindLowestAdminLevel(serverrecipients_t *lpServerRecips, ECRecipient **l
 				continue;
 			else if (!lpRecip)
 				lpRecip = *iterRCP;
-			else if ((*iterRCP)->ulAdminLevel < lpRecip->ulAdminLevel)
+			else if ((*iterRCP)->ulAdminLevel <= lpRecip->ulAdminLevel)
 				lpRecip = *iterRCP;
 
-			if (lpRecip->ulAdminLevel < 2)
-				goto found;
+			if (lpRecip->ulAdminLevel < 2) {
+				// if this recipient cannot make the session for the addressbook, it will also not be able to open the store for delivery later on
+				hr = HrGetSession(lpArgs, lpRecip->wstrUsername.c_str(), lppUserSession);
+				if (hr == hrSuccess) {
+					bFound = true;
+					goto found;
+				}
+				// remove found entry, so higher admin levels can be found too if a lower cannot login
+				g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Login on user %ls for addressbook resolves failed: 0x%08X", lpRecip->wstrUsername.c_str(), hr);
+				lpRecip = NULL;
+			}
 		}
+	}
+	if (lpRecip && !bFound) {
+		// we picked only an admin from the list, try this logon
+		hr = HrGetSession(lpArgs, lpRecip->wstrUsername.c_str(), lppUserSession);
+		bFound = (hr == hrSuccess);
 	}
 
 found:
-	if (lpRecip)
-		*lppRecipient = lpRecip;
-	else
+	if (!bFound)
 		hr = MAPI_E_NOT_FOUND; /* This only happens if there are no recipients or everybody is a contact */
 
 	return hr;
@@ -2727,7 +2789,6 @@ HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSess
 	HRESULT hr = hrSuccess;
 	IMAPISession *lpUserSession = NULL;
 	LPADRBOOK lpAdrBook = NULL;
-	ECRecipient *lpRecip = NULL;
 	companyrecipients_t::iterator iter;
 
 	/*
@@ -2737,12 +2798,7 @@ HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin, IMAPISession *lpSess
 	 * companies.
 	 */
 	for (iter = lpCompanyRecips->begin(); iter != lpCompanyRecips->end(); iter++) {
-		hr = FindLowestAdminLevel(&iter->second, &lpRecip);
-		if (hr != hrSuccess)
-			goto exit;
-
-
-		hr = HrGetSession(lpArgs, lpRecip->wstrUsername.c_str(), &lpUserSession);
+		hr = FindLowestAdminLevelSession(&iter->second, lpArgs, &lpUserSession);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2784,11 +2840,14 @@ void *HandlerLMTP(void *lpArg) {
 	DeliveryArgs *lpArgs = (DeliveryArgs *) lpArg;
 	std::string strMailAddress;
 	companyrecipients_t mapRCPT;
+	std::list<std::string> lOrderedRecipients;
+	std::map<std::string, std::string> mapRecipientResults;
 	std::string inBuffer;
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
 	PyMapiPluginFactory pyMapiPluginFactory;
+	convert_context converter;
 
 	LMTP lmtp(lpArgs->lpChannel, (char *)lpArgs->strPath.c_str(), g_lpLogger, g_lpConfig);
 
@@ -2869,7 +2928,7 @@ void *HandlerLMTP(void *lpArg) {
 		}
 
 		if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Command received: " + inBuffer);
+			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + inBuffer);
 
 		hr = lmtp.HrGetCommand(inBuffer, eCommand);	
 		if (hr != hrSuccess) {
@@ -2901,7 +2960,7 @@ void *HandlerLMTP(void *lpArg) {
 			if (lmtp.HrCommandRCPTTO(inBuffer, &strMailAddress) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.3 Bad destination mailbox address syntax");
 			} else {
-				ECRecipient *lpRecipient = new ECRecipient(convert_to<std::wstring>(strMailAddress));
+				ECRecipient *lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
 						
 				// Resolve the mail address, so to have a user name instead of a mail address
 				hr = ResolveUser(lpArgs, lpAddrDir, lpRecipient);
@@ -2912,8 +2971,11 @@ void *HandlerLMTP(void *lpArg) {
 					hr = AddServerRecipient(&mapRCPT, &lpRecipient);
 					if (hr != hrSuccess)
 						lmtp.HrResponse("503 5.1.1 Failed to add user to recipients");
-					else
+					else {
+						// Save original order for final response when mail is delivered in DATA command
+						lOrderedRecipients.push_back(strMailAddress);
 						lmtp.HrResponse("250 2.1.5 Ok");
+					}
 				} else {
 					if (hr == MAPI_E_NOT_FOUND) {
 						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve a user.", strMailAddress.c_str());
@@ -2976,6 +3038,9 @@ void *HandlerLMTP(void *lpArg) {
 					
 				fclose(tmp);
 					
+				/* Responses need to be sent in the same sequence that we received the recipients in.
+				 * Build all responses and find the sequence through the ordered list
+				 */
 				for(companyrecipients_t::iterator iCompany = mapRCPT.begin(); iCompany != mapRCPT.end(); iCompany++) {
 					for(serverrecipients_t::iterator iServer = iCompany->second.begin(); iServer != iCompany->second.end(); iServer++) {
 						for(recipients_t::iterator iRecipient = iServer->second.begin(); iRecipient != iServer->second.end(); iRecipient++) {
@@ -2983,21 +3048,35 @@ void *HandlerLMTP(void *lpArg) {
 							WCHAR wbuffer[4096];
 							for (i = (*iRecipient)->vwstrRecipients.begin(); i != (*iRecipient)->vwstrRecipients.end(); i++) {
 								swprintf(wbuffer, arraySize(wbuffer), (*iRecipient)->wstrDeliveryStatus.c_str(), i->c_str());
-								// rawsize([N]) returns N, not contents len
-								lmtp.HrResponse(convert_to<string>(CHARSET_CHAR, wbuffer, rawsize((WCHAR*)wbuffer), CHARSET_WCHAR));
+								mapRecipientResults.insert(make_pair<string,string>(converter.convert_to<string>(*i),
+																					// rawsize([N]) returns N, not contents len, so cast to fix
+																					converter.convert_to<string>(CHARSET_CHAR, wbuffer, rawsize((WCHAR*)wbuffer), CHARSET_WCHAR)));
 							}
 						}
+					}
+				}
+				// Reply each recipient in the received order
+				for (list<string>::iterator i = lOrderedRecipients.begin(); hr == hrSuccess && i != lOrderedRecipients.end(); i++) {
+					map<string,string>::iterator r = mapRecipientResults.find(*i);
+					if (r == mapRecipientResults.end()) {
+						hr = lmtp.HrResponse("503 5.1.1 Interal error finding recipient delivery status");
+					} else {
+						hr = lmtp.HrResponse(r->second);
 					}
 				}
 
 				// Reset RCPT TO list now
 				FreeServerRecipients(&mapRCPT);
+				lOrderedRecipients.clear();
+				mapRecipientResults.clear();
 			}
 			break;
 
 		case LMTP_Command_RSET:
 			// Reset RCPT TO list
 			FreeServerRecipients(&mapRCPT);
+			lOrderedRecipients.clear();
+			mapRecipientResults.clear();
 			lmtp.HrResponse("250 2.1.0 Ok");
 			break;
 
@@ -3010,6 +3089,8 @@ void *HandlerLMTP(void *lpArg) {
 
 exit:
 	FreeServerRecipients(&mapRCPT);
+	lOrderedRecipients.clear();
+	mapRecipientResults.clear();
 
 	if (lpAddrDir)
 		lpAddrDir->Release();
@@ -3063,8 +3144,9 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	
 	// Setup sockets
 	hr = HrListen(g_lpLogger, g_lpConfig->GetSetting("server_bind"), atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		goto exit;
+	}
 		
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Listening on port %s for LMTP", g_lpConfig->GetSetting("lmtp_port"));
 	pCloseFDs[nCloseFDs++] = ulListenLMTP;
@@ -3098,6 +3180,9 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
 	}
+
+	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
+		unix_coredump_enable(g_lpLogger);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -3188,7 +3273,7 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	}
 
 	if (g_nLMTPThreads)
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", g_nLMTPThreads);
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d processes left", g_nLMTPThreads);
 	else
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP service shutdown complete");
 
@@ -3282,7 +3367,7 @@ HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin, char *recipient, bool bS
 		if (hr == MAPI_E_LOGON_FAILED) {
 			// This is a hard failure, two things could have happened
 			// * strUsername does not exist
-			// * user does exist, but dagent is not running with the correct SYSTEM privileges
+			// * user does exist, but dagent is not running with the correct SYSTEM privileges, or user doesn't have a store
 			// Since we cannot detect the difference, we're handling both of these situations
 			// as hard errors
 			g_bTempfail = false;
@@ -3341,6 +3426,7 @@ void print_help(char *name) {
 	cout << "  -p separator\t Override default path separator (\\). Eg. '-p % -F 'Inbox%dealers\\resellers'" << endl;
 	cout << "  -C\t\t Create the subfolder if it does not exists. Default behaviour is to revert to the normal Inbox folder" << endl;
 	cout << endl;
+	cout << "  --ignore-unknown-config-options Start even if the configuration file contains invalid config options" << endl;
 	cout << "  --add-imap-data Add IMAP optimizations during delivery. Increases disk usage per mail." << endl;
 	cout << "  -s\t\t Make DAgent silent. No errors will be printed, except when the calling parameters are wrong." << endl;
 	cout << "  -v\t\t Make DAgent verbose. More information on processing email rules can be printed." << endl;
@@ -3372,6 +3458,7 @@ int main(int argc, char *argv[]) {
 	bool qmail = false;
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
 	bool strip_email = false;
+	bool bIgnoreUnknownConfigOptions = false;
 
 	DeliveryArgs sDeliveryArgs;
 	sDeliveryArgs.strPath = "";
@@ -3393,6 +3480,7 @@ int main(int argc, char *argv[]) {
 		OPT_FILE,
 		OPT_HOST,
 		OPT_DAEMONIZE,
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
 		OPT_LISTEN,
 		OPT_FOLDER,
 		OPT_PUBLIC,
@@ -3413,6 +3501,7 @@ int main(int argc, char *argv[]) {
 		{ "create", 0, NULL, OPT_CREATE },	// create subfolder if not exist
 		{ "read", 0, NULL, OPT_MARKREAD },	// mark mail as read on delivery
 		{ "do-not-notify", 0, NULL, OPT_NEWMAIL },	// do not send new mail notification
+		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS }, // ignore unknown settings
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -3422,6 +3511,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "" },
 		{ "run_as_group", "" },
 		{ "pid_file", "/var/run/zarafa-dagent.pid" },
+		{ "coredump_enabled", "no" },
 		{ "lmtp_port", "2003" },
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },
@@ -3442,6 +3532,7 @@ int main(int argc, char *argv[]) {
 		{ "plugin_path", "/var/lib/zarafa/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/zarafa-dagent/python" },
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
+		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
 	};
 
@@ -3541,6 +3632,9 @@ int main(int argc, char *argv[]) {
 		case 'N':
 			sDeliveryArgs.bNewmailNotify = false;
 			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
 
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_DAGENT_STR << endl
@@ -3608,6 +3702,9 @@ int main(int argc, char *argv[]) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open configuration file %s", szConfig);
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Continuing with defaults");
 	}
+
+	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
+		LogConfigErrors(g_lpConfig, g_lpLogger);
 
 	/* If something went wrong, create special Logger, log message and bail out */
 	if (g_lpConfig->HasErrors() && bExplicitConfig) {

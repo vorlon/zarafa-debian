@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -708,8 +708,17 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
 			if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
+				ECLogger *log = lpSession->GetSessionManager()->GetLogger();
+				std::string username;
+
+				er = lpSession->GetSecurity()->GetUsername(&username);
 				er = ZARAFA_E_DATABASE_ERROR;
-				lpSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_FATAL, "%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+				log->Log(EC_LOGLEVEL_WARNING,
+					"%s:%d The sync ID %u does not exist. "
+					"(unexpected null pointer) "
+					"session user name: %s.",
+					__FUNCTION__, __LINE__, ulSyncId,
+					username.c_str());
 				goto exit;
 			}
 		}

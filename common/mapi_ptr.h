@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -66,45 +66,49 @@
 #include "ECGuid.h"
 #include "mapiguidext.h"
 
-DEFINEMAPIPTR(ABContainer);
-DEFINEMAPIPTR(AddrBook);
-DEFINEMAPIPTR(DistList);
-DEFINEMAPIPTR(ECSecurity);
-DEFINEMAPIPTR(ECServiceAdmin);
-DEFINEMAPIPTR(ECSingleInstance);
-DEFINEMAPIPTR(ExchangeManageStore);
-DEFINEMAPIPTR(ExchangeModifyTable);
-DEFINEMAPIPTR(ExchangeExportChanges);
-DEFINEMAPIPTR(MAPIAdviseSink);
-DEFINEMAPIPTR(MAPIContainer);
-DEFINEMAPIPTR(MAPIFolder);
-DEFINEMAPIPTR(MAPIProp);
-DEFINEMAPIPTR(MAPISession);
-DEFINEMAPIPTR(MAPITable);
-DEFINEMAPIPTR(MailUser);
-DEFINEMAPIPTR(Message);
-DEFINEMAPIPTR(MsgServiceAdmin);
-DEFINEMAPIPTR(MsgStore);
-DEFINEMAPIPTR(ProfAdmin);
-DEFINEMAPIPTR(ProfSect);
-DEFINEMAPIPTR(ProviderAdmin);
-DEFINEMAPIPTR(Unknown);
-DEFINEMAPIPTR(Stream);
-typedef mapi_object_ptr<IAttach, IID_IAttachment> AttachPtr;	// Nice... MS (not Mark S) is a bit inconsistent here.
-DEFINEMAPIPTR(MAPIGetSession);
-
+typedef mapi_object_ptr<IABContainer, IID_IABContainer> ABContainerPtr;
+typedef mapi_object_ptr<IAddrBook, IID_IAddrBook> AddrBookPtr;
+typedef mapi_object_ptr<IDistList, IID_IDistList> DistListPtr;
+typedef mapi_object_ptr<IECSecurity, IID_IECSecurity> ECSecurityPtr;
+typedef mapi_object_ptr<IECServiceAdmin, IID_IECServiceAdmin> ECServiceAdminPtr;
+typedef mapi_object_ptr<IECSingleInstance, IID_IECSingleInstance> ECSingleInstancePtr;
+typedef mapi_object_ptr<IExchangeManageStore, IID_IExchangeManageStore> ExchangeManageStorePtr;
+typedef mapi_object_ptr<IExchangeModifyTable, IID_IExchangeModifyTable> ExchangeModifyTablePtr;
+typedef mapi_object_ptr<IExchangeExportChanges, IID_IExchangeExportChanges> ExchangeExportChangesPtr;
+typedef mapi_object_ptr<IMAPIAdviseSink, IID_IMAPIAdviseSink> MAPIAdviseSinkPtr;
+typedef mapi_object_ptr<IMAPIContainer, IID_IMAPIContainer> MAPIContainerPtr;
+typedef mapi_object_ptr<IMAPIFolder, IID_IMAPIFolder> MAPIFolderPtr;
+typedef mapi_object_ptr<IMAPIProp, IID_IMAPIProp> MAPIPropPtr;
+typedef mapi_object_ptr<IMAPISession, IID_IMAPISession> MAPISessionPtr;
+typedef mapi_object_ptr<IMAPITable, IID_IMAPITable> MAPITablePtr;
+typedef mapi_object_ptr<IMailUser, IID_IMailUser> MailUserPtr;
+typedef mapi_object_ptr<IMessage, IID_IMessage> MessagePtr;
+typedef mapi_object_ptr<IMsgServiceAdmin, IID_IMsgServiceAdmin> MsgServiceAdminPtr;
+typedef mapi_object_ptr<IMsgStore, IID_IMsgStore> MsgStorePtr;
+typedef mapi_object_ptr<IProfAdmin, IID_IProfAdmin> ProfAdminPtr;
+typedef mapi_object_ptr<IProfSect, IID_IProfSect> ProfSectPtr;
+typedef mapi_object_ptr<IProviderAdmin, IID_IProviderAdmin> ProviderAdminPtr;
+typedef mapi_object_ptr<IUnknown, IID_IUnknown> UnknownPtr;
+typedef mapi_object_ptr<IStream, IID_IStream> StreamPtr;
+typedef mapi_object_ptr<IAttach, IID_IAttachment> AttachPtr;
+typedef mapi_object_ptr<IMAPIGetSession, IID_IMAPIGetSession> MAPIGetSessionPtr;
 
 typedef mapi_memory_ptr<ECPERMISSION> ECPermissionPtr;
 typedef mapi_memory_ptr<ENTRYID> EntryIdPtr;
 typedef mapi_memory_ptr<ENTRYLIST> EntryListPtr;
 typedef mapi_memory_ptr<MAPIERROR> MAPIErrorPtr;
 typedef mapi_memory_ptr<ROWLIST> RowListPtr;
+typedef mapi_memory_ptr<SPropProblemArray> SPropProblemArrayPtr;
 typedef mapi_memory_ptr<SPropValue> SPropValuePtr;
 typedef mapi_memory_ptr<SPropTagArray> SPropTagArrayPtr;
 typedef mapi_memory_ptr<SRestriction> SRestrictionPtr;
+typedef mapi_memory_ptr<SRow> SRowPtr;
 typedef mapi_memory_ptr<SSortOrderSet> SSortOrderSetPtr;
 typedef mapi_memory_ptr<WCHAR> WStringPtr;
 typedef mapi_memory_ptr<FlagList> FlagListPtr;
+typedef mapi_memory_ptr<SBinary> SBinaryPtr;
+typedef mapi_memory_ptr<BYTE> BytePtr;
+typedef mapi_memory_ptr<MAPINAMEID> MAPINameIdPtr;
 
 typedef mapi_array_ptr<ECPERMISSION> ECPermissionArrayPtr;
 typedef mapi_array_ptr<SPropValue> SPropArrayPtr;

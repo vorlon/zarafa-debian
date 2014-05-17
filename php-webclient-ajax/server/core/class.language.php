@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -50,6 +50,111 @@
 
 ?>
 <?php
+function lang_strip_mod($x)
+{
+	return preg_replace('/@[-A-Za-z\d]+/i', "", $x);
+}
+
+function lang_strip_enc($x)
+{
+	return preg_replace('/\.[-A-Za-z\d]+/i', "", $x);
+}
+
+function lang_strip_cc($x)
+{
+	return preg_replace('/_[A-Z\d]+/i', "", $x);
+}
+
+function lang_add_cc($x)
+{
+	$cc = "";
+
+	if (strpos($x, '_') !== false)
+		/* Already has a country code in it */
+		return $x;
+
+	$x = lang_strip_cc(lang_strip_enc(lang_strip_mod($x)));
+	     if (strcmp($x, "ca") == 0) $cc = "ES";
+	else if (strcmp($x, "cs") == 0) $cc = "CZ";
+	else if (strcmp($x, "da") == 0) $cc = "DK";
+	else if (strcmp($x, "en") == 0) $cc = "US";
+	else if (strcmp($x, "et") == 0) $cc = "EE";
+	else if (strcmp($x, "he") == 0) $cc = "IL";
+	else if (strcmp($x, "ja") == 0) $cc = "JP";
+	else if (strcmp($x, "ko") == 0) $cc = "KR";
+	else if (strcmp($x, "nb") == 0) $cc = "NO";
+	else if (strcmp($x, "nn") == 0) $cc = "NO";
+	else if (strcmp($x, "sl") == 0) $cc = "SI";
+	else if (strcmp($x, "sv") == 0) $cc = "SE";
+	else if (strcmp($x, "uk") == 0) $cc = "UA";
+	else {
+		if (!preg_match('/^([a-z\d]+)/i', $x, $mat))
+			$cc = "wtf";
+		else
+			$cc = strtoupper($mat[1]);
+	}
+	return preg_replace('/^([a-z\d]+)/','$1_'.$cc, $x);
+}
+
+function lang_add_enc($x)
+{
+	if (strpos($x, '.') !== false)
+		return $x;
+	/* If encoding is absent, put UTF-8 in */
+	return preg_replace('/^([a-z]+(?:_[A-Z]+)?)(?!\.)/i',
+	       '$1.UTF-8', $x);
+}
+
+function lang_is_acceptable($locale)
+{
+	if (strpos($locale, '/') !== false)
+		/* Avoid accepting anything that looks like a directory. */
+		return false;
+	if (strcmp($locale, "last") == 0)
+		/*
+		 * "last" is an artifact of the caller, the latter of which
+		 * does not bother to prefilter it. So we have to weed "last"
+		 * out in this function :-(
+		 */
+		return false;
+	/*
+	 * All remaining strings are valid locale specifiers. gettext users
+	 * expect English rather than a error box (which does not seem to work
+	 * reliably anyway). Do not outsmart them.
+	 */
+	return true;
+}
+
+function lang_mo_file_for($locale)
+{
+	/*
+	 * Reimplement the search logic, for the javascript parts.
+	 * locale = de_DE.UTF-8
+	 */
+
+	if (!lang_is_acceptable($locale)) {
+		/* Reject directory separators. */
+		return false;
+	}
+
+  	$vals = array(
+		$locale,
+		lang_strip_mod($locale),
+		lang_strip_enc($locale),
+		lang_strip_mod(lang_strip_enc($locale)),
+		lang_strip_cc($locale),
+		lang_strip_cc(lang_strip_mod($locale)),
+		lang_strip_cc(lang_strip_enc($locale)),
+		lang_strip_cc(lang_strip_mod(lang_strip_enc($locale))),
+	);
+	foreach ($vals as $k) {
+		$f = LANGUAGE_DIR."/$k/LC_MESSAGES/zarafa_webaccess.mo";
+		if (is_file($f))
+			return $f;
+	}
+	return false;
+}
+
 	/**
 	 * Language handling class
 	 *
@@ -64,14 +169,14 @@
         /**
         * Default constructor
         *
-        * By default, the Language class only knows about en_EN (English). If you want more languages, you
+        * By default, the Language class only knows about en (English). If you want more languages, you
         * must call loadLanguages().
         *
         */
 		function Language()
 		{
-			$this->languages = array("en_EN"=>"English");
-			$this->languagetable = array("en_EN"=>"eng_ENG");
+			$this->languages = array("en" => "English");
+			$this->languagetable = array("en" => "eng");
 			$this->loaded = false;
 		}
 		
@@ -104,18 +209,48 @@
 
 			$languages = explode(";", ENABLED_LANGUAGES);
 			$dh = opendir(LANGUAGE_DIR);
-			while (($entry = readdir($dh))!==false){
-				$langcode = str_ireplace(".UTF-8", "", $entry);
-				if(in_array($langcode, $languages) || in_array($entry, $languages)) {
-					if (is_dir(LANGUAGE_DIR.$entry."/LC_MESSAGES") && is_file(LANGUAGE_DIR.$entry."/language.txt")){
-						$fh = fopen(LANGUAGE_DIR.$entry."/language.txt", "r");
-						$lang_title = fgets($fh);
-						$lang_table = fgets($fh);
-						fclose($fh);
-						$this->languages[$entry] = $lang_title;
-						$this->languagetable[$entry] = $lang_table;
-					}
-				}
+			while (($entry = readdir($dh)) !== false) {
+				$pick = 0;
+				/*
+				 * Case 1: languages contains a generalization.
+				 * entry = zh_CN, languages = [zh]
+				 */
+				if (in_array($entry, $languages) ||
+				    in_array(lang_strip_mod($entry), $languages) ||
+				    in_array(lang_strip_enc($entry), $languages) ||
+				    in_array(lang_strip_enc(lang_strip_mod($entry)), $languages) ||
+				    in_array(lang_strip_cc($entry), $languages) ||
+				    in_array(lang_strip_cc(lang_strip_mod($entry)), $languages) ||
+				    in_array(lang_strip_cc(lang_strip_enc($entry)), $languages) ||
+				    in_array(lang_strip_cc(lang_strip_enc(lang_strip_mod($entry))), $languages))
+					$pick = 1;
+				/*
+				 * Case 2: language contains a country
+				 * specialization that matches the default
+				 * country for a general language.
+				 * entry = de, language = [de_DE]
+				 */
+				if (in_array(lang_add_cc($entry), $languages))
+					$pick = 1;
+				if (!$pick)
+					continue;
+				if (!is_dir(LANGUAGE_DIR.$entry."/LC_MESSAGES"))
+					continue;
+				if (!is_file(LANGUAGE_DIR.$entry."/language.txt"))
+					continue;
+				$fh = fopen(LANGUAGE_DIR.$entry."/language.txt", "r");
+				$lang_title = fgets($fh);
+				$lang_table = fgets($fh);
+				fclose($fh);
+				/*
+				 * Always give the Preferences dialog valid
+				 * _gettext_ IDs (not directory names, ffs),
+				 * i.e. entries of the type "lc_CC" or
+				 * "lc_CC.UTF-8".
+				 */
+				$entry = lang_add_enc(lang_add_cc($entry));
+				$this->languages[$entry] = $lang_title;
+				$this->languagetable[$entry] = $lang_table;
 			}
 			$this->loaded = true;		
 		}
@@ -150,7 +285,7 @@
 				}
 			}
 
-			if ($this->is_language($lang)){
+			if (lang_is_acceptable($lang)) {
 				$this->lang = $lang;
 		
 				if (strtoupper(substr(PHP_OS, 0, 3)) === "WIN"){
@@ -215,13 +350,13 @@
 		*/
 		function is_language($lang)
 		{
-			return $lang=="en_EN" || is_dir(LANGUAGE_DIR . "/" . $lang);
+			return lang_is_acceptable($lang);
 		}
 
 		function getTranslations(){
 			$translations = Array();
 
-			$translations['zarafa_webaccess'] = $this->getTranslationsFromFile(LANGUAGE_DIR.$this->getSelected().'/LC_MESSAGES/zarafa_webaccess.mo');
+			$translations['zarafa_webaccess'] = $this->getTranslationsFromFile(lang_mo_file_for($this->getSelected()));
 			if(!$translations['zarafa_webaccess']) $translations['zarafa_webaccess'] = Array();
 
 			if(isset($GLOBALS['PluginManager'])){

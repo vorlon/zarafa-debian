@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -77,7 +77,7 @@
 
 /* HACK!
  *
- * We are using an include from the client since we need to know the structure of 
+ * We are using an include from the client since we need to know the structure of
  * the store entryid for HrExtractServerName. Since this is pretty non-standard we're
  * not including this in common.
  *
@@ -87,14 +87,16 @@
  */
 #include "../../provider/include/Zarafa.h"
 
-DEFINEMAPIPTR(ECExportChanges);
+typedef mapi_object_ptr<IECExportChanges, IID_IECExportChanges> ECExportChangesPtr;
+//DEFINEMAPIPTR(ECExportChanges);
 
 using namespace std;
 
 #define WSTR(x) (PROP_TYPE((x).ulPropTag) == PT_UNICODE ? (x).Value.lpszW : L"<Unknown>")
 
 // Define ECImportContentsChangePtr
-DEFINEMAPIPTR(ECImportContentsChanges);
+typedef mapi_object_ptr<IECImportContentsChanges, IID_IECImportContentsChanges> ECImportContentsChangesPtr;
+//DEFINEMAPIPTR(ECImportContentsChanges);
 
 /**
  * Extract server name from wrapped store entryid
@@ -112,28 +114,28 @@ HRESULT HrExtractServerName(LPENTRYID lpStoreEntryId, ULONG cbStoreEntryId, std:
 	HRESULT hr = hrSuccess;
 	EntryIdPtr lpEntryId;
 	ULONG cbEntryId;
-	
+
 	hr = UnWrapStoreEntryID(cbStoreEntryId, lpStoreEntryId, &cbEntryId, &lpEntryId);
 	if(hr != hrSuccess)
 		goto exit;
-		
+
 	if(((PEID)lpEntryId.get())->ulVersion != 1) {
 	    hr = MAPI_E_INVALID_PARAMETER;
 		ASSERT(false);
 		goto exit;
 	}
-	
-	strServerName = (char *)((PEID)lpEntryId.get())->szServer;	
-	
+
+	strServerName = (char *)((PEID)lpEntryId.get())->szServer;
+
 	// Servername is now eg. pseudo://servername
-	
+
 	if(strServerName.compare(0, 9, "pseudo://") == 0) {
 		strServerName.erase(0, 9);
 	} else {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-		
+
 exit:
 	return hr;
 }
@@ -143,22 +145,22 @@ ECServerIndexer::ECServerIndexer(ECConfig *lpConfig, ECLogger *lpLogger, ECThrea
     m_lpConfig = lpConfig;
     m_lpLogger = lpLogger;
     m_lpThreadData = lpThreadData;
-    
+
     pthread_mutex_init(&m_mutexExit, NULL);
     pthread_cond_init(&m_condExit, NULL);
     m_bExit = false;
 	m_bFast = false;
     m_bThreadStarted = false;
-    
+
     pthread_mutex_init(&m_mutexTrack, NULL);
     pthread_cond_init(&m_condTrack, NULL);
     m_ulTrack = 0;
 
 	pthread_mutex_init(&m_mutexRebuild, NULL);
 	pthread_cond_init(&m_condRebuild, NULL);
-    
+
     m_guidServer = GUID_NULL;
-    
+
     m_ulIndexerState = 0;
 }
 
@@ -172,7 +174,7 @@ ECServerIndexer::~ECServerIndexer()
     pthread_mutex_lock(&m_mutexRebuild);
     pthread_cond_signal(&m_condRebuild);
     pthread_mutex_unlock(&m_mutexRebuild);
-    
+
     pthread_join(m_thread, NULL);
     pthread_join(m_threadRebuild, NULL);
 }
@@ -181,18 +183,18 @@ HRESULT ECServerIndexer::Create(ECConfig *lpConfig, ECLogger *lpLogger, ECThread
 {
     HRESULT hr = hrSuccess;
     ECServerIndexer *lpIndexer = new ECServerIndexer(lpConfig, lpLogger, lpThreadData);
-    
+
     lpIndexer->AddRef();
 
     hr = lpIndexer->Start();
     if(hr != hrSuccess)
         goto exit;
-    
+
     *lppIndexer = lpIndexer;
 exit:
     if(hr != hrSuccess && lpIndexer)
         lpIndexer->Release();
-        
+
     return hr;
 }
 
@@ -202,7 +204,7 @@ exit:
 HRESULT ECServerIndexer::Start()
 {
     HRESULT hr = hrSuccess;
-    
+
     if(pthread_create(&m_thread, NULL, ECServerIndexer::ThreadEntry, this) != 0) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
         hr = MAPI_E_CALL_FAILED;
@@ -214,9 +216,9 @@ HRESULT ECServerIndexer::Start()
         hr = MAPI_E_CALL_FAILED;
         goto exit;
     }
-    
+
     m_bThreadStarted = true;
-    
+
 exit:
     return hr;
 }
@@ -227,7 +229,7 @@ exit:
 void *ECServerIndexer::ThreadEntry(void *lpParam)
 {
     ECServerIndexer *lpIndexer = (ECServerIndexer *)lpParam;
-    
+
     lpIndexer->Thread();
 	return NULL;
 }
@@ -254,21 +256,21 @@ HRESULT ECServerIndexer::Thread()
 
 			hr = HrOpenDefaultStore(m_ptrSession, &m_ptrAdminStore);
 			if(hr != hrSuccess) {
-				m_ptrSession = NULL;
+				m_ptrSession.reset();
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open system admin store: %08X", hr);
 				goto next;
 			}
-            
+
             hr = GetServerGUID(&m_guidServer);
             if(hr != hrSuccess) {
-				m_ptrSession = NULL;
-				m_ptrAdminStore = NULL;
+				m_ptrSession.reset();
+				m_ptrAdminStore.reset();
                 goto next;
             }
 
             // Load the state from disk if we don't have it yet
             hr = LoadState();
-            
+
             if(hr == MAPI_E_NOT_FOUND)
                 m_strICSState.clear();
             else if(hr == hrSuccess) {
@@ -279,45 +281,45 @@ HRESULT ECServerIndexer::Thread()
                 goto exit;
 			}
         }
-            
+
         if(m_ulIndexerState == stateUnknown) {
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Initial state, getting server state");
             hr = GetServerState(m_strICSState);
             if(hr != hrSuccess)
                 goto exit;
-                
+
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Server state after initial exports: %s", bin2hex(m_strICSState).c_str());
-            
+
             // No state, start from the beginning
-            m_ulIndexerState = stateBuilding;        
+            m_ulIndexerState = stateBuilding;
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Entering build state, starting index build");
         }
-        
+
         if(m_ulIndexerState == stateBuilding) {
-            
+
             hr = BuildIndexes();
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Store indexing failed");
                 hr = hrSuccess;
                 goto next;
             }
-                
+
             m_ulIndexerState = stateRunning;
             m_lpLogger->Log(EC_LOGLEVEL_INFO, "Entering incremental state, waiting for changes");
-            
+
             if(m_bExit)
                 goto exit;
         }
         if(m_ulIndexerState == stateRunning) {
 
             hr = ProcessChanges();
-            
+
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Change processing failed: %08X", hr);
                 hr = hrSuccess;
                 goto next;
             }
-            
+
             hr = SaveState();
             if(hr != hrSuccess) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save server state. This may cause previous changes to be re-indexed: %08X", hr);
@@ -333,9 +335,9 @@ next:
 		}
         pthread_mutex_unlock(&m_mutexExit);
     }
-        
+
 exit:
-    
+
     return hr;
 }
 
@@ -347,32 +349,32 @@ HRESULT ECServerIndexer::ProcessChanges()
     ECIndexImporter *lpImporter = NULL;
     ExchangeExportChangesPtr lpExporter;
     std::list<ECIndexImporter::ArchiveItem> lstStubTargets;
-    
+
     time_t ulStartTime = time(NULL);
     time_t ulLastTime = time(NULL);
     ULONG ulSteps = 0, ulStep = 0;
     ULONG ulTotalChange = 0, ulTotalBytes = 0;
     ULONG ulCreate = 0, ulChange = 0, ulDelete = 0, ulBytes = 0;
-    
-    
+
+
     hr = m_ptrAdminStore->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, &lpExporter);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get system exporter: %08X", hr);
         goto exit;
     }
-    
+
     hr = ECIndexImporter::Create(m_lpConfig, m_lpLogger, m_ptrAdminStore, m_lpThreadData, NULL, m_guidServer, &lpImporter);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create stream importer: %08X", hr);
         goto exit;
     }
-    
-    hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface); 
+
+    hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "QueryInterface failed for importer: %08X", hr);
         goto exit;
     }
-    
+
     hr = lpExporter->Config(&state, SYNC_NORMAL, lpImportInterface, NULL, NULL, NULL, 0);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to config system exporter: %08X", hr);
@@ -381,25 +383,25 @@ HRESULT ECServerIndexer::ProcessChanges()
 
     while(1) {
         hr = lpExporter->Synchronize(&ulSteps, &ulStep);
-        
+
         if(time(NULL) > ulLastTime + 10) {
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Step %d of %d", ulStep, ulSteps);
         }
-        
+
         if(FAILED(hr)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Synchronize failed: %08X", hr);
             // Do not goto exit, we wish to save the sync state
             break;
         }
-        
+
         lpImporter->GetStats(&ulCreate, &ulChange, &ulDelete, &ulBytes);
-        
+
 		ulTotalBytes += ulBytes;
 		ulTotalChange += ulCreate + ulChange;
-		
+
         if(hr == hrSuccess)
             break;
-            
+
         if(m_bExit) {
             hr = MAPI_E_USER_CANCEL;
             break;
@@ -410,7 +412,7 @@ HRESULT ECServerIndexer::ProcessChanges()
     hr = lpImporter->GetStubTargets(&lstStubTargets);
     if(hr != hrSuccess)
         goto exit;
-    
+
     hr = IndexStubTargets(lstStubTargets, lpImporter);
     if(hr != hrSuccess)
         goto exit;
@@ -426,13 +428,13 @@ HRESULT ECServerIndexer::ProcessChanges()
 
     if(ulTotalChange)
        	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed %d changes (%s) in %d seconds", ulTotalChange, str_storage(ulTotalBytes, false).c_str(), (int)(time(NULL) - ulStartTime));
-    
-    
+
+
 exit:
     if(lpImporter)
         lpImporter->Release();
-        
-    return hr;    
+
+    return hr;
 }
 
 /**
@@ -451,41 +453,41 @@ HRESULT ECServerIndexer::BuildIndexes()
     MAPITablePtr lpTable;
     SRowSetPtr lpRows;
     SizedSPropTagArray(3, sptaProps) = { 3, { PR_DISPLAY_NAME_W, PR_ENTRYID, PR_EC_STORETYPE } };
-            
+
     hr = m_ptrAdminStore->QueryInterface(IID_IExchangeManageStore, (void **)&lpEMS);
     if(hr != hrSuccess)
         goto exit;
-        
+
     hr = lpEMS->GetMailboxTable(L"", &lpTable, 0);
     if(hr != hrSuccess)
         goto exit;
-        
+
     hr = lpTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
     if(hr != hrSuccess)
         goto exit;
-        
+
     while(1) {
         hr = lpTable->QueryRows(20, 0, &lpRows);
         if(hr != hrSuccess)
             goto exit;
-            
+
         if(lpRows.empty())
             break;
-            
+
         for(unsigned int i = 0; i < lpRows.size(); i++) {
             if(m_bExit) {
                 hr = MAPI_E_USER_CANCEL;
                 goto exit;
             }
-                
+
             m_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting indexing of store %ls", WSTR(lpRows[i].lpProps[0]));
-            
+
             hr = IndexStore(&lpRows[i].lpProps[1].Value.bin, lpRows[i].lpProps[2].Value.ul);
             if(hr != hrSuccess)
                 goto exit;
         }
     }
-        
+
 exit:
     return hr;
 }
@@ -511,13 +513,13 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
     ULONG cValues = 0;
     ULONG ulObjType = 0;
     ECIndexImporter *lpImporter = NULL;
-    
+
     hr = m_ptrSession->OpenMsgStore(0, lpsEntryId->cb, (LPENTRYID)lpsEntryId->lpb, NULL, 0, &lpStore);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open store: %08X", hr);
         goto exit;
     }
-    
+
     hr = lpStore->GetProps((LPSPropTagArray)&sptaStoreProps, 0, &cValues, &lpPropStore);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get store properties: %08X", hr);
@@ -525,7 +527,7 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
     }
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing store id %s", bin2hex(lpPropStore[1].Value.bin.cb, lpPropStore[1].Value.bin.lpb).c_str());
-    
+
     hr = m_lpThreadData->lpIndexFactory->GetIndexDB(&m_guidServer, (GUID *)lpPropStore[1].Value.bin.lpb, true, false, &lpIndex);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open index database: %08X", hr);
@@ -537,7 +539,7 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create stream importer: %08X", hr);
         goto exit;
     }
-    
+
     if(ulStoreType == ECSTORE_TYPE_PUBLIC)
         hr = HrGetOneProp(lpStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &lpPropSubtree);
     else
@@ -547,7 +549,7 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
         hr = hrSuccess;
         goto exit;
     }
-    
+
     hr = lpStore->OpenEntry(lpPropSubtree->Value.bin.cb, (LPENTRYID)lpPropSubtree->Value.bin.lpb, &IID_IMAPIFolder, 0, &ulObjType, (IUnknown **)&lpSubtree);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open IPM subtree: %08X", hr);
@@ -559,7 +561,7 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get folder list: %08X", hr);
         goto exit;
     }
-    
+
     hr = lpHierarchy->SetColumns((LPSPropTagArray)&sptaFolderProps, 0);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set column set for folder list: %08X", hr);
@@ -572,33 +574,34 @@ HRESULT ECServerIndexer::IndexStore(SBinary *lpsEntryId, unsigned int ulStoreTyp
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get folder rows: %08X", hr);
             goto exit;
         }
-        
+
         if(lpRows.empty())
             break;
-            
+
         for(unsigned int i=0; i < lpRows.size(); i++) {
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing folder %ls", WSTR(lpRows[i].lpProps[0]));
             hr = IndexFolder(lpStore, &lpRows[i].lpProps[1].Value.bin, WSTR(lpRows[i].lpProps[0]), lpImporter, lpIndex);
             if(hr != hrSuccess) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Indexing failed for folder: %08X", hr);
-                goto exit;
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Indexing failed for folder: %08X. Trying to continue.", hr);
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Note that messages in this folder will never be found when searching. The store will need a full reindex.");
+				hr = hrSuccess;
             }
         }
     }
-    
+
     hr = lpIndex->SetComplete();
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to set complete flag for index");
         goto exit;
     }
-    
+
 exit:
     if (lpImporter)
         lpImporter->Release();
 
     if(lpIndex)
          m_lpThreadData->lpIndexFactory->ReleaseIndexDB(lpIndex);
-        
+
     return hr;
 }
 
@@ -609,7 +612,7 @@ exit:
  * if a previous synchronization had stopped before the folder was done. This is done by requesting the previous
  * sync state, if any, and using that if possible.
  */
- 
+
 HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, const WCHAR *szName, ECIndexImporter *lpImporter, ECIndexDB *lpIndex)
 {
     HRESULT hr = hrSuccess;
@@ -622,7 +625,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
     ULONG ulSteps = 0, ulStep = 0;
     ULONG cValues = 0;
     ULONG ulObjType = 0;
-    IStreamAdapter state(strFolderState);    
+    IStreamAdapter state(strFolderState);
     ExchangeExportChangesPtr lpExporter;
     UnknownPtr lpImportInterface;
 
@@ -634,9 +637,9 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
 	ULONG ulTotalChange = 0;
 	ULONG ulChange = 0, ulCreate = 0, ulDelete = 0;
 	unsigned long long ulTotalBytes = 0;
-	
+
     std::list<ECIndexImporter::ArchiveItem> lstStubTargets;
-    
+
     SizedSPropTagArray(3, sptaProps) = {3, { PR_DISPLAY_NAME_W, PR_MAPPING_SIGNATURE, PR_STORE_RECORD_KEY } };
 
     hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface);
@@ -644,13 +647,13 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get importer interface: %08X", hr);
         goto exit;
     }
-    
+
     hr = lpStore->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
     if(FAILED(hr))
         goto exit;
-        
+
     lpIndex->GetSyncState(strFolderId, strFolderState, strStubTargetState); // ignore error and use empty state if this fails
-    
+
     if (!strStubTargetState.empty()) {
         hr = lpImporter->LoadStubTargetState(strStubTargetState, &lstStubTargets);
         if (hr != hrSuccess) {
@@ -661,17 +664,17 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
                 m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Loaded %u stub targets from saved state", (unsigned int)lstStubTargets.size());
         }
     }
-    
+
     hr = lpStore->OpenEntry(lpsEntryId->cb, (LPENTRYID)lpsEntryId->lpb, &IID_IMAPIFolder, 0, &ulObjType, (IUnknown **)&lpFolder);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open folder %ls in store %ls, for indexing: %08X", szName, WSTR(lpProps[0]), hr);
         goto exit;
     }
-    
+
     // Start a synchronization loop
     hr = lpFolder->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, (IUnknown **)&lpExporter);
     if(hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open exporter: %08X", hr);
+        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open exporter for folder %ls: %08X", szName, hr);
         goto exit;
     }
 
@@ -680,7 +683,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable configure exporter: %08X", hr);
         goto exit;
     }
-    
+
     while(1) {
         hr = lpExporter->Synchronize(&ulSteps, &ulStep);
         if(FAILED(hr)) {
@@ -688,31 +691,31 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
             // Do not goto exit, we wish to save the sync state
             break;
         }
-        
+
         lpImporter->GetStats(&ulCreate, &ulChange, &ulDelete, &ulBytes);
-        
+
 		ulTotalBytes += ulBytes;
 		ulTotalChange += ulCreate + ulChange;
-		
+
 		ulBlockBytes += ulBytes;
 		ulBlockChange += ulCreate + ulChange;
-			
+
         if(hr == hrSuccess || m_bExit)
             break;
-        
+
 		if (ulLastStatsTime < time(NULL) - 10) {
 			unsigned int secs = time(NULL) - ulLastStatsTime;
 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of folder '%ls' processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps, szName, str_storage(ulBlockBytes, false).c_str(), ulBlockChange, str_storage(ulBlockBytes/secs, false).c_str(), (float)ulBlockChange/secs);
 			ulLastStatsTime = time(NULL);
 			ulBlockBytes = ulBlockChange = 0;
 		}
-        
+
     }
-    
+
     // Get the list of stub targets, either for processing or for saving in combination
     // with the sync state.
     lpImporter->GetStubTargets(&lstStubTargets);  // This can't fail
-    
+
     // Don't attempt to process the stubs if exit was requested or a previous error has occurred.
     if (!FAILED(hr)) {
         if (!m_bExit) {
@@ -722,7 +725,7 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
         } else
             hr = MAPI_E_USER_CANCEL;
     }
-    
+
     // Failure to save the state is non-fatal. It can only cause a rescan of the folder
     // in case the index of the store is incomplete and the server is restarted.
     if (FAILED(hr)) {
@@ -736,13 +739,13 @@ HRESULT ECServerIndexer::IndexFolder(IMsgStore *lpStore, SBinary *lpsEntryId, co
         // Clear the stub target state if we completed successfully
         strStubTargetState.clear();
     }
-    
+
     hrSaveState = lpExporter->UpdateState(&state);
     if (hrSaveState != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to update sync state: %08X", hrSaveState);
         goto exit;
     }
-    
+
     hrSaveState = lpIndex->SetSyncState(strFolderId, strFolderState, strStubTargetState);
     if (hrSaveState != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save sync state: %08X", hrSaveState);
@@ -771,9 +774,9 @@ HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::Archi
     std::map<std::string, std::list<std::string> >::iterator server;
     std::list<ECIndexImporter::ArchiveItem>::const_iterator i;
     std::string strServerName;
-    
+
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Indexing %lu stub targets", lstStubTargets.size());
-    
+
     // Sort the items into groups per archive server
     for(i = lstStubTargets.begin(); i != lstStubTargets.end(); i++) {
         hr = HrExtractServerName((LPENTRYID)i->strStoreId.data(), i->strStoreId.size(), strServerName);
@@ -783,10 +786,10 @@ HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::Archi
             hr = hrSuccess;
             continue;
         }
-        
+
         mapArchiveServers[strServerName].push_back(i->strEntryId);
     }
-    
+
     for(server = mapArchiveServers.begin() ; server != mapArchiveServers.end(); server++) {
         hr = IndexStubTargetsServer(server->first, server->second, lpImporter);
         if(hr != hrSuccess) {
@@ -794,9 +797,9 @@ HRESULT ECServerIndexer::IndexStubTargets(const std::list<ECIndexImporter::Archi
             goto exit;
         }
     }
-    
+
 exit:
-    return hr; 
+    return hr;
 }
 
 /**
@@ -809,7 +812,7 @@ exit:
  * @param[in] strServerName Pseudo-name of server to connect with
  * @param[in] mapArchiveItems Map containing document id -> entryid
  */
- 
+
 HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, const std::list<std::string> &mapItems, ECIndexImporter *lpImporter)
 {
     HRESULT hr = hrSuccess;
@@ -831,12 +834,12 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
 
     m_lpLogger->Log(EC_LOGLEVEL_INFO, "Indexing %lu stubs on server '%s'", mapItems.size(), strServer.c_str());
 
-    hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface); 
+    hr = lpImporter->QueryInterface(IID_IUnknown, &lpImportInterface);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "QueryInterface failed for importer: %08X", hr);
         goto exit;
     }
-        
+
     hr = HrGetRemoteAdminStore(m_ptrSession, m_ptrAdminStore, (TCHAR *)strServer.c_str(), 0, &lpRemoteStore);
     if(hr != hrSuccess) {
         if(hr == MAPI_E_NOT_FOUND) {
@@ -857,19 +860,19 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open exporter on remote server '%s': %08X", strServer.c_str(), hr);
         goto exit;
     }
-    
+
     hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void **)&lpEntryList);
     if(hr != hrSuccess)
         goto exit;
-        
+
     hr = MAPIAllocateMore(sizeof(SBinary) * mapItems.size(), lpEntryList, (void **)&lpEntryList->lpbin);
     if(hr != hrSuccess)
         goto exit;
-        
+
     // Cheap copy data from mapItems into lpEntryList
     for(std::list<std::string>::const_iterator i = mapItems.begin(); i != mapItems.end(); i++) {
         SBinary bin = {(unsigned int)i->size(), (BYTE *)i->data()};
-        
+
         // We avoid duplicate entries in lpEntryList as the rowengine
         // doesn't like duplicates.
         // As a side effect only one out of multiple messages referencing
@@ -892,7 +895,7 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to configure stub exporter on server '%s': %08X", strServer.c_str(), hr);
         goto exit;
     }
-    
+
     while(1) {
         hr = lpExporter->Synchronize(&ulSteps, &ulStep);
         if(FAILED(hr)) {
@@ -900,45 +903,45 @@ HRESULT ECServerIndexer::IndexStubTargetsServer(const std::string &strServer, co
             // Do not goto exit, we wish to save the sync state
             break;
         }
-        
+
         lpImporter->GetStats(&ulCreate, &ulChange, &ulDelete, &ulBytes);
-        
+
 		ulTotalBytes += ulBytes;
 		ulTotalChange += ulCreate + ulChange;
-		
+
 		ulBlockBytes += ulBytes;
 		ulBlockChange += ulCreate + ulChange;
-			
+
         if(hr == hrSuccess)
             break;
-            
+
         if(m_bExit) {
             hr = MAPI_E_USER_CANCEL;
             break;
         }
-        
+
 		if (ulLastStatsTime < time(NULL) - 10) {
 			unsigned int secs = time(NULL) - ulLastStatsTime;
 			m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "%.1f%% (%d of %d) of archived stubs processed: %s in %d messages (%s/sec, %.1f messages/sec)", ((float)ulStep*100)/ulSteps,ulStep,ulSteps, str_storage(ulBlockBytes, false).c_str(), ulBlockChange, str_storage(ulBlockBytes/secs, false).c_str(), (float)ulBlockChange/secs);
 			ulLastStatsTime = time(NULL);
 			ulBlockBytes = ulBlockChange = 0;
 		}
-        
+
     }
-    
+
     if(ulTotalChange || m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
     	m_lpThreadData->lpLogger->Log(EC_LOGLEVEL_INFO, "Processed archive data with %d changes (%s) in %d seconds", ulTotalChange, str_storage(ulTotalBytes, false).c_str(), (int)(time(NULL) - ulStartTime));
-    
+
 exit:
     return hr;
 }
-    
+
 
 /**
  * Gets the current server-wide ICS state from the server
  *
  * This is used to determine from what state we need to replay server-wide
- * ICS events once we're done exporting data from all the stores. 
+ * ICS events once we're done exporting data from all the stores.
  */
 HRESULT ECServerIndexer::GetServerState(std::string &strServerState)
 {
@@ -947,36 +950,36 @@ HRESULT ECServerIndexer::GetServerState(std::string &strServerState)
     IStreamAdapter state(strState);
     ExchangeExportChangesPtr lpExporter;
     ULONG ulSteps = 0, ulStep = 0;
-        
+
     hr = m_ptrAdminStore->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, &lpExporter);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open systemwide exporter: %08X", hr);
         goto exit;
     }
-    
+
     hr = lpExporter->Config(&state, SYNC_NORMAL | SYNC_CATCHUP, NULL, NULL, NULL, NULL, 0);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to config systemwide exporter: %08X", hr);
         goto exit;
     }
-    
+
     while(1) {
         hr = lpExporter->Synchronize(&ulSteps, &ulStep);
-        
+
         if(FAILED(hr)) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Synchronize failed on systemwide exporter: %08X", hr);
             goto exit;
         }
-        
+
         if(hr == hrSuccess)
             break;
     }
 
     lpExporter->UpdateState(&state);
-    
+
     strServerState = strState;
-    
-exit:    
+
+exit:
     return hr;
 }
 
@@ -988,9 +991,9 @@ HRESULT ECServerIndexer::LoadState()
     HRESULT hr = hrSuccess;
     std::string strFn = (std::string)m_lpConfig->GetSetting("index_path") + PATH_SEPARATOR + "state-" + bin2hex(sizeof(GUID), (unsigned char *)&m_guidServer);
     int c = 0;
-    
+
     FILE *fp = fopen(strFn.c_str(), "rb");
-    
+
     if(!fp) {
         if(errno != ENOENT) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open '%s' for reading: %s", strFn.c_str(), strerror(errno));
@@ -1000,16 +1003,16 @@ HRESULT ECServerIndexer::LoadState()
         }
         goto exit;
     }
-    
+
     m_strICSState.clear();
-    
+
     while((c = fgetc(fp)) != EOF)
         m_strICSState.append(1, c);
 
 exit:
     if(fp)
-        fclose(fp);        
-    
+        fclose(fp);
+
     return hr;
 }
 
@@ -1020,21 +1023,21 @@ HRESULT ECServerIndexer::SaveState()
 {
     HRESULT hr = hrSuccess;
     std::string strFn = (std::string)m_lpConfig->GetSetting("index_path") + PATH_SEPARATOR + "state-" + bin2hex(sizeof(GUID), (unsigned char *)&m_guidServer);
-    
+
     FILE *fp = fopen(strFn.c_str(), "wb");
-    
+
     if(!fp) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open '%s' for writing: %s", strFn.c_str(), strerror(errno));
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
-    
+
     if(fwrite(m_strICSState.data(), 1, m_strICSState.size(), fp) != m_strICSState.size()) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write state to '%s': %s", strFn.c_str(), strerror(errno));
         hr = MAPI_E_DISK_ERROR;
         goto exit;
     }
-    
+
 exit:
     if(fp)
         fclose(fp);
@@ -1049,16 +1052,16 @@ HRESULT ECServerIndexer::GetServerGUID(GUID *lpGuid)
 {
     HRESULT hr = hrSuccess;
     SPropValuePtr lpProp;
-        
+
     hr = HrGetOneProp(m_ptrAdminStore, PR_MAPPING_SIGNATURE, &lpProp);
     if(hr != hrSuccess) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get server guid: %08X", hr);
         goto exit;
     }
-    
+
     *lpGuid = *(GUID*)lpProp->Value.bin.lpb;
-    
-exit:    
+
+exit:
     return hr;
 }
 
@@ -1071,29 +1074,29 @@ HRESULT ECServerIndexer::RunSynchronization()
     HRESULT hr = hrSuccess;
 
     unsigned int ulTrack = m_ulTrack;
-    
+
     pthread_mutex_lock(&m_mutexExit);
     m_bFast = true;
     pthread_cond_signal(&m_condExit);
     pthread_mutex_unlock(&m_mutexExit);
-    
+
     pthread_mutex_lock(&m_mutexTrack);
     while(m_ulTrack < ulTrack + 2) 			// Wait for two whole sync loops, since 1 may just have missed an update
         pthread_cond_wait(&m_condTrack, &m_mutexTrack);
     pthread_mutex_unlock(&m_mutexTrack);
-    
+
     // No need to signal now
     m_bFast = false;
-    
+
     return hr;
 }
 
-/** 
+/**
  * Removes the current index of a given user on a server, and starts the indexer
- * 
- * @param strStoreGuid 
- * 
- * @return 
+ *
+ * @param strStoreGuid
+ *
+ * @return
  */
 HRESULT ECServerIndexer::ReindexStore(const std::string &strServerGuid, const std::string &strStoreGuid)
 {
@@ -1124,11 +1127,11 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Rebuilding thread entry point back into class space.
- * 
+ *
  * @param lpParam ECServerIndexer instance
- * 
+ *
  * @return NULL
  */
 void *ECServerIndexer::ThreadRebuildEntry(void *lpParam)
@@ -1138,9 +1141,9 @@ void *ECServerIndexer::ThreadRebuildEntry(void *lpParam)
 	return NULL;
 }
 
-/** 
+/**
  * Rebuilding thread. Waits for condition to exit or rebuild a store.
- * 
+ *
  * @return hrSuccess
  */
 HRESULT ECServerIndexer::ThreadRebuild()
@@ -1165,23 +1168,23 @@ HRESULT ECServerIndexer::ThreadRebuild()
 
 		if (m_listRebuildStores.empty())
 			continue;
-		
+
 		strServerGuid = hex2bin(m_listRebuildStores.front().first);
 		strStoreGuid = hex2bin(m_listRebuildStores.front().second);
 		m_listRebuildStores.pop_front();
 
 		pthread_mutex_unlock(&m_mutexRebuild);
 
-		// lookup store 
+		// lookup store
 
 		hr = m_ptrAdminStore->QueryInterface(IID_IExchangeManageStore, (void **)&ptrEMS);
 		if(hr != hrSuccess)
 			goto next;
-        
+
 		hr = ptrEMS->GetMailboxTable(NULL, &ptrTable, 0);
 		if(hr != hrSuccess)
 			goto next;
-        
+
 		hr = ptrTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
 		if(hr != hrSuccess)
 			goto next;
@@ -1192,7 +1195,7 @@ HRESULT ECServerIndexer::ThreadRebuild()
 		propStoreGuid.ulPropTag = PR_STORE_RECORD_KEY;
 		propStoreGuid.Value.bin.cb = strStoreGuid.length();
 		propStoreGuid.Value.bin.lpb = (BYTE*)strStoreGuid.data();
-		
+
 		hr = ECAndRestriction(
 				ECPropertyRestriction(RELOP_EQ, PR_MAPPING_SIGNATURE, &propServerGuid, ECRestriction::Shallow) +
 				ECPropertyRestriction(RELOP_EQ, PR_STORE_RECORD_KEY, &propStoreGuid, ECRestriction::Shallow)

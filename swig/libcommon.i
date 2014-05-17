@@ -82,6 +82,11 @@ HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, IMAPIFolder *lpFolder, 
 class Util {
 public:
     static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
+       %extend {
+               /* static ULONG GetBestBody(LPSPropValue lpProps, ULONG cValues, ULONG ulFlags); */
+               /* swapped because typemap.i only implements (cValues, lpProps) */
+               static ULONG GetBestBody(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags) { return Util::GetBestBody(lpProps, cValues, ulFlags); }
+       }
 };
 
 // functions from common/fileutil.h

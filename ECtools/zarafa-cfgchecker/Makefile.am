@@ -1,6 +1,6 @@
 noinst_PROGRAMS = zarafa-cfgchecker
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX -I${top_srcdir}/common
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) -I${top_srcdir}/common
 
 zarafa_cfgchecker_LDADD = ${top_builddir}/common/libcommon_util.la ${top_builddir}/common/libcommon_mapi.la $(PROG_LIBS) ${top_builddir}/mapi4linux/src/libmapi.la
 

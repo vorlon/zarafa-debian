@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -168,14 +168,14 @@ ECFifoStreamReader::~ECFifoStreamReader()
 ULONG ECFifoStreamReader::xStream::AddRef()
 {
     METHOD_PROLOGUE_(ECFifoStreamReader, Stream);
-    TRACE_MAPI(TRACE_ENTRY, "IStream::AddRef");
+    TRACE_MAPI(TRACE_ENTRY, "IStream::AddRef", NULL);
     return pThis->AddRef();
 }
 
 ULONG ECFifoStreamReader::xStream::Release()
 {
     METHOD_PROLOGUE_(ECFifoStreamReader, Stream);
-    TRACE_MAPI(TRACE_ENTRY, "IStream::Release");
+    TRACE_MAPI(TRACE_ENTRY, "IStream::Release", NULL);
     return pThis->Release();
 }
 
@@ -254,14 +254,14 @@ ECFifoStreamWriter::~ECFifoStreamWriter()
 ULONG ECFifoStreamWriter::xStream::AddRef()
 {
     METHOD_PROLOGUE_(ECFifoStreamWriter, Stream);
-    TRACE_MAPI(TRACE_ENTRY, "IStream::AddRef");
+    TRACE_MAPI(TRACE_ENTRY, "IStream::AddRef", NULL);
     return pThis->AddRef();
 }
 
 ULONG ECFifoStreamWriter::xStream::Release()
 {
     METHOD_PROLOGUE_(ECFifoStreamWriter, Stream);
-    TRACE_MAPI(TRACE_ENTRY, "IStream::Release");
+    TRACE_MAPI(TRACE_ENTRY, "IStream::Release", NULL);
     return pThis->Release();
 }
     

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -178,6 +178,8 @@ namespace details {
 
 } // namespace details
 
+class RecurrencePattern; // Forward declarations
+class TimezoneDefinition;
 
 template<typename string_type, ECDebugPrintBase::DerefMode deref_mode>
 class ECDebugPrint : public ECDebugPrintBase {
@@ -212,7 +214,8 @@ public:
 	}
 
 	static string_type toString(const IID &refiid) {
-		return helpers::convert_from(DBGGUIDToString(refiid));
+		string_type idd = DBGGUIDToString(refiid);
+		return helpers::convert_from(idd);
 	}
 
 	static string_type toString(LPCIID lpciid) {
@@ -220,7 +223,10 @@ public:
 	}
 
 	static string_type toString(LPGUID lpguid) {
-		return lpguid == NULL ? helpers::strNULL : helpers::convert_from(DBGGUIDToString(*lpguid));
+		if (lpguid == NULL)
+			return helpers::strNULL;
+		std::string guidstring = DBGGUIDToString(*lpguid);
+		return helpers::convert_from(guidstring);
 	}
 
 	static string_type toString(LPVOID lpVoid) {
@@ -236,24 +242,32 @@ public:
 	}
 
 	static string_type toString(LPSPropValue lpsPropValue) {
-		return helpers::convert_from(PropNameFromPropArray(1, lpsPropValue));
+		std::string propname = PropNameFromPropArray(1, lpsPropValue);
+		return helpers::convert_from(propname);
 	}
 
 	static string_type toString(ULONG *lpcValues, LPSPropValue *lppPropArray) {
 		return toString(reinterpret_cast<LPVOID>(lpcValues)) + helpers::strCOMMA + toString(reinterpret_cast<LPVOID>(lppPropArray));
 	}
+
 	static string_type toString(ULONG *lpcbData, LPBYTE *lppData) {
 		return toString(reinterpret_cast<LPVOID>(lpcbData)) + helpers::strCOMMA + toString(reinterpret_cast<LPVOID>(lppData));
 	}
 
 	static string_type toString(ULONG cValues, LPSPropValue lpPropArray) {
-		return helpers::convert_from(PropNameFromPropArray(cValues, lpPropArray));
+		std::string propname = PropNameFromPropArray(cValues, lpPropArray);
+		return helpers::convert_from(propname);
+	}
+
+	static string_type toString(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray*) {
+		return toString(cValues, lpPropArray);
 	}
 
 	static string_type toString(LPSPropTagArray lpPropTagArray) {
 		if (lpPropTagArray == NULL)
 			return helpers::strNULL;
-		return helpers::convert_from(PropNameFromPropTagArray(lpPropTagArray));
+		std::string propname = PropNameFromPropTagArray(lpPropTagArray);
+		return helpers::convert_from(propname);
 	}
 
 	static string_type toString(ULONG ciidExclude, LPCIID rgiidExclude) {
@@ -261,7 +275,8 @@ public:
 	}
 
 	static string_type toString(ULONG cNames, LPMAPINAMEID *ppNames) {
-		return helpers::convert_from(MapiNameIdListToString(cNames, ppNames));
+		std::string mapiname = MapiNameIdListToString(cNames, ppNames);
+		return helpers::convert_from(mapiname);
 	}
 
 	static string_type toString(ULONG cbData, LPBYTE lpData) {
@@ -269,11 +284,13 @@ public:
 	}
 
 	static string_type toString(LPSRestriction lpRestrict) {
-		return helpers::convert_from(RestrictionToString(lpRestrict));
+		std::string restrictionstring = RestrictionToString(lpRestrict);
+		return helpers::convert_from(restrictionstring);
 	}
 
 	static string_type toString(LPSSortOrderSet lpSortOrderSet) {
-		return helpers::convert_from(SortOrderSetToString(lpSortOrderSet));
+		std::string sortorderstring = SortOrderSetToString(lpSortOrderSet);
+		return helpers::convert_from(sortorderstring);
 	}
 
 	static string_type toString(LPMAPIERROR lpError) {
@@ -281,19 +298,23 @@ public:
 	}
 
 	static string_type toString(LPSRowSet lpRowSet) {
-		return helpers::convert_from(RowSetToString(lpRowSet));
+		std::string rowsetstring = RowSetToString(lpRowSet);
+		return helpers::convert_from(rowsetstring);
 	}
 
 	static string_type toString(LPROWLIST lpRowList) {
-		return helpers::convert_from(RowListToString(lpRowList));
+		std::string rowliststring = RowListToString(lpRowList);
+		return helpers::convert_from(rowliststring);
 	}
 
 	static string_type toString(LPACTION lpAction) {
-		return helpers::convert_from(ActionToString(lpAction));
+		std::string actionstring = ActionToString(lpAction);
+		return helpers::convert_from(actionstring);
 	}
 
 	static string_type toString(LPSPropProblemArray lpPropblemArray) {
-		return helpers::convert_from(ProblemArrayToString(lpPropblemArray));
+		std::string problemstring = ProblemArrayToString(lpPropblemArray);
+		return helpers::convert_from(problemstring);
 	}
 
 	static string_type toString(ULONG cbEntryID, LPENTRYID lpEntryID) {
@@ -309,15 +330,47 @@ public:
 	}
 
 	static string_type toString(LARGE_INTEGER li) {
-		return helpers::convert_from(stringify_int64(li.QuadPart));
+		string_type listring = stringify_int64(li.QuadPart);
+		return helpers::convert_from(listring);
 	}
 
 	static string_type toString(ULARGE_INTEGER li) {
-		return helpers::convert_from(stringify_int64(li.QuadPart));
+		string_type listring = stringify_int64(li.QuadPart);
+		return helpers::convert_from(listring);
+	}
+
+	static string_type toString(LPCTSTR str) {
+		return helpers::convert_from(str);
+	}
+
+	static string_type toString(LPMAPINAMEID) {
+		string_type errorstring("LPMAPINAMEID (not implemented)");
+		return helpers::convert_from(errorstring);
+	}
+
+	static string_type toString(LPADRLIST) {
+		string_type errorstring("LPADRLIST (not implemented)");
+		return helpers::convert_from(errorstring);
+	}
+
+	static string_type toString(RecurrencePattern* p) {
+		string_type errorstring("RecurrencePattern (not implemented)");
+		return helpers::convert_from(errorstring);
+	}
+
+	static string_type toString(TimezoneDefinition*) {
+		string_type errorstring("TimezoneDefinition (not implemented)");
+		return helpers::convert_from(errorstring);
+	}
+
+	static string_type toString(FILETIME) {
+		string_type errorstring("FILETIME (not implemented)");
+		return helpers::convert_from(errorstring);
 	}
 
 	static string_type toString(STATSTG) {
-		return helpers::convert_from(std::string("STATSTG (not implemented)"));
+		string_type errorstring("STATSTG (not implemented)");
+		return helpers::convert_from(errorstring);
 	}
 
 };

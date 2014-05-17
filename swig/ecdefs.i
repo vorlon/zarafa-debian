@@ -6,6 +6,7 @@
 #include "IECChangeAdviseSink.h"
 #include "IECSingleInstance.h"
 #include "IECImportContentsChanges.h"
+#include "IECImportHierarchyChanges.h"
 %}
 
 class IECChangeAdvisor : public IUnknown {
@@ -40,6 +41,15 @@ public:
 	}
 };
 
+class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
+public:
+	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpProps, BOOL fNew) = 0;
+	%extend {
+		virtual ~IECImportHierarchyChanges() { self->Release(); }
+	}
+};
+
+
 class IECSingleInstance : public IUnknown {
 public:
 	virtual HRESULT GetSingleInstanceId(ULONG *OUTPUT /*lpcbInstanceID*/, LPENTRYID *OUTPUT /*lppInstanceID*/) = 0;
@@ -55,6 +65,7 @@ public:
 #include "swig_iunknown.h"
 typedef IUnknownImplementor<IECChangeAdviseSink> ECChangeAdviseSink;
 typedef IUnknownImplementor<IECImportContentsChanges> ECImportContentsChanges;
+typedef IUnknownImplementor<IECImportHierarchyChanges> ECImportHierarchyChanges;
 %}
 
 %feature("director") ECChangeAdviseSink;
@@ -77,5 +88,14 @@ public:
 	}
 };
 
+%feature("director") ECImportHierarchyChanges;
+%feature("nodirector") ECImportHierarchyChanges::QueryInterface;
+class ECImportHierarchyChanges : public IECImportHierarchyChanges {
+public:
+	ECImportHierarchyChanges(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~ECImportHierarchyChanges() { delete self; }
+	}
+};
 
 #endif // SWIGPYTHON

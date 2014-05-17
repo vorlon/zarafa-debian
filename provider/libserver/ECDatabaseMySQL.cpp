@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1354,27 +1354,31 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 	DB_RESULT	lpResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 
-	er = DoSelect("SHOW VARIABLES LIKE \"have_innodb\"", &lpResult);
+	er = DoSelect("SHOW ENGINES", &lpResult);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to get value 'have_innodb' from the mysql server. Probably INNODB is not supported. Error: %s", GetError().c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query supported database engines. Error: %s", GetError().c_str());
 		goto exit;
 	}
 
-	lpDBRow = FetchRow(lpResult);
-	if (lpDBRow == NULL || lpDBRow[1] == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to get value 'have_innodb' from the mysql server. Probably INNODB is not supported.");
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	}
+	while ((lpDBRow = FetchRow(lpResult)) != NULL) {
+		if (stricmp(lpDBRow[0], "InnoDB") != 0)
+			continue;
 
-	if (stricmp(lpDBRow[1], "DISABLED") == 0) {
-		// mysql has run with innodb enabled once, but disabled this.. so check your log.
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	} else if(stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
-		// mysql is incorrectly configured or compiled.
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
+		if (stricmp(lpDBRow[1], "DISABLED") == 0) {
+			// mysql has run with innodb enabled once, but disabled this.. so check your log.
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		} else if (stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
+			// mysql is incorrectly configured or compiled.
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+		break;
+	}
+	if (lpDBRow == NULL) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find 'InnoDB' engine from the mysql server. Probably INNODB is not supported.");
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}

@@ -1,4 +1,7 @@
 // Python
+%include <python/std_basic_string.i>
+%include <python/cwstring.i>
+
 %{
 #include "conversion.h"
 #include "director_util.h"
@@ -7,7 +10,18 @@
 #define SWIG_OWNER SWIG_POINTER_OWN
 
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
+
 %}
+
+#if SWIG_VERSION > 0x020004
+	/* also in this version, the _name $1_name isn't required anymore, but it still works, so I'll leave those */
+	#define DAO_PARAMETER $1
+	#define DAO_RESULT $result
+#else
+	/* old swig has weird names in directorargout */
+	#define DAO_PARAMETER $result
+	#define DAO_RESULT $input
+#endif
 
 %init %{
 	Init();
@@ -61,6 +75,12 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
+%typemap(in)				SYSTEMTIME
+{
+	$1 = Object_to$mangle($input);
+	if(PyErr_Occurred()) goto fail;
+}
+
 %typemap(in)				MAPISTRUCT_W_FLAGS
 {
 	$1 = ($1_type)$input;
@@ -93,6 +113,12 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
+%typemap(argout)	SYSTEMTIME *
+{
+	%append_output(Object_from_$basetype(*($1)));
+	if(PyErr_Occurred()) goto fail;
+}
+
 %typemap(argout)	(ULONG *, MAPIARRAY *)
 {
     %append_output(List_from_$2_basetype(*($2),*($1)));
@@ -113,7 +139,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   $1 = (LPTSTR)$input;
 }
 
-%typemap(check) LPTSTR (std::string strInput, std::wstring wstrInput)
+%typemap(check,fragment="SWIG_AsWCharPtrAndSize") LPTSTR (std::string strInput, wchar_t *buf, int alloc = 0)
 {
   PyObject *o = (PyObject *)$1;
   if(o == Py_None)
@@ -121,8 +147,9 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   else {
     if(ulFlags & MAPI_UNICODE) {
 	  if(PyUnicode_Check(o)) {
-        wstrInput.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
-        $1 = (LPTSTR)wstrInput.c_str();
+		size_t size = 0;
+		SWIG_AsWCharPtrAndSize(o, &buf, &size, &alloc);
+		$1 = buf;
       } else {
         PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
       }
@@ -148,6 +175,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(freearg) LPTSTR
 {
+  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
 }
 
 
@@ -155,6 +183,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %feature("director:except") {
   if ($error != NULL) {
     HRESULT hr;
+    
     if (GetExceptionError($error, &hr) == 1) {
         PyErr_Clear();
         return hr;	// Early return
@@ -184,6 +213,21 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
     %dirout_fail(0, "$type");
 }
 
+%typemap(directorin)	MAPISTRUCT
+{
+  $input = Object_from_$1_basetype($1_name);
+  if(PyErr_Occurred())
+    %dirout_fail(0, "$type");  
+}
+
+//////////////////////////////////////////////
+// void *    Used in CopyTo/CopyProps
+//////////////////////////////////////////////
+%typemap(directorin) void *lpDestObj
+{
+	$input = SWIG_NewPointerObj($1_name, TypeFromIID(*__iid), 0 | 0);
+}
+
 %typemap(directorin,noblock=1) const IID& USE_IID_FOR_OUTPUT
 {
   const IID* __iid = &$1_name;
@@ -192,17 +236,50 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorin) (const void *pv, ULONG cb)
 {
-  $input = SWIG_FromCharPtrAndSize((const char *)pv, cb);
+  $input = SWIG_FromCharPtrAndSize((const char *)$1_name, $2_name);
+}
+
+%typemap(directorin) MAPILIST *INPUT
+{
+	$input = List_from$*mangle(*$1_name);
+}
+
+%typemap(directorin) ULARGE_INTEGER
+{
+	$input = SWIG_From(unsigned long long)($1_name.QuadPart);
+}
+
+%typemap(directorargout) ULARGE_INTEGER *
+{
+  DAO_PARAMETER->QuadPart = PyLong_AsLongLong(DAO_RESULT);
+}
+
+%typemap(directorin) LARGE_INTEGER
+{
+	$input = SWIG_From(long long)($1_name.QuadPart);
+}
+
+%typemap(directorargout) LARGE_INTEGER *
+{
+  DAO_PARAMETER->QuadPart = PyLong_AsLongLong(DAO_RESULT);
 }
 
 %typemap(directorargout) (ULONG *OUTPUT)
 {
-  *$result = PyInt_AsLong($input);
+  *DAO_PARAMETER = PyInt_AsLong(DAO_RESULT);
+}
+
+%typemap(directorargout) STATSTG *OUTPUT
+{
+  Object_to_STATSTG(DAO_RESULT, DAO_PARAMETER);
+  if(PyErr_Occurred()) {
+    %dirout_fail(0, "$type");
+  }
 }
 
 %typemap(directorargout) void **OUTPUT_USE_IID
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), $result, TypeFromIID(*__iid), 0);
+  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), DAO_PARAMETER, TypeFromIID(*__iid), 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -210,7 +287,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorargout)	MAPICLASS *
 {
-  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT($input), (void**)$result, $*1_descriptor, 0);
+  int swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, $*1_descriptor, 0);
   if (!SWIG_IsOK(swig_res)) {
     %dirout_fail(swig_res, "$type");
   }
@@ -230,7 +307,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
    * until we returned it to the realm of c++ from here, so we have to addref it now.
    */
 
-	(*$result)->AddRef();
+	(*DAO_PARAMETER)->AddRef();
 }
 
 %typemap(directorin)	MAPICLASS
@@ -243,6 +320,13 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   if ($1_name > 0 && $2_name != NULL)
     $input = SWIG_FromCharPtrAndSize((char*)$2_name, $1_name);
 }
+
+%typemap(directorin,noblock=1)	LPCIID, LPGUID
+{
+	LPCIID __iid = $1_name;
+	$input = SWIG_FromCharPtrAndSize((char*)$1_name, sizeof(GUID));
+}
+
 %apply (ULONG, BYTE*) {(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder)}
 %apply (ULONG, BYTE*) {(ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage)}
 %apply (ULONG, BYTE*) {(ULONG cbPCLMessage, BYTE *pbPCLMessage)}
@@ -251,7 +335,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %typemap(directorargout)	MAPISTRUCT *
 {
-  *$result = Object_to_$basetype(DIRECTORARGOUT($input));
+  *DAO_PARAMETER = Object_to_$basetype(DIRECTORARGOUT(DAO_RESULT));
   if(PyErr_Occurred()) {
     %dirout_fail(0, "$type");
   }
@@ -263,9 +347,65 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
   $result = hrSuccess;
 }
 
-%apply (ULONG, MAPIARRAY) {(ULONG cElements, LPREADSTATE lpReadState)};
-%apply (ULONG, MAPIARRAY) {(ULONG cNotif, LPNOTIFICATION lpNotifications)};
+%typemap(directorargout) (ULONG *OUTPUTC, MAPIARRAY *OUTPUTP) (ULONG len)
+{
+	*$2_name = List_to$*2_mangle(DIRECTORARGOUT(DAO_RESULT), &len, CONV_COPY_DEEP);
+	*$1_name = len;
+}
+
+%typemap(directorargout) MAPILIST *OUTPUT
+{
+	if(DAO_PARAMETER)
+		*DAO_PARAMETER = List_to$*1_mangle(DIRECTORARGOUT(DAO_RESULT), CONV_COPY_DEEP);
+}
+
+// See MAPICLASS * for comments. Note that we ignore the IID. We could also still QueryInterface on $result.
+%typemap(directorargout)	LPUNKNOWN *OUTPUT_USE_IID (int swig_res)
+{
+  swig_res = SWIG_ConvertPtr(DIRECTORARGOUT(DAO_RESULT), (void**)DAO_PARAMETER, SWIGTYPE_p_IUnknown, 0);
+  if (!SWIG_IsOK(swig_res)) {
+    %dirout_fail(swig_res, "$type");
+  }
+	(*DAO_PARAMETER)->AddRef();
+}
+
+%typemap(directorargout) ULONG *
+{
+	*DAO_PARAMETER = (ULONG)PyLong_AsUnsignedLong(DIRECTORARGOUT(DAO_RESULT));
+}
+
+%typemap(directorargout) LONG *
+{
+	*DAO_PARAMETER = (LONG)PyLong_AsLong(DIRECTORARGOUT(DAO_RESULT));
+}
+
+%typemap(in,numinputs=0) void *OUTPUT
+{
+}
+
+%typemap(directorargout) (void *OUTPUT, ULONG cb, ULONG *cbOUTPUT)
+{
+    Py_ssize_t size = 0;
+    char *s = NULL;
+    PyString_AsStringAndSize(DAO_RESULT, &s, &size);
+
+	memcpy($1_name, s, size);
+
+	*$3_name = size;
+}
+
+
+%typemap(directorin) (ULONG cbEntryID, LPENTRYID lpEntryID)
+{
+  if ($1_name > 0 && $2_name != NULL)
+    $input = SWIG_FromCharPtrAndSize((char*)$2_name, $1_name);
+}
+
+%apply (ULONG, MAPIARRAY) {(ULONG cElements, LPREADSTATE lpReadState), (ULONG cNotif, LPNOTIFICATION lpNotifications)};
+%apply (ULONG *OUTPUTC, MAPIARRAY *OUTPUTP) {(ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
+%apply (MAPILIST *OUTPUT) {LPSPropTagArray *OUTPUT, LPSPropProblemArray *OUTPUT, LPSRowSet *OUTPUT};
 %apply MAPICLASS {IMAPISession *, IProfAdmin *, IMsgServiceAdmin *, IMAPITable *, IMsgStore *, IMAPIFolder *, IMAPITable *, IStream *, IMessage *, IAttach *, IAddrBook *}
+%apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cFolderKeySize, BYTE *lpFolderSourceKey), (ULONG cMessageKeySize, BYTE *lpMessageSourceKey), (ULONG cbInstanceKey, BYTE *pbInstanceKey), (ULONG cbCollapseState, BYTE *pbCollapseState)};
 
 %typemap(in) (unsigned int, char **) {
   /* Check if is a list */
@@ -293,3 +433,4 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %typemap(freearg) (unsigned int, char **) {
 	free((void *)$2);
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -367,7 +367,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (nChildren)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d procesess left", nChildren);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d processes left", nChildren);
 		else
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "CalDAV Gateway shutdown complete");
 	}

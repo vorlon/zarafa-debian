@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -302,6 +302,10 @@
 
 #ifndef PR_EXCEPTION_ENDTIME
 #define PR_EXCEPTION_ENDTIME PROP_TAG(PT_SYSTIME, 0x7FFC)
+#endif
+
+#ifndef PR_EXCEPTION_REPLACETIME
+#define PR_EXCEPTION_REPLACETIME PROP_TAG(PT_SYSTIME, 0x7FF9)
 #endif
 
 #ifndef PR_ATTACHMENT_FLAGS

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -226,16 +226,21 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	std::string inBuffer;
 	std::string message;
 	int offset;
+	ssize_t ret, to_write;
 
 	hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
 		goto exit;
+    }
 
 	// Now the mail body needs to be read line by line until <CRLF>.<CRLF> is encountered
 	while (1) {
 		hr = m_lpChannel->HrReadLine(&inBuffer);
-		if(hr != hrSuccess)
-			goto exit;
+		if(hr != hrSuccess) {
+            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
+            goto exit;
+        }
 		
 		if(inBuffer == ".")
 		    break;
@@ -244,10 +249,22 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		if (inBuffer[0] == '.')
 			offset = 1;			// "remove" escape point, since it wasn't the end of mail marker
 
-		fwrite((char *)inBuffer.c_str() + offset, 1, inBuffer.size() - offset, tmp);
+		to_write = inBuffer.size() - offset;
+		ret = fwrite((char *)inBuffer.c_str() + offset, 1, to_write, tmp);
+		if (ret != to_write) {
+            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
+                "with client: %s", strerror(errno));
+            hr = MAPI_E_FAILURE;
+            goto exit;
+        }
 
 		// The data from HrReadLine does not contain the CRLF, so add that here
-		fwrite("\r\n", 1, 2, tmp);
+		if (fwrite("\r\n", 1, 2, tmp) != 2) {
+            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
+                "with client: %s", strerror(errno));
+            hr = MAPI_E_FAILURE;
+            goto exit;
+        }
 
 		message += inBuffer + "\r\n";
 	}
@@ -255,9 +272,6 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
 
 exit:
-	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
-
 	return hr;
 }
 

@@ -1,10 +1,12 @@
 datadir = ${datarootdir}/locale/
-EXTRA_DIST = da_DK.po de_DE.po es_CA.po es_ES.po fi_FI.po fr_BE.po fr_FR.po it_IT.po nl_BE.po nl_NL.po pt_BR.po pt_PT.po sv_SE.po ru_RU.po
+EXTRA_DIST = bg.po ca.po cs.po da.po de.po el.po es.po et.po fa.po fi.po \
+        fr.po fr_BE.po gl.po he.po hr.po hu.po it.po ja.po ko.po lt.po nb.po nl.po \
+        nl_BE.po pl.po pt.po pt_BR.po ru.po sl.po sv.po tr.po uk.po zh_CN.po zh_TW.po
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(datadir)
 	for po in $(EXTRA_DIST); do \
-		lang=`echo $$po | cut -d_ -f1`; \
+		lang="$${po%.po}"; \
 		sub="$(DESTDIR)$(datadir)/$$lang/LC_MESSAGES"; \
 		mkdir -p $$sub; \
 		msgfmt -f -v -o $$sub/zarafa.mo ${top_srcdir}/po/$$po; \

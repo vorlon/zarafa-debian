@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -77,18 +77,18 @@ public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
 	virtual ~MAPIPropHelper();
 	
-	HRESULT GetMessageState(SessionPtr ptrSession, MessageState *lpState);
+	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
 	HRESULT SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit = false);
 	HRESULT SetReference(const SObjectEntry &sEntry, bool bExplicitCommit = false);
 	HRESULT GetReference(SObjectEntry *lpEntry);
 	HRESULT ClearReference(bool bExplicitCommit = false);
 	HRESULT ReferencePrevious(const SObjectEntry &sEntry);
-	HRESULT OpenPrevious(SessionPtr ptrSession, LPMESSAGE *lppMessage);
+	HRESULT OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage);
 	HRESULT RemoveStub();
 	HRESULT SetClean();
 	HRESULT DetachFromArchives();
-	virtual HRESULT GetParentFolder(SessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
+	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
 
 	static HRESULT GetArchiverProps(MAPIPropPtr ptrMapiProp, LPSPropTagArray lpExtra, LPSPropTagArray *lppProps);
 	static HRESULT IsStubbed(MAPIPropPtr ptrMapiProp, LPSPropValue lpProps, ULONG cbProps, bool *lpbResult);

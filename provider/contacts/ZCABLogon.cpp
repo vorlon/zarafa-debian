@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -53,7 +53,11 @@
 #include "ZCABContainer.h"
 #include "ECTags.h"
 
+#include "ECDebug.h"
+#include "ECDebugPrint.h"
 #include "ECGuid.h"
+#include "Zarafa.h"
+
 #include <mapix.h>
 #include <edkmdb.h>
 

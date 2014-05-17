@@ -1,15 +1,15 @@
 bin_PROGRAMS = zarafa-server
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(BOOST_CPPFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/provider/libserver -I${top_srcdir}/provider/plugins \
 	-I${top_srcdir}/provider/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/provider/client -I${top_builddir}/provider/soap \
 	-I${top_srcdir}/provider/soap \
 	-I${top_srcdir}/common -DPKGLIBDIR='"${pkglibdir}"' \
-	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(SSL_HAS_EVP_PKEY_CMP) $(EPOLL_CFLAGS)
+	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(SSL_HAS_EVP_PKEY_CMP) $(EPOLL_CFLAGS) $(KRB5_CFLAGS)
 
-zarafa_server_LDFLAGS = -Wl,-E $(BOOST_FILESYSTEM_LDFLAGS)
+zarafa_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E $(BOOST_FILESYSTEM_LDFLAGS)
 zarafa_server_LDADD = \
 	${top_builddir}/provider/libserver/libserver.la							\
 	${top_builddir}/provider/soap/libgsoap.la								\

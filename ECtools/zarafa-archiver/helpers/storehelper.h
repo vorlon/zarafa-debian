@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -47,19 +47,10 @@
  * 
  */
 
-#ifndef storehelper_INCLUDED
-#define storehelper_INCLUDED
+#ifndef STOREHELPER_H_INCLUDED
+#define STOREHELPER_H_INCLUDED
 
-#include "archivehelper.h"
 #include "mapiprophelper.h"
-
-#include <memory>
-#include <string>
-#include <list>
-
-#include <CommonUtil.h>
-#include <mapi_ptr.h>
-#include "tstring.h"
 
 class ECRestriction;
 class ECAndRestriction;
@@ -132,4 +123,4 @@ private:
 
 }} // namespaces
 
-#endif // ndef storehelper_INCLUDED
+#endif // !defined STOREHELPER_H_INCLUDED

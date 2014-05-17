@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -348,6 +348,20 @@ exit:
 	return er;
 }
 
+/*
+ * I would prefer the next method to have
+ * bool ECUserManagement::MustHide(ECSecurity& security, unsigned int ulFlags, const objectdetails_t details)
+ * as a prototype, but that would mean percolating constness in class ECSecurity's methods, which proved to
+ * be a task beyond a simple edit. NS 11 fFebruary 2014
+ */
+bool ECUserManagement::MustHide(/*const*/ ECSecurity& security, unsigned int ulFlags, const objectdetails_t& details)
+{
+	return	(security.GetUserId() != ZARAFA_UID_SYSTEM) &&
+			(security.GetAdminLevel() == 0) &&
+			((ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0) &&
+			details.GetPropBool(OB_PROP_B_AB_HIDDEN);
+}
+
 // Get details for an object
 ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetails_t *lpDetails) {
 	ECRESULT er = erSuccess;
@@ -406,8 +420,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		}
 
 		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-			if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
-				details.GetPropBool(OB_PROP_B_AB_HIDDEN))
+			if (MustHide(*lpSecurity, ulFlags, details))
 				continue;
 		}
 
@@ -443,9 +456,8 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			ulObjectId = iterExternLocal->second;
 
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
-					iterExternDetails->second.GetPropBool(OB_PROP_B_AB_HIDDEN))
-						continue;
+				if (MustHide(*lpSecurity, ulFlags, iterExternDetails->second))
+					continue;
 			}
 
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
@@ -551,8 +563,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				goto exit;
 
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
-				if (lpSecurity->GetUserId() != ZARAFA_UID_SYSTEM && (ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0 &&
-					details.GetPropBool(OB_PROP_B_AB_HIDDEN))
+				if (MustHide(*lpSecurity, ulFlags, details))
 					continue;
 			}
 			// Reset details, this saves time copying unwanted data, but keep the correct class

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -74,7 +74,7 @@ static char THIS_FILE[] = __FILE__;
 
 using namespace std;
 
-ECLogger::ECLogger(int max_ll) {
+ECLogger::ECLogger(unsigned int max_ll) {
 	pthread_mutex_init(&msgbuflock, NULL);
 	max_loglevel = max_ll;
 	msgbuffer = new char[_LOG_BUFSIZE];
@@ -94,7 +94,7 @@ ECLogger::~ECLogger() {
 	pthread_mutex_destroy(&msgbuflock);
 }
 
-void ECLogger::SetLoglevel(int max_ll) {
+void ECLogger::SetLoglevel(unsigned int max_ll) {
 	max_loglevel = max_ll;
 }
 
@@ -112,7 +112,7 @@ char* ECLogger::MakeTimestamp() {
 	return timestring;
 }
 
-bool ECLogger::Log(int loglevel) {
+bool ECLogger::Log(unsigned int loglevel) {
 	if (loglevel <= EC_LOGLEVEL_DEBUG)
 		return loglevel <= (max_loglevel&EC_LOGLEVEL_MASK);
 	else
@@ -148,25 +148,25 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...)
 	va_start(va, format);
 	len = _vsnprintf_l(str, size, format, datalocale, va);
 	va_end(va);
-	
+
 	return len;
 }
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
 ECLogger_Null::~ECLogger_Null() {}
 void ECLogger_Null::Reset() {}
-void ECLogger_Null::Log(int loglevel, const string &message) {}
-void ECLogger_Null::Log(int loglevel, const char *format, ...) {}
-void ECLogger_Null::LogVA(int loglevel, const char *format, va_list& va) {}
+void ECLogger_Null::Log(unsigned int loglevel, const string &message) {}
+void ECLogger_Null::Log(unsigned int loglevel, const char *format, ...) {}
+void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va) {}
 
 /**
  * ECLogger_File constructor
  *
  * @param[in]	max_ll			max loglevel passed to ECLogger
- * @param[in]	add_timestamp	1 if a timestamp before the logmessage is wanted
+ * @param[in]	add_timestamp	true if a timestamp before the logmessage is wanted
  * @param[in]	filename		filename of log in current locale
  */
-ECLogger_File::ECLogger_File(int max_ll, int add_timestamp, const char *filename, bool compress) : ECLogger(max_ll) {
+ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress) : ECLogger(max_ll) {
 	pthread_mutex_init(&filelock, NULL);
 	logname = strdup(filename);
 	timestamp = add_timestamp;
@@ -198,7 +198,7 @@ ECLogger_File::ECLogger_File(int max_ll, int add_timestamp, const char *filename
 			fnFlush = (flush_func)&fflush;
 			szMode = "a";
 		}
-	
+
 		log = fnOpen(logname, szMode);
 	}
 }
@@ -222,8 +222,8 @@ void ECLogger_File::Reset() {
 	pthread_mutex_lock(&filelock);
 	if (log && fnClose)
 		fnClose(log);
-		
-	assert(fnOpen);		
+
+	assert(fnOpen);
 	log = fnOpen(logname, szMode);
 	pthread_mutex_unlock(&filelock);
 }
@@ -231,7 +231,7 @@ void ECLogger_File::Reset() {
 int ECLogger_File::GetFileDescriptor() {
 	if (log && fnFileno)
 		return fnFileno(log);
-		
+
 	return -1;
 }
 
@@ -271,7 +271,7 @@ bool ECLogger_File::DupFilter(const std::string &message) {
 	return false;
 }
 
-void ECLogger_File::Log(int loglevel, const string &message) {
+void ECLogger_File::Log(unsigned int loglevel, const string &message) {
 	if (!log)
 		return;
 	if (!ECLogger::Log(loglevel))
@@ -287,7 +287,7 @@ void ECLogger_File::Log(int loglevel, const string &message) {
 	pthread_mutex_unlock(&filelock);
 }
 
-void ECLogger_File::Log(int loglevel, const char *format, ...) {
+void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
 	va_list va;
 
 	if (!log)
@@ -300,7 +300,7 @@ void ECLogger_File::Log(int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
-void ECLogger_File::LogVA(int loglevel, const char *format, va_list& va) {
+void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	pthread_mutex_lock(&msgbuflock);
 	_vsnprintf_l(msgbuffer, _LOG_BUFSIZE, format, datalocale, va);
 
@@ -316,7 +316,7 @@ void ECLogger_File::LogVA(int loglevel, const char *format, va_list& va) {
 	pthread_mutex_unlock(&msgbuflock);
 }
 
-ECLogger_Syslog::ECLogger_Syslog(int max_ll, const char *ident, int facility) : ECLogger(max_ll) {
+ECLogger_Syslog::ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility) : ECLogger(max_ll) {
 	openlog(ident, LOG_PID, facility);
 	levelmap[EC_LOGLEVEL_NONE] = LOG_DEBUG;
 	levelmap[EC_LOGLEVEL_FATAL] = LOG_CRIT;
@@ -335,14 +335,14 @@ void ECLogger_Syslog::Reset() {
 	// not needed.
 }
 
-void ECLogger_Syslog::Log(int loglevel, const string &message) {
+void ECLogger_Syslog::Log(unsigned int loglevel, const string &message) {
 	if (!ECLogger::Log(loglevel))
 		return;
 
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", message.c_str());
 }
 
-void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
+void ECLogger_Syslog::Log(unsigned int loglevel, const char *format, ...) {
 	va_list va;
 
 	if (!ECLogger::Log(loglevel))
@@ -353,7 +353,7 @@ void ECLogger_Syslog::Log(int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
-void ECLogger_Syslog::LogVA(int loglevel, const char *format, va_list& va) {
+void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	pthread_mutex_lock(&msgbuflock);
 #if HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
@@ -404,15 +404,15 @@ void ECLogger_Tee::Reset() {
  *
  * @retval	true when at least one of the attached loggers would produce output
  */
-bool ECLogger_Tee::Log(int loglevel) {
+bool ECLogger_Tee::Log(unsigned int loglevel) {
 	LoggerList::iterator iLogger;
 	bool bResult = false;
 
 	for (iLogger = m_loggers.begin(); !bResult && iLogger != m_loggers.end(); ++iLogger)
 		bResult = (*iLogger)->Log(loglevel);
-	
+
 	return bResult;
-}	
+}
 
 /**
  * Log a message at the reuiqred loglevel to all attached loggers.
@@ -420,7 +420,7 @@ bool ECLogger_Tee::Log(int loglevel) {
  * @param[in]	loglevel	The requierd loglevel
  * @param[in]	message		The message to log
  */
-void ECLogger_Tee::Log(int loglevel, const std::string &message) {
+void ECLogger_Tee::Log(unsigned int loglevel, const std::string &message) {
 	LoggerList::iterator iLogger;
 
 	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
@@ -433,7 +433,7 @@ void ECLogger_Tee::Log(int loglevel, const std::string &message) {
  * @param[in]	loglevel	The required loglevel
  * @param[in]	format		The format string.
  */
-void ECLogger_Tee::Log(int loglevel, const char *format, ...) {
+void ECLogger_Tee::Log(unsigned int loglevel, const char *format, ...) {
 	va_list va;
 
 	va_start(va, format);
@@ -441,7 +441,7 @@ void ECLogger_Tee::Log(int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
-void ECLogger_Tee::LogVA(int loglevel, const char *format, va_list& va) {
+void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	LoggerList::iterator iLogger;
 
 	pthread_mutex_lock(&msgbuflock);
@@ -449,7 +449,7 @@ void ECLogger_Tee::LogVA(int loglevel, const char *format, va_list& va) {
 
 	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
 		(*iLogger)->Log(loglevel, std::string(msgbuffer));
-	
+
 	pthread_mutex_unlock(&msgbuflock);
 }
 
@@ -484,7 +484,7 @@ void ECLogger_Pipe::Reset() {
 	kill(m_childpid, SIGHUP);
 }
 
-void ECLogger_Pipe::Log(int loglevel, const std::string &message) {
+void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
 	int len = 0;
 	int off = 0;
 
@@ -513,7 +513,7 @@ void ECLogger_Pipe::Log(int loglevel, const std::string &message) {
 	pthread_mutex_unlock(&msgbuflock);
 }
 
-void ECLogger_Pipe::Log(int loglevel, const char *format, ...) {
+void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
 	va_list va;
 
 	va_start(va, format);
@@ -521,7 +521,7 @@ void ECLogger_Pipe::Log(int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
-void ECLogger_Pipe::LogVA(int loglevel, const char *format, va_list& va) {
+void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	int len = 0;
 	int off = 0;
 
@@ -556,7 +556,7 @@ int ECLogger_Pipe::GetFileDescriptor()
 	return m_fd;
 }
 
-/** 
+/**
  * Make sure we do not close the log process when this object is cleaned.
  */
 void ECLogger_Pipe::Disown()
@@ -599,7 +599,7 @@ namespace PrivatePipe {
 			};
 		}
 		return NULL;
-	}	
+	}
 	int PipePassLoop(int readfd, ECLogger_File *lpFileLogger, ECConfig* lpConfig) {
 		int ret = 0;
 		fd_set readfds;
@@ -613,7 +613,7 @@ namespace PrivatePipe {
 		confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
 		if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0)
 			bNPTL = false;
-		
+
 		m_lpConfig = lpConfig;
 		m_lpFileLogger = lpFileLogger;
 
@@ -741,14 +741,14 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 	return lpPipeLogger;
 }
 
-/** 
+/**
  * Create ECLogger object from configuration.
- * 
+ *
  * @param[in] lpConfig ECConfig object with config settings from config file. Must have all log_* options.
  * @param argv0 name of the logger
  * @param lpszServiceName service name for windows event logger
  * @param bAudit prepend "audit_" before log settings to create an audit logger (zarafa-server)
- * 
+ *
  * @return Log object, or NULL on error
  */
 ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceName, bool bAudit) {
@@ -759,7 +759,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 	int syslog_facility = LOG_MAIL;
 
 	if (bAudit) {
-		if (parseBool(lpConfig->GetSetting("audit_log_enabled")) == false)
+		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
 		prepend = "audit_";
 		syslog_facility = LOG_AUTHPRIV;
@@ -813,8 +813,9 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 			}
 		}
 		if (ret == 0) {
+		    bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
 			lpLogger = new ECLogger_File(loglevel,
-										 atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())),
+										 logtimestamp,
 										 lpConfig->GetSetting((prepend+"log_file").c_str()), false);
 			// chown file
 			if (pw || gr) {
@@ -828,12 +829,14 @@ ECLogger* CreateLogger(ECConfig *lpConfig, char *argv0, const char *lpszServiceN
 			}
 		} else {
 			fprintf(stderr, "Not enough permissions to append logfile '%s'. Reverting to stderr.\n", lpConfig->GetSetting((prepend+"log_file").c_str()));
-			lpLogger = new ECLogger_File(loglevel, atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
+            bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+			lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
 		}
 	}
 	if (!lpLogger) {
 		fprintf(stderr, "Incorrect logging method selected. Reverting to stderr.\n");
-		lpLogger = new ECLogger_File(loglevel, atoi(lpConfig->GetSetting((prepend+"log_timestamp").c_str())), "-", false);
+	    bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
+		lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
 	}
 
 	return lpLogger;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -304,7 +304,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		OccrInfo *lpOccrInfo = NULL;
 		ULONG cValues = 0;
 
-		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, NULL, sTimeZone, 0, &lpOccrInfo, &cValues);
+		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, NULL, sTimeZone, 0, &lpOccrInfo, &cValues, true);
 		if (hr == hrSuccess && cValues > 0) {
 			dtUTCUntil = lpOccrInfo[cValues-1].tBaseDate;
 			lpRec->setEndDate(UTCToLocal(dtUTCUntil, sTimeZone));
@@ -323,22 +323,28 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
-	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
+	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
+	if(!lpicProp) {
+		UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
 
-	// Set 0x820D / ApptStartWhole
-	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+		// Set 0x820D / ApptStartWhole
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
+		lpIcalItem->lstMsgProps.push_back(sPropVal);
 
-	// Set 0x8516 / CommonStart
-	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+		// Set 0x8516 / CommonStart
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
+		lpIcalItem->lstMsgProps.push_back(sPropVal);
 
-	UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
+		UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
 
-	// Set 0x820E / ApptEndWhole
-	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-	lpIcalItem->lstMsgProps.push_back(sPropVal);
+		// Set 0x820E / ApptEndWhole
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
+		lpIcalItem->lstMsgProps.push_back(sPropVal);
 
+		// Set CommonEnd		
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
+		lpIcalItem->lstMsgProps.push_back(sPropVal);
+	}
 
 	lpIcalItem->lpRecurrence = lpRec;
 	lpRec = NULL;

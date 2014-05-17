@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -79,17 +79,17 @@
 		$errorMsg = downloadMessageAsFile($storeid, $entryid, $fileType);
 		if($errorMsg) {
 			//Error Handling.
-			echo "<script type='text/javascript'>alert(\"" . $errorMsg . "\");</script>";	
+			echo "<script type='text/javascript'>alert(\"" . $errorMsg . "\");</script>";
 		}
 	}
 
 	/**
 	 * Function will open email message as inet object and will return email message in eml format to client.
-	 * 
+	 *
 	 * @param HexString $storeid store id
 	 * @param HexString $entryid entryid of message
 	 * @param String $fileType type of the download file e.g. eml for e-mails
-	 * 
+	 *
 	 * @return Boolean true on success, false on failure
 	 */
 	function downloadMessageAsFile($storeid, $entryid, $fileType) {
@@ -99,7 +99,10 @@
 		if($store) {
 			// Open the message
 			$message = mapi_msgstore_openentry($store, hex2bin($entryid));
-			
+
+			// Decode smime signed messages on this message
+			parse_smime($store, $message);
+
 			if($message) {
 				// get message properties.
 				$messageProps = mapi_getprops($message, array(PR_SUBJECT));
@@ -131,7 +134,7 @@
 					} else {
 						$filename = _("Untitled") . $extension;
 					}
-					
+
 					// Set the headers
 					header("Pragma: public");
 					header("Expires: 0"); // set expiration time

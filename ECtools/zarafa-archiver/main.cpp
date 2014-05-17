@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -47,23 +47,21 @@
  * 
  */
 
-#include "platform.h"
-#include "my_getopt.h"
-#include "stringutil.h"
-#include "ECConfig.h"
-#include "charset/convert.h"
-#include "ecversion.h"
-#include <locale.h>
 #include <iostream>
-#include <list>
-using namespace std;
-
-#include <initguid.h>
-#include "archiver.h"
+#include "platform.h"
+#include "stringutil.h"
+#include "my_getopt.h"
+#include "archiver-common.h"
+#include "charset/convert.h"
+#include "ECConfig.h"
+#include "ECLogger.h"
+#include "ecversion.h"
+#include "Archiver.h"
 
 #include "UnixUtil.cpp"
 
-enum modes {
+enum modes 
+{
 	MODE_INVALID = 0, 
 	MODE_ATTACH, 
 	MODE_DETACH,
@@ -75,19 +73,56 @@ enum modes {
 	MODE_AUTO_ATTACH
 };
 
+const char* modename(modes mode)
+{
+    const char* retval = "";
+    switch (mode) {
+    case MODE_INVALID:
+        retval = "Invalid mode";
+        break;
+    case MODE_ATTACH:
+        retval = "Attach";
+        break;
+    case MODE_DETACH:
+        retval = "Detach";
+        break;
+    case MODE_DETACH_IDX:
+        retval = "Detach by index";
+        break;
+    case MODE_LIST:
+        retval = "List";
+        break;
+    case MODE_LIST_ARCHUSER:
+        retval = "List archive users";
+        break;
+    case MODE_ARCHIVE:
+        retval = "Archive";
+        break;
+    case MODE_CLEANUP:
+        retval = "Clean-up";
+        break;
+    case MODE_AUTO_ATTACH:
+        retval = "Auto attach";
+        break;
+    default:
+        retval = "Undefined mode";
+    }
+    return retval;
+}
+
 /**
  * Print a help message.
  *
  * @param[in]	ostr
  *					std::ostream where the message is written to.
- * @param[in]	name
+ * @param[in]	lpszName
  *					The name of the application to use in the output.
  */
-void print_help(ostream &ostr, const char *name) 
+void print_help(ostream &ostr, const char *lpszName) 
 {
 	ostr << endl;
 	ostr << "Usage:" << endl;
-	ostr << name << " [options]" << endl << endl;
+	ostr << lpszName << " [options]" << endl << endl;
 	ostr << "Options:" << endl;
 	ostr << "  -u <name>                        : Select user" << endl;
 	ostr << "  -l|--list                        : List archives for the specified user" << endl;
@@ -143,15 +178,15 @@ void print_help(ostream &ostr, const char *name)
  *					The currently set mode.
  * @param[in]	modeReq
  *					The requested mode.
- * @param[in]	name
+ * @param[in]	lpszName
  *					The name of the application.
  *
  * @todo	Make a nicer message about what went wrong based on modeSet and modeReq.
  */
-void print_mode_error(modes modeSet, modes modeReq, const char *name)
+void print_mode_error(modes modeSet, modes modeReq, const char *lpszName)
 {
 	cerr << "Cannot select more than one mode!" << endl;
-	print_help(cerr, name);
+	print_help(cerr, lpszName);
 }
 
 static std::string args_to_cmdline(int argc, const char * const argv[])
@@ -208,22 +243,18 @@ struct option long_options[] = {
 		{ NULL, 			no_argument, 		NULL, 0				}
 };
 
-#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
+inline LPTSTR toLPTST(const char* lpszString, convert_context& converter) { return lpszString ? converter.convert_to<LPTSTR>(lpszString) : NULL; }
+inline const char* yesno(bool bValue) { return bValue ? "yes" : "no"; }
 
 /**
- * In some programming languages, the main function is where a program starts execution.
- *
- * It is generally the first user-written function run when a program starts (some system-specific software generally runs
- * before the main function), though some languages (notably C++ with global objects that have constructors) can execute user-written
- * functions before main runs. The main function usually organizes at a high level the functionality of the rest of the program. The
- * main function typically has access to the command arguments given to the program at the command-line interface.
+ * Program entry point
  */
 int main(int argc, char *argv[])
 {
 	eResult	r = Success;
 
 	modes mode = MODE_INVALID;
-	const char *lpszUser = NULL;
+    tstring strUser;
 	const char *lpszArchive = NULL;
 	unsigned int ulArchive = 0;
 	const char *lpszFolder = NULL;
@@ -256,7 +287,7 @@ int main(int argc, char *argv[])
 		switch (c) {
 		case 'u':
 		case OPT_USER:
-			lpszUser = my_optarg;
+            strUser = converter.convert_to<tstring>(my_optarg);
 			break;
 
 		case 'a':
@@ -293,7 +324,8 @@ int main(int argc, char *argv[])
 				cerr << "Please specify a valid archive number." << endl;
 				return 1;
 			}
-		} break;
+		} 
+        break;
 		case OPT_AUTO_ATTACH:
 			if (mode == MODE_ARCHIVE)
 				bAutoAttach = true;
@@ -413,7 +445,7 @@ int main(int argc, char *argv[])
 	}
 	
 	else if (mode == MODE_ATTACH) {
-		if (lpszUser == NULL || *lpszUser == '\0') {
+		if (strUser.empty()) {
 			cerr << "Username cannot be empty" << endl;
 			print_help(cerr, argv[0]);
 			return 1;
@@ -424,7 +456,7 @@ int main(int argc, char *argv[])
 	}
 	
 	else if (mode == MODE_DETACH) {
-		if (lpszUser == NULL || *lpszUser == '\0') {
+		if (strUser.empty()) {
 			cerr << "Username cannot be empty" << endl;
 			print_help(cerr, argv[0]);
 			return 1;
@@ -435,7 +467,7 @@ int main(int argc, char *argv[])
 	}
 	
 	else if (mode == MODE_LIST) {
-		if (lpszUser == NULL || *lpszUser == '\0') {
+		if (strUser.empty()) {
 			cerr << "Username cannot be empty" << endl;
 			print_help(cerr, argv[0]);
 			return 1;
@@ -459,8 +491,7 @@ int main(int argc, char *argv[])
 	if (r == FileNotFound) {
 		cerr << "Unable to open configuration file " << lpszConfig << endl;
 		return 1;
-	}
-	else if (r != Success) {
+	} else if (r != Success) {
 		cerr << "Failed to initialize" << endl;
 		return 1;
 	}
@@ -469,99 +500,133 @@ int main(int argc, char *argv[])
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version: %s", PROJECT_VERSION_ARCHIVER_STR);
 
 	lSettings = ptrArchiver->GetConfig()->GetAllSettings();
+
+    ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
 	for (std::list<configsetting_t>::iterator i = lSettings.begin(); i != lSettings.end(); ++i) {
 		if (strcmp(i->szName, "sslkey_pass") == 0 || strcmp(i->szName, "mysql_password") == 0)
-			ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "*  %s = '********'", i->szName);
+            filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '********'", i->szName);
 		else
-			ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", i->szName, i->szValue);
+            filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", i->szName, i->szValue);
 	}
 
 	if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
 		if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
 			return 1;
 
-	switch (mode) {
-	case MODE_ATTACH: {
-		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
-		if (r != Success)
-			goto exit;
-			
-		r = ptr->AttachTo(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder), ulAttachFlags);
-	} break;
+    ptrArchiver->GetLogger()->Log(EC_LOGLEVEL_DEBUG, "Archiver mode: %d: (%s)", mode, modename(mode));
+    switch (mode) {
+    case MODE_ATTACH: {
+        ArchiveManagePtr ptr;
+        r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
+        if (r != Success)
+            goto exit;
 
-	case MODE_DETACH_IDX:
-	case MODE_DETACH: {
-		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
-		if (r != Success)
-			goto exit;
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive %s in server %s using folder %s", lpszArchive, lpszArchiveServer, lpszFolder);
+        r = ptr->AttachTo(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter), ulAttachFlags);
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
 
-		if (mode == MODE_DETACH_IDX)
-			r = ptr->DetachFrom(ulArchive);
-		else
-			r = ptr->DetachFrom(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder));
-	} break;
+    case MODE_DETACH_IDX:
+    case MODE_DETACH: {
+       ArchiveManagePtr ptr;
+       r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
+       if (r != Success)
+           goto exit;
 
-	case MODE_AUTO_ATTACH: {
-		if (lpszUser) {
-			ArchiveManagePtr ptr;
-			r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
-			if (r != Success)
-				goto exit;
+       if (mode == MODE_DETACH_IDX) {
+           filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
+           r = ptr->DetachFrom(ulArchive);
+           filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+       } else {
+           filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %s on server %s, folder %s", lpszArchive, lpszArchiveServer, lpszFolder);
+           r = ptr->DetachFrom(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter));
+       }
+    }
+    break;
 
-			r = ptr->AutoAttach(ulAttachFlags);
-		} else
-			r = ptrArchiver->AutoAttach(ulAttachFlags);
-	} break;
-	
-	case MODE_LIST: {
-		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(TO_LPTST(lpszUser), &ptr);
-		if (r != Success)
-			goto exit;
-			
-		r = ptr->ListArchives(cout);
-	} break;
+    case MODE_AUTO_ATTACH: {
+        if (strUser.size()) {
+            ArchiveManagePtr ptr;
+            r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
+            if (r != Success)
+                goto exit;
 
-	case MODE_LIST_ARCHUSER: {
-		ArchiveManagePtr ptr;
-		r = ptrArchiver->GetManage(_T("SYSTEM"), &ptr);
-		if (r != Success)
-			goto exit;
-			
-		r = ptr->ListAttachedUsers(cout);
-	} break;
-	
-	case MODE_ARCHIVE: {
-		ArchiveControlPtr ptr;
-		r = ptrArchiver->GetControl(&ptr);
-		if (r != Success)
-			goto exit;
-			
-		if (lpszUser)
-			r = ptr->Archive(TO_LPTST(lpszUser), bAutoAttach, ulAttachFlags);
-		else
-			r = ptr->ArchiveAll(bLocalOnly, bAutoAttach, ulAttachFlags);
-	} break;
-		
-	case MODE_CLEANUP: {
-		ArchiveControlPtr ptr;
-		r = ptrArchiver->GetControl(&ptr, bForceCleanup);
-		if (r != Success)
-			goto exit;
-			
-		if (lpszUser)
-			r = ptr->Cleanup(converter.convert_to<LPTSTR>(lpszUser));
-		else
-			r = ptr->CleanupAll(bLocalOnly);
-	} break;
-		
-	case MODE_INVALID:
-		break;
-	}
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach for user %ls, flags: %u", strUser.c_str(), ulAttachFlags);
+            r = ptr->AutoAttach(ulAttachFlags);
+        } else {
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach flags: %u", ulAttachFlags);
+            r = ptrArchiver->AutoAttach(ulAttachFlags);
+        }
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
+
+    case MODE_LIST: {
+        ArchiveManagePtr ptr;
+        r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
+        if (r != Success)
+            goto exit;
+
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archives");
+        r = ptr->ListArchives(cout);
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
+
+    case MODE_LIST_ARCHUSER: {
+        ArchiveManagePtr ptr;
+        r = ptrArchiver->GetManage(_T("SYSTEM"), &ptr);
+        if (r != Success)
+            goto exit;
+
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archive users");
+        r = ptr->ListAttachedUsers(cout);
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
+
+    case MODE_ARCHIVE: {
+        ArchiveControlPtr ptr;
+        r = ptrArchiver->GetControl(&ptr);
+        if (r != Success)
+            goto exit;
+
+        if (strUser.size())  {
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: archive user %ls (autoattach: %s, flags %u)", strUser.c_str(), yesno(bAutoAttach), ulAttachFlags);
+            r = ptr->Archive(strUser, bAutoAttach, ulAttachFlags);
+        } else {
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: archive all users (local only: %s autoattach: %s, flags %u)", yesno(bLocalOnly), yesno(bAutoAttach), ulAttachFlags);
+            r = ptr->ArchiveAll(bLocalOnly, bAutoAttach, ulAttachFlags);
+        }
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
+
+    case MODE_CLEANUP: {
+        ArchiveControlPtr ptr;
+        r = ptrArchiver->GetControl(&ptr, bForceCleanup);
+        if (r != Success)
+            goto exit;
+
+        if (strUser.size()) {
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup user %ls ", strUser.c_str());
+            r = ptr->Cleanup(strUser);
+        } else {
+            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup all (local only): %s", yesno(bLocalOnly));
+            r = ptr->CleanupAll(bLocalOnly);
+        }
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+    }
+    break;
+
+    case MODE_INVALID:
+        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: invalid");
+        break;
+    }
 
 exit:
-	return (r == Success ? 0 : 1);
+    return (r == Success ? 0 : 1);
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -103,6 +103,242 @@ private:
     }
 private:
     mutable swig::SwigVar_PyObject vtable[1];
+#endif
+
+};
+
+
+class SwigDirector_MAPIProp : public MAPIProp, public Swig::Director {
+
+public:
+    SwigDirector_MAPIProp(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *OUTPUT);
+    virtual HRESULT SaveChanges(ULONG ulFlags);
+    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC, LPSPropValue *OUTPUTP);
+    virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *OUTPUT);
+    virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *OUTPUT_USE_IID);
+    virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP);
+    virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *OUTPUT);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class MAPIProp doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::SwigVar_PyObject vtable[11];
+#endif
+
+};
+
+
+class SwigDirector_Message : public Message, public Swig::Director {
+
+public:
+    SwigDirector_Message(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *OUTPUT);
+    virtual HRESULT SaveChanges(ULONG ulFlags);
+    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC, LPSPropValue *OUTPUTP);
+    virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *OUTPUT);
+    virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *OUTPUT_USE_IID);
+    virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP);
+    virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *OUTPUT);
+    virtual HRESULT GetAttachmentTable(ULONG ulFlags, IMAPITable **OUTPUT);
+    virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, IAttach **OUTPUT);
+    virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, IAttach **OUTPUT);
+    virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags);
+    virtual HRESULT GetRecipientTable(ULONG ulFlags, IMAPITable **OUTPUT);
+    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST INPUT);
+    virtual HRESULT SubmitMessage(ULONG ulFlags);
+    virtual HRESULT SetReadFlag(ULONG ulFlags);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class Message doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::SwigVar_PyObject vtable[19];
+#endif
+
+};
+
+
+class SwigDirector_Attach : public Attach, public Swig::Director {
+
+public:
+    SwigDirector_Attach(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *OUTPUT);
+    virtual HRESULT SaveChanges(ULONG ulFlags);
+    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC, LPSPropValue *OUTPUTP);
+    virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *OUTPUT);
+    virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *OUTPUT_USE_IID);
+    virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT);
+    virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP);
+    virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *OUTPUT);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class Attach doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::SwigVar_PyObject vtable[11];
+#endif
+
+};
+
+
+class SwigDirector_MAPITable : public MAPITable, public Swig::Director {
+
+public:
+    SwigDirector_MAPITable(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *OUTPUT);
+    virtual HRESULT Advise(ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *OUTPUT);
+    virtual HRESULT Unadvise(ULONG ulConnection);
+    virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *OUTPUT);
+    virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags);
+    virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *OUTPUT);
+    virtual HRESULT GetRowCount(ULONG ulFlags, ULONG *OUTPUT);
+    virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *OUTPUT);
+    virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator);
+    virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG *OUTPUT1, ULONG *OUTPUT2);
+    virtual HRESULT FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags);
+    virtual HRESULT Restrict(LPSRestriction lpRestriction, ULONG ulFlags);
+    virtual HRESULT CreateBookmark(BOOKMARK *OUTPUT);
+    virtual HRESULT FreeBookmark(BOOKMARK bkPosition);
+    virtual HRESULT SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags);
+    virtual HRESULT QuerySortOrder(LPSSortOrderSet *OUTPUT);
+    virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *OUTPUT);
+    virtual HRESULT Abort();
+    virtual HRESULT ExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet *OUTPUT, ULONG *OUTPUT2);
+    virtual HRESULT CollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG ulFlags, ULONG *OUTPUT);
+    virtual HRESULT WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *OUTPUT);
+    virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG *lpulOutput, LPBYTE *lpOutput);
+    virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, BYTE *pbCollapseState, BOOKMARK *OUTPUT);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class MAPITable doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::SwigVar_PyObject vtable[23];
 #endif
 
 };
@@ -350,11 +586,60 @@ private:
 };
 
 
+class SwigDirector_ECImportHierarchyChanges : public ECImportHierarchyChanges, public Swig::Director {
+
+public:
+    SwigDirector_ECImportHierarchyChanges(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
+    virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *OUTPUT);
+    virtual HRESULT Config(IStream *lpStream, ULONG ulFlags);
+    virtual HRESULT UpdateState(IStream *lpStream);
+    virtual HRESULT ImportFolderChange(ULONG cValues, LPSPropValue lpProps);
+    virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSrcEntryList);
+    virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpProps, BOOL fNew);
+
+
+/* Internal Director utilities */
+public:
+    bool swig_get_inner(const char* name) const {
+      std::map<std::string, bool>::const_iterator iv = inner.find(name);
+      return (iv != inner.end() ? iv->second : false);
+    }
+
+    void swig_set_inner(const char* name, bool val) const
+    { inner[name] = val;}
+
+private:
+    mutable std::map<std::string, bool> inner;
+
+
+#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)
+/* VTable implementation */
+    PyObject *swig_get_method(size_t method_index, const char *method_name) const {
+      PyObject *method = vtable[method_index];
+      if (!method) {
+        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);
+        method = PyObject_GetAttr(swig_get_self(), name);
+        if (method == NULL) {
+          std::string msg = "Method in class ECImportHierarchyChanges doesn't exist, undefined ";
+          msg += method_name;
+          Swig::DirectorMethodException::raise(msg.c_str());
+        }
+        vtable[method_index] = method;
+      };
+      return method;
+    }
+private:
+    mutable swig::SwigVar_PyObject vtable[6];
+#endif
+
+};
+
+
 class SwigDirector_ECSimpleLogger : public ECSimpleLogger, public Swig::Director {
 
 public:
     SwigDirector_ECSimpleLogger(PyObject *self);
-    virtual HRESULT Log(int loglevel, char const *szMessage);
+    virtual HRESULT Log(unsigned int loglevel, char const *szMessage);
 
 
 /* Internal Director utilities */
@@ -398,7 +683,7 @@ class SwigDirector_Stream : public Stream, public Swig::Director {
 
 public:
     SwigDirector_Stream(PyObject *self, ULONG cInterfaces, LPCIID lpInterfaces);
-    virtual HRESULT Write(char const *pv, ULONG cb, ULONG *OUTPUT);
+    virtual HRESULT Write(void const *pv, ULONG cb, ULONG *OUTPUT);
     virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
     virtual HRESULT SetSize(ULARGE_INTEGER libNewSize);
     virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
@@ -406,10 +691,9 @@ public:
     virtual HRESULT Revert();
     virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
     virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-    virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
+    virtual HRESULT Stat(STATSTG *OUTPUT, DWORD grfStatFlag);
     virtual HRESULT Clone(IStream **ppstm);
     virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *cbOUTPUT);
-    virtual HRESULT Write(void const *pv, ULONG cb, ULONG *OUTPUT);
 
 
 /* Internal Director utilities */
@@ -443,7 +727,7 @@ private:
       return method;
     }
 private:
-    mutable swig::SwigVar_PyObject vtable[12];
+    mutable swig::SwigVar_PyObject vtable[11];
 #endif
 
 };

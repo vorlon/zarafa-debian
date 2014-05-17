@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -470,7 +470,7 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, LPSPropValue lpSrc, void *lpBa
 			goto exit;
 		}
 
-		hr = lpfAllocMore(strlen(lpSrc->Value.lpszA)*sizeof(char)+sizeof(char), lpBase, (void**)&lpDest->Value.lpszA);
+		hr = lpfAllocMore(strlen(lpSrc->Value.lpszA) + 1, lpBase, (void**)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
 			goto exit;
 		strcpy(lpDest->Value.lpszA, lpSrc->Value.lpszA);
@@ -2866,10 +2866,12 @@ exit:
  * 
  * @param[in] lpSrc Source message to copy from
  * @param[in] lpDest Message to copy attachments to
+ * @param[in] lpRestriction Optional restriction to apply before copying
+ *                          the attachments.
  * 
  * @return MAPI error code
  */
-HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
+HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction lpRestriction) {
 	HRESULT hr;
 	bool bPartial = false;
 
@@ -2905,6 +2907,12 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 	hr = lpTable->SetColumns(lpTableColumns, 0);
 	if (hr != hrSuccess)
 		goto exit;
+
+	if (lpRestriction) {
+		hr = lpTable->Restrict(lpRestriction, 0);
+		if (hr != hrSuccess)
+			goto exit;
+	}
 
 	hr = lpTable->GetRowCount(0, &ulRows);
 	if (hr != hrSuccess)
@@ -3732,7 +3740,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 					hr = Util::CopyRecipients((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
 				} else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS) {
 					// TODO: add ulFlags, and check for MAPI_NOREPLACE
-					hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
+					hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
 				} else {
 					hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 				}

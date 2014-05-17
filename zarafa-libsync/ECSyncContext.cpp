@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -72,8 +72,10 @@
 #include <edkmdb.h>
 
 #include <mapi_ptr.h>
-DEFINEMAPIPTR(ECChangeAdvisor);
-DEFINEMAPIPTR(ECChangeAdviseSink);
+typedef mapi_object_ptr<IECChangeAdvisor, IID_IECChangeAdvisor> ECChangeAdvisorPtr;
+//DEFINEMAPIPTR(ECChangeAdvisor);
+typedef mapi_object_ptr<IECChangeAdviseSink, IID_IECChangeAdviseSink> ECChangeAdviseSinkPtr;
+//DEFINEMAPIPTR(ECChangeAdviseSink);
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -113,8 +115,8 @@ public:
 	}
 
 	// IExchangeChangeAdviseSink
-	ULONG OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) { 
-		return CALL_MEMBER_FN(*m_lpsSyncContext, m_fnCallback)(ulFlags, lpEntryList); 
+	ULONG OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) {
+		return CALL_MEMBER_FN(*m_lpsSyncContext, m_fnCallback)(ulFlags, lpEntryList);
 	}
 
 private:
@@ -591,7 +593,7 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 			hr = hrSuccess;
 		}
 	}
-	
+
 exit:
 	return hr;
 }
@@ -669,7 +671,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		hr = MAPI_E_CORRUPT_DATA;
 		goto exit;
 	}
-	
+
 	HrClearSyncStatus();
 
 	ulVersion = *((ULONG*)(lpsSyncState->lpb));
@@ -689,7 +691,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
-		
+
 		strSourceKey.assign((char*)(lpsSyncState->lpb + ulPos), ulSize);
 		ulPos += ulSize;
 		ulSize = *((ULONG*)(lpsSyncState->lpb + ulPos));
@@ -700,7 +702,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 			goto exit;
 		}
 
-		LOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), (unsigned char*)strSourceKey.data()).c_str());	
+		LOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), (unsigned char*)strSourceKey.data()).c_str());
 
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
 		if (hr != hrSuccess)
@@ -748,16 +750,16 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 		hr = iSyncStatus->second->Stat(&sStat, STATFLAG_NONAME);
 		if (hr != hrSuccess)
 			goto exit;
-		
+
 		ulSize = sStat.cbSize.LowPart;
 		strSyncStatus.append((char*)&ulSize, 4);
 
-		LOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize, bin2hex(iSyncStatus->first.size(), (unsigned char*)iSyncStatus->first.data()).c_str());	
-		
+		LOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize, bin2hex(iSyncStatus->first.size(), (unsigned char*)iSyncStatus->first.data()).c_str());
+
 		hr = iSyncStatus->second->Seek(liPos, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
 			goto exit;
-	
+
 		lpszStream = new char[sStat.cbSize.LowPart];
 
 		hr = iSyncStatus->second->Read(lpszStream, sStat.cbSize.LowPart, &ulSize);

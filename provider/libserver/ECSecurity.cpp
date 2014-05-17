@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1456,7 +1456,15 @@ exit:
 ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize, eQuotaStatus* lpQuotaStatus)
 {
 	ECRESULT er = erSuccess;
-	unsigned int ulOwnerId;
+	unsigned int ulOwnerId = 0;
+	unsigned int ulStoreType = 0;
+
+	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulStoreId, NULL, NULL, &ulStoreType);
+	if (er != erSuccess)
+		goto exit;
+
+	if (ulStoreType != ECSTORE_TYPE_PRIVATE)
+		goto exit; // all is good, no quota on non-private stores.
 
 	// Get the store owner
 	er = GetStoreOwner(ulStoreId, &ulOwnerId);

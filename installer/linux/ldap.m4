@@ -303,7 +303,7 @@ ldap_companyname_attribute = ou
 ldap_company_view_attribute = zarafaViewPrivilege
 
 # Optional, default = text
-ldap_company_view_attribute_type = text
+ldap_company_view_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_view_attribute
@@ -318,7 +318,7 @@ ldap_company_admin_attribute = zarafaAdminPrivilege
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_company_admin_attribute_type = text
+ldap_company_admin_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_admin_attribute
@@ -332,7 +332,7 @@ ldap_company_system_admin_attribute = zarafaSystemAdmin
 # Optional, default = text
 # Active directory: dn
 # LDAP: text
-ldap_company_system_admin_attribute_type = text
+ldap_company_system_admin_attribute_type = ifelse(TYPE,`OPENLDAP',`text',`dn')
 
 # The attribute of the company which is listed in the
 # ldap_company_system_admin attribute

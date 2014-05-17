@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -66,6 +66,8 @@
 #include "ECGuid.h"
 #include "CommonUtil.h"
 #include "ecversion.h"
+#include "stringutil.h"
+#include "MAPIErrors.h"
 
 using namespace std;
 
@@ -119,8 +121,9 @@ HRESULT UpdatePassword(char* lpPath, char* lpUsername, char* lpPassword, char* l
 	LPENTRYID lpUserId = NULL;
 	LPSPropValue lpPropValue = NULL;
 	
-	ECUSER sECUser;
+	LPECUSER lpECUser = NULL;
 	convert_context converter;
+
 	std::wstring strwUsername, strwPassword;
 
 	strwUsername = converter.convert_to<wstring>(lpUsername);
@@ -159,21 +162,24 @@ HRESULT UpdatePassword(char* lpPath, char* lpUsername, char* lpPassword, char* l
 		cerr << "Unable to update password, user not found." << endl;
 		goto exit;
 	}
-		
-	memset(&sECUser, 0, sizeof(ECUSER));
-	sECUser.sUserId.cb = cbUserId;
-	sECUser.sUserId.lpb = (unsigned char*)lpUserId;
-	sECUser.ulIsAdmin = (unsigned int)-1;
-	sECUser.ulObjClass = (objectclass_t)-1;
-	sECUser.lpszPassword = (LPTSTR)lpNewPassword;
 
-	hr = lpServiceAdmin->SetUser(&sECUser, 0);
+	// get old features. we need these, because not setting them would mean: remove them
+	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &lpECUser);
+	if (hr != hrSuccess) {
+		cerr << "Unable to get user details, " << getMapiCodeString(hr, lpUsername) << endl;
+		goto exit;
+	}
+
+	lpECUser->lpszPassword = (LPTSTR)lpNewPassword;
+
+	hr = lpServiceAdmin->SetUser(lpECUser, 0);
 	if(hr != hrSuccess) {
 		cerr << "Unable to update user password." << endl;
 		goto exit;
 	}
 
 exit:
+	MAPIFreeBuffer(lpECUser);	// It's ok to pass a NULL pointer to MAPIFreeBuffer(). See http://msdn.microsoft.com/en-us/library/office/cc842298.aspx
 	if (lpUserId)
 		MAPIFreeBuffer(lpUserId);
 

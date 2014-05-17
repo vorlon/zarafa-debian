@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -529,7 +529,7 @@ private:
 	 * @throw objectnotfound When no object was found with the given objectid.
 	 * @throw toomanyobjects When more then one object was returned with the objectid.
 	 */
-	string objectUniqueIDtoObjectDN(const objectid_t &uniqueid) throw(std::exception);
+	string objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache = true) throw(std::exception);
 
 	/**
 	 * Convert a DN to an object signature

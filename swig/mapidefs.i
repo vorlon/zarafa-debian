@@ -1,10 +1,9 @@
 %module mapidefs
-%include "typemaps.i"
 
 %{
 #undef LOCK_WRITE
 #undef LOCK_EXCLUSIVE
-#include <../include/mapidefs.h>
+#include <mapidefs.h>
 %}
 
 #define MAPI_MODIFY			(0x00000001)
@@ -112,24 +111,25 @@
 #define MNID_ID                 0
 #define MNID_STRING             1
 
+
 class IMAPIProp : public IUnknown {
 public:
     //    virtual ~IMAPIProp() = 0;
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT SaveChanges(ULONG ulFlags) = 0;
-    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* OUTPUT /*lpcValues*/, LPSPropValue* OUTPUT /*lppPropArray*/) = 0;
+    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* OUTPUTC /*lpcValues*/, LPSPropValue* OUTPUTP /*lppPropArray*/) = 0;
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTagArray*/) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* OUTPUT_USE_IID /*lppUnk*/) = 0;
     virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
     virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
     virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
-			   IMAPIProgress * lpProgress, LPCIID lpInterface, IUnknown *lpDestObj, ULONG ulFlags,
+			   IMAPIProgress * lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags,
 			   LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
     virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress * lpProgress, LPCIID lpInterface,
-			      IUnknown * lpDestObj, ULONG ulFlags, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* OUTPUT,
-				    LPMAPINAMEID** OUTPUT /*lpppPropNames*/) = 0;
+			      void* lpDestObj, ULONG ulFlags, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
+    virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* OUTPUTC,
+				    LPMAPINAMEID** OUTPUTP /*lpppPropNames*/) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTags*/) = 0;
 	%extend {
 		~IMAPIProp() { self->Release(); }
@@ -202,6 +202,10 @@ public:
 %{
 #include "swig_iunknown.h"
 typedef IUnknownImplementor<IMAPIAdviseSink> MAPIAdviseSink;
+typedef IUnknownImplementor<IMAPIProp> MAPIProp;
+typedef IUnknownImplementor<IMessage> Message;
+typedef IUnknownImplementor<IAttach> Attach;
+typedef IUnknownImplementor<IMAPITable> MAPITable;
 %}
 
 %feature("director") MAPIAdviseSink;
@@ -616,7 +620,7 @@ public:
     virtual HRESULT GetRowCount(ULONG ulFlags, ULONG* OUTPUT /*lpulCount*/) = 0;
     virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG* OUTPUT /*lplRowsSought*/) = 0;
     virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) = 0;
-    virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG* OUTPUT /*lpulNumerator*/, ULONG* OUTPUT /*lpulDenominator*/) = 0;
+    virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG* OUTPUT1 /*lpulNumerator*/, ULONG* OUTPUT2 /*lpulDenominator*/) = 0;
     virtual HRESULT FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags) = 0;
     virtual HRESULT Restrict(LPSRestriction lpRestriction, ULONG ulFlags) = 0;
     virtual HRESULT CreateBookmark(BOOKMARK* OUTPUT /*lpbkPosition*/) = 0;
@@ -626,7 +630,7 @@ public:
     virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet* OUTPUT /*lppRows*/) = 0;
     virtual HRESULT Abort() = 0;
     virtual HRESULT ExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG ulRowCount,
-			      ULONG ulFlags, LPSRowSet* OUTPUT /*lppRows*/, ULONG* OUTPUT /*lpulMoreRows*/) = 0;
+			      ULONG ulFlags, LPSRowSet* OUTPUT /*lppRows*/, ULONG* OUTPUT2 /*lpulMoreRows*/) = 0;
     virtual HRESULT CollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG ulFlags, ULONG* OUTPUT /*lpulRowCount*/) = 0;
     virtual HRESULT WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG* OUTPUT /*lpulTableStatus*/) = 0;
     virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, BYTE *pbInstanceKey, ULONG* lpulOutput /*lpcbCollapseState*/,
@@ -775,3 +779,59 @@ public:
 #define AB_NO_DIALOG            (0x00000001)
 
 #define EC_OVERRIDE_HOMESERVER	(0x00000001)
+
+#if SWIGPYTHON
+
+%feature("director") Message;
+%feature("nodirector") Message::QueryInterface;
+%feature("director") MAPIProp;
+%feature("nodirector") MAPIProp::QueryInterface;
+%feature("director") Attach;
+%feature("nodirector") Attach::QueryInterface;
+%feature("director") MAPITable;
+%feature("nodirector") MAPITable::QueryInterface;
+
+class MAPIProp : public IMAPIProp {
+public:
+	MAPIProp(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~MAPIProp() { self->Release(); };
+	}
+};
+
+class Message : public IMessage {
+public:
+	Message(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~Message() { self->Release(); };
+	}
+};
+
+class Attach : public IAttach {
+public:
+	Attach(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~Attach() { self->Release(); };
+	}
+};
+
+class MAPITable : public IMAPITable {
+public:
+	MAPITable(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~MAPITable() { self->Release(); };
+	}
+};
+
+// This is purely for testing
+HRESULT wrap_IMessage(IMessage *lpMessage, IMessage **OUTPUT);
+%{
+HRESULT wrap_IMessage(IMessage *lpMessage, IMessage **OUTPUT)
+{
+	*OUTPUT = lpMessage;
+	lpMessage->AddRef();
+	return hrSuccess;
+}
+%}
+
+#endif

@@ -1,20 +1,22 @@
 lib_LTLIBRARIES = libinetmapi.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX $(VMIME_CFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
+	$(VMIME_CFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common  -I${top_srcdir}/common \
-	-I${top_srcdir}/libfreebusy -I${top_srcdir}/libicalmapi
+	-I${top_srcdir}/libfreebusy -I${top_srcdir}/libicalmapi \
+    -I$//usr/include/libxml2
 
-# Add '-z now' -> -Wl,-z, -Wl,now to LD flags to that we do early binding of symbols. This fixes
+# Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of symbols. This fixes
 # a problem in which libvmime attempts to resolve a symbol in libinetmapi.so during the unload
-# of vmime, initiated by the unload of libinetmapi. On some systems this fails to resolve the symbol
-# during unload, resuling in a crash in __cxa_finalize during unload of mapi.so
-libinetmapi_la_LDFLAGS = -version-info $(ECCLIENT_LIBRARY_VERSION) -Wl,-z -Wl,now
+# of vmime, initiated by the unload of libinetmapi. On some systems, this fails to resolve the symbol
+# during unload, resulting in a crash in __cxa_finalize during unload of mapi.so
+libinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -version-info $(ECCLIENT_LIBRARY_VERSION) -Wl,-z -Wl,now
 libinetmapi_la_LIBADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/libicalmapi/libicalmapi.la \
-	$(VMIME_LIBS)
+    $(VMIME_LIBS) $(XML2_LIBS)
 
 #CXXLD=--tag=none gcc
 

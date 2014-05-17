@@ -11,6 +11,8 @@
 
 if [ -f ${prefix}/etc/sysconfig/zarafa ]; then
   . ${prefix}/etc/sysconfig/zarafa
+elif [ -f ${prefix}/etc/default/zarafa ]; then
+  . ${prefix}/etc/default/zarafa
 fi
 
 ZARAFA_USER_SCRIPTS=/etc/zarafa/userscripts/deleteuser.d
