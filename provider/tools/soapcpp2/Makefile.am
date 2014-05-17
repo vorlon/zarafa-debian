@@ -4,7 +4,7 @@ AM_LFLAGS=$(LEX_FLAGS)
 noinst_PROGRAMS=soapcpp2
 
 # platform=LINUX
-soapcpp2_CFLAGS=$(BISON_DEFINE) $(LEX_DEFINE) $(C_DEBUG_FLAGS) -DLINUX
+soapcpp2_CFLAGS=$(BISON_DEFINE) $(LEX_DEFINE) $(C_DEBUG_FLAGS)
 soapcpp2_LDADD=$(YACC_LIB) $(LEXLIB)
 soapcpp2_SOURCES= soapcpp2_yacc.y soapcpp2_lex.l symbol2.c error2.c init2.c soapcpp2.c soapcpp2.h error2.h
 # make sure build waits for this file

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -49,7 +49,7 @@
 
 #include "platform.h"
 #include "transaction.h"
-#include "archiver-session.h"
+#include "ArchiverSession.h"
 
 namespace za { namespace operations {
 
@@ -59,7 +59,7 @@ namespace za { namespace operations {
 Transaction::Transaction(const SObjectEntry &objectEntry): m_objectEntry(objectEntry) 
 { }
 
-HRESULT Transaction::SaveChanges(SessionPtr ptrSession, RollbackPtr *lpptrRollback)
+HRESULT Transaction::SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback)
 {
 	typedef MessageList::iterator iterator;
 	HRESULT hr = hrSuccess;
@@ -99,7 +99,7 @@ exit:
 	return hr;
 }
 
-HRESULT Transaction::PurgeDeletes(SessionPtr ptrSession, TransactionPtr ptrDeferredTransaction)
+HRESULT Transaction::PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction)
 {
 	typedef ObjectList::const_iterator iterator;
 	HRESULT hr = hrSuccess;
@@ -138,7 +138,7 @@ HRESULT Transaction::Save(IMessage *lpMessage, bool bDeleteOnFailure, const Post
 	SaveEntry se;
 	lpMessage->AddRef();
 	se.bDeleteOnFailure = bDeleteOnFailure;
-	se.ptrMessage = lpMessage;
+	se.ptrMessage.reset(lpMessage, false);
 	se.ptrPSAction = ptrPSAction;
 	m_lstSave.push_back(se);
 	return hrSuccess;
@@ -158,7 +158,7 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 //////////////////////////
 // Rollback implementation
 //////////////////////////
-HRESULT Rollback::Delete(SessionPtr ptrSession, IMessage *lpMessage)
+HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrMsgProps;
@@ -189,7 +189,7 @@ exit:
 	return hr;
 }
 
-HRESULT Rollback::Execute(SessionPtr ptrSession)
+HRESULT Rollback::Execute(ArchiverSessionPtr ptrSession)
 {
 	typedef MessageList::iterator iterator;
 	HRESULT hr = hrSuccess;

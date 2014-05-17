@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -75,6 +75,7 @@ struct _popen_rlimit_array_ ## _name \
 
 int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger);
 int unix_chown(const char *filename, const char *username, const char *groupname);
+extern void unix_coredump_enable(ECLogger *);
 int unix_create_pidfile(char *argv0, ECConfig *lpConfig, ECLogger *lpLogger, bool bForce = true);
 int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger);
 int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs);

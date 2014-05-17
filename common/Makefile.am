@@ -21,8 +21,8 @@ libcommon_mapi_la_include_HEADERS = rtfutil.h mapiext.h ECGuid.h ECTags.h ECDefs
 				  TimeUtil.h ECGetText.h ECInvariantChecker.h tstring.h mapi_ptr.h utf8.h ECRestriction.h threadutil.h				\
 				  HtmlToTextParser.h HtmlEntity.h userutil.h ECFeatures.h ECFeatureList.h ECDebugPrint.h ECInterfaceDefs.h			\
 				  HrException.h ECIterators.h ECACL.h pthreadutil.h ECThreadPool.h MAPINotifSink.h \
-				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h \
-				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h ECMAPIDebug.h boost_compat.h ECChannelClient.h \
+				  ECDatabaseMySQL.h fileutil.h IStreamAdapter.h IECExchangeModifyTable.h IECImportHierarchyChanges.h \
+				  ConsoleTable.h MAPIConsoleTable.h ECFifoStream.h ECMAPIDebug.h boost_compat.h ECChannelClient.h MAPIErrors.h \
 				  $(charset_HEADERS) $(utf8_HEADERS) $(ustringutil_HEADERS) $(mapiptr_HEADERS)
 
 libcommon_mapi_la_includedir = $(includedir)/zarafa
@@ -30,35 +30,36 @@ libcommon_mapi_la_includedir = $(includedir)/zarafa
 data_DATA = zarafa.pc
 datadir = $(libdir)/pkgconfig
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/libfreebusy $(MYSQL_INCLUDES)
 
-libcommon_mapi_la_LDFLAGS = -static
-libcommon_mapi_la_SOURCES = CommonUtil.cpp				\
-			rtfutil.cpp									\
-			codepage.cpp								\
-			ECGuid.cpp									\
-			ECUnknown.cpp								\
-			ECMemStream.cpp								\
-			ECFifoStream.cpp							\
-			ECMemTable.cpp								\
-			ECKeyTable.cpp								\
-			Util.cpp 									\
-			ECDebug.cpp									\
-			favoritesutil.cpp							\
-			ZarafaCode.cpp								\
-			HtmlToTextParser.cpp						\
-			HtmlEntity.cpp								\
-			ECABEntryID.cpp								\
-			ECDebugPrint.cpp							\
-			ECIterators.cpp								\
-			MAPINotifSink.cpp							\
-			IStreamAdapter.cpp							\
-			MAPIConsoleTable.cpp						\
-			ECMAPIDebug.cpp
+libcommon_mapi_la_LDFLAGS = ${AM_LDFLAGS} -static
+libcommon_mapi_la_SOURCES = CommonUtil.cpp  \
+			rtfutil.cpp					    \
+			codepage.cpp					\
+			ECGuid.cpp					    \
+			ECUnknown.cpp					\
+			ECMemStream.cpp					\
+			ECFifoStream.cpp				\
+			ECMemTable.cpp					\
+			ECKeyTable.cpp					\
+			Util.cpp 					    \
+			ECDebug.cpp					    \
+			favoritesutil.cpp				\
+			ZarafaCode.cpp					\
+			HtmlToTextParser.cpp			\
+			HtmlEntity.cpp					\
+			ECABEntryID.cpp					\
+			ECDebugPrint.cpp				\
+			ECIterators.cpp					\
+			MAPINotifSink.cpp				\
+			IStreamAdapter.cpp				\
+			MAPIConsoleTable.cpp			\
+			ECMAPIDebug.cpp					\
+			MAPIErrors.cpp
 
-libcommon_util_la_LDFLAGS = -static
+libcommon_util_la_LDFLAGS = ${AM_LDFLAGS} -static
 libcommon_util_la_SOURCES = platform.cpp			\
 			platform.linux.cpp						\
 			md5.cpp									\
@@ -97,13 +98,13 @@ if HAVE_ICU
 libcommon_util_la_SOURCES += ustringutil/utfutil.cpp
 endif
 
-libcommon_ssl_la_LDFLAGS = -static
+libcommon_ssl_la_LDFLAGS = ${AM_LDFLAGS} -static
 libcommon_ssl_la_SOURCES = 							\
 			SSLUtil.cpp								\
 			ECChannelClient.cpp						\
 			ECChannel.cpp
 
-libcommon_service_la_LDFLAGS = -static
+libcommon_service_la_LDFLAGS = ${AM_LDFLAGS} -static
 libcommon_service_la_SOURCES = ECDatabaseMySQL.cpp
 
 # remove double installed headers

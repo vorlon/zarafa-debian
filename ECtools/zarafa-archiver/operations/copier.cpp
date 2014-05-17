@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -50,7 +50,7 @@
 #include <platform.h>
 #include "ECConfig.h"
 #include "ECRestriction.h"
-#include "logger.h"
+#include "ECArchiverLogger.h"
 #include "copier.h"
 #include "deleter.h"
 #include "stubber.h"
@@ -58,8 +58,8 @@
 #include "transaction.h"
 #include "postsaveiidupdater.h"
 #include "helpers/mapiprophelper.h"
-#include "helpers/archivehelper.h"
-#include "archiver-session.h"
+#include "helpers/ArchiveHelper.h"
+#include "ArchiverSession.h"
 #include "Util.h"
 #include "mapiguidext.h"
 
@@ -71,7 +71,7 @@ using namespace std;
 
 namespace za { namespace operations {
 
-Copier::Helper::Helper(SessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder)
+Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder)
 : m_ptrSession(ptrSession)
 , m_lpLogger(lpLogger)
 , m_lpExcludeProps(lpExcludeProps)
@@ -441,7 +441,7 @@ exit:
  *
  * @return HRESULT
  */
-Copier::Copier(SessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread)
+Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread)
 : ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE)
 , m_ptrSession(ptrSession)
 , m_lpConfig(lpConfig)
@@ -1032,7 +1032,7 @@ HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder,
 			goto exit;
 
 		hr = hrSuccess;
-		Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not elegible for deletion.");
+		Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for deletion.");
 	}
 
 	// Now see if we need to stub the message.
@@ -1047,7 +1047,7 @@ HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder,
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
 		} else if (hr == MAPI_E_NOT_FOUND) {
 			hr = hrSuccess;
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not elegible for stubbing.");
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for stubbing.");
 		}
 	}
 

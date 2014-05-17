@@ -69,18 +69,21 @@ LDFLAGS_system=$LDFLAGS
 LIBS_system=$LIBS
 
 # check build OS
+AC_CANONICAL_HOST
 BUILDOS=""
-case $host in
-	*-*-openbsd*)
+case "$host_os" in
+	openbsd*)
 		BUILDOS="-DOPENBSD"
 		;;
-	*-*-linux*)
+	linux*)
+		BUILDOS="-DLINUX"
 		;;
 esac
 
 # default to debug mode
 # disable write-strings: too much complains about "" being 'cast' to char* (since const char* is not in the declarations) on g++-4.2 and higher
-ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings $BUILDOS -DHAVE_CONFIG_H"
+ZCPPFLAGS="$ZCPPFLAGS $BUILDOS -DHAVE_CONFIG_H"
+ZCXXFLAGS="$ZCXXFLAGS -g -rdynamic -Wall -Wno-write-strings"
 if ! test "$want_release" = "yes"; then
 # when using -pedantic, -Wno-long-long is required
 # only add -pedantic in non-release mode, since a header in php5 contains a , too much in an enum, which triggers a compile error.
@@ -89,7 +92,7 @@ fi
 
 # programs that use files >2gb need 64bit file support
 LFS_CFLAGS=`getconf LFS_CFLAGS`
-ZCXXFLAGS="$ZCXXFLAGS $LFS_CFLAGS"
+ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 
 # disable variadic-macros: too much warning: anonymous variadic macros were introduced in C99, only on new compilers
 AC_MSG_CHECKING([whether C++ compiler understands -Wno-variadic-macros option])
@@ -111,7 +114,8 @@ AC_CHECK_LIB([pthread], [pthread_create], [ZCXXFLAGS="$ZCXXFLAGS -pthread"], AC_
 AC_ARG_ENABLE(release, AC_HELP_STRING([--enable-release],[enable release mode (compile flags -O2 and no DEBUG defines)]),
   [want_release=${enableval}],[want_release=no])
 if test "$want_release" = "yes"; then
-    ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing -DNDEBUG -DFORCE_CHARSET_CONVERSION"
+    ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG -DFORCE_CHARSET_CONVERSION"
+    ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
 else
 # -fPIC must be present on x86_64 when -O2 isn't used
     ZCXXFLAGS="$ZCXXFLAGS -fPIC"
@@ -120,7 +124,7 @@ fi
 AC_ARG_ENABLE(unicode, AC_HELP_STRING([--enable-unicode],[enable unicode mode (compile flags -DUNICODE)]),
   [want_unicode=${enableval}],[want_unicode=yes])
 if test "$want_unicode" = "yes"; then
-    ZCXXFLAGS="$ZCXXFLAGS -DUNICODE"
+    ZCPPFLAGS="$ZCPPFLAGS -DUNICODE"
 fi
 
 AC_ARG_ENABLE(tcmalloc, AC_HELP_STRING([--enable-tcmalloc],[enable use of tcmalloc minimal lib]),
@@ -179,7 +183,7 @@ AC_ARG_ENABLE(profiling,
 AC_DEFUN([OFFLINE_CONFIG],[
   AC_ARG_ENABLE(offline, AC_HELP_STRING([--enable-offline],[Compile zarafa-server as the offline server]),
   [
-  	ZCXXFLAGS="$ZCXXFLAGS -DHAVE_OFFLINE_SUPPORT"
+  	ZCPPFLAGS="$ZCPPFLAGS -DHAVE_OFFLINE_SUPPORT"
   ])
 ])
 if ! test "$want_oss" = "yes"; then
@@ -191,6 +195,12 @@ AC_ARG_WITH(mapi-configdir,
   AC_HELP_STRING([--with-mapi-configdir=PATH],[path to install the libmapi config (provider) files (default /etc/mapi)]),
   [MAPICONFIGDIR=${withval}],[MAPICONFIGDIR=/etc/mapi])
 AC_SUBST(MAPICONFIGDIR)
+
+# Timezones
+AC_ARG_WITH(mapi-timezonedir,
+  AC_HELP_STRING([--with-mapi-timezonedir=PATH],[path to install MAPI timezone definition files (default /usr/share/zarafa/timezones)]),
+  [TIMEZONEDIR=${withval}],[TIMEZONEDIR=/usr/share/zarafa/timezones])
+AC_SUBST(TIMEZONEDIR)
 
 # user create scripts location
 AC_ARG_WITH(userscript-prefix,
@@ -228,41 +238,26 @@ AC_STRUCT_TM
 # zarafa-stats requires ncurses(w) for --top
 # check wide version before non-wide version
 AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
-  AC_ARG_WITH(ncurses-config, AC_HELP_STRING([--with-ncurses-config=PATH],[path to the ncurses(w)5-config script, wide version is preferred]),
-    [NCURSES_CONFIG=${withval}],[NCURSES_CONFIG=ncursesw5-config])
-
-  AC_MSG_CHECKING([for ncurses-config presence])
-  NCURSES_CONFIG=`which $NCURSES_CONFIG 2>/dev/null`
-  if ! test -x "$NCURSES_CONFIG"; then
-    # test non-wide version after wide (or forced version)
-    NCURSES_CONFIG=`which ncurses5-config 2>/dev/null`
-  fi
-  if ! test -x "$NCURSES_CONFIG"; then
-    AC_MSG_RESULT([not found])
-	# does not indicate if ncurses is available
-    NCURSES_FLAGS=
-    NCURSES_LIBS=-lncursesw
-  else
-    AC_MSG_RESULT([$NCURSES_CONFIG])
-
-    NCURSES_FLAGS=`$NCURSES_CONFIG --cflags`
-    NCURSES_LIBS=`$NCURSES_CONFIG --libs`
-  fi
-
-  CXXFLAGS="$CXXFLAGS $NCURSES_FLAGS"
-  LIBS=$NCURSES_LIBS
-
-  AC_CHECK_FUNCS([initscr], [AC_DEFINE([HAVE_NCURSES], [1], [ncurses library available])], [
-  # possibly wide version failed, force check normal version
-    NCURSES_LIBS=-lncurses
-    LIBS=$NCURSES_LIBS
-	AC_CHECK_FUNCS([cbreak], [AC_DEFINE([HAVE_NCURSES], [1], [ncurses library available])])
-  ])
-
-  LIBS=$libs_keep
-  CFLAGS=$cflags_keep
-  AC_SUBST(NCURSES_FLAGS)
-  AC_SUBST(NCURSES_LIBS)
+	AC_CHECK_PROGS([NCURSES_CONFIG], [ncursesw6-config ncursesw5-config ncurses6-config ncurses5-config ncursesw-config ncurses-config], [])
+	AS_IF([test -n "$NCURSES_CONFIG"],
+		[
+			NCURSES_FLAGS=$("$NCURSES_CONFIG" --cflags)
+			NCURSES_LIBS=$("$NCURSES_CONFIG" --libs)
+		],
+		[
+			dnl just pick the lowest common denominator
+			NCURSES_FLAGS=""
+			NCURSES_LIBS="-lncurses"
+		]
+	)
+	dnl We should be using ncurses.h - or is portability to non-ncurses
+	dnl that important?
+	AC_CHECK_HEADERS([curses.h])
+	LIBS="$LIBS_system"
+	CFLAGS="$CFLAGS_system"
+	CXXFLAGS="$CXXFLAGS_system"
+	AC_SUBST([NCURSES_FLAGS])
+	AC_SUBST([NCURSES_LIBS])
 ])
 LIBNCURSES_WITH_CONFIG
 
@@ -292,9 +287,14 @@ if test "$want_unicode" = "yes"; then
 fi
 AC_SUBST(SWIG_FLAGS)
 
-# Checks for PHP through php-config and tests the truth of php-config results
-PHP_WITH_PHP_CONFIG
-PHP_CHECK_INCLUDES
+AC_ARG_WITH([php], [AS_HELP_STRING([--without-php], [Disable building PHP components])])
+AM_CONDITIONAL([WITH_PHP], [test "$with_php" != "no"])
+AS_IF([test "$with_php" != "no"], [
+	# Checks for PHP through php-config and tests the truth of
+	# php-config results
+	PHP_WITH_PHP_CONFIG
+	PHP_CHECK_INCLUDES
+])
 
 # Checks for libxml2
 AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
@@ -316,7 +316,7 @@ AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
 
     dnl check correctness of lib
     CXXFLAGS="$CXXFLAGS $XML2_CFLAGS"
-    LIBS=$XML2_LIBS
+    LIBS="$LIBS $XML2_LIBS"
     AC_MSG_CHECKING([acquired XML2 settings])
     AC_LINK_IFELSE([
       AC_LANG_SOURCE([
@@ -341,7 +341,7 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
   AC_ARG_ENABLE(embedded-mysql, AC_HELP_STRING([--enable-embedded-mysql],[Compile zarafa-server with the embedded MySQL server]),
   [
 	EMBEDDED=1
-	CXXFLAGS="$CXXFLAGS -DEMBEDDED_MYSQL"
+	ZCPPFLAGS="$ZCPPFLAGS -DEMBEDDED_MYSQL"
   ],[
 	EMBEDDED=0
   ])
@@ -517,7 +517,7 @@ fi
 #
 
 AC_CHECK_HEADERS([ldap.h],
-	[ LIBS=-lldap_r
+	[ LIBS="$LIBS -lldap_r"
 	  CXXFLAGS="$CXXFLAGS -pthread"
 	  AC_MSG_CHECKING([for -lldap_r without LDAP_DEPRECATED])
 	  AC_LINK_IFELSE([ AC_LANG_SOURCE([#include <ldap.h>
@@ -554,7 +554,7 @@ AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_FLAGS)
 AM_CONDITIONAL([WITH_LDAP], [test "$want_ldap" = yes])
 
-LIBS=$LDAP_LIBS
+LIBS="$LIBS $LDAP_LIBS"
 CXXFLAGS="$CXXFLAGS $LDAP_FLAGS"
 AC_CHECK_FUNCS([ldap_start_tls_s])
 AC_CHECK_FUNCS([ldap_create_page_control])
@@ -574,7 +574,7 @@ iconv_t i; i = iconv_open("", "");
 	[ AC_MSG_RESULT([yes]) ],
 	[ AC_MSG_RESULT([no])
 	  AC_MSG_CHECKING([for iconv in -liconv])
-	  LIBS="-liconv"
+	  LIBS="$LIBS -liconv"
 	  AC_LINK_IFELSE([ AC_LANG_SOURCE([
 #include <stdlib.h>
 #include <iconv.h>
@@ -594,8 +594,7 @@ AC_LINK_IFELSE([ AC_LANG_SOURCE([int main() {
 }]) ],
 	[ AC_MSG_RESULT([yes]) ],
 	[ AC_MSG_RESULT([no])
-	  AC_CHECK_LIB([crypt], [crypt],, AC_MSG_ERROR([required library libcrypt missing or unusable])) ])
-CRYPT_LIBS=$LIBS
+	  AC_CHECK_LIB([crypt], [crypt], [CRYPT_LIBS="-lcrypt"], AC_MSG_ERROR([required library libcrypt missing or unusable])) ])
 LIBS=$LIBS_system
 AC_SUBST(CRYPT_LIBS)
 
@@ -639,7 +638,7 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 
 	dnl test if found krb5 is good enough version
 	CXXFLAGS="$CXXFLAGS $KRB5_CFLAGS"
-	LIBS=$KRB5_LIBS
+	LIBS="$LIBS $KRB5_LIBS"
 
 	use_krb=2
 	AC_CHECK_FUNCS([gss_acquire_cred], [AC_DEFINE(HAVE_GSSAPI, [1], [Kerberos Single Signon Authentication enabled]) ], [ use_krb=$((use_krb-1)) ])
@@ -653,8 +652,9 @@ AC_DEFUN([LIBKRB5_WITH_KRB5_CONFIG],[
 		AC_MSG_RESULT([yes])
 	fi
 
-	LIBS=$libs_keep
-	CFLAGS=$cflags_keep
+	LIBS="$LIBS_system"
+	CFLAGS="$CFLAGS_system"
+	CXXFLAGS="$CXXFLAGS_system"
 	AC_SUBST(KRB5_CFLAGS)
 	AC_SUBST(KRB5_LIBS)
   fi
@@ -737,8 +737,11 @@ AC_SUBST(PROG_LIBS)
 # done testing C++ requirements
 AC_LANG_POP
 # set out compileflags
-CXXFLAGS="$CXXFLAGS $ZCXXFLAGS"
-LDFLAGS="$LDFLAGS $ZLDFLAGS"
+AM_CXXFLAGS="$ZCXXFLAGS"
+AM_LDFLAGS="$ZLDFLAGS"
+AC_SUBST([ZCPPFLAGS])
+AC_SUBST([AM_CXXFLAGS])
+AC_SUBST([AM_LDFLAGS])
 
 #
 # Output files
@@ -800,6 +803,10 @@ AC_CONFIG_FILES([Makefile
 		swig/Makefile
 		swig/python/Makefile
 		zarafa-libsync/Makefile
+		libtimezone/Makefile
+		libcalendar/Makefile
+		libcalendar/src/Makefile
+		libcalendar/include/Makefile
 
 		common/zarafa.pc
 		version
@@ -816,6 +823,8 @@ AC_CONFIG_FILES([
 		ECtools/zarafa-msr/Makefile
 		ECtools/zarafa-ocf/Makefile
 		ECtools/za-extra/Makefile
+		ECtools/zarafa-ws/Makefile
+		ECtools/zarafa-ws/etc/Makefile
 ])
 fi
 
@@ -829,7 +838,7 @@ Quota dir	:	$QUOTATEMPLATEDIR
 Search scripts dir	:	$SEARCHSCRIPTSDIR
 
 Build host	:	$host
-Compile flags	:	$CXXFLAGS
+Compile flags	:	$ZCPPFLAGS $CPPFLAGS $ZCXXFLAGS $CXXFLAGS
 Debug flags	:	$DEBUGFLAGS
 PHP version	:	$PHP_VERSION
 PHP ext dir	:	$PHP_EXTENSION_DIR

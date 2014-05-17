@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -55,7 +55,10 @@
 #include "mapicode.h"
 #include "mapiguid.h"
 
+#include "Zarafa.h"
 #include "ECGuid.h"
+#include "ECDebug.h"
+
 #include "Trace.h"
 
 ZCABProvider::ZCABProvider(ULONG ulFlags, char *szClassName) : ECUnknown(szClassName), m_ulFlags(ulFlags)

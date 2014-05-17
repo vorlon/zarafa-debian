@@ -2,7 +2,7 @@
 %include "typemaps.i"
 
 %{
-#include <../include/mapix.h>
+#include <mapix.h>
 %}
 
 

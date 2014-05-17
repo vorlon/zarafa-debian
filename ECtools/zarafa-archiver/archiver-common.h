@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -47,19 +47,14 @@
  * 
  */
 
-#ifndef archiver_common_INCLUDED
-#define archiver_common_INCLUDED
+#ifndef ARCHIVER_COMMON_H_INCLUDED
+#define ARCHIVER_COMMON_H_INCLUDED
 
-#include "archiver.h"
-
-#include <mapidefs.h>
-#include "stringutil.h"
-
-#include <vector>
-#include <algorithm>
 #include <list>
-#include <string>
+#include <vector>
 #include <memory>
+#include "ECDebugPrint.h"
+#include "ArchiveControl.h"
 
 #if 1
 #define fMapiDeferredErrors	MAPI_DEFERRED_ERRORS
@@ -610,5 +605,7 @@ public:
 };
 
 eResult MAPIErrorToArchiveError(HRESULT hr);
+const char* ArchiveResultString(eResult result);
 
-#endif // ndef archiver_common_INCLUDED
+
+#endif // !defined ARCHIVER_COMMON_H_INCLUDED

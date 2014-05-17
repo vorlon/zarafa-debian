@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -52,7 +52,7 @@
 <?php
 	/**
 	 * Create Mail ItemModule
-	 * Module which openes, creates, saves and deletes an item. It 
+	 * Module which openes, creates, saves and deletes an item. It
 	 * extends the Module class.
 	 */
 	class CreateMailItemModule extends ItemModule
@@ -71,18 +71,18 @@
 		{
 			parent::ItemModule($id, $data);
 		}
-		
+
 		/**
 		 * Function which opens a draft. Ite opens the body in plain text.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $entryid entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure		 		 
+		 * @return boolean true on success or false on failure
 		 */
 		function open($store, $entryid, $action)
 		{
 			$result = false;
-			
+
 			if($store && $entryid) {
 				$convertToPlainFormat = true;
 				if($GLOBALS['settings']->get('createmail/mailformat',"html") == 'html' && FCKEDITOR_INSTALLED){
@@ -95,6 +95,9 @@
 				$attachNum = $this->getAttachNum($action);
 				$message = $GLOBALS["operations"]->openMessage($store, $entryid, $attachNum);
 
+				// Decode smime signed messages on this message
+ 				parse_smime($store, $message);
+
 				if(!$attachNum){
 					// Get the standard properties
 					$data["item"] = $GLOBALS["operations"]->getMessageProps($store, $message, $this->properties, $convertToPlainFormat);
@@ -105,19 +108,19 @@
 
 				array_push($this->responseData["action"], $data);
 				$GLOBALS["bus"]->addData($this->responseData);
-				
+
 				$result = true;
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Function which saves and/or sends an item.
 		 * @param object $store MAPI Message Store Object
 		 * @param string $parententryid parent entryid of the message
 		 * @param array $action the action data, sent by the client
-		 * @return boolean true on success or false on failure		 		 
+		 * @return boolean true on success or false on failure
 		 */
 		function save($store, $parententryid, $action)
 		{
@@ -132,7 +135,7 @@
 			if(!$store) {
 				$store = $GLOBALS["mapisession"]->getDefaultMessageStore();
 			}
-			
+
 			// Get inline information.
 			$add_inline_attachments = array();
 			$delete_inline_attachments = array();
@@ -155,11 +158,11 @@
 					}
 				}
 			}
-						
+
 			if($store) {
 				if(isset($action["props"]) && isset($action["recipients"])){
 					/**
-					 * When the no recipients are added the transformation from 
+					 * When the no recipients are added the transformation from
 					 * XML to an array does not add the empty recipient subarray.
 					 */
 					if(!isset($action["recipients"]["recipient"])) {
@@ -171,7 +174,7 @@
 					if(isset($action["send"])) {
 						$send = $action["send"];
 					}
-					
+
 					$copyAttachments = false;
 					$copyAttachmentsStore = false;
 					$copy_only_inline_attachments = false;
@@ -186,7 +189,7 @@
 						$copyAttachmentsStore = hex2bin($action["message_action"]["storeid"]);
 						// Open store (this => $GLOBALS['mapisession'])
 						$copyAttachmentsStore = $GLOBALS['mapisession']->openMessageStore($copyAttachmentsStore);
-							
+
 						if ($action["message_action"]["action_type"] == "reply" || $action["message_action"]["action_type"] == "replyall") {
 							//if user replies using a plain text format do not display/add the inline attachments to the item
 							if(isset($action["props"]["use_html"]) && $action["props"]["use_html"] == "true"){
@@ -205,8 +208,8 @@
 
 					if($send) {
 						$prop = Conversion::mapXML2MAPI($this->properties, $action["props"]);
-						$session = $GLOBALS["mapisession"]->getSession();			
-						
+						$session = $GLOBALS["mapisession"]->getSession();
+
 						/**
 						 * NOTE: PR_SENT_REPRESENTING_NAME might contain user info
 						 * for which current user is sending mail on behalf of, so
@@ -215,7 +218,7 @@
 						if (!empty($prop[PR_SENT_REPRESENTING_NAME]) && !empty($prop[PR_SENT_REPRESENTING_EMAIL_ADDRESS])) {
 							$addrbook = mapi_openaddressbook($session);
 							// resolve users based on email address
-							/** 
+							/**
 							 * users are resolved only on PR_DISPLAY_NAME property
 							 * so used PR_DISPLAY_NAME property and passed email address as its value
 							 * we can't use PR_SMTP_ADDRESS or PR_EMAIL_ADDRESS properties for resolving users
@@ -240,17 +243,17 @@
 
 						$parententryid = $this->getDefaultFolderEntryID($store, $action["props"]["message_class"]);
 						$result = $GLOBALS["operations"]->submitMessage($store, Conversion::mapXML2MAPI($this->properties, $action["props"]), $action["recipients"]["recipient"], $action["dialog_attachments"], $messageProps, $copyAttachments, $copyAttachmentsStore, $add_inline_attachments, $delete_inline_attachments, $copy_only_inline_attachments, $replyOrigMessageDetails, $send_as_onbehalf);
-						
+
 						// If draft is send from the drafts folder, delete notification
 						if($result) {
 							if(isset($action["props"]["entryid"]) && $action["props"]["entryid"] != "") {
 								$props = array();
 								$props[PR_ENTRYID] = hex2bin($action["props"]["entryid"]);
 								$props[PR_PARENT_ENTRYID] = $parententryid;
-								
+
 								$storeprops = mapi_getprops($store, array(PR_ENTRYID));
 								$props[PR_STORE_ENTRYID] = $storeprops[PR_ENTRYID];
-								
+
 								$GLOBALS["bus"]->notify(bin2hex($parententryid), TABLE_DELETE, $props);
 							}
 						}
@@ -262,7 +265,7 @@
 						$result = $GLOBALS["operations"]->saveMessage($GLOBALS["mapisession"]->getDefaultMessageStore(), $parententryid, Conversion::mapXML2MAPI($this->properties, $action["props"]), $action["recipients"]["recipient"], $action["dialog_attachments"], $messageProps, $copyAttachments, $copyAttachmentsStore, array(), $add_inline_attachments, $delete_inline_attachments, $copy_only_inline_attachments);
 						$state->write("createmail".$action["dialog_attachments"], bin2hex($messageProps[PR_ENTRYID]));
 
-						// Update the client with the (new) entryid and parententryid to allow the draft message to be removed when submitting.						
+						// Update the client with the (new) entryid and parententryid to allow the draft message to be removed when submitting.
 						// Retrieve entryid and parententryid of new mail.
 						$props = array();
 						$props = mapi_getprops($result, array(PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID));
@@ -273,12 +276,12 @@
 						$data["item"]["entryid"] = bin2hex($props[PR_ENTRYID]);
 						$data["item"]["parententryid"] = bin2hex($props[PR_PARENT_ENTRYID]);
 						$data["item"]["storeid"] = bin2hex($props[PR_STORE_ENTRYID]);
-						
+
 						//send info to update attachments
-						/** 
-						 * We have to reopen the message because the PR_ATTACH_SIZE is calculated 
-						 * when the message has been saved. This information is then not updated in 
-						 * the MAPI Message Object that is still open. So you have to reopen it to 
+						/**
+						 * We have to reopen the message because the PR_ATTACH_SIZE is calculated
+						 * when the message has been saved. This information is then not updated in
+						 * the MAPI Message Object that is still open. So you have to reopen it to
 						 * get the SIZE data.
 						 */
 						$savedMsg = $GLOBALS['operations']->openMessage($store, $props[PR_ENTRYID]);
@@ -330,7 +333,7 @@
 						array_push($this->responseData["action"], $data);
 						$GLOBALS["bus"]->addData($this->responseData);
 					}
-					
+
 					// Reply/Reply All/Forward Actions (ICON_INDEX & LAST_VERB_EXECUTED)
 					if(isset($action["message_action"]) && isset($action["message_action"]["action_type"]) && $action["message_action"]["action_type"] != "forwardasattachment") {
 						$props = array();
@@ -351,9 +354,9 @@
 								$props[$this->properties["last_verb_executed"]] = 104;
 								break;
 						}
-						
+
 						$props[$this->properties["last_verb_execution_time"]] = mktime();
-						
+
 						// Use the storeid of that belongs to the message_action entryid.
 						// This is in case the message is on another store.
 						$storeOrigMsg = $GLOBALS["mapisession"]->openMessageStore(hex2bin($action["message_action"]["storeid"]));
@@ -377,7 +380,7 @@
 					$this->sendFeedback(true);
 				}
 			}
-			
+
 			return $result;
 		}
 

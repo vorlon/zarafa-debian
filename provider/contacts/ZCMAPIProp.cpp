@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -412,7 +412,7 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags, std::
 		// copy from unicode to string8
 		lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
 		strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
-		hr = MAPIAllocateMore(strAnsi.size() + sizeof(char), lpBase, (void**)&lpProp->Value.lpszA);
+		hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, (void**)&lpProp->Value.lpszA);
 		if (hr != hrSuccess)
 			goto exit;
 		strcpy(lpProp->Value.lpszA, strAnsi.c_str());

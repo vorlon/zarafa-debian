@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -282,7 +282,7 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 		sProp.ulPropTag = CHANGE_PROP_TYPE(sProp.ulPropTag, PT_STRING8);
 	case PT_STRING8:
 	{
-		hr = MAPIAllocateMore((strData.length() +1) * sizeof(char), base, (void**)&sProp.Value.lpszA);
+		hr = MAPIAllocateMore(strData.length() + 1, base, (void**)&sProp.Value.lpszA);
 		if (hr != hrSuccess)
 			goto exit;
 		strcpy(sProp.Value.lpszA, strData.c_str());

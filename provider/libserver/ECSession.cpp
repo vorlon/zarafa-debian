@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -156,7 +156,7 @@ BTSession::BTSession(const std::string& strSourceAddr, ECSESSIONID sessionID, EC
 	// Protects the object from deleting while a thread is running on a method in this object
 	pthread_cond_init(&m_hThreadReleased, NULL);
 	pthread_mutex_init(&m_hThreadReleasedMutex, NULL);
-	
+
 	pthread_mutex_init(&m_hRequestStats, NULL);
 }
 
@@ -174,12 +174,12 @@ ECRESULT BTSession::Shutdown(unsigned int ulTimeout) {
 ECRESULT BTSession::ValidateOriginator(struct soap *soap)
 {
 	std::string strSourceAddr = ::GetSourceAddr(soap);
-	
+
 	if (!m_bCheckIP || m_strSourceAddr == strSourceAddr)
 		return erSuccess;
-		
+
 	m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Denying access to session from source '%s' due to unmatched establishing source '%s'", strSourceAddr.c_str(), m_strSourceAddr.c_str());
-	
+
 	return ZARAFA_E_END_OF_SESSION;
 }
 
@@ -275,7 +275,7 @@ void BTSession::RecordRequest(struct soap *soap)
     m_ulRequests++;
 }
 
-unsigned int BTSession::GetRequests() 
+unsigned int BTSession::GetRequests()
 {
 	scoped_lock lock(m_hRequestStats);
     return m_ulRequests;
@@ -302,7 +302,7 @@ void BTSession::GetClientPort(unsigned int *lpulPort)
 size_t BTSession::GetInternalObjectSize()
 {
 	scoped_lock lock(m_hRequestStats);
-	return MEMORY_USAGE_STRING(m_strSourceAddr) + 
+	return MEMORY_USAGE_STRING(m_strSourceAddr) +
 			MEMORY_USAGE_STRING(m_strLastRequestURL) +
 			MEMORY_USAGE_STRING(m_strProxyHost);
 }
@@ -396,23 +396,23 @@ ECSession::~ECSession()
 ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 {
 	ECRESULT er = erSuccess;
-	
+
 	/* Shutdown blocking calls for this session on our session group */
 	if (m_lpSessionGroup) {
 		m_lpSessionGroup->ShutdownSession(this);
 	}
 
 	/* Wait until there are no more running threads using this session */
-	pthread_mutex_lock(&m_hThreadReleasedMutex); 
+	pthread_mutex_lock(&m_hThreadReleasedMutex);
 	while(IsLocked())
 		if(pthread_cond_timedwait(&m_hThreadReleased, &m_hThreadReleasedMutex, ulTimeout) == ETIMEDOUT)
 			break;
 	pthread_mutex_unlock(&m_hThreadReleasedMutex);
-	
+
 	if(IsLocked()) {
 		er = ZARAFA_E_TIMEOUT;
 	}
-	
+
 	return er;
 }
 
@@ -514,7 +514,7 @@ ECRESULT ECSession::DelAdvise(unsigned int ulConnection)
 		hr = m_lpSessionGroup->DelAdvise(m_sessionID, ulConnection);
 	else
 		hr = ZARAFA_E_NOT_INITIALIZED;
-	
+
 	Unlock();
 
 	return hr;
@@ -548,7 +548,7 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 		hr = ZARAFA_E_NOT_INITIALIZED;
 
 	Unlock();
-	
+
 	return hr;
 }
 
@@ -578,24 +578,24 @@ void ECSession::UpdateBusyState(pthread_t threadId, int state)
 	std::map<pthread_t, BUSYSTATE>::iterator i;
 
 	pthread_mutex_lock(&m_hStateLock);
-	
+
 	i = m_mapBusyStates.find(threadId);
-	
+
 	if(i != m_mapBusyStates.end()) {
 		i->second.state = state;
 	} else {
 		ASSERT(FALSE);
 	}
-	
+
 	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::RemoveBusyState(pthread_t threadId)
 {
 	std::map<pthread_t, BUSYSTATE>::iterator i;
-	
+
 	pthread_mutex_lock(&m_hStateLock);
-	
+
 	i = m_mapBusyStates.find(threadId);
 
 	if(i != m_mapBusyStates.end()) {
@@ -605,7 +605,7 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 		// Since the specified thread is done now, record how much work it has done for us
 		if(pthread_getcpuclockid(threadId, &clock) == 0) {
 			clock_gettime(clock, &end);
-			
+
 			AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
 		} else {
 			ASSERT(FALSE);
@@ -614,7 +614,7 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 	} else {
 		ASSERT(FALSE);
 	}
-	
+
 	pthread_mutex_unlock(&m_hStateLock);
 }
 
@@ -665,12 +665,12 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
  * This entryid can either be a short term or 'normal' entryid. If the entryid is a
  * short term entryid, the STE manager for this session will be queried for the object id.
  * If the entryid is a 'normal' entryid, the cache manager / database will be queried.
- * 
+ *
  * @param[in]	lpEntryID		The entryid to get an object id for.
  * @param[out]	lpulObjId		Pointer to an unsigned int that will be set to the returned object id.
  * @param[out]	lpbIsShortTerm	Optional pointer to a boolean that will be set to true when the entryid
  * 								is a short term entryid.
- * 
+ *
  * @retval	ZARAFA_E_INVALID_PARAMETER	lpEntryId or lpulObjId is NULL.
  * @retval	ZARAFA_E_INVALID_ENTRYID	The provided entryid is invalid.
  * @retval	ZARAFA_E_NOT_FOUND			No object was found for the provided entryid.
@@ -679,26 +679,26 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulObjId = 0;
-	
+
 	if (lpEntryId == NULL || lpulObjId == NULL) {
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	
+
 	er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId((entryId*)lpEntryId, &ulObjId);
 	if (er != erSuccess)
 		goto exit;
-	
+
 	*lpulObjId = ulObjId;
-	
+
 	if(lpulEidFlags)
 		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->usFlags;
-		
+
 exit:
 	return er;
 }
 
-ECRESULT ECSession::LockObject(unsigned int ulObjId) 
+ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
 	ECRESULT er = erSuccess;
 	std::pair<LockMap::iterator, bool> res;
@@ -708,7 +708,7 @@ ECRESULT ECSession::LockObject(unsigned int ulObjId)
 	if (res.second == true)
 		er = m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
 
-	return er;	
+	return er;
 }
 
 ECRESULT ECSession::UnlockObject(unsigned int ulObjId)
@@ -734,8 +734,8 @@ size_t ECSession::GetObjectSize()
 	size_t ulSize = sizeof(*this);
 
 	ulSize += GetInternalObjectSize();
-	ulSize += MEMORY_USAGE_STRING(m_strClientApp) + 
-			MEMORY_USAGE_STRING(m_strUsername) + 
+	ulSize += MEMORY_USAGE_STRING(m_strClientApp) +
+			MEMORY_USAGE_STRING(m_strUsername) +
 			MEMORY_USAGE_STRING(m_strClientVersion);
 
 	ulSize += MEMORY_USAGE_MAP(m_mapBusyStates.size(), BusyStateMap);
@@ -786,7 +786,7 @@ ECAuthSession::~ECAuthSession()
 #endif
 
 	/* Wait until all locks have been closed */
-	pthread_mutex_lock(&m_hThreadReleasedMutex); 
+	pthread_mutex_lock(&m_hThreadReleasedMutex);
 	while (IsLocked())
 		pthread_cond_wait(&m_hThreadReleased, &m_hThreadReleasedMutex);
 	pthread_mutex_unlock(&m_hThreadReleasedMutex);
@@ -864,7 +864,15 @@ exit:
 ECRESULT ECAuthSession::ValidateUserLogon(char *lpszName, char *lpszPassword, char *lpszImpersonateUser)
 {
 	ECRESULT er = erSuccess;
-	
+
+    if (!lpszName)
+    {
+        // Commandment 2: Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.
+		m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Invalid argument lpszName in call to ECAuthSession::ValidateUserLogon()");
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+    }
+
 	// SYSTEM can't login with user/pass
 	if(stricmp(lpszName, ZARAFA_ACCOUNT_SYSTEM) == 0) {
 		er = ZARAFA_E_NO_ACCESS;
@@ -899,6 +907,14 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lps
 	char			*ptr = NULL;
 	char			*localAdminUsers = NULL;
 
+    if (!lpszName)
+    {
+        // Commandment 2: Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.
+		m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Invalid argument lpszName in call to ECAuthSession::ValidateUserSocket()");
+		er = ZARAFA_E_INVALID_PARAMETER;
+		goto exit;
+    }
+
 	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
 	if (p && !stricmp(p, "yes")) {
 		allowLocalUsers = true;
@@ -910,7 +926,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lps
 	struct passwd pwbuf;
 	struct passwd *pw;
 	uid_t uid;
-	char strbuf[1024];	
+	char strbuf[1024];
 #ifdef SO_PEERCRED
 	struct ucred cr;
 	unsigned int cr_len;
@@ -955,7 +971,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lps
 		goto userok;
 
 	p = strtok_r(localAdminUsers, WHITESPACE, &ptr);
-	
+
 	while (p) {
 	    pw = NULL;
 #ifdef HAVE_GETPWNAM_R
@@ -963,7 +979,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lps
 #else
 		pw = getpwnam(p);
 #endif
-		
+
 		if (pw) {
 			if (pw->pw_uid == uid) {
 				// A local admin user connected - ok
@@ -973,7 +989,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, char *lpszName, char *lps
 		p = strtok_r(NULL, WHITESPACE, &ptr);
 	}
 
-	
+
 	er = ZARAFA_E_LOGON_FAILED;
 	goto exit;
 
@@ -1051,7 +1067,7 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap *soap, char *lpszNam
 			if (!biofile) {
 				m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Unable to create BIO for '%s': %s", lpFileName, ERR_error_string(ERR_get_error(), NULL));
 				continue;
-			}		
+			}
 
 			storedkey = PEM_read_bio_PUBKEY(biofile, NULL, NULL, NULL);
 			if (!storedkey) {
@@ -1301,7 +1317,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap, char *lpszName, 
 			m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, string("Unable to create communication pipes for ntlm_auth: ") + strerror(errno));
 			goto exit;
 		}
-		
+
 		/*
 		 * Why are we using vfork() ?
 		 *
@@ -1419,7 +1435,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap, char *lpszName, 
 		memcpy(lpOutput->__ptr, strDecoded.data(), strDecoded.length());
 
 		er = ZARAFA_E_SSO_CONTINUE;
-		
+
 	} else if (buffer[0] == 'A' && buffer[1] == 'F') {
 		// Authentication Fine
 		// Samba default runs in UTF-8 and setting 'unix charset' to windows-1252 in the samba config will break ntlm_auth
@@ -1503,7 +1519,7 @@ size_t ECAuthSession::GetObjectSize()
 }
 
 
-ECAuthSessionOffline::ECAuthSessionOffline(const std::string &strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) : 
+ECAuthSessionOffline::ECAuthSessionOffline(const std::string &strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities) :
 	ECAuthSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
 	// nothing todo

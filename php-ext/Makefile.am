@@ -2,14 +2,14 @@ lib_LTLIBRARIES = mapi.la
 
 libdir=$(PHP_EXTENSION_DIR)
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include \
 	-I$(top_srcdir)/libfreebusy \
 	-I$(top_srcdir)/inetmapi \
 	-I${top_srcdir}/common \
 	$(PHP_INCLUDES)
 
-mapi_la_LDFLAGS = -module -avoid-version \
+mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	$(PHP_LDFLAGS)
 
 mapi_la_LIBADD = \
@@ -30,6 +30,9 @@ datadir = ${datarootdir}/php/mapi
 
 sysconfdir = ${PHP_SYSCONF_DIR}
 dist_sysconf_DATA = zarafa.ini
+
+sampleconfdir = ${docdir}/example-config
+sampleconf_DATA = zarafa.ini
 
 mapi_la_SOURCES = main.cpp util.cpp \
 	phpconfig.h main.h util.h \

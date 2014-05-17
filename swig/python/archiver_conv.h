@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -50,7 +50,7 @@
 #ifndef ARCHIVER_CONV_H
 #define ARCHIVER_CONV_H
 
-#include "archiver.h"
+#include "Archiver.h"
 #include "Python.h"
 
 PyObject *		List_from_ArchiveList(const ArchiveList &lst);

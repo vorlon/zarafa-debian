@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -119,6 +119,8 @@ private:
     
     unsigned int m_ulCacheSize;
     bool m_bComplete;
+
+    pthread_mutex_t     m_writeMutex; // serialize Optimize and AddTerm
 };
 
 #endif

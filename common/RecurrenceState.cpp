@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -491,16 +491,6 @@ exit:
 			}
 		}
 	}
-	if (bExtended) {
-		// sync all extended subjects and locations back normal
-		for (ULONG i = 0; i < ulExceptionCount; i++) {
-			if (lstExceptions[i].ulOverrideFlags & ARO_SUBJECT)
-				lstExceptions[i].strSubject = converter.convert_to<std::string>(lstExtendedExceptions[i].strWideCharSubject);
-
-			if (lstExceptions[i].ulOverrideFlags & ARO_LOCATION)
-				lstExceptions[i].strLocation = converter.convert_to<std::string>(lstExtendedExceptions[i].strWideCharLocation);
-		}
-	}   
     return hr;
 }
 

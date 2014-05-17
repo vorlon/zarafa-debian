@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -310,10 +310,14 @@
 							array_push($searchprops, $prop);
 					}
 
-					$searchterms = preg_split("/ +/", $searchterms);
-					
+					$searchterms = preg_split("/[\.\/\~\,\ \@]+/", $searchterms);
+
 					$res_and = array();
 					foreach($searchterms as $term) {
+						if(empty($term)) {
+							continue;
+						}
+
 						$res_or = array();
 						
 						foreach($searchprops as $property) {

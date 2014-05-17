@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -81,6 +81,7 @@
 #define EC_LOGLEVEL_USERCACHE	0x00080000
 #define EC_LOGLEVEL_SOAP		0x00100000
 #define EC_LOGLEVEL_ICS			0x00200000
+#define EC_LOGLEVEL_SEARCH		0x00400000
 
 #define _LOG_BUFSIZE		10240
 #define _LOG_TSSIZE			64
@@ -122,7 +123,7 @@ protected:
 	 */
 	char* MakeTimestamp();
 
-	int max_loglevel;
+	unsigned int max_loglevel;
 	char *msgbuffer;
 	pthread_mutex_t msgbuflock;
 	locale_t timelocale;
@@ -136,7 +137,7 @@ protected:
 	 *
 	 * @param[in]	max_ll	Max loglevel allowed to enter in the log. Messages with higher loglevel will be skipped.
 	 */
-	ECLogger(int max_ll);
+	ECLogger(unsigned int max_ll);
 	/**
 	 * Destructor of ECLogger. Implementations should close the log they're writing to.
 	 */
@@ -151,25 +152,25 @@ public:
 	 * @retval	true	Logging with 'loglevel' will enter log
 	 * @retval	false	Logging with 'loglevel' will be dropped
 	 */
-	virtual bool Log(int loglevel);
+	virtual bool Log(unsigned int loglevel);
 
 	/**
 	 * Set new loglevel for log object
 	 *
 	 * @param[in]	max_ll	The new maximum loglevel
 	 */
-	void SetLoglevel(int max_ll);
+	void SetLoglevel(unsigned int max_ll);
 	/**
 	 * Set new prefix for log
 	 *
 	 * @param[in]	lp	New logprefix LP_TID or LP_PID. Disable prefix with LP_NONE.
 	 */
 	void SetLogprefix(logprefix lp);
-	/** 
+	/**
 	 * Adds reference to this object
 	 */
 	unsigned AddRef();
-	/** 
+	/**
 	 * Removes a reference from this object, and deletes it if all
 	 * references are removed.
 	 */
@@ -198,14 +199,14 @@ public:
 	 * @param	loglevel	Loglevel to log message under
 	 * @param	message		std::string logmessage. Expected charset is current locale.
 	 */
-	virtual void Log(int loglevel, const std::string &message) = 0;
+	virtual void Log(unsigned int loglevel, const std::string &message) = 0;
 	/**
 	 * Log a message on a specified loglevel using char* format
 	 *
 	 * @param	loglevel	Loglevel to log message under
 	 * @param	format		formatted string for the parameter list
 	 */
-	virtual void Log(int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4) = 0;
+	virtual void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4) = 0;
 	/**
 	 * Log a message on a specified loglevel using char* format
 	 *
@@ -213,7 +214,7 @@ public:
 	 * @param	format		formatted string for the parameter list
 	 * @param	va			va_list converted from ... parameters
 	 */
-	virtual void LogVA(int loglevel, const char *format, va_list& va) = 0;
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va) = 0;
 };
 
 
@@ -226,9 +227,9 @@ public:
 	~ECLogger_Null();
 
 	virtual void Reset();
-	virtual void Log(int loglevel, const std::string &message);
-	virtual void Log(int Loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	virtual void LogVA(int loglevel, const char *format, va_list& va);
+	virtual void Log(unsigned int loglevel, const std::string &message);
+	virtual void Log(unsigned int Loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va);
 };
 
 /**
@@ -246,7 +247,7 @@ private:
 	handle_type log;
 	char *logname;
 	pthread_mutex_t filelock;
-	int timestamp;
+	bool timestamp;
 
 	open_func fnOpen;
 	close_func fnClose;
@@ -261,13 +262,13 @@ private:
 	void DoPrefix();
 
 public:
-	ECLogger_File(int max_ll, int add_timestamp, const char *filename, bool compress = false);
+	ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress = false);
 	~ECLogger_File();
 
 	virtual void Reset();
-	virtual void Log(int loglevel, const std::string &message);
-	virtual void Log(int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	virtual void LogVA(int loglevel, const char *format, va_list& va);
+	virtual void Log(unsigned int loglevel, const std::string &message);
+	virtual void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va);
 
 	int GetFileDescriptor();
 	bool IsStdErr();
@@ -281,13 +282,13 @@ private:
 	int levelmap[EC_LOGLEVEL_DEBUG+1];	/* converts to syslog levels */
 
 public:
-	ECLogger_Syslog(int max_ll, const char *ident, int facility);
+	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
 	~ECLogger_Syslog();
 
 	virtual void Reset();
-	virtual void Log(int loglevel, const std::string &message);
-	virtual void Log(int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	virtual void LogVA(int loglevel, const char *format, va_list& va);
+	virtual void Log(unsigned int loglevel, const std::string &message);
+	virtual void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va);
 };
 
 
@@ -306,9 +307,9 @@ public:
 	~ECLogger_Pipe();
 
 	virtual void Reset();
-	virtual void Log(int loglevel, const std::string &message);
-	virtual void Log(int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	virtual void LogVA(int loglevel, const char *format, va_list& va);
+	virtual void Log(unsigned int loglevel, const std::string &message);
+	virtual void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va);
 
 	int GetFileDescriptor();
 	void Disown();
@@ -333,10 +334,10 @@ public:
 	~ECLogger_Tee();
 
 	virtual void Reset();
-	virtual bool Log(int loglevel);
-	virtual void Log(int loglevel, const std::string &message);
-	virtual void Log(int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	virtual void LogVA(int loglevel, const char *format, va_list& va);
+	virtual bool Log(unsigned int loglevel);
+	virtual void Log(unsigned int loglevel, const std::string &message);
+	virtual void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
+	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va);
 
 	void AddLogger(ECLogger *lpLogger);
 };

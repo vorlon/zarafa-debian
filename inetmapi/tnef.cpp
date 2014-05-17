@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -311,6 +311,10 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		goto exit;
 
 	for (i = 0; i < lpPropListMessage->cValues; i++) {
+	    // do not send properties in 0x67XX range, since these seem to be blacklisted in recent exchange servers, which
+	    // causes exchange to drop the entire message
+	    if(PROP_ID(lpPropListMessage->aulPropTag[i]) >= 0x6700 && PROP_ID(lpPropListMessage->aulPropTag[i]) <= 0x67FF)
+	        continue;
 
 		// unable to save these properties
 		if(PROP_TYPE(lpPropListMessage->aulPropTag[i]) == PT_OBJECT || 
@@ -1305,10 +1309,12 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-
-			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
-			ulSize -= 4;
-
+			
+			if((PROP_TYPE(ulPropTag) & MV_FLAG) == 0) {
+    			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
+	    		ulSize -= 4;
+            }
+            
 			ulLen = *(ULONG *)lpBuffer;
 
 			lpBuffer += 4; 
@@ -1349,9 +1355,11 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 
-			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
-			ulSize -= 4;
-
+			if((PROP_TYPE(ulPropTag) & MV_FLAG) == 0) {
+    			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
+	    		ulSize -= 4;
+            }
+            
 			ulLen = *(ULONG *)lpBuffer;	// Assumes 'len' in file is BYTES, not chars
 
 			lpBuffer += 4;
@@ -1394,9 +1402,11 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			lpBuffer += 4;	// Skip next 4 bytes, it's always '1' (ULONG)
-			ulSize -= 4;
 
+			if((PROP_TYPE(ulPropTag) & MV_FLAG) == 0) {
+    			lpBuffer += 4;	// Skip next 4 bytes, it's always '1' (ULONG)
+	    		ulSize -= 4;
+            }
 			ulLen = *(ULONG *)lpBuffer;
 
 			lpBuffer += 4;
@@ -1910,7 +1920,7 @@ exit:
 }
 
 /**
- * Read one BYTE (8bits unsigned char) from input stream
+ * Read one BYTE (CHAR_BIT-bits unsigned char) from input stream
  *
  * @param[in]	lpStream	input stream to read one unsigned char from, stream automatically moves current cursor.
  * @param[out]	ulData		unsigned char value from lpStream
@@ -1922,11 +1932,11 @@ HRESULT ECTNEF::HrReadByte(IStream *lpStream, unsigned char *ulData)
 	HRESULT hr = hrSuccess;
 	ULONG ulRead = 0;
 
-	hr = lpStream->Read(ulData, sizeof(char), &ulRead);
+	hr = lpStream->Read(ulData, 1, &ulRead);
 	if(hr != hrSuccess)
 		goto exit;
 
-	if(ulRead != sizeof(char)) {
+	if(ulRead != 1) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}

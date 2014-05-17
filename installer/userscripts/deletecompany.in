@@ -11,6 +11,8 @@
 
 if [ -f @sysconfdir@/sysconfig/zarafa ]; then
   . @sysconfdir@/sysconfig/zarafa
+elif [ -f @sysconfdir@/default/zarafa ]; then
+  . @sysconfdir@/default/zarafa
 fi
 
 ZARAFA_COMPANY_SCRIPTS=@USERSCRIPTDIR@/deletecompany.d

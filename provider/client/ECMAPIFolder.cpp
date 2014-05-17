@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1054,7 +1054,7 @@ HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULO
 	HRESULT hr = hrSuccess;
 	WSMessageStreamImporterPtr	ptrStreamImporter;
 
-	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, true, false, &ptrStreamImporter);
+	hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags, ulSyncId, cbEntryID, lpEntryID, m_cbEntryId, m_lpEntryId, true, NULL, &ptrStreamImporter);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1284,7 +1284,7 @@ HRESULT ECMAPIFolder::xMAPIFolder::DeleteMessages(LPENTRYLIST lpMsgList, ULONG u
 
 HRESULT ECMAPIFolder::xMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, LPCIID lpInterface, ULONG ulFlags, LPMAPIFOLDER *lppFolder)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIFolder::CreateFolder", "type=%d name=%s flags=0x%08X", ulFolderType, (lpszFolderName)?convstring(lpszFolderName, ulFlags):"", ulFlags);
+	TRACE_MAPI(TRACE_ENTRY, "IMAPIFolder::CreateFolder", "type=%d name=%s flags=0x%08X", ulFolderType, (lpszFolderName)?convstring(lpszFolderName, ulFlags).c_str() : "", ulFlags);
 	METHOD_PROLOGUE_(ECMAPIFolder, MAPIFolder);
 	HRESULT hr = pThis->CreateFolder(ulFolderType, lpszFolderName, lpszFolderComment, lpInterface, ulFlags, lppFolder);
 	TRACE_MAPI(TRACE_RETURN, "IMAPIFolder::CreateFolder", "%s", GetMAPIErrorDescription(hr).c_str());

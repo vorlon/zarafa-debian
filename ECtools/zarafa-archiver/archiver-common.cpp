@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -48,11 +48,7 @@
  */
 
 #include "platform.h"
-
-#include <mapix.h>
-
 #include "archiver-common.h"
-
 #include <boost/algorithm/string/predicate.hpp>
 namespace ba = boost::algorithm;
 
@@ -146,4 +142,30 @@ eResult MAPIErrorToArchiveError(HRESULT hr)
 		case MAPI_W_PARTIAL_COMPLETION:	return PartialCompletion;
 		default: 						return Failure;
 	}
+}
+
+const char* ArchiveResultString(eResult result)
+{
+    const char* retval = "Unknown result";
+    switch (result)
+    {
+        case Success:
+            retval = "Success";
+            break;
+        case OutOfMemory:
+            retval = "Out of memory";
+            break;
+        case InvalidParameter:
+            retval = "Invalid parameter";
+            break;
+        case PartialCompletion:
+            retval = "Partial completion";
+            break;
+        case Failure:
+            retval = "Failure";
+            break;
+        default:
+            /* do nothing */;
+    }
+    return retval;
 }

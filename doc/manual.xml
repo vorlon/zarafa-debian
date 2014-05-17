@@ -186,6 +186,16 @@
 			  </para>
 			</listitem>
 		  </varlistentry>
+		  <varlistentry>
+			<term>zarafa-ws</term>
+			<listitem>
+			  <para>The Zarafa Web Services server process enables EWS
+			  connectivity to the Zarafa server. Users with other
+			  non-Windows Outlook or WebApp clients can still retreive
+			  their e-mail and calendars from the server.
+			  </para>
+			</listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
@@ -261,7 +271,10 @@
 		  <refentrytitle>zarafa-search</refentrytitle>
 		  <manvolnum>1</manvolnum>
 		</citerefentry>
-		</para>
+		<citerefentry>
+		  <refentrytitle>zarafa-ws</refentrytitle>
+		  <manvolnum>1</manvolnum>
+		</citerefentry>		</para>
 	  </refsection>
 	</refentry>
 <!--
@@ -607,8 +620,33 @@
 				  </listitem>
 				</varlistentry>
 			  </variablelist>
+			  <para>The following environment variables are present:</para>
+			  <variablelist>
+				<varlistentry>
+				  <term><replaceable>MESSAGE_TO_ME</replaceable></term>
+				  <listitem>
+					<para>Set to 1 if the original mail had the user
+					in the To header.</para>
+				  </listitem>
+				</varlistentry>
+				<varlistentry>
+				  <term><replaceable>MESSAGE_CC_ME</replaceable></term>
+				  <listitem>
+					<para>Set to 1 if the original mail had the user
+					in the Cc header.</para>
+				  </listitem>
+				</varlistentry>
+				<varlistentry>
+				  <term><replaceable>MAILHEADERS</replaceable></term>
+				  <listitem>
+					<para>Optional, if this value is present it points
+					to a file that contains the original headers of
+					the received email.</para>
+				  </listitem>
+				</varlistentry>
+			  </variablelist>
 			  <para>Default: <parameter>/usr/bin/zarafa-autorespond</parameter>.</para>
-			</listitem>
+			</listitem>			
 		  </varlistentry>
 		</variablelist>
 	  </refsection>
@@ -1089,6 +1127,16 @@
 			</listitem>
 		  </varlistentry>
 
+          <varlistentry>
+            <term><option>no_double_forward</option></term>
+            <listitem>
+              <para>Enable this option to prevent rules to cause a
+              loop. An e-mail can only be forwarded once. When
+              this option is enabled, the set_rule_headers
+              option must also be enabled.</para>
+              <para>Default: <replaceable>no</replaceable></para>
+            </listitem>
+          </varlistentry>
 		</variablelist>
 
 	  </refsection>
@@ -1414,6 +1462,27 @@
 		starting the server, always make sure the database server is
 		running at the right location and no other server is listening
 		on the configured TCP port.</para>
+
+		<para>For extended diagnostics, there are special extended log
+		options available for enhanced debugging capabilities. The
+		parameter <replaceable>log_level</replaceable> has special or-ed
+		values which can be set to investigate different modules within
+		the server process:</para>
+
+		<para>SQL: 0x00010000, User backend: 0x00020000,
+		Server cache: 0x00040000, SOAP: 0x00100000, ICS: 0x00200000</para>
+
+		<para>For example, if you are using LDAP as the user plugin,
+		you can set the <replaceable>log_level</replaceable> to
+		0x00020006 for extended LDAP logging (the last digit 6 enables
+		extended verbose logging). To enable SQL and LDAP logging at the
+		same time, set <replaceable>log_level</replaceable> to
+		0x00030006</para>
+
+		<para>WARNING: The log options create huge amounts of log entries
+		in production environments, this results in abnormal large
+		logfiles which can fill up available disk space very fast.
+		Only use this with extreme caution.</para>
 	  </refsection>
 
 	  <refsection>
@@ -1544,6 +1613,20 @@
 		can now login with the certificate, because the known public
 		key matches.
 		</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Addressbook Sorting</title>
+
+		<para>With special chars (like umlauts) the sorting is working
+		more the dictionary way according to DIN 5007-1, section 6.1.1.4.1.
+		Depending on the behaviour wanted, the collation setting can be
+		changed with the (not per default included) parameter <replaceable>
+		default_sort_locale_id</replaceable>. When setting this parameter
+		to de_DE@collation=phonebook for example the sorting will be
+		oriented to the DIN 5007-2, section 6.1.1.4.2 standard which is
+		rather used in phonebooks and actually decomposes umlauts for
+		sorting inline within non-umlaut based ASCII characters.</para>
 	  </refsection>
 
 	  <refsection>
@@ -13420,6 +13503,395 @@
 	  </refsection>
 
 	</refentry>
+
+<!--
+  -+-+-
+	Zarafa Web Services manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>zarafa-ws</refentrytitle>
+		<manvolnum>1</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>zarafa-ws</refname>
+		<refpurpose>Zarafa Web Services adds access to clients which
+		use the Exchange Web Services protocol.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>zarafa-ws</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>Zarafa Web Services gives access to a whole new range of
+		clients, like Outlook 2011 for Mac, Evolution and many
+		others.</para>
+
+		<para>There are also a lot of other systems which use EWS to
+		communicate with MAPI providers, which now can also be
+		used.</para>
+
+		<para>The default settings of the zarafa-ws service are defined
+		in <citerefentry>
+		<refentrytitle>zarafa-ws.cfg</refentrytitle>
+		<manvolnum>5</manvolnum>
+		</citerefentry>.
+		</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>--config</option></term>
+			<term>
+			  <option>-c</option>
+			  <replaceable>ws.cfg</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify the location of the ws.cfg file. If the
+			  ws.cfg file is not specified, the zarafa-ws service
+			  will try to use /etc/zarafa/ws.cfg or continue using
+			  its default settings.</para>
+			  <para>Default: <replaceable>/etc/zarafa/ws.cfg</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--foreground</option></term>
+			<term><option>-F</option></term>
+			<listitem>
+			  <para>Run in the foreground. Normally the gateway
+			  will daemonize and run in the background.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--threaded</option></term>
+			<listitem>
+			  <para>Run requests in threads instead of forks. Not
+			  recommended.</para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Usage</title>
+
+		<para>To start the zarafa-ws service:</para>
+
+		<para><command>zarafa-ws</command></para>
+
+		<para>The process will keep running. You may also use
+		the init.d scripts:</para>
+
+		<para><command>/etc/init.d/zarafa-ws</command>
+		[<replaceable>start</replaceable>|
+		<replaceable>stop</replaceable>|
+		<replaceable>restart</replaceable>]</para>
+	  </refsection>
+
+	  <refsection>
+		<title>See also</title>
+		<para>
+		  <citerefentry>
+			<refentrytitle>zarafa-ws.cfg</refentrytitle>
+			<manvolnum>5</manvolnum>
+		  </citerefentry>
+		</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+	</refentry>
+
+<!--
+  -+-+-
+	Zarafa Web Services Configuration file manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>zarafa-ws.cfg</refentrytitle>
+		<manvolnum>5</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>zarafa-ws.cfg</refname>
+		<refpurpose>The Zarafa Web Services configuration file</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<para><command>ws.cfg</command></para>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>The <filename>ws.cfg</filename> is a configuration
+		file for the Zarafa Web Services. <filename>ws.cfg</filename>
+		contains instructions for the software to set up the logging
+		system and to enable incoming SSL connections.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>File format</title>
+		
+		<para>The file consists of one big section, but parameters can be
+		grouped by functionality.</para>
+
+		<para>The parameters are written in the form:</para>
+
+		<para><option>name</option> = <replaceable>value</replaceable></para>
+
+		<para>The file is line-based. Each newline-terminated line
+		represents either a comment, nothing, a parameter or a directive.
+		A line beginning with `#' is considered a comment, and will be
+		ignored	by Zarafa. Parameter names are case sensitive.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of each parameter</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>server_bind</option></term>
+			<listitem>
+			  <para>IP address to bind to. 0.0.0.0 for any address.</para>
+			  <para>Default: <replaceable>0.0.0.0</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_port</option></term>
+			<listitem>
+			  <para>Listen on this port for incoming connections.</para>
+			  <para>Default: <replaceable>808</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_ssl_enable</option></term>
+			<listitem>
+			  <para>To enable incoming SSL connections, set this to
+			  'yes' and provide an SSL certificate file without an
+			  password in server_ssl_keyfile.</para>
+			  <para>Default: <replaceable>no</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_ssl_keyfile</option></term>
+			<listitem>
+			  <para>A PEM encoded ssl private certificate to use for
+			  incoming SSL connections.</para>
+			  <para>Default: <replaceable></replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_ssl_keypass</option></term>
+			<listitem>
+			  <para>The password which decodes the
+			  <replaceable>server_ssl_keyfile</replaceable>
+			  certificate.</para>
+			  <para>Default: <replaceable></replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_http_compression_allow</option></term>
+			<listitem>
+			  <para>Enable or disable HTTP compression in the
+			  service.</para>
+			  <para>Default: <replaceable>true</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_http_chunksize</option></term>
+			<listitem>
+			  <para>The maximum HTTP chunk to send.</para>
+			  <para>Default: <replaceable>512kib</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>server_socket</option></term>
+			<listitem>
+			  <para>The Zarafa server socket to connect to. Either use
+			  the unix socket, or the SSL socket of Zarafa.</para>
+			  <para>Default: <replaceable>file://var/run/zarafa</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>sslkey_file</option></term>
+			<listitem>
+			  <para>Use this file as key to logon to the server. This
+			  is only used when server_socket is set to an HTTPS
+			  transport, or when using a multi-server setup. See the
+			  <citerefentry>
+				<refentrytitle>zarafa-server</refentrytitle>
+				<manvolnum>1</manvolnum>
+			  </citerefentry>
+			  manual page on how to setup SSL keys.
+			  </para>
+			  <para>Default: value not set.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>sslkey_pass</option></term>
+			<listitem>
+			  <para>The password of the SSL key file that is set in
+			  sslkey_file.
+			  </para>
+			  <para>Default: value not set.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>run_as_user</option></term>
+			<listitem>
+			  <para>After correctly starting, the gateway process will
+			  become this user, dropping root privileges. Note that
+			  the log file needs to be writeable by this user, and the
+			  directory too to create new logfiles after
+			  logrotation. This can also be achieved by setting the
+			  correct group and permissions.
+			  </para>
+			  <para>Default value is empty, not changing the user
+			  after starting.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>run_as_group</option></term>
+			<listitem>
+			  <para>After correctly starting, the gateway process will
+			  become this group, dropping root privileges.
+			  </para>
+			  <para>Default value is empty, not changing the group
+			  after starting.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>running_path</option></term>
+			<listitem>
+			  <para>Change directory to this path when running in
+			  daemonize mode. When using the -F switch to run in the
+			  foreground the directory will not be changed.
+			  </para>
+			  <para>Default:
+			  <replaceable>/</replaceable>
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>pid_file</option></term>
+			<listitem>
+			  <para>Write the process ID number to this file. This is
+			  used by the init.d script to correctly stop/restart the
+			  service.
+			  </para>
+			  <para>Default:
+			  <replaceable>/var/run/zarafa-ws.pid</replaceable>
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>process_model</option></term>
+			<listitem>
+			  <para>You can change the process model between
+			  <replaceable>fork</replaceable> and
+			  <replaceable>threaded</replaceable>. The forked model uses
+			  somewhat more resources, but if a crash is triggered,
+			  this will only affect one user. In the threaded model, a
+			  crash means all users are affected, and will not be able
+			  to use the service.</para>
+			  <para>Default:
+			  <replaceable>fork</replaceable>
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_file</option></term>
+			<listitem>
+			  <para>Specify the filename of the log in this parameter. Use
+			  <replaceable>-</replaceable> (minus sign) for stderr
+			  output.</para>
+			  <para>Default: <replaceable>/var/log/zarafa/ws.log</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_level</option></term>
+			<listitem>
+			  <para>The level of output for logging. The following words are available, each level includes the previous:
+			  fatal, error, warning, info, debug.</para>
+			  <para>Default: <replaceable>error</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_dev_info</option></term>
+			<listitem>
+			  <para>Enable special development logging.</para>
+			  <para>Default: <replaceable>false</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Files</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><filename>/etc/zarafa/ws.cfg</filename></term>
+			<listitem>
+			  <para>The Zarafa Web Services configuration file.</para>
+			</listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>See also</title>
+		<para>
+		  <citerefentry>
+			<refentrytitle>zarafa-ws</refentrytitle>
+			<manvolnum>1</manvolnum>
+		  </citerefentry>
+		</para>
+	  </refsection>
+	</refentry>
+	
   </reference>
 </book>
 

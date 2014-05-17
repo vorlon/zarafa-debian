@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -61,7 +61,10 @@
 	#define _W(string) _T(string)
 #endif
 
-
+// This must go. Obviously someone was trying to be clever, but a macro named _
+// can cause all sorts of mischief that can be hard to trace. Unfortunately
+// it's in use in 51 different files all over the project, so changing it is
+// a bit of a bother. NS 16 October 2013
 #ifdef UNICODE
 #define _(string) _W(string)
 #else

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -53,6 +53,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "platform.h"
 
 /*
  * Comparison handler for case-insensitive keys in maps
@@ -169,10 +170,10 @@ template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)
 {
 	std::vector<T> tokens;
-    	
+
 	// skip delimiters at beginning.
    	typename T::size_type lastPos = str.find_first_not_of(delimiters, 0);
-    	
+
 	// find first "non-delimiter".
    	typename T::size_type pos = str.find_first_of(delimiters, lastPos);
 
@@ -180,10 +181,10 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
    	{
        	// found a token, add it to the std::vector.
        	tokens.push_back(str.substr(lastPos, pos - lastPos));
-		
+
        	// skip delimiters.  Note the "not_of"
        	lastPos = str.find_first_not_of(delimiters, pos);
-		
+
        	// find next "non-delimiter"
        	pos = str.find_first_of(delimiters, lastPos);
    	}

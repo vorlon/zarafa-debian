@@ -1,9 +1,10 @@
 lib_LTLIBRARIES = libmapi.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
+	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common -I${top_srcdir}/common -I${top_srcdir}/libfreebusy
 
-libmapi_la_LDFLAGS = $(BOOST_FILESYSTEM_LDFLAGS)
+libmapi_la_LDFLAGS = ${AM_LDFLAGS} $(BOOST_FILESYSTEM_LDFLAGS)
 
 libmapi_la_LIBADD = \
 			${top_builddir}/common/libcommon_mapi.la \

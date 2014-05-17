@@ -3,7 +3,7 @@ datadir = ${docdir}
 config_files = \
 	server.cfg unix.cfg ldap.propmap.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
-	autorespond archiver.cfg
+	autorespond archiver.cfg ws.cfg
 
 rhel_initscript_files = \
 	zarafa-server.init.rhel zarafa-spooler.init.rhel zarafa-gateway.init.rhel zarafa-monitor.init.rhel zarafa-ical.init.rhel zarafa-dagent.init.rhel zarafa-search.init.rhel
@@ -71,10 +71,10 @@ if ! OSS_ONLY
 BUILT_SOURCES += ldapms.openldap.cfg ldapms.active-directory.cfg
 
 config_files += licensed.cfg example-msr.cfg backup.cfg
-rhel_initscript_files += zarafa-licensed.init.rhel
-suse_initscript_files += zarafa-licensed.init.suse
-cbs4_initscript_files += zarafa-licensed.init.cbs4
-alt_initscript_files += zarafa-licensed.init.alt
+rhel_initscript_files += zarafa-licensed.init.rhel zarafa-ws.init.rhel
+suse_initscript_files += zarafa-licensed.init.suse zarafa-ws.init.suse
+cbs4_initscript_files += zarafa-licensed.init.cbs4 zarafa-ws.init.cbs4
+alt_initscript_files += zarafa-licensed.init.alt zarafa-ws.init.alt
 
 dist_sysconf_cert_DATA = addtrust.crt
 endif

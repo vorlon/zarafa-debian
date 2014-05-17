@@ -33,8 +33,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@WITH_SWIG_TRUE@am__append_1 = swig
-@WITH_PYTHON_TRUE@@WITH_SWIG_FALSE@am__append_2 = swig
+@WITH_PHP_TRUE@am__append_1 = php-ext
+@WITH_SWIG_TRUE@am__append_2 = swig
+@WITH_PYTHON_TRUE@@WITH_SWIG_FALSE@am__append_3 = swig
 subdir = .
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/specialbuild.in \
@@ -44,14 +45,8 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	autoconf/ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -83,8 +78,9 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = common libfreebusy mapi4linux zarafa-libsync liblicense \
-	licensed provider libicalmapi inetmapi php-ext ECtools spooler \
-	gateway caldav installer po doc swig
+	licensed provider libicalmapi inetmapi php-ext libtimezone \
+	libcalendar ECtools spooler gateway caldav installer po doc \
+	swig
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -123,7 +119,9 @@ distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -210,6 +208,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -253,6 +252,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -264,6 +264,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -321,8 +322,9 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I autoconf
 @OSS_ONLY_FALSE@PROSUBS = liblicense licensed
 SUBDIRS = common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) \
-	provider libicalmapi inetmapi php-ext ECtools spooler gateway \
-	caldav installer po doc $(am__append_1) $(am__append_2)
+	provider libicalmapi inetmapi $(am__append_1) libtimezone \
+	libcalendar ECtools spooler gateway caldav installer po doc \
+	$(am__append_2) $(am__append_3)
 EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax
 BUILT_SOURCES = common/ecversion.h
 @OSS_ONLY_FALSE@CLEANFILES = common/ecversion.h

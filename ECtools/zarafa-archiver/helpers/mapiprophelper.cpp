@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -50,7 +50,7 @@
 #include <platform.h>
 #include "mapiprophelper.h"
 
-#include "archiver-session.h"
+#include "ArchiverSession.h"
 #include "archiver-common.h"
 
 #include <mapiutil.h>
@@ -140,7 +140,7 @@ MAPIPropHelper::~MAPIPropHelper()
  * @param[out]	lpState
  * 					The state that will be setup according to the message state.
  */
-HRESULT MAPIPropHelper::GetMessageState(SessionPtr ptrSession, MessageState *lpState)
+HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMessageProps = 0;
@@ -579,7 +579,7 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 	return hr;
 }
 
-HRESULT MAPIPropHelper::OpenPrevious(SessionPtr ptrSession, LPMESSAGE *lppMessage)
+HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrEntryID;
@@ -675,7 +675,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  *
  * @return HRESULT
  */
-HRESULT MAPIPropHelper::GetParentFolder(SessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
+HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrPropArray;

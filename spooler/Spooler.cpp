@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1118,6 +1118,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "" },
 		{ "pid_file", "/var/run/zarafa-spooler.pid" },
 		{ "running_path", "/" },
+		{ "coredump_enabled", "no" },
 		{ "log_method","file" },
 		{ "log_file","-" },
 		{ "log_level","2", CONFIGSETTING_RELOADABLE },
@@ -1307,6 +1308,9 @@ int main(int argc, char *argv[]) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize");
 		goto exit;
 	}
+
+	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
+		unix_coredump_enable(g_lpLogger);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

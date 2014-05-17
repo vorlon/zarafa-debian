@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libzarafacommon.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(GSOAP_CFLAGS) $(BOOST_CPPFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(GSOAP_CFLAGS) \
+	$(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include \
 	-I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap -I${top_srcdir}/common
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -60,6 +60,7 @@
 #include <algorithm>
 #include <string.h>
 #include "stringutil.h"
+#include <boost/algorithm/string/join.hpp>
 
 EmailFilter::EmailFilter(TokenStream *in, bool deleteTokenStream) : TokenFilter(in, deleteTokenStream) {
 	part = 0;
@@ -101,6 +102,22 @@ bool EmailFilter::next(lucene::analysis::Token *token) {
 			// Only add parts once (unique parts)
 			std::sort(parts.begin(), parts.end());
 			parts.erase(std::unique(parts.begin(), parts.end()), parts.end());
+			
+			part = 0;
+		}
+
+		// Split tokens into the various parts with .
+		else if(wcscmp(token->type(), L"<UNKNOWN>") == 0) {
+			std::vector<std::wstring> hostparts;
+			
+			// Convert into some-strange.domain.com domain.com com
+			hostparts = tokenize((std::wstring)token->_termText, (std::wstring)L".");
+			
+			parts.clear();
+			while(hostparts.size() > 1 && hostparts.size() < 10) { // 10 as a defensive measure against the following blowing up
+				hostparts.erase(hostparts.begin());
+				parts.push_back(boost::algorithm::join(hostparts, "."));
+			}
 			
 			part = 0;
 		}

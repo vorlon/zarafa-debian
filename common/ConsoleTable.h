@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -67,6 +67,7 @@ public:
 	bool AddColumn(size_t col, const std::string& entry);
 	bool SetColumn(size_t row, size_t col, const std::string& entry);
 	void PrintTable();
+	void DumpTable();
 
 private:
 	size_t m_nRow;
@@ -79,6 +80,7 @@ private:
 	bool bHaveHeader;
 
 	void PrintRow(const std::vector<std::wstring>& vRow);
+	void DumpRow(const std::vector<std::wstring>& vRow);
 };
 
 #endif

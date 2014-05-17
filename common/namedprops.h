@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -143,6 +143,7 @@
 #define dispidIntendedBusyStatus			0x8224	//PT_LONG
 #define dispidRecurringBase					0x8228	//PT_SYSTIME
 #define dispidRequestSent					0x8229	//PT_BOOLEAN
+#define dispidApptReplyName					0x8230	//PT_STRING8
 #define dispidRecurrenceType				0x8231	//PT_LONG
 #define dispidRecurrencePattern				0x8232	//PT_STRING8
 #define dispidTimeZoneData					0x8233	//PT_BINARY - official name dispidTimeZoneStruct
@@ -213,7 +214,7 @@
 #define dispidNoAging						0x850E	//PT_BOOLEAN
 #define dispidFormStorage					0x850F
 #define dispidSideEffect					0x8510	//PT_LONG
-#define dispidRemoteStatus					0x8511
+#define dispidRemoteStatus					0x8511	//PT_LONG
 #define dispidPageDirStream					0x8513
 #define dispidSmartNoAttach					0x8514	//PT_BOOLEAN
 #define dispidCommonStart					0x8516	//PT_SYSTIME

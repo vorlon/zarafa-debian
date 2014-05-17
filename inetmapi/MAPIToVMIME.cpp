@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -56,6 +56,7 @@
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
+#include <vmime/parsedMessageAttachment.hpp>
 
 // mapi
 #include <mapi.h>
@@ -362,7 +363,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 	vmime::ref<vmime::utility::inputStream> inputDataStream = NULL;
 	vmime::ref<mapiAttachment> vmMapiAttach = NULL;
-	vmime::ref<vmime::defaultAttachment> vmDefAtt = NULL;
+	vmime::ref<vmime::attachment> vmMsgAtt = NULL;
 	std::string		strContentId;
 	std::string		strContentLocation;
 	bool			bHidden = false;
@@ -445,13 +446,8 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		}
 		sopt = sopt_keep;
 
-		vmNewMess->generate(mout);
-		vmDefAtt = vmime::create<vmime::defaultAttachment>(vmime::create<vmime::stringContentHandler>(strBuff),
-														   vmime::encoding("8bit"),
-														   vmime::mediaType("message/rfc822"));
-		// append it (copies pointer, not data)
-		lpVMMessageBuilder->appendAttachment(vmDefAtt);
-
+		vmMsgAtt = vmime::create<vmime::parsedMessageAttachment>(vmNewMess);
+		lpVMMessageBuilder->appendAttachment(vmMsgAtt);
 	} else if (pPropAttachType->Value.ul == ATTACH_BY_VALUE) {
 		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
 		if (hr != hrSuccess) {
@@ -1563,7 +1559,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &lpUncompressedRTFStream);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create RTF-text stream. Error: 0x%08X", hr);
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create RTF-text stream. Error: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -1580,7 +1576,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			if (hr == hrSuccess) {
 				hr = Util::HrStreamToString(lpHTMLStream, strHTMLOut);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read HTML-text stream. Error: 0x%08X", hr);
+					lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to read HTML-text stream. Error: 0x%08X", hr);
 					goto exit;
 				}
 
@@ -1588,7 +1584,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 				// Or, if something failed, the HTML is now empty
 				lpHTMLStream->Release(); lpHTMLStream = NULL;
 			} else {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open HTML-text stream. Error: 0x%08X", hr);
+				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open HTML-text stream. Error: 0x%08X", hr);
 				// continue with plaintext
 			}
 		} else if (isrtftext(strRtf.c_str(), strRtf.size())) {
@@ -1671,7 +1667,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 exit:
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Could not parse mail body");
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Could not parse mail body");
 
 	if (lpHTMLStream)
 		lpHTMLStream->Release();

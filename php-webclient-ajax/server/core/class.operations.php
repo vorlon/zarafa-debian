@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -54,7 +54,7 @@
 	* General operations
 	*
 	* All mapi operations, like create, change and delete, are set in this class.
-	* A module calls one of these methods. 
+	* A module calls one of these methods.
 	*
 	* Note: All entryids in this class are binary
 	*
@@ -70,12 +70,12 @@
 	include_once("mapi/class.taskrequest.php");
 	include_once("mapi/class.freebusypublish.php");
 
-	class Operations 
+	class Operations
 	{
 		function Operations()
 		{
 		}
-		
+
 		/**
 		* Gets the hierarchy list of all required stores.
 		*
@@ -103,30 +103,30 @@
 		*/
 		function getHierarchyList($properties, $type = HIERARCHY_GET_ALL, $store = null)
 		{
-			
-			switch($type) 
+
+			switch($type)
 			{
 				case HIERARCHY_GET_ALL:
 					$storelist = $GLOBALS["mapisession"]->getAllMessageStores();
 					break;
-				
-				case HIERARCHY_GET_DEFAULT: 
+
+				case HIERARCHY_GET_DEFAULT:
 					$storelist = array($GLOBALS["mapisession"]->getDefaultMessageStore());
 					break;
-					
+
 				case HIERARCHY_GET_SPECIFIC:
 					$storelist = (is_array($store))?$store:array($store);
 					break;
 			}
-						
+
 			$data = array();
 			$data["attributes"] = array("type" => "list");
 			$data["store"] = array();
-			
+
 			foreach($storelist as $store)
 			{
 				$msgstore_props = mapi_getprops($store, array(PR_ENTRYID, PR_DISPLAY_NAME, PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID, PR_MAILBOX_OWNER_ENTRYID));
-				
+
 				$inboxProps = array();
 
 				switch ($msgstore_props[PR_MDB_PROVIDER])
@@ -152,27 +152,27 @@
 					continue;
 
 				$storeData = array();
-				$storeData["attributes"] = array(	"id" => bin2hex($msgstore_props[PR_ENTRYID]), 
-													"name" => windows1252_to_utf8($msgstore_props[PR_DISPLAY_NAME]), 
+				$storeData["attributes"] = array(	"id" => bin2hex($msgstore_props[PR_ENTRYID]),
+													"name" => windows1252_to_utf8($msgstore_props[PR_DISPLAY_NAME]),
 													"subtree" => bin2hex($msgstore_props[PR_IPM_SUBTREE_ENTRYID]),
 													'mailbox_owner' => bin2hex($msgstore_props[PR_MAILBOX_OWNER_ENTRYID]),
 													"type" => $storeType,
 													"foldertype" => "all"
 												);
-				
-				// save username  and emailaddress if other store	
+
+				// save username  and emailaddress if other store
 				if ($storeType == "other"){
 					$username = $GLOBALS["mapisession"]->getUserNameOfStore($msgstore_props[PR_ENTRYID]);
 					$userinfo = mapi_zarafa_getuser_by_name($store, u2w($username));
 					$storeData["attributes"]["username"] = $username;
-					$storeData["attributes"]["emailaddress"] = $userinfo["emailaddress"]; 
+					$storeData["attributes"]["emailaddress"] = $userinfo["emailaddress"];
 					$storeData["attributes"]["userfullname"] = w2u($userinfo["fullname"]);
 				}
-				
+
 				// public store doesn't have an inbox
 				if ($storeType != "public"){
 					$inbox = mapi_msgstore_getreceivefolder($store);
-					
+
 					if(!mapi_last_hresult()) {
 						$inboxProps = mapi_getprops($inbox, array(PR_ENTRYID));
 					}
@@ -186,7 +186,7 @@
 
 				$defaultfolders = array(
 						"inbox"			=>	array("inbox"=>PR_ENTRYID),
-						"outbox"		=>	array("store"=>PR_IPM_OUTBOX_ENTRYID), 
+						"outbox"		=>	array("store"=>PR_IPM_OUTBOX_ENTRYID),
 						"sent"			=>	array("store"=>PR_IPM_SENTMAIL_ENTRYID),
 						"wastebasket"	=>	array("store"=>PR_IPM_WASTEBASKET_ENTRYID),
 						"favorites"		=>	array("store"=>PR_IPM_FAVORITES_ENTRYID),
@@ -222,7 +222,7 @@
 							if(isset($additional_ren_entryids[$tag])) $storeData["defaultfolders"][$key] = bin2hex($additional_ren_entryids[$tag]);
 					}
 				}
-				
+
 				$storeData["folder"] = array();
 
 				// check if we just want a single folder or a whole store
@@ -237,9 +237,9 @@
 									break; // when foldertype is "all" we only need the whole store, so break the for-loop
 								}
 
-								// Get the user information and from store and username to show full name of user. 
+								// Get the user information and from store and username to show full name of user.
 								$userinfo = mapi_zarafa_getuser_by_name($store, $username);
-								
+
 								// add single folder
 								$singleFolder = true;
 								foreach($sharedfolders as $type => $sharedfolder){
@@ -302,11 +302,11 @@
 						}
 					}
 				}
-				
+
 				// add entire store
 				if(!$singleFolder && isset($msgstore_props[PR_IPM_SUBTREE_ENTRYID])) {
 					$folder = mapi_msgstore_openentry($store, $msgstore_props[PR_IPM_SUBTREE_ENTRYID]);
-					
+
 					if($folder) {
 						// Add root folder
 						array_push($storeData['folder'], $this->setFolder(mapi_getprops($folder, $properties)));
@@ -324,7 +324,7 @@
 
 			return $data;
 		}
-		
+
 		/**
 		 * Helper function to get the subfolders of a folder
 		 *
@@ -372,10 +372,10 @@
 				foreach($subfolders as $subfolder)
 				{
 					array_push($storeData['folder'], $this->setFolder($subfolder));
-				} 
-			} 
+				}
+			}
 		}
-		
+
 		/**
 		 * Helper to loop through the hierarchy list.in the public and replace the parent entry id
 		 *
@@ -438,7 +438,7 @@
 					array_push($storeData['folder'], $this->setFolder($subfolder));
 				}
 			}
-			
+
 			return true;
 		}
 
@@ -449,7 +449,7 @@
 		 * @param array $folderProps Properties of a folder
 		 * @return array List of properties of a folder
 		 * @todo The name of this function is misleading because it doesn't 'set' anything, it just reads some properties.
-		 */ 		 		
+		 */
 		function setFolder($folderProps)
 		{
 			$props = array();
@@ -457,13 +457,13 @@
 			$props["parent_entryid"] = bin2hex($folderProps[PR_PARENT_ENTRYID]);
 			$props["store_entryid"] = bin2hex($folderProps[PR_STORE_ENTRYID]);
 			$props["display_name"] = windows1252_to_utf8($folderProps[PR_DISPLAY_NAME]);
-			
+
 			if(isset($folderProps[PR_CONTAINER_CLASS])) {
 				$props["container_class"] = $folderProps[PR_CONTAINER_CLASS];
 			} else {
 				$props["container_class"] = "IPF.Note";
 			}
-			
+
 			//Access levels
 			$props["access"] = array();
 			$props["access"]["modify"]          = $folderProps[PR_ACCESS] & MAPI_ACCESS_MODIFY;
@@ -471,7 +471,7 @@
 			$props["access"]["delete"]          = $folderProps[PR_ACCESS] & MAPI_ACCESS_DELETE;
 			$props["access"]["create_hierarchy"]= $folderProps[PR_ACCESS] & MAPI_ACCESS_CREATE_HIERARCHY;
 			$props["access"]["create_contents"] = $folderProps[PR_ACCESS] & MAPI_ACCESS_CREATE_CONTENTS;
-			
+
 			//Rights levels
 			$props["rights"] = array();
 			if(isset($folderProps[PR_RIGHTS])) {	// store don't have PR_RIGHTS property
@@ -482,10 +482,10 @@
 			$props["content_unread"] = $folderProps[PR_CONTENT_UNREAD];
 			$props["subfolders"] = $folderProps[PR_SUBFOLDERS]?1:-1;
 			$props["store_support_mask"] = $folderProps[PR_STORE_SUPPORT_MASK];
-			
+
 			return $props;
 		}
-		
+
 		/**
 		 * Create a MAPI folder
 		 *
@@ -508,18 +508,18 @@
 			if($folder) {
 				$foldername = $this->checkFolderNameConflict($store, $folder, $name);
 				$new_folder = mapi_folder_createfolder($folder, $foldername);
-				
+
 				if($new_folder) {
 					mapi_setprops($new_folder, array(PR_CONTAINER_CLASS => $type));
 					$result = true;
-					
+
 					$folderProps = mapi_getprops($new_folder, array(PR_ENTRYID, PR_STORE_ENTRYID));
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Rename a folder
 		 *
@@ -539,20 +539,20 @@
 			$result = false;
 			$folder = mapi_msgstore_openentry($store, $entryid);
 			$name = utf8_to_windows1252($name);
-			
+
 			if($folder && !$this->isSpecialFolder($store, $entryid)) {
 				$foldername = $this->checkFolderNameConflict($store, $folder, $name);
 				$props = array(PR_DISPLAY_NAME => $foldername);
-				
+
 				mapi_setprops($folder, $props);
 				mapi_savechanges($folder);
 				$result = true;
-				
+
 				$folderProps = mapi_getprops($folder, array(PR_ENTRYID, PR_STORE_ENTRYID));
 			}
 			return $result;
 		}
-		
+
 		/**
 		 * Check if a folder is 'special'
 		 *
@@ -561,14 +561,14 @@
 		 *
 		 * @param object $store MAPI Message Store Object
 		 * @param string $entryid The entryid of the folder
-		 * @return boolean true if folder is a special folder, false if not		 		 		 		 		 
+		 * @return boolean true if folder is a special folder, false if not
 		 */
 		function isSpecialFolder($store, $entryid)
 		{
 			$result = true;
-			
+
 			$msgstore_props = mapi_getprops($store, array(PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID));
-			
+
 			// "special" folders don't exists in public store
 			if ($msgstore_props[PR_MDB_PROVIDER]==ZARAFA_STORE_PUBLIC_GUID){
 				$result = false;
@@ -587,7 +587,7 @@
 					}
 				}
 			}
-			
+
 			return $result;
 		}
 
@@ -616,7 +616,7 @@
 					if($msgprops[PR_IPM_WASTEBASKET_ENTRYID] == $parententryid) {
 						if(mapi_folder_deletefolder($folder, $entryid, DEL_MESSAGES | DEL_FOLDERS)) {
 							$result = true;
-							
+
 							// if exists, also delete settings made for this folder (client don't need an update for this)
 							$GLOBALS["settings"]->delete("folders/entryid_".bin2hex($entryid));
 						}
@@ -629,23 +629,23 @@
 
 						if(mapi_folder_copyfolder($folder, $entryid, $wastebasket, $foldername, FOLDER_MOVE)) {
 							$result = true;
-							
+
 							$folderProps = mapi_getprops($deleted_folder, array(PR_ENTRYID, PR_STORE_ENTRYID));
 						}
 					}
 				} else {
 					if(mapi_folder_deletefolder($folder, $entryid, DEL_MESSAGES | DEL_FOLDERS)) {
 						$result = true;
-						
+
 						// if exists, also delete settings made for this folder (client don't need an update for this)
 						$GLOBALS["settings"]->delete("folders/entryid_".bin2hex($entryid));
 					}
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Empty folder
 		 *
@@ -660,7 +660,7 @@
 		{
 			$result = false;
 			$folder = mapi_msgstore_openentry($store, $entryid);
-			
+
 			if($folder) {
 				$result = mapi_folder_emptyfolder($folder, DEL_ASSOCIATED);
 
@@ -670,10 +670,10 @@
 					$result = true;
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Copy or move a folder
 		 *
@@ -707,7 +707,7 @@
 			}
 			return $result;
 		}
-		
+
 		/**
 		 * Set the readflags of all messages in a folder to 'read'
 		 *
@@ -721,18 +721,18 @@
 		{
 			$result = false;
 			$folder = mapi_msgstore_openentry($store, $entryid);
-			
+
 			if($folder) {
 				if(mapi_folder_setreadflags($folder, array(), SUPPRESS_RECEIPT)) {
 					$result = true;
-					
+
 					$folderProps = mapi_getprops($folder, array(PR_ENTRYID, PR_STORE_ENTRYID));
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Read MAPI table
 		 *
@@ -753,7 +753,7 @@
 		{
 			$data = array();
 			$folder = mapi_msgstore_openentry($store, $entryid);
-			
+
 			if($folder) {
 				$table = mapi_folder_getcontentstable($folder, MAPI_DEFERRED_ERRORS);
 
@@ -770,10 +770,10 @@
 
 				if (is_array($sort) && count($sort)>0){
 					/**
-					 * If the sort array contains the PR_SUBJECT column we should change this to 
+					 * If the sort array contains the PR_SUBJECT column we should change this to
 					 * PR_NORMALIZED_SUBJECT to make sure that when sorting on subjects: "sweet" and
 					 * "RE: sweet", the first one is displayed before the latter one. If the subject
-					 * is used for sorting the PR_MESSAGE_DELIVERY_TIME must be added as well as 
+					 * is used for sorting the PR_MESSAGE_DELIVERY_TIME must be added as well as
 					 * Outlook behaves the same way in this case.
 					 */
 					if(isset($sort[PR_SUBJECT])){
@@ -796,9 +796,9 @@
 				$data["item"] = array();
 
 				/**
-				 * Retrieving the entries should be done in batches to prevent large ammounts of 
+				 * Retrieving the entries should be done in batches to prevent large ammounts of
 				 * items in one list clogging up the memory limit. This is especially important when
-				 * dealing with contactlists in the addressbook. Those lists can contain 10K items. 
+				 * dealing with contactlists in the addressbook. Those lists can contain 10K items.
 				 */
 				$batchcount = 50;
 				$end = min($totalrowcount, ($start+$rowcount));
@@ -812,13 +812,13 @@
 					}
 
 					$rows = mapi_table_queryrows($table, $properties, $batchStart, $batchcount);
-					
+
 					foreach($rows as $row){
 						array_push($data["item"], Conversion::mapMAPI2XML($properties, $row));
 					}
 				}
 			}
-			
+
 			return $data;
 		}
 
@@ -841,7 +841,7 @@
 		{
 			$start = 0;
 			$folder = mapi_msgstore_openentry($store, $entryid);
-			
+
 			if($folder) {
 				$table = mapi_folder_getcontentstable($folder, MAPI_DEFERRED_ERRORS);
 
@@ -855,10 +855,10 @@
 
 				if (is_array($sort) && count($sort)>0){
 					/**
-					 * If the sort array contains the PR_SUBJECT column we should change this to 
+					 * If the sort array contains the PR_SUBJECT column we should change this to
 					 * PR_NORMALIZED_SUBJECT to make sure that when sorting on subjects: "sweet" and
 					 * "RE: sweet", the first one is displayed before the latter one. If the subject
-					 * is used for sorting the PR_MESSAGE_DELIVERY_TIME must be added as well as 
+					 * is used for sorting the PR_MESSAGE_DELIVERY_TIME must be added as well as
 					 * Outlook behaves the same way in this case.
 					 */
 					if(isset($sort[PR_SUBJECT])){
@@ -906,7 +906,7 @@
 
 			return $start;
 		}
-		
+
 		/**
 		* Returns TRUE of the MAPI message only has inline attachments
 		*
@@ -946,30 +946,30 @@
 		function getMessageProps($store, $message, $properties, $html2text = false, $entryid = false, $attachNum = false)
 		{
 			$props = array();
-			
+
 			if($message) {
 				if (!isset($properties[PR_ENTRYID]))
 					$properties["entryid"] = PR_ENTRYID;
 
 				$messageprops = mapi_getprops($message, $properties);
-				
+
 				if (!$entryid)
 					$entryid = $messageprops[PR_ENTRYID];
-					
+
 				$props = Conversion::mapMAPI2XML($properties, $messageprops);
-				
+
 				// Get actual SMTP address for sent_representing_email_address and received_by_email_address
 				$smtpprops = mapi_getprops($message, array(PR_SENT_REPRESENTING_ENTRYID, PR_RECEIVED_BY_ENTRYID, PR_SENDER_ENTRYID));
-				
-				if(isset($smtpprops[PR_SENT_REPRESENTING_ENTRYID])) 
+
+				if(isset($smtpprops[PR_SENT_REPRESENTING_ENTRYID]))
     				$props["sent_representing_email_address"] = $this->getEmailAddressFromEntryID($smtpprops[PR_SENT_REPRESENTING_ENTRYID]);
-                
-				if(isset($smtpprops[PR_SENDER_ENTRYID])) 
+
+				if(isset($smtpprops[PR_SENDER_ENTRYID]))
     				$props["sender_email_address"] = $this->getEmailAddressFromEntryID($smtpprops[PR_SENDER_ENTRYID]);
-                
+
                 if(isset($smtpprops[PR_RECEIVED_BY_ENTRYID]))
                     $props["received_by_email_address"] = $this->getEmailAddressFromEntryID($smtpprops[PR_RECEIVED_BY_ENTRYID]);
-                
+
 				// Get body content
 				$plaintext = $this->isPlainText($message);
 
@@ -981,10 +981,10 @@
 
 					if($content) {
 						$filter = new filter();
-		
+
 						if(!$html2text) {
 							$msgstore_props = mapi_getprops($store, array(PR_ENTRYID));
-							
+
 							$content = $filter->safeHTML($content, bin2hex($msgstore_props[PR_ENTRYID]), bin2hex($entryid), $attachNum);
 							$props["isHTML"] = true;
 						} else {
@@ -992,20 +992,20 @@
 						}
 					}
 				}
-				
+
 				if(!$content) {
 					$content = mapi_message_openproperty($message, PR_BODY);
 					$props["isHTML"] = false;
 				}
 
 				$props["body"] = trim(windows1252_to_utf8($content), "\0");
-				
+
 				// Get reply-to information
 				$messageprops = mapi_getprops($message, array(PR_REPLY_RECIPIENT_ENTRIES));
 				if(isset($messageprops[PR_REPLY_RECIPIENT_ENTRIES])) {
 					$props["reply-to"] = $this->readReplyRecipientEntry($messageprops[PR_REPLY_RECIPIENT_ENTRIES]);
 				}
-				
+
 				// Get recipients
 				$recipientTable = mapi_message_getrecipienttable($message);
 				if($recipientTable) {
@@ -1013,7 +1013,7 @@
 
 					$props["recipients"] = array();
 					$props["recipients"]["recipient"] = array();
-					
+
 					foreach($recipients as $recipientRow)
 					{
 						if (isset($recipientRow[PR_RECIPIENT_FLAGS]) && (($recipientRow[PR_RECIPIENT_FLAGS] & recipExceptionalDeleted) == recipExceptionalDeleted))
@@ -1024,7 +1024,7 @@
 						$recipient["email_address"] = isset($recipientRow[PR_SMTP_ADDRESS])?$recipientRow[PR_SMTP_ADDRESS]:'';
 						$recipient["email_address"] = windows1252_to_utf8($recipient["email_address"]);
 						$recipient["objecttype"] = $recipientRow[PR_OBJECT_TYPE];
-						
+
 						if(isset($recipientRow[PR_RECIPIENT_FLAGS])){
 							$recipient["recipient_flags"] = $recipientRow[PR_RECIPIENT_FLAGS];
 						}
@@ -1068,7 +1068,7 @@
 						}else{
 							$recipient["proposednewtime"] = 0;
 						}
-						
+
 						$recipientTrackingStatus = (isset($recipientRow[PR_RECIPIENT_TRACKSTATUS]))?$recipientRow[PR_RECIPIENT_TRACKSTATUS]:0;
 						//Switch case for setting the track status of each recipient
 						switch($recipientTrackingStatus)
@@ -1120,8 +1120,8 @@
 								$attachment["filetype"] = $attachmentRow[PR_ATTACH_MIME_TAG];
 							}
 							$attachment["hidden"] = isset($attachmentRow[PR_ATTACHMENT_HIDDEN]) ? $attachmentRow[PR_ATTACHMENT_HIDDEN]:false;
-	
-							// Use PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE if available						
+
+							// Use PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE if available
 							if(isset($attachmentRow[PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE]))
 								$attachment["hidden"] = $attachmentRow[PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE];
 
@@ -1205,12 +1205,12 @@
 		function getProps($store, $item, $properties)
 		{
 			$props = array();
-			
+
 			if($item) {
 				$itemprops = mapi_getprops($item, $properties);
 				$props = Conversion::mapMAPI2XML($properties, $itemprops);
 			}
-					
+
 			return $props;
 		}
 
@@ -1238,10 +1238,10 @@
 					$html2text = true;
 			}
 			$props = $this->getMessageProps($store, $message, $properties, $html2text, $entryid, $attach_num);
-			
+
 			return $props;
 		}
-		
+
 		/**
 		 * Create a MAPI message
 		 *
@@ -1251,10 +1251,10 @@
 		 */
 		function createMessage($store, $parententryid)
 		{
-			$folder = mapi_msgstore_openentry($store, $parententryid); 
-			return mapi_folder_createmessage($folder); 
+			$folder = mapi_msgstore_openentry($store, $parententryid);
+			return mapi_folder_createmessage($folder);
 		}
-		
+
 		/**
 		 * Open a MAPI message
 		 *
@@ -1265,13 +1265,13 @@
 		 */
 		function openMessage($store, $entryid, $attachNum = false)
 		{
-			
-			$message = mapi_msgstore_openentry($store, $entryid); 
-			
+
+			$message = mapi_msgstore_openentry($store, $entryid);
+
 			if($message && $attachNum) {
 				foreach($attachNum as $num){
 					$attachment = mapi_message_openattach($message, $num);
-					
+
 					if($attachment) {
   						$message = mapi_attach_openobj($attachment);
   					}else{
@@ -1281,7 +1281,7 @@
 			}
 			return $message;
 		}
-		
+
 		/**
 		 * Save a MAPI message
 		 *
@@ -1328,7 +1328,7 @@
 					$body = $props[PR_BODY];
 					$property = PR_BODY;
 					$bodyPropertiesToDelete = array(PR_HTML, PR_RTF_COMPRESSED);
-					
+
 					if(isset($props[PR_HTML])) {
 						$body = $this->fckEditor2html($props[PR_BODY],$props[PR_SUBJECT]);
 						$property = PR_HTML;
@@ -1360,25 +1360,25 @@
 					if(mapi_prop_type($propTag) == PT_SYSTIME && strlen($propVal) == 0)
 					    $propertiesToDelete[] = $propTag;
 				}
-				
+
 				foreach($propertiesToDelete as $prop){
 					unset($props[$prop]);
 				}
 
 				// Set the properties
 				mapi_setprops($message, $props);
-				
+
 				// Delete the properties we don't need anymore
 				mapi_deleteprops($message, $propertiesToDelete);
-				
+
 				if ($property != false){
 					// Stream the body to the PR_BODY or PR_HTML property
 					$stream = mapi_openpropertytostream($message, $property, MAPI_CREATE | MAPI_MODIFY);
 					mapi_stream_setsize($stream, strlen($body));
 					mapi_stream_write($stream, $body);
 					mapi_stream_commit($stream);
-				} 
-				
+				}
+
 				// Check if $recipients is set
 				if(is_array($recipients) && count($recipients) > 0){
 					// Save the recipients
@@ -1387,7 +1387,7 @@
 
 				// Save the attachments with the $dialog_attachments
 				$this->setAttachments($copyAttachmentsStore, $message, $dialog_attachments, $copyAttachments, $add_inline_attachments, $delete_inline_attachments, $copy_inline_attachments_only);
-				
+
 				// Set 'hideattacments' if message has only inline attachments.
 				$properties = $GLOBALS["properties"]->getMailProperties();
 				if($this->hasOnlyInlineAttachments($message)){
@@ -1395,24 +1395,24 @@
 				} else {
 					mapi_deleteprops($message, array($properties["hideattachments"]));
 				}
-				
+
 				// Save changes
 				if ($save_changes) mapi_savechanges($message);
-				
+
 				// Get the PR_ENTRYID, PR_PARENT_ENTRYID and PR_STORE_ENTRYID properties of this message
 				$messageProps = mapi_getprops($message, array(PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID));
 			}
-			
+
 			return $message;
 		}
-		
+
 		/**
 		 * Save an appointment item.
 		 *
 		 * This is basically the same as saving any other type of message with the added complexity that
 		 * we support saving exceptions to recurrence here. This means that if the client sends a basedate
 		 * in the action, that we will attempt to open an existing exception and change that, and if that
-		 * fails, create a new exception with the specified data. 
+		 * fails, create a new exception with the specified data.
 		 *
 		 * @param mapistore $store MAPI store of the message
 		 * @param string $parententryid Parent entryid of the message (folder entryid, NOT message entryid)
@@ -1485,20 +1485,20 @@
 								$message = $GLOBALS["operations"]->saveMessage($store, $parententryid, Conversion::mapXML2MAPI($properties, $action["props"]), $recips, $action["dialog_attachments"], $messageProps, false, false, array(), array(), array(), false, false);
 
 								// Only save recurrence if it has been changed by the user (because otherwise we'll reset
-								// the exceptions)								
+								// the exceptions)
 								if(isset($action['props']['recurring_reset']) && $action['props']['recurring_reset'] == 1) {
 									$recur = new Recurrence($store, $message);
-									
+
 									if(isset($action['props']['timezone'])) {
 										$tzprops = Array('timezone','timezonedst','dststartmonth','dststartweek','dststartday','dststarthour','dstendmonth','dstendweek','dstendday','dstendhour');
-										
+
 										// Get timezone info
 										$tz = Array();
 										foreach($tzprops as $tzprop) {
 											$tz[$tzprop] = $action['props'][$tzprop];
 										}
 									}
-										
+
 									// Act like the 'props' are the recurrence pattern; it has more information but that
 									// is ignored
 									$recur->setRecurrence($tz, $action['props']);
@@ -1511,20 +1511,20 @@
 						}
 					} else {
 						//Set sender of new Appointment.
-						$this->setSenderAddress($store, $action);	
-						
+						$this->setSenderAddress($store, $action);
+
 						$message = $GLOBALS["operations"]->saveMessage($store, $parententryid, Conversion::mapXML2MAPI($properties, $action["props"]), $recips, $action["dialog_attachments"], $messageProps,  false, false, array(), array(), array(), false, false);
-					
+
 						if(isset($action['props']['timezone'])) {
 							$tzprops = Array('timezone','timezonedst','dststartmonth','dststartweek','dststartday','dststarthour','dstendmonth','dstendweek','dstendday','dstendhour');
-							
+
 							// Get timezone info
 							$tz = Array();
 							foreach($tzprops as $tzprop) {
 								$tz[$tzprop] = $action['props'][$tzprop];
 							}
 						}
-							
+
 						// Set recurrence
 						if(isset($action['props']['recurring']) && $action['props']['recurring'] == 1) {
 							$recur = new Recurrence($store, $message);
@@ -1533,7 +1533,7 @@
 					}
 				}
 			}
-			
+
 			$result = false;
 			// Check to see if it should be sent as a meeting request
 			if(isset($action["send"]) && $action["send"] && $isExceptionAllowed) {
@@ -1617,12 +1617,12 @@
 
 			return $recips;
 		}
-		
+
 		/**
 		 * Set sent_representing_email_address property of Appointment.
 		 *
 		 * Before saving any new appointment, sent_representing_email_address property of appointment
-		 * should contain email_address of user, who is the owner of store(in which the appointment 
+		 * should contain email_address of user, who is the owner of store(in which the appointment
 		 * is created).
 		 *
 		 * @param mapistore $store  MAPI store of the message
@@ -1652,7 +1652,7 @@
 				$action["props"]["sent_representing_search_key"]    = strtoupper($userprops[PR_ADDRTYPE]) . ":" .strtoupper($emailAddress);
 			}
 		}
-		
+
 		/**
 		 * Submit a message for sending
 		 *
@@ -1691,7 +1691,7 @@
 				if(isset($storeprops[PR_IPM_SENTMAIL_ENTRYID])) {
 					$props[PR_SENTMAIL_ENTRYID] = $storeprops[PR_IPM_SENTMAIL_ENTRYID];
 				}
-				
+
 				// Set reply to settings
 				$replyTo = $GLOBALS['settings']->get("createmail/reply_to",null);
 				if (!empty($replyTo)){
@@ -1738,7 +1738,7 @@
 					/**
 					 * if delegate store then set PR_SENT_REPRESENTING_* properties
 					 * based on delegate store's owner data
-					 * if public store then set PR_SENT_REPRESENTING_* properties based on 
+					 * if public store then set PR_SENT_REPRESENTING_* properties based on
 					 * default store's owner data
 					 */
 					if($origStoreProps[PR_MDB_PROVIDER] == ZARAFA_STORE_DELEGATE_GUID && $send_as_onbehalf) {
@@ -1774,10 +1774,10 @@
 						$copyAttachments = $oldEntryId;
 						$copyAttachmentsStore = $origStore;
 					}
-					
+
 					// Save the new message properties
 					$message = $this->saveMessage($store, $storeprops[PR_IPM_OUTBOX_ENTRYID], $props, $recipients, $dialog_attachments, $messageProps, $copyAttachments, $copyAttachmentsStore, array(), $add_inline_attachments, $delete_inline_attachments, $copy_inline_attachments_only);
-					
+
 					// FIXME: currently message is deleted from original store and new message is created
 					// in current user's store, but message should be moved
 
@@ -1787,7 +1787,7 @@
 				}else{
 					// When the message is in your own store, just move it to your outbox. We move it manually so we know the new entryid after it has been moved.
 					$outbox = mapi_msgstore_openentry($store, $storeprops[PR_IPM_OUTBOX_ENTRYID]);
-					
+
 					// Open the old and the new message
 					$oldentryid = $props[PR_ENTRYID];
 					$newmessage = mapi_folder_createmessage($outbox);
@@ -1796,14 +1796,14 @@
 					// Copy the entire message
 					mapi_copyto($message, array(), array(), $newmessage);
 					mapi_savechanges($newmessage);
-					
+
 					// Remember the new entryid
 					$newprops = mapi_getprops($newmessage, array(PR_ENTRYID));
-					$props[PR_ENTRYID] = $newprops[PR_ENTRYID]; 
-					
+					$props[PR_ENTRYID] = $newprops[PR_ENTRYID];
+
 					// Delete the old message
 					mapi_folder_deletemessages($outbox, array($oldentryid));
-					
+
 					// Save the new message properties
 					$message = $this->saveMessage($store, $storeprops[PR_IPM_OUTBOX_ENTRYID], $props, $recipients, $dialog_attachments, $messageProps, $copyAttachments, $copyAttachmentsStore, array(), $add_inline_attachments, $delete_inline_attachments, $copy_inline_attachments_only);
 				}
@@ -1818,10 +1818,10 @@
 					$this->addEmailsToRecipientHistory($recipients);
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Delete messages
 		 *
@@ -1848,7 +1848,7 @@
 			$folder = mapi_msgstore_openentry($store, $parententryid);
 
 			$msgprops = mapi_getprops($store, array(PR_IPM_WASTEBASKET_ENTRYID, PR_MDB_PROVIDER));
-			
+
 			switch($msgprops[PR_MDB_PROVIDER]){
 				case ZARAFA_STORE_DELEGATE_GUID:
 				case ZARAFA_STORE_ARCHIVER_GUID:
@@ -1891,28 +1891,28 @@
 
 			return $result;
 		}
-		
+
 		/**
 		 * Copy or move messages
 		 *
 		 * @param object $store MAPI Message Store Object
-		 * @param string $parententryid parent entryid of the messages		 
-		 * @param string $destentryid destination folder		 
+		 * @param string $parententryid parent entryid of the messages
+		 * @param string $destentryid destination folder
 		 * @param array $entryids a list of entryids which will be copied or moved
 		 * @param boolean $moveMessages true - move messages, false - copy messages
-		 * @return boolean true if action succeeded, false if not		  
+		 * @return boolean true if action succeeded, false if not
 		 * @todo Duplicate code here which is easily fixed
 		 */
 		function copyMessages($store, $parententryid, $destStore, $destentryid, $entryids, $moveMessages)
 		{
 			$result = false;
-			$sourcefolder = mapi_msgstore_openentry($store, $parententryid); 
-			$destfolder = mapi_msgstore_openentry($destStore, $destentryid); 
-			
+			$sourcefolder = mapi_msgstore_openentry($store, $parententryid);
+			$destfolder = mapi_msgstore_openentry($destStore, $destentryid);
+
 			if(!is_array($entryids)) {
 				$entryids = array($entryids);
 			}
-			
+
 			if($moveMessages) {
 				mapi_folder_copymessages($sourcefolder, $entryids, $destfolder, MESSAGE_MOVE);
 				$result = (mapi_last_hresult()==NOERROR);
@@ -1920,16 +1920,16 @@
 				mapi_folder_copymessages($sourcefolder, $entryids, $destfolder);
 				$result = (mapi_last_hresult()==NOERROR);
 			}
-			
+
 			return $result;
 		}
-		
+
 		/**
 		 * Set message read flag
 		 *
 		 * @param object $store MAPI Message Store Object
-		 * @param string $entryid entryid of the message		 
-		 * @param array $flags Array of options, may contain "unread" and "noreceipt". The absence of these flags indicate the opposite ("read" and "sendreceipt").		 
+		 * @param string $entryid entryid of the message
+		 * @param array $flags Array of options, may contain "unread" and "noreceipt". The absence of these flags indicate the opposite ("read" and "sendreceipt").
 		 * @param array $messageProps reference to an array which will be filled with PR_ENTRYID, PR_STORE_ENTRYID and PR_PARENT_ENTRYID of the message
 		 * @return boolean true if action succeeded, false if not
 		 */
@@ -1954,57 +1954,57 @@
 				$result = mapi_message_setreadflag($message, $flag);
 
 				$messageProps = mapi_getprops($message, array(PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID, PR_MESSAGE_FLAGS));
-			} 
+			}
 
 			return $result;
 		}
-		
+
 		/**
 		 * Create a unique folder name based on a provided new folder name
 		 *
 		 * checkFolderNameConflict() checks if a folder name conflict is caused by the given $foldername.
 		 * This function is used for copying of moving a folder to another folder. It returns
-		 * a unique foldername.		 		  
+		 * a unique foldername.
 		 *
 		 * @access private
 		 * @param object $store MAPI Message Store Object
 		 * @param object $folder MAPI Folder Object
-		 * @param string $foldername the folder name		 
-		 * @return string correct foldername		  
+		 * @param string $foldername the folder name
+		 * @return string correct foldername
 		 */
 		function checkFolderNameConflict($store, $folder, $foldername)
 		{
 			$folderNames = array();
-			
+
 			$hierarchyTable = mapi_folder_gethierarchytable($folder);
-			mapi_table_sort($hierarchyTable, array(PR_DISPLAY_NAME => TABLE_SORT_ASCEND)); 
-			
+			mapi_table_sort($hierarchyTable, array(PR_DISPLAY_NAME => TABLE_SORT_ASCEND));
+
 			$subfolders = mapi_table_queryallrows($hierarchyTable, array(PR_ENTRYID));
 
 			if (is_array($subfolders)) {
 				foreach($subfolders as $subfolder)
 				{
-					$folderObject = mapi_msgstore_openentry($store, $subfolder[PR_ENTRYID]); 
+					$folderObject = mapi_msgstore_openentry($store, $subfolder[PR_ENTRYID]);
 					$folderProps = mapi_folder_getprops($folderObject, array(PR_DISPLAY_NAME));
-					
+
 					array_push($folderNames, strtolower($folderProps[PR_DISPLAY_NAME]));
-				} 
+				}
 			}
 
 			if(array_search(strtolower($foldername), $folderNames) !== false) {
 				$i = 1;
-				
+
 				while(array_search((strtolower($foldername) . $i), $folderNames) !== false)
 				{
 					$i++;
 				}
-				
+
 				$foldername .= $i;
 			}
 
 			return $foldername;
 		}
-	
+
 		/**
 		 * Set the recipients of a MAPI message
 		 *
@@ -2015,25 +2015,25 @@
 		function setRecipients($message, $recipients)
 		{
 			$recipients = $this->createRecipientList($recipients);
-			
+
 			$recipientTable = mapi_message_getrecipienttable($message);
 			$recipientRows = mapi_table_queryallrows($recipientTable, array(PR_ROWID));
 			foreach($recipientRows as $recipient)
 			{
 				mapi_message_modifyrecipients($message, MODRECIP_REMOVE, array($recipient));
-			} 
-			
+			}
+
 			if(count($recipients) > 0){
 				mapi_message_modifyrecipients($message, MODRECIP_ADD, $recipients);
 			}
 		}
-		
+
 		/**
 		 * Delete properties in a message
 		 *
 		 * @todo Why does this function call savechange while most other functions
 		 *       here do not? (for example setRecipients)
-		 * @param object $store MAPI Message Store Object		 
+		 * @param object $store MAPI Message Store Object
 		 * @param string $entryid Entryid of the message in which to delete the properties
 		 * @param array $props array of property tags which to be deleted
 		 */
@@ -2043,7 +2043,7 @@
 			mapi_deleteprops($message, $props);
 			mapi_savechanges($message);
 		}
-		
+
 		/**
 		 * Set attachments in a MAPI message
 		 *
@@ -2067,6 +2067,8 @@
 			// check if we need to copy attachments from a forwared message first
 			if ($copyfromEntryid !== false){
 				$copyfrom = mapi_msgstore_openentry($store, $copyfromEntryid);
+
+				parse_smime($store, $copyfrom);
 
 				$attachmentTable = mapi_message_getattachmenttable($copyfrom);
 				if($attachmentTable && isset($dialog_attachments)) {
@@ -2117,7 +2119,7 @@
 					}
 				}
 			}
-			
+
 			// Set contentId to saved attachments.
 			foreach ($add_inline_attachments as $attach){
 				if ($attach){
@@ -2166,7 +2168,7 @@
 									$cid = $attach["cid"];
 								}
 							}
-														
+
 							// Set attachment properties
 							$props = Array(PR_ATTACH_LONG_FILENAME => $fileinfo["name"],
 										   PR_DISPLAY_NAME => $fileinfo["name"],
@@ -2179,8 +2181,8 @@
 							// Create attachment and set props
 							$attachment = mapi_message_createattach($message);
 							mapi_setprops($attachment, $props);
-							
-							// Stream the file to the PR_ATTACH_DATA_BIN property 
+
+							// Stream the file to the PR_ATTACH_DATA_BIN property
 							$stream = mapi_openpropertytostream($attachment, PR_ATTACH_DATA_BIN, MAPI_CREATE | MAPI_MODIFY);
 							$handle = fopen($filepath, "r");
 							while (!feof($handle))
@@ -2188,7 +2190,7 @@
 								$contents = fread($handle, BLOCK_SIZE);
 								mapi_stream_write($stream, $contents);
 							}
-							
+
 							// Commit the stream and save changes
 							mapi_stream_commit($stream);
 							mapi_savechanges($attachment);
@@ -2228,7 +2230,7 @@
 								mapi_savechanges($attach_newResourceMsg);
 							}
 						}
-							
+
 						//copy the recipient of embedded message
 						$recipienttable = mapi_message_getrecipienttable($copyfrom);
 						$recipients = mapi_table_queryallrows($recipienttable, $GLOBALS["properties"]->getRecipientProperties());
@@ -2239,7 +2241,7 @@
 						}
 						mapi_message_modifyrecipients($imessage, MODRECIP_ADD, $recipients);
 
-						//save changes in the embedded message and the final attachment 
+						//save changes in the embedded message and the final attachment
 						mapi_savechanges($imessage);
 						mapi_savechanges($attachment);
 					}
@@ -2251,11 +2253,11 @@
 
 			$attachment_state->close();
 		}
-		
+
 		/**
 		 * Create a MAPI recipient list from an XML array structure
 		 *
-		 * This functions is used for setting the recipient table of a message.		 
+		 * This functions is used for setting the recipient table of a message.
 		 * @param array $recipientList a list of recipients as XML array structure
 		 * @return array list of recipients with the correct MAPI properties ready for mapi_message_modifyrecipients()
 		 */
@@ -2274,7 +2276,7 @@
 
 					$recipient[PR_RECIPIENT_FLAGS] = (recipSendable | recipExceptionalResponse | recipReserved);
 				}
-				
+
 				// resolve users based on email address with strict matching
 				if(!empty($recipientItem["address"]) && !empty($recipientItem["name"])) {
 					// Parse groups ( '[Group name]' )
@@ -2285,11 +2287,11 @@
 					} else {
 						$recipientItem["objecttype"] = MAPI_MAILUSER;
 					}
-						
+
 					$recipient = array();
 					$recipient[PR_SMTP_ADDRESS] = u2w($recipientItem["address"]);
 					$recipient[PR_OBJECT_TYPE] = $recipientItem["objecttype"];
-					
+
 					// Re-lookup information in GAB if possible so we have up-to-date name for given address
 					$user = array( array( PR_DISPLAY_NAME => $recipientItem["address"] ) );
 					$user = mapi_ab_resolvename($addrbook, $user, EMS_AB_ADDRESS_LOOKUP);
@@ -2307,11 +2309,11 @@
 						$recipient[PR_ENTRYID] = mapi_createoneoff($recipient[PR_DISPLAY_NAME], $recipient[PR_ADDRTYPE], $recipient[PR_EMAIL_ADDRESS]);
 					}
 
-					
+
 					if (isset($recipientItem["recipient_status_num"])){
 						$recipient[PR_RECIPIENT_TRACKSTATUS] = $recipientItem["recipient_status_num"];
 					}
-					
+
 					switch(strtolower($recipientItem["type"]))
 					{
 						case "mapi_to":
@@ -2324,7 +2326,7 @@
 							$recipient[PR_RECIPIENT_TYPE] = MAPI_BCC;
 							break;
 					}
-					
+
 					if(isset($recipientItem["recipient_flags"])){
 						$recipient[PR_RECIPIENT_FLAGS] = $recipientItem["recipient_flags"];
 					}else{
@@ -2340,10 +2342,10 @@
 					array_push($recipients, $recipient);
 				}
 			}
-			
+
 			return $recipients;
 		}
-		
+
 		/**
 		 * Create a reply-to property value
 		 *
@@ -2357,7 +2359,7 @@
 			// for now, use the old function:
 			return $this->createReplyRecipientEntry_old($replyTo);
 		}
-		
+
 		/**
 		 * Parse reply-to value from PR_REPLY_RECIPIENT_ENTRIES property
 		 * @param string $flatEntryList the PR_REPLY_RECIPIENT_ENTRIES value
@@ -2367,7 +2369,7 @@
 		{
 			// Unpack number of entries, the byte count and the entries
 			$unpacked = unpack("V1cEntries/V1cbEntries/a*abEntries", $flatEntryList);
-			
+
 			$abEntries = Array();
 			$stream = $unpacked['abEntries'];
 			$pos = 8;
@@ -2415,7 +2417,7 @@
 
 			return $recipients;
 		}
-		
+
 		/**
 		 * Build full-page HTML from the FCK Editor fragment
 		 *
@@ -2424,7 +2426,7 @@
 		 *
 		 * @param string $fck_html This is the HTML created by the FCK Editor
 		 * @param string $title  Optional, this string is placed in the <title>
-		 * @return string full HTML message		 
+		 * @return string full HTML message
 		 *
 		 */
 		function fckEditor2html($fck_html, $title = "Zarafa WebAccess"){
@@ -2435,18 +2437,18 @@
 					."  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n"
 					."  <title>".htmlspecialchars($title)."</title>\n"
 					."  <style type=\"text/css\">\n";
-			
+
 			// embed CSS file in e-mail
 			$css_file = FCKEDITOR_PATH."/fck_editorarea.css";
 			$html .= file_get_contents($css_file);
-			
+
 			$html .="  </style>\n"
 					."</head>\n"
 					."<body>\n"
 					. $fck_html . "\n"
 					."</body>\n"
 					."</html>";
-			
+
 			return $html;
 		}
 
@@ -2458,7 +2460,7 @@
 			}
 
 			$table = mapi_folder_getcontentstable($folder);
-				
+
 			$item_count = mapi_table_getrowcount($table);
 			for($i = 0; $i<$item_count; $i+=50){
 				$messages = mapi_table_queryrows($table, array(PR_MESSAGE_SIZE), $i, 50);
@@ -2477,7 +2479,7 @@
 		 * Save task item.
 		 *
 		 * just one step more before saving task message that to support recurrence and task request here. We need
-		 * to regenerate task if it is recurring and client has changed either set as complete or delete or 
+		 * to regenerate task if it is recurring and client has changed either set as complete or delete or
 		 * given new start or end date.
 		 *
 		 * @param mapistore $store MAPI store of the message
@@ -2685,9 +2687,9 @@
 ////////////////////////////////////////////
 // FIXME: OLD FUNCTIONS!!!                //
 ////////////////////////////////////////////
-	
-	
-	
+
+
+
 		/**
 		* Parse string of recipients into individual recipients
 		*
@@ -2731,7 +2733,7 @@
 					if ($rType!="")
 						$parsedRcpts[$i][PR_RECIPIENT_TYPE] = $rType;
 					$parsedRcpts[$i][PR_OBJECT_TYPE] = MAPI_MAILUSER;
-		
+
 					// One-Off entry identifier; needed for Zarafa
 					$parsedRcpts[$i][PR_ENTRYID] = mapi_createoneoff($parsedRcpts[$i][PR_DISPLAY_NAME], $parsedRcpts[$i][PR_ADDRTYPE], $parsedRcpts[$i][PR_EMAIL_ADDRESS]);
 				}
@@ -2741,7 +2743,7 @@
 			else
 				return false;
 		}
-		
+
 		/**
 		* Create a flat entrylist (used for PR_REPLY_RECIPIENT_ENTRIES) from a list of recipients
 		*
@@ -2762,7 +2764,7 @@
 
 				$oneOffs[] = mapi_createoneoff($recipient[PR_DISPLAY_NAME], $recipient[PR_ADDRTYPE], $recipient[PR_EMAIL_ADDRESS]);
 			}
-		
+
 			// Construct string from array with (padded) One-Off entry identifiers
 			//
 			// Remember, if you want to take the createOneOff part above out: that code
@@ -2783,7 +2785,7 @@
 			// Pack the string with the number of flatentries and the stringlength
 			return pack("V2a*", count($oneOffs), strlen($flatEntryString), $flatEntryString);
 		}
-		
+
 		/**
 		* Get a text body for a Non-Delivery report
 		*
@@ -2826,7 +2828,7 @@
 		function isPlainText($message)
 		{
 			$rtf = mapi_message_openproperty($message, PR_RTF_COMPRESSED);
-			
+
 			if (!$rtf)
 				return true; // no RTF is found, so we use plain text
 
@@ -2868,7 +2870,7 @@
 				}
 
 				/**
-				 * Check to make sure the recipient history is returned in array format 
+				 * Check to make sure the recipient history is returned in array format
 				 * and not a PEAR error object.
 				 */
 				if(!isset($recipient_history) || !is_array($recipient_history) || !isset($recipient_history['recipients']['recipient'])){
@@ -2881,7 +2883,7 @@
 					/**
 					 * When only one recipient is found in the XML it is saved as a single dimensional array
 					 * in $recipient_history['recipients']['recipient'][RECIPDATA]. When multiple recipients
-					 * are found, a multi-dimensional array is used in the format 
+					 * are found, a multi-dimensional array is used in the format
 					 * $recipient_history['recipients']['recipient'][0][RECIPDATA].
 					 */
 					if($recipient_history['recipients']['recipient']){
@@ -2937,7 +2939,7 @@
 							'count' => 1,
 							'last_used' => mktime(),
 							'objecttype' => $emailAddresses[$i]['objecttype']
-							
+
 							);
 					}
 				}
@@ -2976,7 +2978,7 @@
 			}
 			return $l_aReturn;
 		}
-		
+
 		/**
 		* Get the SMTP e-mail of an addressbook entry
 		*
@@ -2987,7 +2989,7 @@
 		    $mailuser = mapi_ab_openentry($GLOBALS["mapisession"]->getAddressbook(), $entryid);
 		    if(!$mailuser)
 		        return false;
-		        
+
             $abprops = mapi_getprops($mailuser, array(PR_SMTP_ADDRESS, PR_EMAIL_ADDRESS));
 
             if(isset($abprops[PR_SMTP_ADDRESS]))
@@ -3011,10 +3013,10 @@
 		*/
 		function getRules($store, $properties) {
 			$inbox = mapi_msgstore_getreceivefolder($store);
-			
+
 			if(!$inbox)
 				return false;
-				
+
 			$modifyrulestable = mapi_folder_openmodifytable($inbox);
 			$rulestable = mapi_rules_gettable($modifyrulestable);
 
@@ -3030,22 +3032,22 @@
 			);
 
 
-			mapi_table_sort($rulestable, array(PR_RULE_SEQUENCE => TABLE_SORT_ASCEND));			
+			mapi_table_sort($rulestable, array(PR_RULE_SEQUENCE => TABLE_SORT_ASCEND));
 			$rows = mapi_table_queryrows($rulestable, $properties, 0, 0x7fffffff);
-	
+
 			$xmlrows = array();
-		
+
 			foreach($rows as $row) {
 				$xmlrow = Conversion::mapMAPI2XML($properties, $row);
 				array_push($xmlrows, $xmlrow);
 			}
-			
+
 			return $xmlrows;
 		}
 
 		/**
 		* Update rules in a store
-		* 
+		*
 		* This function replaces all rules in a store with the passed new ruleset.
 		*
 		* @param mapistore $store The store whose rules should be modified
@@ -3059,12 +3061,12 @@
 				return false;
 
 			$inbox = mapi_msgstore_getreceivefolder($store);
-			
+
 			if(!$inbox)
 				return false;
-				
+
 			$modifyrulestable = mapi_folder_openmodifytable($inbox);
-			
+
 			// get provider data id's from all rules
 			$rulestable = mapi_rules_gettable($modifyrulestable);
 			mapi_table_restrict($rulestable, array(RES_CONTENT,
@@ -3077,7 +3079,7 @@
 												)
 											)
 			);
-			mapi_table_sort($rulestable, array(PR_RULE_SEQUENCE => TABLE_SORT_ASCEND));			
+			mapi_table_sort($rulestable, array(PR_RULE_SEQUENCE => TABLE_SORT_ASCEND));
 			$current_rules = mapi_table_queryrows($rulestable, $properties, 0, 0x7fffffff);
 			$provider_data = array();
 			foreach($current_rules as $row){
@@ -3133,9 +3135,9 @@
 				}else{
 					$row_flags = ROW_ADD;
 					$dataId = $provider_data[$rule[PR_RULE_ID]];
-					$modified[] = $rule[PR_RULE_ID]; 
+					$modified[] = $rule[PR_RULE_ID];
 				}
-			
+
 				if (!isset($rule[PR_RULE_ACTIONS])){
 					$rule[PR_RULE_ACTIONS] = array(array("action"=>OP_DEFER_ACTION, "dam"=>hex2bin("E0C810000120000100000000000000010000000000000001000000360000000200FFFF00000C004352756C65456C656D656E7490010000010000000000000001000000018064000000010000000000000001000000")));
 				}
@@ -3182,7 +3184,7 @@
 				$seq++;
 				unset($rows[$k]["properties"][PR_RULE_ID]); // remove RULE_ID because this is the property Outlook does its sort when displaying rules instead of RULE_SEQUENCE!
 			}
-			
+
 			// sort the rules, so they will get a RULE_ID in the right order when adding the rules
 			uasort($rows, create_function('$a,$b','return $a["properties"][PR_RULE_SEQUENCE]>$b["properties"][PR_RULE_SEQUENCE];'));
 
@@ -3215,7 +3217,7 @@
 
 			return ($result==NOERROR);
 		}
-		
+
 		/**
 		* @access private
 		*/
@@ -3239,14 +3241,14 @@
 				$store = $GLOBALS["mapisession"]->openMessageStore($storeid);
 				if(!$store)
 					return false;
-				
+
 				$folder = mapi_msgstore_openentry($store, $folderid);
 				if(!$folder)
 					return false;
 			}
-			
+
 			$folderprops = mapi_getprops($folder, array(PR_DISPLAY_NAME));
-			
+
 			return $folderprops[PR_DISPLAY_NAME];
 		}
 
@@ -3300,12 +3302,12 @@
 				// Move the message to the deleted items
 				mapi_folder_copymessages($root, array($entryid), $wastebasket, MESSAGE_MOVE);
 
-				// Notify the bus that the message has been deleted			
+				// Notify the bus that the message has been deleted
 				$messageProps = mapi_getprops($message, array(PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID));
 				$GLOBALS["bus"]->notify(bin2hex($messageProps[PR_PARENT_ENTRYID]), TABLE_DELETE, $messageProps);
 			}
 		}
-		
+
 		/**
 		* Remove all appointments for a certain meeting request
 		*
@@ -3317,16 +3319,16 @@
 		*/
 		function removeFromCalendar($store, $entryid) {
 			$message = $GLOBALS["operations"]->openMessage($store, $entryid);
-			
+
 			$req = new Meetingrequest($store, $message, $GLOBALS["mapisession"]->getSession(), ENABLE_DIRECT_BOOKING);
-			
+
 			$req->doRemoveFromCalendar();
-			
-			// Notify the bus that the message has been deleted			
+
+			// Notify the bus that the message has been deleted
 			$messageProps = mapi_getprops($message, array(PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID));
 			$GLOBALS["bus"]->notify(bin2hex($messageProps[PR_PARENT_ENTRYID]), TABLE_DELETE, $messageProps);
 		}
-		
+
 		/**
 		* Get addressbook hierarchy
 		*
@@ -3336,11 +3338,11 @@
 		* The input parameter $storelist is an associative array with the format:
 		* $storelist["store"] = array of store objects to traverse for all contacts folders
 		* $storelist["folder"] = array of store objects to traverse for only the default contacts folder
-		* 
+		*
 		* The output array contains an associative array for each found contact folder. Each entry contains
 		* "display_name" => Name of the folder, "entryid" => entryid of the folder, "parent_entryid" => parent entryid
 		* "storeid" => store entryid, "type" => gab | contacts
-		* 
+		*
 		* @param array Associative array with store information
 		* @return array Array of associative arrays with addressbook container information
 		* @todo Fix bizarre input parameter format
@@ -3351,7 +3353,7 @@
 			$dir = mapi_ab_openentry($ab);
 			$table = mapi_folder_gethierarchytable($dir, CONVENIENT_DEPTH);
 			$items = mapi_table_queryallrows($table, array(PR_DISPLAY_NAME, PR_ENTRYID, PR_PARENT_ENTRYID, PR_DEPTH));
-			
+
 			$folders = array();
 
 			$parent = false;
@@ -3361,7 +3363,7 @@
 					$parent = $item[PR_ENTRYID];
 
 				$item[PR_PARENT_ENTRYID] = $parent;
-				
+
 				$folders[] = array(
 								"display_name"	=> w2u($item[PR_DISPLAY_NAME]),
 								"entryid"		=> array("attributes"=>array("type"=>"binary"), "_content"=> bin2hex($item[PR_ENTRYID])),
@@ -3397,14 +3399,14 @@
 					if (isset($store_props[PR_IPM_WASTEBASKET_ENTRYID])) {
 						$deleted_items_folder = mapi_msgstore_openentry($cur_store, $store_props[PR_IPM_WASTEBASKET_ENTRYID]);
 					}
-					
+
 					// Remove folder from hierarchylist that are also in "Deleted Items" folder
 					$deletedFoldesrRestriction = array();
 
 					if (isset($deleted_items_folder)) {
 						// Get all contact folders from "Deleted Items" folder
 						$hie = mapi_folder_gethierarchytable($deleted_items_folder, CONVENIENT_DEPTH);
-						mapi_table_restrict($hie, array(RES_CONTENT, 
+						mapi_table_restrict($hie, array(RES_CONTENT,
 													array(
 															FUZZYLEVEL	=>	FL_PREFIX|FL_IGNORECASE,
 															ULPROPTAG	=>	PR_CONTAINER_CLASS,
@@ -3413,11 +3415,11 @@
 												),
 												TBL_BATCH
 						);
-						
+
 						$deleted_folders = mapi_table_queryallrows($hie, array(PR_ENTRYID));
 
 						/**
-						 * Prepare restriction that removes all folders 
+						 * Prepare restriction that removes all folders
 						 * which are also in "Deleted Items" folder.
 						 */
 						$deletedFoldersRestriction = array();
@@ -3442,7 +3444,7 @@
 																array(RES_AND,
 																	$deletedFoldersRestriction
 																),
-																array(RES_CONTENT, 
+																array(RES_CONTENT,
 																	array(
 																			FUZZYLEVEL	=>	FL_PREFIX|FL_IGNORECASE,
 																			ULPROPTAG	=>	PR_CONTAINER_CLASS,
@@ -3454,7 +3456,7 @@
 														TBL_BATCH
 						);
 					} else {
-						mapi_table_restrict($hierarchy, array(RES_CONTENT, 
+						mapi_table_restrict($hierarchy, array(RES_CONTENT,
 															array(
 																	FUZZYLEVEL	=>	FL_PREFIX|FL_IGNORECASE,
 																	ULPROPTAG	=>	PR_CONTAINER_CLASS,
@@ -3490,7 +3492,7 @@
 				foreach($storelist["folder"] as $store){
 					if (empty($store))
 						continue;
-					
+
 					$cur_store = $GLOBALS["mapisession"]->openMessageStore(hex2bin($store));
 					$store_props = mapi_getprops($cur_store, array(PR_MDB_PROVIDER, PR_DISPLAY_NAME, PR_MAILBOX_OWNER_NAME));
 					$root_folder = mapi_msgstore_openentry($cur_store, null);
@@ -3518,15 +3520,15 @@
 								);
 				}
 			}
-			
+
 			return $folders;
 		}
 
 		/**
-		 * Publishing the FreeBusy information of the default calendar. The 
-		 * folderentryid argument is used to check if the default calendar 
+		 * Publishing the FreeBusy information of the default calendar. The
+		 * folderentryid argument is used to check if the default calendar
 		 * should be updated or not.
-		 * 
+		 *
 		 * @param $store MAPIobject Store object of the store that needs publishing
 		 * @param $folderentryid binary entryid of the folder that needs to be updated.
 		 */
@@ -3551,7 +3553,7 @@
 
 		/**
 		 * get quota information of store
-		 * 
+		 *
 		 * @param $store MAPIobject Store object of the store
 		 * @return array information about quota and current store size (in KB)
 		 */
@@ -3605,7 +3607,7 @@
 			}
 			return $accessToFolder;
 		}
-		
+
 		/**
 		 * Function stores the uploaded items in attachments state file.
 		 * @param object MAPI Message Store Object

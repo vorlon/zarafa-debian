@@ -3,14 +3,17 @@ lib_LTLIBRARIES = libzarafacontacts.la
 sysconf_configdir = ${MAPICONFIGDIR}
 dist_sysconf_config_DATA = zcontacts.inf
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX		\
+sampleconfdir = ${docdir}/example-config
+sampleconf_DATA = zcontacts.inf
+
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS)	\
 	-I${top_srcdir}/provider/include	\
 	-I${top_srcdir}/provider/common		\
 	-I${top_srcdir}/provider/client		\
 	-I${top_srcdir}/mapi4linux/include	\
 	-I${top_srcdir}/common
 
-libzarafacontacts_la_LDFLAGS = -avoid-version
+libzarafacontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
 libzarafacontacts_la_LIBADD = \
 	${top_builddir}/common/libcommon_util.la			\
 	${top_builddir}/common/libcommon_mapi.la			\

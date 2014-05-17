@@ -2815,6 +2815,7 @@ namespace swig {
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
 
 
+
   #define SWIG_From_long   PyInt_FromLong 
 
 
@@ -3405,12 +3406,6 @@ SWIGINTERN PyObject *_wrap_ICalToMapi_GetItemInfo(PyObject *SWIGUNUSEDPARM(self)
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long(*arg3));
-  }
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long(*arg4));
-  }
-  {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize((const char *)arg5->lpb, arg5->cb));
   }
   return resultobj;
@@ -3533,12 +3528,6 @@ SWIGINTERN PyObject *_wrap_ICalToMapi_GetFreeBusyInfo(PyObject *SWIGUNUSEDPARM(s
       DoException(result);
       SWIG_fail;
     }
-  }
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long(*arg2));
-  }
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long(*arg3));
   }
   {
     /* @todo fix this not to go through a cstring */

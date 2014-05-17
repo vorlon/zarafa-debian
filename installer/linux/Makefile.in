@@ -37,10 +37,10 @@ build_triplet = @build@
 host_triplet = @host@
 @OSS_ONLY_FALSE@am__append_1 = ldapms.openldap.cfg ldapms.active-directory.cfg
 @OSS_ONLY_FALSE@am__append_2 = licensed.cfg example-msr.cfg backup.cfg
-@OSS_ONLY_FALSE@am__append_3 = zarafa-licensed.init.rhel
-@OSS_ONLY_FALSE@am__append_4 = zarafa-licensed.init.suse
-@OSS_ONLY_FALSE@am__append_5 = zarafa-licensed.init.cbs4
-@OSS_ONLY_FALSE@am__append_6 = zarafa-licensed.init.alt
+@OSS_ONLY_FALSE@am__append_3 = zarafa-licensed.init.rhel zarafa-ws.init.rhel
+@OSS_ONLY_FALSE@am__append_4 = zarafa-licensed.init.suse zarafa-ws.init.suse
+@OSS_ONLY_FALSE@am__append_5 = zarafa-licensed.init.cbs4 zarafa-ws.init.cbs4
+@OSS_ONLY_FALSE@am__append_6 = zarafa-licensed.init.alt zarafa-ws.init.alt
 subdir = installer/linux
 DIST_COMMON = $(am__dist_data_config_DATA_DIST) \
 	$(am__dist_sysconf_cert_DATA_DIST) \
@@ -50,14 +50,8 @@ DIST_COMMON = $(am__dist_data_config_DATA_DIST) \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -103,14 +97,14 @@ SOURCES =
 DIST_SOURCES =
 am__dist_data_config_DATA_DIST = server.cfg unix.cfg ldap.propmap.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg \
-	search.cfg autorespond archiver.cfg licensed.cfg \
+	search.cfg autorespond archiver.cfg ws.cfg licensed.cfg \
 	example-msr.cfg backup.cfg ldap.openldap.cfg \
 	ldap.active-directory.cfg ldapms.openldap.cfg \
 	ldapms.active-directory.cfg
 am__dist_sysconf_cert_DATA_DIST = addtrust.crt
 am__dist_sysconf_config_DATA_DIST = server.cfg unix.cfg \
 	ldap.propmap.cfg spooler.cfg gateway.cfg monitor.cfg \
-	dagent.cfg ical.cfg search.cfg autorespond archiver.cfg \
+	dagent.cfg ical.cfg search.cfg autorespond archiver.cfg ws.cfg \
 	licensed.cfg example-msr.cfg backup.cfg ldap.openldap.cfg \
 	ldap.active-directory.cfg ldapms.openldap.cfg \
 	ldapms.active-directory.cfg
@@ -120,7 +114,9 @@ DATA = $(dist_data_DATA) $(dist_data_config_DATA) \
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -207,6 +203,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -250,6 +247,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -261,6 +259,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -317,7 +316,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 config_files = server.cfg unix.cfg ldap.propmap.cfg spooler.cfg \
 	gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
-	autorespond archiver.cfg $(am__append_2) $(BUILT_SOURCES)
+	autorespond archiver.cfg ws.cfg $(am__append_2) \
+	$(BUILT_SOURCES)
 rhel_initscript_files = zarafa-server.init.rhel \
 	zarafa-spooler.init.rhel zarafa-gateway.init.rhel \
 	zarafa-monitor.init.rhel zarafa-ical.init.rhel \

@@ -1,6 +1,6 @@
 bin_PROGRAMS = zarafa-ical
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/inetmapi -I${top_srcdir}/provider/common -I${top_srcdir}/common \
 	-I${top_srcdir}/gateway -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy \

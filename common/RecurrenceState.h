@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -154,6 +154,15 @@ public:
 #define ET_DATE		0x2021
 #define ET_NUMBER	0x2022
 #define ET_NEVER	0x2023
+
+// valid ulFirstDOW values
+#define DOW_SUNDAY		0x00
+#define DOW_MONDAY		0x01
+#define DOW_TUESDAY		0x02
+#define DOW_WEDNESDAY	0x03
+#define DOW_THURSDAY	0x04
+#define DOW_FRIDAY		0x05
+#define DOW_SATURDAY	0x06
 
 // ulWeekDays bit mask
 #define WD_SUNDAY		0x01

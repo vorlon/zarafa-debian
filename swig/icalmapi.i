@@ -23,14 +23,14 @@
 %typemap(in,numinputs=0) (eIcalType *) (eIcalType temp) {
 	$1 = &temp;
 }
-%typemap(argout) (eIcalType* ) {
+%typemap(argout) eIcalType* value {
 	%append_output(SWIG_From_long(*$1));
 }
 
 %typemap(in,numinputs=0) (time_t *) (time_t temp) {
 	$1 = &temp;
 }
-%typemap(argout) (time_t* ) {
+%typemap(argout) time_t* value {
 	%append_output(SWIG_From_long(*$1));
 }
 

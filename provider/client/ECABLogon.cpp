@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -194,6 +194,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	bool			bRoot = false;
 	ECMailUser*		lpMailUser = NULL;
 	ECDistList*		lpDistList = NULL;
+	LPENTRYID		lpEntryIDServer = NULL;
 
 	// Check input/output variables 
 	if(lpulObjType == NULL || lppUnk == NULL) {
@@ -225,6 +226,13 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 			goto exit;
 		}
 
+		hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryIDServer);
+		if(hr != hrSuccess)
+			goto exit;
+
+		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
+		lpEntryID = lpEntryIDServer;
+
 		lpABeid = (PABEID)lpEntryID;
 
 		// Check sane entryid
@@ -239,7 +247,10 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 			hr = MAPI_E_UNKNOWN_ENTRYID;
 			goto exit;
 		}
+
+		memcpy(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID));
 	}
+
 	//TODO: check entryid serverside?
 
 	switch(lpABeid->ulType) {
@@ -335,6 +346,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		*lpulObjType = lpABeid->ulType;
 
 exit:
+	if(lpEntryIDServer)
+		MAPIFreeBuffer(lpEntryIDServer);
+
 	if(lpABContainer)
 		lpABContainer->Release();
 
@@ -576,7 +590,7 @@ HRESULT ECABLogon::xABLogon::Logoff(ULONG ulFlags)
 
 HRESULT ECABLogon::xABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) 
 {
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::OpenEntry", "cbEntryID=%d, type=%d, id=%d, interface=%s, flags=0x%08X", cbEntryID, ABEID_TYPE(lpEntryID), ABEID_ID(lpEntryID), (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", ulFlags);
+	TRACE_MAPI(TRACE_ENTRY, "IABLogon::OpenEntry", "cbEntryID=%d, lpEntryID=%s, type=%d, id=%d, interface=%s, flags=0x%08X", cbEntryID, bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str(), ABEID_TYPE(lpEntryID), ABEID_ID(lpEntryID), (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", ulFlags);
 	METHOD_PROLOGUE_(ECABLogon, ABLogon);
 	HRESULT hr = pThis->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 	TRACE_MAPI(TRACE_RETURN, "IABLogon::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());

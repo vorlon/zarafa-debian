@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -167,7 +167,17 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	strCommand = vWords[0];
 	transform(strCommand.begin(), strCommand.end(), strCommand.begin(), ::toupper);
 
-	if (strCommand.compare("USER") == 0) {
+	if (strCommand.compare("STLS") == 0) {
+		if (vWords.size() != 1) {
+			hr = HrResponse(POP3_RESP_ERR, "STLS command must have 0 arguments");
+			goto exit;
+		}
+		if (HrCmdStarttls() != hrSuccess) {
+			// log ?
+			// let the gateway quit from the socket read loop
+			hr = MAPI_E_END_OF_SESSION;
+		}
+	} else if (strCommand.compare("USER") == 0) {
 		if (vWords.size() != 2) {
 			hr = HrResponse(POP3_RESP_ERR, "User command must have 1 argument");
 			goto exit;
@@ -281,6 +291,45 @@ HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
     if(lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s%s", strResult.c_str(), strResponse.c_str());
 	return lpChannel->HrWriteLine(strResult + strResponse);
+}
+
+/** 
+ * @brief Handle the STLS command
+ * 
+ * Tries to set the current connection to use SSL encryption.
+ *
+ * @return hrSuccess
+ */
+HRESULT POP3::HrCmdStarttls() {
+	HRESULT hr = hrSuccess;
+
+	if (!lpChannel->sslctx()) {
+		hr = HrResponse(POP3_RESP_ERR, "STLS error in ssl context");
+		goto exit;
+	}
+
+	if (lpChannel->UsingSsl()) {
+		hr = HrResponse(POP3_RESP_ERR, "STLS already using SSL/TLS");
+		goto exit;
+	}
+
+	hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = lpChannel->HrEnableTLS();
+	if (hr != hrSuccess) {
+		HrResponse(POP3_RESP_ERR, "Error switching to secure SSL/TLS connection");
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STLS");
+		goto exit;
+	}
+
+	if (lpChannel->UsingSsl()) {
+		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
+	}
+
+exit:
+	return hr;
 }
 
 /** 

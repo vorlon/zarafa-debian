@@ -38,14 +38,8 @@ subdir = provider/soap
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -117,7 +111,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -204,6 +200,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -247,6 +244,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -258,6 +256,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -313,15 +312,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libsoapserver.la libsoapclient.la libgsoap.la
-
-#AM_CPPFLAGS = -DLINUX $(GSOAP_CFLAGS)
+AM_CPPFLAGS = ${ZCPPFLAGS}
 
 #GSOAP_DEBUGFLAGS=-DDEBUG
 # disable warnings since code is mostly generated
-libgsoap_la_CPPFLAGS = -DLINUX $(GSOAP_CFLAGS) $(GSOAP_DEBUGFLAGS) -DWITH_SOAPDEFS_H -I${top_srcdir}/common -w
+libgsoap_la_CPPFLAGS = ${AM_CPPFLAGS} $(GSOAP_CFLAGS) $(GSOAP_DEBUGFLAGS) -DWITH_SOAPDEFS_H -I${top_srcdir}/common -w
 libgsoap_la_SOURCES = stdsoap2.cpp stdsoap2.h soapdefs.h
-libsoapserver_la_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(GSOAP_CFLAGS) -I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include
-libsoapclient_la_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(GSOAP_CFLAGS) -I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include
+libsoapserver_la_CPPFLAGS = ${AM_CPPFLAGS} $(DEBUGFLAGS) $(GSOAP_CFLAGS) -I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include
+libsoapclient_la_CPPFLAGS = ${AM_CPPFLAGS} $(DEBUGFLAGS) $(GSOAP_CFLAGS) -I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include
 nodist_libsoapserver_la_SOURCES = soapC.cpp soapServer.cpp
 nodist_libsoapclient_la_SOURCES = soapC.cpp soapClient.cpp
 SOAPHEADER = ${top_srcdir}/provider/include/ZarafaProto.h

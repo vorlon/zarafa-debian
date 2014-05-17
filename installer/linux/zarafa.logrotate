@@ -102,3 +102,15 @@
 			killall -HUP zarafa-spooler 2> /dev/null || true
         endscript
 }
+
+/var/log/zarafa/ws.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP zarafa-ws 2> /dev/null || true
+        endscript
+}

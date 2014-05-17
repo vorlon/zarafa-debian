@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -47,12 +47,12 @@
  * 
  */
 
-#ifndef archiver_session_fwd_INCLUDED
-#define archiver_session_fwd_INCLUDED
+#ifndef ARCHIVER_SESSION_FWD_INCLUDED
+#define ARCHIVER_SESSION_FWD_INCLUDED
 
 #include <boost/smart_ptr.hpp>
 
-class Session;
-typedef boost::shared_ptr<Session>	SessionPtr;
+class ArchiverSession;
+typedef boost::shared_ptr<ArchiverSession>	ArchiverSessionPtr;
 
-#endif // ndef archiver_session_fwd_INCLUDED
+#endif // !defined ARCHIVER_SESSION_FWD_INCLUDED

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -59,6 +59,7 @@
 #include "ECDatabaseUtils.h"
 #include "SOAPUtils.h"
 #include "stringutil.h"
+#include "ECSessionManager.h"
 
 #include <pthread.h>
 #include <string>
@@ -107,6 +108,17 @@ ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 	return er;
 }
 
+
+// Case insensitive find
+size_t ci_find_substr(const std::string& first, const std::string& second)
+{
+	std::string lc_first(first);
+	std::transform(lc_first.begin(), lc_first.end(), lc_first.begin(), ::tolower);
+	std::string lc_second(second);
+	std::transform(lc_second.begin(), lc_second.end(), lc_second.begin(), ::tolower);
+	return lc_first.find(lc_second);
+}
+
 ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase, bool bTruncate)
 {
 	ECRESULT er = erSuccess;
@@ -152,7 +164,12 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		}
 		strColData = stringify_double(lpPropVal->Value.dbl);
 		*lpulColNr = VALUE_NR_DOUBLE;
-		break;
+		if (ci_find_substr(strColData, std::string("nan")) != std::string::npos) {
+			strColData = "0.0";
+			extern ECSessionManager* g_lpSessionManager;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_DEBUG, "%s:%d double value (%f) found, stringified to %s.", __FUNCTION__, __LINE__, lpPropVal->Value.dbl, strColData.c_str());
+		}
+	break;
 	case PT_CURRENCY:
 		if(lpPropVal->__union != SOAP_UNION_propValData_hilo || lpPropVal->Value.hilo == NULL) {
 			er = ZARAFA_E_INVALID_PARAMETER;
@@ -788,7 +805,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		{
 			ParseMVProp(lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], &ulLastPos, &strData);
 			lpPropVal->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strData.size() + 1);
-			memcpy(lpPropVal->Value.mvszA.__ptr[i], strData.c_str(), sizeof(char) * (strData.size() + 1));
+			memcpy(lpPropVal->Value.mvszA.__ptr[i], strData.c_str(), strData.size() + 1);
 		}
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE); // return unicode strings to client, because database contains UTF-8
 		break;

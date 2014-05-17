@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -819,6 +819,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 	SizedSSortOrderSet(1, sosRules) = {1, 0, 0, { {PR_RULE_SEQUENCE, TABLE_SORT_ASCEND} } };
     LPSPropValue lpRuleName = NULL;
     LPSPropValue lpRuleState = NULL;
+	LPSPropValue lpPropRule = NULL;
 	std::string strRule;
     LPSPropValue lpProp = NULL;
     LPSRestriction lpCondition = NULL;
@@ -1015,6 +1016,19 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Forwarding rule doesn't have recipients");
 					continue; // Nothing todo
+				}
+
+				if(parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
+					// Loop protection, when header 'x-zarafa-rule-action' is added to the message it will stop to forward or redirect the message.
+					PROPMAP_START
+					PROPMAP_NAMED_ID(ZarafaRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-zarafa-rule-action")
+					PROPMAP_INIT( (*lppMessage) );
+
+					if (HrGetOneProp(*lppMessage, PROP_ZarafaRuleAction, &lpPropRule) == hrSuccess) {
+						MAPIFreeBuffer(lpPropRule);
+						lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-zarafa-rule-action'");
+						continue;
+					}
 				}
 
 				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: %s e-mail", (lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");

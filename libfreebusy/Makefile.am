@@ -1,12 +1,12 @@
 lib_LTLIBRARIES = libfreebusy.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX $(BOOST_CPPFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/common
 
 libfreebusy_la_includedir = $(includedir)/libfreebusy
 
-libfreebusy_la_LDFLAGS = -static
+libfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -static
 
 libfreebusy_la_include_HEADERS = ECEnumFBBlock.h ECFBBlockList.h		\
 	ECFreeBusyData.h ECFreeBusySupport.h ECFreeBusyUpdate.h freebusy.h	\

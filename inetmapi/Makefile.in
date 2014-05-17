@@ -40,14 +40,8 @@ DIST_COMMON = $(libinetmapi_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -83,7 +77,7 @@ libinetmapi_la_DEPENDENCIES =  \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/libicalmapi/libicalmapi.la \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_libinetmapi_la_OBJECTS = ECMapiUtils.lo ECVMIMEUtils.lo \
 	MAPIToVMIME.lo VMIMEToMAPI.lo outputStreamMAPIAdapter.lo \
 	inputStreamMAPIAdapter.lo mapiAttachment.lo mapiTextPart.lo \
@@ -130,7 +124,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -217,6 +213,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -260,6 +257,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -271,6 +269,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -326,22 +325,24 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libinetmapi.la
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX $(VMIME_CFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
+	$(VMIME_CFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common  -I${top_srcdir}/common \
-	-I${top_srcdir}/libfreebusy -I${top_srcdir}/libicalmapi
+	-I${top_srcdir}/libfreebusy -I${top_srcdir}/libicalmapi \
+    -I$//usr/include/libxml2
 
 
-# Add '-z now' -> -Wl,-z, -Wl,now to LD flags to that we do early binding of symbols. This fixes
+# Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of symbols. This fixes
 # a problem in which libvmime attempts to resolve a symbol in libinetmapi.so during the unload
-# of vmime, initiated by the unload of libinetmapi. On some systems this fails to resolve the symbol
-# during unload, resuling in a crash in __cxa_finalize during unload of mapi.so
-libinetmapi_la_LDFLAGS = -version-info $(ECCLIENT_LIBRARY_VERSION) -Wl,-z -Wl,now
+# of vmime, initiated by the unload of libinetmapi. On some systems, this fails to resolve the symbol
+# during unload, resulting in a crash in __cxa_finalize during unload of mapi.so
+libinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -version-info $(ECCLIENT_LIBRARY_VERSION) -Wl,-z -Wl,now
 libinetmapi_la_LIBADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
 	${top_builddir}/libicalmapi/libicalmapi.la \
-	$(VMIME_LIBS)
+    $(VMIME_LIBS) $(XML2_LIBS)
 
 
 #CXXLD=--tag=none gcc

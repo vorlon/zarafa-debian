@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -53,14 +53,25 @@
 #include <edkmdb.h>		// LPREADSTATE
 #include "ECDefs.h"		// LPECUSER
 
+#define CONV_COPY_SHALLOW	0
+#define CONV_COPY_DEEP		1
 
-LPSPropValue	Object_to_LPSPropValue(PyObject *object, void *lpBase = NULL);
+typedef int(*TypeCheckFunc)(PyObject*);
+
+int				Object_is_list_of(PyObject *object, TypeCheckFunc fnTypeCheck); 
+
+FILETIME		Object_to_FILETIME(PyObject *object);
+PyObject *		Object_from_FILETIME(FILETIME ft);
+int				Object_is_FILETIME(PyObject *object);
+
+LPSPropValue	Object_to_LPSPropValue(PyObject *object, ULONG ulFlags = CONV_COPY_SHALLOW, void *lpBase = NULL);
+int				Object_is_LPSPropValue(PyObject *object);
 PyObject *		List_from_LPSPropValue(LPSPropValue lpProps, ULONG cValues);
-LPSPropValue	List_to_LPSPropValue(PyObject *sv, ULONG *cValues, void *lpBase = NULL);
+LPSPropValue	List_to_LPSPropValue(PyObject *sv, ULONG *cValues, ULONG ulFlags = CONV_COPY_SHALLOW, void *lpBase = NULL);
 
 PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues);
 
-LPSPropTagArray	List_to_LPSPropTagArray(PyObject *sv);
+LPSPropTagArray	List_to_LPSPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
 PyObject *		List_from_LPSPropTagArray(LPSPropTagArray lpPropTagArray);
 
 LPSRestriction	Object_to_LPSRestriction(PyObject *sv, void *lpBase = NULL);
@@ -76,9 +87,9 @@ LPSSortOrderSet	Object_to_LPSSortOrderSet(PyObject *sv);
 PyObject *		Object_from_LPSSortOrderSet(LPSSortOrderSet lpSortOrderSet);
 
 PyObject *		List_from_LPSRowSet(LPSRowSet lpRowSet);
-LPSRowSet		List_to_LPSRowSet(PyObject *av);
+LPSRowSet		List_to_LPSRowSet(PyObject *av, ULONG ulFlags = CONV_COPY_SHALLOW);
 
-LPADRLIST		List_to_LPADRLIST(PyObject *av);
+LPADRLIST		List_to_LPADRLIST(PyObject *av, ULONG ulFlags = CONV_COPY_SHALLOW);
 PyObject *		List_from_LPADRLIST(LPADRLIST lpAdrList);
 
 LPADRPARM		Object_to_LPADRPARM(PyObject *av);
@@ -86,8 +97,11 @@ LPADRPARM		Object_to_LPADRPARM(PyObject *av);
 LPADRENTRY		Object_to_LPADRENTRY(PyObject *av);
 
 PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray);
+LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *, ULONG ulFlags = CONV_COPY_SHALLOW);
+
+PyObject *		Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId);
 PyObject *		List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames);
-LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *, ULONG *lpcNames);
+LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *, ULONG *lpcNames, ULONG ulFlags = CONV_COPY_SHALLOW);
 
 LPENTRYLIST		List_to_LPENTRYLIST(PyObject *);
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList);
@@ -107,6 +121,7 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *, ULONG *lpcElements);
 PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements);
 
 LPCIID 			List_to_LPCIID(PyObject *, ULONG *);
+PyObject *		List_from_LPCIID(LPCIID iids, ULONG cElements);
 
 LPECUSER		Object_to_LPECUSER(PyObject *, ULONG);
 PyObject *		Object_from_LPECUSER(LPECUSER lpUser);
@@ -127,17 +142,24 @@ PyObject *		Object_from_LPECQUOTASTATUS(LPECQUOTASTATUS lpQuotaStatus);
 
 PyObject *		Object_from_LPECUSERCLIENTUPDATESTATUS(LPECUSERCLIENTUPDATESTATUS lpECUCUS);
 
-LPROWLIST		List_to_LPROWLIST(PyObject *);
+LPROWLIST		List_to_LPROWLIST(PyObject *, ULONG ulFlags = CONV_COPY_SHALLOW);
 
 LPECSVRNAMELIST List_to_LPECSVRNAMELIST(PyObject *object);
 
 PyObject *		Object_from_LPECSERVER(LPECSERVER lpServer);
 
 PyObject *		List_from_LPECSERVERLIST(LPECSERVERLIST lpServerList);
+PyObject *		List_from_wchar_t(wchar_t **, ULONG cElements);
 
 void			Init();
 
 void			DoException(HRESULT hr);
 int				GetExceptionError(PyObject *, HRESULT *);
+
+void			Object_to_STATSTG(PyObject *, STATSTG *);
+PyObject *		Object_from_STATSTG(STATSTG *);
+
+PyObject *		Object_from_SYSTEMTIME(const SYSTEMTIME &time);
+SYSTEMTIME		Object_to_SYSTEMTIME(PyObject *);
 
 #endif // ndef CONVERSION_H

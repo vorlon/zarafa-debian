@@ -2846,6 +2846,7 @@ namespace swig {
 #define DIRECTORARGOUT(_arg) (__tupleIndex == -1 ? (PyObject*)(_arg) : PyTuple_GetItem((_arg), __tupleIndex++))
 
 
+
 #include <wchar.h>
 #include <limits.h>
 #ifndef WCHAR_MIN
@@ -3266,6 +3267,7 @@ SWIG_From_unsigned_SS_int  (unsigned int value)
   return SWIG_From_unsigned_SS_long  (value);
 }
 
+SWIGINTERN ULONG Util_GetBestBody__SWIG_1(ULONG cValues,LPSPropValue lpProps,ULONG ulFlags){ return Util::GetBestBody(lpProps, cValues, ulFlags); }
 
     bool ConvertFileFromUCS2ToUTF8(std::string strSrcFileName, std::string strDstFileName) {
         return ConvertFileFromUCS2ToUTF8(NULL, strSrcFileName, strDstFileName);
@@ -3814,9 +3816,11 @@ SWIGINTERN PyObject *_wrap_GetShortcutFolder(PyObject *SWIGUNUSEDPARM(self), PyO
   int ecode4 ;
   IMAPIFolder *temp5 ;
   std::string strInput2 ;
-  std::wstring wstrInput2 ;
+  wchar_t *buf2 ;
+  int alloc2 = 0 ;
   std::string strInput3 ;
-  std::wstring wstrInput3 ;
+  wchar_t *buf3 ;
+  int alloc3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -3852,8 +3856,9 @@ SWIGINTERN PyObject *_wrap_GetShortcutFolder(PyObject *SWIGUNUSEDPARM(self), PyO
     else {
       if(ulFlags & MAPI_UNICODE) {
         if(PyUnicode_Check(o)) {
-          wstrInput2.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
-          arg2 = (LPTSTR)wstrInput2.c_str();
+          size_t size = 0;
+          SWIG_AsWCharPtrAndSize(o, &buf2, &size, &alloc2);
+          arg2 = buf2;
         } else {
           PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
         }
@@ -3883,8 +3888,9 @@ SWIGINTERN PyObject *_wrap_GetShortcutFolder(PyObject *SWIGUNUSEDPARM(self), PyO
     else {
       if(ulFlags & MAPI_UNICODE) {
         if(PyUnicode_Check(o)) {
-          wstrInput3.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
-          arg3 = (LPTSTR)wstrInput3.c_str();
+          size_t size = 0;
+          SWIG_AsWCharPtrAndSize(o, &buf3, &size, &alloc3);
+          arg3 = buf3;
         } else {
           PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
         }
@@ -3924,18 +3930,18 @@ SWIGINTERN PyObject *_wrap_GetShortcutFolder(PyObject *SWIGUNUSEDPARM(self), PyO
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)*(arg5), SWIGTYPE_p_IMAPIFolder, SWIG_SHADOW | SWIG_OWNER));
   }
   {
-    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   }
   {
-    
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   return resultobj;
 fail:
   {
-    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   }
   {
-    
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   return NULL;
 }
@@ -4002,7 +4008,8 @@ SWIGINTERN PyObject *_wrap_AddFavoriteFolder(PyObject *SWIGUNUSEDPARM(self), PyO
   unsigned int fl4 ;
   int ecode4 ;
   std::string strInput3 ;
-  std::wstring wstrInput3 ;
+  wchar_t *buf3 ;
+  int alloc3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4039,8 +4046,9 @@ SWIGINTERN PyObject *_wrap_AddFavoriteFolder(PyObject *SWIGUNUSEDPARM(self), PyO
     else {
       if(ulFlags & MAPI_UNICODE) {
         if(PyUnicode_Check(o)) {
-          wstrInput3.assign((wchar_t*)PyUnicode_AsUnicode(o), PyUnicode_GetSize(o));
-          arg3 = (LPTSTR)wstrInput3.c_str();
+          size_t size = 0;
+          SWIG_AsWCharPtrAndSize(o, &buf3, &size, &alloc3);
+          arg3 = buf3;
         } else {
           PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag passed but passed parameter is not a unicode string");
         }
@@ -4077,18 +4085,18 @@ SWIGINTERN PyObject *_wrap_AddFavoriteFolder(PyObject *SWIGUNUSEDPARM(self), PyO
     }
   }
   {
-    
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   return resultobj;
 fail:
   {
-    
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   }
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_Util_GetBestBody(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Util_GetBestBody__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IMAPIProp *arg1 = (IMAPIProp *) 0 ;
   ULONG arg2 ;
@@ -4123,6 +4131,109 @@ SWIGINTERN PyObject *_wrap_Util_GetBestBody(PyObject *SWIGUNUSEDPARM(self), PyOb
   resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Util_GetBestBody__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ULONG arg1 ;
+  LPSPropValue arg2 ;
+  ULONG arg3 ;
+  ULONG cArray1 = 0 ;
+  LPSPropValue lpArray1 = NULL ;
+  unsigned int fl3 ;
+  int ecode3 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  ULONG result;
+  
+  {
+    arg1 = 0;
+    arg2 = NULL;
+  }
+  ULONG ulFlags = 0;
+  if (!PyArg_ParseTuple(args,(char *)"OO:Util_GetBestBody",&obj0,&obj1)) SWIG_fail;
+  {
+    ULONG len;
+    arg2 = List_to_LPSPropValue(obj0, &len);
+    arg1 = len;
+    if(PyErr_Occurred()) goto fail;
+  }
+  {
+    ecode3 = SWIG_AsVal_unsigned_SS_int (obj1, &fl3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Util_GetBestBody" "', argument " "3"" of type '" "ULONG""'");
+    } 
+    arg3 = fl3;
+    ulFlags = fl3;
+  }
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (ULONG)Util_GetBestBody__SWIG_1(arg1,arg2,arg3);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
+  {
+    if(arg2)
+    MAPIFreeBuffer((void *)arg2);
+  }
+  return resultobj;
+fail:
+  {
+    if(arg2)
+    MAPIFreeBuffer((void *)arg2);
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Util_GetBestBody(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[3];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_IMAPIProp, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_unsigned_SS_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        return _wrap_Util_GetBestBody__SWIG_0(self, args);
+      }
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    {
+      _v = Object_is_list_of(argv[0], &Object_is_LPSPropValue);
+    }
+    if (_v) {
+      {
+        int res = SWIG_AsVal_unsigned_SS_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        return _wrap_Util_GetBestBody__SWIG_1(self, args);
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'Util_GetBestBody'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    GetBestBody(IMAPIProp *,ULONG)\n"
+    "    Util_GetBestBody__SWIG_1(ULONG,LPSPropValue,ULONG)\n");
   return NULL;
 }
 
@@ -4748,27 +4859,24 @@ SWIGINTERN PyObject *_wrap_IStreamAdapter_Stat(PyObject *SWIGUNUSEDPARM(self), P
   DWORD arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  STATSTG stat2 ;
   unsigned int val3 ;
   int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
   HRESULT result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:IStreamAdapter_Stat",&obj0,&obj1,&obj2)) SWIG_fail;
+  {
+    arg2 = &stat2;
+    memset(&stat2, 0, sizeof(stat2));
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OO:IStreamAdapter_Stat",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IStreamAdapter, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IStreamAdapter_Stat" "', argument " "1"" of type '" "IStreamAdapter *""'"); 
   }
   arg1 = reinterpret_cast< IStreamAdapter * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_STATSTG, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IStreamAdapter_Stat" "', argument " "2"" of type '" "STATSTG *""'"); 
-  }
-  arg2 = reinterpret_cast< STATSTG * >(argp2);
-  ecode3 = SWIG_AsVal_unsigned_SS_int(obj2, &val3);
+  ecode3 = SWIG_AsVal_unsigned_SS_int(obj1, &val3);
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IStreamAdapter_Stat" "', argument " "3"" of type '" "DWORD""'");
   } 
@@ -4785,6 +4893,9 @@ SWIGINTERN PyObject *_wrap_IStreamAdapter_Stat(PyObject *SWIGUNUSEDPARM(self), P
       DoException(result);
       SWIG_fail;
     }
+  }
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_STATSTG(arg2));
   }
   return resultobj;
 fail:

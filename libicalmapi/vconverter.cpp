@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -63,6 +63,7 @@
 #include "time.h"
 #include "mapi_ptr.h"
 #include "namedprops.h"
+#include "base64.h"
 
 using namespace std;
 
@@ -1533,6 +1534,17 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 				lpIcalItem->lstMsgProps.push_back(sPropVal);
 			}
 			icalvalue_free(lpicValue);
+		}else if (strncmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-RTF", strlen("X-MICROSOFT-RTF")) == 0) {
+			lpicValue =  icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
+			string rtf = base64_decode(icalvalue_get_x(lpicValue));
+			sPropVal.ulPropTag = PR_RTF_COMPRESSED;
+			sPropVal.Value.bin.cb = rtf.size();
+			
+			MAPIAllocateMore(sPropVal.Value.bin.cb, lpIcalItem->base, (LPVOID*)&sPropVal.Value.bin.lpb);
+			memcpy(sPropVal.Value.bin.lpb, (LPBYTE)rtf.c_str(), sPropVal.Value.bin.cb);
+
+			lpIcalItem->lstMsgProps.push_back(sPropVal);
+			icalvalue_free(lpicValue);
 		}
 
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
@@ -2329,11 +2341,12 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
  * 
  * @param[in] ulMsgProps Number of properties in lpMsgProps
  * @param[in] lpMsgProps Properties used for the conversion
+ * @param[in]  lpMessage The message to convert the PR_RTF_COMPRESSED from
  * @param[in,out] lpEvent ical item to be modified
  * 
  * @return Always return hrSuccess
  */
-HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, icalcomponent *lpEvent)
+HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPMESSAGE lpMessage, icalcomponent *lpEvent)
 {
 	LPSPropValue lpPropVal = NULL;
 	icaltimetype icCriticalChange;
@@ -2441,6 +2454,30 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, ica
 	icalproperty_set_x_name(lpProp, "X-MICROSOFT-CDO-ALLDAYEVENT");
 	icalcomponent_add_property(lpEvent, lpProp);
 	icalvalue_free(lpicValue);
+
+
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
+	if (lpPropVal && Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) == PR_RTF_COMPRESSED) {
+		string rtf;
+		LPSTREAM lpStream = NULL;
+
+		if (lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream) == hrSuccess) {
+
+			if (Util::HrStreamToString(lpStream, rtf) == hrSuccess) {
+				string rtfbase64;
+				rtfbase64 = base64_encode((unsigned char*)rtf.c_str(), rtf.size());
+				lpicValue = icalvalue_new_x(rtfbase64.c_str());
+				lpszTemp = icalvalue_as_ical_string_r(lpicValue);
+				lpProp = icalproperty_new_x(lpszTemp);
+				icalmemory_free_buffer(lpszTemp);
+				icalproperty_set_x_name(lpProp, "X-MICROSOFT-RTF");
+				icalcomponent_add_property(lpEvent, lpProp);
+				icalvalue_free(lpicValue);
+			}
+			lpStream ->Release();
+		}
+	}
+
 
 	return hrSuccess;
 }
@@ -3639,7 +3676,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set X-Properties.
-	hr = HrSetXHeaders(ulMsgProps, lpMsgProps, lpEvent);
+	hr = HrSetXHeaders(ulMsgProps, lpMsgProps, lpMessage, lpEvent);
 	if (hr != hrSuccess)
 		goto exit;
 	

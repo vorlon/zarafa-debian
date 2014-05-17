@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libzarafasync.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) -DLINUX	$(BOOST_CPPFLAGS)	\
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include	\
 	-I${top_srcdir}/provider/common 	\
 	-I${top_srcdir}/common

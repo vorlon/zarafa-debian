@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -106,7 +106,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 		goto exit;
 	}
 
-	m_bMysqlInitialize = true; 
+	m_bMysqlInitialize = true;
 
 	// Set auto reconnect
 	// mysql < 5.0.4 default on, mysql 5.0.4 > reconnection default off
@@ -130,16 +130,16 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	char*			lpMysqlPort = lpConfig->GetSetting("mysql_port");
 	DB_RESULT		lpDBResult = NULL;
 	DB_ROW			lpDBRow = NULL;
-	
+
 	er = InitEngine();
 	if(er != erSuccess)
 		goto exit;
 
-	if(mysql_real_connect(&m_lpMySQL, 
-			lpConfig->GetSetting("mysql_host"), 
-			lpConfig->GetSetting("mysql_user"), 
-			lpConfig->GetSetting("mysql_password"), 
-			lpConfig->GetSetting("mysql_database"), 
+	if(mysql_real_connect(&m_lpMySQL,
+			lpConfig->GetSetting("mysql_host"),
+			lpConfig->GetSetting("mysql_user"),
+			lpConfig->GetSetting("mysql_password"),
+			lpConfig->GetSetting("mysql_database"),
 			(lpMysqlPort)?atoi(lpMysqlPort):0, NULL, 0) == NULL)
 	{
 		if(mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR){ // Database does not exist
@@ -148,28 +148,28 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 			er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
-	
+
 	// Check if the database is available, but empty
 	strQuery = "SHOW tables";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-		
+
 	if(GetNumRows(lpDBResult) == 0) {
 		er = ZARAFA_E_DATABASE_NOT_FOUND;
 		goto exit;
 	}
-	
+
 	if(lpDBResult) {
 		FreeResult(lpDBResult);
 		lpDBResult = NULL;
 	}
-	
+
 	strQuery = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 	    goto exit;
-	
+
 	lpDBRow = FetchRow(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 	    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to retrieve max_allowed_packet value. Assuming 16M");
@@ -194,7 +194,10 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 exit:
 	if(lpDBResult)
 		FreeResult(lpDBResult);
-		
+
+    if (er != erSuccess) {
+        Close();
+    }
 	return er;
 }
 
@@ -203,7 +206,7 @@ ECRESULT ECDatabaseMySQL::Close()
 	ECRESULT er = erSuccess;
 
 	_ASSERT(m_bLocked == false);
-	
+
 	//INFO: No locking here
 
 	m_bConnected = false;
@@ -234,7 +237,7 @@ bool ECDatabaseMySQL::UnLock()
 	pthread_mutex_unlock(&m_hMutexMySql);
 
 	m_bLocked = false;
-		
+
 	return m_bLocked;
 }
 
@@ -245,10 +248,10 @@ bool ECDatabaseMySQL::isConnected() {
 
 int ECDatabaseMySQL::Query(const string &strQuery) {
 	int err;
-	
+
 #ifdef DEBUG_SQL
 #if DEBUG_SQL
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: DO_SQL: \"%s;\"", (void*)&m_lpMySQL, strQuery.c_str()); 
+	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: DO_SQL: \"%s;\"", (void*)&m_lpMySQL, strQuery.c_str());
 #endif
 #endif
 
@@ -256,7 +259,7 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
 
 	if(err) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str()); 
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 	}
 
 	return err;
@@ -271,7 +274,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
-		
+
 	if( Query(strQuery) != 0 ) {
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
@@ -281,10 +284,10 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 		*lpResult = mysql_use_result( &m_lpMySQL );
 	else
 		*lpResult = mysql_store_result( &m_lpMySQL );
-		
+
 	if( *lpResult == NULL ) {
 		er = ZARAFA_E_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str()); 
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 	}
 
 exit:
@@ -296,13 +299,13 @@ exit:
 }
 
 ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAffectedRows) {
-	
+
 	ECRESULT er = erSuccess;
 
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
-	
+
 	er = _Update(strQuery, lpulAffectedRows);
 
 	// Autolock, unlock data
@@ -315,17 +318,17 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
-					
+
 	if( Query(strQuery) != 0 ) {
 		// FIXME: Add the mysql error system ?
 		// er = nMysqlError;
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
-	
+
 	if(lpulAffectedRows)
 		*lpulAffectedRows = GetAffectedRows();
-	
+
 exit:
 	return er;
 }
@@ -337,7 +340,7 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
-	
+
 	er = _Update(strQuery, lpulAffectedRows);
 
 	if (er == erSuccess) {
@@ -359,7 +362,7 @@ ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAff
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
-	
+
 	er = _Update(strQuery, lpulAffectedRows);
 
 	// Autolock, unlock data
@@ -385,16 +388,16 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
 	if(er != erSuccess)
 		goto exit;
-	
+
 	// If the setting was missing, insert it now, starting at sequence 1 (not 0 for safety - maybe there's some if(ulSequenceId) code somewhere)
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
 		if(er != erSuccess)
 			goto exit;
 	}
-			
+
 	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
-	
+
 exit:
 	return er;
 }
@@ -459,7 +462,7 @@ std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ul
 	ULONG size = ulLen*2+1;
 	char *szEscaped = new char[size];
 	std::string escaped;
-	
+
 	memset(szEscaped, 0, size);
 
 	mysql_real_escape_string(&this->m_lpMySQL, szEscaped, (const char *)lpData, ulLen);
@@ -487,10 +490,10 @@ std::string ECDatabaseMySQL::GetError()
 ECRESULT ECDatabaseMySQL::Begin() {
 	int err;
 	err = Query("BEGIN");
-	
+
 	if(err)
 		return ZARAFA_E_DATABASE_ERROR;
-	
+
 	return erSuccess;
 }
 
@@ -500,7 +503,7 @@ ECRESULT ECDatabaseMySQL::Commit() {
 
 	if(err)
 		return ZARAFA_E_DATABASE_ERROR;
-	
+
 	return erSuccess;
 }
 
@@ -510,7 +513,7 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 
 	if(err)
 		return ZARAFA_E_DATABASE_ERROR;
-	
+
 	return erSuccess;
 }
 
@@ -562,6 +565,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 	char*		lpMysqlPort = lpConfig->GetSetting("mysql_port");
 	char*		lpMysqlSocket = lpConfig->GetSetting("mysql_socket");
 
+
 	if(*lpMysqlSocket == '\0')
 		lpMysqlSocket = NULL;
 
@@ -573,14 +577,19 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 		goto exit;
 
 	// Connect
-	if(mysql_real_connect(&m_lpMySQL, 
-			lpConfig->GetSetting("mysql_host"), 
-			lpConfig->GetSetting("mysql_user"), 
-			lpConfig->GetSetting("mysql_password"), 
-			NULL, 
-			(lpMysqlPort)?atoi(lpMysqlPort):0, 
-			lpMysqlSocket, 0) == NULL)
+	if (mysql_real_connect
+        (
+            &m_lpMySQL,                             // address of an existing MYSQL, Before calling mysql_real_connect(), call mysql_init() to initialize the MYSQL structure.
+			lpConfig->GetSetting("mysql_host"),     // may be either a host name or an IP address.
+			lpConfig->GetSetting("mysql_user"),
+			lpConfig->GetSetting("mysql_password"),
+			NULL,                                   // database name. If db is not NULL, the connection sets the default database to this value.
+			(lpMysqlPort)?atoi(lpMysqlPort):0,
+			lpMysqlSocket,
+			0
+        ) == NULL)
 	{
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Failed to connect to database: Error: %s", mysql_error(&m_lpMySQL));
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -615,7 +624,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 		m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Create table: %s", sDatabaseTables[i].lpComment);
 		er = DoInsert(sDatabaseTables[i].lpSQL);
 		if(er != erSuccess)
-			goto exit;	
+			goto exit;
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Database is created");

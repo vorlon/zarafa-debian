@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -261,9 +261,6 @@
 #define PR_EC_DISABLED_FEATURES_W		PROP_TAG(PT_MV_UNICODE, PR_EC_BASE+0xB4)
 
 #define PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID	PROP_TAG(PT_BINARY,	PR_EC_BASE+0xD0)
-
-// Special WA properties used between zarafa-dagent and WA
-#define PR_EC_WA_ATTACHMENT_HIDDEN_OVERRIDE	PROP_TAG(PT_BOOLEAN,PR_EC_BASE+0xE0)
 
 // Flags for PR_EC_FLAGS
 #define EC_PROFILE_FLAGS_NO_NOTIFICATIONS		0x0000001

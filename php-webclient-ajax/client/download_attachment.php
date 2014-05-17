@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -52,7 +52,7 @@
 <?php
 	/**
 	* Download Attachment
-	* This file is used to download an attachment of a message.		
+	* This file is used to download an attachment of a message.
 	*/
 	require_once("client/layout/dialogs/utils.php");
 
@@ -64,7 +64,7 @@
 	if(isset($_GET["store"])) {
 		$storeid = get("store", false, false, ID_REGEX);
 	}
-	
+
 	// Get message entryid
 	$entryid = false;
 	if(isset($_GET["entryid"])) {
@@ -82,13 +82,13 @@
 	if(isset($_GET["downloadType"])) {
 		$downloadType = get("downloadType", false, false, STRING_REGEX);
 	}
-		
+
 	// Check mailsubject is there or not
 	$mailSubject = "";
 	if(isset($_GET["mailSubject"])) {
 		$mailSubject = get("mailSubject", false, false, false);
 	}
-		
+
 	// Get number of attachment which should be opened.
 	$attachNum = false;
 	if(isset($_GET["attachNum"])) {
@@ -106,7 +106,7 @@
 				array_push($attachNum, $attachNumber);
 		}
 	}
-				
+
 	// Check if inline image should be opened
 	$attachCid = false;
 	if(isset($_GET["attachCid"])) {
@@ -131,14 +131,14 @@
 	/*********** Internal Functions ***********/
 	/**
 	 * Function will open already saved attachment from a saved message
-	 * 
+	 *
 	 * @param HexString $storeid store id
 	 * @param HexString $entryid entryid of message
 	 * @param String $openType can be inline / attachment (content disposition type)
 	 * @param Array $attachNum numeric indexes of attachments to be opened
 	 * @param String $attachCid attachment content id for inline images
 	 * @param Boolean $getContentsOnly contains true if we only wants the contents of a file, to create a zip file of all files.
-	 * 
+	 *
 	 * @return Boolean true on success, false on failure
 	 */
 	function openSavedAttachments($storeid, $entryid, $openType, $attachNum, $attachCid, $getContentsOnly=false) {
@@ -148,6 +148,9 @@
 		if($store) {
 			// Open the message
 			$message = mapi_msgstore_openentry($store, hex2bin($entryid));
+
+			// Decode smime signed messages on this message
+ 			parse_smime($store, $message);
 
 			if($message) {
 				$attachment = false;
@@ -176,17 +179,17 @@
 						$attachment = mapi_message_openattach($message, (int) $attachNum[(count($attachNum) - 1)]);
 					}
 				}
-				
+
 				if($attachCid) { // Check if attachCid isset
 					// If the inline image was in a submessage, we have to open that first
 					if($attachment) {
 						$message = mapi_attach_openobj($attachment);
 					}
-					
+
 					// Get the attachment table
 					$attachments = mapi_message_getattachmenttable($message);
 					$attachTable = mapi_table_queryallrows($attachments, Array(PR_ATTACH_NUM, PR_ATTACH_CONTENT_ID, PR_ATTACH_CONTENT_LOCATION, PR_ATTACH_FILENAME));
-					
+
 					foreach($attachTable as $attachRow)
 					{
 						// Check if the CONTENT_ID or CONTENT_LOCATION is equal to attachCid
@@ -208,7 +211,7 @@
 					$contentType = "application/octet-stream";
 					// Filename
 					$filename = "ERROR";
-					
+
 					// Set filename
 					if(isset($props[PR_ATTACH_LONG_FILENAME])) {
 						$filename = $props[PR_ATTACH_LONG_FILENAME];
@@ -216,8 +219,8 @@
 						$filename = $props[PR_ATTACH_FILENAME];
 					} else if(isset($props[PR_DISPLAY_NAME])) {
 						$filename = $props[PR_DISPLAY_NAME];
-					} 
-			
+					}
+
 					$contentType = getMIMEType($filename);
 
 					// Set the headers
@@ -226,7 +229,7 @@
 					header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
 					header("Content-Disposition: " . $openType . "; filename=\"" . browserDependingHTTPHeaderEncode($filename) . "\"");
 					header("Content-Transfer-Encoding: binary");
-					
+
 					// Set content type header
 					header("Content-Type: " . $contentType);
 
@@ -236,7 +239,7 @@
 
 					// if we want only contents then pass the content writing on header
 					if($getContentsOnly){
-						if($stream) 
+						if($stream)
 							return array("content" => mapi_stream_read($stream, $stat["cb"]), "filename" => $filename);
 						return false;
 					}
@@ -258,7 +261,7 @@
 
 	/**
 	 * Function will open temporary attachment, it doesn't matter the message itself is saved or not
-	 * 
+	 *
 	 * @param HexString $storeid store id
 	 * @param HexString $entryid entryid of message
 	 * @param String $openType can be inline / attachment (content disposition type)
@@ -298,7 +301,7 @@
 
 	/**
 	 * Function will create a zip file containing all attachments.
-	 * 
+	 *
 	 * @param HexString $storeid store id
 	 * @param HexString $entryid entryid of message
 	 * @param String $openType can be inline / attachment (content disposition type)
@@ -317,14 +320,14 @@
 
 		// create a object of creating Zip archive File
 		$createZipFile=new CreateZipFile;
-		
+
 		// set output directory
 		$outputDir="";
 		$fileNames = array();
 
 		for($att=0;$att<count($attachNum);$att++){
 			if(is_numeric($attachNum[$att])){
-				$fileContent = openSavedAttachments($storeid, $entryid, $openType, array($attachNum[$att]), $attachCid, true);	
+				$fileContent = openSavedAttachments($storeid, $entryid, $openType, array($attachNum[$att]), $attachCid, true);
 			}else{
 				$fileContent = openTemporaryAttachments($storeid, $entryid, $openType, array($attachNum[$att]), true);
 			}
@@ -333,7 +336,7 @@
 			if($fileContent){
 				$fileContent["filename"] = updateDuplicateName($fileContent["filename"], $fileNames);
 				array_push($fileNames, $fileContent["filename"]);
-				
+
 				// add the file into zip file.
 				$createZipFile->addFile($fileContent["content"], $outputDir.$fileContent["filename"]);
 			}
@@ -344,7 +347,7 @@
 
 		// download the created zip file.
 		$zipName = TMP_PATH . "/" . $fileName;
-		
+
 		$zipFile = fopen($zipName, "wb");
 		$out = fwrite($zipFile, $createZipFile->getZippedfile());
 		fclose($zipFile);
@@ -355,10 +358,10 @@
 	/**
 	 * Function which checks, if filename is already in filenames array or not.
 	 * If name found duplicate, it converts it to a unique name.
-	 * 
+	 *
 	 * @param String $fileName file name to check for duplicate name
-	 * @param Array $fileNames fileNames array to be checked 
-	 * 
+	 * @param Array $fileNames fileNames array to be checked
+	 *
 	 * @return String $fileName changed file name
 	 */
 	function updateDuplicateName($fileName, $fileNames){

@@ -126,6 +126,9 @@ class delivery_options(_object):
     __swig_setmethods__["add_imap_data"] = _inetmapi.delivery_options_add_imap_data_set
     __swig_getmethods__["add_imap_data"] = _inetmapi.delivery_options_add_imap_data_get
     if _newclass:add_imap_data = _swig_property(_inetmapi.delivery_options_add_imap_data_get, _inetmapi.delivery_options_add_imap_data_set)
+    __swig_setmethods__["parse_smime_signed"] = _inetmapi.delivery_options_parse_smime_signed_set
+    __swig_getmethods__["parse_smime_signed"] = _inetmapi.delivery_options_parse_smime_signed_get
+    if _newclass:parse_smime_signed = _swig_property(_inetmapi.delivery_options_parse_smime_signed_get, _inetmapi.delivery_options_parse_smime_signed_set)
     def __init__(self): 
         this = _inetmapi.new_delivery_options()
         try: self.this.append(this)

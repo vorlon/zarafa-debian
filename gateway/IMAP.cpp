@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1003,7 +1003,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	// do not disable notifications for imap connections, may be idle and sessions on the zarafa server will disappear.
 	hr = HrOpenECSession(&lpSession, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->GetIPAddress().c_str(), strUsername.c_str(), hr);
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
 		if (hr2 != hrSuccess)
@@ -1070,7 +1070,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		goto exit;
 	}
 
-	lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP Login from %s for user %s", lpChannel->GetIPAddress().c_str(), strUsername.c_str());
+	lpLogger->Log(EC_LOGLEVEL_NOTICE, "IMAP Login from %s for user %s", lpChannel->GetIPAddress().c_str(), strUsername.c_str());
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
 
 exit:
@@ -3203,14 +3203,18 @@ HRESULT IMAP::HrResponse(const string &strUntag, const string &strResponse)
  */
 HRESULT IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
 {
+	unsigned int max_err;
+
+	max_err = strtoul(lpConfig->GetSetting("imap_max_fail_commands"), NULL, 0);
+
 	// Some clients keep looping, so if we keep sending errors, just disconnect the client.
 	if (strResult.compare(RESP_TAGGED_OK) == 0)
 		m_ulErrors = 0;
 	else
 		m_ulErrors++;
-	if (m_ulErrors >= 10) {
-      	lpLogger->Log(EC_LOGLEVEL_FATAL, "Disconnecting client of user %ls because too many erroneous commands received, last reply:", m_strwUsername.c_str());
-      	lpLogger->Log(EC_LOGLEVEL_FATAL, "%s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
+	if (m_ulErrors >= max_err) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Disconnecting client of user %ls because too many (%u) erroneous commands received, last reply:", m_strwUsername.c_str(), max_err);
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
 		return MAPI_E_END_OF_SESSION;
 	}
 		
@@ -6116,7 +6120,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
 
-			hr = MAPIAllocateMore(sizeof(char) * (lstSearchCriteria[ulStartCriteria + 1].size() + 1), lpRootRestrict,
+			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
 				goto exit;
@@ -6206,7 +6210,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
 
-			hr = MAPIAllocateMore(sizeof(char) * (lstSearchCriteria[ulStartCriteria + 1].size() + 1), lpRootRestrict,
+			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
 				goto exit;
@@ -6652,7 +6656,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
 
-			hr = MAPIAllocateMore(sizeof(char) * (lstSearchCriteria[ulStartCriteria + 1].size() + 1), lpRootRestrict,
+			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
 				goto exit;
@@ -6685,7 +6689,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
 
-			hr = MAPIAllocateMore(sizeof(char) * (lstSearchCriteria[ulStartCriteria + 1].size() + 1), lpRootRestrict,
+			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
 				goto exit;

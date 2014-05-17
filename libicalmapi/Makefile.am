@@ -1,10 +1,11 @@
 lib_LTLIBRARIES = libicalmapi.la
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX $(ICAL_CFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
+	$(ICAL_CFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common  -I${top_srcdir}/common \
 	-I$(top_srcdir)/libfreebusy
 
-libicalmapi_la_LDFLAGS = -version-info $(ECCLIENT_LIBRARY_VERSION)
+libicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -version-info $(ECCLIENT_LIBRARY_VERSION)
 
 libicalmapi_la_LIBADD = \
 	${top_builddir}/libfreebusy/libfreebusy.la \

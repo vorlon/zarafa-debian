@@ -281,6 +281,14 @@ Enable the addition of X\-Zarafa\-Rule\-Action headers on messages that have bee
 Default:
 \fIyes\fR
 .RE
+.PP
+\fBno_double_forward\fR
+.RS 4
+Enable this option to prevent rules to cause a loop\&. An e\-mail can only be forwarded once\&. When this option is enabled, the set_rule_headers option must also be enabled\&.
+.sp
+Default:
+\fIno\fR
+.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the zarafa\-dagent process a HUP signal:

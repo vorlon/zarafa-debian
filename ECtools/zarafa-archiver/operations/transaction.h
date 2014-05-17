@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -62,8 +62,8 @@ namespace za { namespace operations {
 class Transaction {
 public:
 	Transaction(const SObjectEntry &objectEntry);
-	HRESULT SaveChanges(SessionPtr ptrSession, RollbackPtr *lpptrRollback);
-	HRESULT PurgeDeletes(SessionPtr ptrSession, TransactionPtr ptrDeferredTransaction = TransactionPtr());
+	HRESULT SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback);
+	HRESULT PurgeDeletes(ArchiverSessionPtr ptrSession, TransactionPtr ptrDeferredTransaction = TransactionPtr());
 	const SObjectEntry& GetObjectEntry() const;
 
 	HRESULT Save(IMessage *lpMessage, bool bDeleteOnFailure, const PostSaveActionPtr &ptrPSAction = PostSaveActionPtr());
@@ -98,8 +98,8 @@ inline const SObjectEntry& Transaction::GetObjectEntry() const
 
 class Rollback {
 public:
-	HRESULT Delete(SessionPtr ptrSession, IMessage *lpMessage);
-	HRESULT Execute(SessionPtr ptrSession);
+	HRESULT Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage);
+	HRESULT Execute(ArchiverSessionPtr ptrSession);
 
 private:
 	struct DelEntry {

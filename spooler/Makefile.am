@@ -2,7 +2,8 @@ bin_PROGRAMS = zarafa-dagent zarafa-spooler
 
 SUBDIRS=python
 
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) $(PYTHON_INCLUDES) -DLINUX -DSWIG_TYPE_TABLE=MAPI \
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) $(PYTHON_INCLUDES) \
+	-DSWIG_TYPE_TABLE=MAPI \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/inetmapi -I${top_srcdir}/provider/common -I${top_srcdir}/common \
 	-I${top_srcdir}/libfreebusy \
@@ -15,7 +16,7 @@ zarafa_dagent_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
+	$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS) $(XML2_LIBS)
 
 zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -24,7 +25,7 @@ zarafa_spooler_LDADD = ${top_builddir}/inetmapi/libinetmapi.la \
 	${top_builddir}/common/libcommon_ssl.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
 	${top_builddir}/ECtools/zarafa-archiver/libarchiver-core.la \
-	$(PROG_LIBS) $(PYTHON_LIBS)
+	$(PROG_LIBS) $(PYTHON_LIBS) $(XML2_LIBS)
 
 zarafa_dagent_SOURCES = DAgent.cpp rules.cpp rules.h LMTP.cpp LMTP.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
 zarafa_spooler_SOURCES = Spooler.cpp mailer.cpp mailer.h archive.cpp archive.h PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h

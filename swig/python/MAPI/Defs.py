@@ -39,4 +39,4 @@ def HrGetOneProp(pmp, proptag):
     props = pmp.GetProps([proptag], 0)
     if props[0].ulPropTag == proptag:
         return props[0]
-    raise Struct.MAPIError(props[0].Value)
+    raise Struct.MAPIError.from_hresult(props[0].Value)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -75,7 +75,7 @@ readmailitemmodule.prototype.init = function(id)
 readmailitemmodule.prototype.item = function(action)
 {
 	var message = action.getElementsByTagName("item")[0];
-	
+
 	if(message && message.childNodes) {
 
 		webclient.pluginManager.triggerHook("client.module.readmailitemmodule.item.before", {message: message});
@@ -96,7 +96,7 @@ readmailitemmodule.prototype.item = function(action)
 			}
 		}
 	}
-	
+
 	readmailitemmodule.superclass.item.call(this, action);
 	this.setMeetingrequest(message);
 	this.setConflictAppointmentInfo(message);
@@ -170,13 +170,13 @@ readmailitemmodule.prototype.setRepliedForwardedInfo = function(message)
 					infoString = _("You forwarded this message on %s")+".";
 				break;
 		}
-		
+
 		if (infoString){
 			var extrainfo = dhtml.getElementById("extrainfo");
-			
+
 			if(extrainfo) {
 				infoString = infoString.sprintf(time);
-				
+
 				dhtml.addElement(extrainfo, "p", false, false, infoString);
 				extrainfo.style.display = "block";
 			}
@@ -204,17 +204,24 @@ readmailitemmodule.prototype.setAttachments = function(message)
 				var hidden = dhtml.getXMLValue(attachment, "hidden", false);
 
 				if(attach_num && attach_num.firstChild && !hidden) {
-					if(name && size && size.firstChild) {
+					if(name) {
 						var attachmentElement = dhtml.addElement(attachmentsElement, "a", "attachment");
 						attachmentElement.setAttribute("attach_num", dhtml.getTextNode(attach_num, false));
 						attachmentElement.href = "#";
 
-						var kb = Math.round(size.firstChild.nodeValue / 1024) + _("kb");
-						if(size.firstChild.nodeValue < 1024) {
-							kb = size.firstChild.nodeValue + _("B");
+						if(size && size.firstChild) {
+							var kb = Math.round(size.firstChild.nodeValue / 1024) + _("kb");
+							if(size.firstChild.nodeValue < 1024) {
+								kb = size.firstChild.nodeValue + _("B");
+							}
 						}
 
-						dhtml.addTextNode(attachmentElement, dhtml.getTextNode(name, _("Untitled Attachment")) + " (" + kb + ");"+ NBSP );
+						if(kb) {
+							dhtml.addTextNode(attachmentElement, dhtml.getTextNode(name, _("Untitled Attachment")) + " (" + kb + ");"+ NBSP );
+						} else {
+							dhtml.addTextNode(attachmentElement, dhtml.getTextNode(name, _("Untitled Attachment")) + ";"+ NBSP );
+						}
+
 						dhtml.addEvent(this, attachmentElement, "mousedown", eventAttachmentClick);
 					}
 				}
@@ -243,7 +250,7 @@ readmailitemmodule.prototype.setAttachments = function(message)
 readmailitemmodule.prototype.setBody = function(message)
 {
 	var html_body = dhtml.getElementById("html_body");
-	
+
 	if(html_body) {
 		var body = message.getElementsByTagName("body")[0];
 		var isHTML = message.getElementsByTagName("isHTML")[0];
@@ -267,7 +274,7 @@ readmailitemmodule.prototype.setBody = function(message)
 			var data = new Object();
 			data["content"] = content;
 			webclient.pluginManager.triggerHook("client.module.readmailitemmodule.setbody.predisplay", data);
-			// Magical whiteline fix. Somehow this whiteline makes the content 
+			// Magical whiteline fix. Somehow this whiteline makes the content
 			// variable to not hold undefined as value after the next line
 			// "I'll take weird fixes for 500, Alex"
 			content = data["content"];
@@ -275,7 +282,7 @@ readmailitemmodule.prototype.setBody = function(message)
 			html_body.contentWindow.document.open();
 			html_body.contentWindow.document.write(content);
 			html_body.contentWindow.document.close();
-			
+
 			// Register events for keycontrol
 			dhtml.addEvent(webclient.inputmanager, html_body.contentWindow.document, "keyup", eventInputManagerKeyControlKeyUp);
 			dhtml.addEvent(webclient.inputmanager, html_body.contentWindow.document, "keydown", eventInputManagerKeyControlKeyDown);
@@ -319,14 +326,14 @@ readmailitemmodule.prototype.setMeetingrequest = function(message)
 		showMeetingElements.push("meetingrequest");
 
 		if(dhtml.getXMLValue(message,"message_class","").indexOf("IPM.Schedule.Meeting.Request") === 0){
-			
+
 			if (dhtml.getXMLValue(message, "out_of_date", false)){
 				//Hide accept/ decline/ tentative buttons when request is out-of-date
 				hideMeetingElements.push("accept");
 				hideMeetingElements.push("tentative");
 				hideMeetingElements.push("decline");
 				hideMeetingElements.push("proposenewtime");
-				
+
 				var textMeetingResponseText = _("This meeting request was updated after this message was sent. You should open the latest update or open the item from the calendar.");
 				var elemExtraInfo = dhtml.getElementById("extrainfo");
 				dhtml.addElement(elemExtraInfo, "p", false, false, textMeetingResponseText);
@@ -338,7 +345,7 @@ readmailitemmodule.prototype.setMeetingrequest = function(message)
 				hideMeetingElements.push("decline");
 				hideMeetingElements.push("proposenewtime");
 				hideMeetingElements.push("not_current");
-				
+
 				//If the meeting is created and organiser is set as attendee, inbox of the organizer do not require meeting request bar in the response msg
 				var textMeetingResponseText = _("As the meeting organizer, you do not need to respond to the meeting");
 				var elemExtraInfo = dhtml.getElementById("extrainfo");
@@ -346,12 +353,12 @@ readmailitemmodule.prototype.setMeetingrequest = function(message)
 				elemExtraInfo.style.display = "block";
 			} else {
 				hideMeetingElements.push("not_current");
-				
+
 				// Show Accept/Tentative/Decline buttons only when you have a Meeting REQUEST and is not out-of-date.
 				showMeetingElements.push("accept");
 				showMeetingElements.push("tentative");
 				showMeetingElements.push("decline");
-				
+
 				if(!isRecurring){
 					// Show proposenewtime buttons when you have a non-recurring meeting REQUEST
 					showMeetingElements.push("proposenewtime");
@@ -462,7 +469,7 @@ readmailitemmodule.prototype.setRecipients = function(message)
 
 		var sender_email_address = dhtml.getTextNode(message.getElementsByTagName("sender_email_address")[0],"");
 		var sender_name = dhtml.getTextNode(message.getElementsByTagName("sender_name")[0],"");
-		
+
 		var sender_representation = "";
 		if(sent_representing_name.length > 0) {
 			sender_representation = sent_representing_name;
@@ -482,7 +489,7 @@ readmailitemmodule.prototype.setRecipients = function(message)
 			if(sender_email_address.length > 0 && sender_email_address != sender_name) {
 				sender += " <"+sender_email_address+">";
 			}
-			
+
 			var recipientItemSenderRepresentation = dhtml.addElement(fromElement,"a","emailaddress","sender_label", sender);
 			recipientItemSenderRepresentation.href = "#";
 			dhtml.addEvent(this, recipientItemSenderRepresentation, "click", eventReadmailClickEmail);
@@ -496,12 +503,12 @@ readmailitemmodule.prototype.setRecipients = function(message)
 		dhtml.addEvent(this, recipientItemSenderRepresentation, "click", eventReadmailClickEmail);
 		dhtml.addEvent(this, recipientItemSenderRepresentation, "contextmenu", eventReadmailAddressContextMenu);
 	}
-	
+
 	//get to and cc recipient and add them to id="to" and id="cc"
 	var recipients = message.getElementsByTagName("recipient");
 	if(recipients && recipients.length > 0) {
         var elements = new Array();
-        
+
         elements["to"] = dhtml.getElementById("to");
         elements["cc"] = dhtml.getElementById("cc");
         elements["bcc"] = dhtml.getElementById("bcc");
@@ -521,7 +528,7 @@ readmailitemmodule.prototype.setRecipients = function(message)
 					var recipientString = "";
                     if(element.firstChild != null) {
 						dhtml.addElement(element,"span","","","; ");
-					}				
+					}
 					if(name.length > 0) {
 						recipientString += name;
 					}
@@ -535,12 +542,12 @@ readmailitemmodule.prototype.setRecipients = function(message)
 				}
 			}
 		}
-		
+
 		var toElement = dhtml.getElementById("to");
 		if(toElement && toElement.offsetHeight > 43) {
 			toElement.style.height = "45px";
 		}
-		
+
 		var ccElement = dhtml.getElementById("cc");
 		if(ccElement && ccElement.offsetHeight > 43) {
 			ccElement.style.height = "45px";
@@ -567,11 +574,11 @@ readmailitemmodule.prototype.setReadFlag = function(messageEntryid, flag)
 		data["store"] = this.storeid;
 		data["parententryid"] = this.parententryid;
 		data["entryid"] = messageEntryid;
-	
+
 		if(flag) {
 			data["flag"] = flag;
 		}
-		
+
 		if(typeof parentWebclient != "undefined") {
 			parentWebclient.xmlrequest.addData(this, "read_flag", data, webclient.modulePrefix);
 			parentWebclient.xmlrequest.sendRequest(true);

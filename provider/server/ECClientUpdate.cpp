@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -455,6 +455,8 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 	unsigned int ulLogLevel = atoui(g_lpConfig->GetSetting("client_update_log_level"));
 
 	if (!parseBool(g_lpConfig->GetSetting("client_update_enabled"))) {
+		// do not set on high loglevel, since by default the client updater is installed, and this will be quite often in your log
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Client update: trackid: 0x%08X, Config option 'client_update_enabled' has disabled this feature.", sClientUpdateInfo.ulTrackId);
 		er = ZARAFA_E_NO_SUPPORT;
 		goto exit;
 	}

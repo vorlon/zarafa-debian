@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -110,6 +110,18 @@ namespace priv {
 	template <>
 	void conv_out<unsigned int>(PyObject* value, LPVOID /*lpBase*/, ULONG /*ulFlags*/, unsigned int *lpResult) {
 		*lpResult = (unsigned int)PyLong_AsUnsignedLong(value);
+	}
+
+	/**
+	 * Specialization for extracting an unsigned short from a script value.
+	 *
+	 * @tparam		_Type	The type of the resulting value.
+	 * @param[in]	Value	The scripted value to convert.
+	 * @param[out]	result	The native value.
+	 */
+	template <>
+	void conv_out<unsigned short>(PyObject* value, LPVOID /*lpBase*/, ULONG /*ulFlags*/, unsigned short *lpResult) {
+		*lpResult = (unsigned short)PyLong_AsUnsignedLong(value);
 	}
 
 	/**

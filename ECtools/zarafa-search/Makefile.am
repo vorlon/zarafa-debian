@@ -5,12 +5,12 @@ noinst_PROGRAMS = dump-index
 endif
 endif
 
-AM_CPPFLAGS = \
+AM_CPPFLAGS = ${ZCPPFLAGS} \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
-	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -DLINUX
+	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS)
 
 zarafa_search_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \

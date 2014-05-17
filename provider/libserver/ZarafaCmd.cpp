@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -997,6 +997,7 @@ ECRESULT PurgeSoftDelete(ECSession *lpecSession, unsigned int ulLifetime, unsign
 	bool 			bExitDummy = false;
 
 	if (g_bPurgeSoftDeleteStatus) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_ERROR, "Softdelete already running");
 		er = ZARAFA_E_BUSY;
 		goto exit;
 	}

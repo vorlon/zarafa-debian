@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -201,6 +201,23 @@
 		
 		// Execute the request
 		$xml = $request->execute($xml);
+
+		/*
+		 * If we get any errors with more unicode characters then also reject overly long
+		 * 2 byte sequences, as well as characters above U+10000 and replace with ?
+		
+		$xml = preg_replace('/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]'.
+		 '|[\x00-\x7F][\x80-\xBF]+'.
+		 '|([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*'.
+		 '|[\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})'.
+		 '|[\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))|(?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/S',
+		 '?', $xml );
+		 */
+
+		//reject overly long 3 byte sequences and UTF-16 surrogates and replace with ?
+		$xml = preg_replace('/\xE0[\x80-\x9F][\x80-\xBF]'. // Remove strings like \xE0\x9F\xBF
+		 '|\xEF[\xA0-\xBF][\x80-\xBF]'. // Remove strings like \xEF\xBF\xBF
+		 '|\xED[\xA0-\xBF][\x80-\xBF]/S','?', $xml ); // Remove strings like \xED\xBF\xBF
 
 		if (function_exists("dump_xml")) dump_xml($xml,"out"); // debugging
 

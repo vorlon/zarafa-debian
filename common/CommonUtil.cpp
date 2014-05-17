@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1043,11 +1043,11 @@ HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, 
 		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
 	} else {
 		if (lpszName)
-			strOneOff.append((char *)lpszName, (strlen((char *)lpszName) + 1) * sizeof(char));
+			strOneOff.append((char *)lpszName, strlen((char *)lpszName) + 1);
 		else
-			strOneOff.append(sizeof(char), '\0');
-		strOneOff.append((char *)lpszAdrType, (strlen((char *)lpszAdrType) + 1) * sizeof(char));
-		strOneOff.append((char *)lpszAddress, (strlen((char *)lpszAddress) + 1) * sizeof(char));
+			strOneOff.append(1, '\0');
+		strOneOff.append((char *)lpszAdrType, strlen((char *)lpszAdrType) + 1);
+		strOneOff.append((char *)lpszAddress, strlen((char *)lpszAddress) + 1);
 	}
 
 	hr = MAPIAllocateBuffer(strOneOff.size(), (void **)lppEntryID);
@@ -1150,7 +1150,7 @@ HRESULT ECParseOneOff(LPENTRYID lpEntryID, ULONG cbEntryID, std::wstring &strWNa
 		hr = TryConvert(lpBuffer, rawsize(lpBuffer), "windows-1252", name);
 		if (hr != hrSuccess)
 			goto exit;
-		lpBuffer += (str.length() + 1) * sizeof(char);
+		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
 		if (str.length() == 0) {
@@ -1158,7 +1158,7 @@ HRESULT ECParseOneOff(LPENTRYID lpEntryID, ULONG cbEntryID, std::wstring &strWNa
 			goto exit;
 		}
 		type = convert_to<std::wstring>(str);
-		lpBuffer += (str.length() + 1) * sizeof(char);
+		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
 		if (str.length() == 0) {
@@ -1166,7 +1166,7 @@ HRESULT ECParseOneOff(LPENTRYID lpEntryID, ULONG cbEntryID, std::wstring &strWNa
 			goto exit;
 		}
 		addr = convert_to<std::wstring>(str);
-		lpBuffer += (str.length() + 1) * sizeof(char);
+		lpBuffer += str.length() + 1;
 	}
 
 	strWName = name;

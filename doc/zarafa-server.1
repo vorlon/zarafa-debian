@@ -126,6 +126,20 @@ for information on the server\&.cfg settings\&.
 .SH "DIAGNOSTICS"
 .PP
 If you run into problems, check the log for any errors\&. If you made a mistake in the configuration of the log method, this will be reported on standard error\&. You can also restart the server with a higher log level\&. Also, before starting the server, always make sure the database server is running at the right location and no other server is listening on the configured TCP port\&.
+.PP
+For extended diagnostics, there are special extended log options available for enhanced debugging capabilities\&. The parameter
+\fIlog_level\fR
+has special or\-ed values which can be set to investigate different modules within the server process:
+.PP
+SQL: 0x00010000, User backend: 0x00020000, Server cache: 0x00040000, SOAP: 0x00100000, ICS: 0x00200000
+.PP
+For example, if you are using LDAP as the user plugin, you can set the
+\fIlog_level\fR
+to 0x00020006 for extended LDAP logging (the last digit 6 enables extended verbose logging)\&. To enable SQL and LDAP logging at the same time, set
+\fIlog_level\fR
+to 0x00030006
+.PP
+WARNING: The log options create huge amounts of log entries in production environments, this results in abnormal large logfiles which can fill up available disk space very fast\&. Only use this with extreme caution\&.
 .SH "SECURITY"
 .PP
 The normal way for user clients to connect to the server is over TCP, either direct using the Zarafa port, or over HTTP when Apache is setup as a proxy\&. Users can only login with their username and password\&.
@@ -184,6 +198,10 @@ Install the new service\&.pem on the server that will be logging in\&. Install t
 \fB mv service\-public\&.pem /etc/zarafa/sslkeys \fR
 .PP
 The remote service, which has the service\&.pem private key, can now login with the certificate, because the known public key matches\&.
+.SH "ADDRESSBOOK SORTING"
+.PP
+With special chars (like umlauts) the sorting is working more the dictionary way according to DIN 5007\-1, section 6\&.1\&.1\&.4\&.1\&. Depending on the behaviour wanted, the collation setting can be changed with the (not per default included) parameter
+\fI default_sort_locale_id\fR\&. When setting this parameter to de_DE@collation=phonebook for example the sorting will be oriented to the DIN 5007\-2, section 6\&.1\&.1\&.4\&.2 standard which is rather used in phonebooks and actually decomposes umlauts for sorting inline within non\-umlaut based ASCII characters\&.
 .SH "SIGNALS"
 .PP
 The following signals can be sent to the Zarafa server process:

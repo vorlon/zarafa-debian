@@ -41,14 +41,8 @@ subdir = provider/plugins
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
-	$(top_srcdir)/autoconf/icu.m4 \
-	$(top_srcdir)/autoconf/libtool.m4 \
-	$(top_srcdir)/autoconf/ltoptions.m4 \
-	$(top_srcdir)/autoconf/ltsugar.m4 \
-	$(top_srcdir)/autoconf/ltversion.m4 \
-	$(top_srcdir)/autoconf/lt~obsolete.m4 \
-	$(top_srcdir)/autoconf/php.m4 $(top_srcdir)/autoconf/swig.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
+	$(top_srcdir)/autoconf/swig.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -90,7 +84,7 @@ AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 dbplugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(dbplugin_la_CXXFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(dbplugin_la_LDFLAGS) $(LDFLAGS) -o $@
 @WITH_LDAP_TRUE@am__DEPENDENCIES_2 =  \
 @WITH_LDAP_TRUE@	${top_builddir}/common/libcommon_util.la \
@@ -111,8 +105,8 @@ am__objects_3 = ldapmsplugin_la-ZarafaUser.lo
 ldapmsplugin_la_OBJECTS = $(am_ldapmsplugin_la_OBJECTS)
 ldapmsplugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) \
-	$(ldapmsplugin_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(ldapmsplugin_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 @OSS_ONLY_FALSE@@WITH_LDAP_TRUE@am_ldapmsplugin_la_rpath = -rpath \
 @OSS_ONLY_FALSE@@WITH_LDAP_TRUE@	$(pkglibdir)
 @WITH_LDAP_TRUE@ldapplugin_la_DEPENDENCIES =  \
@@ -131,8 +125,8 @@ am__objects_5 = ldapplugin_la-ZarafaUser.lo
 ldapplugin_la_OBJECTS = $(am_ldapplugin_la_OBJECTS)
 ldapplugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) $(ldapplugin_la_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(ldapplugin_la_LDFLAGS) $(LDFLAGS) \
+	-o $@
 @WITH_LDAP_TRUE@am_ldapplugin_la_rpath = -rpath $(pkglibdir)
 @WITH_UNIX_TRUE@unixplugin_la_DEPENDENCIES =  \
 @WITH_UNIX_TRUE@	${top_builddir}/common/libcommon_util.la \
@@ -149,8 +143,8 @@ am__objects_7 = unixplugin_la-DBBase.lo
 unixplugin_la_OBJECTS = $(am_unixplugin_la_OBJECTS)
 unixplugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(unixplugin_la_CXXFLAGS) $(CXXFLAGS) $(unixplugin_la_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(unixplugin_la_LDFLAGS) $(LDFLAGS) \
+	-o $@
 @WITH_UNIX_TRUE@am_unixplugin_la_rpath = -rpath $(pkglibdir)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -205,7 +199,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -292,6 +288,7 @@ MKDIR_P = @MKDIR_P@
 MYSQL_INCLUDES = @MYSQL_INCLUDES@
 MYSQL_LIBS = @MYSQL_LIBS@
 MYSQL_VERSION = @MYSQL_VERSION@
+NCURSES_CONFIG = @NCURSES_CONFIG@
 NCURSES_FLAGS = @NCURSES_FLAGS@
 NCURSES_LIBS = @NCURSES_LIBS@
 NM = @NM@
@@ -335,6 +332,7 @@ STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
+TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
 UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
@@ -346,6 +344,7 @@ YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
+ZCPPFLAGS = @ZCPPFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -400,26 +399,29 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = $(DEBUGFLAGS) $(BOOST_CPPFLAGS) -DLINUX -I${top_srcdir}/common -I${top_srcdir}/provider/libserver -I${top_srcdir}/provider/common
+AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
+	-I${top_srcdir}/common -I${top_srcdir}/provider/libserver \
+	-I${top_srcdir}/provider/common
+
 COMMON_PLUGIN_FILES = plugin.h ${top_builddir}/provider/common/ZarafaUser.cpp ${top_builddir}/provider/common/ZarafaUser.h
 COMMON_DBPLUGIN_FILES = DBBase.h DBBase.cpp ../libserver/ECDatabase.h 
 
 # default plugin
 pkglib_LTLIBRARIES = $(am__append_1) $(am__append_2) $(am__append_3) \
 	dbplugin.la
-@WITH_UNIX_TRUE@unixplugin_la_CXXFLAGS = $(MYSQL_INCLUDES)
+@WITH_UNIX_TRUE@unixplugin_la_CPPFLAGS = ${AM_CPPFLAGS} $(MYSQL_INCLUDES)
 @WITH_UNIX_TRUE@unixplugin_la_SOURCES = UnixUserPlugin.cpp UnixUserPlugin.h $(COMMON_PLUGIN_FILES) $(COMMON_DBPLUGIN_FILES)
-@WITH_UNIX_TRUE@unixplugin_la_LDFLAGS = -module -avoid-version
+@WITH_UNIX_TRUE@unixplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 @WITH_UNIX_TRUE@unixplugin_la_LIBADD = ${top_builddir}/common/libcommon_util.la $(MYSQL_LIBS) $(CRYPT_LIBS)
-@WITH_LDAP_TRUE@ldapplugin_la_CXXFLAGS = $(LDAP_FLAGS) -DLDAP_THREAD_SAFE
+@WITH_LDAP_TRUE@ldapplugin_la_CPPFLAGS = ${AM_CPPFLAGS} $(LDAP_FLAGS) -DLDAP_THREAD_SAFE
 @WITH_LDAP_TRUE@ldapplugin_la_SOURCES = LDAPUserPlugin.cpp LDAPUserPlugin.h LDAPCache.cpp LDAPCache.h ldappasswords.cpp ldappasswords.h $(COMMON_PLUGIN_FILES)
-@WITH_LDAP_TRUE@ldapplugin_la_LDFLAGS = -module -avoid-version
+@WITH_LDAP_TRUE@ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 @WITH_LDAP_TRUE@ldapplugin_la_LIBADD = ${top_builddir}/common/libcommon_util.la $(LDAP_LIBS)
-@OSS_ONLY_FALSE@@WITH_LDAP_TRUE@ldapmsplugin_la_CXXFLAGS = $(ldapplugin_la_CXXFLAGS) -DWITH_MULTISERVER
+@OSS_ONLY_FALSE@@WITH_LDAP_TRUE@ldapmsplugin_la_CPPFLAGS = ${AM_CPPFLAGS} $(ldapplugin_la_CPPFLAGS) -DWITH_MULTISERVER
 @OSS_ONLY_FALSE@@WITH_LDAP_TRUE@ldapmsplugin_la_SOURCES = $(ldapplugin_la_SOURCES)
 @OSS_ONLY_FALSE@@WITH_LDAP_TRUE@ldapmsplugin_la_LDFLAGS = $(ldapplugin_la_LDFLAGS)
 @OSS_ONLY_FALSE@@WITH_LDAP_TRUE@ldapmsplugin_la_LIBADD = $(ldapplugin_la_LIBADD)
-dbplugin_la_CXXFLAGS = $(MYSQL_INCLUDES)
+dbplugin_la_CPPFLAGS = ${AM_CPPFLAGS} $(MYSQL_INCLUDES)
 dbplugin_la_SOURCES = DBUserPlugin.cpp DBUserPlugin.h $(COMMON_PLUGIN_FILES) $(COMMON_DBPLUGIN_FILES)
 dbplugin_la_LDFLAGS = -module -avoid-version
 dbplugin_la_LIBADD = ${top_builddir}/common/libcommon_util.la $(MYSQL_LIBS)
@@ -543,116 +545,116 @@ distclean-compile:
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 dbplugin_la-DBUserPlugin.lo: DBUserPlugin.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-DBUserPlugin.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-DBUserPlugin.Tpo -c -o dbplugin_la-DBUserPlugin.lo `test -f 'DBUserPlugin.cpp' || echo '$(srcdir)/'`DBUserPlugin.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-DBUserPlugin.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-DBUserPlugin.Tpo -c -o dbplugin_la-DBUserPlugin.lo `test -f 'DBUserPlugin.cpp' || echo '$(srcdir)/'`DBUserPlugin.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dbplugin_la-DBUserPlugin.Tpo $(DEPDIR)/dbplugin_la-DBUserPlugin.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DBUserPlugin.cpp' object='dbplugin_la-DBUserPlugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-DBUserPlugin.lo `test -f 'DBUserPlugin.cpp' || echo '$(srcdir)/'`DBUserPlugin.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-DBUserPlugin.lo `test -f 'DBUserPlugin.cpp' || echo '$(srcdir)/'`DBUserPlugin.cpp
 
 dbplugin_la-ZarafaUser.lo: ${top_builddir}/provider/common/ZarafaUser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-ZarafaUser.Tpo -c -o dbplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-ZarafaUser.Tpo -c -o dbplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dbplugin_la-ZarafaUser.Tpo $(DEPDIR)/dbplugin_la-ZarafaUser.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='${top_builddir}/provider/common/ZarafaUser.cpp' object='dbplugin_la-ZarafaUser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 
 dbplugin_la-DBBase.lo: DBBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-DBBase.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-DBBase.Tpo -c -o dbplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT dbplugin_la-DBBase.lo -MD -MP -MF $(DEPDIR)/dbplugin_la-DBBase.Tpo -c -o dbplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dbplugin_la-DBBase.Tpo $(DEPDIR)/dbplugin_la-DBBase.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DBBase.cpp' object='dbplugin_la-DBBase.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(dbplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dbplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
 
 ldapmsplugin_la-LDAPUserPlugin.lo: LDAPUserPlugin.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-LDAPUserPlugin.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-LDAPUserPlugin.Tpo -c -o ldapmsplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-LDAPUserPlugin.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-LDAPUserPlugin.Tpo -c -o ldapmsplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapmsplugin_la-LDAPUserPlugin.Tpo $(DEPDIR)/ldapmsplugin_la-LDAPUserPlugin.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LDAPUserPlugin.cpp' object='ldapmsplugin_la-LDAPUserPlugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
 
 ldapmsplugin_la-LDAPCache.lo: LDAPCache.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-LDAPCache.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-LDAPCache.Tpo -c -o ldapmsplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-LDAPCache.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-LDAPCache.Tpo -c -o ldapmsplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapmsplugin_la-LDAPCache.Tpo $(DEPDIR)/ldapmsplugin_la-LDAPCache.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LDAPCache.cpp' object='ldapmsplugin_la-LDAPCache.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
 
 ldapmsplugin_la-ldappasswords.lo: ldappasswords.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-ldappasswords.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-ldappasswords.Tpo -c -o ldapmsplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-ldappasswords.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-ldappasswords.Tpo -c -o ldapmsplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapmsplugin_la-ldappasswords.Tpo $(DEPDIR)/ldapmsplugin_la-ldappasswords.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ldappasswords.cpp' object='ldapmsplugin_la-ldappasswords.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
 
 ldapmsplugin_la-ZarafaUser.lo: ${top_builddir}/provider/common/ZarafaUser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-ZarafaUser.Tpo -c -o ldapmsplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapmsplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/ldapmsplugin_la-ZarafaUser.Tpo -c -o ldapmsplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapmsplugin_la-ZarafaUser.Tpo $(DEPDIR)/ldapmsplugin_la-ZarafaUser.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='${top_builddir}/provider/common/ZarafaUser.cpp' object='ldapmsplugin_la-ZarafaUser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapmsplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapmsplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapmsplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 
 ldapplugin_la-LDAPUserPlugin.lo: LDAPUserPlugin.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-LDAPUserPlugin.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-LDAPUserPlugin.Tpo -c -o ldapplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-LDAPUserPlugin.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-LDAPUserPlugin.Tpo -c -o ldapplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapplugin_la-LDAPUserPlugin.Tpo $(DEPDIR)/ldapplugin_la-LDAPUserPlugin.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LDAPUserPlugin.cpp' object='ldapplugin_la-LDAPUserPlugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-LDAPUserPlugin.lo `test -f 'LDAPUserPlugin.cpp' || echo '$(srcdir)/'`LDAPUserPlugin.cpp
 
 ldapplugin_la-LDAPCache.lo: LDAPCache.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-LDAPCache.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-LDAPCache.Tpo -c -o ldapplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-LDAPCache.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-LDAPCache.Tpo -c -o ldapplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapplugin_la-LDAPCache.Tpo $(DEPDIR)/ldapplugin_la-LDAPCache.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LDAPCache.cpp' object='ldapplugin_la-LDAPCache.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-LDAPCache.lo `test -f 'LDAPCache.cpp' || echo '$(srcdir)/'`LDAPCache.cpp
 
 ldapplugin_la-ldappasswords.lo: ldappasswords.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-ldappasswords.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-ldappasswords.Tpo -c -o ldapplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-ldappasswords.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-ldappasswords.Tpo -c -o ldapplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapplugin_la-ldappasswords.Tpo $(DEPDIR)/ldapplugin_la-ldappasswords.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ldappasswords.cpp' object='ldapplugin_la-ldappasswords.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-ldappasswords.lo `test -f 'ldappasswords.cpp' || echo '$(srcdir)/'`ldappasswords.cpp
 
 ldapplugin_la-ZarafaUser.lo: ${top_builddir}/provider/common/ZarafaUser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-ZarafaUser.Tpo -c -o ldapplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ldapplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/ldapplugin_la-ZarafaUser.Tpo -c -o ldapplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldapplugin_la-ZarafaUser.Tpo $(DEPDIR)/ldapplugin_la-ZarafaUser.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='${top_builddir}/provider/common/ZarafaUser.cpp' object='ldapplugin_la-ZarafaUser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldapplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ldapplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ldapplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 
 unixplugin_la-UnixUserPlugin.lo: UnixUserPlugin.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-UnixUserPlugin.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-UnixUserPlugin.Tpo -c -o unixplugin_la-UnixUserPlugin.lo `test -f 'UnixUserPlugin.cpp' || echo '$(srcdir)/'`UnixUserPlugin.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-UnixUserPlugin.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-UnixUserPlugin.Tpo -c -o unixplugin_la-UnixUserPlugin.lo `test -f 'UnixUserPlugin.cpp' || echo '$(srcdir)/'`UnixUserPlugin.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/unixplugin_la-UnixUserPlugin.Tpo $(DEPDIR)/unixplugin_la-UnixUserPlugin.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='UnixUserPlugin.cpp' object='unixplugin_la-UnixUserPlugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-UnixUserPlugin.lo `test -f 'UnixUserPlugin.cpp' || echo '$(srcdir)/'`UnixUserPlugin.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-UnixUserPlugin.lo `test -f 'UnixUserPlugin.cpp' || echo '$(srcdir)/'`UnixUserPlugin.cpp
 
 unixplugin_la-ZarafaUser.lo: ${top_builddir}/provider/common/ZarafaUser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-ZarafaUser.Tpo -c -o unixplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-ZarafaUser.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-ZarafaUser.Tpo -c -o unixplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/unixplugin_la-ZarafaUser.Tpo $(DEPDIR)/unixplugin_la-ZarafaUser.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='${top_builddir}/provider/common/ZarafaUser.cpp' object='unixplugin_la-ZarafaUser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-ZarafaUser.lo `test -f '${top_builddir}/provider/common/ZarafaUser.cpp' || echo '$(srcdir)/'`${top_builddir}/provider/common/ZarafaUser.cpp
 
 unixplugin_la-DBBase.lo: DBBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-DBBase.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-DBBase.Tpo -c -o unixplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT unixplugin_la-DBBase.lo -MD -MP -MF $(DEPDIR)/unixplugin_la-DBBase.Tpo -c -o unixplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/unixplugin_la-DBBase.Tpo $(DEPDIR)/unixplugin_la-DBBase.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DBBase.cpp' object='unixplugin_la-DBBase.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(unixplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(unixplugin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o unixplugin_la-DBBase.lo `test -f 'DBBase.cpp' || echo '$(srcdir)/'`DBBase.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo

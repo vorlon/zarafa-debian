@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -200,7 +200,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		ECMsgStorePtr ptrOnlineStore;
 		ULONG cbEntryID = 0;
 		EntryIdPtr ptrEntryID;
-		char *lpszServer = NULL;
+		std::string ServerURL;
 		bool bIsPseudoUrl = false;
 		std::string strServer;
 		bool bIsPeer = false;
@@ -221,17 +221,17 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = HrGetServerURLFromStoreEntryId(cbEntryID, ptrEntryID, &lpszServer, &bIsPseudoUrl);
+		hr = HrGetServerURLFromStoreEntryId(cbEntryID, ptrEntryID, ServerURL, &bIsPseudoUrl);
 		if (hr != hrSuccess)
 			goto exit;
 
 		if (bIsPseudoUrl) {
-			hr = HrResolvePseudoUrl(ptrOnlineStore->lpTransport, lpszServer, &strServer, &bIsPeer);
+			hr = HrResolvePseudoUrl(ptrOnlineStore->lpTransport, ServerURL.c_str(), strServer, &bIsPeer);
 			if (hr != hrSuccess)
 				goto exit;
 			
 			if (!bIsPeer)
-				lpszServer = (char*)strServer.c_str();
+				ServerURL = strServer;
 			
 			else {
 				// We can't just use the transport from ptrOnlineStore as that will be
@@ -245,7 +245,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		if (!ptrTransport) {
 			// We get here if lpszServer wasn't a pseudo URL or if it was and it resolved
 			// to another server than the one we're connected with.
-			hr = ptrOnlineStore->lpTransport->CreateAndLogonAlternate(lpszServer, &ptrTransport);
+			hr = ptrOnlineStore->lpTransport->CreateAndLogonAlternate(ServerURL.c_str(), &ptrTransport);
 			if (hr != hrSuccess)
 				goto exit;
 		}

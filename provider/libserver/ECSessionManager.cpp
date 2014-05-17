@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -1370,7 +1370,6 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
 	GetStats(sSessionStats);
 
 	callback("sessions", "Number of sessions", stringify(sSessionStats.session.ulItems), obj);
-	callback("sessions_locked", "Number of locked sessions", stringify(sSessionStats.session.ulLocked), obj);
 	callback("sessions_size", "Memory usage of sessions", stringify_int64(sSessionStats.session.ullSize), obj);
 	callback("sessiongroups", "Number of session groups", stringify(sSessionStats.group.ulItems), obj);
 	callback("sessiongroups_size", "Memory usage of session groups", stringify_int64(sSessionStats.group.ullSize), obj);
@@ -1384,9 +1383,6 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
 	callback("tables_subscr_size", "Memory usage of subscribed tables", stringify(sSessionStats.ulTableSubscriptionSize), obj);
 	callback("object_subscr", "Objects subscribed", stringify(sSessionStats.ulObjectSubscriptions), obj);
 	callback("object_subscr_size", "Memory usage of subscribed objects", stringify(sSessionStats.ulObjectSubscriptionSize), obj);
-
-	callback("tables_open", "Number of open tables", stringify(sSessionStats.session.ulOpenTables), obj);
-	callback("tables_open_size", "Memory usage of open tables", stringify_int64(sSessionStats.session.ulTableSize), obj);
 
 	m_lpSearchFolders->GetStats(sSearchStats);
 
@@ -1404,7 +1400,6 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
  */
 void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 {
-	unsigned int ulTmpTables, ulTmpTableSize;
 	SESSIONMAP::iterator		iIterator;
 	SESSIONGROUPMAP::iterator	itersg;
 	ECSession *lpSess;
@@ -1418,33 +1413,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	sStats.session.ulItems = m_mapSessions.size();
 	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
 
-	// lock and copy sessions so we can release the main sessionmanager lock before we call the tablemanager to avoid other locks
-
-	for(iIterator = m_mapSessions.begin(); iIterator != m_mapSessions.end(); iIterator++)
-	{
-		if(iIterator->second->IsLocked() == true)
-			sStats.session.ulLocked++;
-
-		lpSess = dynamic_cast<ECSession*>(iIterator->second);
-		if (lpSess) {
-			lpSess->Lock();
-			vSessions.push_back(lpSess);
-		}
-	}
-
 	pthread_rwlock_unlock(&m_hCacheRWLock);
-
-	for (list<ECSession*>::iterator i = vSessions.begin(); i != vSessions.end(); i++)
-	{
-		lpSess = *i;
-		lpSess->GetTableManager()->GetStats(&ulTmpTables, &ulTmpTableSize);
-
-		sStats.session.ullSize += lpSess->GetObjectSize();
-		sStats.session.ulOpenTables += ulTmpTables;
-		sStats.session.ulTableSize += ulTmpTableSize;
-
-		lpSess->Unlock();
-	}
 
 	// Get group data
 	pthread_rwlock_rdlock(&m_hGroupLock);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 - 2013  Zarafa B.V.
+ * Copyright 2005 - 2014  Zarafa B.V.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3, 
@@ -2392,6 +2392,9 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		} else if (strcmp(keyIndex, "add_imap_date") == 0) {
 			convert_to_boolean_ex(entry);
 			lpDOPT->add_imap_data = Z_BVAL_PP(entry);
+		} else if (strcmp(keyIndex, "parse_smime_signed") == 0) {
+			convert_to_boolean_ex(entry);
+			lpDOPT->parse_smime_signed = Z_BVAL_PP(entry);
 		} else {
 			// user_entryid not supported, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex);

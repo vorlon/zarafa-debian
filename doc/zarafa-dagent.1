@@ -198,6 +198,23 @@ The username of the Zarafa user which set the auto response
 A file where the auto respond message will be temporary written to during the autorespond
 .RE
 .sp
+The following environment variables are present:
+.PP
+\fIMESSAGE_TO_ME\fR
+.RS 4
+Set to 1 if the original mail had the user in the To header\&.
+.RE
+.PP
+\fIMESSAGE_CC_ME\fR
+.RS 4
+Set to 1 if the original mail had the user in the Cc header\&.
+.RE
+.PP
+\fIMAILHEADERS\fR
+.RS 4
+Optional, if this value is present it points to a file that contains the original headers of the received email\&.
+.RE
+.sp
 Default:
 \fI/usr/bin/zarafa\-autorespond\fR\&.
 .RE
