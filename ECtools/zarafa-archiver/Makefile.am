@@ -10,6 +10,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/provider/soap \
 	-I${top_builddir}/provider/soap \
+    $(GSOAP_CFLAGS) \
 	-I${top_srcdir}/common \
 	$(MYSQL_INCLUDES)
 
@@ -20,14 +21,14 @@ libarchiver_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_util.la
 
 libarchiver_la_SOURCES = \
-	ArchiverSession.cpp ArchiverSession.h archiver-session_fwd.h \
+	ArchiverSession.cpp ArchiverSession.h ArchiverSessionPtr.h \
 	archiver-common.cpp archiver-common.h ArchiveControl.h \
 	ArchiveManageImpl.cpp ArchiveManageImpl.h ArchiveManage.h\
 	ArchiveStateCollector.cpp ArchiveStateCollector.h \
 	ArchiveStateUpdater.cpp ArchiveStateUpdater.h archivestateupdater_fwd.h \
 	helpers/ArchiveHelper.cpp helpers/ArchiveHelper.h \
-	helpers/storehelper.cpp helpers/storehelper.h \
-	helpers/mapiprophelper.cpp helpers/mapiprophelper.h \
+	helpers/StoreHelper.cpp helpers/StoreHelper.h \
+	helpers/MAPIPropHelper.cpp helpers/MAPIPropHelper.h \
 	ECArchiverLogger.cpp ECArchiverLogger.h
 
 

@@ -50,11 +50,13 @@
 /* ArchiverImpl.cpp
  * Definition of class ArchiverImpl
  */
+#include "platform.h"
 #include "ArchiverImpl.h"
 #include "ArchiveControlImpl.h"
 #include "ArchiveManageImpl.h"
 #include "ArchiveStateCollector.h"
 #include "ArchiveStateUpdater.h"
+#include "ArchiverSession.h"
 
 ArchiverImpl::ArchiverImpl()
 : m_lpsConfig(NULL)
@@ -105,7 +107,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 			LogConfigErrors(m_lpsConfig, lpLogger);
 			lpLogger->Release();
 		}
-		
+
 		r = InvalidConfig;
 		goto exit;
 	}
@@ -150,7 +152,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		r = Failure;
 		goto exit;
 	}
-	
+
 	if (ArchiverSession::Create(m_lpsConfig, m_lpLogger, &m_ptrSession) != hrSuccess) {
 		r = Failure;
 		goto exit;
@@ -173,7 +175,7 @@ eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrMa
 {
 	if (!m_MAPI.IsInitialized())
 		return Uninitialized;
-		
+
 	return MAPIErrorToArchiveError(ArchiveManageImpl::Create(m_ptrSession, m_lpsConfig, lpszUser, m_lpLogger, lpptrManage));
 }
 
@@ -222,13 +224,13 @@ ECLogger* ArchiverImpl::GetLogger(eLogType which) const
 {
     ECLogger* retval = NULL;
 	switch (which) {
-		case DefaultLog: 
+		case DefaultLog:
             retval = m_lpLogger;
             break;
-		case LogOnly: 
+		case LogOnly:
             retval = m_lpLogLogger;
 	}
-    return retval;
+	return retval;
 }
 
 configsetting_t* ArchiverImpl::ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2)

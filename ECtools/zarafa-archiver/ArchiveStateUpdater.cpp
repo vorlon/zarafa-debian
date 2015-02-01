@@ -51,7 +51,7 @@
 #include "archiver-common.h"
 #include "ArchiveStateUpdater.h"
 #include "ArchiverSession.h"
-#include "helpers/storehelper.h"
+#include "helpers/StoreHelper.h"
 #include "helpers/ArchiveHelper.h"
 #include "ArchiveManageImpl.h"
 

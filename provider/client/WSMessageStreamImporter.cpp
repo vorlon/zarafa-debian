@@ -285,6 +285,10 @@ void WSMessageStreamImporter::run()
 	m_ptrTransport->LockSoap();
 
 	soap_set_omode(lpSoap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);	
+#ifdef WITH_SYSTEM_GSOAP
+    lpSoap->mode &= ~SOAP_XML_TREE;
+    lpSoap->omode &= ~SOAP_XML_TREE;
+#endif
 	lpSoap->fmimereadopen = &StaticMTOMReadOpen;
 	lpSoap->fmimeread = &StaticMTOMRead;
 	lpSoap->fmimereadclose = &StaticMTOMReadClose;

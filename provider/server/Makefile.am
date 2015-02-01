@@ -12,7 +12,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 zarafa_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E $(BOOST_FILESYSTEM_LDFLAGS)
 zarafa_server_LDADD = \
 	${top_builddir}/provider/libserver/libserver.la							\
-	${top_builddir}/provider/soap/libgsoap.la								\
+    ${GSOAP_LIBS} \
 	${top_builddir}/provider/soap/libsoapserver.la							\
 	${top_builddir}/provider/common/libzarafacommon.la						\
 	${top_builddir}/common/libcommon_util.la								\

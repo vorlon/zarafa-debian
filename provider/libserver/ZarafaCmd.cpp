@@ -5606,7 +5606,7 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId
 
 	er = GetABEntryID(ulUserId, soap, &sTmpUserId);
 	if (er == erSuccess)
-		er = CopyUserDetailsToSoap(ulUserId, &sTmpUserId, details, soap, lpsGetUserResponse->lpsUser);
+		er = CopyUserDetailsToSoap(ulUserId, &sTmpUserId, details, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, lpsGetUserResponse->lpsUser);
 	if (er != erSuccess)
 		goto exit;
 
@@ -5663,7 +5663,7 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
+		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -5724,7 +5724,7 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyUserDetailsToSoap(*iterUserIds, &sSenderEid, senderDetails, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
+		er = CopyUserDetailsToSoap(*iterUserIds, &sSenderEid, senderDetails, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -6201,7 +6201,7 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGro
 
 	er = GetABEntryID(ulGroupId, soap, &sTmpGroupId);
 	if (er == erSuccess)
-		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, soap, lpsResponse->lpsGroup);
+		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, lpsResponse->lpsGroup);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6254,7 +6254,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyGroupDetailsToSoap(iterGroups->ulId, &sGroupEid, *iterGroups, soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
+		er = CopyGroupDetailsToSoap(iterGroups->ulId, &sGroupEid, *iterGroups, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -6428,7 +6428,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 
 		// @todo Whoops, we can have group-in-groups. But since details of a group are almost identical to user details (eg. name, fullname, email)
 		// this copy will succeed without any problems ... but it's definitly not correct.
-		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
+		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -6481,7 +6481,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyGroupDetailsToSoap(iterGroups->ulId, &sGroupEid, *iterGroups, soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
+		er = CopyGroupDetailsToSoap(iterGroups->ulId, &sGroupEid, *iterGroups, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsGroupList->sGroupArray.__ptr[lpsGroupList->sGroupArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -6685,7 +6685,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 
 	lpsResponse->lpsCompany = s_alloc<company>(soap);
 	memset(lpsResponse->lpsCompany, 0, sizeof(company));
-	er = CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, soap, lpsResponse->lpsCompany);
+	er = CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6768,7 +6768,7 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyCompanyDetailsToSoap(iterCompanies->ulId, &sCompanyEid, ulAdmin, &sAdminEid, *iterCompanies, soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
+		er = CopyCompanyDetailsToSoap(iterCompanies->ulId, &sCompanyEid, ulAdmin, &sAdminEid, *iterCompanies, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -6900,7 +6900,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyCompanyDetailsToSoap(iterCompanies->ulId, &sCompanyEid, ulAdmin, &sAdminEid, *iterCompanies, soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
+		er = CopyCompanyDetailsToSoap(iterCompanies->ulId, &sCompanyEid, ulAdmin, &sAdminEid, *iterCompanies, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsCompanyList->sCompanyArray.__ptr[lpsCompanyList->sCompanyArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -7021,7 +7021,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
+		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -7583,7 +7583,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 			// We allow an archive store to be resolved by sysadmins even if it's not supposed
 			// to exist on this server for a particular user.
 			if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN &&
-				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), false))
+				!sUserDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true))
 			{
 				// No redirect with archive stores because there can be multiple archive stores.
 				er = ZARAFA_E_NOT_FOUND;
@@ -9959,7 +9959,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		if (er != erSuccess)
 			goto exit;
 
-		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
+		er = CopyUserDetailsToSoap(iterUsers->ulId, &sUserEid, *iterUsers, lpecSession->GetCapabilities() & ZARAFA_CAP_EXTENDED_ANON, soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			goto exit;
 
@@ -10919,6 +10919,10 @@ exit:
 		lpAttachmentStorage->Release();
 
 	FREE_DBRESULT();
+#ifdef WITH_SYSTEM_GSOAP
+    soap->mode &= ~SOAP_XML_TREE;
+    soap->omode &= ~SOAP_XML_TREE;
+#endif
 }
 SOAP_ENTRY_END()
 

@@ -17,9 +17,13 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS)	\
 	-I${top_srcdir}/common						\
 	-I${top_srcdir}/zarafa-libsync
 
+if WITH_SYSTEM_GSOAP
+AM_CPPFLAGS += -DWITH_SYSTEM_GSOAP
+endif
+
 libzarafaclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
-libzarafaclient_la_LIBADD = $(GSOAP_LIBS) $(SSL_LIBS)	\
-	${top_builddir}/provider/soap/libgsoap.la			\
+libzarafaclient_la_LIBADD = $(SSL_LIBS)	\
+    ${GSOAP_LIBS} \
 	${top_builddir}/provider/soap/libsoapclient.la		\
 	${top_builddir}/provider/common/libzarafacommon.la	\
 	${top_builddir}/common/libcommon_util.la			\

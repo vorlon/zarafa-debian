@@ -138,6 +138,7 @@ protected:
 	objectdetails_t		m_details;
     objectdetails_t 	m_impersonatorDetails;
 	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
+	bool 				m_bOwnerAutoFullAccess;
 	std::list<localobjectdetails_t> *m_lpGroups; // current user groups
 	std::list<localobjectdetails_t> *m_lpViewCompanies; // current visible companies
 	std::list<localobjectdetails_t> *m_lpAdminCompanies; // Companies where the user has admin rights on

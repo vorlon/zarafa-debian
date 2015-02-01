@@ -164,6 +164,8 @@
 #define dispidConferenceServerPassword		0x8249	//PT_STRING8
 // A counter proposal is when the recipient of the request has proposed a new time for the meeting
 #define dispidApptCounterProposal			0x8257	//PT_BOOLEAN
+#define dispidApptProposedStartWhole		0x8250  //PT_SYSTIME
+#define dispidApptProposedEndWhole			0x8251  //PT_SYSTIME
 #define dispidApptReplyTime					0x8220	//PT_SYSTIME
 
 #define dispidOrgMsgId						0x8251  //PT_BINARY

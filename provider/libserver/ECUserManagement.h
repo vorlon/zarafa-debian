@@ -174,7 +174,7 @@ public:
 	virtual ~ECUserManagement();
 
 	// Authenticate a user
-	virtual ECRESULT	AuthUserAndSync(char *szUsername, char *szPassword, unsigned int *lpulUserId);
+	virtual ECRESULT	AuthUserAndSync(const char* szUsername, const char* szPassword, unsigned int* lpulUserId);
 
 	// Get data for an object, with on-the-fly delete of the specified object id
 	virtual ECRESULT	GetObjectDetails(unsigned int ulObjectId, objectdetails_t *lpDetails);
@@ -197,13 +197,13 @@ public:
 	virtual ECRESULT	DeleteSubObjectFromObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId);
 
 	// Resolve a user name to a user id, with on-the-fly create of the specified user
-	virtual ECRESULT	ResolveObjectAndSync(objectclass_t objclass, char *szName, unsigned int *lpulObjectId);
+	virtual ECRESULT	ResolveObjectAndSync(objectclass_t objclass, const char* szName, unsigned int* lpulObjectId);
 
 	// Get a local object ID for a part of a name
-	virtual ECRESULT	SearchObjectAndSync(char *szSearchString, unsigned int ulFlags, unsigned int *lpulId);
+	virtual ECRESULT	SearchObjectAndSync(const char* szSearchString, unsigned int ulFlags, unsigned int* lpulId);
 
 	// Create an object
-	virtual ECRESULT	CreateObjectAndSync(const objectdetails_t &details, unsigned int *ulId);
+	virtual ECRESULT	CreateObjectAndSync(const objectdetails_t &details, unsigned int* ulId);
 	// Delete an object
 	virtual ECRESULT	DeleteObjectAndSync(unsigned int ulObjectId);
 	// Either modify or create an object with a specific object id and type (used for synchronize)

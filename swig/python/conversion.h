@@ -123,9 +123,9 @@ PyObject *		List_from_LPREADSTATE(LPREADSTATE lpReadState, ULONG cElements);
 LPCIID 			List_to_LPCIID(PyObject *, ULONG *);
 PyObject *		List_from_LPCIID(LPCIID iids, ULONG cElements);
 
-LPECUSER		Object_to_LPECUSER(PyObject *, ULONG);
-PyObject *		Object_from_LPECUSER(LPECUSER lpUser);
-PyObject *		List_from_LPECUSER(LPECUSER lpUser, ULONG cElements);
+LPECUSER		Object_to_LPECUSER(PyObject *, ULONG ulFlags);
+PyObject *		Object_from_LPECUSER(LPECUSER lpUser, ULONG ulFlags);
+PyObject *		List_from_LPECUSER(LPECUSER lpUser, ULONG cElements, ULONG ulFlags);
 
 LPECGROUP		Object_to_LPECGROUP(PyObject *, ULONG);
 PyObject *		Object_from_LPECGROUP(LPECGROUP lpGroup);

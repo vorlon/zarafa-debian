@@ -69,7 +69,7 @@
 
 using namespace kyotocabinet;
 
-#include "helpers/mapiprophelper.h"
+#include "helpers/MAPIPropHelper.h"
 using namespace za::helpers;
 
 #define DATABASE_VERSION_KEY "DBV"
@@ -437,7 +437,7 @@ HRESULT ECIndexImporter::ProcessThread()
     ECIndexDB *lpIndex = NULL;
     ECIndexDB *lpThisIndex = NULL;
     ArchiveItem *lpArchiveItem = NULL;
-    auto_ptr<ArchiveItem> lpStubTarget;
+    std::auto_ptr<ArchiveItem> lpStubTarget;
     
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Importer thread started");
     

@@ -159,6 +159,12 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		HrCopyString(base, L"IPM.Schedule.Meeting.Request", &sPropVal.Value.lpszW);
 		break;
 
+	case ICAL_METHOD_COUNTER:
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL], PT_BOOLEAN);
+		sPropVal.Value.b = true;
+		lstMsgProps->push_back(sPropVal);
+
+		// Fall through to REPLY
 	case ICAL_METHOD_REPLY:
 		// This value with respAccepted/respDeclined/respTentative is only for imported items through the PUBLISH method, which we do not support.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
@@ -259,7 +265,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
 		sPropVal.Value.b = true;
 		lstMsgProps->push_back(sPropVal);
-	} else if (icMethod == ICAL_METHOD_REPLY) {
+	} else if (icMethod == ICAL_METHOD_REPLY || icMethod == ICAL_METHOD_COUNTER) {
 		// This is only because outlook and the examples say so in [MS-OXCICAL].pdf
 		// Otherwise, it's completely contradictionary to what the documentation describes.
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
@@ -316,20 +322,25 @@ exit:
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER	start time or timezone not present in ical data
  */
-HRESULT VEventConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
+HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	icalproperty* lpicDTStartProp = NULL;
 	icalproperty* lpicDTEndProp = NULL;
+	icalproperty* lpicOrigDTStartProp = NULL;
+	icalproperty* lpicOrigDTEndProp = NULL;
+	icalproperty* lpicFreeDTStartProp = NULL;
+	icalproperty* lpicFreeDTEndProp = NULL;
 	time_t timeDTStartUTC = 0, timeDTEndUTC = 0;
 	time_t timeDTStartLocal = 0, timeDTEndLocal = 0;
 	time_t timeEndOffset = 0, timeStartOffset = 0;
 	icalproperty* lpicDurationProp = NULL;
 	icalproperty* lpicProp = NULL;
 
-	// DTSTART must be available
 	lpicDTStartProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
+	lpicDTEndProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
+	// DTSTART must be available
 	if (!lpicDTStartProp) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -338,6 +349,53 @@ HRESULT VEventConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent 
 	hr = HrAddTimeZone(lpicDTStartProp, lpIcalItem);
 	if (hr != hrSuccess)
 		goto exit;
+
+	if (icMethod == ICAL_METHOD_COUNTER) {
+		// dtstart contains proposal, X-MS-OLK-ORIGINALSTART optionally contains previous DTSTART
+		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
+		while (lpicProp) {
+			if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALSTART") == 0) {
+				lpicOrigDTStartProp = lpicProp;
+			} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MS-OLK-ORIGINALEND") == 0) {
+				lpicOrigDTEndProp = lpicProp;
+			}
+			lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
+		}
+
+		if (lpicOrigDTStartProp && lpicOrigDTEndProp) {
+			// No support for DTSTART +DURATION and X-MS-OLK properties. Exchange will not send that either.
+			if (!lpicDTEndProp) {
+				hr = MAPI_E_INVALID_PARAMETER;
+				goto exit;
+			}
+
+			// set new proposal start
+			timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
+			UnixTimeToFileTime(timeDTStartUTC, &sPropVal.Value.ft);
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDSTART], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+			// set new proposal end
+			timeDTEndUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTEndProp);
+			UnixTimeToFileTime(timeDTEndUTC, &sPropVal.Value.ft);
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDEND], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+			// rebuild properties, so libical has the right value type in the property.
+			std::string strTmp;
+			strTmp = icalproperty_as_ical_string_r(lpicOrigDTStartProp);
+			strTmp.erase(0,strlen("X-MS-OLK-ORIGINAL"));
+			strTmp.insert(0,"DT");
+			lpicFreeDTStartProp = icalproperty_new_from_string(strTmp.c_str());
+			lpicDTStartProp = lpicFreeDTStartProp;
+
+			strTmp = icalproperty_as_ical_string_r(lpicOrigDTEndProp);
+			strTmp.erase(0,strlen("X-MS-OLK-ORIGINAL"));
+			strTmp.insert(0,"DT");
+			lpicFreeDTEndProp = icalproperty_new_from_string(strTmp.c_str());
+			lpicDTEndProp = lpicFreeDTEndProp;
+		}
+	}
 
 	// get timezone of DTSTART
 	timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
@@ -367,7 +425,6 @@ HRESULT VEventConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent 
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
 	// Set endtime / DTEND
-	lpicDTEndProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);
 	if (lpicDTEndProp) {
 		timeDTEndUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTEndProp);
 		timeDTEndLocal = ICalTimeTypeToLocal(lpicDTEndProp);
@@ -443,6 +500,10 @@ HRESULT VEventConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent 
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
 exit:
+	if (lpicFreeDTStartProp)
+		icalproperty_free(lpicFreeDTStartProp);
+	if (lpicFreeDTEndProp)
+		icalproperty_free(lpicFreeDTEndProp);
 	return hr;
 }
 
@@ -482,6 +543,7 @@ exit:
 
 /** 
  * Extends the VConverter version to set 'appt start whole' and 'appt end whole' named properties.
+ * This also adds the counter proposal times on a propose new time meeting request.
  * 
  * @param[in]  lpMsgProps All (required) properties from the message to convert time properties
  * @param[in]  ulMsgProps number of properties in lpMsgProps
@@ -496,7 +558,9 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	HRESULT hr = hrSuccess;
 	bool bIsAllDay = false;
 	LPSPropValue lpPropVal = NULL;
-
+	bool bCounterProposal = false;
+	ULONG ulStartIndex = PROP_APPTSTARTWHOLE;
+	ULONG ulEndIndex = PROP_APPTENDWHOLE;
 
 	hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps, lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
@@ -504,6 +568,13 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 	// vevent extra
 
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
+	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b) {
+		bCounterProposal = true;
+		ulStartIndex = PROP_PROPOSEDSTART;
+		ulEndIndex = PROP_PROPOSEDEND;
+	}
+ 	
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 	if (lpPropVal)
 		bIsAllDay = (lpPropVal->Value.b == TRUE);
@@ -512,7 +583,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	// However, in ICal, you cannot specify a timezone for a date, so ICal will show this as an allday event in every timezone your client is in.
 
 	// Set start time / DTSTART
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulStartIndex], PT_SYSTIME));
 	if (lpPropVal != NULL) {
 		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
 
@@ -526,7 +597,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	}
 
 	// Set end time / DTEND
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulEndIndex], PT_SYSTIME));
 	if (lpPropVal) {
 		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
 
@@ -539,6 +610,49 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		goto exit;
 	}
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
+
+	if (bCounterProposal) {
+		// set the original times in X properties
+		icalproperty *lpProp = NULL;
+
+		// Set original start time / DTSTART
+		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
+		if (lpPropVal != NULL) {
+			time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+
+			lpProp = icalproperty_new_x("overwrite-me");
+			icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
+
+			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
+			if (hr != hrSuccess)
+				goto exit;
+
+			icalcomponent_add_property(lpEvent, lpProp);
+		} else {
+			// do not create calendar items without start/end date, which is invalid.
+			hr = MAPI_E_CORRUPT_DATA;
+			goto exit;
+		}
+
+		// Set original end time / DTEND
+		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
+		if (lpPropVal != NULL) {
+			time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+
+			lpProp = icalproperty_new_x("overwrite-me");
+			icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALEND");
+
+			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpProp);
+			if (hr != hrSuccess)
+				goto exit;
+
+			icalcomponent_add_property(lpEvent, lpProp);
+		} else {
+			// do not create calendar items without start/end date, which is invalid.
+			hr = MAPI_E_CORRUPT_DATA;
+			goto exit;
+		}
+	}
 
 exit:
 	return hr;

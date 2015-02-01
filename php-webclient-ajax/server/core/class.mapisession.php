@@ -130,9 +130,16 @@
 			$result = NOERROR;
 
 			if(is_string($username) && is_string($password)) {
+				if(function_exists("openssl_decrypt")) {
+					$password = openssl_decrypt($password,"des-ede3-cbc",PASSWORD_KEY,0,PASSWORD_IV);
+				}
 				// logon
 				$this->session = mapi_logon_zarafa($username, $password, $server, $sslcert_file, $sslcert_pass);
 				$result = mapi_last_hresult();
+
+				if(function_exists("openssl_encrypt")) {
+					$password = openssl_encrypt($password,"des-ede3-cbc",PASSWORD_KEY,0,PASSWORD_IV);
+				}
 
 				if ($result == NOERROR && $this->session !== false){
 					$this->session_info["username"] = $username;

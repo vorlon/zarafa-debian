@@ -1307,10 +1307,11 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_EC_PARENT_HIERARCHYID
 	} };
 
-	SizedSPropTagArray(6, sptImportPropsServerWide) = { 6, {
+	SizedSPropTagArray(7, sptImportPropsServerWide) = { 7, {
 		PR_SOURCE_KEY,
 		PR_PARENT_SOURCE_KEY,
 		PR_STORE_RECORD_KEY,
+		PR_STORE_ENTRYID, 
 		PR_EC_HIERARCHYID,
 		PR_EC_PARENT_HIERARCHYID,
 		PR_ENTRYID

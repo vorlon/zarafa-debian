@@ -121,11 +121,11 @@ public:
 	virtual bool IsLocked();
 	
 	virtual void RecordRequest(struct soap *soap);
-    virtual unsigned int GetRequests();
+	virtual unsigned int GetRequests();
 
-    virtual void GetClientPort(unsigned int *lpulPort);
-    virtual void GetRequestURL(std::string *lpstrURL);
-    virtual void GetProxyHost(std::string *lpstrProxyHost);
+	virtual void GetClientPort(unsigned int *lpulPort);
+	virtual void GetRequestURL(std::string *lpstrURL);
+	virtual void GetProxyHost(std::string *lpstrProxyHost);
 
 	size_t GetInternalObjectSize();
 	virtual size_t GetObjectSize() = 0;
@@ -212,19 +212,19 @@ public:
 private:
 	ECTableManager		*m_lpTableManager;
 	ECSessionGroup		*m_lpSessionGroup;
-	ECSecurity			*m_lpEcSecurity;
+	ECSecurity		*m_lpEcSecurity;
 
 	pthread_mutex_t		m_hStateLock;
 	typedef std::map<pthread_t, BUSYSTATE> BusyStateMap;
-	BusyStateMap	m_mapBusyStates; /* which thread does what function */
+	BusyStateMap		m_mapBusyStates; /* which thread does what function */
 	double			m_dblUser;
 	double			m_dblSystem;
 	double			m_dblReal;
 	AUTHMETHOD		m_ulAuthMethod;
-	int				m_ulConnectingPid;
+	int			m_ulConnectingPid;
 	ECSESSIONGROUPID m_ecSessionGroupId;
 	std::string		m_strClientVersion;
-	unsigned int	m_ulClientVersion;
+	unsigned int		m_ulClientVersion;
 	std::string		m_strClientApp;
 	std::string		m_strUsername;
 
@@ -242,10 +242,10 @@ public:
 	ECAuthSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 	virtual ~ECAuthSession();
 
-	ECRESULT ValidateUserLogon(char *lpszName, char *lpszPassword, char *lpszImpersonateUser);
-	ECRESULT ValidateUserSocket(int socket, char *lpszName, char *lpszImpersonateUser);
-	ECRESULT ValidateUserCertificate(struct soap *soap, char *lpszName, char *lpszImpersonateUser);
-	ECRESULT ValidateSSOData(struct soap *soap, char *lpszName, char *lpszImpersonateUser, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
+	ECRESULT ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser);
+	ECRESULT ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser);
+	ECRESULT ValidateUserCertificate(soap* soap, const char* lpszName, const char* lpszImpersonateUser);
+	ECRESULT ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
 
 	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
 
@@ -261,14 +261,14 @@ protected:
 
 private:
 	/* SSO */
-	ECRESULT ValidateSSOData_NTLM(struct soap *soap, char *lpszName, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
-	ECRESULT ValidateSSOData_KRB5(struct soap *soap, char *lpszName, char *szClientVersion, char *szClientApp, struct xsd__base64Binary *lpInput, struct xsd__base64Binary **lppOutput);
+	ECRESULT ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
+	ECRESULT ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
 #ifdef HAVE_GSSAPI
 	ECRESULT LogKRB5Error(ECLogger *lpLogger, const char *msg, OM_uint32 major, OM_uint32 minor); /* added logger to distinguish from the other function */
 	ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif
 
-    ECRESULT ProcessImpersonation(char *lpszImpersonateUser);
+    ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
 
 	/* NTLM */
 	pid_t m_NTLM_pid;

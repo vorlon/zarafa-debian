@@ -54,9 +54,18 @@ typedef struct _do {
         bool add_imap_data;				// Save IMAP optimized data to the server
 	    bool parse_smime_signed;        // Parse actual S/MIME content instead of just writing out the S/MIME data to a single attachment
         /* LPSBinary user_entryid;         // If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties. */
+		char *default_charset;
 
         %extend {
-            delivery_options() { delivery_options *dopt = new delivery_options; imopt_default_delivery_options(dopt); return dopt; }
+            delivery_options() { 
+				delivery_options *dopt = new delivery_options; 
+				imopt_default_delivery_options(dopt);
+				dopt->default_charset = strdup(dopt->default_charset); /* avoid free problems */
+				return dopt;
+			}
+			~delivery_options() {
+				free(self->default_charset);
+			}
         }
 
 } delivery_options;

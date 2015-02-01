@@ -691,27 +691,27 @@ void print_extra_settings(SPROPMAP *lpPropmap, MVPROPMAP *lpMVPropmap)
 
 	cout << "Mapped properties:" << std::endl;
 	for (unsigned int i = 0; i < lpPropmap->cEntries; i++) {
-		if (PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) == PT_BINARY ||
-			PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) == PT_MV_BINARY)
-				continue;
-
 		ct.SetColumn(c, 0, getMapiPropertyString(lpPropmap->lpEntries[i].ulPropId));
-		ct.SetColumn(c, 1, (LPSTR)lpPropmap->lpEntries[i].lpszValue);
+		if (PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) == PT_BINARY)
+			ct.SetColumn(c, 1, stringify(strlen((LPSTR)lpPropmap->lpEntries[i].lpszValue)) + " bytes");
+		else
+			ct.SetColumn(c, 1, (LPSTR)lpPropmap->lpEntries[i].lpszValue);
 		c++;
 	}
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; i++) {
-		if (PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) == PT_BINARY ||
-			PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) == PT_MV_BINARY)
-				continue;
-
 		string strMVValues;
 
 		ct.SetColumn(c, 0, getMapiPropertyString(lpMVPropmap->lpEntries[i].ulPropId));
-		for (int j = 0; j < lpMVPropmap->lpEntries[i].cValues; j++) {
-			if (!strMVValues.empty())
-				strMVValues += "; ";
 
-			strMVValues += (LPSTR)lpMVPropmap->lpEntries[i].lpszValues[j];
+		if (PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) == PT_MV_BINARY) {
+			strMVValues = stringify(lpMVPropmap->lpEntries[i].cValues) + " values";
+		} else {
+			for (int j = 0; j < lpMVPropmap->lpEntries[i].cValues; j++) {
+				if (!strMVValues.empty())
+					strMVValues += "; ";
+
+				strMVValues += (LPSTR)lpMVPropmap->lpEntries[i].lpszValues[j];
+			}
 		}
 
 		ct.SetColumn(c, 1, strMVValues);
@@ -848,7 +848,7 @@ void print_user_settings(IMsgStore *lpStore, LPECUSER lpECUser, bool bAutoAccept
 	if (!lstArchives.empty()) {
 		cout << "Attached archives:\t" << lstArchives.size() << endl;
 		for (ArchiveList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
-			cout << "\t" << iArchive->FolderName << " in " << iArchive->StoreName;
+			cout << "\t" << iArchive->FolderName << " in " << iArchive->StoreName << " (" << iArchive->StoreGuid << ")";
 
 			if (iArchive->Rights != ARCHIVE_RIGHTS_ABSENT) {
 				if (iArchive->Rights == ROLE_OWNER)

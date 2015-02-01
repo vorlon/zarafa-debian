@@ -55,7 +55,7 @@
 #include "charset/convert.h"
 #include "mapi_ptr.h"
 
-#include "helpers/storehelper.h"
+#include "helpers/StoreHelper.h"
 #include "operations/copier.h"
 #include "operations/instanceidmapper.h"
 #include "ArchiverSession.h"

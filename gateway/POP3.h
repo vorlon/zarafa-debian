@@ -62,6 +62,9 @@
 #define POP3_MAX_RESPONSE_LENGTH 512
 
 #define POP3_RESP_OK "+OK "
+#define POP3_RESP_TEMPFAIL "-ERR [SYS/TEMP] "
+#define POP3_RESP_PERMFAIL "-ERR [SYS/PERM] "
+#define POP3_RESP_AUTH_ERROR "-ERR [AUTH] "
 #define POP3_RESP_ERR "-ERR "
 
 /* enum POP3_Command { POP3_CMD_USER, POP3_CMD_PASS, POP3_CMD_STAT, POP3_CMD_LIST, POP3_CMD_RETR, POP3_CMD_DELE, POP3_CMD_NOOP, */
@@ -80,6 +83,9 @@ public:
 	HRESULT HrDone(bool bSendResponse);
 
 private:
+	std::string GetCapabilityString();
+
+	HRESULT HrCmdCapability();
 	HRESULT HrCmdStarttls();
 	HRESULT HrCmdUser(const std::string &strUser);
 	HRESULT HrCmdPass(const std::string &strPass);

@@ -53,8 +53,8 @@
 #ifndef ARCHIVEMANAGE_H_INCLUDED
 #define ARCHIVEMANAGE_H_INCLUDED
 
-#include <list>
 #include "platform.h"
+#include <list>
 #include "mapix.h"
 #include "ArchiveControl.h"
 
@@ -65,6 +65,7 @@ struct ArchiveEntry {
 	std::string FolderName;
 	std::string StoreOwner;
 	unsigned Rights;
+	std::string StoreGuid;
 };
 typedef std::list<ArchiveEntry> ArchiveList;
 
@@ -86,7 +87,7 @@ public:
 	virtual ~ArchiveManage() {};
 
 	static HRESULT Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, auto_ptr_type *lpptrManage);
-	
+
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
 	virtual eResult DetachFrom(unsigned int ulArchive) = 0;

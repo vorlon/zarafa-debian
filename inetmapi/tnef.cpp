@@ -76,6 +76,7 @@
 #include <mapidefs.h> 
 #include <mapiutil.h>
 #include <mapiguid.h>
+#include <mapiext.h>
 #include "Util.h"
 #include "charset/convert.h"
 #include "charset/utf16string.h"
@@ -838,10 +839,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ulLen = strlen(lpProp->Value.MVszA.lppszA[ulMVProp])+1;
 
-				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
-				if(hr != hrSuccess)
-					goto exit;
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					goto exit;
@@ -880,10 +877,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				ucs2 = converter.convert_to<utf16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
 				ulLen = ucs2.length()*sizeof(utf16string::value_type)+sizeof(utf16string::value_type);
 
-				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
-				if(hr != hrSuccess)
-					goto exit;
-
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					goto exit;
@@ -921,10 +914,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		case PT_BINARY:
 			if(lpProp->ulPropTag & MV_FLAG) {
 				ulLen = lpProp->Value.MVbin.lpbin[ulMVProp].cb;
-
-				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
-				if(hr != hrSuccess)
-					goto exit;
 
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
@@ -1653,7 +1642,8 @@ HRESULT ECTNEF::Finish()
 
 			if(PROP_ID((*iterProps)->ulPropTag) == PROP_ID(PR_MESSAGE_CLASS) ||
 				!FPropExists(m_lpMessage, (*iterProps)->ulPropTag) ||
-				PROP_ID((*iterProps)->ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
+				PROP_ID((*iterProps)->ulPropTag) == PROP_ID(PR_RTF_COMPRESSED) ||
+				PROP_ID((*iterProps)->ulPropTag) == PROP_ID(PR_HTML))
 			{
   				m_lpMessage->SetProps(1, *iterProps, NULL);
 			}

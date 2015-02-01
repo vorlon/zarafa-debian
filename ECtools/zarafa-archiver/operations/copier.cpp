@@ -57,7 +57,7 @@
 #include "instanceidmapper.h"
 #include "transaction.h"
 #include "postsaveiidupdater.h"
-#include "helpers/mapiprophelper.h"
+#include "helpers/MAPIPropHelper.h"
 #include "helpers/ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include "Util.h"

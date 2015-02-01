@@ -53,10 +53,9 @@
 #ifndef ARCHIVERIMPL_H_INCLUDED
 #define ARCHIVERIMPL_H_INCLUDED
 
-#include "Archiver.h"
-#include "AutoMAPI.h"
-#include "ArchiverSession.h"
-#include "ECLogger.h"
+#include "Archiver.h"               // for declaration of class Archiver
+#include "AutoMAPI.h"               // for declaration of AutoMAPI
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
 class ArchiverImpl : public Archiver
 {
@@ -72,7 +71,7 @@ public:
 
 	ECConfig* GetConfig() const;
 
-	ECLogger* GetLogger(eLogType which) const;  // Inherits default (which = DefaultLog) from Archiver::GetLogger
+	ECLogger* GetLogger(eLogType which) const; // Inherits default (which = DefaultLog) from Archiver::GetLogger
 
 private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);

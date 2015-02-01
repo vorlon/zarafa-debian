@@ -34005,8 +34005,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUser(PyObject *SWIGUNUSEDPARM(self
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECUSER(*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, Object_from_LPECUSER(*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -34224,8 +34223,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserList(PyObject *SWIGUNUSEDPARM(
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -34322,8 +34320,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetSendAsList(PyObject *SWIGUNUSEDPAR
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -35513,8 +35510,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetUserListOfGroup(PyObject *SWIGUNUS
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -36710,8 +36706,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetRemoteAdminList(PyObject *SWIGUNUS
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -37257,8 +37252,7 @@ SWIGINTERN PyObject *_wrap_IECServiceAdmin_GetQuotaRecipients(PyObject *SWIGUNUS
     }
   }
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5)));
-    if(PyErr_Occurred()) goto fail;
+    resultobj = SWIG_Python_AppendOutput(resultobj, List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
   }
   {
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;

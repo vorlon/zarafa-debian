@@ -54,7 +54,7 @@
 #include "ArchiveManage.h"
 #include "ArchiveManageImpl.h"
 #include "ArchiverSession.h"
-#include "helpers/storehelper.h"
+#include "helpers/StoreHelper.h"
 #include "charset/convert.h"
 #include "ECACL.h"
 #include "userutil.h"
@@ -693,8 +693,8 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		SPropValuePtr ptrPropValue;
 		ULONG ulCompareResult = FALSE;
 
-		SizedSPropTagArray(3, sptaStoreProps) = {3, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
-		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID};
+		SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
+		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
 		entry.Rights = ARCHIVE_RIGHTS_ERROR;
 
@@ -742,6 +742,10 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to compare entry ids (hr=%s)", stringify(hrTmp, true).c_str());
 					ulCompareResult = FALSE;	// Let's assume it's not the IPM Subtree.
 				}
+			}
+
+			if (ptrStoreProps[IDX_STORE_RECORD_KEY].ulPropTag == PR_STORE_RECORD_KEY) {
+				entry.StoreGuid = bin2hex(ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.cb, ptrStoreProps[IDX_STORE_RECORD_KEY].Value.bin.lpb);
 			}
 		}
 

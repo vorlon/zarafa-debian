@@ -108,6 +108,11 @@
 	// the name of this certificate variable
 	//define("CERT_VAR_TO_COMPARE_WITH", "SSL_CLIENT_S_DN_CN");
 
+	// Standard password key for session password. We recommend to change the default value for security reasons 
+	// and a length of 16 characters. Passwords are only encrypted when the openssl module is installed
+	// IV vector should be 8 bits long
+	define('PASSWORD_KEY','a75356b0d1b81b7');
+	define('PASSWORD_IV','b3f5a483');
 
 	/**************************************\
 	* Memory usage and timeouts            *

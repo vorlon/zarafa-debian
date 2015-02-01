@@ -1,6 +1,6 @@
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/common -I${top_srcdir}/provider/libserver \
-	-I${top_srcdir}/provider/common
+	-I${top_srcdir}/provider/common	-I${top_srcdir}/mapi4linux/include
 
 COMMON_PLUGIN_FILES = plugin.h ${top_builddir}/provider/common/ZarafaUser.cpp ${top_builddir}/provider/common/ZarafaUser.h
 COMMON_DBPLUGIN_FILES = DBBase.h DBBase.cpp ../libserver/ECDatabase.h 

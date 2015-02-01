@@ -51,7 +51,7 @@
 #include "ECConfig.h"
 #include "operations.h"
 #include "ECArchiverLogger.h"
-#include "helpers/mapiprophelper.h"
+#include "helpers/MAPIPropHelper.h"
 #include "helpers/ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include "ECRestriction.h"

@@ -69,7 +69,11 @@
 #include <string>
 #include <algorithm>
 
+#ifdef CLUCENE_23
+#include <CLucene/util/CLStreams.h>
+#else
 #include <CLucene/util/Reader.h>
+#endif
 
 using namespace kyotocabinet;
 
@@ -1050,15 +1054,19 @@ HRESULT ECIndexDB::Optimize()
 			} else
 				break;
 		}
+
 		// reset function
-		steps = 0;
-		removes = 0;
+		steps = removes = 0;
+
 		delete [] currkey;
-		currlen = 0;
-		currkey = NULL;
-		delete [] firstkey;
-		firstlen = 0;
-		firstkey = NULL;
+
+		if (firstkey != currkey) {
+			delete [] firstkey;
+		}
+
+		currlen = firstlen = 0;
+		firstkey = currkey = NULL;
+
 		lpCache->clear();
 	}
 
@@ -1071,9 +1079,11 @@ HRESULT ECIndexDB::Optimize()
 exit:
 	// print stats, processed %d terms
 	delete lpCache;
+
 	// may not have cleaned this if we jumped
 	if (firstkey && firstkey != currkey)
 		delete [] firstkey;
+
 	delete [] currkey;
 
 	if (cursor && hr == hrSuccess)

@@ -119,14 +119,14 @@ ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRights
 // userobjects
 ECRESULT			CopyUserObjectDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details,
 												struct soap *soap, struct userobject *lpObject);
-ECRESULT			CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details,
+ECRESULT			CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, bool bCopyBinary,
 										  struct soap *soap, struct user *lpUser);
 ECRESULT			CopyUserDetailsFromSoap(struct user *lpUser, std::string *lpstrExternId, objectdetails_t *details, struct soap *soap);
-ECRESULT			CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const objectdetails_t &details,
+ECRESULT			CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const objectdetails_t &details, bool bCopyBinary,
 										   struct soap *soap, struct group *lpGroup);
 ECRESULT			CopyGroupDetailsFromSoap(struct group *lpGroup, std::string *lpstrExternId, objectdetails_t *details, struct soap *soap);
 ECRESULT			CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsigned int ulAdmin, entryId *lpAdminEid, 
-											 const objectdetails_t &details, struct soap *soap, struct company *lpCompany);
+											 const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct company *lpCompany);
 ECRESULT			CopyCompanyDetailsFromSoap(struct company *lpCompany, std::string *lpstrExternId, unsigned int ulAdmin,
 											   objectdetails_t *details, struct soap *soap);
 

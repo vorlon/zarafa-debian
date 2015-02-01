@@ -2310,14 +2310,11 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	LPSPropValue	lpOutlookVersion = NULL;
 	LPSPropValue	lpMessageClass	= NULL;
 	LPSPropValue	lpDelegateRule	= NULL;
-	LPSPropValue	lpApptCounterPropose = NULL;
 	IStream 		*lpStream = NULL;
 	MapiToICal		*mapiical = NULL;
 	
 	LPMAPINAMEID	lpNames			= NULL;	
 	LPSPropTagArray lpNameTagArray	= NULL;
-	ULONG			cNames		= 0;
-	ULONG			ulNamesIDs	= 0;
 	int				iUseTnef = sopt.use_tnef;
 	std::string		strTnefReason;
 
@@ -2366,43 +2363,8 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			lpDelegateRule = NULL;
 		}
 
-		ulNamesIDs = 0x8257; //dispidApptCounterProposal
-
-		cNames = 1;
-
-		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * cNames, (void**)&lpNames);
-		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reserve memory for named properties");
-			goto exit;
-		}
-
-		lpNames[0].lpguid = (GUID*)&PSETID_Appointment;
-		lpNames[0].ulKind = MNID_ID;
-		lpNames[0].Kind.lID = ulNamesIDs;
-		
-		hr = lpMessage->GetIDsFromNames(cNames, &lpNames, 0, &lpNameTagArray);
-		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get named properties information");
-			goto exit;
-		}
-		lpNameTagArray->aulPropTag[0] = CHANGE_PROP_TYPE(lpNameTagArray->aulPropTag[0], PT_BOOLEAN);
-		
-		hr = lpMessage->GetProps(lpNameTagArray, 0, &cNames, &lpApptCounterPropose);
-		if (FAILED(hr)) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get named properties values");
-			goto exit;
-		}
-		hr = hrSuccess;
-
 		if (iUseTnef > 0)
 			strTnefReason = "Force TNEF on request";
-
-		// no propose new time support for ical
-		if (iUseTnef <= 0 && lpMessageClass && strnicmp("IPM.Schedule.Meeting.Resp", lpMessageClass->Value.lpszA, strlen("IPM.Schedule.Meeting.Resp")) == 0 &&
-			lpApptCounterPropose && lpApptCounterPropose->ulPropTag == lpNameTagArray->aulPropTag[0] && lpApptCounterPropose->Value.b) {
-			iUseTnef = 1;
-			strTnefReason = "Force TNEF because of Propose new time";
-		}
 
 		// currently no task support for ical
 		if (iUseTnef <= 0 && lpMessageClass && strnicmp("IPM.Task", lpMessageClass->Value.lpszA, 8) == 0) {
@@ -2555,9 +2517,6 @@ exit:
 
 	if (lpNameTagArray)
 		MAPIFreeBuffer(lpNameTagArray);
-
-	if(lpApptCounterPropose)
-		MAPIFreeBuffer(lpApptCounterPropose);
 
 	if (lpMessageClass)
 		MAPIFreeBuffer(lpMessageClass);

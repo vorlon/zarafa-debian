@@ -30,6 +30,9 @@ AC_PATH_PROG(PROG_XMLTO, xmlto)	# not an error if not found, just no manual page
 AC_PATH_PROG(PROG_ANT, ant)		# not an error if not found, no 'make dist' (waxt package)
 AM_PROG_CC_C_O
 
+abs_top_srcdir=`cd $srcdir; pwd`
+abs_top_builddir=`pwd`
+
 # Lex / Yacc version
 if test "x$LEX" = "x" -o "x$LEX" = "x:"; then
     AC_MSG_ERROR([Lexer not found. Please install flex])
@@ -377,11 +380,6 @@ AC_CHECK_FUNCS([mysql_set_character_set])
 LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
-GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP"
-AC_SUBST(GSOAP_CFLAGS)
-# fixme first libz test
-GSOAP_LIBS="-lz"
-AC_SUBST(GSOAP_LIBS)
 
 # check user given vmime location
 AC_ARG_WITH(vmime-prefix,
@@ -422,6 +420,26 @@ AM_CONDITIONAL([WITH_KYOTOCABINET], [test "$want_kyotocabinet" = "yes"])
 AC_SUBST(KYOTOCABINET_CFLAGS)
 AC_SUBST(KYOTOCABINET_LIBS)
 
+
+AC_ARG_WITH(system-gsoap, AS_HELP_STRING([--with-system-gsoap], [Use gsoap already on system.]),, [with_system_gsoap=no])
+if test "$with_system_gsoap" = "yes"; then
+  PKG_CHECK_MODULES([GSOAP], [gsoapssl++])
+  soapcpp2 -z1 -h >& /dev/null
+  if test "$?" = "0"; then
+      GSOAP_SOAPCPP2="soapcpp2 -z1"
+  else
+      GSOAP_SOAPCPP2="soapcpp2"
+  fi
+else
+  GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -I${abs_top_srcdir}/external/gsoap"
+  GSOAP_LIBS="${abs_top_builddir}/external/gsoap/libgsoap.la -lz"
+  GSOAP_SOAPCPP2="${abs_top_builddir}/external/soapcpp2/soapcpp2"
+fi
+AM_CONDITIONAL([WITH_SYSTEM_GSOAP], [test "$with_system_gsoap" = "yes"])
+AC_SUBST(GSOAP_CFLAGS)
+AC_SUBST(GSOAP_LIBS)
+AC_SUBST(GSOAP_SOAPCPP2)
+
 dnl TODO: add checks for library on system
 AC_ARG_WITH(ical-prefix,
   AC_HELP_STRING([--with-ical-prefix=PATH],[path to the libical include files, e.g. /usr/local/include]),
@@ -439,6 +457,12 @@ AC_SUBST(ICAL_LIBS)
 CXXFLAGS=$CXXFLAGS_system
 
 # Check for CLucene availability
+PKG_CHECK_MODULES([CLUCENE], [libclucene-core >= 2.3],
+	[have_clucene=dynamic], [have_clucene=no])
+if test "$have_clucene" = "dynamic"; then
+CLUCENE_VERSION=CLUCENE_23
+else
+CLUCENE_VERSION=CLUCENE_09
 AC_ARG_WITH(clucene-lib-prefix,
   AC_HELP_STRING([--with-clucene-lib-prefix=PATH],[path to the clucene config file, e.g. /usr/lib/]),
   [CLUCENE_LIB_PREFIX=${withval}],[CLUCENE_LIB_PREFIX=/usr/lib])
@@ -480,11 +504,13 @@ fi
 if test "x$CLUCENE_INCLUDE_PREFIX" != "x"; then
    CLUCENE_CFLAGS="$CLUCENE_CFLAGS -I$CLUCENE_INCLUDE_PREFIX"
 fi
-AM_CONDITIONAL([WITH_CLUCENE], [test "$have_clucene" != "no"])
 AC_SUBST(CLUCENE_CFLAGS)
 AC_SUBST(CLUCENE_LIBS)
 CXXFLAGS=$CXXFLAGS_system
 CPPFLAGS=$CPPFLAGS_system
+fi
+AC_SUBST(CLUCENE_VERSION)
+AM_CONDITIONAL([WITH_CLUCENE], [test "$have_clucene" != "no"])
 
 # Check for google perftools tcmalloc availability
 if test "$want_tcmalloc_full" = "yes"; then
@@ -751,6 +777,9 @@ AC_CONFIG_FILES([Makefile
 		mapi4linux/include/Makefile
 		mapi4linux/src/Makefile
 		php-ext/Makefile
+        external/Makefile
+        external/gsoap/Makefile
+        external/soapcpp2/Makefile
 		provider/Makefile
 		provider/client/Makefile
 		provider/contacts/Makefile
@@ -760,8 +789,6 @@ AC_CONFIG_FILES([Makefile
 		provider/plugins/Makefile
 		provider/server/Makefile
 		provider/soap/Makefile
-		provider/tools/Makefile
-		provider/tools/soapcpp2/Makefile
 		inetmapi/Makefile
 		spooler/Makefile
 		spooler/python/Makefile
@@ -803,10 +830,6 @@ AC_CONFIG_FILES([Makefile
 		swig/Makefile
 		swig/python/Makefile
 		zarafa-libsync/Makefile
-		libtimezone/Makefile
-		libcalendar/Makefile
-		libcalendar/src/Makefile
-		libcalendar/include/Makefile
 
 		common/zarafa.pc
 		version
@@ -847,6 +870,7 @@ PHP flags	:	$PHP_INCLUDES
 PHP libs	:	$PHP_LIBS
 gSOAP flags	:	$GSOAP_CFLAGS
 gSOAP libs	:	$GSOAP_LIBS
+gSOAP soapcpp2	:	$GSOAP_SOAPCPP2
 OpenSSL libs	:	$SSL_LIBS
 MySQL flags	:	$MYSQL_INCLUDES
 MySQL libs	:	$MYSQL_LIBS

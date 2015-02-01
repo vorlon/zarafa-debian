@@ -3114,7 +3114,15 @@ SWIGINTERN void delete_sending_options(sending_options *self){
 				free(self->alternate_boundary);
 				free(self->charset_upgrade);
 			}
-SWIGINTERN delivery_options *new_delivery_options(){ delivery_options *dopt = new delivery_options; imopt_default_delivery_options(dopt); return dopt; }
+SWIGINTERN delivery_options *new_delivery_options(){ 
+				delivery_options *dopt = new delivery_options; 
+				imopt_default_delivery_options(dopt);
+				dopt->default_charset = strdup(dopt->default_charset); /* avoid free problems */
+				return dopt;
+			}
+SWIGINTERN void delete_delivery_options(delivery_options *self){
+				free(self->default_charset);
+			}
 
 SWIGINTERN int
 SWIG_AsPtr_std_string (PyObject * obj, std::string **val) 
@@ -4056,6 +4064,75 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_delivery_options_default_charset_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  delivery_options *arg1 = (delivery_options *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:delivery_options_default_charset_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__do, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delivery_options_default_charset_set" "', argument " "1"" of type '" "delivery_options *""'"); 
+  }
+  arg1 = reinterpret_cast< delivery_options * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "delivery_options_default_charset_set" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    if (arg1->default_charset) delete[] arg1->default_charset;
+    if (arg2) {
+      size_t size = strlen(reinterpret_cast< const char * >(arg2)) + 1;
+      arg1->default_charset = (char *)reinterpret_cast< char* >(memcpy((new char[size]), reinterpret_cast< const char * >(arg2), sizeof(char)*(size)));
+    } else {
+      arg1->default_charset = 0;
+    }
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delivery_options_default_charset_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  delivery_options *arg1 = (delivery_options *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delivery_options_default_charset_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__do, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delivery_options_default_charset_get" "', argument " "1"" of type '" "delivery_options *""'"); 
+  }
+  arg1 = reinterpret_cast< delivery_options * >(argp1);
+  {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+    result = (char *) ((arg1)->default_charset);
+    SWIG_PYTHON_THREAD_END_ALLOW;
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_delivery_options(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   delivery_options *result = 0 ;
@@ -4088,7 +4165,7 @@ SWIGINTERN PyObject *_wrap_delete_delivery_options(PyObject *SWIGUNUSEDPARM(self
   arg1 = reinterpret_cast< delivery_options * >(argp1);
   {
     SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-    delete arg1;
+    delete_delivery_options(arg1);
     SWIG_PYTHON_THREAD_END_ALLOW;
   }
   resultobj = SWIG_Py_Void();
@@ -4373,6 +4450,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delivery_options_add_imap_data_get", _wrap_delivery_options_add_imap_data_get, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_parse_smime_signed_set", _wrap_delivery_options_parse_smime_signed_set, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_parse_smime_signed_get", _wrap_delivery_options_parse_smime_signed_get, METH_VARARGS, NULL},
+	 { (char *)"delivery_options_default_charset_set", _wrap_delivery_options_default_charset_set, METH_VARARGS, NULL},
+	 { (char *)"delivery_options_default_charset_get", _wrap_delivery_options_default_charset_get, METH_VARARGS, NULL},
 	 { (char *)"new_delivery_options", _wrap_new_delivery_options, METH_VARARGS, NULL},
 	 { (char *)"delete_delivery_options", _wrap_delete_delivery_options, METH_VARARGS, NULL},
 	 { (char *)"delivery_options_swigregister", delivery_options_swigregister, METH_VARARGS, NULL},

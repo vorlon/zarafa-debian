@@ -747,6 +747,7 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
 {
 	string strCapabilities;
 	char *idle = lpConfig->GetSetting("imap_capability_idle");
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	// capabilities we always have
 	strCapabilities = "CAPABILITY IMAP4rev1 LITERAL+";
@@ -756,7 +757,10 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
 		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
 			strCapabilities += " STARTTLS";
 
-		strCapabilities += " AUTH=PLAIN";
+		if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0)
+			strCapabilities += " LOGINDISABLED";
+		else
+			strCapabilities += " AUTH=PLAIN";
 	}
 
 	if (lpSession || bAllFlags) {
@@ -916,6 +920,20 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	HRESULT hr2 = hrSuccess;
 	vector<string> vAuth;
 
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
+
+	// If plaintext authentication was disabled any authentication attempt must be refused very soon
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0) {
+		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
+							 "(SSL/TLS) connections.");
+		if (hr2 != hrSuccess)
+			goto exit;
+
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s without username (tried to use disallowed plaintext auth)",
+					  lpChannel->GetIPAddress().c_str());
+		goto exit;
+	}
+
 	ToUpper(strAuthMethod);
 	if (strAuthMethod.compare("PLAIN") != 0) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " method not supported");
@@ -972,6 +990,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	size_t i;
 	wstring strwUsername;
 	wstring strwPassword;
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	LPMAPINAMEID lpNameIDs = NULL;
 
@@ -981,6 +1000,23 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 			i++;
 		strUsername += strUser[i];
 	}	
+
+	// If plaintext authentication was disabled any login attempt must be refused very soon
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0) {
+		hr2 = HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
+						"did it anyway. If anyone was listening, the password was exposed.");
+		if (hr2 != hrSuccess)
+			goto exit;
+
+		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
+							 "(SSL/TLS) connections.");
+		if (hr2 != hrSuccess)
+			goto exit;
+
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
+					  lpChannel->GetIPAddress().c_str(), strUsername.c_str());
+		goto exit;
+	}
 
 	if (lpSession != NULL) {
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
@@ -4310,7 +4346,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         
         // Fetch the row data
         if (HrPropertyFetchRow(lpProps, cValues, strResponse, *lpMail, (lpProp != NULL), lstDataItems) != hrSuccess) {
-            lpLogger->Log(EC_LOGLEVEL_ERROR, "{?} Error fetching mail");
+            lpLogger->Log(EC_LOGLEVEL_WARNING, "{?} Error fetching mail");
         } else {
             hr = HrResponse(RESP_UNTAGGED, strResponse);
 			if (hr != hrSuccess)
@@ -4556,7 +4592,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 						if (!lpMessage || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt, lpLogger) != hrSuccess) {
 							vProps.push_back(*iFetch);
 							vProps.push_back("NIL");
-							lpLogger->Log(EC_LOGLEVEL_FATAL, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
+							lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
 							continue;
 						}
 					}
@@ -4602,6 +4638,11 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				ulPos = strReply.find(".PEEK");
 				if (ulPos != string::npos)
 					strReply.erase(ulPos, strlen(".PEEK"));
+
+				// Nasty: eventhough the client requests <12345.12345>, it may not be present in the reply.
+				ulPos = strReply.rfind('<');
+				if (ulPos != string::npos)
+					strReply.erase(ulPos, string::npos);
 
 				vProps.push_back(strReply);
 

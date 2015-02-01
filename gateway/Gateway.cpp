@@ -356,6 +356,7 @@ int main(int argc, char *argv[]) {
 		{ "imap_generate_utf8", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_expunge_on_delete", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_store_rfc822", "yes", CONFIGSETTING_RELOADABLE },
+		{ "disable_plaintext_auth", "no", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/zarafa" },
 		{ "server_hostname", "" },
 		{ "server_hostname_greeting", "no", CONFIGSETTING_RELOADABLE },
@@ -642,7 +643,7 @@ HRESULT running_service(char *szPath, char *servicename) {
 		err = select(max(max(ulListenPOP3, ulListenIMAP), max(ulListenPOP3s, ulListenIMAPs)) + 1, &readfds, NULL, NULL, &timeout);
 		if (err < 0) {
 			if (errno != EINTR) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Socket error!");
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Socket error: %s", strerror(errno));
 				quit = 1;
 				hr = MAPI_E_NETWORK_ERROR;
 			}

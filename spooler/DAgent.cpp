@@ -136,7 +136,7 @@
 #include "restrictionutil.h"
 #include "rules.h"
 #include "archive.h"
-#include "helpers/mapiprophelper.h"
+#include "helpers/MAPIPropHelper.h"
 #include "options.h"			// inetmapi/options.h
 #include "charset/convert.h"
 #include "base64.h"
@@ -726,7 +726,7 @@ HRESULT ResolveUsers(DeliveryArgs *lpArgs, IABContainer *lpAddrFolder, recipient
 			continue;
 		}
 
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Resolved recipient %ls as user %ls", (*iter)->wstrRCPT.c_str(), lpAccountProp->Value.lpszW);
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Resolved recipient %ls as user %ls", (*iter)->wstrRCPT.c_str(), lpAccountProp->Value.lpszW);
 
 		/* The following are allowed to be NULL */
 		lpCompanyProp = PpropFindProp(lpAdrList->aEntries[ulRCPT].rgPropVals, lpAdrList->aEntries[ulRCPT].cValues, PR_EC_COMPANY_NAME_W);
@@ -2856,7 +2856,7 @@ void *HandlerLMTP(void *lpArg) {
 	LPADRBOOK	 lpAdrBook = NULL;
 	IABContainer *lpAddrDir = NULL;
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting worker for LMTP request pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting worker for LMTP request pid %d", getpid());
 
 	char *lpEnvGDB  = getenv("GDB");
 	if (lpEnvGDB && parseBool(lpEnvGDB)) {
@@ -3101,7 +3101,7 @@ exit:
 	if (lpSession)
 		lpSession->Release();
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP thread exiting");
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "LMTP thread exiting");
 
 	if (lpArgs)
 		delete lpArgs;
@@ -3178,7 +3178,7 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	file_limit.rlim_max = FD_SETSIZE;
 
 	if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
@@ -3198,7 +3198,7 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting zarafa-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	// Mainloop
 	while (!g_bQuit) {
@@ -3212,7 +3212,7 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 
 		if (err < 0) {
 			if (errno != EINTR) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Socket error!");
+				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Socket error: %s", strerror(errno));
 				g_bQuit = true;
 				hr = MAPI_E_NETWORK_ERROR;
 			}
@@ -3275,7 +3275,7 @@ HRESULT running_service(char *servicename, bool bDaemonize, DeliveryArgs *lpArgs
 	if (g_nLMTPThreads)
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d processes left", g_nLMTPThreads);
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP service shutdown complete");
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "LMTP service shutdown complete");
 
 	MAPIUninitialize();
 
@@ -3531,6 +3531,7 @@ int main(int argc, char *argv[]) {
 		{ "plugin_enabled", "yes" },
 		{ "plugin_path", "/var/lib/zarafa/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/zarafa-dagent/python" },
+		{ "default_charset", "iso-8859-15" },
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ NULL, NULL },
@@ -3717,6 +3718,8 @@ int main(int argc, char *argv[]) {
 	if (sDeliveryArgs.strPath.empty())
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
+
+	sDeliveryArgs.sDeliveryOpts.default_charset = g_lpConfig->GetSetting("default_charset");
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {

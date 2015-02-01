@@ -238,7 +238,7 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 		goto exit;
 	
 	// Important: m_iCurrentTimeZone will be set by this function, because of the possible recurrence lateron
-	hr = HrAddTimes(lpEventRoot, lpEvent, bIsAllday, lpIcalItem);
+	hr = HrAddTimes(icMethod, lpEventRoot, lpEvent, bIsAllday, lpIcalItem);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1145,7 +1145,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	strSearchKey = strType+":"+m_converter.convert_to<string>(strEmail);
 	transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
 
-	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_A;
+	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_W;
 	hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, strType.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		goto exit;
@@ -1817,24 +1817,10 @@ done:
 	return hr;
 }
 
-/** 
- * Converts the unix timestamp to ical information and adds a new ical
- * property to the given ical component.
- * 
- * @param[in]  tStamp The unix timestamp value to set in the ical property
- * @param[in]  bDateOnly true if only the date should be set (all day events) or false for full time conversion
- * @param[in]  lpicTZinfo Pointer to ical timezone for this property (required for recurring events). If NULL, UTC will be used.
- * @param[in]  strTZid Human readable name of the timezone
- * @param[in]  icalkind Kind of property the timestamp is describing
- * @param[in,out] lpicEvent Ical property will be added to this event, when hrSuccess is returned.
- * 
- * @return MAPI error code
- */
-HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalcomponent *lpicEvent)
+HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalproperty *lpicProp)
 {
 	HRESULT hr = hrSuccess;
 	icaltimetype ittStamp;
-	icalproperty *lpicProp = NULL;
 
 	if(bDateOnly && !lpicTZinfo) {
 		struct tm date;
@@ -1862,17 +1848,41 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 	else
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, icaltimezone_get_utc_timezone());
 
+	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
+
+	// only allowed to add timezone information on non-allday events
+	if (lpicTZinfo && !bDateOnly)
+		icalproperty_add_parameter(lpicProp, icalparameter_new_from_value_string(ICAL_TZID_PARAMETER, strTZid.c_str()));
+
+	return hr;
+}
+
+/**
+ * Converts the unix timestamp to ical information and adds a new ical
+ * property to the given ical component.
+ *
+ * @param[in]  tStamp The unix timestamp value to set in the ical property
+ * @param[in]  bDateOnly true if only the date should be set (all day events) or false for full time conversion
+ * @param[in]  lpicTZinfo Pointer to ical timezone for this property (required for recurring events). If NULL, UTC will be used.
+ * @param[in]  strTZid Human readable name of the timezone
+ * @param[in]  icalkind Kind of property the timestamp is describing
+ * @param[in,out] lpicEvent Ical property will be added to this event, when hrSuccess is returned.
+ *
+ * @return MAPI error code
+*/
+HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalcomponent *lpicEvent)
+{
+	HRESULT hr = hrSuccess;
+	icalproperty *lpicProp = NULL;
+
 	lpicProp = icalproperty_new(icalkind);
 	if (!lpicProp) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
-	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
+	hr = HrSetTimeProperty(tStamp, bDateOnly, lpicTZinfo, strTZid, icalkind, lpicProp);
 
-	// only allowed to add timezone information on non-allday events
-	if (lpicTZinfo && !bDateOnly)
-		icalproperty_add_parameter(lpicProp, icalparameter_new_from_value_string(ICAL_TZID_PARAMETER, strTZid.c_str()));
 	icalcomponent_add_property(lpicEvent, lpicProp);
 
 exit:
@@ -1916,6 +1926,11 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	string strMessageClass;
 	wstring wstrBuf;
 	ULONG ulMeetingStatus = 0;
+	bool bCounterProposal = false;
+
+	lpPropVal = PpropFindProp(lpProps, ulProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
+	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b)
+		bCounterProposal = true;
 	
 	//Remove Organiser & Attendees of Root event for exception.
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
@@ -1960,10 +1975,14 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	{
 		// responding to a meeting request:
 		// the to should only be the organizer of this meeting
-		icMethod = ICAL_METHOD_REPLY;
+		if(bCounterProposal)
+			icMethod = ICAL_METHOD_COUNTER;
+		else {
+			icMethod = ICAL_METHOD_REPLY;
 
-		// gmail always sets CONFIRMED, exchange fills in the correct value ... doesn't seem to matter .. for now
-		icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
+			// gmail always sets CONFIRMED, exchange fills in the correct value ... doesn't seem to matter .. for now
+			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
+		}
 
 		if (strMessageClass.rfind("Pos") != string::npos) {
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);

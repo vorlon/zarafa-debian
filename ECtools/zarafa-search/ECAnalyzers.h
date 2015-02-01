@@ -50,7 +50,6 @@
 #ifndef ANALYZERS_H
 
 #include "CLucene/StdHeader.h"
-#include "CLucene/util/Reader.h"
 #include "CLucene/analysis/standard/StandardAnalyzer.h"
 #include "CLucene/analysis/AnalysisHeader.h"
 
@@ -68,7 +67,11 @@ class EmailFilter: public lucene::analysis::TokenFilter {
 public:
 	EmailFilter(lucene::analysis::TokenStream* in, bool deleteTokenStream);
 	virtual ~EmailFilter();
+#ifdef CLUCENE_23
+	lucene::analysis::Token *next(lucene::analysis::Token *token);
+#else
 	bool next(lucene::analysis::Token* token);
+#endif
 private:
 	lucene::analysis::Token curtoken;
 	
@@ -86,7 +89,11 @@ public:
 	ECAnalyzer();
 	virtual ~ECAnalyzer();
 
+#ifdef CLUCENE_23
+	virtual lucene::analysis::TokenStream *tokenStream(const TCHAR *fieldName, CL_NS(util)::BufferedReader *reader);
+#else
 	virtual lucene::analysis::TokenStream* tokenStream(const TCHAR* fieldName, CL_NS(util)::Reader* reader);
+#endif
 };
 
 #endif

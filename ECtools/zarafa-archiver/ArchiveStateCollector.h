@@ -53,7 +53,7 @@
 #include <boost/smart_ptr.hpp>
 #include <map>
 #include "archivestateupdater_fwd.h"
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "tstring.h"
 #include "archiver-common.h"
 #include "ECArchiverLogger.h"
@@ -62,7 +62,7 @@ class ArchiveStateCollector;
 typedef boost::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
 /**
- * The ArchiveStateCollector will construct the current archive state, which 
+ * The ArchiveStateCollector will construct the current archive state, which
  * is the set of currently attached archives for each primary store, and the
  * should-be archive state, which is the set of attached archives for each
  * primary store as specified in LDAP/ADS.

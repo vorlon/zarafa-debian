@@ -81,6 +81,17 @@
 
 using namespace std;
 
+bool ValidateCharset(const char *charset)
+{
+	iconv_t cd;
+	cd = iconv_open(CHARSET_WCHAR, charset);
+	if (cd == (iconv_t)(-1))
+		return false;
+		
+	iconv_close(cd);
+	return true;
+}
+
 ECSender::ECSender(ECLogger *newlpLogger, const std::string &strSMTPHost, int port) {
 	lpLogger = newlpLogger;
 	if (!lpLogger)
@@ -186,6 +197,14 @@ INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IA
 {
 	HRESULT hr = hrSuccess;
 	VMIMEToMAPI *VMToM = NULL;
+	
+	// Sanitize options
+	if(!ValidateCharset((const char*)dopt.default_charset)) {
+		char *charset = "iso-8859-15";
+		if(lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Configured default_charset '%s' is invalid. Reverting to '%s'", dopt.default_charset, charset);
+		dopt.default_charset = charset;
+	}
 
 	VMToM = new VMIMEToMAPI(lpAddrBook, lpLogger, dopt);
 

@@ -381,6 +381,8 @@ typedef EID * PEID;
 #define ZARAFA_CAP_IMPERSONATION        0x1000
 // Client stores the max ab changeid obtained from the server
 #define ZARAFA_CAP_MAX_ABCHANGEID		0x2000
+// Client can read and write binary anonymous ab properties
+#define ZARAFA_CAP_EXTENDED_ANON		0x4000
 
 // Do *not* use this from a client. This is just what the latest server supports.
 #define ZARAFA_LATEST_CAPABILITIES		ZARAFA_CAP_CRYPT | ZARAFA_CAP_LICENSE_SERVER | ZARAFA_CAP_LOADPROP_ENTRYID | ZARAFA_CAP_EXPORT_PROPTAG | ZARAFA_CAP_IMPERSONATION

@@ -1268,6 +1268,9 @@
 
 			$message = mapi_msgstore_openentry($store, $entryid);
 
+			// Needed for S/MIME messages with embedded message attachments
+			parse_smime($store, $message);
+
 			if($message && $attachNum) {
 				foreach($attachNum as $num){
 					$attachment = mapi_message_openattach($message, $num);

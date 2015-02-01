@@ -241,6 +241,10 @@ property_mv_map objectdetails_t::GetPropMapListAnonymous() const {
 	return anonymous;
 }
 
+bool objectdetails_t::HasProp(const property_key_t &propname) const {
+	return m_mapProps.find(propname) != m_mapProps.end() || m_mapMVProps.find(propname) != m_mapMVProps.end();
+}
+
 bool objectdetails_t::PropListStringContains(const property_key_t &propname, const std::string &value, bool ignoreCase) const {
 	const std::list<std::string> list = GetPropListString(propname);
 	if (ignoreCase)

@@ -1604,6 +1604,7 @@ HRESULT CopyABPropsFromSoap(struct propmapPairArray *lpsoapPropmap, struct propm
 	HRESULT hr = hrSuccess;
 	unsigned int nLen = 0;
 	convert_context converter;
+	ULONG ulConvFlags;
 
 	if (lpsoapPropmap != NULL) {
 		lpPropmap->cEntries = lpsoapPropmap->__size;
@@ -1613,8 +1614,15 @@ HRESULT CopyABPropsFromSoap(struct propmapPairArray *lpsoapPropmap, struct propm
 			goto exit;
 
 		for (unsigned int i = 0; i < lpsoapPropmap->__size; i++) {
-			lpPropmap->lpEntries[i].ulPropId = CHANGE_PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
-			hr = Utf8ToTString(lpsoapPropmap->__ptr[i].lpszValue, ulFlags, lpBase, &converter, &lpPropmap->lpEntries[i].lpszValue);
+			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) != PT_BINARY) {
+				lpPropmap->lpEntries[i].ulPropId = CHANGE_PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
+				ulConvFlags = ulFlags;
+			} else {
+				lpPropmap->lpEntries[i].ulPropId = lpsoapPropmap->__ptr[i].ulPropId;
+				ulConvFlags = 0;
+			}
+
+			hr = Utf8ToTString(lpsoapPropmap->__ptr[i].lpszValue, ulConvFlags, lpBase, &converter, &lpPropmap->lpEntries[i].lpszValue);
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -1627,7 +1635,13 @@ HRESULT CopyABPropsFromSoap(struct propmapPairArray *lpsoapPropmap, struct propm
 			goto exit;
 
 		for (unsigned int i = 0; i < lpsoapMVPropmap->__size; i++) {
-			lpMVPropmap->lpEntries[i].ulPropId = CHANGE_PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId, ((ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
+			if (PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId) != PT_MV_BINARY) {
+				lpMVPropmap->lpEntries[i].ulPropId = CHANGE_PROP_TYPE(lpsoapMVPropmap->__ptr[i].ulPropId, ((ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
+				ulConvFlags = ulFlags;
+			} else {
+				lpMVPropmap->lpEntries[i].ulPropId = lpsoapMVPropmap->__ptr[i].ulPropId;
+				ulConvFlags = 0;
+			}
 
 			lpMVPropmap->lpEntries[i].cValues = lpsoapMVPropmap->__ptr[i].sValues.__size;
 			nLen = sizeof(*lpMVPropmap->lpEntries[i].lpszValues) * lpMVPropmap->lpEntries[i].cValues;
@@ -1636,7 +1650,7 @@ HRESULT CopyABPropsFromSoap(struct propmapPairArray *lpsoapPropmap, struct propm
 				goto exit;
 
 			for (int j = 0; j < lpsoapMVPropmap->__ptr[i].sValues.__size; j++) {
-				hr = Utf8ToTString(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j], ulFlags, lpBase, &converter, &lpMVPropmap->lpEntries[i].lpszValues[j]);
+				hr = Utf8ToTString(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j], ulConvFlags, lpBase, &converter, &lpMVPropmap->lpEntries[i].lpszValues[j]);
 				if (hr != hrSuccess)
 					goto exit;
 			}
@@ -1654,6 +1668,7 @@ HRESULT CopyABPropsToSoap(SPROPMAP *lpPropmap, MVPROPMAP *lpMVPropmap, ULONG ulF
 	struct propmapPairArray *soapPropmap = NULL;
 	struct propmapMVPairArray *soapMVPropmap = NULL;
 	convert_context	converter;
+	ULONG ulConvFlags;
 
 
 	if (lpPropmap && lpPropmap->cEntries) {
@@ -1667,8 +1682,15 @@ HRESULT CopyABPropsToSoap(SPROPMAP *lpPropmap, MVPROPMAP *lpMVPropmap, ULONG ulF
 			goto exit;
 
 		for (unsigned int i = 0; i < soapPropmap->__size; i++) {
-			soapPropmap->__ptr[i].ulPropId = CHANGE_PROP_TYPE(lpPropmap->lpEntries[i].ulPropId, PT_STRING8);
-			hr = TStringToUtf8(lpPropmap->lpEntries[i].lpszValue, ulFlags, soapPropmap, &converter, &soapPropmap->__ptr[i].lpszValue);
+			if (PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) != PT_BINARY) {
+				soapPropmap->__ptr[i].ulPropId = CHANGE_PROP_TYPE(lpPropmap->lpEntries[i].ulPropId, PT_STRING8);
+				ulConvFlags = ulFlags;
+			} else {
+				soapPropmap->__ptr[i].ulPropId = lpPropmap->lpEntries[i].ulPropId;
+				ulConvFlags = 0;
+			}
+
+			hr = TStringToUtf8(lpPropmap->lpEntries[i].lpszValue, ulConvFlags, soapPropmap, &converter, &soapPropmap->__ptr[i].lpszValue);
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -1685,14 +1707,21 @@ HRESULT CopyABPropsToSoap(SPROPMAP *lpPropmap, MVPROPMAP *lpMVPropmap, ULONG ulF
 			goto exit;
 
 		for (unsigned int i = 0; i < soapMVPropmap->__size; i++) {
-			soapMVPropmap->__ptr[i].ulPropId = CHANGE_PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId, PT_MV_STRING8);
+			if (PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) != PT_MV_BINARY) {
+				soapMVPropmap->__ptr[i].ulPropId = CHANGE_PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId, PT_MV_STRING8);
+				ulConvFlags = ulFlags;
+			} else {
+				soapMVPropmap->__ptr[i].ulPropId = lpMVPropmap->lpEntries[i].ulPropId;
+				ulConvFlags = 0;
+			}
+
 			soapMVPropmap->__ptr[i].sValues.__size = lpMVPropmap->lpEntries[i].cValues;
 			hr = ECAllocateMore(soapMVPropmap->__ptr[i].sValues.__size * sizeof * soapMVPropmap->__ptr[i].sValues.__ptr, soapMVPropmap, (void**)&soapMVPropmap->__ptr[i].sValues.__ptr);
 			if (hr != hrSuccess)
 				goto exit;
 
 			for (int j = 0; j < soapMVPropmap->__ptr[i].sValues.__size; j++) {
-				hr = TStringToUtf8(lpMVPropmap->lpEntries[i].lpszValues[j], ulFlags, soapMVPropmap, &converter, &soapMVPropmap->__ptr[i].sValues.__ptr[j]);
+				hr = TStringToUtf8(lpMVPropmap->lpEntries[i].lpszValues[j], ulConvFlags, soapMVPropmap, &converter, &soapMVPropmap->__ptr[i].sValues.__ptr[j]);
 				if (hr != hrSuccess)
 					goto exit;
 			}

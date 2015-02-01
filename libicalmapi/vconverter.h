@@ -97,7 +97,7 @@ protected:
 	virtual HRESULT HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_method icMethod, icalitem *lpIcalItem);
 	virtual HRESULT HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem);
 	virtual HRESULT HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalItem);
-	virtual HRESULT HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem) = 0; /* pure, must be overloaded */
+	virtual HRESULT HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem) = 0; /* pure, must be overloaded */
 	virtual HRESULT HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string &strType, ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, std::list<icalrecip> * lplstIcalRecip);
 	virtual HRESULT HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpIcalItem);
@@ -111,6 +111,7 @@ protected:
 	virtual HRESULT HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent) = 0; /* pure */
 	virtual HRESULT HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent *lpEvent);
 	virtual HRESULT HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::string *lpstrTZid, TIMEZONE_STRUCT *lpTZinfo, icaltimezone **lppicTZinfo);
+	virtual HRESULT HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalproperty *lpicProp);
 	virtual HRESULT HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalcomponent *lpicEvent);
 	virtual HRESULT HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg /* if exception*/, LPMESSAGE lpMessage, ULONG ulProps, LPSPropValue lpProps, icalproperty_method *lpicMethod, icalcomponent *lpicEvent);
 	virtual HRESULT HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent);

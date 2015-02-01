@@ -1,7 +1,0 @@
-This library (gSoap) is bundled with zarafa under the GPL license. For all
-gSoap licensing options, see http://www.cs.fsu.edu/~engelen/soaplicense.html
-
-The stdsoap2.cpp and stdsoap2.h files are copies of gsoap-2.7.6d
-If we ever require a new version, download it from http://www.cs.fsu.edu/~engelen/soap.html
-or http://gsoap2.sf.net/
-
