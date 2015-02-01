@@ -131,8 +131,15 @@
 	// Set the session variables if it is posted
 	if($_POST && array_key_exists("username", $_POST) && array_key_exists("password", $_POST)) {
 		$_SESSION["username"] = utf8_to_windows1252($_POST["username"]);
-		$_SESSION["password"] = utf8_to_windows1252($_POST["password"]);
+		$password = utf8_to_windows1252($_POST["password"]);
+		// if user has openssl module installed
+		if(function_exists("openssl_encrypt")) {
+			$_SESSION['password'] = openssl_encrypt($password,"des-ede3-cbc",PASSWORD_KEY,0,PASSWORD_IV);
+		} else {
+			$_SESSION["password"] = $password;
+		}
 	}
+
 	if(!DISABLE_REMOTE_USER_LOGIN){
 		// REMOTE_USER is set when apache has authenticated the user
 		if( ! $_POST && $_SERVER && array_key_exists("REMOTE_USER", $_SERVER)) {
@@ -143,7 +150,6 @@
 			$_SESSION["password"] = "";
 		}
 	}
-
 
 	// Create global mapi object. This object is used in many other files
 	$GLOBALS["mapisession"] = new MAPISession();

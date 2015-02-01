@@ -1,7 +1,7 @@
 '\" t
 .\"     Title: zarafa-gateway.cfg
 .\"    Author: [see the "Author" section]
-.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: August 2011
 .\"    Manual: Zarafa user reference
 .\"    Source: Zarafa 7.1
@@ -262,6 +262,18 @@ Store the rfc822 data with the message in MAPI\&. The Zarafa Gateway stores the 
 .sp
 Default:
 \fIyes\fR
+.RE
+.PP
+\fBdisable_plaintext_auth\fR
+.RS 4
+Disable all plaintext POP3 and IMAP authentications unless SSL/TLS is used\&. Obviously this requires at least
+\fIssl_private_key_file\fR
+and
+\fIssl_certificate_file\fR
+to take effect\&.
+.sp
+Default:
+\fIno\fR
 .RE
 .PP
 \fBssl_private_key_file\fR

@@ -50,7 +50,7 @@
 #ifndef ARCHIVERSESSION_H_INCLUDED
 #define ARCHIVERSESSION_H_INCLUDED
 
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"
 #include "mapi_ptr.h"
 #include "tstring.h"
 #include "archiver-common.h"

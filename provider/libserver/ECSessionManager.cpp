@@ -1402,7 +1402,6 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 {
 	SESSIONMAP::iterator		iIterator;
 	SESSIONGROUPMAP::iterator	itersg;
-	ECSession *lpSess;
 	list<ECSession*> vSessions;
 
 	memset(&sStats, 0, sizeof(sSessionManagerStats));

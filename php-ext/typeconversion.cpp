@@ -65,6 +65,10 @@ extern "C" {
    	#include "php_globals.h"
 	#include "ext/standard/info.h"
 	#include "ext/standard/php_string.h"
+
+#ifdef ZTS
+    void*** tsrm_ls;
+#endif
 }
 
 #undef inline
@@ -2395,6 +2399,9 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		} else if (strcmp(keyIndex, "parse_smime_signed") == 0) {
 			convert_to_boolean_ex(entry);
 			lpDOPT->parse_smime_signed = Z_BVAL_PP(entry);
+		} else if (strcmp(keyIndex, "default_charset") == 0) {
+			convert_to_string_ex(entry);
+			lpDOPT->default_charset = Z_STRVAL_PP(entry);
 		} else {
 			// user_entryid not supported, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex);

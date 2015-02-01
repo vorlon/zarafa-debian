@@ -1,16 +1,11 @@
-if WITH_CLUCENE
-if WITH_KYOTOCABINET
 bin_PROGRAMS = zarafa-search
-noinst_PROGRAMS = dump-index
-endif
-endif
 
 AM_CPPFLAGS = ${ZCPPFLAGS} \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/ECtools/zarafa-archiver \
-	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS)
+	$(DEBUGFLAGS) ${CLUCENE_CFLAGS} $(BOOST_CPPFLAGS) -D$(CLUCENE_VERSION)
 
 zarafa_search_LDADD = \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -36,11 +31,6 @@ zarafa_search_SOURCES = \
 	ECIndexFactory.cpp ECIndexFactory.h \
 	ECIndexImporter.cpp ECIndexImporter.h \
 	ECIndexOptimizer.cpp ECIndexOptimizer.h
-
-dump_index_SOURCES = dump-index.cpp
-dump_index_LDADD = \
-	${top_builddir}/common/libcommon_util.la \
-	$(KYOTOCABINET_LIBS)
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \

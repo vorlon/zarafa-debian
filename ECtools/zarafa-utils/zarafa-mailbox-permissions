@@ -351,7 +351,12 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
 
         # Calendar
         setMailboxFolderPermissions(store, inboxprops[0].Value, members, listfolderrights.get('calendar', ecRightsNone))
-        fbrights =  listfolderrights.get('calendar', ecRightsNone)
+        if listfolderrights.get('calendar'):
+            # if we have write access, give correct permission on fb
+            if listfolderrights.get('calendar', ecRightsNone) & (ecRightsCreate|ecRightsEditOwned|ecRightsDeleteOwned|ecRightsEditAny|ecRightsDeleteAny) != ecRightsNone:
+                fbrights = ecRightsTemplateSecretary
+            else:
+                fbrights = listfolderrights.get('calendar', ecRightsNone)
 
         # Contacts
         setMailboxFolderPermissions(store, inboxprops[1].Value, members, listfolderrights.get('contacts', ecRightsNone))

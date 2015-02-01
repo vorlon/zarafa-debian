@@ -54,7 +54,7 @@
 #include "postsaveaction.h"
 #include "transaction_fwd.h"
 #include "instanceidmapper_fwd.h"
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "archiver-common.h"
 #include <map>
 #include <boost/smart_ptr.hpp>
@@ -83,7 +83,7 @@ public:
 	 * @param[in]	ptrDeleteOp		The delete operation.
 	 */
 	void SetDeleteOperation(DeleterPtr ptrDeleteOp);
-	
+
 	/**
 	 * Set the operation that will perform the stubbing if required.
 	 * @param[in]	ptrStubOp		The stub operation.
@@ -215,7 +215,7 @@ private:
 
 	/**
 	 * Move an archive message to the special history folder.
-	 * 
+	 *
 	 * @param[in]	sourceArchiveRoot	The SObjectEntry describing the archive root folder
 	 * @param[in]	sourceMsgEntry		The SObjectEntry describing the archive message to move
 	 * @param[in]	ptrTransaction		A Transaction object used to save and delete the proper messages when everything is setup

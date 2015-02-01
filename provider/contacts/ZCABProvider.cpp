@@ -55,10 +55,8 @@
 #include "mapicode.h"
 #include "mapiguid.h"
 
-#include "Zarafa.h"
 #include "ECGuid.h"
 #include "ECDebug.h"
-
 #include "Trace.h"
 
 ZCABProvider::ZCABProvider(ULONG ulFlags, char *szClassName) : ECUnknown(szClassName), m_ulFlags(ulFlags)

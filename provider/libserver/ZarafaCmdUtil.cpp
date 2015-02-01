@@ -1433,7 +1433,7 @@ ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)
 {
 	ECRESULT er = erSuccess;
 	long long llStoreSize = 0;
-	eQuotaStatus QuotaStatus;
+	eQuotaStatus QuotaStatus = QUOTA_OK;
 	
 	er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
 	if (er != erSuccess)

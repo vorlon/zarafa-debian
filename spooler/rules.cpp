@@ -187,8 +187,12 @@ HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strForwardText = L"From: ";
 		if (PROP_TYPE(ptrInfo[0].ulPropTag) != PT_ERROR)
 			strForwardText += ptrInfo[0].Value.lpszW;
-		else if (PROP_TYPE(ptrInfo[1].ulPropTag) != PT_ERROR)
+		
+		if (PROP_TYPE(ptrInfo[1].ulPropTag) != PT_ERROR) {
+			strForwardText += L" <";
 			strForwardText += ptrInfo[1].Value.lpszW;
+			strForwardText += L">";
+		}
 
 		strForwardText += L"\nSent: ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {

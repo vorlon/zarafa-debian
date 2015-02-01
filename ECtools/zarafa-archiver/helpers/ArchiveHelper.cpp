@@ -51,7 +51,7 @@
 #include "ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include "ECLogger.h"
-#include "storehelper.h"
+#include "StoreHelper.h"
 #include "ECACL.h"
 #include "ECABEntryID.h"
 #include "ECGetText.h" // defines the wonderful macro "_"

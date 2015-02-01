@@ -167,7 +167,13 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	strCommand = vWords[0];
 	transform(strCommand.begin(), strCommand.end(), strCommand.begin(), ::toupper);
 
-	if (strCommand.compare("STLS") == 0) {
+	if (strCommand.compare("CAPA") == 0) {
+		if (vWords.size() != 1) {
+			hr = HrResponse(POP3_RESP_ERR, "CAPA command must have 0 arguments");
+			goto exit;
+		}
+		hr = HrCmdCapability();
+	} else if (strCommand.compare("STLS") == 0) {
 		if (vWords.size() != 1) {
 			hr = HrResponse(POP3_RESP_ERR, "STLS command must have 0 arguments");
 			goto exit;
@@ -293,6 +299,57 @@ HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
 	return lpChannel->HrWriteLine(strResult + strResponse);
 }
 
+/**
+ * Returns the CAPA string. In some stages, items can be listed or
+ * not. This depends on the command received from the client, and
+ * the logged on status of the user. Last state is autodetected in
+ * the class.
+ * 
+ * @return  The capabilities string
+ */
+std::string POP3::GetCapabilityString()
+{
+	string strCapabilities;
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
+
+	// capabilities we always have
+	strCapabilities = "\r\nCAPA\r\nTOP\r\nUIDL\r\nRESP-CODES\r\nAUTH-RESP-CODE\r\n";
+
+	if (lpSession == NULL) {
+		// authentication capabilities
+		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
+			strCapabilities += "STLS\r\n";
+
+		if (!(!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0))
+			strCapabilities += "USER\r\n";
+	}
+
+	strCapabilities += ".";
+
+	return strCapabilities;
+}
+
+/** 
+ * @brief Handle the CAPA command
+ *
+ * Sends all the gateway capabilities to the client, depending on the
+ * state we're in. Authentication capabilities are skipped when a user
+ * was already logged in.
+ * 
+ * @return hrSuccess
+ */
+HRESULT POP3::HrCmdCapability() {
+	HRESULT hr = hrSuccess;
+	std::string strCapabilities = GetCapabilityString();
+
+	hr = HrResponse(POP3_RESP_OK, strCapabilities);
+	if (hr != hrSuccess)
+		goto exit;
+
+exit:
+	return hr;
+}
+
 /** 
  * @brief Handle the STLS command
  * 
@@ -304,7 +361,7 @@ HRESULT POP3::HrCmdStarttls() {
 	HRESULT hr = hrSuccess;
 
 	if (!lpChannel->sslctx()) {
-		hr = HrResponse(POP3_RESP_ERR, "STLS error in ssl context");
+		hr = HrResponse(POP3_RESP_PERMFAIL, "STLS error in ssl context");
 		goto exit;
 	}
 
@@ -343,11 +400,17 @@ exit:
  */
 HRESULT POP3::HrCmdUser(const string &strUser) {
 	HRESULT hr = hrSuccess;
-	if (lpStore != NULL) {
-		hr = HrResponse(POP3_RESP_ERR, "Can't login twice");
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
+
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0) {
+		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
+					  lpChannel->GetIPAddress().c_str(), strUser.c_str());
+	} else if (lpStore != NULL) {
+		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strUser.length() > POP3_MAX_RESPONSE_LENGTH) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Username too long: %d > %d", (int)strUser.length(), POP3_MAX_RESPONSE_LENGTH);
-		hr = HrResponse(POP3_RESP_ERR, "Username to long");
+		hr = HrResponse(POP3_RESP_PERMFAIL, "Username too long");
 	} else {
 		szUser = strUser;
 		hr = HrResponse(POP3_RESP_OK, "Waiting for password");
@@ -366,18 +429,27 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
  */
 HRESULT POP3::HrCmdPass(const string &strPass) {
 	HRESULT hr = hrSuccess;
+	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
-	if (lpStore != NULL) {
-		hr = HrResponse(POP3_RESP_ERR, "Can't login twice");
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0) {
+		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
+		if(szUser.empty())
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s without username (tried to use disallowed "
+							 "plaintext auth)", lpChannel->GetIPAddress().c_str());
+		else
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed "
+							 "plaintext auth)", lpChannel->GetIPAddress().c_str(), szUser.c_str());
+	} else if (lpStore != NULL) {
+		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strPass.length() > POP3_MAX_RESPONSE_LENGTH) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Password too long: %d > %d", (int)strPass.length(), POP3_MAX_RESPONSE_LENGTH);
-		hr = HrResponse(POP3_RESP_ERR, "Password to long");
+		hr = HrResponse(POP3_RESP_PERMFAIL, "Password too long");
 	} else if (szUser.empty()) {
 		hr = HrResponse(POP3_RESP_ERR, "Give username first");
 	} else {
 		hr = this->HrLogin(szUser, strPass);
 		if (hr != hrSuccess) {
-			HrResponse(POP3_RESP_ERR, "Wrong username or password");
+			HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
 			goto exit;
 		}
 
@@ -515,7 +587,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt, lpLogger);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
-			HrResponse(POP3_RESP_ERR, "Converting MAPI to MIME error");
+			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			goto exit;
 		}
 
@@ -743,7 +815,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt, lpLogger);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
-			HrResponse(POP3_RESP_ERR, "Converting MAPI to MIME error");
+			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			goto exit;
 		}
 

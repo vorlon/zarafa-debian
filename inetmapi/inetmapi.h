@@ -100,6 +100,8 @@ public:
 	virtual const std::string getRecipientErrorEmailAddress(unsigned int offset) const;
 };
 
+bool ValidateCharset(const char *charset);
+
 /* c wrapper to create object */
 INETMAPI_API ECSender* CreateSender(ECLogger *lpLogger, const std::string &smtp, int port);
 

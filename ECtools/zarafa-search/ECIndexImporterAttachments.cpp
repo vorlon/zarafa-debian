@@ -76,6 +76,8 @@
 
 #define STREAM_BUFFER   ( 64*1024 )
 
+using namespace std;
+
 ECIndexImporterAttachment::ECIndexImporterAttachment(ECThreadData *lpThreadData, ECIndexImporter *lpIndexer)
 {
 	m_lpThreadData = lpThreadData;

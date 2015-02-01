@@ -50,13 +50,12 @@
 #ifndef ARCHIVER_H_INCLUDED
 #define ARCHIVER_H_INCLUDED
 
-#include "ArchiveManage.h"
-#include <memory>
+#include "ArchiveManage.h" // for ArchiveManagePtr
 
 class ECConfig;
 
-#define ARCHIVE_RIGHTS_ERROR    (unsigned)-1
-#define ARCHIVE_RIGHTS_ABSENT   (unsigned)-2
+#define ARCHIVE_RIGHTS_ERROR	(unsigned)-1
+#define ARCHIVE_RIGHTS_ABSENT	(unsigned)-2
 
 #define ARCHIVER_API
 

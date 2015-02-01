@@ -853,9 +853,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	ECRESULT		er = erSuccess;
 
 	ECDatabaseFactory*	lpDatabaseFactory = NULL;
-	ECPluginFactory*	lpPluginFactory = NULL;
 
-	UserPlugin*		lpUserPlugin = NULL;
 	ECDatabase*		lpDatabase = NULL;
 	std::string		dbError;
 
@@ -1034,6 +1032,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "restrict_admin_permissions", "no", 0 },
 		{ "embedded_attachment_limit", "20", CONFIGSETTING_RELOADABLE },
 		{ "proxy_header", "", CONFIGSETTING_RELOADABLE },
+		{ "owner_auto_full_access", "true" },
 		{ NULL, NULL },
 	};
 
@@ -1427,24 +1426,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		retval = -1;
 		goto exit;
 	}
-
-	// Test user plugin, after zarafa_init, since DBplugin needs database factory
-	lpPluginFactory = new ECPluginFactory(g_lpConfig, g_lpLogger, g_lpStatsCollector, hosted, distributed);
-	if(lpPluginFactory->CreateUserPlugin(&lpUserPlugin) != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize user plugin");
-		retval = -1;
-		goto exit;
-	}
-
-	// We don't really need it - just testing it loads at all
-	delete lpUserPlugin;	lpUserPlugin = NULL;
-	delete lpPluginFactory;	lpPluginFactory = NULL;
-	
-	// Some shared objects that are closed during plugin factory deletion will
-	// remove our threading cleanup. To make sure we have our threading setup in
-	// place, re-initialize SSL threading
-	ssl_threading_cleanup();
-	ssl_threading_setup();
 
 	// check for conflicting settings in local config and LDAP, after zarafa_init since this needs the sessionmanager.
 	er = check_server_configuration();

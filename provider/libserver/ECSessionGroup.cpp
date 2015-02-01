@@ -478,7 +478,8 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	notification	notifyItem = {0};
 	notificationICS	ics = {0};
 	entryId			syncStateBin = {0};
-	notifySyncState	syncState = {ulSyncId, ulChangeId};
+
+	notifySyncState	syncState = { ulSyncId, static_cast<unsigned int>(ulChangeId) };
 	SESSIONINFOMAP::iterator iterSessions;
 
 	notifyItem.ulEventType = fnevZarafaIcsChange;

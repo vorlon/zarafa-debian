@@ -2732,20 +2732,23 @@ exit:
 	return lpUser;
 }
 
-PyObject * Object_from_LPECUSER(LPECUSER lpUser)
+PyObject * Object_from_LPECUSER(LPECUSER lpUser, ULONG ulFlags)
 {
-	// @todo charset conversion ?
-	return PyObject_CallFunction(PyTypeECUser, "(ssssslllls#)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb);
+    if(ulFlags & MAPI_UNICODE)
+        return PyObject_CallFunction(PyTypeECUser, "(uuuuulllls#)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb);
+    else
+        return PyObject_CallFunction(PyTypeECUser, "(ssssslllls#)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb);
+
 }
 
 
-PyObject * List_from_LPECUSER(LPECUSER lpUser, ULONG cElements)
+PyObject * List_from_LPECUSER(LPECUSER lpUser, ULONG cElements, ULONG ulFlags)
 {
 	PyObject *list = PyList_New(0);
 	PyObject *item = NULL;
 
 	for(unsigned int i=0; i<cElements; i++) {
-		item = Object_from_LPECUSER(&lpUser[i]);
+		item = Object_from_LPECUSER(&lpUser[i], ulFlags);
 		if (PyErr_Occurred())
 			goto exit;
 

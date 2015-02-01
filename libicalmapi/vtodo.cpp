@@ -209,7 +209,7 @@ exit:
  * @return		MAPI error code
  * @retval		MAPI_E_INVALID_PARAMETER	start time or timezone not present in ical data
  */
-HRESULT VTodoConverter::HrAddTimes(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
+HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;

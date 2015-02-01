@@ -249,6 +249,9 @@ HRESULT Http::HrParseHeaders()
 	std::vector<std::string> items;
 	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
 
+        std::string user_pass;
+        size_t colon_pos;
+
 	items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -286,16 +289,14 @@ HRESULT Http::HrParseHeaders()
 		goto exit;
 	}
 
-
-	items = tokenize(base64_decode(items[1]), ':');
-	if (items.size() != 2) {
+        user_pass = base64_decode(items[1]);
+        if((colon_pos = user_pass.find(":")) == std::string::npos) {
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
-	}
+        }
 
-	m_strUser = items[0];
-	m_strPass = items[1];
-
+	m_strUser = user_pass.substr(0, colon_pos);
+	m_strPass = user_pass.substr(colon_pos+1, std::string::npos);
 exit:
 	return hr;
 }

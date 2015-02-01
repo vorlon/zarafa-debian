@@ -47,11 +47,11 @@
  * 
  */
 
-#ifndef transaction_INCLUDED
-#define transaction_INCLUDED
+#ifndef TRANSACTION_INCLUDED
+#define TRANSACTION_INCLUDED
 
 #include "transaction_fwd.h"
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "archiver-common.h"
 #include "postsaveaction.h"
 
@@ -112,4 +112,4 @@ private:
 
 }} // namespace operations, za
 
-#endif // ndef transaction_INCLUDED
+#endif // !defined TRANSACTION_INCLUDED

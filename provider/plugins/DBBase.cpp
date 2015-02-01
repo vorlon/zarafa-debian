@@ -54,6 +54,8 @@
 #include "EMSAbTag.h"
 #include "stringutil.h"
 #include "md5.h"
+#include "mapidefs.h"
+#include "base64.h"
 
 ZARAFA_API ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
 
@@ -252,8 +254,13 @@ auto_ptr<map<objectid_t, objectdetails_t> > DBPlugin::getObjectDetails(const lis
 
 		lastid = curid;
 
-		if (strnicmp(lpDBRow[0], "0x", strlen("0x")) == 0)
-			iterDetails->second.AddPropString((property_key_t)xtoi(lpDBRow[0]), lpDBRow[1]);
+		if (strnicmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
+			unsigned int key = xtoi(lpDBRow[0]);
+			if (PROP_TYPE(key) == PT_BINARY || PROP_TYPE(key) == PT_MV_BINARY)
+				iterDetails->second.AddPropString((property_key_t)key, base64_decode(lpDBRow[1]));
+			else
+				iterDetails->second.AddPropString((property_key_t)key, lpDBRow[1]);
+		}
 	}
 
 	return auto_ptr<map<objectid_t, objectdetails_t> >(mapdetails);
@@ -314,6 +321,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	string strDeleteQuery;
 	bool bFirstOne = true;
 	bool bFirstDel = true;
+	string strData;
 	string strMD5Pw;
 	property_map anonymousProps;
 	property_map::iterator iterAnonymous;
@@ -432,10 +440,15 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		if (!iterAnonymous->second.empty()) {
 			if (!bFirstOne)
 				strQuery += ",";
+			if (PROP_TYPE(iterAnonymous->first) == PT_BINARY) {
+				strData = base64_encode((const unsigned char*)iterAnonymous->second.c_str(), iterAnonymous->second.size());
+			} else {
+				strData = iterAnonymous->second;
+			}
 			strQuery +=
 				"((" + strSubQuery + "),"
 				"'" + m_lpDatabase->Escape(stringify(iterAnonymous->first, true)) + "',"
-				"'" +  m_lpDatabase->Escape(iterAnonymous->second) + "')";
+				"'" +  m_lpDatabase->Escape(strData) + "')";
 			bFirstOne = false;
 		}
 	}
@@ -471,11 +484,16 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			if (!iterProps->empty()) {
 				if (!bFirstOne)
 					strQuery += ",";
+				if (PROP_TYPE(iterMVAnonymous->first) == PT_MV_BINARY) {
+					strData = base64_encode((const unsigned char*)iterProps->c_str(), iterProps->size());
+				} else {
+					strData = *iterProps;
+				}
 				strQuery +=
 					"((" + strSubQuery + "),"
 					"'" + m_lpDatabase->Escape(stringify(iterMVAnonymous->first, true)) + "',"
 					"" + stringify(ulOrderId) + ","
-					"'" +  m_lpDatabase->Escape(*iterProps) + "')";
+					"'" +  m_lpDatabase->Escape(strData) + "')";
 				ulOrderId++;
 				bFirstOne = false;
 			}

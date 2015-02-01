@@ -47,6 +47,7 @@
  * 
  */
 
+#include "platform.h"
 #include <string>
 #include "Archiver.h"
 #include "ECConfig.h"
@@ -74,7 +75,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "server_socket",	"" },
 		{ "sslkey_file",	"" },
 		{ "sslkey_pass",	"", CONFIGSETTING_EXACT },
-		
+
 		// Archive settings
 		{ "archive_enable",	"yes" },
 		{ "archive_after", 	"30" },
@@ -86,7 +87,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "delete_enable",	"no" },
 		{ "delete_unread",	"no" },
 		{ "delete_after", 	"0" },
-		
+
 		{ "purge_enable",	"no" },
 		{ "purge_after", 	"2555" },
 
@@ -100,7 +101,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "log_method",		"file" },
 		{ "log_file",		"-" },
 		{ "log_level",		"2", CONFIGSETTING_RELOADABLE },
-		{ "log_timestamp",  "yes" },
+		{ "log_timestamp",	"yes" },
 
 		{ "mysql_host",		"localhost" },
 		{ "mysql_port",		"3306" },
@@ -108,6 +109,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "mysql_password",	"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",	"zarafa-archiver" },
 		{ "mysql_socket",	"" },
+		{ "purge-soft-deleted", "no" },
 
 		{ NULL, NULL },
 	};

@@ -17,6 +17,13 @@
     %append_output(SWIG_From_int((int)*$1));
 }
 
+%typemap(argout) (LPECUSER *OUTPUT) {
+    %append_output(Object_from_LPECUSER(*($1), ulFlags));
+}
+
+%typemap(argout) (ULONG *OUTPUT, LPECUSER *OUTPUT) {
+    %append_output(List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
+}
 
 #define ECSTORE_TYPE_PRIVATE      			0
 #define ECSTORE_TYPE_PUBLIC               	1

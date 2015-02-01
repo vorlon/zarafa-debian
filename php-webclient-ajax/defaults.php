@@ -101,5 +101,9 @@ if(!defined('ENABLE_DIRECT_BOOKING')) define('ENABLE_DIRECT_BOOKING', true);
 
 if(!defined('ENABLED_LANGUAGES')) define("ENABLED_LANGUAGES", "de;en;en_US;es;fi;fr;he;hu;it;nb;nl;pl;pt_BR;ru;zh_CN");
 
+// Standard password key for session password. We recommend to change the default value for security reasons 
+// and a length of 16 characters. Passwords are only encrypted when the openssl module is installed
+if(!defined('PASSWORD_KEY')) define('PASSWORD_KEY','a75356b0d1b81b7');
+if(!defined('PASSWORD_IV')) define('PASSWORD_IV','b3f5a483');
 
 ?>

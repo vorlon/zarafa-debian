@@ -105,12 +105,13 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 
 	SSL_library_init();
 	SSL_load_error_strings();
-	if (parseBool(lpConfig->GetSetting("ssl_enable_v2", "", "no")))
-		lpCTX = SSL_CTX_new(SSLv23_server_method());
-	else
-		lpCTX = SSL_CTX_new(SSLv3_server_method());
+	lpCTX = SSL_CTX_new(SSLv23_server_method());
 	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);
 	SSL_CTX_set_default_verify_paths(lpCTX);
+
+	// disable SSLv2 support
+	if (!parseBool(lpConfig->GetSetting("ssl_enable_v2", "", "no")))
+		SSL_CTX_set_options(lpCTX, SSL_OP_NO_SSLv2);
 
 	if (SSL_CTX_use_certificate_chain_file(lpCTX, lpConfig->GetSetting("ssl_certificate_file")) != 1) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));

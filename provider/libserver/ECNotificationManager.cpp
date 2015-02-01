@@ -58,7 +58,40 @@
 extern ECSessionManager*	g_lpSessionManager;
 void zarafa_notify_done(struct soap *soap);
 
-// Copied from generated soapServer.cpp
+#ifdef WITH_SYSTEM_GSOAP
+// Copied from 2.8.x generated soapServer.cpp, prolly won't work for 2.7.x
+int soapresponse(struct notifyResponse notifications, struct soap *soap) {
+    struct ns__notifyGetItemsResponse soap_tmp_ns__notifyGetItemsResponse;
+    soap_default_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse);
+    soap_tmp_ns__notifyGetItemsResponse.notifications = &notifications;
+    soap->encodingStyle = "";
+    soap_serializeheader(soap);
+    soap_serialize_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse);
+    if (soap_begin_count(soap))
+        return soap->error;
+    if (soap->mode & SOAP_IO_LENGTH)
+    {   if (soap_envelope_begin_out(soap)
+         || soap_putheader(soap)
+         || soap_body_begin_out(soap)
+         || soap_put_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse, "ns:notifyGetItemsResponse", NULL)
+         || soap_body_end_out(soap)
+         || soap_envelope_end_out(soap))
+             return soap->error;
+    };
+    if (soap_end_count(soap)
+     || soap_response(soap, SOAP_OK)
+     || soap_envelope_begin_out(soap)
+     || soap_putheader(soap)
+     || soap_body_begin_out(soap)
+     || soap_put_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse, "ns:notifyGetItemsResponse", NULL)
+     || soap_body_end_out(soap)
+     || soap_envelope_end_out(soap)
+     || soap_end_send(soap))
+        return soap->error;
+    return soap_closesock(soap);
+}
+#else
+// Copied from 2.7.x generated soapServer.cpp
 int soapresponse(struct notifyResponse notifications, struct soap *soap) {
     soap_serializeheader(soap);
     soap_serialize_notifyResponse(soap, &notifications);
@@ -85,6 +118,7 @@ int soapresponse(struct notifyResponse notifications, struct soap *soap) {
             return soap->error;
     return soap_closesock(soap);
 }
+#endif
 
 ECNotificationManager::ECNotificationManager(ECLogger *lpLogger, ECConfig *lpConfig) : m_lpLogger(lpLogger), m_lpConfig(lpConfig)
 {

@@ -50,7 +50,7 @@
 #ifndef ARCHIVEMANAGEIMPL_H_INCLUDED
 #define ARCHIVEMANAGEIMPL_H_INCLUDED
 
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"
 #include "ECArchiverLogger.h"
 #include "Archiver.h"
@@ -76,7 +76,7 @@ public:
 	HRESULT AttachTo(LPMDB lpArchiveStore, const tstring &strFoldername, const char *lpszArchiveServer, const abentryid_t &sUserEntryId, unsigned ulFlags, za::helpers::AttachType attachType);
 
 	~ArchiveManageImpl();
-	
+
 private:
 	ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const tstring &strUser, ECLogger *lpLogger);
 	HRESULT Init();

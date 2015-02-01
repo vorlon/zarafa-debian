@@ -122,6 +122,7 @@ ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpLog
 	m_ulUserID = 0;
 	m_ulCompanyID = 0;
 	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));
+	m_bOwnerAutoFullAccess = parseBool(lpConfig->GetSetting("owner_auto_full_access"));
 }
 
 ECSecurity::~ECSecurity()
@@ -517,7 +518,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 	// Is the current user the owner of the store
-	if(GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
+	if (GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
 		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
 			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
 				er = erSuccess;
@@ -530,7 +531,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 	// is current user the owner of the object
-	if (GetOwner(ulObjId, &ulObjectOwnerId) == erSuccess && ulObjectOwnerId == m_ulUserID)
+	if (GetOwner(ulObjId, &ulObjectOwnerId) == erSuccess && ulObjectOwnerId == m_ulUserID && m_bOwnerAutoFullAccess)
 	{
 		bOwnerFound = true;
 		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
@@ -1462,9 +1463,11 @@ ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize, e
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulStoreId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
 		goto exit;
-
-	if (ulStoreType != ECSTORE_TYPE_PRIVATE)
+		
+	if(ulStoreType != ECSTORE_TYPE_PRIVATE) {
+		*lpQuotaStatus = QUOTA_OK;
 		goto exit; // all is good, no quota on non-private stores.
+	}
 
 	// Get the store owner
 	er = GetStoreOwner(ulStoreId, &ulOwnerId);

@@ -1,0 +1,9 @@
+This library (gSoap) is bundled with zarafa under the GPL license. For all
+gSoap licensing options, see http://www.cs.fsu.edu/~engelen/soaplicense.html
+
+The stdsoap2.cpp and stdsoap2.h files are (locally patched) copies of gsoap-2.7.13.
+
+Generated code in /provider/soap is copy-pasted into /provider/libserver/ECNotificationManager.cpp, leading to a nasty dependency on gsoap internals.
+
+If we ever require a new version, download it from http://www.cs.fsu.edu/~engelen/soap.html
+or http://gsoap2.sf.net/

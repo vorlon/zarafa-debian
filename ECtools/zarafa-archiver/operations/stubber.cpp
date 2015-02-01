@@ -52,7 +52,7 @@
 #include "ECArchiverLogger.h"
 #include "stubber.h"
 #include "archiver-common.h"
-#include "helpers/mapiprophelper.h"
+#include "helpers/MAPIPropHelper.h"
 #include <mapiext.h>
 using namespace za::helpers;
 

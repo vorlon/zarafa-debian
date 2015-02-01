@@ -175,18 +175,6 @@ HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string 
 }
 
 /** 
- * Force a string to us-ascii characters, anything above-equal 0x80
- * will become a ?-char.
- * 
- * @param[in] c input
- * 
- * @return valid us-ascii character
- */
-static char forceAscii(char c) {
-	return (c >= 0x80) ? '?' : c;
-}
-
-/**
  * Entry point for the conversion from RFC822 mail to IMessage MAPI object.
  *
  * Finds the first block of headers to place in the
@@ -230,7 +218,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			std::string strHeaders = input.substr(0, posHeaderEnd);
 
 			// make sure we have us-ascii headers
-			transform(strHeaders.begin(), strHeaders.end(), strHeaders.begin(), forceAscii);
 			if (bUnix)
 				StringLFtoCRLF(strHeaders);
 
@@ -1623,6 +1610,8 @@ list<int> VMIMEToMAPI::findBestAlternative(vmime::ref<vmime::body> vmBody) {
 	for (int i = 0; i < vmBody->getPartCount(); i++) {
 		vmBodyPart = vmBody->getPartAt(i);
 		vmHeader = vmBodyPart->getHeader();
+		if (!vmHeader->hasField(vmime::fields::CONTENT_TYPE))
+			continue;
 		mt = vmHeader->ContentType()->getValue().dynamicCast<vmime::mediaType>();
 		// mostly better alternatives for text/plain, so try that last
 		if (mt->getType() == "text" && mt->getSubType() == "plain")
@@ -2069,19 +2058,16 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 
 			bodyCharset = getCompatibleCharset(vmBody->getCharset());
 			if(bodyCharset == vmime::charsets::US_ASCII)
-				// silently upgrade us-ascii to us-ascii compatible single byte charset and more widely used iso-8859-15
-				bodyCharset = vmime::charset(vmime::charsets::ISO8859_15);
+				// silently upgrade us-ascii to default charset
+				bodyCharset = vmime::charset(m_dopt.default_charset);
 
 			try {
 				strUnicodeText = m_converter.convert_to<wstring>(strBuffOut, rawsize(strBuffOut), bodyCharset.getName().c_str());
 			} catch (const unknown_charset_exception &uce) {
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "Charset '%s' of body invalid, forcing charset to ISO-8859-15 and possibly losing information.",
-							  bodyCharset.getName().c_str());
-				// iso-8859-15 is compatible with us-ascii. We do this
-				// so that some broken e-mail with no charset information
-				// still come through with accented characters etc.
-				// non-western emails are less likely to wrongfully set the charset to us-ascii
-				bodyCharset = vmime::charset(vmime::charsets::ISO8859_15);
+				lpLogger->Log(EC_LOGLEVEL_WARNING, "Charset '%s' of body invalid, forcing charset to %s and possibly losing information.",
+							  bodyCharset.getName().c_str(), m_dopt.default_charset);
+				// Assume body of default charset when the charset is invalid
+				bodyCharset = vmime::charset(m_dopt.default_charset);
 				strUnicodeText = m_converter.convert_to<wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), bodyCharset.getName().c_str());
 			} catch (const convert_exception &ce) {
 				lpLogger->Log(EC_LOGLEVEL_WARNING, "Charset '%s' of body incorrect: '%s', forcing charset and possibly losing information.",
@@ -2196,13 +2182,9 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 				bodyCharset = getCompatibleCharset(vmBody->getCharset());
 			}
 
-			// iso-8859-15 is compatible with us-ascii. We do this
-			// so that some broken e-mail with no charset information
-			// still come through with accented characters etc.
-			// non-western emails are less likely to wrongfully set the charset to us-ascii
 			if(bodyCharset == vmime::charsets::US_ASCII)
 				// silently upgrade us-ascii to us-ascii compatible single byte charset and more widely used iso-8859-15
-				bodyCharset = vmime::charset(vmime::charsets::ISO8859_15);
+				bodyCharset = vmime::charset(m_dopt.default_charset);
 
 			try {
 				// check charset validity
@@ -2216,8 +2198,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 					lpLogger->Log(EC_LOGLEVEL_INFO, "Recover successful");
 				} catch (std::exception &e) {
 					// bodyCharset is not even an existing charset
-					lpLogger->Log(EC_LOGLEVEL_FATAL, "Recover failed, forcing iso-8859-15");
-					bodyCharset = vmime::charset(vmime::charsets::ISO8859_15);
+					lpLogger->Log(EC_LOGLEVEL_ERROR, "Recover failed, forcing to %s", m_dopt.default_charset);
+					bodyCharset = vmime::charset(m_dopt.default_charset);
 				}
 			}
 			
@@ -2558,22 +2540,20 @@ vmime::charset VMIMEToMAPI::getCompatibleCharset(const vmime::charset &vmCharset
 	vmime::charset vmComp(vmCharset);
 	size_t i;
 
+	// If we are handling us-ascii, use default_charset instead
+	if(stricmp(vmCharset.getName().c_str(), "us-ascii") == 0)
+		return m_dopt.default_charset;
+
+	// First try to lookup the charset in our list of replacement charsets
 	for (i = 0; i < arraySize(charsetHelper::fixes); i++) {
 		if (stricmp(charsetHelper::fixes[i].original, vmCharset.getName().c_str()) == 0) {
-			vmComp = charsetHelper::fixes[i].update;
-			break;
+			return charsetHelper::fixes[i].update;
 		}
 	}
 
-	if (i == arraySize(charsetHelper::fixes)) {
-		// if the input is still a non-existing charset, force iso-8859-15 (same we force on bodies)
-		iconv_t cd;
-		cd = iconv_open(CHARSET_WCHAR, vmComp.getName().c_str());
-		if (cd == (iconv_t)(-1))
-			vmComp = vmime::charsets::ISO8859_15;
-		else
-			iconv_close(cd);
-	}
+	// If that doesn't work, check that the charset even exists. If it doesn't, fallback to default charset
+	if(!ValidateCharset(vmComp.getName().c_str()))
+		return m_dopt.default_charset;
 
 	return vmComp;
 }
@@ -2676,17 +2656,12 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 {
 	std::string strInter;
 
-	try {
-		strInter = vmText.getConvertedText(CHARSET_WCHAR);
-	} catch (vmime::exceptions::charset_conv_error) {
-		// invalid charset in text, convert manually, forcing a compatible charset
-		std::vector<vmime::ref<const vmime::word> > words = vmText.getWordList();
-		std::vector<vmime::ref<const vmime::word> >::iterator i;
-		for (i = words.begin(); i != words.end(); i++) {
-			vmime::charset vmForcedCharset(getCompatibleCharset((*i)->getCharset()));
+	const std::vector<vmime::ref<const vmime::word> >& words = vmText.getWordList();
+	std::vector<vmime::ref<const vmime::word> >::const_iterator i;
+	for (i = words.begin(); i != words.end(); i++) {
+		vmime::charset vmForcedCharset(getCompatibleCharset((*i)->getCharset()));
 
-			strInter += vmime::word((*i)->getBuffer(), vmForcedCharset).getConvertedText(CHARSET_WCHAR);
-		}
+		strInter += vmime::word((*i)->getBuffer(), vmForcedCharset).getConvertedText(CHARSET_WCHAR);
 	}
 
 	return std::wstring((WCHAR*)strInter.c_str(), strInter.size() / sizeof(WCHAR));
@@ -3235,7 +3210,14 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmim
 	vmime::ref<vmime::header> vmHeaderPart = vmBodyPart->getHeader();
 
 	try {
-		vmime::ref<vmime::contentTypeField> ctf = vmHeaderPart->ContentType().dynamicCast<vmime::contentTypeField>();
+		vmime::ref<vmime::contentTypeField> ctf;
+		if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
+			// use Content-Type header from part
+			ctf = vmHeaderPart->ContentType().dynamicCast<vmime::contentTypeField>();
+		} else {
+			// create empty default Content-Type header
+			ctf = vmime::headerFieldFactory::getInstance()->create("Content-Type", "").dynamicCast<vmime::contentTypeField>();
+		}
 		vmime::ref<vmime::mediaType> mt = ctf->getValue().dynamicCast<vmime::mediaType>();
 
 		if (mt->getType() == vmime::mediaTypes::MULTIPART) {
@@ -3537,6 +3519,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->add_imap_data = false;
 	dopt->user_entryid = NULL;
 	dopt->parse_smime_signed = false;
+	dopt->default_charset = "iso-8859-15";
 }
 
 /**

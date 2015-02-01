@@ -1119,6 +1119,19 @@
 		  </varlistentry>
 
 		  <varlistentry>
+			<term><option>default_charset</option></term>
+			<listitem>
+				<para>Some emails do not contain any charset
+				information or specify us-ascii even though it
+				isn't. In both cases, dagent will assume the following
+				charset is used. Note that this implies that the given
+				charset should be a superset of us-ascii (most
+				charsets are).</para>
+				<para>Default: <replaceable>iso-8859-15</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 			<term><option>set_rule_headers</option></term>
 			<listitem>
 				<para>Enable the addition of X-Zarafa-Rule-Action headers on messages
@@ -3196,7 +3209,7 @@
 		<variablelist>
 		  <varlistentry>
 			<term>
-			  <option>--update-delegates</option>
+			  <option>--update-delegate</option>
 			  <replaceable>username</replaceable>
 			</term>
 			<listitem>
@@ -8004,6 +8017,17 @@
 				stored messages.
 				</para>
 				<para>Default: <replaceable>yes</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>disable_plaintext_auth</option></term>
+			<listitem>
+			  <para>Disable all plaintext POP3 and IMAP authentications unless
+			  SSL/TLS is used. Obviously this requires at least
+			  <replaceable>ssl_private_key_file</replaceable> and
+			  <replaceable>ssl_certificate_file</replaceable> to take effect.</para>
+			  <para>Default: <replaceable>no</replaceable></para>
 			</listitem>
 		  </varlistentry>
 

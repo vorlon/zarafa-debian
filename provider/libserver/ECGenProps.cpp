@@ -384,20 +384,29 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
     		lpPropVal->Value.ul = ZARAFA_E_NOT_FOUND;
     		lpPropVal->__union = SOAP_UNION_propValData_ul;
     	} else {
-    		lpPropVal->ulPropTag = ulPropTagRequested;
-    		
-			lpszColon = strchr(lpPropVal->Value.lpszA, ':');
-			if(lpszColon != NULL && (lpszColon - lpPropVal->Value.lpszA) >1 && (lpszColon - lpPropVal->Value.lpszA) < 4)
+		lpPropVal->ulPropTag = ulPropTagRequested;
+		// Check for RE, FWD and similar muck at the start of the subject line   		
+		lpszColon = strchr(lpPropVal->Value.lpszA, ':');
+		if (lpszColon != NULL && (lpszColon - lpPropVal->Value.lpszA) > 1 && (lpszColon - lpPropVal->Value.lpszA) < 4)
+		{
+			char* c = lpPropVal->Value.lpszA;
+			while (c < lpszColon && isdigit(*c))
+				c++; // test for all digits prefix
+			if (c != lpszColon)
 			{
 				lpszColon++; // skip ':'
-				if(strlen(lpszColon)+1 <= strlen(lpPropVal->Value.lpszA) && lpszColon[0] == ' ')
-					lpszColon++;// skip space
-
-				lpPropVal->Value.lpszA = s_alloc<char>(soap, strlen(lpszColon)+1);
-
-				strcpy(lpPropVal->Value.lpszA, lpszColon);
+				size_t newlength = strlen(lpszColon);
+				if ((newlength > 0) && (lpszColon[0] == ' '))
+				{
+					lpszColon++; // skip space
+					newlength--; // adjust length
+				}
+				lpPropVal->Value.lpszA = s_alloc<char>(soap, newlength + 1);
+				memcpy(lpPropVal->Value.lpszA, lpszColon, newlength);
+				lpPropVal->Value.lpszA[newlength] = '\0';	// add C-type string terminator
 			}
 		}
+	}
         break;
 	case PROP_ID(PR_SUBMIT_FLAGS):
 		if (ulObjType == MAPI_MESSAGE) {
@@ -768,8 +777,12 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 						if( (ulRights&ecRightsCreateSubfolder) == ecRightsCreateSubfolder)
 							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_HIERARCHY;
 							
-						if( (ulRights&ecRightsCreate) == ecRightsCreate )
-							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;	
+						if( (ulRights&ecRightsCreate) == ecRightsCreate)
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
+
+						// olk2k7 fix: if we have delete access, we must set create contents access (eventhough an actual saveObject will still be denied) for deletes to work.
+						if( (ulRights&ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights&ecRightsDeleteOwned) == ecRightsDeleteOwned) )
+							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
 							
 						if( (ulRights&ecRightsFolderAccess) == ecRightsFolderAccess)
 							sPropVal.Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;

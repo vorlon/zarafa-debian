@@ -158,7 +158,7 @@ std::string HostnameFromSoap(struct soap *soap)
 	return std::string(soap->host);
 }																		
 
-char* ObjectClassToName(objectclass_t objclass)
+const char* ObjectClassToName(objectclass_t objclass)
 {
 	switch (objclass) {
 	case OBJECTCLASS_UNKNOWN:
@@ -194,7 +194,7 @@ char* ObjectClassToName(objectclass_t objclass)
 	};
 }
 
-char* RelationTypeToName(userobject_relation_t type)
+const char* RelationTypeToName(userobject_relation_t type)
 {
 	switch(type) {
 	case OBJECTRELATION_GROUP_MEMBER:
@@ -237,7 +237,7 @@ ECUserManagement::~ECUserManagement() {
 
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually
 // authenticated by the remote server, which normally never happens)
-ECRESULT ECUserManagement::AuthUserAndSync(char *szLoginname, char *szPassword, unsigned int *lpulUserId) {
+ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* szPassword, unsigned int *lpulUserId) {
 	ECRESULT er = erSuccess;
 	objectsignature_t external;
 	UserPlugin *lpPlugin = NULL;
@@ -1292,8 +1292,8 @@ exit:
 }
 
 // Resolve an object name to an object id, with on-the-fly create of the specified object class
-ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, char *szName, unsigned int *lpulObjectId) {
-	ECRESULT er = erSuccess;
+ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const char* szName, unsigned int* lpulObjectId) {
+	ECRESULT er = ZARAFA_E_INVALID_PARAMETER;
 	objectsignature_t objectsignature;
 	string username;
 	string companyname;
@@ -1301,6 +1301,16 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, char *sz
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
 	objectid_t sCompany(CONTAINER_COMPANY);
 
+	if (!szName) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
+		goto exit;
+	}
+	if (!lpulObjectId) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
+		goto exit;
+	}
+
+	er = erSuccess;
 	if ((OBJECTCLASS_TYPE(objclass) == OBJECTTYPE_UNKNOWN ||
 		 objclass == OBJECTCLASS_USER ||
 		 objclass == ACTIVE_USER) &&
@@ -1778,14 +1788,14 @@ exit:
 	return er;
 }
 
-ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetails_t *lpDetails, bool bGetUserDefault)
+ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetails_t* lpDetails, bool bGetUserDefault)
 {
 	ECRESULT er = erSuccess;
 	objectid_t userid;
 	quotadetails_t details;
 	UserPlugin *lpPlugin = NULL;
 
-	if(IsInternalObject(ulId)) {
+	 if(IsInternalObject(ulId)) {
 		if (bGetUserDefault)
 			er = ZARAFA_E_NO_SUPPORT;
 		else {
@@ -1839,7 +1849,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECUserManagement::SearchObjectAndSync(char *szSearchString, unsigned int ulFlags, unsigned int *lpulID)
+ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsigned int ulFlags, unsigned int *lpulID)
 {
 	ECRESULT er = erSuccess;
 	objectsignature_t objectsignature;
@@ -3938,6 +3948,13 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				list<string> strCerts = lpDetails->GetPropListString(OB_PROP_LS_CERTIFICATE);
 				list<string>::iterator iCert;
 
+				if (strCerts.empty()) {
+					/* This is quite annoying. The LDAP plugin loads it in a specific location, while the db plugin
+					  saves it through the anonymous map into the proptag location.
+					 */
+					strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
+				}
+
 				if (!strCerts.empty()) {
 					unsigned int i = 0;
 
@@ -4100,8 +4117,14 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;
 			case PR_SMTP_ADDRESS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+				if (lpDetails->HasProp(OB_PROP_S_EMAIL)) {
+					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
+					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+				} else {
+					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_ERROR);
+					lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
+					lpPropVal->__union = SOAP_UNION_propValData_ul;
+				}
 				break;
 			case PR_INSTANCE_KEY:
 				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);

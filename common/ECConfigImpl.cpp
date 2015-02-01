@@ -301,21 +301,19 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 
 char *ECConfigImpl::GetMapEntry(settingmap_t *lpMap, const char *szName)
 {
-	settingmap_t::iterator iterSettings;
-	settingkey_t s;
 	char *retval = NULL;
+	if (szName) { // feeding NULL pointers, either as source or destinateion, to strcpy() segfaults
+		settingkey_t key = { { 0 }, 0, 0 };
+		strcpy(key.s, szName);
 
-	memset(&s, 0, sizeof(s));
-	strcpy(s.s, szName);
+		pthread_rwlock_rdlock(&m_settingsRWLock);
 
-	pthread_rwlock_rdlock(&m_settingsRWLock);
-
-	iterSettings = lpMap->find(s);
-	if(iterSettings != lpMap->end())
-		retval = iterSettings->second;
+		settingmap_t::iterator itor = lpMap->find(key);
+		if (itor != lpMap->end())
+			retval = itor->second;
 		
-	pthread_rwlock_unlock(&m_settingsRWLock);
-
+		pthread_rwlock_unlock(&m_settingsRWLock);
+	}
 	return retval;
 }
 
@@ -505,7 +503,7 @@ bool ECConfigImpl::ReadConfigFile(const path_type &file, unsigned int ulFlags, u
 
 		if(!strName.empty()) {
 			// Save it
-			configsetting_t setting = { strName.c_str(), strValue.c_str(), 0, ulGroup };
+			configsetting_t setting = { strName.c_str(), strValue.c_str(), 0, static_cast<unsigned short int>(ulGroup) };
 			AddSetting(&setting, ulFlags);
 		}
 	}

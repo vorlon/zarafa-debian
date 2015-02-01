@@ -50,7 +50,6 @@
 #include "platform.h"
 #include "mapidefs.h"
 #include "mapispi.h"
-
 #include "ECDebug.h"
 #include "Trace.h"
 

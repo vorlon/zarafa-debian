@@ -79,24 +79,43 @@ EmailFilter::~EmailFilter() {
  * @param token Output token
  * @return false if no more token was available
  */
+#ifdef CLUCENE_23
+lucene::analysis::Token *EmailFilter::next(lucene::analysis::Token *token) {
+#else
 bool EmailFilter::next(lucene::analysis::Token *token) {
+#endif
 	// See if we had any stored tokens
 	if(part < parts.size()) {
 		token->set(parts[part].c_str(), 0, 0, _T("<EMAIL>"));
 		token->setPositionIncrement(0);
 		part++;
+#ifdef CLUCENE_23
+        return token;
+#else
 		return true;
+#endif
 	} else {
 		// No more stored token, get a new one
 		if(!input->next(token))
+#ifdef CLUCENE_23
+            return NULL;
+#else
 			return false;
-
+#endif
 		// Split EMAIL tokens into the various parts
 		if(wcscmp(token->type(), L"<EMAIL>") == 0) {
 			// Split into user, domain, com
+#ifdef CLUCENE_23
+			parts = tokenize((std::wstring)token->termBuffer(), (std::wstring)L".@");
+#else
 			parts = tokenize((std::wstring)token->_termText, (std::wstring)L".@");
+#endif
 			// Split into user, domain.com
+#ifdef CLUCENE_23
+			std::vector<std::wstring> moreparts = tokenize((std::wstring)token->termBuffer(), (std::wstring)L"@");
+#else
 			std::vector<std::wstring> moreparts = tokenize((std::wstring)token->_termText, (std::wstring)L"@");
+#endif
 			parts.insert(parts.end(), moreparts.begin(), moreparts.end());
 			
 			// Only add parts once (unique parts)
@@ -111,7 +130,11 @@ bool EmailFilter::next(lucene::analysis::Token *token) {
 			std::vector<std::wstring> hostparts;
 			
 			// Convert into some-strange.domain.com domain.com com
+#ifdef CLUCENE_23
+			hostparts = tokenize((std::wstring)token->termBuffer(), (std::wstring)L".");
+#else
 			hostparts = tokenize((std::wstring)token->_termText, (std::wstring)L".");
+#endif
 			
 			parts.clear();
 			while(hostparts.size() > 1 && hostparts.size() < 10) { // 10 as a defensive measure against the following blowing up
@@ -122,7 +145,11 @@ bool EmailFilter::next(lucene::analysis::Token *token) {
 			part = 0;
 		}
 		
+#ifdef CLUCENE_23
+        return token;
+#else
 		return true;
+#endif
 	}
 }
 
@@ -141,7 +168,11 @@ ECAnalyzer::~ECAnalyzer()
  * @param reader Reader to read the bytestream to tokenize
  * @return A TokenStream outputting the tokens to be indexed
  */
+#ifdef CLUCENE_23
+lucene::analysis::TokenStream *ECAnalyzer::tokenStream(const TCHAR *fieldName, CL_NS(util)::BufferedReader *reader)
+#else
 lucene::analysis::TokenStream* ECAnalyzer::tokenStream(const TCHAR* fieldName, lucene::util::Reader* reader) 
+#endif
 {
 	lucene::analysis::TokenStream* ret = _CLNEW lucene::analysis::standard::StandardTokenizer(reader);
 	ret = _CLNEW lucene::analysis::standard::StandardFilter(ret,true);

@@ -66,6 +66,33 @@ using namespace std;
 
 static int ssl_zvcb_index = -1;	// the index to get our custom data
 
+#ifdef WITH_SYSTEM_GSOAP
+// we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
+static int
+http_post(struct soap *soap, const char *endpoint, const char *host, int port, const char *path, const char *action, size_t count)
+{ register int err;
+  if (strlen(endpoint) + strlen(soap->http_version) > sizeof(soap->tmpbuf) - 80
+   || strlen(host) + strlen(soap->http_version) > sizeof(soap->tmpbuf) - 80)
+    return soap->error = SOAP_EOM;
+  sprintf(soap->tmpbuf, "POST /%s HTTP/%s", (*path == '/' ? path + 1 : path), soap->http_version);
+  if ((err = soap->fposthdr(soap, soap->tmpbuf, NULL)) ||
+      (err = soap->fposthdr(soap, "Host", host)) ||
+      (err = soap->fposthdr(soap, "User-Agent", "gSOAP/2.8")) ||
+      (err = soap_puthttphdr(soap, SOAP_OK, count)))
+    return err;
+#ifdef WITH_ZLIB
+#ifdef WITH_GZIP
+  if ((err = soap->fposthdr(soap, "Accept-Encoding", "gzip, deflate")))
+#else
+  if ((err = soap->fposthdr(soap, "Accept-Encoding", "deflate")))
+#endif
+    return err;
+#endif
+  return soap->fposthdr(soap, NULL, NULL);
+}
+#endif // ifdef WITH_SYSTEM_GSOAP
+
+
 // This function wraps the GSOAP fopen call to support "file:///var/run/socket" unix-socket URI's
 int gsoap_connect_pipe(struct soap *soap, const char *endpoint, const char *host, int port)
 {
@@ -166,6 +193,9 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 
 	if(strncmp("file:", lpCmd->endpoint, 5) == 0) {
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
+#ifdef WITH_SYSTEM_GSOAP
+		lpCmd->soap->fpost = http_post;
+#endif
 	} else {
 
 		if ((ulProxyFlags&0x0000001/*EC_PROFILE_PROXY_FLAGS_USE_PROXY*/) && !strProxyHost.empty()) {

@@ -3653,6 +3653,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	LPSTREAM lpSrcStream = NULL, lpDestStream = NULL;
 	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
 
+	LONG ulIdCPID;
 	LONG ulIdRTF;
 	LONG ulIdHTML;
 	LONG ulIdBODY;
@@ -3759,15 +3760,16 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 					isProblem = true;
 				}
 			} else if (*lpSrcInterface == IID_IAttachment) {
+				ULONG ulAttachMethod;
+
 				// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
 				// find method and copy this PT_OBJECT
-				hr = HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod);
-				if (hr != hrSuccess) {
-					isProblem = true;
-					goto next_include_check;
+				if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess) {
+					ulAttachMethod = ATTACH_BY_VALUE;
+				} else {
+					ulAttachMethod = lpAttachMethod->Value.ul;
 				}
-
-				switch(lpAttachMethod->Value.ul) {
+				switch (ulAttachMethod) {
 				case ATTACH_BY_VALUE:
 				case ATTACH_OLE:
 					// stream
@@ -3947,6 +3949,13 @@ next_include_check:
 		}
 	}
 
+	// before we copy bodies possibly as streams, find the PR_INTERNET_CPID, which is required for correct high-char translations.
+	ulIdCPID = Util::FindPropInArray(lpIncludeProps, PR_INTERNET_CPID);
+	if (ulIdCPID != -1) {
+	    hr = lpDestProp->SetProps(1, &lpProps[ulIdCPID], NULL);
+	    if (FAILED(hr))
+		goto exit;
+	}
 
 	// find all MAPI_E_NOT_ENOUGH_MEMORY errors
 	for (ULONG i = 0; i < cValues; i++) {

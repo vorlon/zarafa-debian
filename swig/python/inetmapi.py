@@ -129,6 +129,9 @@ class delivery_options(_object):
     __swig_setmethods__["parse_smime_signed"] = _inetmapi.delivery_options_parse_smime_signed_set
     __swig_getmethods__["parse_smime_signed"] = _inetmapi.delivery_options_parse_smime_signed_get
     if _newclass:parse_smime_signed = _swig_property(_inetmapi.delivery_options_parse_smime_signed_get, _inetmapi.delivery_options_parse_smime_signed_set)
+    __swig_setmethods__["default_charset"] = _inetmapi.delivery_options_default_charset_set
+    __swig_getmethods__["default_charset"] = _inetmapi.delivery_options_default_charset_get
+    if _newclass:default_charset = _swig_property(_inetmapi.delivery_options_default_charset_get, _inetmapi.delivery_options_default_charset_set)
     def __init__(self): 
         this = _inetmapi.new_delivery_options()
         try: self.this.append(this)

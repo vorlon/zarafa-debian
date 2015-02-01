@@ -4,11 +4,11 @@ if ! OSS_ONLY
 PROSUBS = liblicense licensed
 endif
 
-SUBDIRS = common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) provider libicalmapi inetmapi
+SUBDIRS = external common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) provider libicalmapi inetmapi
 if WITH_PHP
 SUBDIRS += php-ext
 endif
-SUBDIRS += libtimezone libcalendar ECtools spooler gateway caldav installer po doc
+SUBDIRS += ECtools spooler gateway caldav installer po doc
 
 if WITH_SWIG
 SUBDIRS += swig

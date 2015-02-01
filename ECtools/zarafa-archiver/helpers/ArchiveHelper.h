@@ -54,7 +54,7 @@
 #include "archiver-common.h"
 #include "mapi_ptr.h"
 #include "CommonUtil.h"
-#include "archiver-session_fwd.h"
+#include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
 namespace za { namespace helpers {
 
@@ -70,7 +70,7 @@ enum ArchiveType {
 enum AttachType {
 	ExplicitAttach = 0,
 	ImplicitAttach = 1,
-    UnknownAttach = 42
+	UnknownAttach = 42
 };
 
 /**
@@ -84,16 +84,16 @@ public:
 	static HRESULT Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
 	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
 	~ArchiveHelper();
-	
+
 	HRESULT GetAttachedUser(abentryid_t *lpsUserEntryId);
 	HRESULT SetAttachedUser(const abentryid_t &sUserEntryId);
 	HRESULT GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry);
 
 	HRESULT GetArchiveType(ArchiveType *lparchType, AttachType *lpattachType);
 	HRESULT SetArchiveType(ArchiveType archType, AttachType attachType);
-	
+
 	HRESULT SetPermissions(const abentryid_t &sUserEntryId, bool bWritable);
-	
+
 	HRESULT GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder);
 	HRESULT GetHistoryFolder(LPMAPIFOLDER *lppHistoryFolder);
 	HRESULT GetOutgoingFolder(LPMAPIFOLDER *lppOutgoingFolder);
@@ -129,7 +129,7 @@ private:
 	MAPIFolderPtr m_ptrArchiveFolder;
 	tstring	m_strFolder;
 	const std::string m_strServerPath;
-	
+
 	PROPMAP_START
 	PROPMAP_DEF_NAMED_ID(ATTACHED_USER_ENTRYID)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_TYPE)

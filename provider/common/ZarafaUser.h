@@ -133,6 +133,7 @@ public:
 	std::list<objectid_t>	GetPropListObject(const property_key_t &propname) const;
 	property_map			GetPropMapAnonymous() const;
 	property_mv_map			GetPropMapListAnonymous() const;
+	bool					HasProp(const property_key_t &propname) const;
 
 	bool			PropListStringContains(const property_key_t &propname, const std::string &value, bool ignoreCase = false) const;
 

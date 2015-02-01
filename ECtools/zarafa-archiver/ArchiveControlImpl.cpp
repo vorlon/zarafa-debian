@@ -57,7 +57,7 @@
 #include "ArchiveStateUpdater.h"
 #include "userutil.h"
 #include "mapiext.h"
-#include "helpers/storehelper.h"
+#include "helpers/StoreHelper.h"
 #include "operations/copier.h"
 #include "operations/deleter.h"
 #include "operations/stubber.h"

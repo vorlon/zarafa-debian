@@ -9,6 +9,10 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/common -DPKGLIBDIR='"${pkglibdir}"' \
 	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(SSL_HAS_EVP_PKEY_CMP) $(KRB5_CFLAGS)
 
+if WITH_SYSTEM_GSOAP
+AM_CPPFLAGS += -DWITH_SYSTEM_GSOAP
+endif
+
 libserver_la_SOURCES = \
 	ZarafaCmd.cpp \
 	ECABObjectTable.cpp ECABObjectTable.h \

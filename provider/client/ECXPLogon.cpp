@@ -84,6 +84,26 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
+{
+	HRESULT hr = hrSuccess;
+	LPSPropValue lpPropVal = NULL;
+	ECMsgStore *lpECMsgStore = NULL;
+	ECMAPIProp *lpECMAPIProp = NULL;
+
+	hr = HrGetOneProp(lpProp, PR_EC_OBJECT, &lpPropVal);
+	if(hr != hrSuccess)
+		goto exit;
+
+	lpECMAPIProp = (ECMAPIProp *)lpPropVal->Value.lpszA;
+
+	*lppECMsgStore = lpECMAPIProp->GetMsgStore();
+	(*lppECMsgStore)->AddRef();
+
+exit:
+	return hr;
+}
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -348,7 +368,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	ULONG ulRow = 0;
 	ULONG ulRowCount = 0;
 	bool bRecipUpdate = false;
-	WSTransport *lpTransport = NULL;
 
 	LPSPropValue lpMessageProps = NULL;
 	ULONG ulValues = 0;
@@ -356,8 +375,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	LPSPropValue lpEntryID = NULL;
 	LPSPropValue lpECObject = NULL;
 	IMsgStore *lpOnlineStore = NULL;
+	ECMsgStore *lpOnlineECMsgStore = NULL;
 	ULONG ulObjType;
-	ECMessage *lpECMessage = NULL;
 	ECMsgStore *lpECMsgStore = NULL;
 	LPMAPIFOLDER lpSubmitFolder = NULL;
 	LPMESSAGE lpSubmitMessage = NULL;
@@ -387,15 +406,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != erSuccess)
-		goto exit;
-
-	// Open a transport to the server
-	hr = WSTransport::HrOpenTransport(this->m_lpMAPISup, &lpTransport);
-	if( hr == MAPI_E_NETWORK_ERROR ) {
-		if(lpulReturnParm)
-			*lpulReturnParm = 60; // 60-second retry
-	}
-	if( hr != hrSuccess)
 		goto exit;
 
 	// Get the recipient table from the message
@@ -428,18 +438,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		goto exit;
 	}
 
-	if (HrGetOneProp(lpMessage, PR_EC_OBJECT, &lpECObject) == hrSuccess) {
-		// Apparently the message is a Zarafa message, so get the store it's in
-		lpECMessage = (ECMessage*)lpECObject->Value.lpszA;
-		lpECMessage->AddRef();
-
-		lpECMsgStore = lpECMessage->GetMsgStore();
-		if(!lpECMsgStore){
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-		lpECMsgStore->AddRef();
-	} else {
+	if (HrGetECMsgStore(lpMessage, &lpECMsgStore) != hrSuccess) {
 		hr = m_lpMAPISup->OpenEntry(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.cb, (LPENTRYID)this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, (IUnknown **)&lpMsgStore);
 		if (hr != hrSuccess)
 			goto exit;
@@ -453,6 +452,10 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	}
 
 	hr = lpECMsgStore->QueryInterface(IID_ECMsgStoreOnline, (LPVOID*)&lpOnlineStore);
+	if (hr != hrSuccess)
+		goto exit;
+
+	hr = HrGetECMsgStore(lpOnlineStore, &lpOnlineECMsgStore);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -500,7 +503,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		goto exit;
 	}
 
-	hr = lpTransport->HrSubmitMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
+	hr = lpOnlineECMsgStore->lpTransport->HrSubmitMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 	if (hr != hrSuccess) {
 		lpSubmitFolder->DeleteMessages(&sDelete, 0, NULL, 0); //Delete message on the server
 		pthread_mutex_unlock(&m_hExitMutex);
@@ -522,7 +525,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		pthread_mutex_unlock(&m_hExitMutex);
 		hr = MAPI_E_CANCEL;
 
-		lpTransport->HrFinishedMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER);
+		lpOnlineECMsgStore->lpTransport->HrFinishedMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER);
 		
 		sDelete.cValues = 1;
 		sDelete.lpbin = &lpEntryID->Value.bin;
@@ -581,20 +584,17 @@ exit:
 	if (lpOnlineStore)
 		lpOnlineStore->Release();
 
-	if (lpECMessage)
-		lpECMessage->Release();
-
 	if (lpECMsgStore)
 		lpECMsgStore->Release();
+
+	if (lpOnlineECMsgStore)
+		lpOnlineECMsgStore->Release();
 
 	if (lpSubmitMessage)
 		lpSubmitMessage->Release();
 
 	if (lpSubmitFolder)
 		lpSubmitFolder->Release();
-
-	if(lpTransport)
-		lpTransport->Release();
 
 	if(lpEntryID)
 		MAPIFreeBuffer(lpEntryID);
