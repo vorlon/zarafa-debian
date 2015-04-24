@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -86,7 +81,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	vector<std::string> vcUrlTokens;
 	vector<std::string>::iterator iterToken;
 	ULONG ulFlag = 0;
-	
+
 	vcUrlTokens = tokenize(strUrl, L'/', true);
 	if (vcUrlTokens.empty())
 		// root should be present, no flags are set. mostly used on OPTIONS command
@@ -108,12 +103,12 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	}
 
 	iterToken = vcUrlTokens.begin();
-	
+
 	strService = *iterToken++;
-	
+
 	//change case of Service name ICAL -> ical CALDaV ->caldav
 	std::transform(strService.begin(), strService.end(), strService.begin(), ::tolower);
-	
+
 	if (!strService.compare("ical"))
 		ulFlag |= SERVICE_ICAL;
 	else if (!strService.compare("caldav"))
@@ -123,6 +118,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 
 	if (iterToken == vcUrlTokens.end())
 		goto exit;
+
 	strUrlUser = *iterToken++;
 	if (!strUrlUser.empty()) {
 		//change case of folder owner USER -> user, UseR -> user
@@ -139,14 +135,14 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 
 	// @todo subfolder/folder/ is not allowed! only subfolder/item.ics
 	for ( ;iterToken != vcUrlTokens.end(); iterToken++) 
-			strFolder = strFolder + *iterToken + "/";
+		strFolder = strFolder + *iterToken + "/";
 
 	strFolder.erase(strFolder.length() - 1);
-	
+
 exit:
 	if (lpulFlag)
 		*lpulFlag = ulFlag;
-	
+
 	if (lpstrUrlUser)
 		lpstrUrlUser->swap(strUrlUser);
 
@@ -245,15 +241,17 @@ HRESULT Http::HrParseHeaders()
 	HRESULT hr = hrSuccess;
 	std::string strAuthdata;
 	std::string strLength;
+	std::string strUserAgent;
 
 	std::vector<std::string> items;
 	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
 
-        std::string user_pass;
-        size_t colon_pos;
+	std::string user_pass;
+	size_t colon_pos;
 
 	items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders invalid != 3 tokens");
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -272,6 +270,19 @@ HRESULT Http::HrParseHeaders()
 	else
 		m_strCharSet = m_lpConfig->GetSetting("default_charset"); // really should be utf-8
 
+	hr = HrGetHeaderValue("User-Agent", &strUserAgent);
+	if (hr == hrSuccess) {
+		size_t space = strUserAgent.find(" ");
+
+		if (space != std::string::npos) {
+			m_strUserAgent = strUserAgent.substr(0, space);
+			m_strUserAgentVersion = strUserAgent.substr(space + 1);
+		}
+		else {
+			m_strUserAgent = strUserAgent;
+		}
+	}
+
 	// find the Authorisation data (Authorization: Basic wr8y273yr2y3r87y23ry7=)
 	hr = HrGetHeaderValue("Authorization", &strAuthdata);
 	if (hr != hrSuccess) {
@@ -285,15 +296,17 @@ HRESULT Http::HrParseHeaders()
 	items = tokenize(strAuthdata, ' ', true);
 	// we only support basic authentication
 	if (items.size() != 2 || items[0].compare("Basic") != 0) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders login failed");
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
 	}
 
-        user_pass = base64_decode(items[1]);
-        if((colon_pos = user_pass.find(":")) == std::string::npos) {
+	user_pass = base64_decode(items[1]);
+	if((colon_pos = user_pass.find(":")) == std::string::npos) {
 		hr = MAPI_E_LOGON_FAILED;
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders password missing");
 		goto exit;
-        }
+	}
 
 	m_strUser = user_pass.substr(0, colon_pos);
 	m_strPass = user_pass.substr(colon_pos+1, std::string::npos);
@@ -527,22 +540,33 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 	HRESULT hr = hrSuccess;
 	std::string strHost;
 	std::string strDest;
+	string::size_type pos;
 
-	// @todo what if destination host is different than this host?
+	// example:  Host: server:port
 	hr = HrGetHeaderValue("Host", &strHost);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrGetDestination host header missing");
 		goto exit;
-	
+	}
+
+	// example:  Destination: http://server:port/caldav/username/folderid/entry.ics
 	hr = HrGetHeaderValue("Destination", &strDest);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrGetDestination destination header missing");
 		goto exit;
+	}
 
-	strDest.substr(strHost.length(), strDest.length() - strHost.length());
+	pos = strDest.find(strHost);
+	if (pos == string::npos) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Refusing to move calendar item from %s to different host on url %s", strHost.c_str(), strDest.c_str());
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	} else {
+		strDest.erase(0, pos + strHost.length());
+	}
 
-	if (!strDest.empty())
-		*strDestination = strDest;
-	else
-		hr = MAPI_E_NOT_FOUND;
+	*strDestination = strDest;
+
 exit:
 	return hr;
 }
@@ -559,17 +583,21 @@ HRESULT Http::HrReadBody()
 	std::string strLength;
 
 	// find the Content-Length
-	if (HrGetHeaderValue("Content-Length", &strLength) != hrSuccess)
+	if (HrGetHeaderValue("Content-Length", &strLength) != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrReadBody content-length missing");
 		return MAPI_E_NOT_FOUND;
+	}
 
 	ulContLength = atoi((char*)strLength.c_str());
-	if (ulContLength <= 0)
+	if (ulContLength <= 0) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrReadBody content-length invalid %d", ulContLength);
 		return MAPI_E_NOT_FOUND;
+	}
 
 	hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
 	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG) && !m_strUser.empty())
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request body:\n%s\n", m_strReqBody.c_str());
-	
+
 	return hr;
 }
 
@@ -658,9 +686,11 @@ HRESULT Http::HrFinalize()
 	if (m_strRespBody.size() < HTTP_CHUNK_SIZE || m_strHttpVer.compare("1.1") != 0)
 	{
 		hr = HrFlushHeaders();
-		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION)
+		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION) {
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrFinalize flush fail %d", hr);
 			goto exit;
-		
+		}
+
 		if (!m_strRespBody.empty()) {
 			m_lpChannel->HrWriteString(m_strRespBody);
 			if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
@@ -678,8 +708,10 @@ HRESULT Http::HrFinalize()
 		HrResponseHeader("Transfer-Encoding", "chunked");
 
 		hr = HrFlushHeaders();
-		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION)
+		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION) {
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrFinalize flush fail(2) %d", hr);
 			goto exit;
+		}
 
 		while (szBodyWritten < szBodyLen)
 		{
@@ -712,8 +744,7 @@ HRESULT Http::HrFinalize()
 		// @todo we're in C LC_TIME locale to get the correct (month) format, but the timezone will be GMT, which is not wanted.
 		strftime(szTime, arraySize(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
 		HrGetHeaderValue("User-Agent", &strAgent);
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"",
-						m_lpChannel->GetIPAddress().c_str(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"", m_lpChannel->GetIPAddress().c_str(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
 	}
 
 exit:
@@ -754,7 +785,7 @@ HRESULT Http::HrResponseHeader(unsigned int ulCode, std::string strResponse)
 	HRESULT hr = hrSuccess;
 
 	m_ulRetCode = ulCode;
-	
+
 	// do not set headers if once set
 	if (m_strRespHeader.empty()) 
 		m_strRespHeader = "HTTP/1.1 " + stringify(ulCode) + " " + strResponse;
@@ -884,4 +915,28 @@ HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strVal
 		return MAPI_E_NOT_FOUND;
 	*strValue = iHeader->second;
 	return hrSuccess;
+}
+
+HRESULT Http::HrGetUserAgent(std::string *strUserAgent)
+{
+	HRESULT hr = hrSuccess;
+
+	if (!m_strUserAgent.empty())
+		strUserAgent -> assign(m_strUserAgent);
+	else
+		hr = MAPI_E_NOT_FOUND;
+
+	return hr;
+}
+
+HRESULT Http::HrGetUserAgentVersion(std::string *strUserAgentVersion)
+{
+	HRESULT hr = hrSuccess;
+
+	if (!m_strUserAgentVersion.empty())
+		strUserAgentVersion -> assign(m_strUserAgentVersion);
+	else
+		hr = MAPI_E_NOT_FOUND;
+
+	return hr;
 }

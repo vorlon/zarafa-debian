@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -165,6 +160,23 @@ BTSession::~BTSession() {
 	pthread_cond_destroy(&m_hThreadReleased);
 	pthread_mutex_destroy(&m_hThreadReleasedMutex);
 	pthread_mutex_destroy(&m_hRequestStats);
+}
+
+void BTSession::SetClientMeta(const char *const lpstrClientVersion, const char *const lpstrClientMisc)
+{
+	m_strClientApplicationVersion = lpstrClientVersion ? lpstrClientVersion : "";
+	m_strClientApplicationMisc = lpstrClientMisc ? lpstrClientMisc : "";
+}
+
+void BTSession::GetClientApplicationVersion(std::string *lpstrClientApplicationVersion)
+{
+        lpstrClientApplicationVersion->assign(m_strClientApplicationVersion);
+}
+
+void BTSession::GetClientApplicationMisc(std::string *lpstrClientApplicationMisc)
+{
+	scoped_lock lock(m_hRequestStats);
+        lpstrClientApplicationMisc->assign(m_strClientApplicationMisc);
 }
 
 ECRESULT BTSession::Shutdown(unsigned int ulTimeout) {
@@ -311,7 +323,7 @@ size_t BTSession::GetInternalObjectSize()
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ECSession::ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp) :
+ECSession::ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp, std::string strClientApplicationVersion, std::string strClientApplicationMisc) :
 	BTSession(strSourceAddr, sessionID, lpDatabaseFactory, lpSessionManager, ulCapabilities)
 {
 	m_lpTableManager		= new ECTableManager(this);
@@ -325,7 +337,8 @@ ECSession::ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, EC
 	m_strClientVersion		= strClientVersion;
 	m_ulClientVersion		= ZARAFA_VERSION_UNKNOWN;
 	m_strClientApp			= strClientApp;
-
+	m_strClientApplicationVersion   = strClientApplicationVersion;
+	m_strClientApplicationMisc	= strClientApplicationMisc;
 
 	ParseZarafaVersion(strClientVersion, &m_ulClientVersion);
 	// Ignore result.
@@ -489,6 +502,7 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
     lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "ECSession::AddChangeAdvise(): row or column null");
 		goto exit;
 	}
 
@@ -663,7 +677,6 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
     lpstrClientApp->assign(m_strClientApp);
 }
 
-
 /**
  * Get the object id of the object specified by the provided entryid.
  * This entryid can either be a short term or 'normal' entryid. If the entryid is a
@@ -830,7 +843,7 @@ ECAuthSession::~ECAuthSession()
 }
 
 
-ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession) {
+ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, std::string strClientAppVersion, std::string strClientAppMisc, ECSESSIONID *sessionID, ECSession **lppNewSession) {
 	ECRESULT er = erSuccess;
 	ECSession *lpSession = NULL;
 	ECSESSIONID newSID;
@@ -843,7 +856,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// ECAuthSessionOffline creates offline version .. no bOverrideClass construction
-	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, false, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
+	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, false, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp, strClientAppVersion, strClientAppMisc);
 	if (!lpSession) {
 		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1147,7 +1160,7 @@ exit:
 }
 
 #define NTLMBUFFER 8192
-ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = ZARAFA_E_INVALID_PARAMETER;
 	if (!soap) {
@@ -1183,9 +1196,9 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 
 	// first NTLM package starts with that signature, continues are detected by the filedescriptor
 	if (m_NTLM_pid != -1 || strncmp((const char*)lpInput->__ptr, "NTLM", 4) == 0)
-		er = ValidateSSOData_NTLM(soap, lpszName, szClientVersion, szClientApp, lpInput, lppOutput);
+		er = ValidateSSOData_NTLM(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	else
-		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, lpInput, lppOutput);
+		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1250,7 +1263,7 @@ ECRESULT ECAuthSession::LogKRB5Error(const char* msg, OM_uint32 major, OM_uint32
 }
 #endif
 
-ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
 {
 	ECRESULT er = ZARAFA_E_INVALID_PARAMETER;
 #ifndef HAVE_GSSAPI
@@ -1401,7 +1414,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
+ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
 {
 	ECRESULT er = ZARAFA_E_INVALID_PARAMETER;
 	struct xsd__base64Binary *lpOutput = NULL;
@@ -1657,7 +1670,7 @@ ECAuthSessionOffline::ECAuthSessionOffline(const std::string &strSourceAddr, ECS
 	// nothing todo
 }
 
-ECRESULT ECAuthSessionOffline::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession) {
+ECRESULT ECAuthSessionOffline::CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, std::string strClientAppVersion, std::string strClientAppMisc, ECSESSIONID *sessionID, ECSession **lppNewSession) {
 	ECRESULT er = erSuccess;
 	ECSession *lpSession = NULL;
 	ECSESSIONID newSID;
@@ -1670,7 +1683,7 @@ ECRESULT ECAuthSessionOffline::CreateECSession(ECSESSIONGROUPID ecSessionGroupId
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// Offline version
-	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, true, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp);
+	lpSession = new ECSession(m_strSourceAddr, newSID, ecSessionGroupId, m_lpDatabaseFactory, m_lpSessionManager, m_ulClientCapabilities, true, m_ulValidationMethod, m_ulConnectingPid, strClientVersion, strClientApp, strClientAppVersion, strClientAppMisc);
 	if (!lpSession) {
 		er = ZARAFA_E_NOT_ENOUGH_MEMORY;
 		goto exit;

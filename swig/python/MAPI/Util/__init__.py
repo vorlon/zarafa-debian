@@ -1,8 +1,8 @@
 # -*- indent-tabs-mode: nil -*-
 
+import os.path
 import random
 import sys
-import os.path
 
 # MAPI stuff
 from MAPI.Defs import *
@@ -58,6 +58,9 @@ def OpenECSession(user, password, path, **keywords):
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_W, impersonate))
         elif impersonate:
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
+
+        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, sys.version))
+        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC, sys.argv[0]))
     
         admin.ConfigureMsgService(uid, 0, 0, profprops)
         

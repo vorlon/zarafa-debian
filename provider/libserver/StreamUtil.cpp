@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -185,6 +180,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
 		if (lpRow[0] == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			m_lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "NamedPropertyMapper::GetId(): column null");
 			goto exit;
 		}
 
@@ -242,6 +238,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	if ((lpRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
 		if (lpRow[0] == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			m_lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "NamedPropertyMapper::GetId(): column null");
 			goto exit;
 		}
 
@@ -301,8 +298,10 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 	if (er == ZARAFA_E_DATABASE_ERROR) {
 		er = erSuccess;
 		goto exit;
-	} else if (er != erSuccess)
+	}
+	else if (er != erSuccess) {
 		goto exit;
+	}
 
 	ulPropTag = PROP_TAG(type, atoi(lpRow[FIELD_NR_TAG]));
 	er = lpSink->Write(&ulPropTag, sizeof(ulPropTag), 1);
@@ -885,6 +884,7 @@ ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttach
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "SerializeProps(): fetchrow/fetchrowlengths failed");
 			goto exit;
 		}
 
@@ -927,6 +927,7 @@ exit:
 	}
 	
 	if (soap) {
+		soap_destroy(soap);
 		soap_end(soap);
 		soap_free(soap);
 	}
@@ -1023,6 +1024,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			lpStreamDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "SerializeMessage(): fetchrow/fetchrowlengths failed");
 			goto exit;
 		}
 
@@ -1096,6 +1098,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			if(lpDBRow != NULL) {
 				if(lpDBRow[0] == NULL) {
 					er = ZARAFA_E_DATABASE_ERROR;
+					lpStreamDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "SerializeMessage(): column null");
 					goto exit;
 				}
 				
@@ -1506,6 +1509,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 					goto exit;
 				if (ulAffected != 1) {
 					er = ZARAFA_E_DATABASE_ERROR;
+					lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "DeserializeProps(): Unexpected affected row count");
 					goto exit;
 				}
 			}
@@ -1549,6 +1553,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 		setInserted.insert(lpsPropval->ulPropTag);
 
 next_property:
+		soap_destroy(soap);
 		soap_end(soap);
 		soap_free(soap);
 		soap = NULL;
@@ -1626,6 +1631,7 @@ exit:
 		FreePropValArray(lpPropValArray, true);
 
 	if (soap) {
+		soap_destroy(soap);
 		soap_end(soap);
 		soap_free(soap);
 	}
@@ -1947,6 +1953,7 @@ ECRESULT GetValidatedPropCount(ECDatabase *lpDatabase, DB_RESULT lpDBResult, uns
 		unsigned int ulType;
 		er = GetValidatedPropType(lpRow, &ulType);	// Ignore ulType, we just need the validation
 		if (er == ZARAFA_E_DATABASE_ERROR) {
+			lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "GetValidatedPropCount(): GetValidatedPropType failed");
 			er = erSuccess;
 			continue;
 		} else if (er != erSuccess)

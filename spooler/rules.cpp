@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -513,13 +508,15 @@ HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMe
 					  PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 					  strFromName, strFromType, strFromAddress);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get from address 0x%08X", hr);
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get from address 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), (void**)&lpRecipients);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
 		goto exit;
+	}
 
 	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass); //ignore errors
 
@@ -530,7 +527,7 @@ HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMe
 						  CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_SMTP_ADDRESS, PT_UNSPECIFIED), 
 						  strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get rule address 0x%08X", hr);
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get rule address 0x%08X", hr);
 			goto exit;
 		}
 
@@ -544,23 +541,24 @@ HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook, IMAPIProp *lpMe
 		}
 
 		// copy recipient
-		hr = Util::HrCopyPropertyArray(lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues,
-									   &lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, &lpRecipients->aEntries[lpRecipients->cEntries].cValues, true);
-		if (hr != hrSuccess)
+		hr = Util::HrCopyPropertyArray(lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, &lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, &lpRecipients->aEntries[lpRecipients->cEntries].cValues, true);
+
+		if (hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
 			goto exit;
+		}
 
 		lpRecipients->cEntries++;
 	}
 
 	if (lpRecipients->cEntries == 0) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Loop protection blocked all recipients, skipping rule");
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Loop protection blocked all recipients, skipping rule");
 		hr = MAPI_E_UNABLE_TO_COMPLETE;
 		goto exit;
 	}
 
-	if (lpRecipients->cEntries != lpRuleRecipients->cEntries) {
+	if (lpRecipients->cEntries != lpRuleRecipients->cEntries)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Loop protection blocked some recipients");
-	}
 
 	*lppNewRecipients = lpRecipients;
 	lpRecipients = NULL;
@@ -835,39 +833,56 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 
 
     hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
-    if(hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): OpenProperty failed %x", hr);
         goto exit;
+	}
 
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, (void**)&lpECModifyTable);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryInterface failed %x", hr);
 		goto exit;
+	}
 
 	hr = lpECModifyTable->DisablePushToServer();
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): DisablePushToServer failed %x", hr);
 		goto exit;
+	}
 
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): RulesProcessing failed %x", hr);
 		goto exit;
+	}
+
 	//TODO do something with ulResults
 
     hr = lpTable->GetTable(0, &lpView);
-    if(hr != hrSuccess)
+	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): GetTable failed %x", hr);
         goto exit;
+	}
         
     hr = lpView->SetColumns((LPSPropTagArray)&sptaRules, 0);
-    if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
         goto exit;
+	}
 
 	hr = lpView->SortTable((LPSSortOrderSet)&sosRules, 0);
-    if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SortTable failed %x", hr);
         goto exit;
+	}
 
 	while (TRUE) {
 
         hr = lpView->QueryRows(1, 0, &lpRowSet);
-		if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
 			goto exit;
+	}
 
         if (lpRowSet->cRows == 0)
             break;
@@ -936,7 +951,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 					hr = lpSession->OpenMsgStore(0, lpActions->lpAction[n].actMoveCopy.cbStoreEntryId,
 													lpActions->lpAction[n].actMoveCopy.lpStoreEntryId, NULL, MAPI_BEST_ACCESS, &lpDestStore);
 					if (hr != hrSuccess) {
-						lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to open destination store");
+						lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to open destination store");
 						goto nextact;
 					}
 
@@ -944,7 +959,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 												lpActions->lpAction[n].actMoveCopy.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
 												(IUnknown**)&lpDestFolder);
 					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-						lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to open destination folder");
+						lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to open destination folder");
 						goto nextact;
 					}
 				}
@@ -972,7 +987,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				// Save the copy in its new location
 				hr = lpNewMessage->SaveChanges(0);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to copy/move message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to copy/move message");
 					goto nextact;
 				}
 				if (lpActions->lpAction[n].acttype == OP_MOVE)
@@ -992,19 +1007,19 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 											lpActions->lpAction[n].actReply.lpEntryId, &IID_IMessage, 0, &ulObjType,
 											(IUnknown**)&lpTemplate);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to open reply message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to open reply message");
 					goto nextact;
 				}
 
 				hr = CreateReplyCopy(lpSession, lpOrigStore, *lppMessage, lpTemplate, &lpReplyMsg);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to create reply message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to create reply message");
 					goto nextact;
 				}
 
 				hr = lpReplyMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": Unable to send reply message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": Unable to send reply message");
 					goto nextact;
 				}
 				break;
@@ -1030,7 +1045,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 
 					if (HrGetOneProp(*lppMessage, PROP_ZarafaRuleAction, &lpPropRule) == hrSuccess) {
 						MAPIFreeBuffer(lpPropRule);
-						lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-zarafa-rule-action'");
+						lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-zarafa-rule-action'");
 						continue;
 					}
 				}
@@ -1044,13 +1059,13 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 									   lpActions->lpAction[n].ulActionFlavor & FWD_AS_ATTACHMENT,
 									   &lpFwdMsg);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": FORWARD Unable to create forward message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": FORWARD Unable to create forward message");
 					goto nextact;
 				}
 
 				hr = lpFwdMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": FORWARD Unable to send forward message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": FORWARD Unable to send forward message");
 					goto nextact;
 				}
 
@@ -1064,7 +1079,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				// 1. make copy of lpMessage, needs CopyTo() function
 				// 2. copy From: to To:
 				// 3. SubmitMessage()
-				lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": BOUNCE actions are currently unsupported");
+				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": BOUNCE actions are currently unsupported");
 				break;
 
 			case OP_DELEGATE:
@@ -1077,20 +1092,20 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 
 				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &lpFwdMsg);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": DELEGATE Unable to create delegate message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": DELEGATE Unable to create delegate message");
 					goto nextact;
 				}
 
 				// set delegate properties
 				hr = HrDelegateMessage(lpFwdMsg);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": DELEGATE Unable to modify delegate message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": DELEGATE Unable to modify delegate message");
 					goto nextact;
 				}
 
 				hr = lpFwdMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": DELEGATE Unable to send delegate message");
+					lpLogger->Log(EC_LOGLEVEL_ERROR, (std::string)"Rule "+strRule+": DELEGATE Unable to send delegate message");
 					goto nextact;
 				}
 
@@ -1101,11 +1116,11 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 
 			case OP_DEFER_ACTION:
 				// DAM crud, but outlook doesn't check these messages .. yet
-				lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": DEFER client actions are currently unsupported");
+				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": DEFER client actions are currently unsupported");
 				break;
 			case OP_TAG:
 				// sure .. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!! dork!
-				lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": TAG actions are currently unsupported");
+				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": TAG actions are currently unsupported");
 				break;
 			case OP_DELETE:
 				// since *lppMessage wasn't yet saved in the server, we can just return a special MAPI Error code here,
@@ -1117,7 +1132,7 @@ HRESULT HrProcessRules(PyMapiPlugin *pyMapiPlugin, LPMAPISESSION lpSession, LPAD
 				break;
 			case OP_MARK_AS_READ:
 				// add prop read
-				lpLogger->Log(EC_LOGLEVEL_FATAL, (std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
+				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
 				break;
 			};
 

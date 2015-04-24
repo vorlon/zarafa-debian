@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -102,6 +97,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 
 	//Init mysql and make a connection
 	if (!m_bMysqlInitialize && mysql_init(&m_lpMySQL) == NULL) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::InitEngine() mysql_init failed");
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -132,8 +128,10 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	DB_ROW			lpDBRow = NULL;
 
 	er = InitEngine();
-	if(er != erSuccess)
+	if (er != erSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): InitEngine failed %d", er);
 		goto exit;
+	}
 
 	if(mysql_real_connect(&m_lpMySQL,
 			lpConfig->GetSetting("mysql_host"),
@@ -142,52 +140,62 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 			lpConfig->GetSetting("mysql_database"),
 			(lpMysqlPort)?atoi(lpMysqlPort):0, NULL, 0) == NULL)
 	{
-		if(mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR){ // Database does not exist
+		if (mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR) // Database does not exist
 			er = ZARAFA_E_DATABASE_NOT_FOUND;
-		}else
+		else
 			er = ZARAFA_E_DATABASE_ERROR;
+
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): database access error %d", er);
+
 		goto exit;
 	}
 
 	// Check if the database is available, but empty
 	strQuery = "SHOW tables";
 	er = DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		goto exit;
-
-	if(GetNumRows(lpDBResult) == 0) {
-		er = ZARAFA_E_DATABASE_NOT_FOUND;
+	if(er != erSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): \"SHOW tables\" failed %d", er);
 		goto exit;
 	}
 
-	if(lpDBResult) {
+	if(GetNumRows(lpDBResult) == 0) {
+		er = ZARAFA_E_DATABASE_NOT_FOUND;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): database missing %d", er);
+		goto exit;
+	}
+
+	if (lpDBResult) {
 		FreeResult(lpDBResult);
 		lpDBResult = NULL;
 	}
 
 	strQuery = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-	    goto exit;
+	if(er != erSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): max_allowed_packet retrieval failed %d", er);
+		goto exit;
+	}
 
 	lpDBRow = FetchRow(lpDBResult);
-	if(lpDBRow == NULL || lpDBRow[0] == NULL) {
-	    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to retrieve max_allowed_packet value. Assuming 16M");
-	    m_ulMaxAllowedPacket = (unsigned int)MAX_ALLOWED_PACKET;
-    } else {
-        m_ulMaxAllowedPacket = atoui(lpDBRow[1]);
-    }
+	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to retrieve max_allowed_packet value. Assuming 16M");
+		m_ulMaxAllowedPacket = (unsigned int)MAX_ALLOWED_PACKET;
+	} else {
+		m_ulMaxAllowedPacket = atoui(lpDBRow[1]);
+	}
 
 	m_bConnected = true;
 
 	strQuery = "SET SESSION group_concat_max_len = " + stringify((unsigned int)MAX_GROUP_CONCAT_LEN);
 	if(Query(strQuery) != 0 ) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): group_concat_max_len set fail %d", er);
 		goto exit;
 	}
 
 	if(Query("SET NAMES 'utf8'") != 0) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): set names to utf8 failed %d", er);
 		goto exit;
 	}
 
@@ -195,9 +203,9 @@ exit:
 	if(lpDBResult)
 		FreeResult(lpDBResult);
 
-    if (er != erSuccess) {
-        Close();
-    }
+	if (er != erSuccess)
+		Close();
+
 	return er;
 }
 
@@ -258,9 +266,8 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 	// use mysql_real_query to be binary safe ( http://dev.mysql.com/doc/mysql/en/mysql-real-query.html )
 	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
 
-	if(err) {
+	if (err)
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
-	}
 
 	return err;
 }
@@ -275,17 +282,18 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 	if(m_bAutoLock)
 		Lock();
 
-	if( Query(strQuery) != 0 ) {
+	if (Query(strQuery) != 0) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
 		goto exit;
 	}
 
 	if(bStream)
-		*lpResult = mysql_use_result( &m_lpMySQL );
+		*lpResult = mysql_use_result(&m_lpMySQL);
 	else
-		*lpResult = mysql_store_result( &m_lpMySQL );
+		*lpResult = mysql_store_result(&m_lpMySQL);
 
-	if( *lpResult == NULL ) {
+	if (*lpResult == NULL) {
 		er = ZARAFA_E_DATABASE_ERROR;
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 	}
@@ -319,10 +327,11 @@ ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffe
 {
 	ECRESULT er = erSuccess;
 
-	if( Query(strQuery) != 0 ) {
+	if (Query(strQuery) != 0) {
 		// FIXME: Add the mysql error system ?
 		// er = nMysqlError;
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
 		goto exit;
 	}
 
@@ -386,14 +395,18 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 
 	// Attempt to update the sequence in an atomic fashion
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
-	if(er != erSuccess)
+	if(er != erSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSequence() UPDATE failed %d", er);
 		goto exit;
+	}
 
 	// If the setting was missing, insert it now, starting at sequence 1 (not 0 for safety - maybe there's some if(ulSequenceId) code somewhere)
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
-		if(er != erSuccess)
+		if(er != erSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
 			goto exit;
+		}
 	}
 
 	*lpllFirstId = mysql_insert_id(&m_lpMySQL);
@@ -481,7 +494,7 @@ std::string ECDatabaseMySQL::EscapeBinary(std::string &strData)
 
 std::string ECDatabaseMySQL::GetError()
 {
-	if(m_bMysqlInitialize == false)
+	if (m_bMysqlInitialize == false)
 		return "MYSQL not initialized";
 
 	return mysql_error(&m_lpMySQL);
@@ -527,25 +540,31 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 	DB_RESULT	lpResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 
-	er = DoSelect("SHOW VARIABLES LIKE \"have_innodb\"", &lpResult);
+	er = DoSelect("SHOW ENGINES", &lpResult);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to get value 'have_innodb' from the mysql server. Probably INNODB is not supported. Error: %s", GetError().c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query supported database engines. Error: %s", GetError().c_str());
 		goto exit;
 	}
 
-	lpDBRow = FetchRow(lpResult);
-	if (lpDBRow == NULL || lpDBRow[1] == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to get value 'have_innodb' from the mysql server. Probably INNODB is not supported");
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	}
+	while ((lpDBRow = FetchRow(lpResult)) != NULL) {
+		if (stricmp(lpDBRow[0], "InnoDB") != 0)
+			continue;
 
-	if (stricmp(lpDBRow[1], "DISABLED") == 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"INNODB engine is disabled. Please enable the INNODB engine. Check your mysql log for more information or comment out skip-innodb in the mysql configuration file");
-		er = ZARAFA_E_DATABASE_ERROR;
-		goto exit;
-	} else if(stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"INNODB engine is not support. Please enable the INNODB engine.");
+		if (stricmp(lpDBRow[1], "DISABLED") == 0) {
+			// mysql has run with innodb enabled once, but disabled this.. so check your log.
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		} else if (stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
+			// mysql is incorrectly configured or compiled.
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
+			er = ZARAFA_E_DATABASE_ERROR;
+			goto exit;
+		}
+		break;
+	}
+	if (lpDBRow == NULL) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find 'InnoDB' engine from the mysql server. Probably INNODB is not supported.");
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}

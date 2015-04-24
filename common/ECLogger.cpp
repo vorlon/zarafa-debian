@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -66,6 +61,7 @@
 #include <grp.h>
 
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -73,6 +69,16 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 using namespace std;
+
+static const char *const ll_names[] = {
+	"none   ",
+	"fatal  ",
+	"error  ",
+	"warning",
+	"notice ",
+	"info   ",
+	"debug  "
+	};
 
 ECLogger::ECLogger(unsigned int max_ll) {
 	pthread_mutex_init(&msgbuflock, NULL);
@@ -113,10 +119,12 @@ char* ECLogger::MakeTimestamp() {
 }
 
 bool ECLogger::Log(unsigned int loglevel) {
-	if (loglevel <= EC_LOGLEVEL_DEBUG)
-		return loglevel <= (max_loglevel&EC_LOGLEVEL_MASK);
-	else
-		return ((max_loglevel&EC_LOGLEVEL_EXTENDED_MASK) & (loglevel&EC_LOGLEVEL_EXTENDED_MASK)) && ((loglevel&EC_LOGLEVEL_MASK) <= (max_loglevel&EC_LOGLEVEL_MASK));
+    // given extended mask bit must be enabled in max_loglevel
+    if ((loglevel&EC_LOGLEVEL_EXTENDED_MASK) && !(loglevel&EC_LOGLEVEL_EXTENDED_MASK&max_loglevel))
+        return false;
+
+    // given level must be <= max_loglevel
+    return (loglevel&EC_LOGLEVEL_MASK) <= (max_loglevel&EC_LOGLEVEL_MASK);
 }
 
 void ECLogger::SetLogprefix(logprefix lp)
@@ -173,6 +181,7 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp, const char
 
 	prevcount = 0;
 	prevmsg.clear();
+	prevloglevel = 0;
 
 	if (strcmp(logname, "-") == 0) {
 		log = stderr;
@@ -241,6 +250,7 @@ int ECLogger_File::GetFileDescriptor() {
 void ECLogger_File::DoPrefix() {
 	if (timestamp)
 		fnPrintf(log, "%s: ", MakeTimestamp());
+
 	if (prefix == LP_TID)
 		fnPrintf(log, "[0x%08x] ", (unsigned int)pthread_self());
 	else if (prefix == LP_PID)
@@ -256,7 +266,7 @@ bool ECLogger_File::IsStdErr() {
 	return strcmp(logname, "-") == 0;
 }
 
-bool ECLogger_File::DupFilter(const std::string &message) {
+bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
 	if (prevmsg == message) {
 		prevcount++;
 		if (prevcount < 100)
@@ -264,8 +274,15 @@ bool ECLogger_File::DupFilter(const std::string &message) {
 	}
 	if (prevcount > 1) {
 		DoPrefix();
+
+		if (loglevel <= EC_LOGLEVEL_DEBUG)
+			fnPrintf(log, "[%s] ", ll_names[prevloglevel]);
+		else
+			fnPrintf(log, "[%x] ", prevloglevel);
+
 		fnPrintf(log, "Previous message logged %d times\n", prevcount);
 	}
+	prevloglevel = loglevel;
 	prevmsg = message;
 	prevcount = 0;
 	return false;
@@ -278,8 +295,14 @@ void ECLogger_File::Log(unsigned int loglevel, const string &message) {
 		return;
 
 	pthread_mutex_lock(&filelock);
-	if (!DupFilter(message)) {
+	if (!DupFilter(loglevel, message)) {
 		DoPrefix();
+
+		if (loglevel <= EC_LOGLEVEL_DEBUG)
+			fnPrintf(log, "[%s] ", ll_names[loglevel]);
+		else
+			fnPrintf(log, "[%x] ", loglevel);
+
 		fnPrintf(log, "%s\n", message.c_str());
 		if (fnFlush)
 			fnFlush(log);
@@ -306,12 +329,19 @@ void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va
 
 	pthread_mutex_lock(&filelock);
 
-	if (!DupFilter(msgbuffer)) {
+	if (!DupFilter(loglevel, msgbuffer)) {
 		DoPrefix();
+
+		if (loglevel <= EC_LOGLEVEL_DEBUG)
+			fnPrintf(log, "[%s] ", ll_names[loglevel]);
+		else
+			fnPrintf(log, "[%x] ", loglevel);
+
 		fnPrintf(log, "%s\n", msgbuffer);
 		if (fnFlush)
 			fnFlush(log);
 	}
+
 	pthread_mutex_unlock(&filelock);
 	pthread_mutex_unlock(&msgbuflock);
 }

@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -357,28 +352,21 @@ exit:
 bool ECUserManagement::MustHide(/*const*/ ECSecurity& security, unsigned int ulFlags, const objectdetails_t& details)
 {
 	return	(security.GetUserId() != ZARAFA_UID_SYSTEM) &&
-			(security.GetAdminLevel() == 0) &&
-			((ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0) &&
-			details.GetPropBool(OB_PROP_B_AB_HIDDEN);
+		(security.GetAdminLevel() == 0) &&
+		((ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0) &&
+		details.GetPropBool(OB_PROP_B_AB_HIDDEN);
 }
 
 // Get details for an object
-ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetails_t *lpDetails) {
-	ECRESULT er = erSuccess;
+ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetails_t *lpDetails)
+{
+	if (IsInternalObject(ulObjectId))
+		return GetLocalObjectDetails(ulObjectId, lpDetails);
 
-	if(IsInternalObject(ulObjectId)) {
-		er = GetLocalObjectDetails(ulObjectId, lpDetails);
-	} else {
-		er = GetExternalObjectDetails(ulObjectId, lpDetails);
+	return GetExternalObjectDetails(ulObjectId, lpDetails);
 	}
 
-	return er;
-}
-
-ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsignature_t> &lstSignatures,
-															const std::map<objectid_t, unsigned int> &mapExternToLocal,
-															unsigned int ulFlags,
-															list<localobjectdetails_t> *lpDetails)
+ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsignature_t> &lstSignatures, const std::map<objectid_t, unsigned int> &mapExternToLocal, unsigned int ulFlags, list<localobjectdetails_t> *lpDetails)
 {
 	ECRESULT er = erSuccess;
 	ECSecurity *lpSecurity = NULL;
@@ -488,12 +476,12 @@ exit:
  *                perform a sync with the plugin, even if sync_gab_realtime is set to 'no'
  * @return result
  */
-ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, unsigned int ulCompanyId,
-													   std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
+ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, unsigned int ulCompanyId, std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
 {
 	ECRESULT er = erSuccess;
 
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
+	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
 
 	// Return data
 	std::list<localobjectdetails_t> *lpObjects = new std::list<localobjectdetails_t>;
@@ -579,7 +567,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		}
 	}
 
-	if (bSync) {
+	if (bSync && !bIsSafeMode) {
 		// We now have a map, mapping external id's to local user id's (and their signatures)
 		try {
 			// Get full user list
@@ -641,6 +629,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			mapExternIdToLocal.insert(make_pair(iterExternSignatures->id, ulObjectId));
 		}
 	} else {
+		if (bIsSafeMode)
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "user_safe_mode: skipping retrieve/sync users from LDAP");
+
 		lpExternSignatures = auto_ptr<signatures_t>(new signatures_t());;
 		
 		// Dont sync, just use whatever is in the local user database
@@ -658,8 +649,13 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
 	if(bSync) {
+		if (bIsSafeMode) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "user_safe_mode: would normally now delete %lu local users (you may see this message more often as the delete is now omitted)", mapSignatureIdToLocal.size());
+		}
+		else {
 		for (iterSignatureIdToLocal = mapSignatureIdToLocal.begin(); iterSignatureIdToLocal != mapSignatureIdToLocal.end(); iterSignatureIdToLocal++)
 			MoveOrDeleteLocalObject(iterSignatureIdToLocal->second.first, iterSignatureIdToLocal->first.objclass); // second == map value, first == id
+	}
 	}
 
 	// Convert details for client usage
@@ -1003,11 +999,11 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 			er = ZARAFA_E_NOT_FOUND;
 			goto exit;
 		} catch (notimplemented &e) {
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set details for external %s: %s", ObjectClassToName(sExternId.objclass), e.what());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set details for external %s (1): %s", ObjectClassToName(sExternId.objclass), e.what());
 			er = ZARAFA_E_NOT_IMPLEMENTED;
 			goto exit;
 		} catch (std::exception &e) {
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set details for external %s: %s", ObjectClassToName(sExternId.objclass), e.what());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set details for external %s (2): %s", ObjectClassToName(sExternId.objclass), e.what());
 			er = ZARAFA_E_PLUGIN_ERROR;
 			goto exit;
 		}
@@ -1017,15 +1013,15 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 		try {
 			signature = lpPlugin->createObject(sDetails);
 		} catch (notimplemented &e) {
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database: %s", ObjectClassToName(sExternId.objclass), e.what());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database(1): %s", ObjectClassToName(sExternId.objclass), e.what());
 			er = ZARAFA_E_NOT_IMPLEMENTED;
 			goto exit;
 		} catch (collision_error &e) {
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database: %s", ObjectClassToName(sExternId.objclass), e.what());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database(2): %s", ObjectClassToName(sExternId.objclass), e.what());
 			er = ZARAFA_E_COLLISION;
 			goto exit;
 		} catch (std::exception &e) {
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database: %s", ObjectClassToName(sExternId.objclass), e.what());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in external database(3): %s", ObjectClassToName(sExternId.objclass), e.what());
 			er = ZARAFA_E_PLUGIN_ERROR;
 			goto exit;
 		}
@@ -1090,6 +1086,7 @@ ECRESULT ECUserManagement::ModifyExternId(unsigned int ulObjectId, const objecti
 
 	if (ulRows != 1) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECUserManagement::ModifyExternId(): unexpected row count");
 		goto exit;
 	}
 
@@ -1128,7 +1125,7 @@ exit:
 // Add a member to a group, with on-the-fly delete of the specified group id
 ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
 	ECRESULT er = erSuccess;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
 	SOURCEKEY sSourceKey;
@@ -1163,6 +1160,7 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 		goto exit;
 	} catch (collision_error &) {
 		er = ZARAFA_E_COLLISION;
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
 		goto exit;
 	} catch(std::exception &e) {
 		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to add relation %s to external user database: %s", RelationTypeToName(relation), e.what());
@@ -1197,7 +1195,7 @@ exit:
 
 ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
 	ECRESULT er = erSuccess;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
 	SOURCEKEY sSourceKey;
@@ -1682,15 +1680,15 @@ ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, u
 	try {
 		objectsignature = lpPlugin->createObject(details);
 	} catch (notimplemented &e) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database: %s", ObjectClassToName(details.GetClass()), e.what());
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database(1): %s", ObjectClassToName(details.GetClass()), e.what());
 		er = ZARAFA_E_NOT_IMPLEMENTED;
 		goto exit;
 	} catch (collision_error &e) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database: %s", ObjectClassToName(details.GetClass()), e.what());
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database(2): %s", ObjectClassToName(details.GetClass()), e.what());
 		er = ZARAFA_E_COLLISION;
 		goto exit;
 	} catch(std::exception &e) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database: %s", ObjectClassToName(details.GetClass()), e.what());
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create %s in user database(3): %s", ObjectClassToName(details.GetClass()), e.what());
 		er = ZARAFA_E_PLUGIN_ERROR;
 		goto exit;
 	}
@@ -1998,6 +1996,7 @@ done:
 				ulId = ulIdTmp;
 			} else if (ulId != ulIdTmp) {
 				er = ZARAFA_E_COLLISION;
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECUserManagement::SearchObjectAndSync() unexpected id %u/%u", ulId, ulIdTmp);
 				goto exit;
 			}
 		} else {
@@ -2786,7 +2785,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	objectdetails_t details;
 	unsigned int ulId;
 	unsigned int ulCompanyId;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	unsigned int ulLicenseStatus;
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
@@ -3056,7 +3055,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	unsigned int ulObjectId;
 	objectclass_t objClass;
 	SOURCEKEY sSourceKey;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
@@ -3285,7 +3284,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
 	std::string strQuery;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 
@@ -3373,7 +3372,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	DB_ROW lpRow = NULL;
 	unsigned int ulDeletedRows = 0;
 	std::string strQuery;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 
@@ -3508,6 +3507,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			goto exit;
 		} else if (lpRow[0] == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECUserManagement::DeleteLocalObject(): column null");
 			goto exit;
 		}
 
@@ -3942,7 +3942,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				lpPropVal->Value.bin->__size = sizeof(GUID);
 
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 				break;
 			case PR_EMS_AB_X509_CERT: {
 				list<string> strCerts = lpDetails->GetPropListString(OB_PROP_LS_CERTIFICATE);
@@ -4185,7 +4185,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				lpPropVal->Value.bin->__size = sizeof(GUID);
 
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 				break;
 			case PR_EC_SENDAS_USER_ENTRYIDS: {
 				list<objectid_t> userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
@@ -4324,7 +4324,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				ABEID abeid;
 				abeid.ulType = MAPI_ABCONT;
 				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
@@ -4375,7 +4375,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__size = sizeof(GUID);
 
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 				break;
 			default:
 				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
@@ -4403,7 +4403,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				ABEID abeid;
 				abeid.ulType = MAPI_ABCONT;
 				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
@@ -4459,7 +4459,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__size = sizeof(GUID);
 
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 				break;
 			case PR_EMS_AB_IS_MASTER:
 				lpPropVal->Value.b = false;
@@ -4510,7 +4510,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 	lpPropValArray->__size = lpPropTagArray->__size;
 
 	abeid.ulType = MAPI_ABCONT;
-	memcpy(&abeid.guid, &MUIDECSAB_SERVER, sizeof(GUID));
+	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 	abeid.ulId = ulId;
 
 	// FIXME: Should this name be hardcoded like this?
@@ -4627,7 +4627,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 				// and BlackBerryMailStore.exe
 				memcpy(lpPropVal->Value.bin->__ptr, MUIDEMSAB, sizeof(GUID));
 			} else {
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 			}
 			break;
 		}
@@ -4654,7 +4654,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 				ABEID abeid;
 				abeid.ulType = MAPI_ABCONT;
 				abeid.ulId = ZARAFA_UID_ADDRESS_BOOK;
-				memcpy(&abeid.guid, &MUIDECSAB_SERVER, sizeof(GUID));
+				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
@@ -4915,7 +4915,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
-	ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;
 
 	// Log the change to ICS
@@ -4968,7 +4968,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	memset(lpAbeid, 0, ulLen);
 	lpAbeid->ulId = ulUserId;
 	lpAbeid->ulType = ulType;
-	memcpy(&lpAbeid->guid, MUIDECSAB_SERVER, sizeof(GUID));
+	memcpy(&lpAbeid->guid, &MUIDECSAB, sizeof(GUID));
 	if (!strEncExId.empty())
 	{
 		lpAbeid->ulVersion = 1;
@@ -5045,7 +5045,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulVer
 	lpEid->ulVersion = ulVersion;
 	lpEid->ulType = ulType;
 	lpEid->ulId = ulObjId;
-	memcpy(&lpEid->guid, MUIDECSAB_SERVER, sizeof(lpEid->guid));
+	memcpy(&lpEid->guid, &MUIDECSAB, sizeof(lpEid->guid));
 
 	*lppEid = lpEid;
 	*lpcbEID = ulSize;

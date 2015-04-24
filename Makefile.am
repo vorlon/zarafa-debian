@@ -1,10 +1,10 @@
 ACLOCAL_AMFLAGS = -I autoconf
 
 if ! OSS_ONLY
-PROSUBS = liblicense licensed
+PROSUBS = liblicense licensed libtimezone libcalendar 
 endif
 
-SUBDIRS = external common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) provider libicalmapi inetmapi
+SUBDIRS = common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) provider libicalmapi inetmapi
 if WITH_PHP
 SUBDIRS += php-ext
 endif
@@ -18,7 +18,8 @@ SUBDIRS += swig
 endif
 endif
 
-EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax
+#EXTRA_DIST = version common/ecversion.h php-webclient-ajax
+EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax LICENSE.txt CONTRIBUTORS.txt AGPL-3
 
 BUILT_SOURCES = common/ecversion.h
 
@@ -39,12 +40,10 @@ install-ajax-webaccess:
 	install -d -m 755 $(DESTDIR)/usr/share
 	cp -a $(top_srcdir)/php-webclient-ajax $(DESTDIR)/usr/share/zarafa-webaccess
 	rm -rf $(DESTDIR)/usr/share/zarafa-webaccess/plugins
-	ln -sf /var/lib/zarafa-webaccess/plugins $(DESTDIR)/usr/share/zarafa-webaccess/plugins
 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/plugins
 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/tmp
 	install -d -m 755 $(DESTDIR)/etc/zarafa/webaccess-ajax
 	mv $(DESTDIR)/usr/share/zarafa-webaccess/config.php.dist $(DESTDIR)/etc/zarafa/webaccess-ajax/config.php
-	ln -sf /etc/zarafa/webaccess-ajax/config.php $(DESTDIR)/usr/share/zarafa-webaccess/config.php
 	rm -f $(DESTDIR)/usr/share/zarafa-webaccess/debug.php
 	for podir in $(DESTDIR)/usr/share/zarafa-webaccess/server/language/*; do \
 		if [ `grep msgstr $$podir/LC_MESSAGES/*po | grep -v 'msgstr ""' |wc -l` = 0 ]; then \

@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -183,43 +178,49 @@ exit:
  *
  * @return		HRESULT		Mapi error code.
  */
-HRESULT CreateProfileTemp(const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags,
-						  const char *sslkey_file, const char *sslkey_password) {
+HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *app_version, const char *app_misc) {
 	HRESULT hr = hrSuccess;
 	LPPROFADMIN	lpProfAdmin = NULL;
 	LPSERVICEADMIN lpServiceAdmin = NULL;
 	LPSPropValue lpServiceUID = NULL;
-	SPropValue sProps[7];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
+	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
 	LPSPropValue lpServiceName = NULL;
 
 	LPMAPITABLE	lpTable = NULL;
 	LPSRowSet	lpRows = NULL;
 	int i;
 
-
 //-- create profile
 	hr = MAPIAdminProfiles(0, &lpProfAdmin);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): MAPIAdminProfiles failed %x", hr);
 		goto exit;
+	}
 
 	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
 	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): CreateProfile failed %x", hr);
 		goto exit;
+	}
 
 	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &lpServiceAdmin);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): AdminServices failed %x", hr);
 		goto exit;
+	}
 	
 	hr = lpServiceAdmin->CreateMsgService((LPTSTR)"ZARAFA6", (LPTSTR)"", 0, 0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): CreateMsgService failed %x", hr);
 		goto exit;
+	}
 
 	// Strangely we now have to get the SERVICE_UID for the service we just added from
 	// the table. (see MSDN help page of CreateMsgService at the bottom of the page)
 	hr = lpServiceAdmin->GetMsgServiceTable(0, &lpTable);
-
 	if(hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): GetMsgServiceTable failed %x", hr);
 		goto exit;
 	}
 
@@ -227,8 +228,10 @@ HRESULT CreateProfileTemp(const WCHAR *username, const WCHAR *password, const ch
 	while(TRUE) {
 		hr = lpTable->QueryRows(1, 0, &lpRows);
 		
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): QueryRows failed %x", hr);
 			goto exit;
+		}
 			
 		if(lpRows->cRows != 1)
 			break;
@@ -244,14 +247,15 @@ HRESULT CreateProfileTemp(const WCHAR *username, const WCHAR *password, const ch
 	}
 	
 	if(lpRows->cRows != 1) {
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "CreateProfileTemp(): no rows found");
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
 
 	// Get the PR_SERVICE_UID from the row
 	lpServiceUID = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
-
 	if(!lpServiceUID) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): PpropFindProp failed %x", hr);
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -290,9 +294,23 @@ HRESULT CreateProfileTemp(const WCHAR *username, const WCHAR *password, const ch
 		}
 	}
 
+	if (app_version) {
+		sProps[i].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
+		sProps[i].Value.lpszA = (char*)app_version;
+		i++;
+	}
+
+	if (app_misc) {
+		sProps[i].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
+		sProps[i].Value.lpszA = (char*)app_misc;
+		i++;
+	}
+
 	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, i, sProps);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): ConfigureMsgService failed %x", hr);
 		goto exit;
+	}
 
 exit:
 	if (lpRows)
@@ -336,48 +354,51 @@ exit:
 	return hr;
 }
 
-HRESULT HrOpenECAdminSession(IMAPISession **lppSession, const char *szPath, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password)
+HRESULT HrOpenECAdminSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const char *szPath, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password)
 {
-	return HrOpenECSession(lppSession, ZARAFA_SYSTEM_USER_W, ZARAFA_SYSTEM_USER_W, szPath, ulProfileFlags, sslkey_file, sslkey_password);
+	return HrOpenECSession(lpLogger, lppSession, app_version, app_misc, ZARAFA_SYSTEM_USER_W, ZARAFA_SYSTEM_USER_W, szPath, ulProfileFlags, sslkey_file, sslkey_password);
 }
 
-HRESULT HrOpenECSession(IMAPISession **lppSession, const WCHAR *szUsername, const WCHAR *szPassword, const char *szPath, ULONG ulProfileFlags,
-						const char *sslkey_file, const char *sslkey_password, const char *profname)
+HRESULT HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const WCHAR *szUsername, const WCHAR *szPassword, const char *szPath, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *profname)
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		ulProfNum = 0;
 	char		*szProfName = new char[strlen(PROFILEPREFIX)+10+1];
 	IMAPISession *lpMAPISession = NULL;
 
-
 	if (profname == NULL) {
 		ulProfNum = rand_mt();
 		snprintf(szProfName, strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, ulProfNum);
-	} else {
+	}
+	else {
 		strcpy(szProfName, profname);
 	}
 
 	if(szPath != NULL) {
-
-		if(sslkey_file != NULL)
-		{
-			FILE *ssltest;
-			ssltest = fopen(sslkey_file, "r");
+		if (sslkey_file != NULL) {
+			FILE *ssltest = fopen(sslkey_file, "r");
 			if (!ssltest) {
+				lpLogger->Log(EC_LOGLEVEL_FATAL, "Cannot access %s: %s", sslkey_file, strerror(errno));
+
 				// do not pass sslkey if the file does not exists
 				// otherwise normal connections do not work either
 				sslkey_file = NULL;
 				sslkey_password = NULL;
-			} else {
+			}
+			else {
 				// TODO: test password of certificate
 				fclose(ssltest);
 			}
 		}
 
-		hr = CreateProfileTemp(szUsername, szPassword, szPath, (const char*)szProfName, ulProfileFlags, sslkey_file, sslkey_password); 
+		hr = CreateProfileTemp(lpLogger, szUsername, szPassword, szPath, (const char*)szProfName, ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc); 
+		if (hr != hrSuccess)
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "CreateProfileTemp(SSL) failed: %x", hr);
 	} else {
 		// these connections cannot be ssl, so no keys needed
-		hr = CreateProfileTemp(szUsername, szPassword, GetServerUnixSocket(), (const char*)szProfName, ulProfileFlags, NULL, NULL);
+		hr = CreateProfileTemp(lpLogger, szUsername, szPassword, GetServerUnixSocket(), (const char*)szProfName, ulProfileFlags, NULL, NULL, app_version, app_misc);
+		if (hr != hrSuccess)
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "CreateProfileTemp(PLAIN) failed: %x", hr);
 	}
 
 	if (hr != hrSuccess)
@@ -385,8 +406,10 @@ HRESULT HrOpenECSession(IMAPISession **lppSession, const WCHAR *szUsername, cons
 
 	// Log on the the profile
 	hr = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "MAPILogonEx failed: %x", hr);
 		goto exit;
+	}
 
 	*lppSession = lpMAPISession;
 

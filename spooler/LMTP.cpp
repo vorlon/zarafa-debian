@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,10 +58,12 @@
 #include <mapiext.h>
 
 #include <CommonUtil.h>
+#include <fileutil.h>
 #include <ECTags.h>
 #include "ECChannel.h"
 #include "LMTP.h"
 #include "stringutil.h"
+#include "fileutil.h"
 
 using namespace std;
 
@@ -139,7 +136,7 @@ HRESULT LMTP::HrResponse(const string &strResponse)
 
 	hr = m_lpChannel->HrWriteLine(strResponse);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "LMTP write error");
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "LMTP write error");
 
 	return hr;
 }
@@ -151,14 +148,17 @@ HRESULT LMTP::HrResponse(const string &strResponse)
  * 
  * @return always hrSuccess
  */
-HRESULT LMTP::HrCommandLHLO(const string &strInput)
+HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
 {
+	size_t pos = strInput.find(' ');
+	nameOut.assign(strInput.c_str() + pos + 1);
+
 	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
 		// Input definitly starts with LHLO
 		// use HrResponse("501 5.5.4 Syntax: LHLO hostname"); in case of error, but we don't.
-		size_t pos = strInput.find(' ');
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "LHLO ID: %s", strInput.c_str() + pos + 1);
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "LHLO ID: %s", nameOut.c_str());
 	}
+
 	return hrSuccess;
 }
 
@@ -176,15 +176,10 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput)
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
-HRESULT LMTP::HrCommandMAILFROM(const string &strFrom)
+HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string *const strAddress)
 {
-	HRESULT hr = hrSuccess;
-	std::string strAddress;
-
 	// strFrom is only checked for syntax
-	hr = HrParseAddress(strFrom, &strAddress);
-	// Discard the address, but not the error!. We use the From: header in the mail.
-	return hr;
+	return HrParseAddress(strFrom, strAddress);
 }
 
 /** 
@@ -204,9 +199,9 @@ HRESULT LMTP::HrCommandRCPTTO(const string &strTo, string *strUnresolved)
 	
 	if (hr == hrSuccess) {
 		if(m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Parsed command '%s' to recipient address '%s'", strTo.c_str(), strUnresolved->c_str());
+		    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Resolved command '%s' to recipient address '%s'", strTo.c_str(), strUnresolved->c_str());
     } else {
-	    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Invalid recipient address in command '%s'", strTo.c_str());
+	    m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid recipient address in command '%s'", strTo.c_str());
     }
 	
 	return hr;
@@ -232,18 +227,18 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
 		goto exit;
-    }
+	}
 
 	// Now the mail body needs to be read line by line until <CRLF>.<CRLF> is encountered
 	while (1) {
 		hr = m_lpChannel->HrReadLine(&inBuffer);
-		if(hr != hrSuccess) {
-            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
-            goto exit;
-        }
-		
-		if(inBuffer == ".")
-		    break;
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client.");
+			goto exit;
+		}
+
+			if (inBuffer == ".")
+				break;
 
 		offset = 0;
 		if (inBuffer[0] == '.')
@@ -256,20 +251,20 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
                 "with client: %s", strerror(errno));
             hr = MAPI_E_FAILURE;
             goto exit;
-        }
+		}
 
 		// The data from HrReadLine does not contain the CRLF, so add that here
 		if (fwrite("\r\n", 1, 2, tmp) != 2) {
             m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
                 "with client: %s", strerror(errno));
-            hr = MAPI_E_FAILURE;
-            goto exit;
-        }
+			hr = MAPI_E_FAILURE;
+			goto exit;
+		}
 
 		message += inBuffer + "\r\n";
 	}
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG +1)) // really hidden output (limited to 10k in logger)
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
+	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG + 1)) // really hidden output (limited to 10k in logger)
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
 
 exit:
 	return hr;

@@ -46,18 +46,14 @@ fi
 AC_SUBST(LEX_DEFINE)
 AC_SUBST(LEX_FLAGS)
 
-if test "x$YACC" = "x" -o "x$YACC" = "x:"; then
-    AC_MSG_ERROR([Yacc not found. Please install bison])
-elif test "$YACC" = "bison -y"; then
-   BISON_DEFINE=-DWITH_BISON
-   YACC_LIB=
-else
-   BISON_DEFINE=-DWITH_YACC
-   YACC_LIB="-ly"
+AC_PROG_YACC
+if test x"$YACC" = "xyacc"; then
+  AC_CHECK_PROG([YACC_EXISTS], [yacc], [yes], [no])
+  if test x"$YACC_EXISTS" != xyes; then
+    AC_MSG_ERROR([[bison/byacc/yacc not found.
+          Please install bison]])
+  fi
 fi
-AC_SUBST(BISON_DEFINE)
-AC_SUBST(YACC_LIB)
-
 
 #
 # construct default CXXFLAGS
@@ -132,9 +128,6 @@ fi
 
 AC_ARG_ENABLE(tcmalloc, AC_HELP_STRING([--enable-tcmalloc],[enable use of tcmalloc minimal lib]),
   [want_tcmalloc=${enableval}],[want_tcmalloc=no])
-
-AC_ARG_ENABLE(tcmalloc-full, AC_HELP_STRING([--enable-tcmalloc-full],[enable use of tcmalloc full lib]),
-  [want_tcmalloc_full=${enableval}],[want_tcmalloc_full=no])
 
 AC_ARG_ENABLE(sparsehash, AC_HELP_STRING([--enable-sparsehash],[enable use of sparsehash]),
   [want_sparsehash=${enableval}],[want_sparsehash=no])
@@ -307,7 +300,7 @@ AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
   AC_MSG_CHECKING([for xml2-config presence])
   XML2_CONFIG=`which $XML2_CONFIG 2>/dev/null`
   if ! test -x "$XML2_CONFIG"; then
-    AC_MSG_ERROR([cannot execute $XML2_CONFIG])
+    AC_MSG_ERROR([cannot execute $XML2_CONFIG, install libxml2-dev])
   else
     AC_MSG_RESULT([$XML2_CONFIG])
 
@@ -359,7 +352,7 @@ AC_DEFUN([MYSQL_WITH_MYSQL_CONFIG],[
   MYSQL_VERSION=`$MYSQL_CONFIG --version`
 
   if test -z "$MYSQL_VERSION"; then
-    AC_MSG_ERROR(Cannot find mysql_config. Please use --with-mysql-config=PATH)
+    AC_MSG_ERROR(Cannot find mysql_config. Please use --with-mysql-config=PATH or install libmysqlclient-dev)
   fi
 
   AC_SUBST(MYSQL_INCLUDES)
@@ -381,156 +374,62 @@ LIBS=$LIBS_system
 CXXFLAGS=$CXXFLAGS_system
 
 
-# check user given vmime location
 AC_ARG_WITH(vmime-prefix,
-  AC_HELP_STRING([--with-vmime-prefix=PATH],[path to the vmime include files, e.g. /usr/local/include]),
+  AC_HELP_STRING([--with-vmime-prefix=PATH],[libvmime prefix, e.g. /usr/local, default /usr]),
   [
   VMIME_PREFIX="$withval"
-  CXXFLAGS="$CXXFLAGS -I$VMIME_PREFIX"
-  CPPFLAGS="$CPPFLAGS -I$VMIME_PREFIX"
-  VMIME_LIBS="-L$VMIME_PREFIX -R$VMIME_PREFIX "
   ],
   [
-  VMIME_PREFIX="/usr/include"
+  VMIME_PREFIX="/usr"
   ])
-
-# Checks for libvmime
-AC_CHECK_HEADERS([vmime/utility/smartPtrInt.hpp],
-  [
-	dnl assume defaults
-	VMIME_CFLAGS=-I$VMIME_PREFIX
-	VMIME_LIBS="$VMIME_LIBS -lvmime"
-  ],[
-    dnl	header not found on system, try with pkgconfig (watch the [] quotes)
-	PKG_CHECK_MODULES(VMIME, vmime = 0.9.0)
-  ])
+VMIME_CFLAGS="-I$VMIME_PREFIX/include"
+VMIME_LIBS="-L$VMIME_PREFIX/lib -L$VMIME_PREFIX/lib64 -R$VMIME_PREFIX/lib -R$VMIME_PREFIX/lib64 -lvmime"
 AC_SUBST(VMIME_CFLAGS)
 AC_SUBST(VMIME_LIBS)
-CXXFLAGS=$CXXFLAGS_system
-CPPFLAGS=$CPPFLAGS_system
 
-AC_ARG_ENABLE(kyotocabinet, AC_HELP_STRING([--enable-kyotocabinet], [enable building with kyotocabinet support]), [want_kyotocabinet=${enableval}], [want_kyotocabinet=yes])
-if test "$want_kyotocabinet" = "yes"; then
-  PKG_CHECK_MODULES([KYOTOCABINET], [kyotocabinet])
-else
-  AC_MSG_CHECKING([for KYOTOCABINET])
-  AC_MSG_RESULT([$want_kyotocabinet])
-fi
-AM_CONDITIONAL([WITH_KYOTOCABINET], [test "$want_kyotocabinet" = "yes"])
-AC_SUBST(KYOTOCABINET_CFLAGS)
-AC_SUBST(KYOTOCABINET_LIBS)
-
-
-AC_ARG_WITH(system-gsoap, AS_HELP_STRING([--with-system-gsoap], [Use gsoap already on system.]),, [with_system_gsoap=no])
-if test "$with_system_gsoap" = "yes"; then
-  PKG_CHECK_MODULES([GSOAP], [gsoapssl++])
-  soapcpp2 -z1 -h >& /dev/null
-  if test "$?" = "0"; then
-      GSOAP_SOAPCPP2="soapcpp2 -z1"
-  else
-      GSOAP_SOAPCPP2="soapcpp2"
-  fi
-else
-  GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -I${abs_top_srcdir}/external/gsoap"
-  GSOAP_LIBS="${abs_top_builddir}/external/gsoap/libgsoap.la -lz"
-  GSOAP_SOAPCPP2="${abs_top_builddir}/external/soapcpp2/soapcpp2"
-fi
-AM_CONDITIONAL([WITH_SYSTEM_GSOAP], [test "$with_system_gsoap" = "yes"])
+AC_ARG_WITH(gsoap-prefix,
+  AC_HELP_STRING([--with-gsoap-prefix=PATH],[gsoap prefix, e.g. /usr/local, default /usr]),
+  [
+  GSOAP_PREFIX="$withval"
+  ],
+  [
+  GSOAP_PREFIX="/usr"
+  ])
+GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -I$GSOAP_PREFIX/include"
+# Gsoap 2.8.13 introduced the -z1 flag for depreacted old-style C++ service proxies and objects ( https://www.cs.fsu.edu/~engelen/changelog.html )
+GSOAP_SOAPCPP2=$($GSOAP_PREFIX/bin/soapcpp2 -z1 &> /dev/null && echo "$GSOAP_PREFIX/bin/soapcpp2 -z1 " || echo "$GSOAP_PREFIX/bin/soapcpp2 ")
+GSOAP_LIBS="-L$GSOAP_PREFIX/lib -L$GSOAP_PREFIX/lib64 -R$GSOAP_PREFIX/lib -R$GSOAP_PREFIX/lib64 -lgsoapssl++"
 AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
 AC_SUBST(GSOAP_SOAPCPP2)
 
-dnl TODO: add checks for library on system
 AC_ARG_WITH(ical-prefix,
-  AC_HELP_STRING([--with-ical-prefix=PATH],[path to the libical include files, e.g. /usr/local/include]),
-  [ICAL_PREFIX=${withval}],[ICAL_PREFIX=/usr/include])
-
-if test "x$ICAL_PREFIX" != "x"; then
-   CXXFLAGS="$CXXFLAGS -I$ICAL_PREFIX"
-fi
-AC_CHECK_HEADERS([libical/ical.h],
-  [ ICAL_CFLAGS=-I$ICAL_PREFIX
-	ICAL_LIBS="-lical -licalss" ],
-  [WITH_ICAL=no])
+  AC_HELP_STRING([--with-ical-prefix=PATH],[libical prefix, e.g. /usr/local, default /usr]),
+  [
+  ICAL_PREFIX="${withval}"
+  ],
+  [
+  ICAL_PREFIX="/usr"
+  ])
+ICAL_CFLAGS="-I$ICAL_PREFIX/include"
+ICAL_LIBS="-L$ICAL_PREFIX/lib -L$ICAL_PREFIX/lib64 -R$ICAL_PREFIX/lib -R$ICAL_PREFIX/lib64 -lical -licalss"
 AC_SUBST(ICAL_CFLAGS)
 AC_SUBST(ICAL_LIBS)
-CXXFLAGS=$CXXFLAGS_system
 
-# Check for CLucene availability
-PKG_CHECK_MODULES([CLUCENE], [libclucene-core >= 2.3],
-	[have_clucene=dynamic], [have_clucene=no])
-if test "$have_clucene" = "dynamic"; then
-CLUCENE_VERSION=CLUCENE_23
-else
-CLUCENE_VERSION=CLUCENE_09
-AC_ARG_WITH(clucene-lib-prefix,
-  AC_HELP_STRING([--with-clucene-lib-prefix=PATH],[path to the clucene config file, e.g. /usr/lib/]),
-  [CLUCENE_LIB_PREFIX=${withval}],[CLUCENE_LIB_PREFIX=/usr/lib])
-AC_ARG_WITH(clucene-include-prefix,
-  AC_HELP_STRING([--with-clucene-include-prefix=PATH],[path to the clucene include files, e.g. /usr/include/]),
-  [CLUCENE_INCLUDE_PREFIX=${withval}],[CLUCENE_INCLUDE_PREFIX=/usr/include])
-have_clucene=no
-# preprocessor doesn't check in /usr/lib{,64}/ for include files
-if test "x$CLUCENE_LIB_PREFIX" != "x"; then
-   CXXFLAGS="$CXXFLAGS -I$CLUCENE_LIB_PREFIX"
-   CPPFLAGS="$CPPFLAGS -I$CLUCENE_LIB_PREFIX"
-fi
-if test "x$CLUCENE_INCLUDE_PREFIX" != "x"; then
-   CXXFLAGS="$CXXFLAGS -I$CLUCENE_INCLUDE_PREFIX"
-   CPPFLAGS="$CPPFLAGS -I$CLUCENE_INCLUDE_PREFIX"
-fi
-# force add pthread in lucene test
-CXXFLAGS="$CXXFLAGS -pthread"
-if test -e "${CLUCENE_LIB_PREFIX}/libclucene.a"; then
-# lucene::index::IndexReader::open(const char *) in c++ style
-AC_CHECK_LIB(clucene, [_ZN6lucene5index11IndexReader4openEPKc],
-  [ CLUCENE_LIBS="${CLUCENE_LIB_PREFIX}/libclucene.a"
-    have_clucene=static
-  ])
-else
-AC_CHECK_LIB(clucene, [_ZN6lucene5index11IndexReader4openEPKc],
-  [ CLUCENE_LIBS="-lclucene"
-    have_clucene=dynamic
-  ])
-fi
-AC_MSG_CHECKING([library type for clucene])
-AC_MSG_RESULT([$have_clucene])
-AC_CHECK_HEADERS([CLucene.h],
-  [ CLUCENE_CFLAGS="-DLUCENE_DISABLE_MEMTRACKING" ],
-  [ have_clucene=no ])
-if test "x$CLUCENE_LIB_PREFIX" != "x"; then
-   CLUCENE_CFLAGS="$CLUCENE_CFLAGS -I$CLUCENE_LIB_PREFIX"
-fi
-if test "x$CLUCENE_INCLUDE_PREFIX" != "x"; then
-   CLUCENE_CFLAGS="$CLUCENE_CFLAGS -I$CLUCENE_INCLUDE_PREFIX"
-fi
-AC_SUBST(CLUCENE_CFLAGS)
-AC_SUBST(CLUCENE_LIBS)
-CXXFLAGS=$CXXFLAGS_system
-CPPFLAGS=$CPPFLAGS_system
-fi
-AC_SUBST(CLUCENE_VERSION)
-AM_CONDITIONAL([WITH_CLUCENE], [test "$have_clucene" != "no"])
-
-# Check for google perftools tcmalloc availability
-if test "$want_tcmalloc_full" = "yes"; then
+if test "$want_tcmalloc" = "yes"; then
     AC_ARG_WITH(tcmalloc-prefix,
-      AC_HELP_STRING([--with-tcmalloc-prefix=PATH],[path to tcmalloc lib, e.g. /usr/lib/]),
-      [TCMALLOC_PREFIX=${withval}],[TCMALLOC_PREFIX=/usr/lib])
-    AC_CHECK_LIB(tcmalloc, [open],
-      [ TCMALLOC_LIBS="${TCMALLOC_PREFIX}/libtcmalloc.so" AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc available]) ],
-      [ WITH_TCMALLOC=no ])
+      AC_HELP_STRING([--with-tcmalloc-prefix=PATH],[tcmalloc prefix, e.g. /usr/local/, default /usr]),
+      [
+      TCMALLOC_PREFIX="${withval}"
+      ],
+      [
+      TCMALLOC_PREFIX="/usr"
+      ])
+    TCMALLOC_CFLAGS="-I$TCMALLOC_PREFIX/include"
+    TCMALLOC_LIBS="-L$TCMALLOC_PREFIX/lib -L$TCMALLOC_PREFIX/lib64 -R$TCMALLOC_PREFIX/lib -R$TCMALLOC_PREFIX/lib64 -ltcmalloc_minimal"
+    AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc enabled])
+    AC_SUBST(TCMALLOC_CFLAGS)
     AC_SUBST(TCMALLOC_LIBS)
-elif test "$want_tcmalloc" = "yes"; then
-    AC_ARG_WITH(tcmalloc-prefix,
-      AC_HELP_STRING([--with-tcmalloc-prefix=PATH],[path to tcmalloc lib, e.g. /usr/lib/]),
-      [TCMALLOC_PREFIX=${withval}],[TCMALLOC_PREFIX=/usr/lib])
-    AC_CHECK_LIB(tcmalloc_minimal, [open],
-      [ TCMALLOC_LIBS="${TCMALLOC_PREFIX}/libtcmalloc_minimal.a" AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc available]) ],
-      [ WITH_TCMALLOC=no ])
-    AC_SUBST(TCMALLOC_LIBS)
-else
-	TCMALLOC_LIBS=""
 fi
 
 # Check for sparsehash availability
@@ -777,9 +676,6 @@ AC_CONFIG_FILES([Makefile
 		mapi4linux/include/Makefile
 		mapi4linux/src/Makefile
 		php-ext/Makefile
-        external/Makefile
-        external/gsoap/Makefile
-        external/soapcpp2/Makefile
 		provider/Makefile
 		provider/client/Makefile
 		provider/contacts/Makefile
@@ -829,6 +725,7 @@ AC_CONFIG_FILES([Makefile
 		caldav/Makefile
 		swig/Makefile
 		swig/python/Makefile
+		swig/python/zarafa/Makefile
 		zarafa-libsync/Makefile
 
 		common/zarafa.pc
@@ -840,6 +737,10 @@ if test -d `dirname $0`/licensed; then
 AC_CONFIG_FILES([
 		liblicense/Makefile
 		licensed/Makefile
+		libtimezone/Makefile
+		libcalendar/Makefile
+		libcalendar/src/Makefile
+		libcalendar/include/Makefile
 		ECtools/zarafa-backup/Makefile
 		ECtools/zarafa-backup/helpers/Makefile
 		ECtools/zarafa-report/Makefile
@@ -848,6 +749,7 @@ AC_CONFIG_FILES([
 		ECtools/za-extra/Makefile
 		ECtools/zarafa-ws/Makefile
 		ECtools/zarafa-ws/etc/Makefile
+		ECtools/zarafa-presence/Makefile
 ])
 fi
 
@@ -880,9 +782,6 @@ XML2 flags	:	$XML2_CFLAGS
 XML2 libs	:	$XML2_LIBS
 ICal flags	:	$ICAL_CFLAGS
 ICal libs	:	$ICAL_LIBS
-clucene flags	:	$CLUCENE_CFLAGS
-clucene libs	:	$CLUCENE_LIBS
-kyotocabinet libs	:	$KYOTOCABINET_LIBS
 ncurses libs	:	$NCURSES_LIBS
 Clients libs	:	$PROG_LIBS
 xmlto	 	:	$PROG_XMLTO

@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -135,9 +130,9 @@
 #define dispidApptEndWhole					0x820E	//PT_SYSTIME
 #define dispidApptDuration					0x8213	//PT_LONG
 #define dispidLabel							0x8214	//PT_LONG
-#define dispidAllDayEvent					0x8215	//PT_BOOLEAN
+#define dispidAllDayEvent					0x8215	//PT_BOOLEAN - official name dispidApptSubType
 #define dispidRecurrenceState				0x8216	//PT_BINARY
-#define dispidMeetingStatus					0x8217	//PT_LONG
+#define dispidAppointmentStateFlags			0x8217	//PT_LONG - aka PidLidAppointmentStateFlags
 #define dispidResponseStatus				0x8218	//PT_LONG
 #define dispidRecurring						0x8223	//PT_BOOLEAN
 #define dispidIntendedBusyStatus			0x8224	//PT_LONG
@@ -164,9 +159,11 @@
 #define dispidConferenceServerPassword		0x8249	//PT_STRING8
 // A counter proposal is when the recipient of the request has proposed a new time for the meeting
 #define dispidApptCounterProposal			0x8257	//PT_BOOLEAN
-#define dispidApptProposedStartWhole		0x8250  //PT_SYSTIME
-#define dispidApptProposedEndWhole			0x8251  //PT_SYSTIME
+#define dispidApptProposedStartWhole		0x8250	//PT_SYSTIME
+#define dispidApptProposedEndWhole			0x8251	//PT_SYSTIME
 #define dispidApptReplyTime					0x8220	//PT_SYSTIME
+#define dispidFExceptionalBody              0x8206  //PT_BOOLEAN
+#define dispidFExceptionalAttendees         0x822B  //PT_BOOLEAN
 
 #define dispidOrgMsgId						0x8251  //PT_BINARY
 #define dispidZmtVersion					0x8252	//PT_STRING8
@@ -177,7 +174,7 @@
 #define dispidApptTZDefRecur				0x8260
 
 // In PSETID_Meeting
-#define dispidMeetingLocation				0x0002	//PT_STRING8
+#define dispidMeetingLocation				0x0002	//PT_STRING8 - aka PidLidWhere
 #define dispidGlobalObjectID				0x0003	//PT_BINARY
 #define dispidIsRecurring					0x0005	//PT_BOOLEAN
 #define dispidCleanGlobalObjectID			0x0023	//PT_BINARY
@@ -199,6 +196,7 @@
 #define dispidMonthOfYearMask				0x0017	//PT_LONG
 #define dispidOldRecurrenceType				0x0018	//PT_I2
 #define dispidDayOfWeekStart				0x0019	//PT_I2
+#define dispidMeetingType                   0x0026  //PT_LONG - aka PidLidMeetingType
 
 //In PSETID_Zarafa_CalDav
 #define dispidMozLastAck					0x0001	//PT_SYSTIME	X-MOZ-LAST-ACK 
@@ -222,7 +220,7 @@
 #define dispidCommonStart					0x8516	//PT_SYSTIME
 #define dispidCommonEnd						0x8517	//PT_SYSTIME
 
-//On Appointments needed for deleting an occurrunce of a recurring item in outlook
+//On Appointments needed for deleting an occurrence of a recurring item in outlook
 //On Tasks is set to 1 on the send/assigned tasks, otherwise set to 0.
 #define dispidCommonAssign					0x8518	//PT_LONG
 

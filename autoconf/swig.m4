@@ -104,6 +104,7 @@ EOF
 		AC_SUBST(PYTHON_LIBS)
 		AC_SUBST(PYTHON_LIBDIR)
 		AC_SUBST(pythonexeclibdir)
+		AC_SUBST(PYTHON)
 		AC_MSG_RESULT([yes])
 	fi
   fi

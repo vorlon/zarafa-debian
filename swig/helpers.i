@@ -4,11 +4,7 @@
 %}
 
 // Pull in the language-specific helpers
-#if SWIGPERL
-%include "perl/helpers_perl.i"
-#elif SWIGRUBY
-%include "ruby/helpers_ruby.i"
-#elif SWIGPYTHON
+#if SWIGPYTHON
 %include "python/helpers_python.i"
 #endif
 

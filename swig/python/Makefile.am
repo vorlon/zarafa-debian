@@ -1,9 +1,11 @@
-pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la 
+pythonexeclib_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la
 noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _RecurrenceState.la
 
 if ! OSS_ONLY
-pythonexeclib_LTLIBRARIES += _licensereq.la
+pythonexeclib_LTLIBRARIES += _licensereq.la _mapitimezone.la _mapicalendar.la
 endif
+
+SUBDIRS = zarafa
 
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
@@ -60,6 +62,22 @@ _licensereq_la_LIBADD = ${top_builddir}/liblicense/liblicense.la \
 						${top_builddir}/common/libcommon_mapi.la \
 						${top_builddir}/common/libcommon_util.la \
 						$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
+
+_mapitimezone_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libtimezone
+_mapitimezone_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
+_mapitimezone_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+						  ${top_builddir}/libtimezone/libmapitimezone.la \
+						  ${top_builddir}/common/libcommon_util.la \
+						  $(PROG_LIBS) $(PYTHON_LIBS)
+
+_mapicalendar_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libcalendar/include \
+							-I${top_srcdir}/libtimezone
+_mapicalendar_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
+_mapicalendar_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
+						  ${top_builddir}/libcalendar/src/libmapicalendar.la \
+						  ${top_builddir}/common/libcommon_util.la \
+						  $(PROG_LIBS) $(PYTHON_LIBS)
+
 endif
 
 # noinst_ and rpath will generate the _libcommon.so file
@@ -68,7 +86,7 @@ _libcommon_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 					   ${top_builddir}/common/libcommon_mapi.la \
 					   ${top_builddir}/common/libcommon_util.la \
 				  	   $(PROG_LIBS) $(PYTHON_LIBS)
-				  	   
+
 _RecurrenceState_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _RecurrenceState_la_LIBADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
@@ -95,7 +113,7 @@ BUILT_SOURCES = mapi_wrap.cxx \
 				RecurrenceState_wrap.cxx
 
 if ! OSS_ONLY
-BUILT_SOURCES += licensereq_wrap.cxx
+BUILT_SOURCES += licensereq_wrap.cxx mapitimezone_wrap.cxx mapicalendar_wrap.cxx
 endif
 
 CLEANFILES = $(BUILT_SOURCES) \
@@ -105,10 +123,10 @@ CLEANFILES = $(BUILT_SOURCES) \
 			 archiver.py \
 			 libcommon.py \
 			 licenseclient.py \
-			 libfreebusy.py 
+			 libfreebusy.py
 
 if ! OSS_ONLY
-CLEANFILES += licensereq.py
+CLEANFILES += licensereq.py mapitimezone.py mapicalendar.py
 endif
 
 # wait for full output of swig
@@ -123,6 +141,8 @@ RecurrenceState.py: $(BUILT_SOURCES)
 
 if ! OSS_ONLY
 licensereq.py: $(BUILT_SOURCES)
+mapitimezone.py: $(BUILT_SOURCES)
+mapicalendar.py: $(BUILT_SOURCES)
 endif
 
 _MAPICore_la_SOURCES = conversion.h conversion.cpp mapi_wrap.cxx mapi_wrap.h scl.h ../director_util.h ../director_util.cpp
@@ -136,16 +156,18 @@ _libfreebusy_la_SOURCES = conversion.h conversion.cpp libfreebusy_wrap.cxx libfr
 
 if ! OSS_ONLY
 _licensereq_la_SOURCES = licensereq_wrap.cxx
+_mapitimezone_la_SOURCES = conversion.h conversion.cpp mapitimezone_wrap.cxx
+_mapicalendar_la_SOURCES = conversion.h conversion.cpp mapicalendar_wrap.cxx mapicalendar_wrap.h ../director_util.h ../director_util.cpp
 endif
 
 EXTRA_DIST = typemap_python.i helpers_python.i setup.py $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py licenseclient.py MAPI/Defs.py  MAPI/__init__.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py MAPI/Util/AddressBook.py MAPI/Util/codepage.py archiver_python.i
 datadir = $(pythonexeclibdir)
-data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py 
+data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py
 noinst_datadir = libcommon.py RecurrenceState.py
 
 if ! OSS_ONLY
-EXTRA_DIST += licensereq.py
-data_DATA += licensereq.py
+EXTRA_DIST += licensereq.py mapitimezone.py mapicalendar.py 
+data_DATA += licensereq.py mapitimezone.py mapicalendar.py
 endif
 
 mapi_wrap.h: mapi_wrap.cxx
@@ -178,6 +200,13 @@ licensereq_wrap.cxx: ../licensereq.i
 libfreebusy_wrap.cxx: ../libfreebusy.i
 	$(SWIG_EXEC) -I${top_srcdir}/libfreebusy -I${top_srcdir/swig}  -Wall -python -c++ -threads -o ${top_builddir}/swig/python/libfreebusy_wrap.cxx ${top_srcdir}/swig/libfreebusy.i
 
+mapitimezone_wrap.cxx: ../mapitimezone.i
+	$(SWIG_EXEC) $(SWIG_OPTS) -I${top_srcdir}/common -I${top_srcdir/swig} -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapitimezone_wrap.cxx ${top_srcdir}/swig/mapitimezone.i
+
+mapicalendar_wrap.h: mapicalendar_wrap.cxx
+mapicalendar_wrap.cxx: ../mapicalendar.i
+	$(SWIG_EXEC) $(SWIG_OPTS) -I${top_srcdir}/common -I${top_srcdir/swig} -I${top_srcdir}/zarafa-libsync -Wall -python -c++ -threads -o ${top_builddir}/swig/python/mapicalendar_wrap.cxx ${top_srcdir}/swig/mapicalendar.i
+
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2
@@ -186,4 +215,4 @@ check-syntax:
 install-exec-local:
 	test -n "$(DESTDIR)" && pyroot="--root=$(DESTDIR)"; \
 	test "$(DISTRO)" = "suse" -o "$(DISTRO)" = "sles" && pyrpm="--record-rpm=INSTALLED_FILES"; \
-	cd ${top_srcdir}/swig/python/ && python setup.py install $${pyroot} --prefix="$(prefix)" --install-purelib $(pythonexeclibdir) $${pyrpm}
+	cd ${top_srcdir}/swig/python/ && ${PYTHON} setup.py install $${pyroot} --prefix="$(prefix)" --install-purelib $(pythonexeclibdir) $${pyrpm}

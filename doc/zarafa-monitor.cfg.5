@@ -184,7 +184,7 @@ Default:
 \fI2\fR
 .RE
 .PP
-\fBuserquota_warning_template\fR, \fBuserquota_soft_template\fR, \fBuserquota_hard_template\fR, \fBcompanyquota_warning_template\fR
+\fBuserquota_warning_template\fR, \fBcompanyquota_warning_template\fR
 .RS 4
 These templates are read by the zarafa\-monitor when a user or tenant exceeds a particular quota level\&. In these templates multiple variables can be used which will be replaced before sending the quota warning email\&.
 .sp
@@ -245,7 +245,7 @@ Note: The size unit (KB,MB) is part of the variable
 .PP
 The following options are reloadable by sending the zarafa\-monitor process a HUP signal:
 .PP
-log_level, mailquota_resend_interval, userquota_warning_template, userquota_soft_template, userquota_hard_template
+log_level, mailquota_resend_interval, userquota_warning_template
 .RS 4
 .RE
 .SH "FILES"

@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -537,7 +532,7 @@ ECRESULT SaveLogonTime(ECSession *lpecSession, bool bLogon);
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char *clientVersion, unsigned int clientCaps, unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsResponse)
+int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char *clientVersion, unsigned int clientCaps, unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct logonResponse *lpsResponse)
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpecSession = NULL;
@@ -561,7 +556,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char
 	}
 
 	// check username and password
-	er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & ZARAFA_LOGON_NO_UID_AUTH) == 0);
+	er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, szClientAppVersion, szClientAppMisc, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & ZARAFA_LOGON_NO_UID_AUTH) == 0);
 	if(er != erSuccess){
 		er = ZARAFA_E_LOGON_FAILED;
 		goto exit;
@@ -656,7 +651,7 @@ exit:
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char *szImpersonateUser, struct xsd__base64Binary *lpInput, char *szClientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse)
+int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char *szImpersonateUser, struct xsd__base64Binary *lpInput, char *szClientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ssoLogonResponse *lpsResponse)
 {
 	ECRESULT		er = ZARAFA_E_LOGON_FAILED;
 	ECAuthSession	*lpecAuthSession = NULL;
@@ -695,13 +690,15 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
 			goto exit;
 	}
 
+	lpecAuthSession->SetClientMeta(szClientAppVersion, szClientAppMisc);
+
     if ((clientCaps & ZARAFA_CAP_UNICODE) == 0) {
 		szUsername = ECStringCompat::WTF1252_to_UTF8(soap, szUsername);
 		szClientVersion = ECStringCompat::WTF1252_to_UTF8(soap, szClientVersion);
 		szClientApp = ECStringCompat::WTF1252_to_UTF8(soap, szClientApp);
 	}
 
-	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szImpersonateUser, szClientVersion, szClientApp, lpInput, &lpOutput);
+	er = lpecAuthSession->ValidateSSOData(soap, szUsername, szImpersonateUser, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, &lpOutput);
 	if (er == ZARAFA_E_SSO_CONTINUE) {
 		// continue validation exchange
 		lpsResponse->lpOutput = lpOutput;
@@ -725,7 +722,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
         }
 
 		// create ecsession from ecauthsession, and place in session map
-		er = g_lpSessionManager->RegisterSession(lpecAuthSession, ullSessionGroup, szClientVersion, szClientApp, &newSessionID, &lpecSession, true);
+		er = g_lpSessionManager->RegisterSession(lpecAuthSession, ullSessionGroup, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, &newSessionID, &lpecSession, true);
 		if (er != erSuccess) {
 			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "User authenticated, but failed to create session. Error 0x%08X", er);
 			goto exit;
@@ -917,6 +914,7 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
        er = lpecSession->GetDatabase(&lpDatabase); \
        if (er != erSuccess) { \
                er = ZARAFA_E_DATABASE_ERROR; \
+		lpecSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_FATAL, " GetDatabase failed"); \
                goto __soapentry_exit; \
        }
 
@@ -1275,6 +1273,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		lpDBLen == NULL || lpDBLen[1] == 0)
 	{
 		er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getPublicStore(): no rows from db");
 		goto exit;
 	}
 
@@ -1379,6 +1378,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 		lpDBLen == NULL || lpDBLen[1] == 0 )
 	{
 		er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getStore(): no rows from db");
 		goto exit;
 	}
 
@@ -1456,7 +1456,6 @@ ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession, unsigned int ulObj
 	struct propVal sPropVal;
 	ECStringCompat stringCompat(lpecSession->GetCapabilities() & ZARAFA_CAP_UNICODE);
 
-	DB_RESULT		lpDBResultMV = NULL;
 	USE_DATABASE();
         
 	if(ulObjType == MAPI_STORE) //fimxe: except public stores
@@ -1661,9 +1660,6 @@ exit:
 	if (lpAttachmentStorage)
 		lpAttachmentStorage->Release();
 
-	if (lpDBResultMV)
-		lpDatabase->FreeResult(lpDBResultMV);
-
 __soapentry_exit:
 	return er;
 }
@@ -1713,6 +1709,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		if (lpDBRow == NULL || lpDBLen == NULL)
 		{
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "loadProp(): no rows from db");
 			goto exit;
 		}
 
@@ -1914,35 +1911,37 @@ ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDat
 			goto exit;
 	}
 
-	if(ulObjType == MAPI_FOLDER && !ulSyncId)
-	{
+	if(ulObjType == MAPI_FOLDER && !ulSyncId) {
 		for(i=0;i<lpPropValArray->__size;i++) {
-
 			// Check whether the requested folder name already exists
-			if(lpPropValArray->__ptr[i].ulPropTag == PR_DISPLAY_NAME )
-			{
+			if(lpPropValArray->__ptr[i].ulPropTag == PR_DISPLAY_NAME ) {
 				if(lpPropValArray->__ptr[i].Value.lpszA == NULL)
 					break; // Name property found, but name isn't present. This is broken, so skip this.
 
 				strQuery = "SELECT hierarchy.id FROM hierarchy JOIN properties ON hierarchy.id = properties.hierarchyid WHERE hierarchy.parent=" + stringify(ulParent) + " AND hierarchy.type="+stringify(MAPI_FOLDER)+" AND hierarchy.flags & " + stringify(MSGFLAG_DELETED)+ "=0 AND properties.tag=" + stringify(ZARAFA_TAG_DISPLAY_NAME) + " AND properties.val_string = '" + lpDatabase->Escape(lpPropValArray->__ptr[i].Value.lpszA) + "' AND properties.type="+stringify(PT_STRING8)+" AND hierarchy.id!=" + stringify(ulObjId);
+
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-				if(er != erSuccess)
+				if(er != erSuccess) {
+					lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "WriteProps(): DoSelect failed %x", er);
 					goto exit;
+				}
 
 				if(lpDatabase->GetNumRows(lpDBResult) > 0) {
 					er = ZARAFA_E_COLLISION;
+					lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "WriteProps(): Folder already exists while putting folder");
 					goto exit;
 				}
 
 				// Free results
-				if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
+				if (lpDBResult) {
+					lpDatabase->FreeResult(lpDBResult);
+					lpDBResult = NULL;
+				}
 
 				break;
 			}
 		}// for(...)
 	}
-
-
 
 	// If we have a recipient, remove the old one. The client does not send a diff of props because ECMemTable cannot do this
 	if (!fNewItem && (ulObjType == MAPI_MAILUSER || ulObjType == MAPI_DISTLIST)) {
@@ -3216,6 +3215,7 @@ ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession, unsigned int ulOb
 
 			if(lpDBRow == NULL || lpDBLen == NULL) {
 				er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "LoadObject(): no rows from db");
 				goto exit;
 			}
 			
@@ -3473,6 +3473,7 @@ ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 	while (!bExist && (lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "CreateFolder(): columns null");
 			goto exit;
 		}
 
@@ -3490,12 +3491,13 @@ ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 		// Object exists
 		if (!openifexists) {
 			er = ZARAFA_E_COLLISION;
+			lpDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "CreateFolder(): folder already exists");
 			goto exit;
 		}
 		
 		ulFolderId = atoi(lpDBRow[0]);
-
-	} else {
+	}
+	else {
 		// Check write permission of the folder destination
 		er = lpecSession->GetSecurity()->CheckPermission(ulParentId, ecSecurityCreateFolder);
 		if(er != erSuccess)
@@ -4945,12 +4947,12 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId, char*
 	if(er != erSuccess)
 		goto exit;
 
-
 	if(lpDatabase->GetNumRows(lpDBResult) == 1) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getReceiveFolder(): row or columns null");
 			goto exit;
 		}
 
@@ -4986,7 +4988,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 		goto exit;
 
 	// Check, lpsEntryId and lpszMessageClass can't both be empty or 0
-	if(lpsEntryId == NULL && (lpszMessageClass == NULL || lpszMessageClass == '\0') ){
+	if(lpsEntryId == NULL && (lpszMessageClass == NULL || *lpszMessageClass == '\0')){
 		er = ZARAFA_E_INVALID_TYPE;
 		goto exit;
 	}
@@ -5037,6 +5039,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 
 			if(lpDBRow == NULL || lpDBRow[0] == NULL){
 				er = ZARAFA_E_DATABASE_ERROR;
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setReceiveFolder(): row or columns null");
 				goto exit;
 			}
 
@@ -5044,6 +5047,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 			ulId = atoi(lpDBRow[0]);
 		}else{
 			er = ZARAFA_E_DATABASE_ERROR; //FIXME: no default error ?
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setReceiveFolder(): unexpected row count");
 			goto exit;
 		}
 
@@ -5063,6 +5067,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId, entryId* lpsEntryI
 
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setReceiveFolder(): row or columns null");
 			goto exit;
 		}
 
@@ -5222,6 +5227,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		{
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 				er = ZARAFA_E_DATABASE_ERROR;
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setReadFlags(): columns null");
 				goto exit;
 			}
 
@@ -5286,6 +5292,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		{
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 				er = ZARAFA_E_DATABASE_ERROR;
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setReadFlags(): columns null(2)");
 				goto exit;
 			}
 
@@ -5751,30 +5758,40 @@ SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId,
 {
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
-	if (er != erSuccess)
+	if (er != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): GetLocalId(ulUserId) failed %x", er);
 		goto exit;
+	}
 
 	er = GetLocalId(sSenderId, ulSenderId, &ulSenderId, NULL);
-	if (er != erSuccess)
+	if (er != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): GetLocalId(ulSenderId) failed %x", er);
 		goto exit;
+	}
 
 	if (ulUserId == ulSenderId) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): ulUserId == ulSenderId");
 		goto exit;
 	}
 
 	// Check security, only admins can set sendas users, not the user itself
 	if(lpecSession->GetSecurity()->IsAdminOverUserObject(ulUserId) != erSuccess) {
 		er = ZARAFA_E_NO_ACCESS;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): IsAdminOverUserObject failed %x", er);
 		goto exit;
 	}
 
 	// needed?
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
-	if (er != erSuccess)
+	if (er != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): IsUserObjectVisible failed %x", er);
 		goto exit;
+	}
 
 	er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_USER_SENDAS, ulUserId, ulSenderId);
+	if (er != erSuccess)
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "addSendAsUser(): AddSubObjectToObjectAndSync failed %x", er);
 	
 exit:
 	;
@@ -5794,6 +5811,7 @@ SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId, entryId sUserId,
 
 	if (ulUserId == ulSenderId) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "delSendAsUser(): ulUserId == ulSenderId");
 		goto exit;
 	}
 
@@ -5949,6 +5967,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ul
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "createStore(): already exists");
 		goto exit;
 	}
 
@@ -7226,6 +7245,7 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
     lpDBRow = lpDatabase->FetchRow(lpDBResult);
     if(lpDBRow == NULL || lpDBRow[0] == NULL) {
         er = ZARAFA_E_DATABASE_ERROR;
+	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "finishedMessages(): row/col null");
         goto exit;
     }
     
@@ -7361,6 +7381,7 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "abortSubmit(): row/col null");
 		goto exit;
 	}
 
@@ -7429,6 +7450,7 @@ SOAP_ENTRY_START(isMessageInQueue, *result, entryId sEntryId, unsigned int *resu
 
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
 	    er = ZARAFA_E_DATABASE_ERROR;
+	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "isMessageInQueue(): select failed");
 	    goto exit;
     }
 
@@ -7462,6 +7484,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreG
 			"ON s.user_id = u.id "
 		"WHERE s.guid=" + strStoreGuid ;
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "resolveStore(): select failed %x", er);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -7599,7 +7622,8 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 	}
 
 	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask);
-    if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
+	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "resolveUserStore(): select failed %x", er);
     	er = ZARAFA_E_DATABASE_ERROR;
     	goto exit;
 	}
@@ -7611,8 +7635,10 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
  		   er = ZARAFA_E_NOT_FOUND;
  		   goto exit;
     }
+
     if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBLen == NULL || lpDBLen[1] == 0) {
  		   er = ZARAFA_E_DATABASE_ERROR;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "resolveUserStore(): row/col null");
  		   goto exit;
     }
 
@@ -8798,6 +8824,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 
 	if(lpDatabase->GetNumRows(lpDBResult) > 0 && !ulSyncId) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "copyFolder(): already exists");
 		goto exit;
 	}
 
@@ -8844,14 +8871,16 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		
 		// FIXME update modtime
 		strQuery = "UPDATE hierarchy SET parent="+stringify(ulDestFolderId)+", flags=flags&"+stringify(~MSGFLAG_DELETED)+" WHERE id="+stringify(ulFolderId);
-		if(lpDatabase->DoUpdate(strQuery, &ulAffRows) != erSuccess) {
+		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
 		    lpDatabase->Rollback();
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "copyFolder(): doUpdate failed(1) %x", er);
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
 
 		if(ulAffRows != 1) {
 		    lpDatabase->Rollback();
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "copyFolder(): affected row count != 1");
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
@@ -8859,9 +8888,10 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		// Update the folder to the destination folder
 		//Info: Always an update, It's not faster first check and than update/or not
 		strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(ZARAFA_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
-		if(lpDatabase->DoUpdate(strQuery, &ulAffRows) != erSuccess) {
-		    lpDatabase->Rollback();
+		if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "copyFolder(): doUpdate failed(2) %x", er);
 			er = ZARAFA_E_DATABASE_ERROR;
+		    lpDatabase->Rollback();
 			goto exit;
 		}
 
@@ -8869,6 +8899,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 		strQuery = "DELETE FROM properties WHERE hierarchyid="+stringify(ulFolderId)+" AND tag="+stringify(PROP_ID(PR_DELETED_ON))+" AND type="+stringify(PROP_TYPE(PR_DELETED_ON));
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess) {
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "copyFolder(): doDelete failed %x", er);
 		    lpDatabase->Rollback();
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
@@ -9019,9 +9050,9 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er, entryId sStor
 	i = 0;
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) )
 	{
-
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getReceiveFolderTable(): row or col null");
 			goto exit;
 		}
 
@@ -9111,6 +9142,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId
 	// ulAffected == 1: correctly disowned owner of store
 	if (ulAffected > 1) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "unhookStore(): more than expected");
 		goto exit;
 	}
 
@@ -9172,12 +9204,14 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 
 	if (lpDBRow[4] == NULL) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "hookStore(): col null");
 		goto exit;
 	}
 
 	if (lpDBRow[0]) {
 		// this store already belongs to a user
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "hookStore(): store already belongs to a user");
 		goto exit;
 	}
 
@@ -9207,6 +9241,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	// ulAffected == 1: correctly disowned previous owner of store
 	if (ulAffected > 1) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "hookStore(): owned by multiple users");
 		goto exit;
 	}
 
@@ -9221,6 +9256,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	// we can't have one store being owned by multiple users
 	if (ulAffected != 1) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "hookStore(): owned by multiple users (2)");
 		goto exit;
 	}
 
@@ -9235,6 +9271,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 	// (may be zero, when the user returns to it's original store, so the owner field stays the same)
 	if (ulAffected > 1) {
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "hookStore(): owned by multiple users (3)");
 		goto exit;
 	}
 
@@ -10075,7 +10112,8 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int
 
 	// Get the old flags
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3";
-	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
+	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getMessageStatus(): select failed %x", er);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -10083,6 +10121,7 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int
 	if (lpDatabase->GetNumRows(lpDBResult) == 1) {
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		if(lpDBRow == NULL || lpDBRow[0] == NULL) {
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "getMessageStatus(): row or col null");
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		}
@@ -10130,7 +10169,8 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned 
 
 	// Get the old flags (PR_MSG_STATUS)
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3";
-	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
+	if((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setMessageStatus(): select failed %x", er);
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -10140,6 +10180,7 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned 
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		if(lpDBRow == NULL || lpDBRow[0] == NULL) {
 			er = ZARAFA_E_DATABASE_ERROR;
+			g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setMessageStatus(): row or col null");
 			goto exit;
 		}
 
@@ -10158,6 +10199,7 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned 
 	}
 
 	if(er != erSuccess) {
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setMessageStatus(): query failed");
 		er = ZARAFA_E_DATABASE_ERROR;
 		goto exit;
 	}
@@ -10203,7 +10245,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct setSyncStatusResponse *lpsResponse)
 {
 	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
-	unsigned int	ulFolderId = 0;
+	unsigned int	ulFolderId = 0, dummy = 0;
 	USE_DATABASE();
 
 	er = lpDatabase->Begin();
@@ -10262,16 +10304,19 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
 
 	if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
 		er = ZARAFA_E_DATABASE_ERROR; // this should never happen
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setSyncStatus(): row/col NULL");
 		goto exit;
 	}
 
 	if(lpDBLen[0] != sSourceKey.size() || memcmp(lpDBRow[0], sSourceKey, sSourceKey.size()) != 0){
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "setSyncStatus(): collision");
 		goto exit;
 	}
 
-	if(atoui(lpDBRow[2]) != ulChangeType){
+	if((dummy = atoui(lpDBRow[2])) != ulChangeType){
 		er = ZARAFA_E_COLLISION;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "SetSyncStatus(): unexpected change type %u/%u", dummy, ulChangeType);
 		goto exit;
 	}
 
@@ -10919,10 +10964,8 @@ exit:
 		lpAttachmentStorage->Release();
 
 	FREE_DBRESULT();
-#ifdef WITH_SYSTEM_GSOAP
     soap->mode &= ~SOAP_XML_TREE;
     soap->omode &= ~SOAP_XML_TREE;
-#endif
 }
 SOAP_ENTRY_END()
 
@@ -11244,6 +11287,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 				goto exit;
 			if (ulAffected != 1) {
 				er = ZARAFA_E_DATABASE_ERROR;
+				g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "importMessageFromStream(): affected row count != 1");
 				goto exit;
 			}
 		}

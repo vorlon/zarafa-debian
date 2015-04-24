@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -448,22 +443,26 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 			vmime::ref<vmime::body> myBody = vmMessage->getBody();
 			// it is possible to get 3 bodyparts.
 			// text/plain, message/disposition-notification, text/rfc822-headers
-			// Loop to get text/plain body.
+			// the third part seems optional. and some clients send multipart/alternative instead of text/plain.
+			// Loop to get text/plain body or multipart/alternative.
 			for (int i=0; i < myBody->getPartCount(); i++)
 			{
 				vmime::ref<vmime::bodyPart> bPart = myBody->getPartAt(i);
 				vmime::ref<vmime::headerField> ctf = bPart->getHeader()->findField(vmime::fields::CONTENT_TYPE);
 
-				if (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT &&
-				    ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == vmime::mediaTypes::TEXT_PLAIN)
+				if( (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::TEXT &&
+				     ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == vmime::mediaTypes::TEXT_PLAIN)
+				||  (ctf->getValue().dynamicCast <vmime::mediaType>()->getType() == vmime::mediaTypes::MULTIPART &&
+				     ctf->getValue().dynamicCast <vmime::mediaType>()->getSubType() == vmime::mediaTypes::MULTIPART_ALTERNATIVE) )
 				{
 					hr = disectBody(bPart->getHeader(), bPart->getBody(), lpMessage, true);
 					if (hr != hrSuccess) {
 						lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to parse MDN mail body");
 						goto exit;
 					}
+					// we have a body, lets skip the other parts
+					break;
 				}
-				
 			}
 
 			if (receivedMDN.getDisposition().getType() == vmime::dispositionTypes::DELETED)
@@ -677,13 +676,18 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 				date = vmime::datetime::now();
 		}
 
-		msgProps[nProps].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-		msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
+		// When parse_smime_signed = True, we don't want to change the delivery date, since otherwise
+		// clients which decode an signed email using mapi_inetmapi_imtomapi() will have a different deliver time
+		// when opening an signed email in for example the WebApp
+		if(!m_dopt.parse_smime_signed && !m_mailState.ulMsgInMsg) {
+			msgProps[nProps].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
+			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
 
-		// Also save delivery DATE without timezone
-		date.setTime(0,0,0,0);
-		msgProps[nProps].ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-		msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
+			// Also save delivery DATE without timezone
+			date.setTime(0,0,0,0);
+			msgProps[nProps].ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
+			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
+		}
 
 		// The real sender of the mail
 		if(vmHeader->hasField(vmime::fields::FROM)) {
@@ -899,14 +903,14 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 		if (vmHeader->hasField("Sensitivity")) {
 			SPropValue sSensitivity[1];
 			string sensitivity = vmHeader->findField("Sensitivity")->getValue()->generate();
+			transform(sensitivity.begin(), sensitivity.end(), sensitivity.begin(), ::tolower);
 
 			sSensitivity[0].ulPropTag = PR_SENSITIVITY;
-
-			if (sensitivity == "Personal") {
+			if (sensitivity.compare("personal") == 0) {
 				sSensitivity[0].Value.ul = SENSITIVITY_PERSONAL;
-			} else if (sensitivity == "Private") {
+			} else if (sensitivity.compare("private") == 0) {
 				sSensitivity[0].Value.ul = SENSITIVITY_PRIVATE;
-			} else if (sensitivity == "Company-Confidential") {
+			} else if (sensitivity.compare("company-confidential") == 0) {
 				sSensitivity[0].Value.ul = SENSITIVITY_COMPANY_CONFIDENTIAL;
 			} else {
 				sSensitivity[0].Value.ul = SENSITIVITY_NONE;
@@ -1478,56 +1482,69 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 		goto exit;
 	}
 
+	// the server told us the entry is here.  from this point on we
+	// don't want to return MAPI_E_NOT_FOUND anymore, so we need to
+	// deal with missing data (which really shouldn't be the case for
+	// some, so asserts in some places).
+
 	if (PROP_TYPE(lpPropsList->aulPropTag[0]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ADDRTYPE_W);
-		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[0]; // PR_xxx_ADDRTYPE;
-		sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
+		ASSERT(lpProp);
+		if (!lpProp) {
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "Missing PR_ADDRTYPE_W for search entry: email %s, fullname %ls", email ? email : "null", fullname ? fullname : L"null");
+			sRecipProps[cValues].Value.lpszW = L"ZARAFA";
+		} else {
+			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
+		}
 		cValues++;
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[1]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_DISPLAY_NAME_W);
-		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[1];	// PR_xxx_DISPLAY_NAME;
-		if (!fullname || *fullname == '\0')
+		if (lpProp)
 			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;	// use addressbook version
-		else
+		else if (fullname && *fullname != '\0')
 			sRecipProps[cValues].Value.lpszW = (WCHAR *)fullname;	// use email version
+		else if (email && *email != '\0')
+			sRecipProps[cValues].Value.lpszW = (WCHAR *)email;	// use email address
+		else {
+			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[1], PT_ERROR);
+			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
+		}
 		cValues++;
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[2]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_DISPLAY_TYPE);
-		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[2]; // PR_xxx_DISPLAY_TYPE;
-		sRecipProps[cValues].Value.ul = lpProp->Value.ul;
+		if (!lpProp) {
+			sRecipProps[cValues].Value.ul = DT_MAILUSER;
+		} else {
+			sRecipProps[cValues].Value.ul = lpProp->Value.ul;
+		}
 		cValues++;
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[3]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_EMAIL_ADDRESS_W);
-		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[3]; // PR_xxx_EMAIL_ADDRESS;
-		sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
+		ASSERT(lpProp);
+		if (!lpProp) {
+			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[3], PT_ERROR);
+			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
+		} else {
+			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
+		}
 		cValues++;
 	}
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[4]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
+		ASSERT(lpProp);
 		if (!lpProp) {
+			// the one exception I guess? Let the fallback code create a one off entryid
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
@@ -1539,11 +1556,12 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 	if (PROP_TYPE(lpPropsList->aulPropTag[5]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_SEARCH_KEY);
 		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
+			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[5], PT_ERROR);
+			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
+		} else {
+			sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[5]; // PR_xxx_SEARCH_KEY;
+			sRecipProps[cValues].Value.bin = lpProp->Value.bin;
 		}
-		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[5]; // PR_xxx_SEARCH_KEY;
-		sRecipProps[cValues].Value.bin = lpProp->Value.bin;
 		cValues++;
 	}
 
@@ -1551,21 +1569,23 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 	if (PROP_TYPE(lpPropsList->aulPropTag[6]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_SMTP_ADDRESS_W);
 		if (!lpProp) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
+			sRecipProps[cValues].ulPropTag = CHANGE_PROP_TYPE(lpPropsList->aulPropTag[6], PT_ERROR); // PR_xxx_SMTP_ADDRESS;
+			sRecipProps[cValues].Value.err = MAPI_E_NOT_FOUND;
+		} else {
+			sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[6]; // PR_xxx_SMTP_ADDRESS;
+			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
 		}
-		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[6]; // PR_xxx_SMTP_ADDRESS;
-		sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
 		cValues++;
 	}
 
 	lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_OBJECT_TYPE);
+	ASSERT(lpProp);
 	if (!lpProp) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		sRecipProps[cValues].Value.ul = MAPI_MAILUSER;
+	} else {
+		sRecipProps[cValues].Value.ul = lpProp->Value.ul;
 	}
 	sRecipProps[cValues].ulPropTag = PR_OBJECT_TYPE;
-	sRecipProps[cValues].Value.ul = lpProp->Value.ul;
 	cValues++;
 
 	if (ulRecipType != MAPI_ORIG) {
@@ -2165,7 +2185,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 	if (m_mailState.bodyLevel < BODY_HTML || (m_mailState.bodyLevel == BODY_HTML && bAppendBody)) {
 		// we're overriding a plain text body, setting a new HTML body or appending HTML data
 		try {
-			vmime::charset bodyCharset;
+			vmime::charset bodyCharset("us-ascii");
+			vmime::charset htmlCharset("us-ascii");
 
 			vmime::utility::outputStreamStringAdapter os(strHTML);
 			try {
@@ -2176,10 +2197,13 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 				vmBody->getContents()->extractRaw(os);
 			}
 
-			if (!vmHeader->ContentType().dynamicCast<vmime::contentTypeField>()->hasParameter("charset")) {
-				bodyCharset = getCharsetFromHTML(strHTML);
-			} else {
+			if (vmHeader->ContentType().dynamicCast<vmime::contentTypeField>()->hasParameter("charset")) {
 				bodyCharset = getCompatibleCharset(vmBody->getCharset());
+			}
+
+			if (getCharsetFromHTML(strHTML, &htmlCharset) == hrSuccess && htmlCharset != bodyCharset) {
+				lpLogger->Log(EC_LOGLEVEL_WARNING, "Charset mentioned in email %s is different than charset in HTML %s. Using HTML charset.", bodyCharset.getName().c_str(), htmlCharset.getName().c_str());
+				bodyCharset = htmlCharset;
 			}
 
 			if(bodyCharset == vmime::charsets::US_ASCII)
@@ -2578,12 +2602,13 @@ static htmlNodePtr find_node(htmlNodePtr lpNode, const xmlChar *name)
  * in the HTML body to determain the real charset.
  *
  * @param[in] strHTML HTML body to parse
+ * @param[out] htmlCharset vmime compatible charset from charset mentioned in html text
  *
- * @return vmime compatible charset
+ * @return MAPI Error code
  */
-vmime::charset VMIMEToMAPI::getCharsetFromHTML(const string &strHTML)
+HRESULT VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlCharset)
 {
-	vmime::charset ch("US-ASCII");
+	HRESULT hr = MAPI_E_NOT_FOUND;
 	htmlDocPtr lpDoc = NULL;
 	htmlNodePtr lpNode = NULL;
 	xmlChar *lpValue = NULL;
@@ -2593,13 +2618,13 @@ vmime::charset VMIMEToMAPI::getCharsetFromHTML(const string &strHTML)
 	// really lazy html parsing and disable all error reporting
 	lpDoc = htmlReadMemory(strHTML.c_str(), strHTML.length(), "", NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	if (!lpDoc) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to parse HTML body, using default charset %s", ch.getName().c_str());
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to parse HTML body");
 		goto exit;
 	}
 
 	lpNode = find_node(xmlDocGetRootElement(lpDoc), (const xmlChar*)"head");
 	if (!lpNode) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "HTML body does not contain HEAD information, using default charset %s", ch.getName().c_str());
+		lpLogger->Log(EC_LOGLEVEL_INFO, "HTML body does not contain HEAD information");
 		goto exit;
 	}
 
@@ -2611,7 +2636,10 @@ vmime::charset VMIMEToMAPI::getCharsetFromHTML(const string &strHTML)
 			if (lpValue && xmlStrcasecmp(lpValue, (const xmlChar*)"Content-Type") == 0) {
 				xmlFree(lpValue);
 				lpValue = xmlGetProp(lpNode, (const xmlChar*)"content");
-				strValue = (char*)lpValue;
+				if (lpValue)
+					strValue = (char*)lpValue;
+				else
+					strValue = "text/html";
 				break;
 			}
 			if (lpValue)
@@ -2628,19 +2656,29 @@ vmime::charset VMIMEToMAPI::getCharsetFromHTML(const string &strHTML)
 		lpNode = lpNode->next;
 	}
 	if (!lpValue) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "HTML body does not contain meta charset information, using default charset %s", ch.getName().c_str());
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "HTML body does not contain meta charset information");
 		goto exit;
 	}
 
 	ctf = vmime::headerFieldFactory::getInstance()->create("Content-Type", strValue);
-	ch = getCompatibleCharset(ctf.dynamicCast<vmime::contentTypeField>()->getCharset());
+
+	try {
+		*htmlCharset = getCompatibleCharset(ctf.dynamicCast<vmime::contentTypeField>()->getCharset());
+	}
+	catch(vmime::exceptions::no_such_parameter & e) {
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "VMIMEToMAPI::getCharsetFromHTML() getCharset() failed: %s", e.what());
+
+		*htmlCharset = getCompatibleCharset(vmime::charset(m_dopt.default_charset));
+	}
+
+	hr = hrSuccess;
 
 exit:
 	if (lpValue)
 		xmlFree(lpValue);
 	if (lpDoc)
 		xmlFreeDoc(lpDoc);
-	return ch;
+	return hr;
 }
 
 /** 
@@ -2655,13 +2693,22 @@ exit:
 std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 {
 	std::string strInter;
+	std::string myword;
 
 	const std::vector<vmime::ref<const vmime::word> >& words = vmText.getWordList();
-	std::vector<vmime::ref<const vmime::word> >::const_iterator i;
+	std::vector<vmime::ref<const vmime::word> >::const_iterator i, j;
 	for (i = words.begin(); i != words.end(); i++) {
-		vmime::charset vmForcedCharset(getCompatibleCharset((*i)->getCharset()));
+		vmime::charset wordCharset = (*i)->getCharset();
+		vmime::charset vmForcedCharset(getCompatibleCharset(wordCharset));
 
-		strInter += vmime::word((*i)->getBuffer(), vmForcedCharset).getConvertedText(CHARSET_WCHAR);
+		// concat words with same charset, as they may not be safely split up (should be fixed in later version of VMIME!)
+		myword = (*i)->getBuffer();
+		for(j=i+1; j != words.end() && (*j)->getCharset() == wordCharset; j++) {
+			myword += (*j)->getBuffer();
+			i++;
+                }
+
+		strInter += vmime::word(myword, vmForcedCharset).getConvertedText(CHARSET_WCHAR);
 	}
 
 	return std::wstring((WCHAR*)strInter.c_str(), strInter.size() / sizeof(WCHAR));

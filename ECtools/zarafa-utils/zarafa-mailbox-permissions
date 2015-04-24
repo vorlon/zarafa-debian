@@ -211,6 +211,9 @@ def parsePermissionsToId(permissions):
         return ecRightsTemplateReadOnly
     elif permissions == 'norights':
         return ecRightsTemplateNoRights
+    # assume 'norights' if 'none' is passed
+    elif permissions == 'none':
+        return ecRightsTemplateNoRights
     elif permissions == 'denied':
         return ecRightsNone
     elif permissions[0:2] == '0x':
@@ -653,6 +656,11 @@ def removeDelegatePermissions(session, store):
     except MAPIError, err:
         return 0
 
+    # Remove delegate rules
+    drd = DelegateRuleData(session, store, inbox)
+    drd.removeAllDelegators()
+    drd.saveChanges()
+
     fbmsg.DeleteProps([PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES, PR_DELEGATE_FLAGS])
     fbmsg.SaveChanges(0)
 
@@ -667,6 +675,7 @@ def removeAllPermissions(session, usersmailbox):
             removeFolderPermissions(store)
             removeRecuriveFolderPermissions(session, store, None, 0)
             removeDelegatePermissions(session, store)
+
         except MAPIError, err:
             print "Unexpected error while processing store for user %s. hr=%08x" % (mailbox, err.hr)
             with_errors = True

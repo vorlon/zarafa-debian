@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -58,40 +53,7 @@
 extern ECSessionManager*	g_lpSessionManager;
 void zarafa_notify_done(struct soap *soap);
 
-#ifdef WITH_SYSTEM_GSOAP
-// Copied from 2.8.x generated soapServer.cpp, prolly won't work for 2.7.x
-int soapresponse(struct notifyResponse notifications, struct soap *soap) {
-    struct ns__notifyGetItemsResponse soap_tmp_ns__notifyGetItemsResponse;
-    soap_default_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse);
-    soap_tmp_ns__notifyGetItemsResponse.notifications = &notifications;
-    soap->encodingStyle = "";
-    soap_serializeheader(soap);
-    soap_serialize_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse);
-    if (soap_begin_count(soap))
-        return soap->error;
-    if (soap->mode & SOAP_IO_LENGTH)
-    {   if (soap_envelope_begin_out(soap)
-         || soap_putheader(soap)
-         || soap_body_begin_out(soap)
-         || soap_put_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse, "ns:notifyGetItemsResponse", NULL)
-         || soap_body_end_out(soap)
-         || soap_envelope_end_out(soap))
-             return soap->error;
-    };
-    if (soap_end_count(soap)
-     || soap_response(soap, SOAP_OK)
-     || soap_envelope_begin_out(soap)
-     || soap_putheader(soap)
-     || soap_body_begin_out(soap)
-     || soap_put_ns__notifyGetItemsResponse(soap, &soap_tmp_ns__notifyGetItemsResponse, "ns:notifyGetItemsResponse", NULL)
-     || soap_body_end_out(soap)
-     || soap_envelope_end_out(soap)
-     || soap_end_send(soap))
-        return soap->error;
-    return soap_closesock(soap);
-}
-#else
-// Copied from 2.7.x generated soapServer.cpp
+// Copied from generated soapServer.cpp
 int soapresponse(struct notifyResponse notifications, struct soap *soap) {
     soap_serializeheader(soap);
     soap_serialize_notifyResponse(soap, &notifications);
@@ -101,7 +63,7 @@ int soapresponse(struct notifyResponse notifications, struct soap *soap) {
     {	if (soap_envelope_begin_out(soap)
          || soap_putheader(soap)
          || soap_body_begin_out(soap)
-         || soap_put_notifyResponse(soap, &notifications, "notifyResponse", "")
+         || soap_put_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
          || soap_body_end_out(soap)
          || soap_envelope_end_out(soap))
             return soap->error;
@@ -111,14 +73,13 @@ int soapresponse(struct notifyResponse notifications, struct soap *soap) {
      || soap_envelope_begin_out(soap)
      || soap_putheader(soap)
      || soap_body_begin_out(soap)
-     || soap_put_notifyResponse(soap, &notifications, "notifyResponse", "")
+     || soap_put_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
      || soap_body_end_out(soap)
      || soap_envelope_end_out(soap)
      || soap_end_send(soap))
             return soap->error;
     return soap_closesock(soap);
 }
-#endif
 
 ECNotificationManager::ECNotificationManager(ECLogger *lpLogger, ECConfig *lpConfig) : m_lpLogger(lpLogger), m_lpConfig(lpConfig)
 {
@@ -147,6 +108,7 @@ ECNotificationManager::~ECNotificationManager()
     for(iterRequest = m_mapRequests.begin(); iterRequest != m_mapRequests.end(); iterRequest++) {
 		// we can't call zarafa_notify_done here, race condition on shutdown in ECSessionManager vs ECDispatcher
 		zarafa_end_soap_connection(iterRequest->second.soap);
+		soap_destroy(iterRequest->second.soap);
 		soap_end(iterRequest->second.soap);
 		soap_free(iterRequest->second.soap);
     }
@@ -268,7 +230,6 @@ void *ECNotificationManager::Work() {
             if(iterRequest != m_mapRequests.end()) {
                 // Reset notification response to default values
                 soap_default_notifyResponse(iterRequest->second.soap, &notifications);
-
                 if(g_lpSessionManager->ValidateSession(iterRequest->second.soap, *iterSessions, &lpecSession, true) == erSuccess) {
                     // Get the notifications from the session
                     er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);

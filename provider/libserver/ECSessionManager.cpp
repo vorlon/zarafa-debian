@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -188,11 +183,11 @@ ECSessionManager::~ECSessionManager()
 	if(m_lpNotificationManager)
 	    delete m_lpNotificationManager;
 
-#ifdef DEBUG
+//#ifdef DEBUG
 	// Clearing the cache takes too long while shutting down
 	if(m_lpECCacheManager)
 		delete m_lpECCacheManager;
-#endif
+//#endif
 
 	if(m_lpSearchFolders)
 		delete m_lpSearchFolders;
@@ -643,7 +638,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	return er;
 }
 
-ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szImpersonateUser, char *szClientVersion, char *szClientApp, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
+ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szImpersonateUser, char *szClientVersion, char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
 {
 	ECRESULT		er			= erSuccess;
 	ECAuthSession	*lpAuthSession	= NULL;
@@ -701,15 +696,14 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 
 
 authenticated:
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "User %s from %s authenticated through %s using program %s",
-					szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "User %s from %s authenticated through %s using program %s", szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
 	if (strcmp(ZARAFA_SYSTEM_USER, szName) != 0) {
 		// don't log successfull SYSTEM logins
 		LOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
 				  szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
 	}
 
-	er = RegisterSession(lpAuthSession, sessionGroupID, szClientVersion, szClientApp, lpSessionID, &lpSession, fLockSession);
+	er = RegisterSession(lpAuthSession, sessionGroupID, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == ZARAFA_E_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed attempt to impersonate user %s by user %s", szImpersonateUser, szName);
@@ -720,9 +714,9 @@ authenticated:
 		goto exit;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "User %s receives session %llu", szName, *lpSessionID);
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "User %s receives session %llu", szName, *lpSessionID);
 	else {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "User %s impersonated by %s receives session %llu", szImpersonateUser, szName, *lpSessionID);
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "User %s impersonated by %s receives session %llu", szImpersonateUser, szName, *lpSessionID);
 		LOG_AUDIT(m_lpAudit, "impersonate ok user='%s', from='%s' program='%s' impersonator='%s'",
 				  szImpersonateUser, from.c_str(), szClientApp ? szClientApp : "<unknown>", szName);
 	}
@@ -736,14 +730,14 @@ exit:
 	return er;
 }
 
-ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession, ECSESSIONGROUPID sessionGroupID, char *szClientVersion, char *szClientApp, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession, ECSESSIONGROUPID sessionGroupID, char *szClientVersion, char *szClientApp, const char *szClientApplicationVersion, const char *szClientApplicationMisc, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession)
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpSession = NULL;
 	ECSessionGroup *lpSessionGroup = NULL;
 	ECSESSIONID	newSID = 0;
 
-	er = lpAuthSession->CreateECSession(sessionGroupID, szClientVersion ? szClientVersion : "", szClientApp ? szClientApp : "", &newSID, &lpSession);
+	er = lpAuthSession->CreateECSession(sessionGroupID, szClientVersion ? szClientVersion : "", szClientApp ? szClientApp : "", szClientApplicationVersion ? szClientApplicationVersion : "", szClientApplicationMisc ? szClientApplicationMisc : "", &newSID, &lpSession);
 	if (er != erSuccess)
 		goto exit;
 
@@ -775,7 +769,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(ZARAFA_CAP_LARGE_SESSIONID, &newSID);
 
-	lpSession = new ECSession("<internal>", newSID, 0, m_lpDatabaseFactory, this, 0, false, ECSession::METHOD_NONE, 0, "internal", "zarafa-server");
+	lpSession = new ECSession("<internal>", newSID, 0, m_lpDatabaseFactory, this, 0, false, ECSession::METHOD_NONE, 0, "internal", "zarafa-server", "", "");
 	if(lpSession == NULL) {
 		er = ZARAFA_E_LOGON_FAILED;
 		goto exit;
@@ -787,7 +781,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "New internal session (%llu)", newSID);
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "New internal session (%llu)", newSID);
 
 	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_CREATED);
 
@@ -810,7 +804,7 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 	ECRESULT	hr			= erSuccess;
 	BTSession	*lpSession	= NULL;
 	
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "End of session (logoff) %llu", sessionID);
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "End of session (logoff) %llu", sessionID);
 	g_lpStatsCollector->Increment(SCN_SESSIONS_DELETED);
 
 	// Make sure no other thread can read or write the sessions list

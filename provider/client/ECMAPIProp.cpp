@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -455,6 +450,12 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
+	
+	// Only support certain property types
+	if(PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE && PROP_TYPE(ulPropTag) != PT_STRING8) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
 
 	if(*lpiid == IID_IStream || *lpiid == IID_IStorage) {
 		if(PROP_TYPE(ulPropTag) != PT_STRING8 && PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE) {
@@ -496,53 +497,68 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		// Yank the property in from disk if it wasn't loaded yet
 		HrLoadProp(ulPropTag);
 
+		// For MAPI_CREATE, reset (or create) the property now
+		if(ulFlags & MAPI_CREATE) {
+			if(!this->fModify) {
+				hr = MAPI_E_NO_ACCESS;
+				goto exit;
+			}
+			
+			SPropValue sProp;
+			sProp.ulPropTag = ulPropTag;
+			
+			if(PROP_TYPE(ulPropTag) == PT_BINARY) {
+				sProp.Value.bin.cb = 0;
+				sProp.Value.bin.lpb = NULL;
+			} else {
+				// Handles lpszA and lpszW since they are the same field in the union
+				sProp.Value.lpszW = L"";
+			}
+				
+			hr = HrSetRealProp(&sProp);
+			if(hr != hrSuccess)
+				goto exit;
+		}
+			
 		hr = HrGetRealProp(ulPropTag, ulFlags, lpsPropValue, lpsPropValue);
 
-		if(hr != hrSuccess && ulFlags & MAPI_CREATE && this->fModify) {
-			lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
-			lpStreamData->ulPropTag = ulPropTag;
-			lpStreamData->lpProp = this;
-			
-			hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions, ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, 
-									 (void *)lpStreamData, &lpStream);
-
-		} else if (hr == hrSuccess) {
-			lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
-			lpStreamData->ulPropTag = ulPropTag;
-			lpStreamData->lpProp = this;
-
-			if((ulFlags & MAPI_CREATE) == MAPI_CREATE)
-			{
-				hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
-										 ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-			}else {
-
-				switch(PROP_TYPE(lpsPropValue->ulPropTag)) {
-				case PT_STRING8:
-					hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
-											ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-					break;
-				case PT_UNICODE:
-					hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
-											ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-					break;
-				case PT_BINARY:
-					hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-											ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-					break;
-				default:
-					hr = MAPI_E_NOT_FOUND;
-					delete lpStreamData;
-					break;
-				}
-			}
-
-		} else {
+		if(hr != hrSuccess) {
 			// Promote warnings from GetProps to error
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
 		
+		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
+		lpStreamData->ulPropTag = ulPropTag;
+		lpStreamData->lpProp = this;
+
+		if((ulFlags & MAPI_CREATE) == MAPI_CREATE)
+		{
+			hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
+									 ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+		}else {
+
+			switch(PROP_TYPE(lpsPropValue->ulPropTag)) {
+			case PT_STRING8:
+				hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
+										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+				break;
+			case PT_UNICODE:
+				hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
+										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+				break;
+			case PT_BINARY:
+				hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
+										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+				break;
+			default:
+				ASSERT(false);
+				hr = MAPI_E_NOT_FOUND;
+				delete lpStreamData;
+				break;
+			}
+		}
+
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -651,6 +667,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	memcpy(lpsPropValue->Value.bin.lpb, strAclData.data(), lpsPropValue->Value.bin.cb);
 
 exit:
+	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 	
 	return hr;
@@ -691,6 +708,7 @@ HRESULT ECMAPIProp::SetSerializedACLData(LPSPropValue lpsPropValue)
 	hr = UpdateACLs(rights.__size, ptrPerms);
 
 exit:
+	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 
 	return hr;

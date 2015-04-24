@@ -477,11 +477,7 @@
 #endif
 
 // Pull in the language-specific typemap
-#if SWIGPERL
-%include "perl/typemap_perl.i"
-#elif SWIGRUBY
-%include "ruby/typemap_ruby.i"
-#elif SWIGPYTHON
+#if SWIGPYTHON
 %include "python/typemap_python.i"
 #endif
 

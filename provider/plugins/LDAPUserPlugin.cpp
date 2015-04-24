@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -230,8 +225,7 @@ public:
 
 	~attrArray()
 	{
-		if (lpAttrs)
-			delete [] lpAttrs;
+		delete [] lpAttrs;
 	}
 
 	void add(const char *lpAttr)
@@ -404,10 +398,36 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *
 		throw runtime_error(string("Not a valid configuration file."));
 }
 
+// index of the last ldap server to which we could connect
+long unsigned int ldapServerIndex = 0;
+std::vector<std::string> ldap_servers;
+
 void LDAPUserPlugin::InitPlugin() throw(exception)
 {
 	char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 	char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
+
+	// get the list of ldap urls and split them
+	char *ldap_uri = m_config->GetSetting("ldap_uri");
+
+	if (ldap_uri && strlen(ldap_uri))
+		ldap_servers = tokenize(std::string(ldap_uri), ' ', true);
+	else {
+		const char *ldap_host = m_config->GetSetting("ldap_host");
+		const char *ldap_port = m_config->GetSetting("ldap_port");
+
+		char buffer[4096] = { 0 }; // using this as win32 does not have asprintf
+
+		if (strcmp(m_config->GetSetting("ldap_protocol"), "ldaps") == 0)
+			snprintf(buffer, sizeof buffer, "ldaps://%s:%s", ldap_host, ldap_port);
+		else
+			snprintf(buffer, sizeof buffer, "ldap://%s:%s", ldap_host, ldap_port);
+
+		ldap_servers.push_back(buffer);
+	}
+
+	if (ldap_servers.empty())
+		throw ldap_error(string("No LDAP servers configured in ldap.cfg"));
 
 	/**
 	 *  @todo encode the user and password, now it's depended in which charset the config is saved
@@ -419,15 +439,14 @@ void LDAPUserPlugin::InitPlugin() throw(exception)
 }
 
 LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) throw(exception) {
-	int rc;
-
+	int rc = -1;
 	LDAP *ld = NULL;
 	struct timeval tstart, tend;
-	LONGLONG llelapsedtime;
+	LONGLONG llelapsedtime = 0;
 
 	gettimeofday(&tstart, NULL);
 
-	if((bind_dn && bind_dn[0] != 0) && (bind_pw == NULL || bind_pw[0] == 0)) {
+	if ((bind_dn && bind_dn[0] != 0) && (bind_pw == NULL || bind_pw[0] == 0)) {
 		// Username specified, but no password. Apparently, OpenLDAP will attempt
 		// an anonymous bind when this is attempted. We therefore disallow this
 		// to make sure you can authenticate a user's password with this function
@@ -435,98 +454,114 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) thro
 	}
 
 	// Initialize LDAP struct
-	char *ldap_host = m_config->GetSetting("ldap_host");
-	char *ldap_port = m_config->GetSetting("ldap_port");
-	char *ldap_uri = m_config->GetSetting("ldap_uri");
+	for(unsigned long int loop=0; loop<ldap_servers.size(); loop++) {
+		const int limit = 0;
+		const int version = LDAP_VERSION3;
+		std::string currentServer = ldap_servers.at(ldapServerIndex);
 
-	int port = strtoul(ldap_port, NULL, 10);
+		pthread_mutex_lock(m_plugin_lock);
+		rc = ldap_initialize(&ld, currentServer.c_str());
+		pthread_mutex_unlock(m_plugin_lock);
 
-	if(strlen(ldap_uri) > 0) {
-	    if(ldap_initialize(&ld, ldap_uri) != LDAP_SUCCESS) {
-	        m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
-			m_logger->Log(EC_LOGLEVEL_FATAL, "Failed to initialize ldap for uri: %s", ldap_uri);
-	        throw ldap_error(string("ldap_initialize: ") + strerror(errno));
-        }
-    } else {
-        ld = ldap_init(ldap_host, port);
-        if (ld == NULL) {
-            m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
-            throw ldap_error(string("ldap_init: ") + strerror(errno));
-        }
+		if (rc != LDAP_SUCCESS) {
+			m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
 
-        // Go to SSL if required
-        int tls = LDAP_OPT_X_TLS_HARD;
-        if(strcmp(m_config->GetSetting("ldap_protocol"), "ldaps") == 0) {
-            if((rc = ldap_set_option(ld, LDAP_OPT_X_TLS, &tls)) != LDAP_SUCCESS) {
-                m_logger->Log(EC_LOGLEVEL_WARNING, "Failed to initiate SSL for ldap: %s", ldap_err2string(rc));
-            }
-        }
-    }
+			m_logger->Log(EC_LOGLEVEL_FATAL, "Failed to initialize LDAP for %s: %s", currentServer.c_str(), ldap_err2string(rc));
+			goto fail;
+		}
 
-	int version = LDAP_VERSION3;
-	ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-	// Disable response message size restrictions (but the server's
-	// restrictions still apply)
-	int limit = 0;
-	ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit);
+		m_logger->Log(EC_LOGLEVEL_DEBUG, "Trying to connect to %s", currentServer.c_str());
 
-	// Search referrals are never accepted  - FIXME maybe needs config option
-	ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
+		if ((rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version)) != LDAP_OPT_SUCCESS) {
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
+			goto fail;
+		}
 
-	m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
-	m_timeout.tv_usec = 0;
+		// Disable response message size restrictions (but the server's
+		// restrictions still apply)
+		if ((rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit)) != LDAP_OPT_SUCCESS) {
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP_OPT_SIZELIMIT failed: %s", ldap_err2string(rc));
+			goto fail;
+		}
 
-	// Set network timeout (for connect)
-	ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout);
+		// Search referrals are never accepted  - FIXME maybe needs config option
+		if ((rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF)) != LDAP_OPT_SUCCESS) {
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP_OPT_REFERRALS failed: %s", ldap_err2string(rc));
+			goto fail;
+		}
 
-#if 0		// OpenLDAP stupidly closes the connection when TLS is not configured on the server...
-#ifdef LINUX // Only available in Windows XP, so we can't use this on windows platform ..
+		// Set network timeout (for connect)
+		m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
+		m_timeout.tv_usec = 0;
+		if ((rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout)) != LDAP_OPT_SUCCESS) {
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
+			goto fail;
+		}
+
+#if 0		// OpenLDAP stupidly closes the connection when TLS is not configured on the server.
+#ifdef LINUX // Only available in Windows XP, so we can't use this on windows platform.
 #ifdef HAVE_LDAP_START_TLS_S
-	// Initialize TLS-secured connection - this is the first command
-	// after ldap_init, so it will be the call that actually connects
-	// to the server.
-	if ((rc = ldap_start_tls_s(ld, NULL, NULL)) != LDAP_SUCCESS) {
-		m_logger->Log(EC_LOGLEVEL_WARNING, "Failed to secure ldap connection: %s", ldap_err2string(rc));
-	}
+		// Initialize TLS-secured connection - this is the first command
+		// after ldap_init, so it will be the call that actually connects
+		// to the server.
+		if ((rc = ldap_start_tls_s(ld, NULL, NULL)) != LDAP_SUCCESS) {
+			m_logger->Log(EC_LOGLEVEL_ERROR, "Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
+			goto fail;
+		}
 #endif
 #endif
 #endif
 
-	// Bind
-	// For these two values: if they are both NULL, anonymous bind
-	// will be used (ldap_binddn, ldap_bindpw)
-	if ((rc = ldap_simple_bind_s(
-			 ld, (char *)bind_dn, (char *)bind_pw)) != LDAP_SUCCESS)
-	{
-		ldap_unbind_s(ld);
+		// Bind
+		// For these two values: if they are both NULL, anonymous bind
+		// will be used (ldap_binddn, ldap_bindpw)
+		if ((rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw)) == LDAP_SUCCESS)
+			break;
+
+		m_logger->Log(EC_LOGLEVEL_WARNING, "LDAP (simple-) bind failed: %s", ldap_err2string(rc));
+
+	fail:
+		// see if an other (if any) server does work
+		ldapServerIndex++;
+		if (ldapServerIndex >= ldap_servers.size())
+			ldapServerIndex = 0;
+
+		if (ldap_unbind_s(ld) == -1)
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP unbind failed");
 
 		m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
 
-		throw ldap_error(string("ldap_bind_s: ") + ldap_err2string(rc));
+		ld = NULL;
+
+		if (loop == ldap_servers.size() - 1)
+			throw ldap_error("Failure connecting any of the LDAP servers");
 	}
 
 	gettimeofday(&tend, NULL);
 
-	llelapsedtime = difftimeval(&tstart,&tend);
+	llelapsedtime = difftimeval(&tstart, &tend);
 
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECTS);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
+
+	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] connected to ldap", llelapsedtime / 1000000.0);
 
 	return ld;
 }
 
 LDAPUserPlugin::~LDAPUserPlugin() {
 	// Disconnect from the LDAP server
+	if (m_ldap) {
+		LOG_PLUGIN_DEBUG("%s", "Disconnect from LDAP while unloading plugin");
 
-	if(m_ldap)
-		ldap_unbind_s(m_ldap);
+		if (ldap_unbind_s(m_ldap) == -1)
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP unbind failed");
+	}
 
-	if (m_iconv)
-		delete m_iconv;
+	delete m_iconv;
 
-	if (m_iconvrev)
-		delete m_iconvrev;
+	delete m_iconvrev;
 }
 
 void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls) throw(exception)
@@ -560,8 +595,10 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
 
 		if (m_ldap != NULL) {
-			ldap_unbind_s(m_ldap);
+			if (ldap_unbind_s(m_ldap) == -1)
+				m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP unbind failed");
 			m_ldap = NULL;
+			m_logger->Log(EC_LOGLEVEL_ERROR, "Disconnect from LDAP because search error %s", ldap_err2string(result));
 		}
 
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
@@ -573,14 +610,16 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	}
 
 	if(result != LDAP_SUCCESS) {
-   		m_logger->Log(EC_LOGLEVEL_ERROR, "ldap query failed: %s %s (result=0x%02x)", base, filter, result);
+   		m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP query failed: %s %s (result=0x%02x, %s)", base, filter, result, ldap_err2string(result));
 
 		if(LDAP_API_ERROR(result)) {
 		    // Some kind of API error occurred (error is not from the server). Unbind the connection so any next try will re-bind
 		    // which will possibly connect to a different (failed over) server.
             if (m_ldap != NULL) {
-                ldap_unbind_s(m_ldap);
+		if (ldap_unbind_s(m_ldap) == -1)
+			m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP unbind failed");
                 m_ldap = NULL;
+		m_logger->Log(EC_LOGLEVEL_ERROR, "Disconnect from LDAP because reconnect search error %s", ldap_err2string(result));
             }
         }
 		goto exit;
@@ -782,7 +821,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	// lstMatches now contains all the zarafa object classes that the object COULD be, now sort by number of object classes
 
 	if(lstMatches.empty())
-		throw data_error("Unable to detect objectclass for object: " + GetLDAPEntryDN(entry));
+		throw data_error("Unable to detect object class for object: " + GetLDAPEntryDN(entry));
 
 	lstMatches.sort();
 	lstMatches.reverse();
@@ -952,7 +991,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company) throw(std::excep
 		search_base = m_lpCache->getDNForObject(lpCompanyCache, company);
 		// CHECK: should not be possible to not already know the company
 		if (search_base.empty()) {
-			m_logger->Log(EC_LOGLEVEL_FATAL, "no search base found for company %s", company.id.c_str());
+			m_logger->Log(EC_LOGLEVEL_FATAL, "No search base found for company %s", company.id.c_str());
 			search_base = lpszSearchBase;
 		}
 	} else {
@@ -1345,7 +1384,7 @@ objectsignature_t LDAPUserPlugin::objectDNtoObjectSignature(objectclass_t objcla
 	if (signatures->empty())
 		throw objectnotfound(dn);
 	else if (signatures->size() != 1)
-		throw toomanyobjects("More than one object returned in search for dn " + dn);
+		throw toomanyobjects("More than one object returned in search for DN " + dn);
 
 	return signatures->front();
 }
@@ -1435,7 +1474,7 @@ objectsignature_t LDAPUserPlugin::resolveObjectFromAttributeType(objectclass_t o
 	signatures = resolveObjectsFromAttributeType(objclass, objects, lpAttr, lpAttrType, company);
 
 	if (!signatures.get() || signatures->empty())
-		throw objectnotfound(object+" not found in ldap");
+		throw objectnotfound(object+" not found in LDAP");
 	return signatures->front();
 }
 
@@ -1547,17 +1586,17 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 	}
 
 	if (attrs->empty())
-		throw runtime_error(string("unable to resolve name with no attributes"));
+		throw runtime_error(string("Unable to resolve name with no attributes"));
 
 	objects.push_back(m_iconvrev->convert(name));
 	signatures = resolveObjectsFromAttributes(objclass, objects, attrs->get(), company);
 
 	if (!signatures.get() || signatures->empty())
-		throw objectnotfound(name+" not found in ldap");
+		throw objectnotfound(name+" not found in LDAP");
 
 	// we can only resolve one name. caller should be more specific
 	if (signatures->size() > 1)
-		throw collision_error(name+" found "+stringify(signatures->size())+" times in ldap");
+		throw collision_error(name + " found " + stringify(signatures->size()) + " times in LDAP");
 
 	if (!OBJECTCLASS_COMPARE(signatures->front().id.objclass, objclass))
 		throw objectnotfound("No object has been found with name " + name);
@@ -1619,7 +1658,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		throw runtime_error("Trying to authenticate failed: connection failed");
 	}
 
-	ldap_unbind_s(ld);
+	if (ldap_unbind_s(ld) == -1)
+		m_logger->Log(EC_LOGLEVEL_ERROR, "LDAP unbind failed");
 
 	return signature;
 }
@@ -1646,7 +1686,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 
 	/* LDAP filter does not exist, user does not exist, user cannot login */
 	if (ldap_filter.empty())
-		throw objectnotfound("ldap filter is empty");
+		throw objectnotfound("LDAP filter is empty");
 
 	my_ldap_search_s(
 			(char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
@@ -1691,7 +1731,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	strPasswordConverted = m_iconvrev->convert(password).c_str();
 
 	if (strCryptedpw.empty())
-		throw login_error("Trying to authenticate failed: Password field is empty or unreadable");
+		throw login_error("Trying to authenticate failed: password field is empty or unreadable");
 	if (signature.id.id.empty())
 		throw login_error("Trying to authenticate failed: uniqueid is empty or unreadable");
 
@@ -1933,7 +1973,7 @@ auto_ptr<map<objectid_t, objectdetails_t> > LDAPUserPlugin::getObjectDetails(con
 					ldap_filter += getSearchFilter(iter->id, addresslist_unique_attr, addresslist_unique_attr_type);
 					break;
 				default:
-					m_logger->Log(EC_LOGLEVEL_FATAL, "incorrect objclass %d for item %s", iter->objclass, iter->id.c_str());
+					m_logger->Log(EC_LOGLEVEL_FATAL, "Incorrect object class %d for item %s", iter->objclass, iter->id.c_str());
 					continue;
 				}
 				iter++;

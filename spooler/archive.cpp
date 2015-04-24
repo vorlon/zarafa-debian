@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -147,27 +142,36 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 
 	if (lpMessage == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): invalid parameter");
 		goto exit;
 	}
 
 	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): GetProps failed %x", hr);
 		goto exit;
+	}
 
 	refMsgEntry.sStoreEntryId.assign(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin);
 	refMsgEntry.sItemEntryId.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
 
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): OpenMsgStore failed %x", hr);
 		goto exit;
+	}
 
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): StoreHelper::Create failed %x", hr);
 		goto exit;
+	}
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): StoreHelper::GetArchiveList failed %x", hr);
 		goto exit;
+	}
 
 	if (lstArchives.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No archives attached to store");
@@ -175,20 +179,26 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	}
 
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb, &ptrFolder.iid, MAPI_MODIFY, &ulType, &ptrFolder);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed %x", hr);
 		goto exit;
+	}
 
 	hr = ArchiverSession::Create(m_ptrSession, m_lpLogger, &ptrSession);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchiverSession::Create failed %x", hr);
 		goto exit;
+	}
 
 	/**
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
 	hr = InstanceIdMapper::Create(m_lpLogger, NULL, &ptrMapper);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): InstanceIdMapper::Create failed %x", hr);
 		goto exit;
+	}
 
 	// First create all (mostly one) the archive messages without saving them.
 	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, ptrFolder));
@@ -197,8 +207,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		PostSaveActionPtr ptrPSAction;
 
 		hr = ptrHelper->CreateArchivedMessage(lpMessage, *iArchive, refMsgEntry, &ptrArchivedMsg, &ptrPSAction);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): CreateArchivedMessage failed %x", hr);
 			goto exit;
+		}
 
 		lstArchivedMessages.push_back(make_pair(ptrArchivedMsg, ptrPSAction));
 	}
@@ -210,16 +222,20 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		SObjectEntry refArchiveEntry;
 
 		hr = iArchivedMessage->first->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cArchivedMsgProps, &ptrArchivedMsgProps);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
 			goto exit;
+		}
 
 		refArchiveEntry.sItemEntryId.assign(ptrArchivedMsgProps[IDX_ENTRYID].Value.bin);
 		refArchiveEntry.sStoreEntryId.assign(ptrArchivedMsgProps[IDX_STORE_ENTRYID].Value.bin);
 		lstReferences.push_back(refArchiveEntry);
 
 		hr = iArchivedMessage->first->SaveChanges(KEEP_OPEN_READWRITE);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed %x", hr);
 			goto exit;
+		}
 
 		if (iArchivedMessage->second) {
 			HRESULT hrTmp = iArchivedMessage->second->Execute();
@@ -235,8 +251,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	lstReferences.unique();
 
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): failed creating reference to original message %x", hr);
 		goto exit;
+	}
 
 	hr = ptrMsgHelper->SetArchiveList(lstReferences, true);
 
@@ -274,20 +292,26 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	}
 
 	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): GetProps failed %x", hr);
 		goto exit;
+	}
 
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, 0, &ptrStore);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): OpenMsgStore failed %x", hr);
 		goto exit;
+	}
 
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): StoreHelper::Create failed %x", hr);
 		goto exit;
+	}
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to obtain list of attached archives. hr=0x%08x", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to obtain list of attached archives. hr=0x%08x", hr);
 		SetErrorMessage(hr, _("Unable to obtain list of attached archives."));
 		goto exit;
 	}
@@ -298,16 +322,20 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	}
 
 	hr = ArchiverSession::Create(m_ptrSession, m_lpLogger, &ptrSession);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): ArchiverSession::Create failed %x", hr);
 		goto exit;
+	}
 
 	/**
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
 	hr = InstanceIdMapper::Create(m_lpLogger, NULL, &ptrMapper);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): InstanceIdMapper::Create failed %x", hr);
 		goto exit;
+	}
 
 	// First create all (mostly one) the archive messages without saving them.
 	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, MAPIFolderPtr()));	// We pass an empty MAPIFolderPtr here!
@@ -325,14 +353,14 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 
 		hr = ptrArchiveHelper->GetOutgoingFolder(&ptrArchiveFolder);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get outgoing archive folder. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get outgoing archive folder. hr=0x%08x", hr);
 			SetErrorMessage(hr, _("Unable to get outgoing archive folder."));
 			goto exit;
 		}
 
 		hr = ptrArchiveFolder->CreateMessage(&ptrArchivedMsg.iid, 0, &ptrArchivedMsg);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create message in outgoing archive folder. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to create message in outgoing archive folder. hr=0x%08x", hr);
 			SetErrorMessage(hr, _("Unable to create archive message in outgoing archive folder."));
 			goto exit;
 		}
@@ -351,7 +379,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	for (iArchivedMessage = lstArchivedMessages.begin(); iArchivedMessage != lstArchivedMessages.end(); ++iArchivedMessage) {
 		hr = iArchivedMessage->first->SaveChanges(KEEP_OPEN_READONLY);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to save message in archive. hr=0x%08x", hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to save message in archive. hr=0x%08x", hr);
 			SetErrorMessage(hr, _("Unable to save archived message."));
 			goto exit;
 		}

@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -173,12 +168,12 @@ struct saveObject {
 	struct entryList *lpInstanceIds;	/* Single Instance Id (NULL for new item, or if Single Instancing is unknown) */
 };
 
-struct loadObjectResponse {
+struct ns:loadObjectResponse {
 	unsigned int er;
 	struct saveObject sSaveObject;
 };
 
-struct logonResponse {
+struct ns:logonResponse {
 	unsigned int	er;
 	ULONG64 ulSessionId;
 	char			*lpszVersion;
@@ -187,7 +182,7 @@ struct logonResponse {
 	struct xsd__base64Binary sServerGuid;
 };
 
-struct ssoLogonResponse {
+struct ns:ssoLogonResponse {
 	unsigned int	er;
 	ULONG64 ulSessionId;
 	char			*lpszVersion;
@@ -197,7 +192,7 @@ struct ssoLogonResponse {
 	struct xsd__base64Binary sServerGuid;
 };
 
-struct getStoreResponse {
+struct ns:getStoreResponse {
 	unsigned int				er;
 	entryId						sStoreId;	// id of store
 	entryId						sRootId;	// root folder id of store
@@ -205,12 +200,12 @@ struct getStoreResponse {
 	char						*lpszServerPath;
 };
 
-struct getStoreNameResponse {
+struct ns:getStoreNameResponse {
 	char			*lpszStoreName;
 	unsigned int	er;
 };
 
-struct getStoreTypeResponse {
+struct ns:getStoreTypeResponse {
 	unsigned int	ulStoreType;
 	unsigned int	er;
 };
@@ -229,23 +224,23 @@ struct sortOrderArray {
 	int __size;
 };
 
-struct readPropsResponse {
+struct ns:readPropsResponse {
 	unsigned int er;
 	struct propTagArray aPropTag;
 	struct propValArray aPropVal;
 };
 
-struct loadPropResponse {
+struct ns:loadPropResponse {
 	unsigned int er;
 	struct propVal *lpPropVal;
 };
 
-struct createFolderResponse {
+struct ns:createFolderResponse {
 	unsigned int er;
 	entryId	sEntryId;
 };
 
-struct tableOpenResponse {
+struct ns:tableOpenResponse {
 	unsigned int er;
 	unsigned int ulTableId;
 };
@@ -273,49 +268,49 @@ struct rowSet {
 	int __size;
 };
 
-struct tableQueryRowsResponse {
+struct ns:tableQueryRowsResponse {
 	unsigned int er;
 	struct rowSet sRowSet;
 };
 
-struct tableQueryColumnsResponse {
+struct ns:tableQueryColumnsResponse {
 	unsigned int er;
 	struct propTagArray sPropTagArray;
 };
 
-struct tableGetRowCountResponse {
+struct ns:tableGetRowCountResponse {
 	unsigned int er;
 	unsigned int ulCount;
 	unsigned int ulRow;
 };
 
-struct tableSeekRowResponse {
+struct ns:tableSeekRowResponse {
 	unsigned int er;
 	int lRowsSought; // may be negative
 };
 
-struct tableBookmarkResponse {
+struct ns:tableBookmarkResponse {
 	unsigned int er;
 	unsigned int ulbkPosition;
 };
 
-struct tableExpandRowResponse {
+struct ns:tableExpandRowResponse {
     unsigned int er;
     struct rowSet rowSet;
     unsigned int ulMoreRows;
 };
 
-struct tableCollapseRowResponse {
+struct ns:tableCollapseRowResponse {
     unsigned int er;
     unsigned int ulRows;
 };
 
-struct tableGetCollapseStateResponse {
+struct ns:tableGetCollapseStateResponse {
     struct xsd__base64Binary sCollapseState;
     unsigned int er;
 };
 
-struct tableSetCollapseStateResponse {
+struct ns:tableSetCollapseStateResponse {
     unsigned int ulBookmark;
     unsigned int er;
 };
@@ -330,7 +325,7 @@ struct tableMultiRequest {
     struct tableQueryRowsRequest *lpQueryRows; 	// QueryRows
 };
 
-struct tableMultiResponse {
+struct ns:tableMultiResponse {
     unsigned int er;
     unsigned int ulTableId;
     struct rowSet sRowSet; 						// QueryRows
@@ -395,7 +390,7 @@ struct notificationArray {
 	struct notification *__ptr;
 };
 
-struct notifyResponse {
+struct ns:notifyResponse {
 	struct notificationArray	*pNotificationArray;
 	unsigned int er;
 };
@@ -432,7 +427,7 @@ struct rightsArray {
 	struct rights *__ptr;
 };
 
-struct rightsResponse {
+struct ns:rightsResponse {
 	struct rightsArray	*pRightsArray;
 	unsigned int er;
 };
@@ -449,12 +444,12 @@ struct userobjectArray {
 	struct userobject *__ptr;
 };
 
-struct userobjectResponse {
+struct ns:userobjectResponse {
 	struct userobjectArray *pUserObjectArray;
 	unsigned int er;
 };
 
-struct getOwnerResponse {
+struct ns:getOwnerResponse {
 	unsigned int ulOwner;
 	entryId sOwner;
 	unsigned int er;
@@ -478,12 +473,12 @@ struct namedPropArray {
 	struct namedProp * __ptr;
 };
 
-struct getIDsFromNamesResponse {
+struct ns:getIDsFromNamesResponse {
 	struct propTagArray lpsPropTags;
 	unsigned int er;
 };
 
-struct getNamesFromIDsResponse {
+struct ns:getNamesFromIDsResponse {
 	struct namedPropArray lpsNames;
 	unsigned int er;
 };
@@ -563,7 +558,7 @@ struct restrictTable {
 	struct restrictSub *lpSub;
 };
 
-struct tableGetSearchCriteriaResponse {
+struct ns:tableGetSearchCriteriaResponse {
 	struct restrictTable *lpRestrict;
 	struct entryList *lpFolderIDs;
 	unsigned int ulFlags;
@@ -575,7 +570,7 @@ struct receiveFolder {
 	char* lpszAExplicitClass;
 };
 
-struct receiveFolderResponse {
+struct ns:receiveFolderResponse {
 	struct receiveFolder sReceiveFolder;
 	unsigned int er;
 };
@@ -585,7 +580,7 @@ struct receiveFoldersArray {
 	struct receiveFolder * __ptr;
 };
 
-struct receiveFolderTableResponse {
+struct ns:receiveFolderTableResponse {
 	struct receiveFoldersArray sFolderArray;
 	unsigned int er;
 };
@@ -638,17 +633,17 @@ struct userArray {
 	struct user *__ptr;
 };
 
-struct userListResponse {
+struct ns:userListResponse {
 	struct userArray sUserArray;
 	unsigned int er;
 };
 
-struct getUserResponse {
+struct ns:getUserResponse {
 	struct user  *lpsUser;
 	unsigned int er;
 };
 
-struct setUserResponse {
+struct ns:setUserResponse {
 	unsigned int ulUserId;
 	entryId		 sUserId;
 	unsigned int er;
@@ -670,17 +665,17 @@ struct groupArray {
 	struct group *__ptr;
 };
 
-struct groupListResponse {
+struct ns:groupListResponse {
 	struct groupArray sGroupArray;
 	unsigned int er;
 };
 
-struct getGroupResponse {
+struct ns:getGroupResponse {
 	struct group *lpsGroup;
 	unsigned int er;
 };
 
-struct setGroupResponse {
+struct ns:setGroupResponse {
 	unsigned int ulGroupId;
 	entryId		 sGroupId;
 	unsigned int er;
@@ -703,23 +698,23 @@ struct companyArray {
 	struct company *__ptr;
 };
 
-struct companyListResponse {
+struct ns:companyListResponse {
 	struct companyArray sCompanyArray;
 	unsigned int er;
 };
 
-struct getCompanyResponse {
+struct ns:getCompanyResponse {
 	struct company *lpsCompany;
 	unsigned int er;
 };
 
-struct setCompanyResponse {
+struct ns:setCompanyResponse {
 	unsigned int ulCompanyId;
 	entryId sCompanyId;
 	unsigned int er;
 };
 
-struct resolveUserStoreResponse {
+struct ns:resolveUserStoreResponse {
 	unsigned int ulUserId;
 	entryId	sUserId;
 	entryId	sStoreId;
@@ -739,19 +734,19 @@ struct userProfileResponse {
 	unsigned int er;
 };
 
-struct resolveCompanyResponse {
+struct ns:resolveCompanyResponse {
 	unsigned int ulCompanyId;
 	entryId sCompanyId;
 	unsigned int er;
 };
 
-struct resolveGroupResponse {
+struct ns:resolveGroupResponse {
 	unsigned int ulGroupId;
 	entryId sGroupId;
 	unsigned int er;
 };
 
-struct resolveUserResponse {
+struct ns:resolveUserResponse {
 	unsigned int ulUserId;
 	entryId sUserId;
 	unsigned int er;
@@ -767,7 +762,7 @@ struct flagArray {
 	unsigned int *__ptr;
 };
 
-struct abResolveNamesResponse {
+struct ns:abResolveNamesResponse {
 	struct rowSet sRowSet;
 	struct flagArray aFlags;
 	unsigned int er;
@@ -809,18 +804,18 @@ struct quota {
 	LONG64 llHardSize;
 };
 
-struct quotaResponse {
+struct ns:quotaResponse {
 	struct quota sQuota;
 	unsigned int er;
 };
 
-struct quotaStatus {
+struct ns:quotaStatus {
 	LONG64 llStoreSize;
 	unsigned int ulQuotaStatus;
 	unsigned int er;
 };
 
-struct messageStatus {
+struct ns:messageStatus {
 	unsigned int ulMessageStatus;
 	unsigned int er;
 };
@@ -838,27 +833,27 @@ struct icsChangesArray {
 	struct icsChange *__ptr;
 };
 
-struct icsChangeResponse {
+struct ns:icsChangeResponse {
 	struct icsChangesArray sChangesArray;
 	unsigned int ulMaxChangeId;
 	unsigned int er;
 };
 
-struct setSyncStatusResponse {
+struct ns:setSyncStatusResponse {
 	unsigned int ulSyncId;
 	unsigned int er;
 };
 
-struct getEntryIDFromSourceKeyResponse {
+struct ns:getEntryIDFromSourceKeyResponse {
 	entryId	sEntryId;
 	unsigned int er;
 };
 
-struct getLicenseAuthResponse {
+struct ns:getLicenseAuthResponse {
     struct xsd__base64Binary sAuthResponse;
     unsigned int er;
 };
-struct resolvePseudoUrlResponse {
+struct ns:resolvePseudoUrlResponse {
 	char *lpszServerPath;
 	bool bIsPeer;
 	unsigned int er;
@@ -869,12 +864,12 @@ struct licenseCapabilities {
     char **__ptr;
 };
 
-struct getLicenseCapaResponse {
+struct ns:getLicenseCapaResponse {
     struct licenseCapabilities sCapabilities;
     unsigned int er;
 };
 
-struct getLicenseUsersResponse {
+struct ns:getLicenseUsersResponse {
 	unsigned int ulUsers;
 	unsigned int er;
 };
@@ -893,12 +888,12 @@ struct serverList {
 	struct server *__ptr;
 };
 
-struct getServerDetailsResponse {
+struct ns:getServerDetailsResponse {
 	struct serverList sServerList;
 	unsigned int er;
 };
 
-struct getServerBehaviorResponse {
+struct ns:getServerBehaviorResponse {
 	unsigned int ulBehavior;
 	unsigned int er;
 };
@@ -924,12 +919,12 @@ struct messageStreamArray {
 	struct messageStream *__ptr;
 };
 
-struct exportMessageChangesAsStreamResponse {
+struct ns:exportMessageChangesAsStreamResponse {
 	struct messageStreamArray sMsgStreams;
 	unsigned int er;
 };
 
-struct getChangeInfoResponse {
+struct ns:getChangeInfoResponse {
 	struct propVal sPropPCL;
 	struct propVal sPropCK;
 	unsigned int er;
@@ -945,17 +940,17 @@ struct syncStateArray {
 	struct syncState *__ptr;
 };
 
-struct getSyncStatesReponse {
+struct ns:getSyncStatesReponse {
 	struct syncStateArray sSyncStates;
 	unsigned int er;
 };
 
-struct purgeDeferredUpdatesResponse {
+struct ns:purgeDeferredUpdatesResponse {
     unsigned int ulDeferredRemaining;
     unsigned int er;
 };
 
-struct userClientUpdateStatusResponse {
+struct ns:userClientUpdateStatusResponse {
 	unsigned int ulTrackId;
 	time_t tUpdatetime;
 	char *lpszCurrentversion;
@@ -965,7 +960,7 @@ struct userClientUpdateStatusResponse {
 	unsigned int er;
 };
 
-struct resetFolderCountResponse {
+struct ns:resetFolderCountResponse {
 	unsigned int ulUpdates;
 	unsigned int er;
 };
@@ -988,25 +983,25 @@ struct resetFolderCountResponse {
 
 #define fnevZarafaIcsChange			(fnevExtended | 0x00000001)
 
-int ns__logon(char * szUsername, char * szPassword, char * szImpersonateUser, char * szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct logonResponse *lpsLogonResponse);
-int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, char * szImpersonateUser, struct xsd__base64Binary *lpInput, char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, struct ssoLogonResponse *lpsResponse);
+int ns__logon(char * szUsername, char * szPassword, char * szImpersonateUser, char * szVersion, unsigned int ulCapabilities, unsigned int ulFlags, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ns:logonResponse *lpsLogonResponse);
+int ns__ssoLogon(ULONG64 ulSessionId, char *szUsername, char * szImpersonateUser, struct xsd__base64Binary *lpInput, char *clientVersion, unsigned int clientCaps, struct xsd__base64Binary sLicenseReq, ULONG64 ullSessionGroup, char *szClientApp, char *szClientAppVersion, char *szClientAppMisc, struct ns:ssoLogonResponse *lpsResponse);
 
-int ns__getStore(ULONG64 ulSessionId, entryId* lpsEntryId, struct getStoreResponse *lpsResponse);
-int ns__getStoreName(ULONG64 ulSessionId, entryId sEntryId, struct getStoreNameResponse* lpsResponse);
-int ns__getStoreType(ULONG64 ulSessionId, entryId sEntryId, struct getStoreTypeResponse* lpsResponse);
-int ns__getPublicStore(ULONG64 ulSessionId, unsigned int ulFlags, struct getStoreResponse *lpsResponse);
+int ns__getStore(ULONG64 ulSessionId, entryId* lpsEntryId, struct ns:getStoreResponse *lpsResponse);
+int ns__getStoreName(ULONG64 ulSessionId, entryId sEntryId, struct ns:getStoreNameResponse* lpsResponse);
+int ns__getStoreType(ULONG64 ulSessionId, entryId sEntryId, struct ns:getStoreTypeResponse* lpsResponse);
+int ns__getPublicStore(ULONG64 ulSessionId, unsigned int ulFlags, struct ns:getStoreResponse *lpsResponse);
 int ns__logoff(ULONG64 ulSessionId, unsigned int *result);
 
-int ns__getRights(ULONG64 ulSessionId, entryId sEntryId, int ulType, struct rightsResponse *lpsRightResponse);
+int ns__getRights(ULONG64 ulSessionId, entryId sEntryId, int ulType, struct ns:rightsResponse *lpsRightResponse);
 int ns__setRights(ULONG64 ulSessionId, entryId sEntryId, struct rightsArray *lpsrightsArray, unsigned int *result);
-int ns__getUserObjectList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, int ulType, struct userobjectResponse *lpsUserObjectResponse);
+int ns__getUserObjectList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, int ulType, struct ns:userobjectResponse *lpsUserObjectResponse);
 
 /* loads a big prop from an object */
-int ns__loadProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse);
-int ns__saveObject(ULONG64 ulSessionId, entryId sParentEntryId, entryId sEntryId, struct saveObject *lpsSaveObj, unsigned int ulFlags, unsigned int ulSyncId, struct loadObjectResponse *lpsLoadObjectResponse);
-int ns__loadObject(ULONG64 ulSessionId, entryId sEntryId, struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags, struct loadObjectResponse *lpsLoadObjectResponse);
+int ns__loadProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct ns:loadPropResponse *lpsResponse);
+int ns__saveObject(ULONG64 ulSessionId, entryId sParentEntryId, entryId sEntryId, struct saveObject *lpsSaveObj, unsigned int ulFlags, unsigned int ulSyncId, struct ns:loadObjectResponse *lpsLoadObjectResponse);
+int ns__loadObject(ULONG64 ulSessionId, entryId sEntryId, struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags, struct ns:loadObjectResponse *lpsLoadObjectResponse);
 
-int ns__createFolder(ULONG64 ulSessionId, entryId sParentId, entryId* lpsNewEntryId, unsigned int ulType, char *szName, char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct createFolderResponse *lpsCreateFolderResponse);
+int ns__createFolder(ULONG64 ulSessionId, entryId sParentId, entryId* lpsNewEntryId, unsigned int ulType, char *szName, char *szComment, bool fOpenIfExists, unsigned int ulSyncId, struct xsd__base64Binary sOrigSourceKey, struct ns:createFolderResponse *lpsCreateFolderResponse);
 int ns__deleteObjects(ULONG64 ulSessionId, unsigned int ulFlags, struct entryList *aMessages, unsigned int ulSyncId, unsigned int *result);
 int ns__copyObjects(ULONG64 ulSessionId, struct entryList *aMessages, entryId sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__emptyFolder(ULONG64 ulSessionId, entryId sEntryId,  unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
@@ -1014,42 +1009,42 @@ int ns__deleteFolder(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags
 int ns__copyFolder(ULONG64 ulSessionId, entryId sEntryId, entryId sDestFolderId, char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result);
 int ns__setReadFlags(ULONG64 ulSessionId, unsigned int ulFlags, entryId* lpsEntryId, struct entryList *lpMessages, unsigned int ulSyncId, unsigned int *result);
 int ns__setReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, entryId* lpsEntryId, char* lpszMessageClass, unsigned int *result);
-int ns__getReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, char* lpszMessageClass, struct receiveFolderResponse *lpsReceiveFolder);
-int ns__getReceiveFolderTable(ULONG64 ulSessionId, entryId sStoreId, struct receiveFolderTableResponse *lpsReceiveFolderTable);
+int ns__getReceiveFolder(ULONG64 ulSessionId, entryId sStoreId, char* lpszMessageClass, struct ns:receiveFolderResponse *lpsReceiveFolder);
+int ns__getReceiveFolderTable(ULONG64 ulSessionId, entryId sStoreId, struct ns:receiveFolderTableResponse *lpsReceiveFolderTable);
 
-int ns__getMessageStatus(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, struct messageStatus* lpsStatus);
-int ns__setMessageStatus(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulNewStatus, unsigned int ulNewStatusMask, unsigned int ulSyncId, struct messageStatus* lpsOldStatus);
+int ns__getMessageStatus(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, struct ns:messageStatus* lpsStatus);
+int ns__setMessageStatus(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulNewStatus, unsigned int ulNewStatusMask, unsigned int ulSyncId, struct ns:messageStatus* lpsOldStatus);
 
-int ns__getIDsFromNames(ULONG64 ulSessionId, struct namedPropArray *lpsNamedProps, unsigned int ulFlags, struct getIDsFromNamesResponse *lpsResponse);
-int ns__getNamesFromIDs(ULONG64 ulSessionId, struct propTagArray *lpsPropTags, struct getNamesFromIDsResponse *lpsResponse);
+int ns__getIDsFromNames(ULONG64 ulSessionId, struct namedPropArray *lpsNamedProps, unsigned int ulFlags, struct ns:getIDsFromNamesResponse *lpsResponse);
+int ns__getNamesFromIDs(ULONG64 ulSessionId, struct propTagArray *lpsPropTags, struct ns:getNamesFromIDsResponse *lpsResponse);
 
 int ns__notify(ULONG64 ulSessionId, struct notification sNotification, unsigned int *er);
 int ns__notifySubscribe(ULONG64 ulSessionId, struct notifySubscribe *notifySubscribe, unsigned int *result);
 int ns__notifySubscribeMulti(ULONG64 ulSessionId, struct notifySubscribeArray *notifySubscribeArray, unsigned int *result);
 int ns__notifyUnSubscribe(ULONG64 ulSessionId, unsigned int ulConnection, unsigned int *result);
 int ns__notifyUnSubscribeMulti(ULONG64 ulSessionId, struct mv_long *ulConnectionArray, unsigned int *result);
-int ns__notifyGetItems(ULONG64 ulSessionId, struct notifyResponse *notifications);
+int ns__notifyGetItems(ULONG64 ulSessionId, struct ns:notifyResponse *notifications);
 
-int ns__tableOpen(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulTableType, unsigned int ulType, unsigned int ulFlags, struct tableOpenResponse *lpsTableOpenResponse);
+int ns__tableOpen(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulTableType, unsigned int ulType, unsigned int ulFlags, struct ns:tableOpenResponse *lpsTableOpenResponse);
 int ns__tableClose(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int *result);
 int ns__tableSetColumns(ULONG64 ulSessionId, unsigned int ulTableId, struct propTagArray *aPropTag, unsigned int *result);
-int ns__tableQueryColumns(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulFlags, struct tableQueryColumnsResponse *lpsTableQueryColumnsResponse);
+int ns__tableQueryColumns(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulFlags, struct ns:tableQueryColumnsResponse *lpsTableQueryColumnsResponse);
 int ns__tableSort(ULONG64 ulSessionId, unsigned int ulTableId, struct sortOrderArray *aSortOrder, unsigned int ulCategories, unsigned int ulExpanded, unsigned int *result);
 int ns__tableRestrict(ULONG64 ulSessionId, unsigned int ulTableId, struct restrictTable *lpRestrict, unsigned int *result);
-int ns__tableGetRowCount(ULONG64 ulSessionId, unsigned int ulTableId, struct tableGetRowCountResponse *lpsTableGetRowCountResponse);
-int ns__tableQueryRows(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulRowCount, unsigned int ulFlags, struct tableQueryRowsResponse *lpsQueryRowsResponse);
+int ns__tableGetRowCount(ULONG64 ulSessionId, unsigned int ulTableId, struct ns:tableGetRowCountResponse *lpsTableGetRowCountResponse);
+int ns__tableQueryRows(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulRowCount, unsigned int ulFlags, struct ns:tableQueryRowsResponse *lpsQueryRowsResponse);
 int ns__tableFindRow(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulBookmark, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *result);
-int ns__tableSeekRow(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulBookmark, int lRowCount, struct tableSeekRowResponse *lpsResponse);
-int ns__tableCreateBookmark(ULONG64 ulSessionId, unsigned int ulTableId, struct tableBookmarkResponse *lpsResponse);
+int ns__tableSeekRow(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulBookmark, int lRowCount, struct ns:tableSeekRowResponse *lpsResponse);
+int ns__tableCreateBookmark(ULONG64 ulSessionId, unsigned int ulTableId, struct ns:tableBookmarkResponse *lpsResponse);
 int ns__tableFreeBookmark(ULONG64 ulSessionId, unsigned int ulTableId, unsigned int ulbkPosition, unsigned int *result);
 int ns__tableSetSearchCriteria(ULONG64 ulSessionId, entryId sEntryId, struct restrictTable *lpRestrict, struct entryList *lpFolders, unsigned int ulFlags, unsigned int *result);
-int ns__tableGetSearchCriteria(ULONG64 ulSessionId, entryId sEntryId, struct tableGetSearchCriteriaResponse *lpsResponse);
+int ns__tableGetSearchCriteria(ULONG64 ulSessionId, entryId sEntryId, struct ns:tableGetSearchCriteriaResponse *lpsResponse);
 int ns__tableSetMultiStoreEntryIDs(ULONG64 ulSessionId, unsigned int ulTableId, struct entryList *aMessages, unsigned int *result);
-int ns__tableExpandRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct tableExpandRowResponse *lpsTableExpandRowResponse);
-int ns__tableCollapseRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulFlags, struct tableCollapseRowResponse *lpsTableCollapseRowResponse);
-int ns__tableGetCollapseState(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sBookmark, struct tableGetCollapseStateResponse *lpsResponse);
-int ns__tableSetCollapseState(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sCollapseState, struct tableSetCollapseStateResponse *lpsResponse);
-int ns__tableMulti(ULONG64 ulSessionId, struct tableMultiRequest sRequest, struct tableMultiResponse *lpsResponse);
+int ns__tableExpandRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct ns:tableExpandRowResponse *lpsTableExpandRowResponse);
+int ns__tableCollapseRow(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sInstanceKey, unsigned int ulFlags, struct ns:tableCollapseRowResponse *lpsTableCollapseRowResponse);
+int ns__tableGetCollapseState(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sBookmark, struct ns:tableGetCollapseStateResponse *lpsResponse);
+int ns__tableSetCollapseState(ULONG64 ulSessionId, unsigned int ulTableId, struct xsd__base64Binary sCollapseState, struct ns:tableSetCollapseStateResponse *lpsResponse);
+int ns__tableMulti(ULONG64 ulSessionId, struct tableMultiRequest sRequest, struct ns:tableMultiResponse *lpsResponse);
 
 int ns__submitMessage(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
 int ns__finishedMessage(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
@@ -1057,27 +1052,27 @@ int ns__abortSubmit(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result)
 int ns__isMessageInQueue(ULONG64 ulSessionId, entryId sEntryId, unsigned int *result);
 
 // Get user ID / store for username (username == NULL for current user)
-int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse);
-int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct resolveUserStoreResponse *lpsResponse);
+int ns__resolveStore(ULONG64 ulSessionId, struct xsd__base64Binary sStoreGuid, struct ns:resolveUserStoreResponse *lpsResponse);
+int ns__resolveUserStore(ULONG64 ulSessionId, char *szUserName, unsigned int ulStoreTypeMask, unsigned int ulFlags, struct ns:resolveUserStoreResponse *lpsResponse);
 
 // Actual user creation/deletion in the external user source
-int ns__createUser(ULONG64 ulSessionId, struct user *lpsUser, struct setUserResponse *lpsUserSetResponse);
+int ns__createUser(ULONG64 ulSessionId, struct user *lpsUser, struct ns:setUserResponse *lpsUserSetResponse);
 int ns__deleteUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, unsigned int *result);
 int ns__removeAllObjects(ULONG64 ulSessionId, entryId sExceptUserId, unsigned int *result);
 
 // Get user fullname/name/emailaddress/etc for specific user id (userid = 0 for current user)
-int ns__getUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct getUserResponse *lpsUserGetResponse);
+int ns__getUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct ns:getUserResponse *lpsUserGetResponse);
 int ns__setUser(ULONG64 ulSessionId, struct user *lpsUser, unsigned int *result);
-int ns__getUserList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList);
-int ns__getSendAsList(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct userListResponse *lpsUserList);
+int ns__getUserList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct ns:userListResponse *lpsUserList);
+int ns__getSendAsList(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct ns:userListResponse *lpsUserList);
 int ns__addSendAsUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result);
 int ns__delSendAsUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result);
-int ns__getUserClientUpdateStatus(ULONG64 ulSessionId, entryId sUserId, struct userClientUpdateStatusResponse *lpsResponse);
+int ns__getUserClientUpdateStatus(ULONG64 ulSessionId, entryId sUserId, struct ns:userClientUpdateStatusResponse *lpsResponse);
 
 // Start softdelete purge
 int ns__purgeSoftDelete(ULONG64 ulSessionId, unsigned int ulDays, unsigned int *result);
 // Do deferred purge
-int ns__purgeDeferredUpdates(ULONG64 ulSessionId, struct purgeDeferredUpdatesResponse *lpsResponse);
+int ns__purgeDeferredUpdates(ULONG64 ulSessionId, struct ns:purgeDeferredUpdatesResponse *lpsResponse);
 // Clear the cache
 int ns__purgeCache(ULONG64 ulSessionId, unsigned int ulFlags, unsigned int *result);
 
@@ -1092,82 +1087,82 @@ int ns__hookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId
 // Unhook a store from a specific user
 int ns__unhookStore(ULONG64 ulSessionId, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result);
 
-int ns__getOwner(ULONG64 ulSessionId, entryId sEntryId, struct getOwnerResponse *lpsResponse);
-int ns__resolveUsername(ULONG64 ulSessionId,  char *lpszUsername, struct resolveUserResponse *lpsResponse);
+int ns__getOwner(ULONG64 ulSessionId, entryId sEntryId, struct ns:getOwnerResponse *lpsResponse);
+int ns__resolveUsername(ULONG64 ulSessionId,  char *lpszUsername, struct ns:resolveUserResponse *lpsResponse);
 
-int ns__createGroup(ULONG64 ulSessionId, struct group *lpsGroup, struct setGroupResponse *lpsSetGroupResponse);
+int ns__createGroup(ULONG64 ulSessionId, struct group *lpsGroup, struct ns:setGroupResponse *lpsSetGroupResponse);
 int ns__setGroup(ULONG64 ulSessionId, struct group *lpsGroup, unsigned int *result);
-int ns__getGroup(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, struct getGroupResponse *lpsReponse);
-int ns__getGroupList(ULONG64 ulSessionId,  unsigned int ulCompanyId, entryId sCompanyId, struct groupListResponse *lpsGroupList);
+int ns__getGroup(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, struct ns:getGroupResponse *lpsReponse);
+int ns__getGroupList(ULONG64 ulSessionId,  unsigned int ulCompanyId, entryId sCompanyId, struct ns:groupListResponse *lpsGroupList);
 int ns__groupDelete(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int *result);
-int ns__resolveGroupname(ULONG64 ulSessionId,  char *lpszGroupname, struct resolveGroupResponse *lpsResponse);
+int ns__resolveGroupname(ULONG64 ulSessionId,  char *lpszGroupname, struct ns:resolveGroupResponse *lpsResponse);
 
 int ns__deleteGroupUser(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result);
 int ns__addGroupUser(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result);
-int ns__getUserListOfGroup(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, struct userListResponse *lpsUserList);
-int ns__getGroupListOfUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct groupListResponse *lpsGroupList);
+int ns__getUserListOfGroup(ULONG64 ulSessionId, unsigned int ulGroupId, entryId sGroupId, struct ns:userListResponse *lpsUserList);
+int ns__getGroupListOfUser(ULONG64 ulSessionId, unsigned int ulUserId, entryId sUserId, struct ns:groupListResponse *lpsGroupList);
 
-int ns__createCompany(ULONG64 ulSessionId, struct company *lpsCompany, struct setCompanyResponse *lpsResponse);
+int ns__createCompany(ULONG64 ulSessionId, struct company *lpsCompany, struct ns:setCompanyResponse *lpsResponse);
 int ns__deleteCompany(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
 int ns__setCompany(ULONG64 ulSessionId, struct company *lpsCompany, unsigned int *result);
-int ns__getCompany(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct getCompanyResponse *lpsResponse);
-int ns__resolveCompanyname(ULONG64 ulSessionId, char *lpszCompanyname, struct resolveCompanyResponse *lpsResponse);
-int ns__getCompanyList(ULONG64 ulSessionId, struct companyListResponse *lpsCompanyList);
+int ns__getCompany(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct ns:getCompanyResponse *lpsResponse);
+int ns__resolveCompanyname(ULONG64 ulSessionId, char *lpszCompanyname, struct ns:resolveCompanyResponse *lpsResponse);
+int ns__getCompanyList(ULONG64 ulSessionId, struct ns:companyListResponse *lpsCompanyList);
 
 int ns__addCompanyToRemoteViewList(ULONG64 ecSessionId, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
 int ns__delCompanyFromRemoteViewList(ULONG64 ecSessionId, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
-int ns__getRemoteViewList(ULONG64 ecSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct companyListResponse *lpsCompanyList);
+int ns__getRemoteViewList(ULONG64 ecSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct ns:companyListResponse *lpsCompanyList);
 int ns__addUserToRemoteAdminList(ULONG64 ecSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
 int ns__delUserFromRemoteAdminList(ULONG64 ecSessionId, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
-int ns__getRemoteAdminList(ULONG64 ecSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList);
+int ns__getRemoteAdminList(ULONG64 ecSessionId, unsigned int ulCompanyId, entryId sCompanyId, struct ns:userListResponse *lpsUserList);
 
 int ns__checkExistObject(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
 
-int ns__readABProps(ULONG64 ulSessionId, entryId sEntryId, struct readPropsResponse *readPropsResponse);
+int ns__readABProps(ULONG64 ulSessionId, entryId sEntryId, struct ns:readPropsResponse *readPropsResponse);
 int ns__writeABProps(ULONG64 ulSessionId, entryId sEntryId, struct propValArray *aPropVal, unsigned int *result);
 int ns__deleteABProps(ULONG64 ulSessionId, entryId sEntryId, struct propTagArray *lpsPropTags, unsigned int *result);
-int ns__loadABProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse);
+int ns__loadABProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulPropTag, struct ns:loadPropResponse *lpsResponse);
 
-int ns__abResolveNames(ULONG64 ulSessionId, struct propTagArray* lpaPropTag, struct rowSet* lpsRowSet, struct flagArray* lpaFlags, unsigned int ulFlags, struct abResolveNamesResponse* lpsABResolveNames);
+int ns__abResolveNames(ULONG64 ulSessionId, struct propTagArray* lpaPropTag, struct rowSet* lpsRowSet, struct flagArray* lpaFlags, unsigned int ulFlags, struct ns:abResolveNamesResponse* lpsABResolveNames);
 
 int ns__syncUsers(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result);
 
 int ns__setLockState(ULONG64 ulSessionId, entryId sEntryId, bool bLocked, unsigned int *result); 
 
-int ns__resetFolderCount(ULONG64 ulSessionId, entryId sEntryId, struct resetFolderCountResponse *lpsResponse);
+int ns__resetFolderCount(ULONG64 ulSessionId, entryId sEntryId, struct ns:resetFolderCountResponse *lpsResponse);
 
 // Quota
-int ns__GetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota);
+int ns__GetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct ns:quotaResponse* lpsQuota);
 int ns__SetQuota(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct quota* lpsQuota, unsigned int *result);
 int ns__AddQuotaRecipient(ULONG64 ulSessionId, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
 int ns__DeleteQuotaRecipient(ULONG64 ulSessionId, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
-int ns__GetQuotaRecipients(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct userListResponse *lpsResponse);
-int ns__GetQuotaStatus(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct quotaStatus* lpsQuotaStatus);
+int ns__GetQuotaRecipients(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct ns:userListResponse *lpsResponse);
+int ns__GetQuotaStatus(ULONG64 ulSessionId, unsigned int ulUserid, entryId sUserId, struct ns:quotaStatus* lpsQuotaStatus);
 
 // Incremental Change Synchronization
-int ns__getChanges(ULONG64 ulSessionId, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, struct icsChangeResponse* lpsChanges);
-int ns__setSyncStatus(ULONG64 ulSessionId, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct setSyncStatusResponse *lpsResponse);
+int ns__getChanges(ULONG64 ulSessionId, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, struct ns:icsChangeResponse* lpsChanges);
+int ns__setSyncStatus(ULONG64 ulSessionId, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct ns:setSyncStatusResponse *lpsResponse);
 
-int ns__getEntryIDFromSourceKey(ULONG64 ulSessionId, entryId sStoreId, struct xsd__base64Binary folderSourceKey, struct xsd__base64Binary messageSourceKey, struct getEntryIDFromSourceKeyResponse *lpsResponse);
-int ns__getSyncStates(ULONG64 ulSessionId, struct mv_long ulaSyncId, struct getSyncStatesReponse *lpsResponse);
+int ns__getEntryIDFromSourceKey(ULONG64 ulSessionId, entryId sStoreId, struct xsd__base64Binary folderSourceKey, struct xsd__base64Binary messageSourceKey, struct ns:getEntryIDFromSourceKeyResponse *lpsResponse);
+int ns__getSyncStates(ULONG64 ulSessionId, struct mv_long ulaSyncId, struct ns:getSyncStatesReponse *lpsResponse);
 
 // Licensing
-int ns__getLicenseAuth(ULONG64 ulSessionId, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse);
-int ns__getLicenseCapa(ULONG64 ulSessionId, unsigned int ulServiceType, struct getLicenseCapaResponse *lpsResponse);
-int ns__getLicenseUsers(ULONG64 ulSessionId, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse);
+int ns__getLicenseAuth(ULONG64 ulSessionId, struct xsd__base64Binary sAuthData, struct ns:getLicenseAuthResponse *lpsResponse);
+int ns__getLicenseCapa(ULONG64 ulSessionId, unsigned int ulServiceType, struct ns:getLicenseCapaResponse *lpsResponse);
+int ns__getLicenseUsers(ULONG64 ulSessionId, unsigned int ulServiceType, struct ns:getLicenseUsersResponse *lpsResponse);
 
 // Multi Server
-int ns__resolvePseudoUrl(ULONG64 ulSessionId, char *lpszPseudoUrl, struct resolvePseudoUrlResponse* lpsResponse);
-int ns__getServerDetails(ULONG64 ulSessionId, struct mv_string8 szaSvrNameList, unsigned int ulFlags, struct getServerDetailsResponse* lpsResponse);
+int ns__resolvePseudoUrl(ULONG64 ulSessionId, char *lpszPseudoUrl, struct ns:resolvePseudoUrlResponse* lpsResponse);
+int ns__getServerDetails(ULONG64 ulSessionId, struct mv_string8 szaSvrNameList, unsigned int ulFlags, struct ns:getServerDetailsResponse* lpsResponse);
 
 // Server Behavior, legacy calls for 6.30 clients, unused and may be removed in the future
-int ns__getServerBehavior(ULONG64 ulSessionId, struct getServerBehaviorResponse* lpsResponse);
+int ns__getServerBehavior(ULONG64 ulSessionId, struct ns:getServerBehaviorResponse* lpsResponse);
 int ns__setServerBehavior(ULONG64 ulSessionId, unsigned int ulBehavior, unsigned int *result);
 
 // Streaming
-int ns__exportMessageChangesAsStream(ULONG64 ulSessionId, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray, unsigned int ulPropTag, struct exportMessageChangesAsStreamResponse *lpsResponse);
+int ns__exportMessageChangesAsStream(ULONG64 ulSessionId, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray, unsigned int ulPropTag, struct ns:exportMessageChangesAsStreamResponse *lpsResponse);
 int ns__importMessageFromStream(ULONG64 ulSessionId, unsigned int ulFlags, unsigned int ulSyncId, entryId sParentEntryId, entryId sEntryId, bool bIsNew, struct propVal *lpsConflictItems, struct xsd__Binary sStreamData, unsigned int *result);
-int ns__getChangeInfo(ULONG64 ulSessionId, entryId sEntryId, struct getChangeInfoResponse *lpsResponse);
+int ns__getChangeInfo(ULONG64 ulSessionId, entryId sEntryId, struct ns:getChangeInfoResponse *lpsResponse);
 
 // Debug
 struct testPerformArgs {
@@ -1175,14 +1170,14 @@ struct testPerformArgs {
     char *__ptr[];
 };
 
-struct testGetResponse {
+struct ns:testGetResponse {
     char *szValue;    
     unsigned int er;
 };
 
 int ns__testPerform(ULONG64 ulSessionId, char *szCommand, struct testPerformArgs sPerform, unsigned int *result);
 int ns__testSet(ULONG64 ulSessionId, char *szVarName, char *szValue, unsigned int *result);
-int ns__testGet(ULONG64 ulSessionId, char *szVarName, struct testGetResponse *lpsResponse);
+int ns__testGet(ULONG64 ulSessionId, char *szVarName, struct ns:testGetResponse *lpsResponse);
 
 struct attachment {
 	char	*lpszAttachmentName;
@@ -1194,7 +1189,7 @@ struct attachmentArray {
 	struct attachment *__ptr;
 };
 
-struct clientUpdateResponse {
+struct ns:clientUpdateResponse {
 	unsigned int ulLogLevel;
 	char *lpszServerPath;
 	struct xsd__base64Binary sLicenseResponse;
@@ -1220,9 +1215,10 @@ struct clientUpdateStatusRequest {
 	struct attachmentArray sFiles;
 };
 
-struct clientUpdateStatusResponse {
+struct ns:clientUpdateStatusResponse {
 	unsigned int er;
 };
 
-int ns__getClientUpdate(struct clientUpdateInfoRequest sClientUpdateInfo, struct clientUpdateResponse* lpsResponse);
-int ns__setClientUpdateStatus(struct clientUpdateStatusRequest sClientUpdateStatus, struct clientUpdateStatusResponse* lpsResponse);
+int ns__getClientUpdate(struct clientUpdateInfoRequest sClientUpdateInfo, struct ns:clientUpdateResponse* lpsResponse);
+int ns__setClientUpdateStatus(struct clientUpdateStatusRequest sClientUpdateStatus, struct ns:clientUpdateStatusResponse* lpsResponse);
+

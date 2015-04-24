@@ -15,10 +15,10 @@ EXTRA_DIST = edkmdb.i mapi.i mapiutil.i mapidefs.i mapicode.i mapix.i	\
 	IECTestProtocol.i IECLicense.i inetmapi.i icalmapi.i				\
 	swig_iunknown.h ecdefs.i libcommon.i archiver.i licenseclient.i		\
 	libfreebusy.i zarafasync.i ECLogger.i RecurrenceState.i				\
-	RecurrenceState.swig.h mapicalendar.i mapitimezone.i
+	RecurrenceState.swig.h
 
 if ! OSS_ONLY
-EXTRA_DIST += licensereq.i
+EXTRA_DIST += licensereq.i mapicalendar.i mapitimezone.i
 endif
 
 check-syntax:

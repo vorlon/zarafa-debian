@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -116,6 +111,10 @@ public:
 	ECRESULT GetServerGUID(GUID* lpServerGuid);
 	ECRESULT GetNewSourceKey(SOURCEKEY* lpSourceKey);
 
+	virtual void SetClientMeta(const char *const lpstrClientVersion, const char *const lpstrClientMisc);
+	virtual void GetClientApplicationVersion(std::string *lpstrClientApplicationVersion);
+	virtual void GetClientApplicationMisc(std::string *lpstrClientApplicationMisc);
+
 	virtual void Lock();
 	virtual void Unlock();
 	virtual bool IsLocked();
@@ -140,11 +139,11 @@ public:
 protected:
 	unsigned int		m_ulRefCount;
 
-	std::string			m_strSourceAddr;
-	ECSESSIONID			m_sessionID;
-	bool				m_bCheckIP;
+	std::string		m_strSourceAddr;
+	ECSESSIONID		m_sessionID;
+	bool			m_bCheckIP;
 
-	time_t				m_sessionTime;
+	time_t			m_sessionTime;
 	unsigned int		m_ulSessionTimeout;
 
 	ECDatabaseFactory	*m_lpDatabaseFactory;
@@ -158,9 +157,11 @@ protected:
 	
 	pthread_mutex_t		m_hRequestStats;
 	unsigned int		m_ulRequests;
-	std::string			m_strLastRequestURL;
-	std::string			m_strProxyHost;
+	std::string		m_strLastRequestURL;
+	std::string		m_strProxyHost;
 	unsigned int		m_ulLastRequestPort;
+
+	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 
 /*
@@ -169,7 +170,7 @@ protected:
 class ECSession : public BTSession
 {
 public:
-	ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID sessionGroupID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp);
+	ECSession(const std::string& strSourceAddr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, std::string strClientVersion, std::string strClientApp, std::string strClientApplicationVersion, std::string strClientApplicationMisc);
 
 	virtual ECSESSIONGROUPID GetSessionGroupId();
 	virtual int				 GetConnectingPid();
@@ -201,7 +202,7 @@ public:
 	void AddClocks(double dblUser, double dblSystem, double dblReal);
 	void GetClocks(double *lpdblUser, double *lpdblSystem, double *lpdblReal);
 	void GetClientVersion(std::string *lpstrVersion);
-    void GetClientApp(std::string *lpstrClientApp);
+	void GetClientApp(std::string *lpstrClientApp);
 
 	size_t GetObjectSize();
 
@@ -245,15 +246,15 @@ public:
 	ECRESULT ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser);
 	ECRESULT ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser);
 	ECRESULT ValidateUserCertificate(soap* soap, const char* lpszName, const char* lpszImpersonateUser);
-	ECRESULT ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
+	ECRESULT ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
 
-	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
+	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, std::string strClientAppVersion, std::string strClientAppMisc, ECSESSIONID *sessionID, ECSession **lppNewSession);
 
 	size_t GetObjectSize();
 
 protected:
 	unsigned int m_ulUserID;
-    unsigned int m_ulImpersonatorID;    // The ID of the user who's credentials were used to login when using impersonation
+	unsigned int m_ulImpersonatorID;    // The ID of the user who's credentials were used to login when using impersonation
 	bool m_bValidated;
 	
 	AUTHMETHOD m_ulValidationMethod;
@@ -261,14 +262,14 @@ protected:
 
 private:
 	/* SSO */
-	ECRESULT ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
-	ECRESULT ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
+	ECRESULT ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
+	ECRESULT ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
 #ifdef HAVE_GSSAPI
 	ECRESULT LogKRB5Error(ECLogger *lpLogger, const char *msg, OM_uint32 major, OM_uint32 minor); /* added logger to distinguish from the other function */
 	ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif
 
-    ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
+	ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
 
 	/* NTLM */
 	pid_t m_NTLM_pid;
@@ -291,8 +292,7 @@ class ECAuthSessionOffline : public ECAuthSession
 public:
 	ECAuthSessionOffline(const std::string& strSourceAddr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 
-	ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, ECSESSIONID *sessionID, ECSession **lppNewSession);
-
+	ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, std::string strClientVersion, std::string strClientApp, std::string strClientAppVersion, std::string strClientAppMisc, ECSESSIONID *sessionID, ECSession **lppNewSession);
 };
 
 #endif // #ifndef ECSESSION
