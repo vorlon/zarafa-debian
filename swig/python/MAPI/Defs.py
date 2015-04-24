@@ -1,6 +1,9 @@
 import struct
 import Struct	# MAPI.Struct
 
+EC_ADDRTYPE = 'ZARAFA'
+EC_ADDRTYPE_W = u'ZARAFA'
+
 def bin2hex(x):
     return ''.join('%02X' % ord(c) for c in x)
 

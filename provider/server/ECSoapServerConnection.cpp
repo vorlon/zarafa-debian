@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -99,11 +94,11 @@ int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig, ECLogger *lp
 	
 	unlink(unix_socket);
 
-	if(bind(s,(struct sockaddr*)&saddr,2 + strlen(unix_socket) ) < 0) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind unix socket %s", unix_socket);
-		close(s);
-		return -1;
-	}
+        if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {
+                lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s. This is usually caused by an other proces (most likely an other zarafa-server) already using this port. This program will terminate now.", unix_socket);
+                kill(0, SIGTERM);
+                exit(1);
+        }
 
 	chmod(unix_socket,mode);
 
@@ -210,38 +205,39 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 
 	lpsSoap->bind_flags = SO_REUSEADDR;
 
-	lpsSoap->socket = socket = soap_bind(lpsSoap, lpServerName, nServerPort, 100);
-	if (socket < 0) {
-		soap_set_fault(lpsSoap);
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start server on port %d: %s", nServerPort, lpsSoap->fault->faultstring);
-		er = ZARAFA_E_CALL_FAILED;
-		goto exit;
-	}
+        lpsSoap->socket = socket = soap_bind(lpsSoap, lpServerName, nServerPort, 100);
+        if (socket == -1) {
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s. This is usually caused by an other proces (most likely an other zarafa-server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+                kill(0, SIGTERM);
+                exit(1);
+        }
 
-    m_lpDispatcher->AddListenSocket(lpsSoap);
+	m_lpDispatcher->AddListenSocket(lpsSoap);
     
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for TCP connections on port %d", nServerPort);
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for TCP connections on port %d", nServerPort);
 
 exit:
-	if (er != erSuccess && lpsSoap) {
+	if (er != erSuccess && lpsSoap)
 		soap_free(lpsSoap);
-	}
 
 	return er;
 }
 
-ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServerPort, bool bEnableGET,
-										   const char* lpszKeyFile, const char* lpszKeyPass,
-										   const char* lpszCAFile, const char* lpszCAPath)
+ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServerPort, bool bEnableGET, const char* lpszKeyFile, const char* lpszKeyPass, const char* lpszCAFile, const char* lpszCAPath)
 {
 	ECRESULT	er = erSuccess;
 	int			socket = SOAP_INVALID_SOCKET;
 	struct soap	*lpsSoap = NULL;
+	char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
+	char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
+	char *ssl_name = NULL;
+	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 
 	if(lpServerName == NULL) {
+		free(server_ssl_ciphers);
 		er = ZARAFA_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -270,30 +266,98 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 		goto exit;
 	}
 
-	// disable SSLv2 support
-	if (!parseBool(m_lpConfig->GetSetting("server_ssl_enable_v2", "", "no")))
-		SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_NO_SSLv2);
-	
+	SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_ALL);
+
+	ssl_name = strtok(server_ssl_protocols, " ");
+	while(ssl_name != NULL) {
+		int ssl_proto = 0;
+		bool ssl_neg = false;
+
+		if (*ssl_name == '!') {
+			ssl_name++;
+			ssl_neg = true;
+		}
+
+		if (strcmp_ci(ssl_name, SSL_TXT_SSLV2) == 0)
+			ssl_proto = 0x01;
+		else if (strcmp_ci(ssl_name, SSL_TXT_SSLV3) == 0)
+			ssl_proto = 0x02;
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1) == 0)
+			ssl_proto = 0x04;
+#ifdef SSL_TXT_TLSV1_1
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1_1) == 0)
+			ssl_proto = 0x08;
+#endif
+#ifdef SSL_TXT_TLSV1_2
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1_2) == 0)
+			ssl_proto = 0x10;
+#endif
+		else {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown protocol '%s' in server_ssl_protocols setting", ssl_name);
+			er = ZARAFA_E_CALL_FAILED;
+			goto exit;
+		}
+
+		if (ssl_neg)
+			ssl_exclude |= ssl_proto;
+		else
+			ssl_include |= ssl_proto;
+
+		ssl_name = strtok(NULL, " ");
+	}
+
+	if (ssl_include != 0) {
+		// Exclude everything, except those that are included (and let excludes still override those)
+		ssl_exclude |= 0x1f & ~ssl_include;
+	}
+
+	if ((ssl_exclude & 0x01) != 0)
+		ssl_op |= SSL_OP_NO_SSLv2;
+	if ((ssl_exclude & 0x02) != 0)
+		ssl_op |= SSL_OP_NO_SSLv3;
+	if ((ssl_exclude & 0x04) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1;
+#ifdef SSL_OP_NO_TLSv1_1
+	if ((ssl_exclude & 0x08) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_1;
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
+	if ((ssl_exclude & 0x10) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_2;
+#endif
+
+	if (server_ssl_protocols) {
+		SSL_CTX_set_options(lpsSoap->ctx, ssl_op);
+	}
+
+	if (server_ssl_ciphers && SSL_CTX_set_cipher_list(lpsSoap->ctx, server_ssl_ciphers) != 1) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can not set SSL cipher list to '%s': %s", server_ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
+		er = ZARAFA_E_CALL_FAILED;
+		goto exit;
+	}
+
+	if (parseBool(m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"))) {
+		SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	}
+
 	// request certificate from client, is OK if not present.
 	SSL_CTX_set_verify(lpsSoap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, NULL);
 
 	lpsSoap->bind_flags = SO_REUSEADDR;
 
-	lpsSoap->socket = socket = soap_bind(lpsSoap, lpServerName, nServerPort, 100);
-	if (socket < 0) {
-		soap_set_fault(lpsSoap);
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start SSL server on port %d: %s", nServerPort, lpsSoap->fault->faultstring);
-		er = ZARAFA_E_CALL_FAILED;
-		goto exit;
-	}
+        lpsSoap->socket = socket = soap_bind(lpsSoap, lpServerName, nServerPort, 100);
+        if (socket == -1) {
+                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s (SSL). This is usually caused by an other proces (most likely an other zarafa-server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+                kill(0, SIGTERM);
+                exit(1);
+        }
 
-
-    m_lpDispatcher->AddListenSocket(lpsSoap);
+	m_lpDispatcher->AddListenSocket(lpsSoap);
 
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for SSL connections on port %d", nServerPort);
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for SSL connections on port %d", nServerPort);
 
 exit:
 	if (er != erSuccess && lpsSoap) {
@@ -343,7 +407,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
 
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
+	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 
 exit:
 	if (er != erSuccess && lpsSoap) {

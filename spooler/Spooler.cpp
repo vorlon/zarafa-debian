@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -265,13 +260,18 @@ HRESULT StartSpoolerFork(const wchar_t *szUsername, char *szSMTP, int ulSMTPPort
 	// place pid with entryid copy in map
 	sSendData.cbStoreEntryId = cbStoreEntryId;
 	hr = MAPIAllocateBuffer(cbStoreEntryId, (void**)&sSendData.lpStoreEntryId);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
 		goto exit;
+	}
+
 	memcpy(sSendData.lpStoreEntryId, lpStoreEntryId, cbStoreEntryId);
 	sSendData.cbMessageEntryId = cbMsgEntryId;
 	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
 		goto exit;
+	}
 	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
@@ -283,6 +283,7 @@ HRESULT StartSpoolerFork(const wchar_t *szUsername, char *szSMTP, int ulSMTPPort
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
+
 	if (pid == 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s NULL",
 			  szCommand, basename(szCommand) /* argv[0] */,
@@ -346,7 +347,7 @@ HRESULT GetErrorObjects(const SendData &sSendData, IMAPISession *lpAdminSession,
 	if (*lppAddrBook == NULL) {
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -354,7 +355,7 @@ HRESULT GetErrorObjects(const SendData &sSendData, IMAPISession *lpAdminSession,
 	if (*lppMailer == NULL) {
 		*lppMailer = CreateSender(g_lpLogger, "localhost", 25); // SMTP server does not matter here, we just use the object for the error body
 		if (! (*lppMailer)) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create error object for error mail, skipping.");
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create error object for error mail, skipping.");
 			goto exit;
 		}
 	}
@@ -362,7 +363,7 @@ HRESULT GetErrorObjects(const SendData &sSendData, IMAPISession *lpAdminSession,
 	if (*lppUserStore == NULL) {
 		hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, (LPENTRYID)sSendData.lpStoreEntryId, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -370,7 +371,7 @@ HRESULT GetErrorObjects(const SendData &sSendData, IMAPISession *lpAdminSession,
 	if (*lppMessage == NULL) {
 		hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)lppMessage);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -378,19 +379,19 @@ HRESULT GetErrorObjects(const SendData &sSendData, IMAPISession *lpAdminSession,
 	if (*lppUserAdmin == NULL) {
 		hr = HrGetOneProp(*lppUserStore, PR_EC_OBJECT, &lpsProp);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open ECObject of user for error mail, skipping. Error 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open ECObject of user for error mail, skipping. Error 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = ((IECUnknown*)lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "ServiceAdmin interface not supported");
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ServiceAdmin interface not supported");
 			goto exit;
 		}
 
 		hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, lppUserAdmin);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get user admin information from store for user error mail, skipping. Error 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get user admin information from store for user error mail, skipping. Error 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -465,16 +466,16 @@ HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession, IECSpooler *lpSpoole
 			} else {
 				// message was not sent, and could not be removed from queue. Notify user also.
 				bErrorMail = true;
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
+				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
 			}
 		} else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Spooler process %d was killed by signal %d", i->first, WTERMSIG(status));
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i->first, WTERMSIG(status));
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 		} else {								/* Something strange happened */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Spooler process %d terminated abnormally", i->first);
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i->first);
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 		}
 #else
 		if (status) {
@@ -491,7 +492,7 @@ HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession, IECSpooler *lpSpoole
 				// TODO: if failed, and we have the lpUserStore, create message?
 			}
 			if (hr != hrSuccess)
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create error message for user %ls", sSendData.strUsername.c_str());
+				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create error message for user %ls", sSendData.strUsername.c_str());
 
 			// remove mail from queue
 			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, sSendData.ulFlags);
@@ -503,7 +504,7 @@ HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession, IECSpooler *lpSpoole
 				hr = DoSentMail(lpAdminSession, lpUserStore, 0, lpMessage);
 				lpMessage = NULL;
 				if (hr != hrSuccess)
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to move sent mail to sent-items folder");
+					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to move sent mail to sent-items folder");
 			}
 
 			if (lpUserStore) {
@@ -524,7 +525,6 @@ HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession, IECSpooler *lpSpoole
 	if (lpAddrBook)
 		lpAddrBook->Release();
 
-	if (lpMailer)
 		delete lpMailer;
 
 	if (lpUserAdmin)
@@ -566,7 +566,7 @@ HRESULT ProcessAllEntries(IMAPISession *lpAdminSession, IECSpooler *lpSpooler, I
 
 	hr = lpTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get outgoing queue count");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get outgoing queue count");
 		goto exit;
 	}
 
@@ -595,7 +595,7 @@ HRESULT ProcessAllEntries(IMAPISession *lpAdminSession, IECSpooler *lpSpooler, I
 
 		hr = lpTable->QueryRows(1, 0, &lpsRowSet);
 		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to fetch data from table, error code: 0x%08X", hr);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to fetch data from table, error code: 0x%08X", hr);
 			goto exit;
 		}
 		if (lpsRowSet->cRows == 0)		// All rows done
@@ -646,8 +646,7 @@ HRESULT ProcessAllEntries(IMAPISession *lpAdminSession, IECSpooler *lpSpooler, I
 		bool bMatch = false;
 		for (map<pid_t, SendData>::iterator i = mapSendData.begin(); i != mapSendData.end(); i++) {
 			if (i->second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
-				memcmp(i->second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i->second.cbMessageEntryId) == 0)
-			{
+				memcmp(i->second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i->second.cbMessageEntryId) == 0) {
 				bMatch = true;
 				break;
 			}
@@ -660,8 +659,10 @@ HRESULT ProcessAllEntries(IMAPISession *lpAdminSession, IECSpooler *lpSpooler, I
 							  lpsRowSet->aRow[0].lpProps[1].Value.bin.cb, lpsRowSet->aRow[0].lpProps[1].Value.bin.lpb,
 							  lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb,
 							  lpsRowSet->aRow[0].lpProps[3].Value.ul);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "ProcessAllEntries(): Failed starting spooler: %x", hr);
 			goto exit;
+		}
 	}
 
 exit:
@@ -687,19 +688,19 @@ HRESULT GetAdminSpooler(IMAPISession *lpAdminSession, IECSpooler **lppSpooler)
 
 	hr = HrOpenDefaultStore(lpAdminSession, &lpMDB);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default store for system account. Error 0x%08X", hr);
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account. Error 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &lpsProp);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get Zarafa internal object");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Zarafa internal object");
 		goto exit;
 	}
 
 	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, (void **)&lpSpooler);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Spooler interface not supported");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler interface not supported");
 		goto exit;
 	}
 
@@ -747,25 +748,26 @@ HRESULT ProcessQueue(char* szSMTP, int ulPort, char *szPath)
 	
 	SSortOrderSet sSort = { 1, 0, 0, { { PR_EC_HIERARCHYID, TABLE_SORT_ASCEND } } };
 
-
-	hr = HrOpenECAdminSession(&lpAdminSession, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	hr = HrOpenECAdminSession(g_lpLogger, &lpAdminSession, "zarafa-spooler:system", PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 							  g_lpConfig->GetSetting("sslkey_file", "", NULL),
 							  g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin session. Error 0x%08X", hr);
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session. Error 0x%08X", hr);
 		goto exit;
 	}
 
 	if (disconnects == 0)
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Connection to Zarafa server succeeded");
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Connection to Zarafa server succeeded");
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Connection to Zarafa server succeeded after %d retries", disconnects);
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection to Zarafa server succeeded after %d retries", disconnects);
 
 	disconnects = 0;			// first call succeeded, assume all is well.
 
 	hr = GetAdminSpooler(lpAdminSession, &lpSpooler);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessQueue: GetAdminSpooler failed %x", hr);
 		goto exit;
+	}
 
 	// Mark reload as done since we reloaded the outgoing table
 	nReload = false;
@@ -773,26 +775,26 @@ HRESULT ProcessQueue(char* szSMTP, int ulPort, char *szPath)
 	// Request the master outgoing table
 	hr = lpSpooler->GetMasterOutgoingTable(0, &lpTable);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Master outgoing queue not available");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Master outgoing queue not available");
 		goto exit;
 	}
 
 	hr = lpTable->SetColumns((LPSPropTagArray)&sOutgoingCols, 0);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to setColumns() on OutgoingQueue");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to setColumns() on OutgoingQueue");
 		goto exit;
 	}
 	
 	// Sort by ascending hierarchyid: first in, first out queue
 	hr = lpTable->SortTable(&sSort, 0);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to SortTable() on OutgoingQueue");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to SortTable() on OutgoingQueue");
 		goto exit;
 	}
 
 	hr = HrAllocAdviseSink(AdviseCallback, NULL, &lpAdviseSink);	
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to allocate memory for advise sink");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to allocate memory for advise sink");
 		goto exit;
 	}
 
@@ -806,8 +808,10 @@ HRESULT ProcessQueue(char* szSMTP, int ulPort, char *szPath)
 
 		// also checks not to send a message again which is already sending
 		hr = ProcessAllEntries(lpAdminSession, lpSpooler, lpTable, szSMTP, ulPort, szPath);
-		if(hr != hrSuccess)
+		if(hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "ProcessQueue: ProcessAllEntries failed %x", hr);
 			goto exit;
+		}
 
 		// Exit signal, break the operation
 		if(bQuit)
@@ -895,7 +899,8 @@ exit:
  */
 void sigsegv(int signr)
 {
-	void *bt[64];
+#define N_TRACEBACK 64
+	void *bt[N_TRACEBACK];
 	int i, n;
 	char **btsymbols;
 
@@ -914,7 +919,7 @@ void sigsegv(int signr)
 		break;
 	};
 
-	n = backtrace(bt, 64);
+	n = backtrace(bt, N_TRACEBACK);
         
 	btsymbols = backtrace_symbols(bt, n);
 
@@ -966,7 +971,7 @@ void process_signal(int sig)
 	case SIGHUP:
 		if (g_lpConfig) {
 			if (!g_lpConfig->ReloadSettings() && g_lpLogger)
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to reload configuration file, continuing with current settings.");
+				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
 		}
 
 		if (g_lpLogger) {
@@ -982,12 +987,12 @@ void process_signal(int sig)
 		break;
 
 	case SIGUSR2:
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Spooler stats:");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Running threads: %lu", mapSendData.size());
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Spooler stats:");
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %lu", mapSendData.size());
 		pthread_mutex_lock(&hMutexFinished);
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Finished threads: %lu", mapFinished.size());
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %lu", mapFinished.size());
 		pthread_mutex_unlock(&hMutexFinished);
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disconnects: %d", disconnects);
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Disconnects: %d", disconnects);
 		break;
 
 	default:
@@ -1039,8 +1044,8 @@ HRESULT running_server(char* szSMTP, int ulPort, char* szPath)
 	HRESULT hr = hrSuccess;
 
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-spooler version " PROJECT_VERSION_SPOOLER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using SMTP server: %s, port %d", szSMTP, ulPort);
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting zarafa-spooler version " PROJECT_VERSION_SPOOLER_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Using SMTP server: %s, port %d", szSMTP, ulPort);
 
 	disconnects = 0;
 
@@ -1215,7 +1220,7 @@ int main(int argc, char *argv[]) {
 	if (szConfig) {
 		int argidx = 0;
 		if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc-my_optind, &argv[my_optind], &argidx) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
+			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-"); // create info logger without a timestamp to stderr
 			LogConfigErrors(g_lpConfig, g_lpLogger);
 			hr = E_FAIL;
 			goto exit;
@@ -1259,8 +1264,8 @@ int main(int argc, char *argv[]) {
 		if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0) {
 			bNPTL = false;
 			g_lpConfig->AddSetting("max_threads","1");
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: your system is running with outdated linuxthreads.");
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: the zarafa-spooler will only be able to send one message at a time.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: your system is running with outdated linuxthreads.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: the zarafa-spooler will only be able to send one message at a time.");
 		}
 	}
 
@@ -1314,14 +1319,21 @@ int main(int argc, char *argv[]) {
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger))
+	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger)) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): failed daemonizing");
 		goto exit;
+	}
 	if (!daemonize)
 		setsid();
-	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, g_lpLogger, false) < 0)
+	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, g_lpLogger, false) < 0) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): Failed creating PID file");
 		goto exit;
-	if (unix_runas(g_lpConfig, g_lpLogger))
+	}
+
+	if (unix_runas(g_lpConfig, g_lpLogger)) {
+		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): run-as failed");
 		goto exit;
+	}
 
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
@@ -1356,7 +1368,7 @@ int main(int argc, char *argv[]) {
 		if (bNPTL) {
 			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
 			pthread_join(signal_thread, NULL);
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Spooler shutdown complete");
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler shutdown complete");
 		} else {
 			// ignore the death of the pipe logger
 			signal(SIGCHLD, SIG_IGN);

@@ -21,9 +21,6 @@
 /* Define to 1 if you have <boost/system/error_code.hpp> */
 #undef HAVE_BOOST_SYSTEM_ERROR_CODE_HPP
 
-/* Define to 1 if you have the <CLucene.h> header file. */
-#undef HAVE_CLUCENE_H
-
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
@@ -98,9 +95,6 @@
 
 /* Define to 1 if you have the `ldap_start_tls_s' function. */
 #undef HAVE_LDAP_START_TLS_S
-
-/* Define to 1 if you have the <libical/ical.h> header file. */
-#undef HAVE_LIBICAL_ICAL_H
 
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
@@ -230,7 +224,7 @@
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
-/* Google TCMalloc available */
+/* Google TCMalloc enabled */
 #undef HAVE_TCMALLOC
 
 /* Define to 1 if you have the `timegm' function. */
@@ -241,9 +235,6 @@
 
 /* Define to 1 if you have the `uuid_create' function. */
 #undef HAVE_UUID_CREATE
-
-/* Define to 1 if you have the <vmime/utility/smartPtrInt.hpp> header file. */
-#undef HAVE_VMIME_UTILITY_SMARTPTRINT_HPP
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF

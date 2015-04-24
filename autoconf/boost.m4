@@ -914,8 +914,14 @@ AC_CACHE_CHECK([for the toolset name used by Boost for $CXX], [boost_cv_lib_tag]
   #   como, edg, kcc, bck, mp, sw, tru, xlc
   # I'm not sure about my test for `il' (be careful: Intel's ICC pre-defines
   # the same defines as GCC's).
-  # TODO: Move the test on GCC 4.4 up once it's released.
   for i in \
+    _BOOST_gcc_test(5, 0) \
+    _BOOST_gcc_test(4, 9) \
+    _BOOST_gcc_test(4, 8) \
+    _BOOST_gcc_test(4, 7) \
+    _BOOST_gcc_test(4, 6) \
+    _BOOST_gcc_test(4, 5) \
+    _BOOST_gcc_test(4, 4) \
     _BOOST_gcc_test(4, 3) \
     _BOOST_gcc_test(4, 2) \
     _BOOST_gcc_test(4, 1) \
@@ -923,23 +929,11 @@ AC_CACHE_CHECK([for the toolset name used by Boost for $CXX], [boost_cv_lib_tag]
     "defined __GNUC__ && __GNUC__ == 3 && !defined __ICC \
      && (defined WIN32 || defined WINNT || defined _WIN32 || defined __WIN32 \
          || defined __WIN32__ || defined __WINNT || defined __WINNT__) @ mgw" \
-    _BOOST_gcc_test(3, 4) \
-    _BOOST_gcc_test(3, 3) \
     "defined _MSC_VER && _MSC_VER >= 1500 @ vc90" \
     "defined _MSC_VER && _MSC_VER == 1400 @ vc80" \
-    _BOOST_gcc_test(3, 2) \
-    "defined _MSC_VER && _MSC_VER == 1310 @ vc71" \
-    _BOOST_gcc_test(3, 1) \
-    _BOOST_gcc_test(3, 0) \
-    "defined __BORLANDC__ @ bcb" \
     "defined __ICC && (defined __unix || defined __unix__) @ il" \
     "defined __ICL @ iw" \
-    "defined _MSC_VER && _MSC_VER == 1300 @ vc7" \
-    _BOOST_gcc_test(4, 4) \
-    _BOOST_gcc_test(2, 95) \
     "defined __MWERKS__ && __MWERKS__ <= 0x32FF @ cw9" \
-    "defined _MSC_VER && _MSC_VER < 1300 && !defined UNDER_CE @ vc6" \
-    "defined _MSC_VER && _MSC_VER < 1300 && defined UNDER_CE @ evc4" \
     "defined __MWERKS__ && __MWERKS__ <= 0x31FF @ cw8"
   do
     boost_tag_test=`expr "X$i" : 'X\([[^@]]*\) @ '`

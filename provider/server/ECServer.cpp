@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -174,9 +169,9 @@ void process_signal(int sig)
 	}
 
 	if (m_bDatabaseUpdateIgnoreSignals) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Database upgrade is taking place.");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Please be patient, and don't try to kill the zarafa-server process.");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  It may leave your database in an inconsistant state.");
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "WARNING: Database upgrade is taking place.");
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "  Please be patient, and don't try to kill the zarafa-server process.");
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "  It may leave your database in an inconsistant state.");
 		return;
 	}	
 
@@ -186,7 +181,7 @@ void process_signal(int sig)
 	switch (sig) {
 	case SIGTERM:
 		if(g_lpLogger)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Shutting down.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Shutting down");
 	
 		if (g_lpSoapServerConn)
 			g_lpSoapServerConn->ShutDown();
@@ -207,7 +202,7 @@ void process_signal(int sig)
 				return;
 
 			if (!g_lpConfig->ReloadSettings())
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to reload configuration file, continuing with current settings.");
+				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
 			if (g_lpConfig->HasErrors())
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to reload configuration file");
 
@@ -291,9 +286,9 @@ void sigsegv(int signr)
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name, system architecture and Zarafa version.");
@@ -353,11 +348,11 @@ ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		// check if the mode is the same as last time
 		if (strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
 			if (!m_bIgnoreAttachmentStorageConflict) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
 				er = ZARAFA_E_DATABASE_ERROR;
 				goto exit;
 			} else {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
+				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 			}
 		}
 	}
@@ -367,7 +362,7 @@ ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to update database settings");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update database settings");
 		goto exit;
 	}
 
@@ -399,7 +394,7 @@ ECRESULT check_distributed_zarafa(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'lock_distributed_zarafa'", &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
 		goto exit;
 	}
 
@@ -416,7 +411,7 @@ ECRESULT check_distributed_zarafa(ECDatabase *lpDatabase)
 			er = ZARAFA_E_DATABASE_ERROR;
 			goto exit;
 		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Ignoring multiserver mode lock as requested.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring multiserver mode lock as requested.");
 		}
 	}
 
@@ -440,7 +435,7 @@ ECRESULT check_attachment_storage_permissions()
 
 		tmpfile = fopen(strtestpath.c_str(), "w");
 		if (!tmpfile) {
-			 g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
+			 g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			 er = ZARAFA_E_NO_ACCESS;
 			 goto exit;
 		}
@@ -465,7 +460,7 @@ ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	strQuery = "SHOW CREATE TABLE `tproperties`";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
 		goto exit;
 	}
 
@@ -503,7 +498,7 @@ ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	if (start != string::npos)
 		start = strTable.find_first_of(',', start+1);
 	if (start == string::npos) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
 		goto exit;
 	}
 
@@ -512,11 +507,11 @@ ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 
 	// if not correct...
 	if (strTable.compare("`hierarchyid`,`type`") != 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "**** WARNING: Installation is not optimal! ****");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  The primary key of the tproperties table is incorrect.");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  Please read the following page on how to update your installation to get much better performance:");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  http://www.zarafa.com/wiki/index.php/Zarafa_Alerts");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "**** WARNING: Installation is not optimal! ****");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  The primary key of the tproperties table is incorrect.");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  Please read the following page on how to update your installation to get much better performance:");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  http://www.zarafa.com/wiki/index.php/Zarafa_Alerts");
 	}
 
 	er = erSuccess;
@@ -544,22 +539,22 @@ ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
 		goto exit;
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
 	if (!lpRow || !lpRow[1]) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No thread_stack variable returned");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No thread_stack variable returned");
 		goto exit;
 	}
 
 	ulThreadStack = atoui(lpRow[1]);
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack is set to %u, which is too small", ulThreadStack);
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "MySQL thread_stack is set to %u, which is too small", ulThreadStack);
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
 		if (m_bIgnoreDbThreadStackSize)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
 		else
 			er = ZARAFA_E_DATABASE_ERROR;
 	}
@@ -685,47 +680,47 @@ ECRESULT check_server_configuration()
 	// Check the various connection parameters for consistency
 	if (parseBool(g_lpConfig->GetSetting("server_pipe_enabled")) == true) {
 		if (sServerDetails.GetFilePath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		if (sServerDetails.GetFilePath().compare((std::string)"file://" + g_lpConfig->GetSetting("server_pipe_name")) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetFilePath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
 		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_tcp_enabled")) == true) {
 		if (sServerDetails.GetHttpPath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
 		if (sServerDetails.GetHttpPort() != ulPort) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetHttpPath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
 		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_ssl_enabled")) == true) {
 		if (sServerDetails.GetSslPath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_ssl_port"));
 		if (sServerDetails.GetSslPort() != ulPort) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetSslPath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
 		bHaveErrors = true;
 	}	
 	
@@ -737,7 +732,7 @@ exit:
 
 	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
 	if (bHaveErrors)
- 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Inconsistencies detected between local and LDAP based configuration.");
+ 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Inconsistencies detected between local and LDAP based configuration.");
 
 	// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
 	return er;
@@ -917,7 +912,9 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "server_ssl_key_pass",		"server",	CONFIGSETTING_EXACT },
 		{ "server_ssl_ca_file",			"/etc/zarafa/ssl/cacert.pem" },
 		{ "server_ssl_ca_path",			"" },
-		{ "server_ssl_enable_v2",		"no" },
+		{ "server_ssl_protocols",		"!SSLv2" },
+		{ "server_ssl_ciphers",			"ALL:!LOW:!SSLv2:!EXP:!aNULL" },
+		{ "server_ssl_prefer_server_ciphers",	"no" },
 		{ "sslkeys_path",				"/etc/zarafa/sslkeys" },	// login keys
 		// Database options
 		{ "database_engine",			"mysql" },
@@ -1053,7 +1050,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	
 	if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc, argv, NULL) || (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
-		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-"); // create fatal logger without a timestamp to stderr
+		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-"); // create info logger without a timestamp to stderr
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		retval = -1;
 		goto exit;
@@ -1072,11 +1069,11 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "ZarafaServer", true);
 	if (g_lpAudit)
-		g_lpAudit->Log(EC_LOGLEVEL_FATAL, "zarafa-server startup uid=%d", getuid());
+		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "zarafa-server startup uid=%d", getuid());
 	else
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Audit logging not enabled.");
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting zarafa-server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
 
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig, g_lpLogger);
@@ -1084,30 +1081,30 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
 		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			retval = -1;
 			goto exit;
 		}
 		if (stat(g_lpConfig->GetSetting("attachment_path"), &dir) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			retval = -1;
 			goto exit;
 		}
 		runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
 		if (runasUser == NULL) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
 			retval = -1;
 			goto exit;
 		}
 		if (runasUser->pw_uid != dir.st_uid) {
 			if (unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group")) != 0) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 				retval = -1;
 				goto exit;
 			}
 		}
 	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "database") != 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown attachment_storage option '%s', reverting to default 'database' method.", g_lpConfig->GetSetting("attachment_storage"));
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown attachment_storage option '%s', reverting to default 'database' method.", g_lpConfig->GetSetting("attachment_storage"));
 		g_lpConfig->AddSetting("attachment_storage", "database");
 	}
 
@@ -1204,7 +1201,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		retval = -1;
 		goto exit;
 	}
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_zarafa"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_zarafa"));
@@ -1212,12 +1209,12 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	lpLicense = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"), atoui(g_lpConfig->GetSetting("license_timeout")) );
 
 	if(lpLicense->GetSerial(0 /*SERVICE_TYPE_ZCP*/, strSerial, lstCALs) != erSuccess) {
-	    g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
+	    g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: zarafa-licensed not running, commercial features will not be available until it's started.");
 	} else {
 		if (!strSerial.empty())
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Using commercial license serial '%s'", strSerial.c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Using commercial license serial '%s'", strSerial.c_str());
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "zarafa-licensed is running, but no license key was found. Not all commercial features will be available.");
 	}
 
 
@@ -1228,8 +1225,8 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	limit.rlim_cur = FD_SETSIZE;
 	limit.rlim_max = FD_SETSIZE;
 	if(setrlimit(RLIMIT_NOFILE, &limit) < 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", FD_SETSIZE, getdtablesize());
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", FD_SETSIZE, getdtablesize());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
@@ -1304,16 +1301,16 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 			er = lpLicense->QueryCapability(0 /*SERVICE_TYPE_ZCP*/, "MULTISERVER", &bLicensed);
 			if (er != erSuccess) {
 				if (i < 29) {
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to determine if distributed features are allowed, waiting 2s for retry. (attempt %u/30)", i + 1);
+					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Unable to determine if distributed features are allowed, waiting 2s for retry. (attempt %u/30)", i + 1);
 					sleep_ms(2000);
 				} else {
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to determine if distributed features are allowed, assuming unavailable.");
+					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to determine if distributed features are allowed, assuming unavailable.");
 					retval = -1;
 					goto exit;
 				}
 			} else {
 				if (!bLicensed) {
-					g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your license key does not allow the usage of the distributed features.");
+					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Your license key does not allow the usage of the distributed features.");
 					retval = -1;
 					goto exit;
 				}
@@ -1329,7 +1326,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	// add a lock file to disable the /etc/init.d scripts
 	tmplock = fopen("/tmp/zarafa-upgrade-lock","w");
 	if (!tmplock)
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
 #ifdef EMBEDDED_MYSQL
 {
@@ -1340,7 +1337,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 		er = lpDatabase->ValidateTables();
 		if (er != erSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to validate the database.");
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to validate the database.");
 			goto exit;
 		}
 
@@ -1359,24 +1356,24 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	}
 
 	if(er == ZARAFA_E_INVALID_VERSION) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: %s", dbError.c_str());
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: %s", dbError.c_str());
 
 		if(m_bIgnoreDatabaseVersionConflict == false) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "   You can force the server to start with --ignore-database-version-conflict");
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "   You can force the server to start with --ignore-database-version-conflict");
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
 			retval = -1;
 			goto exit;
 		}
 	}else if(er != erSuccess) {
 		if (er != ZARAFA_E_USER_CANCEL)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't update the database: %s", dbError.c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't update the database: %s", dbError.c_str());
 		retval = -1;
 		goto exit;
 	}
 	
 	er = lpDatabase->InitializeDBState();
 	if(er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't initialize database settings");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't initialize database settings");
 		goto exit;
 	}
 	
@@ -1384,7 +1381,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 
 	if(searchfolder_restart_required) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Update requires searchresult folders to be rebuilt. This may take some time. You can restart this process with the --restart-searches option");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Update requires searchresult folders to be rebuilt. This may take some time. You can restart this process with the --restart-searches option");
 		restart_searches = 1;
 	}
 
@@ -1422,7 +1419,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
 	if(zarafa_init(g_lpConfig, g_lpLogger, g_lpAudit, hosted, distributed) != erSuccess) {		// create SessionManager
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize zarafa session manager");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize zarafa session manager");
 		retval = -1;
 		goto exit;
 	}
@@ -1433,10 +1430,10 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		goto exit;
 
 	// Load search folders from disk
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Loading searchfolders");
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Loading searchfolders");
 	er = g_lpSessionManager->GetSearchFolders()->LoadSearchFolders();
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to load searchfolders");
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to load searchfolders");
 		retval = -1;
 		goto exit;
 	}
@@ -1453,7 +1450,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
 
 	// high loglevel to always see when server is started.
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Startup succeeded on pid %d", getpid() );
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Startup succeeded on pid %d", getpid() );
 	g_lpStatsCollector->SetTime(SCN_SERVER_STARTTIME, time(NULL));
 
 	// Enter main accept loop
@@ -1477,7 +1474,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	
 exit:
 	if (g_lpAudit)
-		g_lpAudit->Log(EC_LOGLEVEL_FATAL, "zarafa-server shutdown in progress");
+		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "zarafa-server shutdown in progress");
 
 	delete g_lpSoapServerConn;
 
@@ -1503,7 +1500,7 @@ exit:
 	delete g_lpConfig;
 
 	if (g_lpLogger) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Server shutdown complete.");
+		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Server shutdown complete.");
 		g_lpLogger->Release();
 	}
 	if (g_lpAudit)

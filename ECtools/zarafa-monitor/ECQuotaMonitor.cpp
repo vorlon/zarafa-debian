@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -62,6 +57,7 @@
 #include "ECABEntryID.h"
 #include "IECUnknown.h"
 #include "Util.h"
+#include "ecversion.h"
 #include "charset/convert.h"
 #include "mapi_ptr.h"
 
@@ -141,11 +137,9 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor starting");
 
 	//Open admin session
-	hr = HrOpenECAdminSession(&lpMAPIAdminSession, lpPath, 0,
-							  lpThreadMonitor->lpConfig->GetSetting("sslkey_file","",NULL),
-							  lpThreadMonitor->lpConfig->GetSetting("sslkey_pass","",NULL));
+	hr = HrOpenECAdminSession(lpThreadMonitor->lpLogger, &lpMAPIAdminSession, "zarafa-monitor:create", PROJECT_SVN_REV_STR, lpPath, 0, lpThreadMonitor->lpConfig->GetSetting("sslkey_file","",NULL), lpThreadMonitor->lpConfig->GetSetting("sslkey_pass","",NULL));
 	if (hr != hrSuccess) {
-		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open a admin session. Error 0x%X", hr);
+		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open an admin session. Error 0x%X", hr);
 		goto exit;
 	}
 
@@ -254,9 +248,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 		
 			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, false, &lpsQuota);
 			if (hr != hrSuccess) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-												"Unable to get quota information for company %s, error code: 0x%08X",
-												(LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get quota information for company %s, error code: 0x%08X", (LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
 				hr = hrSuccess;
 				m_ulFailed++;
 				goto check_stores;
@@ -271,18 +263,14 @@ HRESULT ECQuotaMonitor::CheckQuota()
 
 			hr = Util::HrGetQuotaStatus(lpMsgStore, lpsQuota, &lpsQuotaStatus);
 			if (hr != hrSuccess) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-												 "Unable to get quotastatus for company %s, error code: 0x%08X",
-												 (LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get quotastatus for company %s, error code: 0x%08X", (LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
 				hr = hrSuccess;
 				m_ulFailed++;
 				goto check_stores;
 			}
 
 			if (lpsQuotaStatus->quotaStatus != QUOTA_OK) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-												 "Storage size of company %s has exceeded one or more size limits",
-												 (LPSTR)lpsCompanyList[i].lpszCompanyname);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Storage size of company %s has exceeded one or more size limits", (LPSTR)lpsCompanyList[i].lpszCompanyname);
 				Notify(NULL, &lpsCompanyList[i], lpsQuotaStatus, lpMsgStore);
 			}
 		}
@@ -364,24 +352,20 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(LPECCOMPANY lpecCompany)
 	/* Obtain Service object */
 	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &lpsObject);
 	if(hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-										 "Unable to get internal object, error code: 0x%08X", hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = ((IECUnknown *)lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
 	if(hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-										 "Unable to get service admin, error code: 0x%08X", hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
 		goto exit;
 	}
 
 	/* Get userlist */
 	hr = lpServiceAdmin->GetUserList(lpecCompany->sCompanyId.cb, (LPENTRYID)lpecCompany->sCompanyId.lpb, 0, &cUsers, &lpsUserList);
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-										 "Unable to get userlist for company %s, error code 0x%08X",
-										 (LPSTR)lpecCompany->lpszCompanyname, hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get userlist for company %s, error code 0x%08X", (LPSTR)lpecCompany->lpszCompanyname, hr);
 		goto exit;
 	}
 
@@ -431,9 +415,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(LPECCOMPANY lpecCompany)
 					goto next;
 				}
 			} else {				
-				hr = HrOpenECAdminSession(&lpSession, lpszConnection, 0,
-										  m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file","",NULL),
-										  m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass","",NULL));
+				hr = HrOpenECAdminSession(m_lpThreadMonitor->lpLogger, &lpSession, "zarafa-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file","",NULL), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass","",NULL));
 				if (hr != hrSuccess) {
 					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to server %s, error code 0x%08X", lpszConnection, hr);
 					m_ulFailed++;
@@ -589,10 +571,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, LPECUSER lpsUserList, LPE
 			if (sQuotaStatus.quotaStatus == QUOTA_OK)
 				continue;
 
-			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Mailbox of user %s has exceeded its %s limit",
-											 lpUsername->Value.lpszA,
-											 sQuotaStatus.quotaStatus == QUOTA_WARN ? "warning" :
-											 sQuotaStatus.quotaStatus == QUOTA_SOFTLIMIT ? "soft" : "hard");
+			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Mailbox of user %s has exceeded its %s limit", lpUsername->Value.lpszA, sQuotaStatus.quotaStatus == QUOTA_WARN ? "warning" : sQuotaStatus.quotaStatus == QUOTA_SOFTLIMIT ? "soft" : "hard");
 
 			// find the user in the full users list
 			for (u = 0; u < cUsers; u++) {
@@ -1171,7 +1150,7 @@ HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, 
 	/* Create a new message in the correct folder */
 	hr = lpInbox->CreateMessage(NULL, 0, &lpMessage);
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to create new message, error code: %08X", hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create new message, error code: %08X", hr);
 		goto exit;
 	}
 
@@ -1276,17 +1255,13 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, LPMDB *lppStore)
 
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName, OPENSTORE_HOME_LOGON, &cbUserStoreEntryID, &ptrUserStoreEntryID);
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-										 "Unable to get store entry id for '%s', error code: 0x%08X",
-										 (LPSTR)szStoreName, hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get store entry id for '%s', error code: 0x%08X", (LPSTR)szStoreName, hr);
 		goto exit;
 	}
 
 	hr = m_lpMAPIAdminSession->OpenMsgStore(0, cbUserStoreEntryID, ptrUserStoreEntryID, NULL, MDB_WRITE, lppStore);
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL,
-										 "Unable to open store for '%s', error code: 0x%08X",
-										 (LPSTR)szStoreName, hr);
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open store for '%s', error code: 0x%08X", (LPSTR)szStoreName, hr);
 		goto exit;
 	}
 

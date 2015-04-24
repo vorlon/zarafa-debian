@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -158,9 +153,9 @@ void sigsegv(int signr)
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name, system architecture and Zarafa version.");
@@ -192,7 +187,6 @@ int main(int argc, char **argv) {
 	int ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
 
-	ECChannel *lpChannel = NULL;
     stack_t st = {0};
     struct sigaction act = {{0}};
 
@@ -220,7 +214,9 @@ int main(int argc, char **argv) {
 		{ "log_timestamp", "1" },
         { "ssl_private_key_file", "/etc/zarafa/ical/privkey.pem" },
         { "ssl_certificate_file", "/etc/zarafa/ical/cert.pem" },
-		{ "ssl_enable_v2", "no" },
+		{ "ssl_protocols", "!SSLv2" },
+		{ "ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL" },
+		{ "ssl_prefer_server_ciphers", "no" },
         { "ssl_verify_client", "no" },
         { "ssl_verify_file", "" },
         { "ssl_verify_path", "" },
@@ -343,14 +339,14 @@ int main(int argc, char **argv) {
 	if (g_bThreads)
 		mainthread = pthread_self();
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-ical version " PROJECT_VERSION_CALDAV_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting zarafa-ical version " PROJECT_VERSION_CALDAV_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	hr = HrProcessConnections(ulListenCalDAV, ulListenCalDAVs);
 	if (hr != hrSuccess)
 		goto exit;
 
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "CalDAV Gateway will now exit");
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "CalDAV Gateway will now exit");
 
 	// in forked mode, send all children the exit signal
 	if (g_bThreads == false) {
@@ -361,15 +357,15 @@ int main(int argc, char **argv) {
 		i = 30;						// wait max 30 seconds
 		while (nChildren && i) {
 			if (i % 5 == 0)
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Waiting for %d processes to exit", nChildren);
+				g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Waiting for %d processes to exit", nChildren);
 			sleep(1);
 			i--;
 		}
 
 		if (nChildren)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Forced shutdown with %d processes left", nChildren);
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Forced shutdown with %d processes left", nChildren);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "CalDAV Gateway shutdown complete");
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "CalDAV Gateway shutdown complete");
 	}
 
 exit:
@@ -378,9 +374,6 @@ exit:
 		free(st.ss_sp);
 
 	ECChannel::HrFreeCtx();
-
-	if (lpChannel)
-		delete lpChannel;
 
 	if (g_lpConfig)
 		delete g_lpConfig;
@@ -615,11 +608,9 @@ void *HandlerClient(void *lpArg)
 
 	delete lpHandlerArgs;
 
-	if (bUseSSL) {
-		if (lpChannel->HrEnableTLS() != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
-			goto exit;
-		}
+	if (bUseSSL && lpChannel->HrEnableTLS(g_lpLogger) != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
+		goto exit;
     }
 
 	while(1)
@@ -654,11 +645,11 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	std::string strMethod;
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
 	std::string strCharset;
+	std::string strUserAgent, strUserAgentVersion;
 	Http *lpRequest = new Http(lpChannel, g_lpLogger, g_lpConfig);
 	ProtocolBase *lpBase = NULL;
 	IMAPISession *lpSession = NULL;
 	ULONG ulFlag = 0;
-
 
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "New Request");
 
@@ -689,6 +680,9 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 	// 
 	lpRequest->HrSetKeepAlive(KEEP_ALIVE_TIME);
 
+	lpRequest->HrGetUserAgent(&strUserAgent);
+	lpRequest->HrGetUserAgentVersion(&strUserAgentVersion);
+
 	hr = lpRequest->HrGetUrl(&strUrl);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Url is empty for method : %s",strMethod.c_str());
@@ -699,7 +693,7 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 
 	hr = HrParseURL(strUrl, &ulFlag);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Client request is invalid: 0x%08X", hr);
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client request is invalid: 0x%08X", hr);
 		lpRequest->HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
 		goto exit;
 	}
@@ -724,7 +718,8 @@ HRESULT HrHandleRequest(ECChannel *lpChannel)
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Sending authentication request");
 		hr = MAPI_E_CALL_FAILED;
 	} else {
-		hr = HrAuthenticate(wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession);
+		lpRequest->HrGetMethod(&strMethod);
+		hr = HrAuthenticate(g_lpLogger, strUserAgent, strUserAgentVersion, wstrUser, wstrPass, g_lpConfig->GetSetting("server_socket"), &lpSession);
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Login failed (0x%08X), resending authentication request", hr);
 	}

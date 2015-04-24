@@ -58,8 +58,7 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/specialbuild.in \
 	$(srcdir)/version.in $(top_srcdir)/configure autoconf/compile \
 	autoconf/config.guess autoconf/config.sub autoconf/depcomp \
-	autoconf/install-sh autoconf/ltmain.sh autoconf/missing \
-	autoconf/ylwrap
+	autoconf/install-sh autoconf/ltmain.sh autoconf/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/boost.m4 \
 	$(top_srcdir)/autoconf/icu.m4 $(top_srcdir)/autoconf/php.m4 \
@@ -99,10 +98,9 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir dist dist-all distcheck
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = external common libfreebusy mapi4linux zarafa-libsync \
-	liblicense licensed provider libicalmapi inetmapi php-ext \
-	ECtools spooler gateway caldav \
-	installer po doc swig
+DIST_SUBDIRS = common libfreebusy mapi4linux zarafa-libsync liblicense \
+	licensed libtimezone libcalendar provider libicalmapi inetmapi \
+	php-ext ECtools spooler gateway caldav installer po doc swig
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -153,7 +151,6 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BISON_DEFINE = @BISON_DEFINE@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 BOOST_DATE_TIME_LDFLAGS = @BOOST_DATE_TIME_LDFLAGS@
 BOOST_DATE_TIME_LIBS = @BOOST_DATE_TIME_LIBS@
@@ -165,9 +162,6 @@ BOOST_SYSTEM_LIBS = @BOOST_SYSTEM_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CLUCENE_CFLAGS = @CLUCENE_CFLAGS@
-CLUCENE_LIBS = @CLUCENE_LIBS@
-CLUCENE_VERSION = @CLUCENE_VERSION@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CRYPT_LIBS = @CRYPT_LIBS@
@@ -214,8 +208,6 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTL_LIBS = @INTL_LIBS@
 KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
-KYOTOCABINET_CFLAGS = @KYOTOCABINET_CFLAGS@
-KYOTOCABINET_LIBS = @KYOTOCABINET_LIBS@
 LD = @LD@
 LDAP_FLAGS = @LDAP_FLAGS@
 LDAP_LIBS = @LDAP_LIBS@
@@ -261,13 +253,11 @@ PHP_INCLUDES = @PHP_INCLUDES@
 PHP_LDFLAGS = @PHP_LDFLAGS@
 PHP_SYSCONF_DIR = @PHP_SYSCONF_DIR@
 PHP_VERSION = @PHP_VERSION@
-PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POW_LIB = @POW_LIB@
 PROG_ANT = @PROG_ANT@
 PROG_LIBS = @PROG_LIBS@
 PROG_XMLTO = @PROG_XMLTO@
+PYTHON = @PYTHON@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
 PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
@@ -281,6 +271,7 @@ SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
+TCMALLOC_CFLAGS = @TCMALLOC_CFLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
 TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
@@ -291,7 +282,7 @@ VMIME_LIBS = @VMIME_LIBS@
 XML2_CFLAGS = @XML2_CFLAGS@
 XML2_LIBS = @XML2_LIBS@
 YACC = @YACC@
-YACC_LIB = @YACC_LIB@
+YACC_EXISTS = @YACC_EXISTS@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
 ZCPPFLAGS = @ZCPPFLAGS@
@@ -350,12 +341,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I autoconf
-@OSS_ONLY_FALSE@PROSUBS = liblicense licensed
-SUBDIRS = external common libfreebusy mapi4linux zarafa-libsync \
-	$(PROSUBS) provider libicalmapi inetmapi $(am__append_1) \
-	ECtools spooler gateway caldav \
-	installer po doc $(am__append_2) $(am__append_3)
-EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax
+@OSS_ONLY_FALSE@PROSUBS = liblicense licensed libtimezone libcalendar 
+SUBDIRS = common libfreebusy mapi4linux zarafa-libsync $(PROSUBS) \
+	provider libicalmapi inetmapi $(am__append_1) ECtools spooler \
+	gateway caldav installer po doc $(am__append_2) \
+	$(am__append_3)
+
+#EXTRA_DIST = version common/ecversion.h php-webclient-ajax
+EXTRA_DIST = version versionheader.sh common/ecversion.h php-webclient-ajax LICENSE.txt CONTRIBUTORS.txt AGPL-3
 BUILT_SOURCES = common/ecversion.h
 @OSS_ONLY_FALSE@CLEANFILES = common/ecversion.h
 all: $(BUILT_SOURCES)
@@ -876,12 +869,10 @@ install-ajax-webaccess:
 	install -d -m 755 $(DESTDIR)/usr/share
 	cp -a $(top_srcdir)/php-webclient-ajax $(DESTDIR)/usr/share/zarafa-webaccess
 	rm -rf $(DESTDIR)/usr/share/zarafa-webaccess/plugins
-	ln -sf /var/lib/zarafa-webaccess/plugins $(DESTDIR)/usr/share/zarafa-webaccess/plugins
 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/plugins
 	install -d -m 755 $(DESTDIR)/var/lib/zarafa-webaccess/tmp
 	install -d -m 755 $(DESTDIR)/etc/zarafa/webaccess-ajax
 	mv $(DESTDIR)/usr/share/zarafa-webaccess/config.php.dist $(DESTDIR)/etc/zarafa/webaccess-ajax/config.php
-	ln -sf /etc/zarafa/webaccess-ajax/config.php $(DESTDIR)/usr/share/zarafa-webaccess/config.php
 	rm -f $(DESTDIR)/usr/share/zarafa-webaccess/debug.php
 	for podir in $(DESTDIR)/usr/share/zarafa-webaccess/server/language/*; do \
 		if [ `grep msgstr $$podir/LC_MESSAGES/*po | grep -v 'msgstr ""' |wc -l` = 0 ]; then \

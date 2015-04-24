@@ -4,7 +4,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include \
 	-I${top_srcdir}/inetmapi -I${top_srcdir}/provider/common -I${top_srcdir}/common \
 	-I${top_srcdir}/gateway -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy \
-	$(XML2_CFLAGS)
+	$(XML2_CFLAGS) $(ICAL_CFLAGS)
 
 zarafa_ical_SOURCES = CalDAV.cpp CalDAV.h \
 	CalDavProto.cpp CalDavProto.h \

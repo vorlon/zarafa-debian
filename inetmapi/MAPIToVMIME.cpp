@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -102,12 +97,13 @@ using namespace std;
  * - Not part of an outgoing message (PR_TRANSPORT_MESSAGE_HEADERS)
  */
 
-SizedSPropTagArray(1, sptaRTFInclude) = {1, {PR_RTF_COMPRESSED} };
+SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED} };
 
 // Since UNICODE is defined, the strings will be PT_UNICODE, as required by ECTNEF::AddProps()
 SizedSPropTagArray(54, sptaExclude) = {
     54, 	{
         PR_BODY,
+        PR_HTML,
         PR_RTF_COMPRESSED,
         PR_RTF_IN_SYNC,
         PR_ACCESS,
@@ -359,6 +355,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	LPSPropValue	lpHidden			= NULL;
 	LPSPropValue	lpFilename			= NULL;
 	ULONG			ulAttachmentNum		= 0;
+	ULONG			ulAttachmentMethod	= 0;
 	IMessage*		lpAttachedMessage	= NULL;
 
 	vmime::ref<vmime::utility::inputStream> inputDataStream = NULL;
@@ -388,14 +385,15 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	ulAttachmentNum = pPropAttachNum->Value.ul;
 
 	// check PR_ATTACH_METHOD to determine Attachment or email
-	pPropAttachType	= PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD); 
+	ulAttachmentMethod = ATTACH_BY_VALUE;
+	pPropAttachType	= PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD);
 	if (pPropAttachType == NULL) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachment in table not correct, no attachment method present for attachment %d.", ulAttachmentNum);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
+	} else {
+		ulAttachmentMethod = pPropAttachType->Value.ul;
 	}
 
-	if (pPropAttachType->Value.ul == ATTACH_EMBEDDED_MSG) {
+	if (ulAttachmentMethod == ATTACH_EMBEDDED_MSG) {
 		vmime::ref<vmime::message> vmNewMess;
 		std::string strBuff;
 		vmime::utility::outputStreamStringAdapter mout(strBuff);
@@ -448,7 +446,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		vmMsgAtt = vmime::create<vmime::parsedMessageAttachment>(vmNewMess);
 		lpVMMessageBuilder->appendAttachment(vmMsgAtt);
-	} else if (pPropAttachType->Value.ul == ATTACH_BY_VALUE) {
+	} else if (ulAttachmentMethod == ATTACH_BY_VALUE) {
 		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
@@ -530,10 +528,11 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
-	} else if (pPropAttachType->Value.ul == ATTACH_OLE) {
+	} else if (ulAttachmentMethod == ATTACH_OLE) {
 	    // Ignore ATTACH_OLE attachments, they are handled in handleTNEF()
 	} else {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Attachment %d contains invalid method %d. Not adding attachment to e-mail.", ulAttachmentNum, pPropAttachType->Value.ul);
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachment %d contains invalid method %d.", ulAttachmentNum, ulAttachmentMethod);
+		hr = MAPI_E_INVALID_PARAMETER;
 	}
 
 exit:
@@ -733,10 +732,11 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 		goto exit;
 	}
 	
-	// iterate through attachments and hand them off...
 	for (ULONG i=0; i < pRows->cRows; i++) {
-		// ignoring error... if one attachment fails we still want the others .. logging was done in handleSingleAttachment()
-		handleSingleAttachment(lpMessage, &pRows->aRow[i], lpVMMessageBuilder);
+		// if one attachment fails, we're not sending what the user intended to send so abort. Logging was done in handleSingleAttachment()
+		hr = handleSingleAttachment(lpMessage, &pRows->aRow[i], lpVMMessageBuilder);
+		if (hr != hrSuccess)
+			goto exit;
 	} 
 
 exit:
@@ -1385,7 +1385,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 	HRESULT			hr				= hrSuccess;
 	LPSRowSet		prows			= NULL;
 	LPSPropValue	lpSubject		= NULL;
-	BOOL			bRealRTF = FALSE;
+	eBestBody bestBody = plaintext;
 
 	try {
 		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &lpSubject) == hrSuccess) {
@@ -1405,7 +1405,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 
 		if (!bSkipContent) {
 			// handle text
-			hr = handleTextparts(lpMessage, lpVMMessageBuilder, &bRealRTF);
+			hr = handleTextparts(lpMessage, lpVMMessageBuilder, &bestBody);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1415,7 +1415,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 				goto exit;
 
 			// check for TNEF information, and add winmail.dat if needed
-			hr = handleTNEF(lpMessage, lpVMMessageBuilder, bRealRTF);
+			hr = handleTNEF(lpMessage, lpVMMessageBuilder, bestBody);
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -1535,7 +1535,7 @@ exit:
  * @param[in]	charset		Use this charset for the HTML and plain text bodies.
  * @param[out]	lpbRealRTF	true if real rtf should be used, which is attached later, since it can't be a body.
  */
-HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder, BOOL* lpbRealRTF) {
+HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder, eBestBody *bestBody) {
 	std::string strHTMLOut, strRtf, strBodyConverted;
 	std::wstring strBody;
 	HRESULT		hr						= hrSuccess;
@@ -1551,7 +1551,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 	vmime::ref<vmime::utility::encoder::encoder> vmBodyEncoder = bodyEncoding.getEncoder();
 	vmBodyEncoder->getProperties().setProperty("text", true);
 
-	if(lpbRealRTF) *lpbRealRTF = FALSE;
+	*bestBody = plaintext;
 
 	// grabbing rtf
 	hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpCompressedRTFStream);
@@ -1583,6 +1583,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 				// strHTMLout is now escaped us-ascii HTML, this is what we will be sending
 				// Or, if something failed, the HTML is now empty
 				lpHTMLStream->Release(); lpHTMLStream = NULL;
+				*bestBody = html;
 			} else {
 				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open HTML-text stream. Error: 0x%08X", hr);
 				// continue with plaintext
@@ -1591,7 +1592,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			//Do nothing, only plain/text
 		} else {
 			// Real rtf
-			if(lpbRealRTF) *lpbRealRTF = TRUE;
+			*bestBody = realRTF;
 		}
 	} else {
 		if (hr != MAPI_E_NOT_FOUND)
@@ -2304,7 +2305,7 @@ exit:
  * @param[in]	vmHeader	vmime header object to modify.
  * @return Mapi error code
  */
-HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, BOOL bRealRTF) {
+HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody bestBody) {
 	HRESULT			hr				= hrSuccess;
 	LPSPropValue	lpSendAsICal	= NULL;
 	LPSPropValue	lpOutlookVersion = NULL;
@@ -2388,7 +2389,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			(lpSendAsICal && lpSendAsICal->Value.b) || 
 			(lpSendAsICal && lpOutlookVersion && strcmp(lpOutlookVersion->Value.lpszA, "9.0") == 0) ||
 			(lpMessageClass && (strnicmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0) ) || 
-			bRealRTF == TRUE)
+			bestBody == realRTF)
 		{
 		    // Send either TNEF or iCal data
 		    
@@ -2451,10 +2452,14 @@ tnef_anyway:
 					goto exit;
 				}
 			
-				if (bRealRTF == TRUE) {
-					hr = tnef.AddProps(TNEF_PROP_INCLUDE, (LPSPropTagArray)&sptaRTFInclude);
+				// plaintext is never added to TNEF, only HTML or "real" RTF
+				if (bestBody != plaintext) {
+					if (bestBody == html) sptaBestBodyInclude.aulPropTag[0] = PR_HTML;
+					else if (bestBody == realRTF) sptaBestBodyInclude.aulPropTag[0] = PR_RTF_COMPRESSED;
+
+					hr = tnef.AddProps(TNEF_PROP_INCLUDE, (LPSPropTagArray)&sptaBestBodyInclude);
 					if(hr != hrSuccess) {
-						lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to include properties to TNEF object");
+						lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to include body property 0x%08x to TNEF object", sptaBestBodyInclude.aulPropTag[0]);
 						goto exit;
 					}
 				}

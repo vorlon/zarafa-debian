@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -575,7 +570,6 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	ECSession*		lpSession = NULL;
-	DB_RESULT		lpDBResult = NULL;
 	unsigned int	ulDeleted;
 
 	g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "Start syncedmessages table clean up");
@@ -604,9 +598,6 @@ exit:
 	else
 		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_INFO, "syncedmessages table clean up failed, error: 0x%08X, %d entries removed", er, ulDeleted);
 
-	if(lpDBResult)
-		lpDatabase->FreeResult(lpDBResult);
-
 	if(lpSession) {
 		lpSession->Unlock(); // Lock the session
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
@@ -617,6 +608,7 @@ exit:
 }
 
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges){
+	unsigned int dummy;
 	ECRESULT		er = erSuccess;
 	ECDatabase*		lpDatabase = NULL;
 	DB_RESULT		lpDBResult	= NULL;
@@ -689,8 +681,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 goto exit;
             }
 
-            if(atoui(lpDBRow[2]) != ulChangeType){
+            if((dummy = atoui(lpDBRow[2])) != ulChangeType){
                 er = ZARAFA_E_COLLISION;
+		lpSession->GetSessionManager()->GetLogger()->Log(EC_LOGLEVEL_FATAL, "GetChanges(): unexpected change type %u/%u", dummy, ulChangeType);
                 goto exit;
             }
 
@@ -1094,7 +1087,7 @@ nextFolder:
             lpChanges->__size = i;
         } else {
             // During initial sync, just get all the current users from the database and output them as ICS_AB_NEW changes
-            ABEID eid(MAPI_ABCONT, *(GUID*)&MUIDECSAB_SERVER, 1);
+            ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
             
             strQuery = "SELECT max(id) FROM abchanges";
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -1386,6 +1379,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	lpDBRow = lpDatabase->FetchRow(lpDBResult);
 	if (lpDBRow == NULL) {
 		er = ZARAFA_E_DATABASE_ERROR;
+		g_lpSessionManager->GetLogger()->Log(EC_LOGLEVEL_FATAL, "RemoveFromLastSyncedMessagesSet(): fetchrow return null");
 		goto exit;
 	}
 	

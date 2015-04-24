@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -51,6 +46,7 @@
 
 #include "ECChannel.h"
 #include "stringutil.h"
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -62,6 +58,8 @@
 
 #include <errno.h>
 #include <mapicode.h>
+
+#       define closesocket(fd) close(fd)
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -92,8 +90,13 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 	HRESULT hr = hrSuccess;
 	char *szFile = NULL;
 	char *szPath = NULL;
+ 	char *ssl_protocols = strdup(lpConfig->GetSetting("ssl_protocols"));
+ 	char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
+ 	char *ssl_name = NULL;
+ 	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 
 	if (lpConfig == NULL) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrSetCtx(): invalid parameters");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -105,13 +108,85 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 
 	SSL_library_init();
 	SSL_load_error_strings();
-	lpCTX = SSL_CTX_new(SSLv23_server_method());
-	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);
-	SSL_CTX_set_default_verify_paths(lpCTX);
 
-	// disable SSLv2 support
-	if (!parseBool(lpConfig->GetSetting("ssl_enable_v2", "", "no")))
-		SSL_CTX_set_options(lpCTX, SSL_OP_NO_SSLv2);
+	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
+	lpCTX = SSL_CTX_new(SSLv23_server_method());
+
+	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);			 // enable quirk and bug workarounds
+
+	ssl_name = strtok(ssl_protocols, " ");
+	while(ssl_name != NULL) {
+		int ssl_proto = 0;
+		bool ssl_neg = false;
+
+		if (*ssl_name == '!') {
+			ssl_name++;
+			ssl_neg = true;
+		}
+
+		if (strcmp_ci(ssl_name, SSL_TXT_SSLV2) == 0)
+			ssl_proto = 0x01;
+		else if (strcmp_ci(ssl_name, SSL_TXT_SSLV3) == 0)
+			ssl_proto = 0x02;
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1) == 0)
+			ssl_proto = 0x04;
+#ifdef SSL_TXT_TLSV1_1
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1_1) == 0)
+			ssl_proto = 0x08;
+#endif
+#ifdef SSL_TXT_TLSV1_2
+		else if (strcmp_ci(ssl_name, SSL_TXT_TLSV1_2) == 0)
+			ssl_proto = 0x10;
+#endif
+		else {
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown protocol '%s' in ssl_protocols setting", ssl_name);
+			hr = MAPI_E_CALL_FAILED;
+			goto exit;
+		}
+
+		if (ssl_neg)
+			ssl_exclude |= ssl_proto;
+		else
+			ssl_include |= ssl_proto;
+
+		ssl_name = strtok(NULL, " ");
+	}
+
+	if (ssl_include != 0) {
+		// Exclude everything, except those that are included (and let excludes still override those)
+		ssl_exclude |= 0x1f & ~ssl_include;
+	}
+
+	if ((ssl_exclude & 0x01) != 0)
+		ssl_op |= SSL_OP_NO_SSLv2;
+	if ((ssl_exclude & 0x02) != 0)
+		ssl_op |= SSL_OP_NO_SSLv3;
+	if ((ssl_exclude & 0x04) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1;
+#ifdef SSL_OP_NO_TLSv1_1
+	if ((ssl_exclude & 0x08) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_1;
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
+	if ((ssl_exclude & 0x10) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_2;
+#endif
+
+	if (ssl_protocols) {
+		SSL_CTX_set_options(lpCTX, ssl_op);
+	}
+
+	if (ssl_ciphers && SSL_CTX_set_cipher_list(lpCTX, ssl_ciphers) != 1) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Can not set SSL cipher list to '%s': %s", ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+
+	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers"))) {
+		SSL_CTX_set_options(lpCTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	}
+
+	SSL_CTX_set_default_verify_paths(lpCTX);
 
 	if (SSL_CTX_use_certificate_chain_file(lpCTX, lpConfig->GetSetting("ssl_certificate_file")) != 1) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
@@ -144,12 +219,13 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 		szPath = lpConfig->GetSetting("ssl_verify_path");
 
 	if (szFile || szPath) {
-		if (SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1) {
+		if (SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
-		}
 	}
 
 exit:
+	free(ssl_protocols);
+
 	if (hr != hrSuccess)
 		HrFreeCtx();
 
@@ -165,12 +241,12 @@ HRESULT ECChannel::HrFreeCtx() {
 }
 
 ECChannel::ECChannel(int fd) {
-    int flag = 1;
+	int flag = 1;
     
 	this->fd = fd;
 	lpSSL = NULL;
 	
-	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
+	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag));
 }
 
 ECChannel::~ECChannel() {
@@ -182,16 +258,19 @@ ECChannel::~ECChannel() {
 	close(fd);
 }
 
-HRESULT ECChannel::HrEnableTLS() {
+HRESULT ECChannel::HrEnableTLS(ECLogger *const lpLogger) {
+	int rc = -1;
 	HRESULT hr = hrSuccess;
 
 	if (lpSSL || lpCTX == NULL) {
 		hr = MAPI_E_CALL_FAILED;
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): invalid parameters");
 		goto exit;
 	}
 
 	lpSSL = SSL_new(lpCTX);
 	if (!lpSSL) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_new failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -199,22 +278,19 @@ HRESULT ECChannel::HrEnableTLS() {
 	SSL_clear(lpSSL);
 
 	if (SSL_set_fd(lpSSL, fd) != 1) {
-		//std::cerr<<"SSL error setting fd"<<std::endl;
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	SSL_set_accept_state(lpSSL);
-	if (SSL_accept(lpSSL) != 1) {
-		//std::cerr<<"SSL error setting accept state"<<std::endl;
+	if ((rc = SSL_accept(lpSSL)) != 1) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 exit:
-	if (!lpSSL) {
-		//ERR_print_errors_fp(stderr);
-	}
 	if (hr != hrSuccess && lpSSL) {
 		SSL_shutdown(lpSSL);
 		SSL_free(lpSSL);
@@ -225,17 +301,16 @@ exit:
 }
 
 HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
-	char *lpRet;
+	char *lpRet = NULL;
 	int len = ulBufSize;
 
 	if (!szBuffer || !lpulRead)
 		return MAPI_E_INVALID_PARAMETER;
 
-	if (lpSSL) {
+	if (lpSSL)
 		lpRet = SSL_gets(szBuffer, &len);
-	} else {
+	else
 		lpRet = fd_gets(szBuffer, &len);
-	}
 
 	if (lpRet) {
 		*lpulRead = len;
@@ -291,7 +366,8 @@ HRESULT ECChannel::HrWriteString(char * szBuffer) {
 	if (lpSSL) {
 		if (SSL_write(lpSSL, szBuffer, (int)strlen(szBuffer)) < 1)
 			hr = MAPI_E_CALL_FAILED;
-	} else {
+	}
+	else {
 		if (send(fd, szBuffer, (int)strlen(szBuffer), 0) < 1)
 			hr = MAPI_E_CALL_FAILED;
 	}
@@ -326,7 +402,6 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
 HRESULT ECChannel::HrWriteLine(char *szBuffer, int len) {
-	HRESULT hr = hrSuccess;
 	std::string strLine;
 
 	if (len == 0)
@@ -336,24 +411,11 @@ HRESULT ECChannel::HrWriteLine(char *szBuffer, int len) {
 
 	strLine += "\r\n";
 	
-	hr = HrWriteString(strLine);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return HrWriteString(strLine);
 }
 
 HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
-	HRESULT hr = hrSuccess;
-	std::string strLine = strBuffer + "\r\n";
-
-	hr = HrWriteString(strLine);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return HrWriteString(strBuffer + "\r\n");
 }
 
 /**
@@ -367,22 +429,20 @@ exit:
  * @retval MAPI_E_CALL_FAILED Reading wrong amount of data.
  */
 HRESULT ECChannel::HrReadAndDiscardBytes(ULONG ulByteCount) {
-	ULONG ulRead = 0;
 	ULONG ulTotRead = 0;
-	char szBuffer[1000];
+	char szBuffer[4096];
 
 	while (ulTotRead < ulByteCount) {
+		ULONG ulBytesLeft = ulByteCount - ulTotRead;
+		ULONG ulRead = ulBytesLeft > sizeof szBuffer ? sizeof szBuffer : ulBytesLeft;
 
-		ulRead = ((ulByteCount-ulTotRead) > 1000)?1000:(ulByteCount-ulTotRead);
-		if (lpSSL) {
+		if (lpSSL)
 			ulRead = SSL_read(lpSSL, szBuffer, ulRead);
-		} else {
+		else
 			ulRead = recv(fd, szBuffer, ulRead, 0);
-		}
-		
-		if (ulRead == 0 || ulRead == (ULONG)-1 || ulRead > ulByteCount) {
+
+		if (ulRead == 0 || ulRead == (ULONG)-1 || ulRead > ulByteCount)
 			return MAPI_E_NETWORK_ERROR;
-		}
 
 		ulTotRead += ulRead;
 	}
@@ -397,23 +457,14 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 	if(!szBuffer)
 		return MAPI_E_INVALID_PARAMETER;
 
-	while (ulTotRead < ulByteCount) {
-		if (ulByteCount - ulTotRead > 1000) {
-			if (lpSSL) {
-				ulRead = SSL_read(lpSSL, szBuffer + ulTotRead, 1000);
-			} else {
-				ulRead = recv(fd, szBuffer + ulTotRead, 1000, 0);
-			}
-		} else {
-			if (lpSSL) {
-				ulRead = SSL_read(lpSSL, szBuffer + ulTotRead, ulByteCount - ulTotRead);
-			} else {
-				ulRead = recv(fd, szBuffer + ulTotRead, ulByteCount - ulTotRead, 0);
-			}
-		}
-		if (ulRead == 0 || ulRead == (ULONG)-1 || ulRead > ulByteCount) {
+	while(ulTotRead < ulByteCount) {
+		if (lpSSL)
+			ulRead = SSL_read(lpSSL, szBuffer + ulTotRead, ulByteCount - ulTotRead);
+		else
+			ulRead = recv(fd, szBuffer + ulTotRead, ulByteCount - ulTotRead, 0);
+
+		if (ulRead == 0 || ulRead == (ULONG)-1 || ulRead > ulByteCount)
 			return MAPI_E_NETWORK_ERROR;
-		}
 
 		ulTotRead += ulRead;
 	}
@@ -434,7 +485,8 @@ HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 
 	try {
 		buffer = new char[ulByteCount + 1];
-	} catch (std::exception &e) {
+	}
+	catch (std::exception &e) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
@@ -454,39 +506,38 @@ exit:
 
 HRESULT ECChannel::HrSelect(int seconds) {
 	fd_set fds;
-	int res;
-	struct timeval timeout;
+	int res = 0;
+	struct timeval timeout = { seconds, 0 };
 
 	if(fd >= FD_SETSIZE)
 	    return MAPI_E_NOT_ENOUGH_MEMORY;
 	if(lpSSL && SSL_pending(lpSSL))
 		return hrSuccess;
 
-	timeout.tv_sec = seconds;
-	timeout.tv_usec = 0;
-
+retry:
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 
-	res = select(fd+1, &fds, NULL, NULL, &timeout);
-	if (res < 0) {
-		if (errno != EINTR) {
-			return MAPI_E_NETWORK_ERROR;
-		}
-		return MAPI_E_TIMEOUT;
-	} else if (res == 0) {
-		return MAPI_E_TIMEOUT;
+	res = select(fd + 1, &fds, NULL, NULL, &timeout);
+	if (res == -1) {
+		if (errno == EINTR)
+			goto retry;
+
+		return MAPI_E_NETWORK_ERROR;
 	}
+
+	if (res == 0)
+		return MAPI_E_TIMEOUT;
 
 	return hrSuccess;
 }
 
 bool ECChannel::UsingSsl() {
-	return (lpSSL != NULL);
+	return lpSSL != NULL;
 }
 
 bool ECChannel::sslctx() {
-	return (lpCTX != NULL);
+	return lpCTX != NULL;
 }
 
 /** 
@@ -499,26 +550,46 @@ bool ECChannel::sslctx() {
  * @return NULL on error, or buf
  */
 char * ECChannel::fd_gets(char *buf, int *lpulLen) {
-	char *newline, *bp = buf;
+	char *newline = NULL, *bp = buf;
 	int len = *lpulLen;
-	int n;
 
 	if (--len < 1)
 		return NULL;
+
 	do {
 		// return NULL when we read nothing: other side closed it's writing socket
-		if ((n = recv(fd, bp, len, MSG_PEEK)) <= 0)
+		int n = recv(fd, bp, len, MSG_PEEK);
+
+		if (n == 0)
 			return NULL;
+
+		if (n == -1) {
+			if (errno == EINTR)
+				continue;
+
+			return NULL;
+		}
 
 		if ((newline = (char *)memchr((void *)bp, '\n', n)) != NULL)
 			n = newline - bp + 1;
 
-		if ((n = recv(fd, bp, n, 0)) < 0)
+	retry:
+		n = recv(fd, bp, n, 0);
+
+		if (n == 0)
 			return NULL;
+
+		if (n == -1) {
+			if (errno == EINTR)
+				goto retry;
+
+			return NULL;
+		}
 
 		bp += n;
 		len -= n;
-	} while (!newline && len > 0);
+	}
+	while(!newline && len > 0);
 
 	//remove the lf or crlf
 	if(newline){
@@ -530,16 +601,18 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 
 	*bp = '\0';
 	*lpulLen = (int)(bp - buf);
+
 	return buf;
 }
 
 char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 	char *newline, *bp = buf;
 	int len = *lpulLen;
-	int n;
+	int n = 0;
 
 	if (--len < 1)
 		return NULL;
+
 	do {
 		// return NULL when we read nothing: other side closed it's writing socket
 		if ((n = SSL_peek(lpSSL, bp, len)) <= 0)
@@ -585,7 +658,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	struct sockaddr_un sun_addr;
 	mode_t prevmask = 0;
 
-	if (szPath == NULL || szPath == NULL) {
+	if (szPath == NULL || lpulListenSocket == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -595,7 +668,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	strcpy(sun_addr.sun_path, szPath);
 
 
-	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create AF_UNIX socket.");
 		hr = MAPI_E_NETWORK_ERROR;
@@ -607,15 +680,15 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	// make files with permissions 0666
 	prevmask = umask(0111);
 
-	if (bind(fd, (struct sockaddr *)&sun_addr, sizeof(sun_addr)) < 0) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to bind to socket %s.", szPath);
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exit;
-	}
+        if (bind(fd, (struct sockaddr *)&sun_addr, sizeof(sun_addr)) == -1) {
+                if (lpLogger)
+                        lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s. This is usually caused by an other proces (most likely an other zarafa-server) already using this port. This program will terminate now.", szPath);
+                kill(0, SIGTERM);
+                exit(1);
+        }
 
-	// TODO: backlog of 200 should be configurable
-	if (listen(fd, 200) < 0) {
+	// TODO: backlog of SOMAXCONN should be configurable
+	if (listen(fd, SOMAXCONN) == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to start listening on socket %s.", szPath);
 		hr = MAPI_E_NETWORK_ERROR;
@@ -647,7 +720,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, int ulPort, int *lpulLi
 	sin_addr.sin_port = htons(ulPort);
 
 
-	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create TCP socket.");
 		hr = MAPI_E_NETWORK_ERROR;
@@ -655,20 +728,21 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, int ulPort, int *lpulLi
 	}
 
 	// TODO: should be configurable?
-	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set reuseaddr socket option.");
 	}
 
-	if (bind(fd, (struct sockaddr *)&sin_addr, sizeof(sin_addr)) < 0) {
+	if (bind(fd, (struct sockaddr *)&sin_addr, sizeof(sin_addr)) == -1) {
+		closesocket(fd);
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to bind to port %d.", ulPort);
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exit;
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket. This is usually caused by an other proces (most likely an other zarafa-server) already using this port. This program will terminate now.");
+		kill(0, SIGTERM);
+		exit(1);
 	}
 
-	// TODO: backlog of 200 should be configurable
-	if (listen(fd, 200) < 0) {
+	// TODO: backlog of SOMAXCONN should be configurable
+	if (listen(fd, SOMAXCONN) == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to start listening on port %d.", ulPort);
 		hr = MAPI_E_NETWORK_ERROR;
@@ -691,6 +765,8 @@ HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
 
 	if (ulListenFD < 0 || lppChannel == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
+		if (lpLogger)
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAccept: invalid parameters");
 		goto exit;
 	}
 
@@ -698,7 +774,7 @@ HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
 
 	socket = accept(ulListenFD, (struct sockaddr *)&client, &len);
 
-	if (socket < 0) {
+	if (socket == -1) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept(): %s", strerror(errno));
 		hr = MAPI_E_NETWORK_ERROR;

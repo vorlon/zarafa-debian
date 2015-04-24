@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -67,8 +62,10 @@
 #include "stringutil.h"
 #include "ECTags.h"
 #include "my_getopt.h"
+#include "ecversion.h"
 #include "charset/convert.h"
 #include "MAPIConsoleTable.h"
+#include "ECLogger.h"
 
 using namespace std;
 
@@ -158,6 +155,7 @@ typedef struct _SESSION {
     std::string strPeer;
     std::string strClientVersion;
     std::string strClientApp;
+    std::string strClientAppVersion, strClientAppMisc;
     
     bool operator < (const _SESSION &b) { 
         return this->dtimes.dblReal > b.dtimes.dblReal;
@@ -270,7 +268,7 @@ void showtop(LPMDB lpStore, bool bLocal)
     double dblLast = 0, dblTime = 0;
 
 	// columns in sizes, not literal offsets
-	int cols[] = {0,4,21,13,25,16,15,8,8,7,7,5};
+	int cols[] = {0,4,21,8,25,16,20,8,8,7,7,5};
 	int ofs = 0;
 	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true,true}; // key 1 through err?
 	SortFuncPtr fSort[] = {NULL,sort_sessionid,sort_version,sort_user,sort_ippeer,sort_app,NULL}; // key a through g
@@ -348,6 +346,8 @@ void showtop(LPMDB lpStore, bool bLocal)
             session.strState = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_PROCSTATES);
             session.strClientVersion = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_VERSION);
             session.strClientApp = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION);
+            session.strClientAppVersion = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION);
+            session.strClientAppMisc = GetString(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC);
 
             session.ulPeerPid = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_PEER_PID);
             session.times.ulRequests = GetLongLong(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_REQUESTS);
@@ -461,7 +461,7 @@ void showtop(LPMDB lpStore, bool bLocal)
 			}
 			if (bColumns[2]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%.12s", iterSessions->strClientVersion.c_str());
+				wprintw(win, "%.*s", cols[3] - 1, iterSessions->strClientVersion.c_str());
 				ofs += cols[3];
 			}
 			if (bColumns[3]) {
@@ -479,8 +479,11 @@ void showtop(LPMDB lpStore, bool bLocal)
 				ofs += cols[5];
 			}
 			if (bColumns[5]) {
+				std::string dummy = iterSessions->strClientApp + "/" + iterSessions->strClientAppVersion + "/" + iterSessions->strClientAppMisc;
+				if (dummy.size() >= cols[6])
+					dummy = dummy.substr(0, cols[6] - 1);
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%.14s", iterSessions->strClientApp.c_str());
+				wprintw(win, "%.*s", cols[6] - 1, dummy.c_str());
 				ofs += cols[6];
 			}
 			if (bColumns[6]) {
@@ -596,7 +599,7 @@ void print_help(char *name)
 	cout << "  --session" << "\tGives information about sessions and server time spent in SOAP calls" << endl;
 	cout << "  --users" << "\tGives information about users, store sizes and quotas" << endl;
 	cout << "  --company" << "\tGives information about companies, company sizes and quotas" << endl;
-	cout << "  --servers" << "\tGives information about cluster nodex" << endl;
+	cout << "  --servers" << "\tGives information about cluster nodes" << endl;
 	cout << "  --top" << "\t\tShows top-like information about sessions" << endl;
 	cout << "Options:" << endl;
 	cout << "  --user, -u <user>" << "\tUse specified username to logon" << endl;
@@ -616,6 +619,7 @@ int main(int argc, char *argv[])
 	wstring strwUsername;
 	wstring strwPassword;
 	bool humanreadable(true);
+	ECLogger *const lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-");
 
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");
@@ -677,7 +681,7 @@ int main(int argc, char *argv[])
 	strwUsername = convert_to<wstring>(user ? user : "SYSTEM");
 	strwPassword = convert_to<wstring>(pass ? pass : "");
 
-	hr = HrOpenECSession(&lpSession, strwUsername.c_str(), strwPassword.c_str(), (const char *)host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
+	hr = HrOpenECSession(lpLogger, &lpSession, "zarafa-stats", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), (const char *)host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
 		cout << "Cannot open admin session on host " << (host ? host : (char *)"localhost") << ", username " << (user ? user : (char *)"SYSTEM") << endl;
 		goto exit;
@@ -702,6 +706,7 @@ exit:
 		lpSession->Release();
 
 	MAPIUninitialize();
+	lpLogger->Release();
 
 	return hr != hrSuccess;
 }

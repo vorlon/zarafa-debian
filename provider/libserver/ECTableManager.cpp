@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -97,7 +92,7 @@ unsigned int sUserStoresProps[] = { PR_EC_USERNAME, PR_EC_STOREGUID, PR_EC_STORE
 
 // stats tables
 unsigned int sSystemStatsProps[] = { PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_DESCRIPTION, PR_EC_STATS_SYSTEM_VALUE };
-unsigned int sSessionStatsProps[] = { PR_EC_STATS_SESSION_ID, PR_EC_STATS_SESSION_GROUP_ID, PR_EC_STATS_SESSION_IPADDRESS, PR_EC_STATS_SESSION_IDLETIME, PR_EC_STATS_SESSION_CAPABILITY, PR_EC_STATS_SESSION_LOCKED, PR_EC_USERNAME, PR_EC_STATS_SESSION_BUSYSTATES, PR_EC_STATS_SESSION_PROCSTATES, PR_EC_STATS_SESSION_CPU_USER, PR_EC_STATS_SESSION_CPU_SYSTEM, PR_EC_STATS_SESSION_CPU_REAL, PR_EC_STATS_SESSION_PEER_PID, PR_EC_STATS_SESSION_CLIENT_VERSION, PR_EC_STATS_SESSION_CLIENT_APPLICATION, PR_EC_STATS_SESSION_REQUESTS, PR_EC_STATS_SESSION_PORT, PR_EC_STATS_SESSION_PROXY, PR_EC_STATS_SESSION_URL };
+unsigned int sSessionStatsProps[] = { PR_EC_STATS_SESSION_ID, PR_EC_STATS_SESSION_GROUP_ID, PR_EC_STATS_SESSION_IPADDRESS, PR_EC_STATS_SESSION_IDLETIME, PR_EC_STATS_SESSION_CAPABILITY, PR_EC_STATS_SESSION_LOCKED, PR_EC_USERNAME, PR_EC_STATS_SESSION_BUSYSTATES, PR_EC_STATS_SESSION_PROCSTATES, PR_EC_STATS_SESSION_CPU_USER, PR_EC_STATS_SESSION_CPU_SYSTEM, PR_EC_STATS_SESSION_CPU_REAL, PR_EC_STATS_SESSION_PEER_PID, PR_EC_STATS_SESSION_CLIENT_VERSION, PR_EC_STATS_SESSION_CLIENT_APPLICATION, PR_EC_STATS_SESSION_REQUESTS, PR_EC_STATS_SESSION_PORT, PR_EC_STATS_SESSION_PROXY, PR_EC_STATS_SESSION_URL, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC };
 unsigned int sUserStatsProps[] = { PR_EC_COMPANY_NAME, PR_EC_USERNAME, PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_EC_NONACTIVE, PR_EC_ADMINISTRATOR, PR_EC_HOMESERVER_NAME,
 								   PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD, PR_QUOTA_RECEIVE_THRESHOLD, PR_EC_QUOTA_MAIL_TIME,
 								   PR_EC_OUTOFOFFICE, PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME };
@@ -347,8 +342,6 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	ECStoreObjectTable	*lpTable = NULL;
 	TABLE_ENTRY		*lpEntry = NULL;
 
-	struct propTagArray *lpsPropTags = NULL;
-
 	unsigned int	ulStoreId = 0;
 	GUID			sGuid;
 	ECLocale			locale;
@@ -405,9 +398,6 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 exit:
 	if (lpTable)
 		lpTable->Release();
-
-	if(lpsPropTags)
-		FreePropTagArray(lpsPropTags);
 
 	return er;
 }

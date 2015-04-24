@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -236,16 +231,12 @@ DEFINE_GUID(ZARAFA_STORE_DELEGATE_GUID,
 DEFINE_GUID(ZARAFA_STORE_ARCHIVE_GUID,
 0xbc8953ad, 0x2e3f, 0x4172, 0x94, 0x4, 0x89, 0x6f, 0xf4, 0x59, 0x87, 0xf);
 
-// {AC21A950-40D3-ee48-19B3-FBA753304425}
-// same as MUIDECSAB
-#define MUIDECSAB_SERVER "\xAC\x21\xA9\x50\x40\xD3\xEE\x48\xB3\x19\xFB\xA7\x53\x30\x44\x25"
-
-// {0x7976ED54D0D211DD9705BE5055D89593}
-#define MUIDECSI_SERVER "\x79\x76\xED\x54\xD0\xD2\x11\xDD\x97\x05\xBE\x50\x55\xD8\x95\x93"
-
 // {5ABAE40E-1DF7-4f3d-964D-658A79924E9D}
 DEFINE_GUID(ZARAFA_SAB_GUID, 
 0x5abae40e, 0x1df7, 0x4f3d, 0x96, 0x4d, 0x65, 0x8a, 0x79, 0x92, 0x4e, 0x9d);
+
+// {7976ED54-D0D2-11DD-9705-BE5055D89593}
+#define MUIDECSI_SERVER "\x79\x76\xED\x54\xD0\xD2\x11\xDD\x97\x05\xBE\x50\x55\xD8\x95\x93"
 
 // {A7D80ED6-D027-11DD-B0B6-645055D89593}
 DEFINE_GUID(IID_IECSingleInstance,
@@ -454,7 +445,6 @@ DEFINE_GUID(IID_ZCABContainer,
 // libcalendar guids (should those even be here?)
 //
 
-// {4eabe417-4400-4025-85fb-cff3ac55d170}
 DEFINE_GUID(IID_Appointment,
 0x4eabe417, 0x4400, 0x4025, 0x85, 0xfb, 0xcf, 0xf3, 0xac, 0x55, 0xd1, 0x70);
 
@@ -469,6 +459,30 @@ DEFINE_GUID(IID_IOccurrence,
 // {4daea497-fece-4a06-9233-c043d93ff9fa}
 DEFINE_GUID(IID_IRecurrencePatternInspector,
 0x4daea497, 0xfece, 0x4a06, 0x92, 0x33, 0xc0, 0x43, 0xd9, 0x3f, 0xf9, 0xfa);
+
+// {0ec9cc83-ec6e-4ee5-91b7-cf35a724adc2}
+DEFINE_GUID(IID_MeetingCancellation,
+0x0ec9cc83, 0xec6e, 0x4ee5, 0x91, 0xb7, 0xcf, 0x35, 0xa7, 0x24, 0xad, 0xc2);
+
+// {af0320a4-d726-4011-8cde-3424a90cef97}
+DEFINE_GUID(IID_IMeetingCancellation,
+0xaf0320a4, 0xd726, 0x4011, 0x8c, 0xde, 0x34, 0x24, 0xa9, 0x0c, 0xef, 0x97);
+
+// {fffa6f83-ff2f-4a7b-819b-f7ec1c180f36}
+DEFINE_GUID(IID_MeetingRequest,
+0xfffa6f83, 0xff2f, 0x4a7b, 0x81, 0x9b, 0xf7, 0xec, 0x1c, 0x18, 0x0f, 0x36);
+
+// {018d61b8-65b1-42dd-ae37-9d7a4f8ea2db}
+DEFINE_GUID(IID_IMeetingRequest,
+0x018d61b8, 0x65b1, 0x42dd, 0xae, 0x37, 0x9d, 0x7a, 0x4f, 0x8e, 0xa2, 0xdb);
+
+// {93afcbba-4f5a-4aac-801a-ccb995d27f36}
+DEFINE_GUID(IID_MeetingResponse,
+0x93afcbba, 0x4f5a, 0x4aac, 0x80, 0x1a, 0xcc, 0xb9, 0x95, 0xd2, 0x7f, 0x36);
+
+// {034ccbe9-52a5-42d0-80e9-3185ef0f051d}
+DEFINE_GUID(IID_IMeetingResponse,
+0x034ccbe9, 0x52a5, 0x42d0, 0x80, 0xe9, 0x31, 0x85, 0xef, 0x0f, 0x05, 0x1d);
 
 #endif
 

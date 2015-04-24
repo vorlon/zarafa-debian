@@ -8,8 +8,9 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 zarafa_admin_LDADD = ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libcommon_mapi.la \
 	${top_builddir}/common/libcommon_util.la \
-	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la
-	$(PROG_LIBS)
+	${top_builddir}/common/libcommon_ssl.la \
+	${top_builddir}/ECtools/zarafa-archiver/libarchiver.la \
+	$(PROG_LIBS) $(SSL_LIBS)
 
 zarafa_admin_SOURCES = zarafa-admin.cpp
 

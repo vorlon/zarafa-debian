@@ -5,10 +5,6 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(GSOAP_CFLAGS) \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/include \
 	-I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap -I${top_srcdir}/common 
 
-if WITH_SYSTEM_GSOAP
-AM_CPPFLAGS += -DWITH_SYSTEM_GSOAP
-endif
-
 libzarafacommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
 	SOAPAlloc.h \
 	SOAPHelpers.cpp SOAPHelpers.h \

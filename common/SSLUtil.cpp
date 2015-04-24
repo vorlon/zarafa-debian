@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -55,6 +50,7 @@
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
 #include <openssl/engine.h>
+
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -125,6 +121,8 @@ void SSL_library_cleanup()
 	CRYPTO_cleanup_all_ex_data();
 
 	CONF_modules_unload(0);
+
+	sk_SSL_COMP_free(SSL_COMP_get_compression_methods());
 }
 
 void ssl_random_init()
@@ -132,29 +130,39 @@ void ssl_random_init()
 	rand_init();
 
 	while (RAND_status() == 0) {
-		unsigned int r = rand_mt();
-		RAND_seed(&r, sizeof(unsigned int));
+		char buffer[16];
+		rand_get(buffer, sizeof buffer);
+		RAND_seed(buffer, sizeof buffer);
 	}
 }
 
 void ssl_random(bool b64bit, unsigned long long *lpullId)
 {
 	BIGNUM bn;
-	unsigned long long ullId = 0;
+	BN_init(&bn);
 
-	if (!b64bit) {
-		ullId = rand_mt();
-	} else {
-		BN_init(&bn);
+	if (b64bit)
+	{
+		unsigned long long ullId = 0;
 
-		if (BN_rand(&bn, sizeof(unsigned long long)*8, -1, 0) == 0) {
-			ullId = ((unsigned long long)rand_mt() << 32) | rand_mt();
-		} else {
+		if (BN_rand(&bn, sizeof(ullId) * 8, -1, 0) == 0)
+			rand_get((char *)&ullId, sizeof ullId);
+		else
 			BN_bn2bin(&bn, (unsigned char*)&ullId);
-		}
 
-		BN_free(&bn);
+		*lpullId = ullId;
+	}
+	else
+	{
+		uint32_t ullId = 0;
+
+		if (BN_rand(&bn, sizeof(ullId) * 8, -1, 0) == 0)
+			rand_get((char *)&ullId, sizeof ullId);
+		else
+			BN_bn2bin(&bn, (unsigned char*)&ullId);
+
+		*lpullId = ullId;
 	}
 
-	*lpullId = ullId;
+	BN_free(&bn);
 }

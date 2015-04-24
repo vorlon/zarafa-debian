@@ -51,7 +51,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@WITH_SYSTEM_GSOAP_TRUE@am__append_1 = -DWITH_SYSTEM_GSOAP
 subdir = provider/libserver
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -150,7 +149,6 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BISON_DEFINE = @BISON_DEFINE@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 BOOST_DATE_TIME_LDFLAGS = @BOOST_DATE_TIME_LDFLAGS@
 BOOST_DATE_TIME_LIBS = @BOOST_DATE_TIME_LIBS@
@@ -162,9 +160,6 @@ BOOST_SYSTEM_LIBS = @BOOST_SYSTEM_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CLUCENE_CFLAGS = @CLUCENE_CFLAGS@
-CLUCENE_LIBS = @CLUCENE_LIBS@
-CLUCENE_VERSION = @CLUCENE_VERSION@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CRYPT_LIBS = @CRYPT_LIBS@
@@ -211,8 +206,6 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTL_LIBS = @INTL_LIBS@
 KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
-KYOTOCABINET_CFLAGS = @KYOTOCABINET_CFLAGS@
-KYOTOCABINET_LIBS = @KYOTOCABINET_LIBS@
 LD = @LD@
 LDAP_FLAGS = @LDAP_FLAGS@
 LDAP_LIBS = @LDAP_LIBS@
@@ -258,13 +251,11 @@ PHP_INCLUDES = @PHP_INCLUDES@
 PHP_LDFLAGS = @PHP_LDFLAGS@
 PHP_SYSCONF_DIR = @PHP_SYSCONF_DIR@
 PHP_VERSION = @PHP_VERSION@
-PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POW_LIB = @POW_LIB@
 PROG_ANT = @PROG_ANT@
 PROG_LIBS = @PROG_LIBS@
 PROG_XMLTO = @PROG_XMLTO@
+PYTHON = @PYTHON@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
 PYTHON_LIBDIR = @PYTHON_LIBDIR@
 PYTHON_LIBS = @PYTHON_LIBS@
@@ -278,6 +269,7 @@ SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 SWIG_EXEC = @SWIG_EXEC@
 SWIG_FLAGS = @SWIG_FLAGS@
+TCMALLOC_CFLAGS = @TCMALLOC_CFLAGS@
 TCMALLOC_LIBS = @TCMALLOC_LIBS@
 TIMEZONEDIR = @TIMEZONEDIR@
 USERSCRIPTDIR = @USERSCRIPTDIR@
@@ -288,7 +280,7 @@ VMIME_LIBS = @VMIME_LIBS@
 XML2_CFLAGS = @XML2_CFLAGS@
 XML2_LIBS = @XML2_LIBS@
 YACC = @YACC@
-YACC_LIB = @YACC_LIB@
+YACC_EXISTS = @YACC_EXISTS@
 YFLAGS = @YFLAGS@
 ZARAFA_VERSION = @ZARAFA_VERSION@
 ZCPPFLAGS = @ZCPPFLAGS@
@@ -349,15 +341,13 @@ top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libserver.la
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/mapi4linux/include \
-	-I${top_srcdir}/provider/libserver \
-	-I${top_srcdir}/provider/plugins \
-	-I${top_srcdir}/provider/include \
-	-I${top_srcdir}/provider/common \
-	-I${top_srcdir}/provider/client \
-	-I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap \
+	-I${top_srcdir}/provider/libserver -I${top_srcdir}/provider/plugins \
+	-I${top_srcdir}/provider/include -I${top_srcdir}/provider/common \
+	-I${top_srcdir}/provider/client -I${top_builddir}/provider/soap \
+	-I${top_srcdir}/provider/soap \
 	-I${top_srcdir}/common -DPKGLIBDIR='"${pkglibdir}"' \
-	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) \
-	$(SSL_HAS_EVP_PKEY_CMP) $(KRB5_CFLAGS) $(am__append_1)
+	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(SSL_HAS_EVP_PKEY_CMP) $(KRB5_CFLAGS)
+
 libserver_la_SOURCES = \
 	ZarafaCmd.cpp \
 	ECABObjectTable.cpp ECABObjectTable.h \

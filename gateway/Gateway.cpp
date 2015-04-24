@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -93,8 +88,6 @@
  * @{
  */
 
-#define max(x,y)	(x > y ? x : y)
-
 int daemonize = 1;
 int quit = 0;
 bool bThreads = false;
@@ -116,7 +109,7 @@ void sighup(int sig) {
 		return;
 	if (g_lpConfig) {
 		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to reload configuration file, continuing with current settings.");
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
 	}
 
 	if (g_lpLogger) {
@@ -167,9 +160,9 @@ void sigsegv(int signr)
 
 	for (i = 0; i < n; i++) {
 		if (btsymbols)
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p %s", bt[i], btsymbols[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p %s", bt[i], btsymbols[i]);
 		else
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%016p", bt[i]);
+			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p", bt[i]);
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name, system architecture and Zarafa version.");
@@ -228,7 +221,7 @@ void *Handler(void *lpArg) {
 	int timeouts = 0;
 
 	if (bUseSSL) {
-		if (lpChannel->HrEnableTLS() != hrSuccess) {
+		if (lpChannel->HrEnableTLS(lpLogger) != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
 			goto exit;
 		}
@@ -365,7 +358,9 @@ int main(int argc, char *argv[]) {
 		{ "ssl_verify_client", "no" },
 		{ "ssl_verify_file", "" },
 		{ "ssl_verify_path", "" },
-		{ "ssl_enable_v2", "no" },
+		{ "ssl_protocols", "!SSLv2" },
+		{ "ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL" },
+		{ "ssl_prefer_server_ciphers", "no" },
 		{ "log_method", "file" },
 		{ "log_file", "-" },
 		{ "log_level", "2", CONFIGSETTING_RELOADABLE },
@@ -427,7 +422,7 @@ int main(int argc, char *argv[]) {
 	// Setup config
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc-my_optind, &argv[my_optind], NULL) || (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-");	// create fatal logger without a timestamp to stderr
+		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-");	// create logger without a timestamp to stderr
 		LogConfigErrors(g_lpConfig, g_lpLogger);
 		hr = E_FAIL;
 		goto exit;
@@ -603,7 +598,7 @@ HRESULT running_service(char *szPath, char *servicename) {
     file_limit.rlim_max = FD_SETSIZE;
     
     if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
-        g_lpLogger->Log(EC_LOGLEVEL_FATAL, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
+        g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", FD_SETSIZE, getdtablesize());
     }        
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
@@ -622,7 +617,7 @@ HRESULT running_service(char *szPath, char *servicename) {
 	if (bThreads == false)
 		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Starting zarafa-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Starting zarafa-gateway version " PROJECT_VERSION_GATEWAY_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
 	// Mainloop
 	while (!quit) {
@@ -640,10 +635,14 @@ HRESULT running_service(char *szPath, char *servicename) {
 		timeout.tv_sec = 10;
 		timeout.tv_usec = 0;
 
-		err = select(max(max(ulListenPOP3, ulListenIMAP), max(ulListenPOP3s, ulListenIMAPs)) + 1, &readfds, NULL, NULL, &timeout);
+		int maxfd = 0;
+		maxfd = std::max(maxfd, ulListenPOP3);
+		maxfd = std::max(maxfd, ulListenIMAP);
+		maxfd = std::max(maxfd, ulListenIMAPs);
+		err = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
 		if (err < 0) {
 			if (errno != EINTR) {
-				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Socket error: %s", strerror(errno));
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Socket error: %s", strerror(errno));
 				quit = 1;
 				hr = MAPI_E_NETWORK_ERROR;
 			}
@@ -764,10 +763,10 @@ HRESULT running_service(char *szPath, char *servicename) {
 		}
 
 		// should not be able to get here because of continues
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Incoming traffic was not for me??");
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Incoming traffic was not for me??");
 	}
 
-	g_lpLogger->Log(EC_LOGLEVEL_FATAL, "POP3/IMAP Gateway will now exit");
+	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "POP3/IMAP Gateway will now exit");
 
 	// in forked mode, send all children the exit signal
 	if (bThreads == false) {

@@ -20,9 +20,22 @@
 %typemap(argout) (LPECUSER *OUTPUT) {
     %append_output(Object_from_LPECUSER(*($1), ulFlags));
 }
-
 %typemap(argout) (ULONG *OUTPUT, LPECUSER *OUTPUT) {
-    %append_output(List_from_LPECUSER(*(arg6),*(arg5), ulFlags));
+    %append_output(List_from_LPECUSER(*($2),*($1), ulFlags));
+}
+
+%typemap(argout) (LPECCOMPANY *OUTPUT) {
+    %append_output(Object_from_LPECCOMPANY(*($1), ulFlags));
+}
+%typemap(argout) (ULONG *OUTPUT, LPECCOMPANY *OUTPUT) {
+    %append_output(List_from_LPECCOMPANY(*($2),*($1), ulFlags));
+}
+
+%typemap(argout) (LPECGROUP *OUTPUT) {
+    %append_output(Object_from_LPECGROUP(*($1), ulFlags));
+}
+%typemap(argout) (ULONG *OUTPUT, LPECGROUP *OUTPUT) {
+    %append_output(List_from_LPECGROUP(*($2),*($1), ulFlags));
 }
 
 #define ECSTORE_TYPE_PRIVATE      			0

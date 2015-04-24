@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -899,20 +894,25 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	int			sslcert_len = 0;
 	char		*sslpass = "";
 	int			sslpass_len = 0;
+	char		*wa_version = "";
+	int		wa_version_len = 0;
+	char		*misc_version = "";
+	int		misc_version_len = 0;
 	long		ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
 	LPMAPISESSION lpMAPISession = NULL;
 	// local
 	ULONG		ulProfNum = rand_mt();
 	char		szProfName[MAX_PATH];
-	SPropValue	sPropZarafa[6];
+	SPropValue	sPropZarafa[8];
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|sssl",
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|ssslss",
 							 &username, &username_len, &password, &password_len, &server, &server_len,
-							 &sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags) == FAILURE) return;
+							&sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags,
+							&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
 
 	if (!server) {
 		server = "http://localhost:236/zarafa";
@@ -937,7 +937,12 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 		sPropZarafa[5].ulPropTag = PR_EC_SSLKEY_PASS;
 		sPropZarafa[5].Value.lpszA = sslpass;
 
-		MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 6, sPropZarafa);
+		sPropZarafa[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
+		sPropZarafa[6].Value.lpszA = wa_version;
+		sPropZarafa[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
+		sPropZarafa[7].Value.lpszA = misc_version;
+
+		MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropZarafa);
 
 		if(MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
@@ -4545,7 +4550,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	// local
 	ULONG		nUsers, i;
 	LPECUSER	lpUsers = NULL;
-	IECUnknown	*lpUnknown;
+	IECUnknown	*lpUnknown = NULL;
 	IECSecurity *lpSecurity = NULL;
 
 	RETVAL_FALSE;
@@ -4779,7 +4784,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 
 	// local
 	LPECUSER		lpUsers = NULL;
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPENTRYID		lpUserId = NULL;
 	unsigned int	cbUserId = 0;
@@ -4857,7 +4862,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 
 	// local
 	LPECUSER		lpUsers = NULL;
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 
 	RETVAL_FALSE;
@@ -4918,7 +4923,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	LPENTRYID		lpGroupId = NULL;
 	unsigned int	cbGroupId = 0;
 	// locals
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 
 	RETVAL_FALSE;
@@ -4972,7 +4977,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	unsigned int	cbGroupname;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPENTRYID		lpGroupId = NULL;
 	unsigned int	cbGroupId = 0;
@@ -5129,7 +5134,7 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 
 	// return value
 	// locals
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ECGROUP			sGroup;
 
@@ -5180,7 +5185,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 	unsigned int	cbGroupId = 0;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPECGROUP		lpsGroup = NULL;
 
@@ -5235,7 +5240,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	unsigned int	cbGroupId = 0;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPECGROUP		lpsGroup = NULL;
 
@@ -5298,10 +5303,10 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG			ulGroups;
-	LPECGROUP		lpsGroups;
+	LPECGROUP		lpsGroups = NULL;
 	unsigned int	i;
 
 	RETVAL_FALSE;
@@ -5360,10 +5365,10 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG			ulGroups;
-	LPECGROUP		lpsGroups;
+	LPECGROUP		lpsGroups = NULL;
 	unsigned int	i;
 
 	RETVAL_FALSE;
@@ -5422,7 +5427,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	// locals
 	zval			*zval_data_value  = NULL;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG			ulUsers;
 	LPECUSER		lpsUsers;
@@ -5489,7 +5494,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	LPENTRYID		lpCompanyId = NULL;
 	unsigned int	cbCompanyId = 0;
 	// locals
-	IECUnknown *lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 
 	RETVAL_FALSE;
@@ -5541,7 +5546,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	unsigned int cbCompanyname;
 	// return value
 	// locals
-	IECUnknown *lpUnknown;
+	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	unsigned int	cbCompanyId = 0;
@@ -5653,7 +5658,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	unsigned int cbCompanyId = 0;
 	// return value
 	// locals
-	IECUnknown *lpUnknown;
+	IECUnknown *lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	LPECCOMPANY lpsCompany = NULL;
 
@@ -5716,7 +5721,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	// local
 	ULONG nCompanies, i;
 	LPECCOMPANY lpCompanies = NULL;
-	IECUnknown *lpUnknown;
+	IECUnknown *lpUnknown = NULL;;
 	IECSecurity *lpSecurity = NULL;
 
 	RETVAL_FALSE;
@@ -6334,7 +6339,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	// local
 	int type = -1;
-	IECUnknown	*lpUnknown;
+	IECUnknown	*lpUnknown = NULL;
 	IECSecurity *lpSecurity = NULL;
 	ULONG i;
 
@@ -6411,7 +6416,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	// local
 	int type = -1;
-	IECUnknown	*lpUnknown;
+	IECUnknown	*lpUnknown = NULL;
 	IECSecurity *lpSecurity = NULL;
 	ULONG cPerms = 0;
 	LPECPERMISSION lpECPerms = NULL;
@@ -7835,7 +7840,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     ZEND_FETCH_RESOURCE(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
     ZEND_FETCH_RESOURCE(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
-	MAPI_G(hr) = PHPArraytoSendingOptions(resOptions, &sopt);
+    MAPI_G(hr) = PHPArraytoSendingOptions(resOptions, &sopt);
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
     

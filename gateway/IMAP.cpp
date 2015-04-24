@@ -1,41 +1,36 @@
 /*
- * Copyright 2005 - 2014  Zarafa B.V.
+ * Copyright 2005 - 2015  Zarafa B.V. and its licensors
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3, 
- * as published by the Free Software Foundation with the following additional 
- * term according to sec. 7:
- *  
- * According to sec. 7 of the GNU Affero General Public License, version
- * 3, the terms of the AGPL are supplemented with the following terms:
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation with the following
+ * additional terms according to sec. 7:
  * 
- * "Zarafa" is a registered trademark of Zarafa B.V. The licensing of
- * the Program under the AGPL does not imply a trademark license.
- * Therefore any rights, title and interest in our trademarks remain
- * entirely with us.
+ * "Zarafa" is a registered trademark of Zarafa B.V.
+ * The licensing of the Program under the AGPL does not imply a trademark 
+ * license. Therefore any rights, title and interest in our trademarks 
+ * remain entirely with us.
  * 
- * However, if you propagate an unmodified version of the Program you are
- * allowed to use the term "Zarafa" to indicate that you distribute the
- * Program. Furthermore you may use our trademarks where it is necessary
- * to indicate the intended purpose of a product or service provided you
- * use it in accordance with honest practices in industrial or commercial
- * matters.  If you want to propagate modified versions of the Program
- * under the name "Zarafa" or "Zarafa Server", you may only do so if you
- * have a written permission by Zarafa B.V. (to acquire a permission
- * please contact Zarafa at trademark@zarafa.com).
- * 
- * The interactive user interface of the software displays an attribution
- * notice containing the term "Zarafa" and/or the logo of Zarafa.
- * Interactive user interfaces of unmodified and modified versions must
- * display Appropriate Legal Notices according to sec. 5 of the GNU
- * Affero General Public License, version 3, when you propagate
- * unmodified or modified versions of the Program. In accordance with
- * sec. 7 b) of the GNU Affero General Public License, version 3, these
- * Appropriate Legal Notices must retain the logo of Zarafa or display
- * the words "Initial Development by Zarafa" if the display of the logo
- * is not reasonably feasible for technical reasons. The use of the logo
- * of Zarafa in Legal Notices is allowed for unmodified and modified
- * versions of the software.
+ * Our trademark policy, <http://www.zarafa.com/zarafa-trademark-policy>,
+ * allows you to use our trademarks in connection with Propagation and 
+ * certain other acts regarding the Program. In any case, if you propagate 
+ * an unmodified version of the Program you are allowed to use the term 
+ * "Zarafa" to indicate that you distribute the Program. Furthermore you 
+ * may use our trademarks where it is necessary to indicate the intended 
+ * purpose of a product or service provided you use it in accordance with 
+ * honest business practices. For questions please contact Zarafa at 
+ * trademark@zarafa.com.
+ *
+ * The interactive user interface of the software displays an attribution 
+ * notice containing the term "Zarafa" and/or the logo of Zarafa. 
+ * Interactive user interfaces of unmodified and modified versions must 
+ * display Appropriate Legal Notices according to sec. 5 of the GNU Affero 
+ * General Public License, version 3, when you propagate unmodified or 
+ * modified versions of the Program. In accordance with sec. 7 b) of the GNU 
+ * Affero General Public License, version 3, these Appropriate Legal Notices 
+ * must retain the logo of Zarafa or display the words "Initial Development 
+ * by Zarafa" if the display of the logo is not reasonably feasible for
+ * technical reasons.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -81,6 +76,7 @@
 #include "codepage.h"
 #include "charset/convert.h"
 #include "restrictionutil.h"
+#include "ecversion.h"
 #include "ECGuid.h"
 #include "namedprops.h"
 #include "ECFeatures.h"
@@ -818,7 +814,7 @@ HRESULT IMAP::HrCmdNoop(const string &strTag) {
 	if (!strCurrentFolder.empty())
 		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "NOOP completed");
+		hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "NOOP completed");
 		goto exit;
 	}
 
@@ -884,16 +880,15 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpChannel->HrEnableTLS();
+	hr = lpChannel->HrEnableTLS(lpLogger);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
 		goto exit;
 	}
 
-	if (lpChannel->UsingSsl()) {
+	if (lpChannel->UsingSsl())
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
-	}
 
 exit:
 	return hr;
@@ -992,8 +987,6 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	wstring strwPassword;
 	char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
-	LPMAPINAMEID lpNameIDs = NULL;
-
 	// strUser isn't sent in imap style utf-7, but \ is escaped, so strip those
 	for (i=0; i < strUser.length(); i++) {
 		if (strUser[i] == '\\' && i+1 < strUser.length() && (strUser[i+1] == '"' || strUser[i+1] == '\\'))
@@ -1037,7 +1030,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	}
 
 	// do not disable notifications for imap connections, may be idle and sessions on the zarafa server will disappear.
-	hr = HrOpenECSession(&lpSession, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
+	hr = HrOpenECSession(lpLogger, &lpSession, "gateway/imap", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->GetIPAddress().c_str(), strUsername.c_str(), hr);
@@ -1067,7 +1060,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 
 	// check if imap access is disabled
 	if (isFeatureDisabled("imap", lpAddrBook, lpStore)) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "IMAP not enabled for user '%s'", strUsername.c_str());
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
@@ -1110,9 +1103,6 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
 
 exit:
-	if (lpNameIDs)
-		MAPIFreeBuffer(lpNameIDs);
-
 	if (hr != hrSuccess || hr2 != hrSuccess)
 		CleanupObject();
 
@@ -1735,7 +1725,7 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
         if (MatchFolderPath(strFolderPath, strPattern)) {
 			hr = MAPI2IMAPCharset(strFolderPath, strResponse);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to represent foldername '%ls' in UTF-7", strFolderPath.c_str());
+				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to represent foldername '%ls' in UTF-7", strFolderPath.c_str());
 				continue;
 			}
 
