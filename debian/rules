@@ -159,7 +159,6 @@ install-arch:
 
 	# move license to correct package
 	mkdir -p $(INSTDIR)/usr/share/doc/pacemaker-zarafa
-	mv $(INSTDIR)/usr/share/doc/zarafa/LICENSE.inqbus $(INSTDIR)/usr/share/doc/pacemaker-zarafa/
 
 	# link userscripts in /usr/share/zarafa/userscripts
 	mkdir -p $(INSTDIR)/usr/share/zarafa/userscripts

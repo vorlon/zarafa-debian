@@ -370,15 +370,6 @@ Description: Extra tools to enhance the zarafa-archiver feature set
  Provides za-aclsync to propagate ACL settings in a users primary store
  to his archive(s).
 
-Package: pacemaker-zarafa
-Architecture: any
-Section: admin
-Depends: ${shlibs:Depends},
- pacemaker
-Description: Provides pacemaker OCF startup scripts
- For all the zarafa services available an ocf script is installed
- integrated in your pacemaker installation.
-
 Package: zarafa-ws
 Architecture: any
 Section: non-free/mail
