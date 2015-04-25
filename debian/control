@@ -22,12 +22,14 @@ Build-Depends: debhelper (>= 4.0.0),
  m4,
  zlib1g-dev,
  libncurses5-dev,
+ libncursesw5-dev,
  libxml2-dev,
  libpam0g-dev,
  libkrb5-dev,
  libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time1.46-dev | libboost-date-time-dev,
  libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev,
  libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread1.46-dev | libboost-thread-dev,
+ libgoogle-perftools-dev,
  python-dev,
  libicu-dev,
  libical-dev,
@@ -338,14 +340,6 @@ Depends: ${shlibs:Depends},
  file,
  catdoc
 Description: zarafa indexer using the xapian search engine
-
-Package: zarafa-presence
-Architecture: any
-Depends: ${shlibs:Depends},
- python-zarafa,
- python-flask,
- python-sleekxmpp
-Description: zarafa presence daemon
 
 Package: zarafa-archiver
 Architecture: any

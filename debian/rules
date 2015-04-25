@@ -203,7 +203,6 @@ binary-arch-real: install-arch
 	dh_installinit --name zarafa-ical
 	dh_installinit --name zarafa-licensed
 	dh_installinit --name zarafa-search
-	dh_installinit --name zarafa-presence
 	dh_installinit --name zarafa-ws
 #	dh_installcron
 #	dh_installinfo
