@@ -40,13 +40,36 @@ else
 tstrip := --strip-components
 endif
 
+CONFIGURE_ARGS=\
+    --host=$(DEB_HOST_GNU_TYPE) \
+    --build=$(DEB_BUILD_GNU_TYPE) \
+    --with-distro=debian \
+    --prefix=/usr \
+    --localstatedir=/var \
+    --sysconfdir=/etc \
+    --mandir=\$${prefix}/share/man \
+    --infodir=\$${prefix}/share/info \
+    --with-userscript-prefix=/etc/zarafa/userscripts \
+    --with-quotatemplate-prefix=/etc/zarafa/quotamail \
+    --disable-static \
+    --enable-tcmalloc \
+    --with-tcmalloc-prefix=/opt/zarafa \
+    --enable-epoll \
+    --enable-unicode \
+    --enable-python \
+    --enable-swig \
+    --with-gsoap-prefix=/opt/zarafa \
+    --with-vmime-prefix=/opt/zarafa \
+    --with-ical-prefix=/opt/zarafa \
+   $(NULL)
+
 configure: config.status
 
 config.status:
 	dh_testdir
 	dpkg-parsechangelog | grep Version | sed -e 's/^Version: [0-9]*\.[0-9]*\.[0-9]*\.\([0-9]*\)/\1/g' > $(CURDIR)/revision
 	$(CURDIR)/bootstrap.sh
-	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --with-distro=debian --prefix=/usr --localstatedir=/var --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --with-userscript-prefix=/etc/zarafa/userscripts --with-quotatemplate-prefix=/etc/zarafa/quotamail --disable-static --enable-tcmalloc --with-tcmalloc-prefix=/opt/zarafa --enable-epoll --enable-unicode --enable-python --enable-swig --with-gsoap-prefix=/opt/zarafa --with-vmime-prefix=/opt/zarafa --with-ical-prefix=/opt/zarafa $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
+	./configure $(CONFIGURE_ARGS) $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
 
 # first entry point of dpkg-buildpackage
 clean:
