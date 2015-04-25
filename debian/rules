@@ -53,14 +53,10 @@ CONFIGURE_ARGS=\
     --with-quotatemplate-prefix=/etc/zarafa/quotamail \
     --disable-static \
     --enable-tcmalloc \
-    --with-tcmalloc-prefix=/opt/zarafa \
     --enable-epoll \
     --enable-unicode \
     --enable-python \
     --enable-swig \
-    --with-gsoap-prefix=/opt/zarafa \
-    --with-vmime-prefix=/opt/zarafa \
-    --with-ical-prefix=/opt/zarafa \
    $(NULL)
 
 configure: config.status
