@@ -28,7 +28,6 @@ Build-Depends: debhelper (>= 4.0.0),
  libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time1.46-dev | libboost-date-time-dev,
  libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev,
  libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread1.46-dev | libboost-thread-dev,
- libgoogle-perftools-dev,
  python-dev,
  libicu-dev,
  libical-dev,
@@ -128,9 +127,6 @@ Conflicts: zarafa (<< 7.2),
 Replaces: zarafa (<< 7.2),
  zarafa-libs
 Depends: ${shlibs:Depends},
- zarafa-libvmime0 (>= 0.9.2),
- zarafa-libvmime0 (<< 1.0),
- zarafa-libical1
 Description: Zarafa MAPI libraries
 
 Package: zarafa-libarchiver
