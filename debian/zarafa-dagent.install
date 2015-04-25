@@ -1,0 +1,12 @@
+etc/zarafa/autorespond
+etc/zarafa/dagent.cfg
+usr/bin/zarafa-dagent
+usr/bin/zarafa-autorespond
+usr/bin/zarafa-mr-accept
+usr/share/doc/zarafa-dagent/
+usr/share/man/man1/zarafa-dagent.1
+usr/share/man/man5/zarafa-dagent.cfg.5
+usr/share/man/man1/zarafa-autorespond.1
+usr/share/zarafa-dagent/python/
+usr/share/zarafa-dagent/python/plugins/
+var/lib/zarafa/dagent/plugins/

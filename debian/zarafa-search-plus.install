@@ -1,0 +1,3 @@
+etc/zarafa/search.cfg
+usr/bin/zarafa-search
+usr/lib/python*/*/zarafa_search/

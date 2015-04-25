@@ -11,7 +11,7 @@
 # build-arch and build-indep targets  by Bill Allombert 2001
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+export DH_VERBOSE=1
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
@@ -19,8 +19,10 @@ export DH_OPTIONS
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_HOST_MULTIARCH  ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+WADIR=$(CURDIR)/debian/zarafa-webaccess
+MUCDIR=$(CURDIR)/debian/zarafa-webaccess-muc
 
 INSTDIR=$(CURDIR)/debian/tmp
 SMARTYVER=2.6.14
@@ -38,30 +40,22 @@ else
 tstrip := --strip-components
 endif
 
-ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-	DEB_PARALLEL_JOBS ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-else
-	DEB_PARALLEL_JOBS += $(shell getconf _NPROCESSORS_ONLN)
-endif
-MAKEFLAGS += -j$(DEB_PARALLEL_JOBS)
+configure: config.status
 
-config.status: configure
+config.status:
 	dh_testdir
-	dh_autotools-dev_updateconfig
-	# Add here commands to configure the package.
-	#[ -x bootstrap ] && ./bootstrap
-	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --with-distro=debian --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --with-userscript-prefix=/etc/zarafa/userscripts --with-quotatemplate-prefix=/etc/zarafa/quotamail --with-indexerscripts-prefix=/usr/share/zarafa/indexerscripts --disable-static --enable-tcmalloc --enable-unicode --disable-perl --enable-python --disable-swig $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
+	dpkg-parsechangelog | grep Version | sed -e 's/^Version: [0-9]*\.[0-9]*\.[0-9]*\.\([0-9]*\)/\1/g' > $(CURDIR)/revision
+	$(CURDIR)/bootstrap.sh
+	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --with-distro=debian --prefix=/usr --localstatedir=/var --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --with-userscript-prefix=/etc/zarafa/userscripts --with-quotatemplate-prefix=/etc/zarafa/quotamail --disable-static --enable-tcmalloc --with-tcmalloc-prefix=/opt/zarafa --enable-epoll --enable-unicode --enable-python --enable-swig --with-gsoap-prefix=/opt/zarafa --with-vmime-prefix=/opt/zarafa --with-ical-prefix=/opt/zarafa $(CONFFLAG) CXXFLAGS="$(CXXFLAGS)"
 
 # first entry point of dpkg-buildpackage
 clean:
 	dh_testdir
 	dh_testroot
-	dh_autotools-dev_restoreconfig
 	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
 	# Add here commands to clean up after the build process.
-	[ ! -f Makefile ] || $(MAKE) distclean
+	-$(MAKE) distclean
 	dh_clean 
-
 
 # second entry point of dpkg-buildpackage
 build: build-arch build-indep
@@ -70,13 +64,12 @@ build-arch: build-arch-stamp
 build-arch-stamp:  config.status
 	# Add here commands to compile the arch part of the package.
 	# compile zarafa
-	$(MAKE) 
+	$(MAKE)
 	touch build-arch-stamp
 
 build-indep: build-indep-stamp
 build-indep-stamp:  config.status
 	# Add here commands to compile the indep part of the package.
-	# build files for webaccess?
 	touch build-indep-stamp
 
 
@@ -90,21 +83,47 @@ install-indep:
 	# Add here commands to install the indep part of the package into
 	# debian/<package>-doc.
 	#INSTALLDOC#
-	$(MAKE) DESTDIR=$(INSTDIR) install-ajax-webaccess
+	# because of the dh_clean and zarafa-archiver-extra being arch independant, we need to install these files again
+	$(MAKE) DESTDIR=$(INSTDIR) install -C ECtools/za-extra
+	$(MAKE) DESTDIR=$(INSTDIR) install -C swig/python/zarafa
+	$(MAKE) DESTDIR=$(INSTDIR) install-man1 -C doc
+	# and remove non za-sync files
+	rm -f $(INSTDIR)/usr/share/man/man1/zarafa*
 
-	# fix webaccess correct owner writable files
-	chown www-data.www-data $(INSTDIR)/var/lib/zarafa-webaccess/tmp
+	# install web access
+	$(MAKE) DESTDIR=$(WADIR) install-ajax-webaccess
+	(cd webaccess-plugins ; tar cf - `find . -maxdepth 1 -type d`) | (cd $(WADIR)/var/lib/zarafa-webaccess/plugins ; tar xSf -)
+	rm -rf $(WADIR)/var/lib/zarafa-webaccess/plugins/spreed/test $(WADIR)/var/lib/zarafa-webaccess/plugins/spreed.*
+
+	# let's not package these
+	rm -rf $(WADIR)/var/lib/zarafa-webaccess/plugins/smime
+	rm -rf $(WADIR)/var/lib/zarafa-webaccess/plugins/alfresco
+
+	for i in usr/share/zarafa-webaccess/client/modules/multiusercalendarmodule.js \
+		usr/share/zarafa-webaccess/client/modules/multiusercalendarappointmentlistmodule.js \
+		usr/share/zarafa-webaccess/client/views/multiusercalendar.view.js \
+		usr/share/zarafa-webaccess/client/views/multiusercalendarappointmentlist.view.js \
+		usr/share/zarafa-webaccess/client/layout/css/multiusercalendar.css \
+		usr/share/zarafa-webaccess/server/modules/class.multiusercalendarmodule.php \
+		usr/share/zarafa-webaccess/server/modules/class.multiusercalendarappointmentlistmodule.php ; \
+	do \
+		mkdir -p `dirname $(MUCDIR)/$$i` ; \
+		cp -a $(WADIR)/$$i $(MUCDIR)/$$i ; \
+	done
+
+	# copy webaccess content to debian/tmp as well
+	cp -ar $(WADIR)/etc/ $(INSTDIR)/etc/
+
 	# add apache config
-	mkdir -p $(INSTDIR)/etc/apache2/conf-available
-	mv $(INSTDIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/conf-available/
+	mkdir -p $(WADIR)/etc/apache2/sites-available $(INSTDIR)/etc/apache2/sites-available $(INSTDIR)/usr/share/zarafa-webaccess $(INSTDIR)/var/lib/zarafa-webaccess
+	cp -a $(WADIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(WADIR)/etc/apache2/sites-available/zarafa-webaccess.conf
+	cp -a $(WADIR)/usr/share/zarafa-webaccess/zarafa-webaccess.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-webaccess.conf
+	cp -ar $(WADIR)/usr/share/zarafa-webaccess/* $(INSTDIR)/usr/share/zarafa-webaccess/
+	cp -ar $(WADIR)/var/lib/zarafa-webaccess/* $(INSTDIR)/var/lib/zarafa-webaccess/
 
-	# install debranding artwork
-	cp debian/artwork/login.jpg $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/img/
-	cp debian/artwork/zarafa_top_logo.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/img/zarafa_top_logo.gif
-	cp debian/artwork/zarafa_top_logo_SILVER.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/themes/silver/img/zarafa_top_logo.gif
-	cp debian/artwork/zarafa_top_logo_WHITE.gif $(INSTDIR)/usr/share/zarafa-webaccess/client/layout/themes/white/img/zarafa_top_logo.gif
-
-	dh_install -i --sourcedir=debian/tmp --fail-missing
+	dh_install -i --sourcedir=debian/tmp
+	# remove MUC from zarafa-webaccess since it's in a separate package because of a different license
+	find $(CURDIR)/debian/zarafa-webaccess/usr/share/zarafa-webaccess -name \*multiuser\* -print0 | xargs -0 rm
 
 install-arch:
 	dh_testdir
@@ -117,22 +136,34 @@ install-arch:
 
 	# since this is not linked to an initscript anymore, install the file ourselves.
 	mkdir -p $(INSTDIR)/etc/default
-	install -o root -g root -m 644 debian/giraffe-common.zarafa.default $(INSTDIR)/etc/default/zarafa
+	install -o root -g root -m 644 debian/zarafa-common.zarafa.default $(INSTDIR)/etc/default/zarafa
+
+	# move license to correct package
+	mkdir -p $(INSTDIR)/usr/share/doc/pacemaker-zarafa
+	mv $(INSTDIR)/usr/share/doc/zarafa/LICENSE.inqbus $(INSTDIR)/usr/share/doc/pacemaker-zarafa/
 
 	# link userscripts in /usr/share/zarafa/userscripts
 	mkdir -p $(INSTDIR)/usr/share/zarafa/userscripts
-	for file in `find $(INSTDIR)/etc/zarafa/userscripts -maxdepth 1 -type f`; do \
-		mv $$file $(INSTDIR)/usr/share/zarafa/userscripts; \
-		ln -sf /usr/share/zarafa/userscripts/`basename $$file` $$file; \
-	done
+
+	# move apache config for zarafa-ws
+	mkdir -p $(INSTDIR)/etc/apache2/sites-available
+	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/zarafa-ws.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-ws.conf
 
 # move example-config files
-	for package in spooler gateway monitor dagent ical search archiver; do \
+	for package in spooler gateway monitor dagent ical search archiver licensed backup ws presence; do \
 		mkdir -p $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 		mv $(INSTDIR)/usr/share/doc/zarafa/example-config/$$package.cfg $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 	done
 	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/autorespond $(INSTDIR)/usr/share/doc/zarafa-dagent/example-config
 	mkdir -p $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
+	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/ldapms.*.cfg $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
+	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/*msr.cfg $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
+
+	# generate openssl link
+	CADIR="$(INSTDIR)/etc/zarafa/report-ca"; \
+	for c in $$CADIR/*; do \
+		ln -sf `basename $$c` $$CADIR/`openssl x509 -in $$c -noout -hash`.0; \
+	done
 
 	# remove compiled python files
 	find $(INSTDIR) -name \*.pyc -exec rm {} \;
@@ -147,9 +178,9 @@ binary-indep: install-indep
 #	dh_movefiles -i
 # installs NEWS files
 	dh_installchangelogs -i
+	dh_installdocs -i
 	dh_compress -i
-	dh_fixperms -i -Xvar/lib/zarafa-webaccess/tmp
-	dh_python2 -i
+	dh_python2 --no-guessing-versions --no-package=zarafa-webaccess
 	dh_installdeb -i
 	dh_gencontrol -i
 	dh_md5sums -i
@@ -159,14 +190,16 @@ binary-indep: install-indep
 binary-arch-real: install-arch
 	dh_testdir
 	dh_testroot
-	cp -p $(CURDIR)/installer/licenseagreement/AGPL-3 $(CURDIR)/debian/copyright
 	# install empty paths not present in 'make install' from <packagename>.dirs file, in actual package directory, not in tmp.
 	dh_installdirs
 	dh_install --sourcedir=debian/tmp
-	# creating pkg-config path for multiarch support and move zarafa.pc
-	mkdir -p debian/giraffe-dev/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
-	mv $(INSTDIR)/usr/lib/pkgconfig/zarafa.pc debian/giraffe-dev/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	dh_installchangelogs
+	cp -p $(CURDIR)/installer/licenseagreement/eula.txt $(CURDIR)/debian/python-zcp-license.copyright
+	cp -p $(CURDIR)/installer/licenseagreement/eula.txt $(CURDIR)/debian/zarafa-licensed.copyright
+	cp -p $(CURDIR)/installer/licenseagreement/eula.txt $(CURDIR)/debian/zarafa-backup.copyright
+	cp -p $(CURDIR)/installer/licenseagreement/eula.txt $(CURDIR)/debian/zarafa-multiserver.copyright
+	cp -p $(CURDIR)/installer/licenseagreement/eula.txt $(CURDIR)/debian/zarafa-archiver-extra.copyright
+	cp -p $(CURDIR)/installer/licenseagreement/AGPL-3 $(CURDIR)/debian/copyright
 	dh_installdocs
 #	dh_installexamples
 #	dh_installmenu
@@ -181,17 +214,21 @@ binary-arch-real: install-arch
 	dh_installinit --name zarafa-gateway
 	dh_installinit --name zarafa-monitor
 	dh_installinit --name zarafa-ical
+	dh_installinit --name zarafa-licensed
 	dh_installinit --name zarafa-search
+	dh_installinit --name zarafa-presence
+	dh_installinit --name zarafa-ws
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman
 	dh_link
-	dh_strip --dbg-package=giraffe-dbg
-	dh_compress -X.py -X.pl
+	dh_strip --dbg-package=zarafa-dbg
+	dh_compress -X.py -X.pl -Xusr/share/doc/zarafa/zarafa7-upgrade
 	dh_fixperms
 #	dh_perl
 #	dh_python
-	dh_python2
+#	dh_pysupport
+	dh_python2 --no-guessing-versions
 	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps

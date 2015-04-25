@@ -1,0 +1,32 @@
+#! /bin/sh
+
+CFGFILE=/etc/zarafa/webaccess-ajax/config.php
+
+ln -sf /var/lib/zarafa-webaccess/plugins /usr/share/zarafa-webaccess
+ln -sf $CFGFILE /usr/share/zarafa-webaccess
+
+ln -sf /etc/apache2/sites-available/zarafa-webaccess.conf /etc/apache2/sites-enabled
+# I hope nobody sees this:
+rm -f /etc/apache2/sites-enabled/zarafa-webaccess
+rm -f /etc/apache2/sites-available/zarafa-webaccess
+
+# fix webaccess correct owner writable files
+TMP=/var/lib/zarafa-webaccess/tmp
+mkdir -p $TMP
+chown www-data.www-data $TMP
+
+chmod 640 $CFGFILE
+
+# I'm not entirely sure if old distros have 'md5sum'
+# KEY=`dd if=/dev/urandom bs=4096 count=1 2> /dev/null | md5sum | cut -c 1-16`
+KEY=`dd if=/dev/urandom bs=4096 count=1 2> /dev/null | od -t x | awk '{ print substr($2$3$4$5, 0, 16); }' | head -n 1`
+sed -i "s/^\(.*define('PASSWORD_KEY','\)[^']*\(.*\)$/\1$KEY\2/g" $CFGFILE
+#IV=`dd if=/dev/urandom bs=4096 count=1 2> /dev/null | md5sum | cut -c 1-8`
+IV=`dd if=/dev/urandom bs=4096 count=1 2> /dev/null | od -t x | awk '{ print substr($2$3$4$5, 0, 8); }' | head -n 1`
+sed -i "s/^\(.*define('PASSWORD_IV','\)[^']*\(.*\)$/\1$IV\2/g" $CFGFILE
+
+APACHE2CTL=/usr/sbin/apache2ctl
+if [ -x $APACHE2CTL ]
+then
+	$APACHE2CTL graceful
+fi

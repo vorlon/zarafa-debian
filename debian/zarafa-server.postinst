@@ -1,0 +1,13 @@
+#! /bin/sh
+
+for file in `find /etc/zarafa/userscripts -maxdepth 1 -type f`
+do
+	mv -f $file /usr/share/zarafa/userscripts
+	ln -sf /usr/share/zarafa/userscripts/`basename $file` $file
+done
+
+chmod 750 /var/log/zarafa
+
+#DEBHELPER#
+
+exit 0

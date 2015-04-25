@@ -1,258 +1,274 @@
-Source: giraffe
+Source: zarafa
 Section: mail
 Priority: optional
-Homepage: https://community.zarafa.com/
-Maintainer: Giraffe Maintainers <pkg-giraffe-maintainers@lists.alioth.debian.org>
-Uploaders: John van der Kamp <j.vdkamp@zarafa.com>
-Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, automake (>= 1:1.9), autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev, gettext, libldap2-dev, flex, bison, zlib1g-dev, libncursesw5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, dh-python, libclucene-dev, libical-dev, libgoogle-perftools-dev, libkyotocabinet-dev
-Standards-Version: 3.9.5
+Maintainer: Zarafa Development Team <development@zarafa.com>
+Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, g++, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, zarafa-libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev | libcurl4-openssl-dev, gettext, libldap2-dev, flex, bison, m4, zlib1g-dev, fakeroot, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, zarafa-libical-dev, zarafa-gsoap, zarafa-libgsoap-dev, zarafa-libgsoap5, zarafa-libgoogle-perftools4, zarafa-libgoogle-perftools-dev
+Standards-Version: 3.7.3
 
-Package: giraffe
+Package: zarafa
 Architecture: all
-Depends: ${misc:Depends}, giraffe-server (>= ${binary:Version}), giraffe-server (<< ${binary:Version}.1~), giraffe-client (>= ${binary:Version}), giraffe-client (<< ${binary:Version}.1~), giraffe-libs (>= ${binary:Version}), giraffe-libs (<< ${binary:Version}.1~), giraffe-utils, giraffe-monitor, giraffe-spooler, giraffe-dagent, giraffe-ical, giraffe-gateway, giraffe-search
-Recommends: giraffe-webaccess
-Description: Core of the Giraffe Collaboration Platform (metapackage)
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
+Depends: zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search-plus
+Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
+ This groupware solution combines the usability of 
+ Outlook with the stability and flexibility of a Linux server.
  .
- This groupware solution combines the usability of Outlook with the
- stability and flexibility of a Linux server.
- .
- It features a rich web-interface, the Giraffe WebAccess, and provides 
+ It features a rich web-interface, the Zarafa WebAccess, and provides 
  brilliant integration options with all sorts of clients including 
  all most popular mobile platforms. 
 
-Package: giraffe-common
+Package: zarafa-common
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: lsb-base, ${misc:Depends}
-Description: Shared files between GCP services
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Common components for services of the Giraffe Collaboration Platform.
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: lsb-base
+Description: Shared files between ZCP services.
+ Common components for services of the Zarafa Collaboration Platform.
 
-Package: giraffe-server
+Package: zarafa-server
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version})
-Suggests: mysql-server (>= 4.1)
-Description: Server component for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- The key component of the GCP, providing the server to which GCP
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version})
+Description: Server component for the Zarafa Collaboration Platform
+ The key component of the ZCP, providing the server to which ZCP
  clients connect. The server requires a MySQL server to use for
  storage.
 
-Package: giraffe-dbg
+Package: zarafa-dbg
 Priority: extra
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}, giraffe-client (= ${binary:Version}) | giraffe-webaccess (= ${binary:Version}) | giraffe-archiver (= ${binary:Version}) | giraffe-contacts (= ${binary:Version})
-Description: Debug files for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- This package contains the debug symbols for the Giraffe
+Description: Debug files for the Zarafa Collaboration Platform
+ This package contains the debug symbols for the Zarafa
  Collaboration Platform
 
-Package: giraffe-dev
+Package: zarafa-dev
 Priority: extra
-Homepage: http://developer.zarafa.com/
 Architecture: any
-Depends: ${misc:Depends}, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-libs (= ${binary:Version})
-Description: C++ Development files for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
+Depends: zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Description: C++ Development files for the Zarafa Collaboration Platform
  Development files to create MAPI programs under Linux for use with
- Giraffe. You can find examples and documentation on the developer website
- of Zarafa.
+ Zarafa. You can find examples and documentation on the website
+ http://developer.zarafa.com/
 
-Package: giraffe-client
+Package: zarafa-client
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, locales
-Description: MAPI4Linux and the Giraffe MAPI provider libraries
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- The main libraries for any Giraffe client program. This package is
- required by all Giraffe client programs.
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-libmapi, zarafa-lang
+Description: The main libraries for any Zarafa client program. This package is required by all Zarafa client programs.
 
-Package: giraffe-contacts
+Package: zarafa-lang
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, locales, giraffe-client (= ${binary:Version})
+Conflicts: zarafa (<< 7.2), zarafa-client (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: locales
+Description: Translations for Zarafa components
+
+Package: zarafa-contacts
+Architecture: any
+Depends: ${shlibs:Depends}, locales, zarafa-client (= ${binary:Version})
 Description: MAPI provider adding contact folders in the addressbook
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
  Additional MAPI provider which finds all contact folders of a user
  and adds the contents transparently into the MAPI addrbook.
 
-Package: giraffe-libs
+Package: zarafa-libmapi
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, libvmime0 (>= 0.9.1), libvmime0 (<< 1.0)
-Description: Conversion libraries between Open Standards and MAPI
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Commonly used libraries by Giraffe Collaboration Platform client
- programs.
+Conflicts: zarafa (<< 7.2), zarafa-client (<< 7.2)
+Replaces: zarafa (<< 7.2), zarafa-libs
+Depends: ${shlibs:Depends}, zarafa-libvmime0 (>= 0.9.2), zarafa-libvmime0 (<< 1.0), zarafa-libical1
+Description: Zarafa MAPI libraries
 
-Package: giraffe-libarchiver
+Package: zarafa-libarchiver
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-client (= ${binary:Version}), giraffe-common (= ${binary:Version})
-Description: Library with shared GCP archiver functionality
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Library with shared archiver functionality for the Giraffe Collaboration
- Platform.
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-common (= ${binary:Version})
+Description: Library with shared ZCP archiver functionality
+ Library with shared archiver functionality for the Zarafa Collaboration Platform.
 
-Package: giraffe-utils
+Package: zarafa-utils
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version})
-Description: Admin command-line utils for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Commandline clients to control and check the GCP server.
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version})
+Description: Admin command-line utils for the Zarafa Collaboration Platform
+ Commandline clients to control and check the ZCP server.
 
-Package: giraffe-monitor
+Package: zarafa-monitor
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version})
-Description: Quota Monitor for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
+Description: Quota Monitor for the Zarafa Collaboration Platform
  Regularly checks stores for total usage. If a quota limit has been
  exceeded, an e-mail will be internally sent to this account.
 
-Package: giraffe-spooler
+Package: zarafa-spooler
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), giraffe-libarchiver
-Suggests: exim4 | mail-transport-agent
-Description: E-mail Spooler for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Sends all outgoing e-mail requests from Giraffe to an SMTP server.
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), python-mapi (= ${binary:Version})
+Description: E-mail Spooler for the Zarafa Collaboration Platform
+ Sends all outgoing e-mail requests from Zarafa to an SMTP server.
 
-Package: giraffe-dagent
+Package: zarafa-dagent
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), php5-cli, php5-mapi, python-mapi (= ${binary:Version})
-Suggests: exim4 | mail-transport-agent
-Description: E-Mail Delivery Agent for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), php5-mapi (= ${binary:Version}), php5-cli, python-mapi (= ${binary:Version})
+Description: E-Mail Delivery Agent for the Zarafa Collaboration Platform
  Delivers incoming e-mail from your SMTP server to stores in the
- Giraffe server.
+ Zarafa server.
 
-Package: giraffe-gateway
+Package: zarafa-gateway
 Architecture: any
 Suggests: python-mapi
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
-Description: POP3 and IMAP Gateway for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Provides access to the Giraffe server through the POP3 and IMAP
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Description: POP3 and IMAP Gateway for the Zarafa Collaboration Platform
+ Provides access to the Zarafa server through the POP3 and IMAP
  protocols.
 
-Package: giraffe-ical
+Package: zarafa-ical
 Architecture: any
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-common (= ${binary:Version}), giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
-Description: ICal and CalDAV Gateway for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Provides access to the Giraffe server through the ICal and CalDAV
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Description: ICal and CalDAV Gateway for the Zarafa Collaboration Platform
+ Provides access to the Zarafa server through the ICal and CalDAV
  protocols.
 
 Package: python-mapi
 Architecture: any
 Section: python
-Conflicts: giraffe-python
-Replaces: giraffe-python
-Provides: giraffe-python
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version})
+Conflicts: zarafa-python
+Replaces: zarafa-python
+Provides: zarafa-python
+Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
 Description: Python MAPI bindings
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
  Using this module, you can create python programs which use MAPI
- calls to interact with Giraffe.
+ calls to interact with Zarafa.
+
+Package: python-zarafa
+Architecture: all
+Section: python
+Depends: ${shlibs:Depends}, python-mapi
+Description: Zarafa Python bindings
+ High-level Python bindings for Zarafa
+
+Package: python-zcp-license
+Architecture: any
+Section: non-free/python
+Depends: ${shlibs:Depends}, python-mapi (= ${binary:Version})
+Description: Python ZCP license bindings
+ Using this module, you can create license requests and parse
+ the response.
 
 Package: php5-mapi
 Architecture: any
 Section: php
-Breaks: giraffe (<< 7.0)
-Replaces: giraffe (<< 7.0)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${php:Depends}, giraffe-client (= ${binary:Version}), giraffe-libs (= ${binary:Version}), apache2 | apache-ssl | apache-perl | apache | httpd, libapache2-mod-php5 | libapache-mod-php5 | php5-cgi
+Conflicts: zarafa (<< 7.2)
+Replaces: zarafa (<< 7.2)
+Depends: ${shlibs:Depends}, ${php:Depends}, zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
 Description: PHP MAPI bindings
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
  Using this module, you can create PHP programs which use MAPI
- calls to interact with Giraffe.
+ calls to interact with Zarafa.
 
-Package: giraffe-archiver
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, giraffe-libarchiver (= ${binary:Version})
-Description: Archive messages to a secondary Giraffe server
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- To decrease the database size of your production Giraffe server, the
- Giraffe Archiver copies or moves messages to a secondary Giraffe
- server. Clients will still be able to open the message from the
- secondary Giraffe server directly.
-
-Package: giraffe-webaccess
+Package: zarafa-webaccess
 Architecture: all
 Section: web
-Depends:  ${misc:Depends}, php5-mapi
-Description: Web interface for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Provides a web-client written in PHP that makes use of AJAX to allow
- users to make full use of the Giraffe Collaboration Platform through a
+Depends: php5-mapi
+Description: a web interface for the zarafa collaboration platform
+ provides a web-client written in php that makes use of ajax to allow
+ users to make full use of the zarafa collaboration platform through a
  modern web browser.
 
-Package: giraffe-search
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyotocabinet16, giraffe-client (= ${binary:Version}), giraffe-libarchiver (= ${binary:Version}), giraffe-common (= ${binary:Version})
-Conflicts: giraffe-indexer
-Replaces: giraffe-indexer
-Description: Indexed search engine for the Giraffe Collaboration Platform
- Giraffe is an unbranded Zarafa Collaboration Platform suitable for free
- distribution.
- .
- Based on the CLucene search engine, the giraffe-search makes an index
- per user of messages and attachments. When this service is enabled,
- search queries on the server will use this index to quickly find
- messages and even in contents of attached documents.
+Package: zarafa-webaccess-muc
+Architecture: all
+Section: web
+Depends: php5-mapi, zarafa-webaccess
+Description: The multi-user calendar component for the Zarafa WebAccess.
+ In this calendar multiple users can be show side-by-side to get an
+ overview of all meetings for easy planning.
 
+Package: zarafa-licensed
+Priority: extra
+Architecture: any
+Section: non-free/mail
+Depends: ${shlibs:Depends}, lsb-base, zarafa-server (= ${binary:Version}), zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
+Description: License Daemon for the Zarafa Collaboration Platform
+ This package adds a licensing daemon to the Zarafa Collaboration
+ Platform. This daemon is needed to run propietary add-ons, like the
+ Microsoft Outlook client.
+ .
+ Without a valid license key, this daemon gives free access for up 
+ to 3 users to connect from Microsoft Outlook.
+
+Package: zarafa-backup
+Priority: extra
+Architecture: any
+Section: non-free/mail
+Conflicts: zarafa-licensed (<< 7.2)
+Replaces: zarafa-licensed (<< 7.2)
+Depends: ${shlibs:Depends}, lsb-base, zarafa-client (= ${binary:Version})
+Description: Brick-level backup and restore tools for the Zarafa Collaboration Platform
+ Make a brick-level backup of stores in Zarafa and make selective
+ restores of that data.
+
+Package: zarafa-multiserver
+Priority: extra
+Architecture: any
+Section: non-free/mail
+Conflicts: zarafa-licensed (<< 7.2)
+Replaces: zarafa-licensed (<< 7.2)
+Depends: ${shlibs:Depends}, zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-licensed (= ${binary:Version}), python-mapi (= ${binary:Version})
+Description: Multiserver LDAP plugin and tools
+ Adds the ldapms plugin possebility to server setups for multiserver
+ setups using LDAP or ADS. Users may be moved to different servers
+ using the provided zarafa-msr python script.
+
+Package: zarafa-search-plus
+Architecture: any
+Conflicts: zarafa-indexer, zarafa-search
+Replaces: zarafa-indexer, zarafa-search
+Depends: ${shlibs:Depends}, python-zarafa, python-xapian, lsb-base, coreutils (>= 5.93), mktemp (>= 1.5), bash (>= 3.0), gawk, w3m, xsltproc, poppler-utils, unzip, file, catdoc
+Description: zarafa indexer using the xapian search engine
+
+Package: zarafa-presence
+Architecture: any
+Depends: ${shlibs:Depends}, python-zarafa, python-flask, python-sleekxmpp
+Description: zarafa presence daemon
+
+Package: zarafa-archiver
+Architecture: any
+Depends: ${shlibs:Depends}, zarafa-libarchiver (= ${binary:Version})
+Description: Archive messages to a secondary Zarafa server
+ To decrease the database size of your production Zarafa server, the
+ Zarafa Archiver copies or moves messages to a secondary Zarafa
+ server. Clients will still be able to open the message from the
+ secondary Zarafa server directly.
+
+Package: zarafa-archiver-extra
+Architecture: all
+Section: non-free/mail
+Depends: python-mapi (= ${binary:Version}), python-zcp-license (= ${binary:Version})
+Description: Extra tools to enhance the zarafa-archiver feature set
+ Provides za-aclsync to propagate ACL settings in a users primary store
+ to his archive(s).
+
+Package: pacemaker-zarafa
+Architecture: any
+Section: admin
+Depends: ${shlibs:Depends}, pacemaker
+Description: Provides pacemaker OCF startup scripts
+ For all the zarafa services available an ocf script is installed
+ integrated in your pacemaker installation.
+
+Package: zarafa-ws
+Architecture: any
+Section: non-free/mail
+Depends: python-mapi (>= 7.2), zarafa-contacts (>= 7.2), python-flask, python-dateutil, python-openssl, zarafa-common (>= 7.2)
+Description: The Zarafa implementation of the Exchange Web Services protocol
+ This allows a broad scala of mail, contact and calendar clients that
+ support EWS to connect with Zarafa without modification or additional
+ configuration.

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+rm -f /usr/share/zarafa-webaccess/plugins
+rm -f /usr/share/zarafa-webaccess/config.php
+
+rm -f /etc/apache2/sites-enabled/zarafa-webaccess.conf
