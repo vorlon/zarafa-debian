@@ -33,6 +33,7 @@ Build-Depends: debhelper (>= 4.0.0),
  libicu-dev,
  libical-dev,
  libgsoap-dev,
+ swig,
 Standards-Version: 3.7.3
 
 Package: zarafa
