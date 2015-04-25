@@ -4,6 +4,12 @@ set -e
 
 LOGDIR=/var/log/zarafa
 
+. /usr/share/debconf/confmodule
+. /usr/share/dbconfig-common/dpkg/postinst.mysql
+dbc_dbuser=zarafa
+dbc_dbname=zarafa
+dbc_go zarafa-server $@
+
 logs() {
     chown root:adm ${LOGDIR}
     chmod 750 ${LOGDIR}
