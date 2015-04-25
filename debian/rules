@@ -11,7 +11,7 @@
 # build-arch and build-indep targets  by Bill Allombert 2001
 
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
@@ -103,7 +103,6 @@ install-indep:
 	# debian/<package>-doc.
 	#INSTALLDOC#
 	# because of the dh_clean and zarafa-archiver-extra being arch independant, we need to install these files again
-	$(MAKE) DESTDIR=$(INSTDIR) install -C ECtools/za-extra
 	$(MAKE) DESTDIR=$(INSTDIR) install -C swig/python/zarafa
 	$(MAKE) DESTDIR=$(INSTDIR) install-man1 -C doc
 	# and remove non za-sync files
@@ -165,23 +164,14 @@ install-arch:
 
 	# move apache config for zarafa-ws
 	mkdir -p $(INSTDIR)/etc/apache2/sites-available
-	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/zarafa-ws.conf $(INSTDIR)/etc/apache2/sites-available/zarafa-ws.conf
 
 # move example-config files
-	for package in spooler gateway monitor dagent ical search archiver licensed backup ws presence; do \
+	for package in spooler gateway monitor dagent ical search archiver licensed backup ws; do \
 		mkdir -p $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 		mv $(INSTDIR)/usr/share/doc/zarafa/example-config/$$package.cfg $(INSTDIR)/usr/share/doc/zarafa-$$package/example-config; \
 	done
 	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/autorespond $(INSTDIR)/usr/share/doc/zarafa-dagent/example-config
 	mkdir -p $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
-	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/ldapms.*.cfg $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
-	mv $(INSTDIR)/usr/share/doc/zarafa/example-config/*msr.cfg $(INSTDIR)/usr/share/doc/zarafa-multiserver/example-config
-
-	# generate openssl link
-	CADIR="$(INSTDIR)/etc/zarafa/report-ca"; \
-	for c in $$CADIR/*; do \
-		ln -sf `basename $$c` $$CADIR/`openssl x509 -in $$c -noout -hash`.0; \
-	done
 
 	# remove compiled python files
 	find $(INSTDIR) -name \*.pyc -exec rm {} \;
