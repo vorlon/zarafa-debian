@@ -2,12 +2,57 @@ Source: zarafa
 Section: mail
 Priority: optional
 Maintainer: Zarafa Development Team <development@zarafa.com>
-Build-Depends: debhelper (>= 4.0.0), binutils (>= 2.12.90.0.9), devscripts, autotools-dev, g++, automake (>= 1:1.9) | automake1.9, autoconf (>= 2.59), libtool (>= 1.5), pkg-config (>= 0.18), libssl-dev, zarafa-libvmime-dev (>= 0.9.1), uuid-dev, php4-dev | php5-dev, libmysqlclient15-dev | libmysqlclient-dev, libcurl3-dev | libcurl4-openssl-dev, gettext, libldap2-dev, flex, bison, m4, zlib1g-dev, fakeroot, libncurses5-dev, libxml2-dev, libpam0g-dev, libkrb5-dev, libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time1.46-dev | libboost-date-time-dev, libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev, libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread1.46-dev | libboost-thread-dev, python-dev, libicu-dev, zarafa-libical-dev, zarafa-gsoap, zarafa-libgsoap-dev, zarafa-libgsoap5, zarafa-libgoogle-perftools4, zarafa-libgoogle-perftools-dev
+Build-Depends: debhelper (>= 4.0.0),
+ binutils (>= 2.12.90.0.9),
+ devscripts,
+ autotools-dev,
+ g++,
+ automake (>= 1:1.9) | automake1.9,
+ autoconf (>= 2.59),
+ libtool (>= 1.5),
+ pkg-config (>= 0.18),
+ libssl-dev,
+ zarafa-libvmime-dev (>= 0.9.1),
+ uuid-dev,
+ php4-dev | php5-dev,
+ libmysqlclient15-dev | libmysqlclient-dev,
+ libcurl3-dev | libcurl4-openssl-dev,
+ gettext,
+ libldap2-dev,
+ flex,
+ bison,
+ m4,
+ zlib1g-dev,
+ fakeroot,
+ libncurses5-dev,
+ libxml2-dev,
+ libpam0g-dev,
+ libkrb5-dev,
+ libboost-date-time1.35-dev | libboost-date-time1.40-dev | libboost-date-time1.46-dev | libboost-date-time-dev,
+ libboost-filesystem1.35-dev | libboost-filesystem1.40-dev | libboost-filesystem1.46-dev | libboost-filesystem-dev,
+ libboost-thread1.35-dev | libboost-thread1.40-dev | libboost-thread1.46-dev | libboost-thread-dev,
+ python-dev,
+ libicu-dev,
+ zarafa-libical-dev,
+ zarafa-gsoap,
+ zarafa-libgsoap-dev,
+ zarafa-libgsoap5,
+ zarafa-libgoogle-perftools4,
+ zarafa-libgoogle-perftools-dev,
 Standards-Version: 3.7.3
 
 Package: zarafa
 Architecture: all
-Depends: zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), zarafa-utils, zarafa-monitor, zarafa-spooler, zarafa-dagent, zarafa-ical, zarafa-gateway, zarafa-search-plus
+Depends: zarafa-server (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version}),
+ zarafa-utils,
+ zarafa-monitor,
+ zarafa-spooler,
+ zarafa-dagent,
+ zarafa-ical,
+ zarafa-gateway,
+ zarafa-search-plus,
 Description: The Zarafa Collaboration Platform (metapackage depending on the latest version)
  This groupware solution combines the usability of 
  Outlook with the stability and flexibility of a Linux server.
@@ -28,7 +73,8 @@ Package: zarafa-server
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version})
 Description: Server component for the Zarafa Collaboration Platform
  The key component of the ZCP, providing the server to which ZCP
  clients connect. The server requires a MySQL server to use for
@@ -45,7 +91,9 @@ Description: Debug files for the Zarafa Collaboration Platform
 Package: zarafa-dev
 Priority: extra
 Architecture: any
-Depends: zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Depends: zarafa-client (= ${binary:Version}),
+ zarafa-libarchiver (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version})
 Description: C++ Development files for the Zarafa Collaboration Platform
  Development files to create MAPI programs under Linux for use with
  Zarafa. You can find examples and documentation on the website
@@ -55,33 +103,45 @@ Package: zarafa-client
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-libmapi, zarafa-lang
+Depends: ${shlibs:Depends},
+ zarafa-libmapi,
+ zarafa-lang
 Description: The main libraries for any Zarafa client program. This package is required by all Zarafa client programs.
 
 Package: zarafa-lang
 Architecture: any
-Conflicts: zarafa (<< 7.2), zarafa-client (<< 7.2)
+Conflicts: zarafa (<< 7.2),
+ zarafa-client (<< 7.2)
 Replaces: zarafa (<< 7.2)
 Depends: locales
 Description: Translations for Zarafa components
 
 Package: zarafa-contacts
 Architecture: any
-Depends: ${shlibs:Depends}, locales, zarafa-client (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ locales,
+ zarafa-client (= ${binary:Version})
 Description: MAPI provider adding contact folders in the addressbook
  Additional MAPI provider which finds all contact folders of a user
  and adds the contents transparently into the MAPI addrbook.
 
 Package: zarafa-libmapi
 Architecture: any
-Conflicts: zarafa (<< 7.2), zarafa-client (<< 7.2)
-Replaces: zarafa (<< 7.2), zarafa-libs
-Depends: ${shlibs:Depends}, zarafa-libvmime0 (>= 0.9.2), zarafa-libvmime0 (<< 1.0), zarafa-libical1
+Conflicts: zarafa (<< 7.2),
+ zarafa-client (<< 7.2)
+Replaces: zarafa (<< 7.2),
+ zarafa-libs
+Depends: ${shlibs:Depends},
+ zarafa-libvmime0 (>= 0.9.2),
+ zarafa-libvmime0 (<< 1.0),
+ zarafa-libical1
 Description: Zarafa MAPI libraries
 
 Package: zarafa-libarchiver
 Architecture: any
-Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-common (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-client (= ${binary:Version}),
+ zarafa-common (= ${binary:Version})
 Description: Library with shared ZCP archiver functionality
  Library with shared archiver functionality for the Zarafa Collaboration Platform.
 
@@ -89,7 +149,9 @@ Package: zarafa-utils
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libarchiver (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-client (= ${binary:Version}),
+ zarafa-libarchiver (= ${binary:Version})
 Description: Admin command-line utils for the Zarafa Collaboration Platform
  Commandline clients to control and check the ZCP server.
 
@@ -97,7 +159,9 @@ Package: zarafa-monitor
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version})
 Description: Quota Monitor for the Zarafa Collaboration Platform
  Regularly checks stores for total usage. If a quota limit has been
  exceeded, an e-mail will be internally sent to this account.
@@ -106,7 +170,11 @@ Package: zarafa-spooler
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), python-mapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version}),
+ python-mapi (= ${binary:Version})
 Description: E-mail Spooler for the Zarafa Collaboration Platform
  Sends all outgoing e-mail requests from Zarafa to an SMTP server.
 
@@ -114,7 +182,13 @@ Package: zarafa-dagent
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version}), php5-mapi (= ${binary:Version}), php5-cli, python-mapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version}),
+ php5-mapi (= ${binary:Version}),
+ php5-cli,
+ python-mapi (= ${binary:Version})
 Description: E-Mail Delivery Agent for the Zarafa Collaboration Platform
  Delivers incoming e-mail from your SMTP server to stores in the
  Zarafa server.
@@ -124,7 +198,10 @@ Architecture: any
 Suggests: python-mapi
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version})
 Description: POP3 and IMAP Gateway for the Zarafa Collaboration Platform
  Provides access to the Zarafa server through the POP3 and IMAP
  protocols.
@@ -133,7 +210,10 @@ Package: zarafa-ical
 Architecture: any
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version})
 Description: ICal and CalDAV Gateway for the Zarafa Collaboration Platform
  Provides access to the Zarafa server through the ICal and CalDAV
  protocols.
@@ -144,7 +224,9 @@ Section: python
 Conflicts: zarafa-python
 Replaces: zarafa-python
 Provides: zarafa-python
-Depends: ${shlibs:Depends}, zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version})
 Description: Python MAPI bindings
  Using this module, you can create python programs which use MAPI
  calls to interact with Zarafa.
@@ -152,14 +234,16 @@ Description: Python MAPI bindings
 Package: python-zarafa
 Architecture: all
 Section: python
-Depends: ${shlibs:Depends}, python-mapi
+Depends: ${shlibs:Depends},
+ python-mapi
 Description: Zarafa Python bindings
  High-level Python bindings for Zarafa
 
 Package: python-zcp-license
 Architecture: any
 Section: non-free/python
-Depends: ${shlibs:Depends}, python-mapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ python-mapi (= ${binary:Version})
 Description: Python ZCP license bindings
  Using this module, you can create license requests and parse
  the response.
@@ -169,7 +253,10 @@ Architecture: any
 Section: php
 Conflicts: zarafa (<< 7.2)
 Replaces: zarafa (<< 7.2)
-Depends: ${shlibs:Depends}, ${php:Depends}, zarafa-client (= ${binary:Version}), zarafa-libmapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ ${php:Depends},
+ zarafa-client (= ${binary:Version}),
+ zarafa-libmapi (= ${binary:Version})
 Description: PHP MAPI bindings
  Using this module, you can create PHP programs which use MAPI
  calls to interact with Zarafa.
@@ -186,7 +273,8 @@ Description: a web interface for the zarafa collaboration platform
 Package: zarafa-webaccess-muc
 Architecture: all
 Section: web
-Depends: php5-mapi, zarafa-webaccess
+Depends: php5-mapi,
+ zarafa-webaccess
 Description: The multi-user calendar component for the Zarafa WebAccess.
  In this calendar multiple users can be show side-by-side to get an
  overview of all meetings for easy planning.
@@ -195,7 +283,11 @@ Package: zarafa-licensed
 Priority: extra
 Architecture: any
 Section: non-free/mail
-Depends: ${shlibs:Depends}, lsb-base, zarafa-server (= ${binary:Version}), zarafa-common (= ${binary:Version}), zarafa-client (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ lsb-base,
+ zarafa-server (= ${binary:Version}),
+ zarafa-common (= ${binary:Version}),
+ zarafa-client (= ${binary:Version})
 Description: License Daemon for the Zarafa Collaboration Platform
  This package adds a licensing daemon to the Zarafa Collaboration
  Platform. This daemon is needed to run propietary add-ons, like the
@@ -210,7 +302,9 @@ Architecture: any
 Section: non-free/mail
 Conflicts: zarafa-licensed (<< 7.2)
 Replaces: zarafa-licensed (<< 7.2)
-Depends: ${shlibs:Depends}, lsb-base, zarafa-client (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ lsb-base,
+ zarafa-client (= ${binary:Version})
 Description: Brick-level backup and restore tools for the Zarafa Collaboration Platform
  Make a brick-level backup of stores in Zarafa and make selective
  restores of that data.
@@ -221,7 +315,11 @@ Architecture: any
 Section: non-free/mail
 Conflicts: zarafa-licensed (<< 7.2)
 Replaces: zarafa-licensed (<< 7.2)
-Depends: ${shlibs:Depends}, zarafa-server (= ${binary:Version}), zarafa-client (= ${binary:Version}), zarafa-licensed (= ${binary:Version}), python-mapi (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-server (= ${binary:Version}),
+ zarafa-client (= ${binary:Version}),
+ zarafa-licensed (= ${binary:Version}),
+ python-mapi (= ${binary:Version})
 Description: Multiserver LDAP plugin and tools
  Adds the ldapms plugin possebility to server setups for multiserver
  setups using LDAP or ADS. Users may be moved to different servers
@@ -229,19 +327,38 @@ Description: Multiserver LDAP plugin and tools
 
 Package: zarafa-search-plus
 Architecture: any
-Conflicts: zarafa-indexer, zarafa-search
-Replaces: zarafa-indexer, zarafa-search
-Depends: ${shlibs:Depends}, python-zarafa, python-xapian, lsb-base, coreutils (>= 5.93), mktemp (>= 1.5), bash (>= 3.0), gawk, w3m, xsltproc, poppler-utils, unzip, file, catdoc
+Conflicts: zarafa-indexer,
+ zarafa-search
+Replaces: zarafa-indexer,
+ zarafa-search
+Depends: ${shlibs:Depends},
+ python-zarafa,
+ python-xapian,
+ lsb-base,
+ coreutils (>= 5.93),
+ mktemp (>= 1.5),
+ bash (>= 3.0),
+ gawk,
+ w3m,
+ xsltproc,
+ poppler-utils,
+ unzip,
+ file,
+ catdoc
 Description: zarafa indexer using the xapian search engine
 
 Package: zarafa-presence
 Architecture: any
-Depends: ${shlibs:Depends}, python-zarafa, python-flask, python-sleekxmpp
+Depends: ${shlibs:Depends},
+ python-zarafa,
+ python-flask,
+ python-sleekxmpp
 Description: zarafa presence daemon
 
 Package: zarafa-archiver
 Architecture: any
-Depends: ${shlibs:Depends}, zarafa-libarchiver (= ${binary:Version})
+Depends: ${shlibs:Depends},
+ zarafa-libarchiver (= ${binary:Version})
 Description: Archive messages to a secondary Zarafa server
  To decrease the database size of your production Zarafa server, the
  Zarafa Archiver copies or moves messages to a secondary Zarafa
@@ -251,7 +368,8 @@ Description: Archive messages to a secondary Zarafa server
 Package: zarafa-archiver-extra
 Architecture: all
 Section: non-free/mail
-Depends: python-mapi (= ${binary:Version}), python-zcp-license (= ${binary:Version})
+Depends: python-mapi (= ${binary:Version}),
+ python-zcp-license (= ${binary:Version})
 Description: Extra tools to enhance the zarafa-archiver feature set
  Provides za-aclsync to propagate ACL settings in a users primary store
  to his archive(s).
@@ -259,7 +377,8 @@ Description: Extra tools to enhance the zarafa-archiver feature set
 Package: pacemaker-zarafa
 Architecture: any
 Section: admin
-Depends: ${shlibs:Depends}, pacemaker
+Depends: ${shlibs:Depends},
+ pacemaker
 Description: Provides pacemaker OCF startup scripts
  For all the zarafa services available an ocf script is installed
  integrated in your pacemaker installation.
@@ -267,7 +386,12 @@ Description: Provides pacemaker OCF startup scripts
 Package: zarafa-ws
 Architecture: any
 Section: non-free/mail
-Depends: python-mapi (>= 7.2), zarafa-contacts (>= 7.2), python-flask, python-dateutil, python-openssl, zarafa-common (>= 7.2)
+Depends: python-mapi (>= 7.2),
+ zarafa-contacts (>= 7.2),
+ python-flask,
+ python-dateutil,
+ python-openssl,
+ zarafa-common (>= 7.2)
 Description: The Zarafa implementation of the Exchange Web Services protocol
  This allows a broad scala of mail, contact and calendar clients that
  support EWS to connect with Zarafa without modification or additional
