@@ -111,7 +111,7 @@ install-indep:
 
 	# install web access
 	$(MAKE) DESTDIR=$(WADIR) install-ajax-webaccess
-	(cd webaccess-plugins ; tar cf - `find . -maxdepth 1 -type d`) | (cd $(WADIR)/var/lib/zarafa-webaccess/plugins ; tar xSf -)
+	(cd webaccess-plugins && tar cf - `find . -maxdepth 1 -type d`) | (cd $(WADIR)/var/lib/zarafa-webaccess/plugins && tar xSf -)
 	rm -rf $(WADIR)/var/lib/zarafa-webaccess/plugins/spreed/test $(WADIR)/var/lib/zarafa-webaccess/plugins/spreed.*
 
 	# let's not package these
